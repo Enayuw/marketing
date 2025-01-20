@@ -12,7 +12,7 @@ public class CarClueInfoExample {
     protected List<Criteria> oredCriteria;
 
     public CarClueInfoExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class CarClueInfoExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -932,6 +932,66 @@ public class CarClueInfoExample {
 
         public Criteria andClueMatchSeriesNotBetween(String value1, String value2) {
             addCriterion("clue_match_series not between", value1, value2, "clueMatchSeries");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeIsNull() {
+            addCriterion("match_brand_series_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeIsNotNull() {
+            addCriterion("match_brand_series_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeEqualTo(Integer value) {
+            addCriterion("match_brand_series_type =", value, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeNotEqualTo(Integer value) {
+            addCriterion("match_brand_series_type <>", value, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeGreaterThan(Integer value) {
+            addCriterion("match_brand_series_type >", value, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("match_brand_series_type >=", value, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeLessThan(Integer value) {
+            addCriterion("match_brand_series_type <", value, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("match_brand_series_type <=", value, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeIn(List<Integer> values) {
+            addCriterion("match_brand_series_type in", values, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeNotIn(List<Integer> values) {
+            addCriterion("match_brand_series_type not in", values, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeBetween(Integer value1, Integer value2) {
+            addCriterion("match_brand_series_type between", value1, value2, "matchBrandSeriesType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchBrandSeriesTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("match_brand_series_type not between", value1, value2, "matchBrandSeriesType");
             return (Criteria) this;
         }
 
@@ -2316,8 +2376,9 @@ public class CarClueInfoExample {
         }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

@@ -7,10 +7,7 @@ package com.br.marketing.service.Impl.carclue;
  */
 public interface ChannelRelationalService {
 
-
     void getProvinceAndCity();
-
-    void getBrandAndSeries();
 
     void relationalMapping();
 }

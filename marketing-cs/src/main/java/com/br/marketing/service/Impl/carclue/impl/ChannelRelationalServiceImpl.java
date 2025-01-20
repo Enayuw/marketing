@@ -1,8 +1,24 @@
 package com.br.marketing.service.Impl.carclue.impl;
 
+import java.time.LocalDate;
+import java.util.Date;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.carclue.CarClueClient;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.CarClueProvincesInformation;
+import com.br.marketing.entity.CarClueSeriesInformation;
+import com.br.marketing.mapper.CarClueProvincesInformationMapper;
+import com.br.marketing.mapper.CarClueSeriesInformationMapper;
 import com.br.marketing.service.Impl.carclue.ChannelRelationalService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 
 /**
  * @ClassName ChannelRelationalServiceImpl
@@ -13,15 +29,141 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class ChannelRelationalServiceImpl implements ChannelRelationalService {
+
+    @Resource
+    CarClueClient carClueClient;
+    @Resource
+    CarClueProvincesInformationMapper carClueProvincesInformationMapper;
+    @Resource
+    CarClueSeriesInformationMapper carClueSeriesInformationMapper;
+
     @Override
     public void getProvinceAndCity() {
-        //调用省市接口
-        //存储省市数据
+        //省市信息
+        buildZjCity();
+        buildYcCity();
+        //车辆信息
+        buildZjCar();
+        buildYcCar();
     }
 
-    @Override
-    public void getBrandAndSeries() {
+    private void buildZjCity() {
+        Result<JSONArray> zjCityResult = carClueClient.getZjCity();
+        JSONArray jsonArray = new JSONArray();
+        if (ResultCode.SUCCESS.getValue().equals(zjCityResult.getCode())) {
+            jsonArray = zjCityResult.getData();
+        } else {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
+                    , "车线索-之家，省市调用异常,result= " + zjCityResult.getMessage()));
+        }
+        Integer provinceId;
+        String provinceName;
+        if (jsonArray != null && !jsonArray.isEmpty()) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject firstData = jsonArray.getJSONObject(i);
+                provinceId = firstData.getInteger("id");
+                provinceName = firstData.getString("name");
+                JSONArray nodesArray = firstData.getJSONArray("nodes");
+                for (int j = 0; j < nodesArray.size(); j++) {
+                    JSONObject node = nodesArray.getJSONObject(j);
+                    Integer cityId = node.getInteger("id");
+                    String cityName = node.getString("name");
+                    CarClueProvincesInformation carClueProvincesInformation = new CarClueProvincesInformation();
+                    carClueProvincesInformation.setProvincesType("1");
+                    carClueProvincesInformation.setProvinceId(provinceId);
+                    carClueProvincesInformation.setProvinceName(provinceName);
+                    carClueProvincesInformation.setCityId(cityId);
+                    carClueProvincesInformation.setCityName(cityName);
+                    carClueProvincesInformation.setAppletDate(LocalDate.now().toString());
+                    carClueProvincesInformation.setCreateTime(new Date());
+                    carClueProvincesInformation.setUpdateTime(new Date());
+                    carClueProvincesInformationMapper.insertSelective(carClueProvincesInformation);
+                }
+            }
+        }
+    }
 
+    private void buildYcCity() {
+        Result<JSONArray> ycCityResult = carClueClient.getYcCity();
+        JSONArray jsonArray = new JSONArray();
+        if (ResultCode.SUCCESS.getValue().equals(ycCityResult.getCode())) {
+            jsonArray = ycCityResult.getData();
+        } else {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
+                    , "车线索-易车，省市调用异常,result= " + ycCityResult.getMessage()));
+        }
+        if (jsonArray != null && !jsonArray.isEmpty()) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject firstData = jsonArray.getJSONObject(i);
+                CarClueProvincesInformation carClueProvincesInformation = new CarClueProvincesInformation();
+                carClueProvincesInformation.setProvincesType("0");
+                carClueProvincesInformation.setProvinceId(firstData.getInteger("provinceId"));
+                carClueProvincesInformation.setProvinceName(firstData.getString("provinceName"));
+                carClueProvincesInformation.setCityId(firstData.getInteger("cityId"));
+                carClueProvincesInformation.setCityName(firstData.getString("cityName"));
+                carClueProvincesInformation.setAppletDate(LocalDate.now().toString());
+                carClueProvincesInformation.setCreateTime(new Date());
+                carClueProvincesInformation.setUpdateTime(new Date());
+                carClueProvincesInformationMapper.insertSelective(carClueProvincesInformation);
+
+            }
+        }
+    }
+
+    private void buildZjCar() {
+        Result<JSONArray> zjCarResult = carClueClient.getZjCar();
+
+        JSONArray jsonArray = new JSONArray();
+        if (ResultCode.SUCCESS.getValue().equals(zjCarResult.getCode())) {
+            jsonArray = zjCarResult.getData();
+        } else {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
+                    , "车线索-之家，车辆信息获取异常,result= " + zjCarResult.getMessage()));
+        }
+        if (jsonArray != null && !jsonArray.isEmpty()) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject firstData = jsonArray.getJSONObject(i);
+                CarClueSeriesInformation carClueSeriesInformation = new CarClueSeriesInformation();
+                carClueSeriesInformation.setSeriesType("1");
+                carClueSeriesInformation.setBrandId(firstData.getInteger("brand_id"));
+                carClueSeriesInformation.setBrandName(firstData.getString("brand_name"));
+                carClueSeriesInformation.setSubBrandId(firstData.getInteger("son_brand_id"));
+                carClueSeriesInformation.setSubBrandName(firstData.getString("son_brand_name"));
+                carClueSeriesInformation.setSeriesId(firstData.getInteger("series_id"));
+                carClueSeriesInformation.setSeriesName(firstData.getString("series_name"));
+                carClueSeriesInformation.setAppletDate(LocalDate.now().toString());
+                carClueSeriesInformation.setCreateTime(new Date());
+                carClueSeriesInformation.setUpdateTime(new Date());
+                carClueSeriesInformationMapper.insertSelective(carClueSeriesInformation);
+            }
+        }
+    }
+
+    private void buildYcCar() {
+        Result<JSONArray> ycCarResult = carClueClient.getYcCar();
+
+        JSONArray jsonArray = new JSONArray();
+        if (ResultCode.SUCCESS.getValue().equals(ycCarResult.getCode())) {
+            jsonArray = ycCarResult.getData();
+        } else {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
+                    , "车线索-易车，车辆信息获取异常,result= " + ycCarResult.getMessage()));
+        }
+        if (jsonArray != null && !jsonArray.isEmpty()) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject firstData = jsonArray.getJSONObject(i);
+                CarClueSeriesInformation carClueSeriesInformation = new CarClueSeriesInformation();
+                carClueSeriesInformation.setSeriesType("0");
+                carClueSeriesInformation.setBrandId(firstData.getInteger("brandId"));
+                carClueSeriesInformation.setBrandName(firstData.getString("brandName"));
+                carClueSeriesInformation.setSeriesId(firstData.getInteger("seriesId"));
+                carClueSeriesInformation.setSeriesName(firstData.getString("seriesName"));
+                carClueSeriesInformation.setAppletDate(LocalDate.now().toString());
+                carClueSeriesInformation.setCreateTime(new Date());
+                carClueSeriesInformation.setUpdateTime(new Date());
+                carClueSeriesInformationMapper.insertSelective(carClueSeriesInformation);
+            }
+        }
     }
 
     @Override

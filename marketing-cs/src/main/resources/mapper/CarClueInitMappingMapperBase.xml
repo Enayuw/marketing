@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.CarClueInitMappingMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CarClueInitMapping">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="brand_name" jdbcType="VARCHAR" property="brandName" />
+    <result column="series_name" jdbcType="VARCHAR" property="seriesName" />
+    <result column="satisfy_province_name" jdbcType="VARCHAR" property="satisfyProvinceName" />
+    <result column="satisfy_city_name" jdbcType="VARCHAR" property="satisfyCityName" />
+    <result column="exclude_province_name" jdbcType="VARCHAR" property="excludeProvinceName" />
+    <result column="exclude_city_name" jdbcType="VARCHAR" property="excludeCityName" />
+    <result column="province_type" jdbcType="VARCHAR" property="provinceType" />
+    <result column="applet_date" jdbcType="VARCHAR" property="appletDate" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="is_del" jdbcType="INTEGER" property="isDel" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, api_code, brand_name, series_name, satisfy_province_name, satisfy_city_name, 
+    exclude_province_name, exclude_city_name, province_type, applet_date, create_time, 
+    update_time, is_del
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.CarClueInitMappingExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_car_clue_init_mapping
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_car_clue_init_mapping
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_car_clue_init_mapping
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CarClueInitMappingExample">
+    delete from b_car_clue_init_mapping
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CarClueInitMapping" useGeneratedKeys="true">
+    insert into b_car_clue_init_mapping (api_code, brand_name, series_name, 
+      satisfy_province_name, satisfy_city_name, exclude_province_name, 
+      exclude_city_name, province_type, applet_date, 
+      create_time, update_time, is_del
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{brandName,jdbcType=VARCHAR}, #{seriesName,jdbcType=VARCHAR}, 
+      #{satisfyProvinceName,jdbcType=VARCHAR}, #{satisfyCityName,jdbcType=VARCHAR}, #{excludeProvinceName,jdbcType=VARCHAR}, 
+      #{excludeCityName,jdbcType=VARCHAR}, #{provinceType,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CarClueInitMapping" useGeneratedKeys="true">
+    insert into b_car_clue_init_mapping
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        api_code,
+      </if>
+      <if test="brandName != null">
+        brand_name,
+      </if>
+      <if test="seriesName != null">
+        series_name,
+      </if>
+      <if test="satisfyProvinceName != null">
+        satisfy_province_name,
+      </if>
+      <if test="satisfyCityName != null">
+        satisfy_city_name,
+      </if>
+      <if test="excludeProvinceName != null">
+        exclude_province_name,
+      </if>
+      <if test="excludeCityName != null">
+        exclude_city_name,
+      </if>
+      <if test="provinceType != null">
+        province_type,
+      </if>
+      <if test="appletDate != null">
+        applet_date,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="isDel != null">
+        is_del,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="brandName != null">
+        #{brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="seriesName != null">
+        #{seriesName,jdbcType=VARCHAR},
+      </if>
+      <if test="satisfyProvinceName != null">
+        #{satisfyProvinceName,jdbcType=VARCHAR},
+      </if>
+      <if test="satisfyCityName != null">
+        #{satisfyCityName,jdbcType=VARCHAR},
+      </if>
+      <if test="excludeProvinceName != null">
+        #{excludeProvinceName,jdbcType=VARCHAR},
+      </if>
+      <if test="excludeCityName != null">
+        #{excludeCityName,jdbcType=VARCHAR},
+      </if>
+      <if test="provinceType != null">
+        #{provinceType,jdbcType=VARCHAR},
+      </if>
+      <if test="appletDate != null">
+        #{appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDel != null">
+        #{isDel,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.CarClueInitMappingExample" resultType="java.lang.Long">
+    select count(*) from b_car_clue_init_mapping
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_car_clue_init_mapping
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.brandName != null">
+        brand_name = #{record.brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.seriesName != null">
+        series_name = #{record.seriesName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.satisfyProvinceName != null">
+        satisfy_province_name = #{record.satisfyProvinceName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.satisfyCityName != null">
+        satisfy_city_name = #{record.satisfyCityName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.excludeProvinceName != null">
+        exclude_province_name = #{record.excludeProvinceName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.excludeCityName != null">
+        exclude_city_name = #{record.excludeCityName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.provinceType != null">
+        province_type = #{record.provinceType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.appletDate != null">
+        applet_date = #{record.appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.isDel != null">
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_car_clue_init_mapping
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      brand_name = #{record.brandName,jdbcType=VARCHAR},
+      series_name = #{record.seriesName,jdbcType=VARCHAR},
+      satisfy_province_name = #{record.satisfyProvinceName,jdbcType=VARCHAR},
+      satisfy_city_name = #{record.satisfyCityName,jdbcType=VARCHAR},
+      exclude_province_name = #{record.excludeProvinceName,jdbcType=VARCHAR},
+      exclude_city_name = #{record.excludeCityName,jdbcType=VARCHAR},
+      province_type = #{record.provinceType,jdbcType=VARCHAR},
+      applet_date = #{record.appletDate,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_del = #{record.isDel,jdbcType=INTEGER}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CarClueInitMapping">
+    update b_car_clue_init_mapping
+    <set>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="brandName != null">
+        brand_name = #{brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="seriesName != null">
+        series_name = #{seriesName,jdbcType=VARCHAR},
+      </if>
+      <if test="satisfyProvinceName != null">
+        satisfy_province_name = #{satisfyProvinceName,jdbcType=VARCHAR},
+      </if>
+      <if test="satisfyCityName != null">
+        satisfy_city_name = #{satisfyCityName,jdbcType=VARCHAR},
+      </if>
+      <if test="excludeProvinceName != null">
+        exclude_province_name = #{excludeProvinceName,jdbcType=VARCHAR},
+      </if>
+      <if test="excludeCityName != null">
+        exclude_city_name = #{excludeCityName,jdbcType=VARCHAR},
+      </if>
+      <if test="provinceType != null">
+        province_type = #{provinceType,jdbcType=VARCHAR},
+      </if>
+      <if test="appletDate != null">
+        applet_date = #{appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDel != null">
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CarClueInitMapping">
+    update b_car_clue_init_mapping
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      brand_name = #{brandName,jdbcType=VARCHAR},
+      series_name = #{seriesName,jdbcType=VARCHAR},
+      satisfy_province_name = #{satisfyProvinceName,jdbcType=VARCHAR},
+      satisfy_city_name = #{satisfyCityName,jdbcType=VARCHAR},
+      exclude_province_name = #{excludeProvinceName,jdbcType=VARCHAR},
+      exclude_city_name = #{excludeCityName,jdbcType=VARCHAR},
+      province_type = #{provinceType,jdbcType=VARCHAR},
+      applet_date = #{appletDate,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_del = #{isDel,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
