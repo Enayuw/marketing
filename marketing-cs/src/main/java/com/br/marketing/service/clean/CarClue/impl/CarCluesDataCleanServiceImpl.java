@@ -118,7 +118,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                             carClueInfo.setCustNum(callRecord.getCaseNum());
                             carClueInfo.setCell(callRecord.getCaseNum());
                             carClueInfo.setIntention(intentionGrade);
-                            carClueInfo.setRecordingpath(callRecord.getRecordingPath());
+                            carClueInfo.setRecordingPath(callRecord.getRecordingPath());
                             carClueInfo.setBrand(carBrand);
                             carClueInfo.setSeries(carSeries);
                             carClueInfo.setCell(phone);
@@ -157,11 +157,10 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                     // 上传入库apiCode
                     uploadDataDTO.setApiCode(apiCode);
                     uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
-                    updateCallRecordLogStatus(successRecordIds, 2);
-                    updateCallRecordLogStatus(failRecordIds, 3);
                     pushInfoService.pushUploadByRetry(uploadDataDTO, null);
                     carClueInfoMapper.batchInsert(carClueInfos);
-
+                    updateCallRecordLogStatus(successRecordIds, 2);
+                    updateCallRecordLogStatus(failRecordIds, 3);
                 });
             }
         } catch (Exception e) {
