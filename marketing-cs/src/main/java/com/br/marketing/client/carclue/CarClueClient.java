@@ -40,6 +40,65 @@ public class CarClueClient {
     @Resource
     private HttpProxyClient httpProxyClient;
 
+    /**
+     * 获取之家城市
+     * @return
+     * {
+     *     "code": 1,
+     *     "data": [
+     *         {
+     *             "nodes": [
+     *                 {
+     *                     "name": "石家庄",
+     *                     "id": 37
+     *                 },
+     *                 {
+     *                     "name": "廊坊",
+     *                     "id": 61
+     *                 },
+     *                 {
+     *                     "name": "衡水",
+     *                     "id": 72
+     *                 },
+     *                 {
+     *                     "name": "唐山",
+     *                     "id": 84
+     *                 },
+     *                 {
+     *                     "name": "秦皇岛",
+     *                     "id": 99
+     *                 },
+     *                 {
+     *                     "name": "邯郸",
+     *                     "id": 107
+     *                 },
+     *                 {
+     *                     "name": "邢台",
+     *                     "id": 127
+     *                 },
+     *                 {
+     *                     "name": "保定",
+     *                     "id": 147
+     *                 },
+     *                 {
+     *                     "name": "张家口",
+     *                     "id": 173
+     *                 },
+     *                 {
+     *                     "name": "承德",
+     *                     "id": 191
+     *                 },
+     *                 {
+     *                     "name": "沧州",
+     *                     "id": 203
+     *                 }
+     *             ],
+     *             "name": "河北",
+     *             "id": 36
+     *         }
+     *     ]
+     * }
+     */
     public Result<JSONArray> getZjCity() {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String zjChannelId = jo.getString("zjChannelId");
@@ -100,6 +159,23 @@ public class CarClueClient {
         }
     }
 
+    /**
+     * 获取之家车型
+     * @return
+     * {
+     *     "code": 1,
+     *     "data": [
+     *         {
+     *             "son_brand_id": 779,
+     *             "series_name": "奥迪Q7",
+     *             "brand_name": "奥迪",
+     *             "son_brand_name": "奥迪进口",
+     *             "brand_id": 565,
+     *             "series_id": 2542
+     *         }
+     *         ]
+     * }
+     */
     public Result<JSONArray> getZjCar() {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String zjChannelId = jo.getString("zjChannelId");
@@ -108,6 +184,21 @@ public class CarClueClient {
         return getCar(zjChannelId, zjChannelKey, zjTask);
     }
 
+    /**
+     * 获取易车车型
+     * @return
+     * {
+     *     "code": 1,
+     *     "data": [
+     *         {
+     *             "brandName": "辅恒汽车",
+     *             "seriesName": "景飞牌雅典纳",
+     *             "brandId": 767,
+     *             "seriesId": 10513
+     *         }
+     *         ]
+     * }
+     */
     public Result<JSONArray> getYcCar() {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String ycChannelId = jo.getString("ycChannelId");
