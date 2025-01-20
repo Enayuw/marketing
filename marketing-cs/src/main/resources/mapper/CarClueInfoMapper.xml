@@ -3,59 +3,69 @@
 <mapper namespace="com.br.marketing.mapper.CarClueInfoMapper" >
 
     <select id="selectList" resultType="com.br.marketing.vo.CarClueInfoVo">
-        select id, api_code
-        , cust_num as custNum
-        , DATE_FORMAT(bcci.create_time,'%Y-%m-%d') as appletDate
-        , clue_id as clueId
-        , clue_data_status as clueDataStatus
-        , intention
-        , brand
-        , series
-        , city
-        , cell
-        , DATE_FORMAT(bcci.clean_time,'%Y-%m-%d %H:%i:%s') as cleanTime
-        ,DATE_FORMAT(bcci.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
-        , clue_push_channel as cluePushChannel
-        , clue_push_status as cluePushStatus
-        , DATE_FORMAT(bcci.push_time,'%Y-%m-%d %H:%i:%s') as pushTime
-        , DATE_FORMAT(bcci.call_back_time,'%Y-%m-%d %H:%i:%s') as callBackTime
+        select
+        bcci.id,
+        bcci.api_code,
+        bcci.cust_num as custNum,
+        DATE_FORMAT(bcci.create_time, '%Y-%m-%d') as appletDate,
+        bcci.clue_id as clueId,
+        bcci.clue_data_status as clueDataStatus,
+        bcci.intention,
+        bcci.brand,
+        bcci.series,
+        bcci.city,
+        bcci.cell,
+        DATE_FORMAT(bcci.clean_time, '%Y-%m-%d %H:%i:%s') as cleanTime,
+        DATE_FORMAT(bcci.update_time, '%Y-%m-%d %H:%i:%s') as updateTime,
+        bcci.clue_push_channel as cluePushChannel,
+        bcci.clue_push_status as cluePushStatus,
+        DATE_FORMAT(bcci.push_time, '%Y-%m-%d %H:%i:%s') as pushTime,
+        DATE_FORMAT(bcci.call_back_time, '%Y-%m-%d %H:%i:%s') as callBackTime,
+        COALESCE(bcrl.status, 0) as status
         from b_car_clue_info bcci
+        left join b_call_record_log bcrl on bcci.id = bcrl.record_id
         <where>
-            <if test="createTimeStart !=null and createTimeStart!=''">
-                <![CDATA[  and bcci.create_time >=#{createTimeStart} ]]>
+            <if test="createTimeStart != null and createTimeStart != ''">
+                <![CDATA[ and bcci.create_time >= #{createTimeStart} ]]>
             </if>
-            <if test="createTimeEnd !=null and createTimeEnd!=''">
-                <![CDATA[  and bcci.create_time <#{createTimeEnd} ]]>
+            <if test="createTimeEnd != null and createTimeEnd != ''">
+                <![CDATA[ and bcci.create_time < #{createTimeEnd} ]]>
             </if>
-            <if test="intention !=null and intention!=''">
-                and bcci.intention =  #{intention}
+            <if test="intention != null and intention != ''">
+                and bcci.intention = #{intention}
             </if>
-            <if test="clueDataStatus !=null and clueDataStatus!=''">
-                and bcci.clue_data_status =  #{clueDataStatus}
+            <if test="clueDataStatus != null and clueDataStatus != ''">
+                and bcci.clue_data_status = #{clueDataStatus}
             </if>
-            <if test="updateTimeStart !=null and updateTimeStart!=''">
-                <![CDATA[  and bcci.update_time >=#{updateTimeStart} ]]>
+            <if test="updateTimeStart != null and updateTimeStart != ''">
+                <![CDATA[ and bcci.update_time >= #{updateTimeStart} ]]>
             </if>
-            <if test="updateTimeEnd !=null and updateTimeEnd!=''">
-                <![CDATA[  and bcci.update_time <#{updateTimeEnd} ]]>
+            <if test="updateTimeEnd != null and updateTimeEnd != ''">
+                <![CDATA[ and bcci.update_time < #{updateTimeEnd} ]]>
             </if>
-            <if test="cluePushChannel !=null and cluePushChannel!=''">
-                and bcci.clue_push_channel =  #{cluePushChannel}
+            <if test="cluePushChannel != null and cluePushChannel != ''">
+                and bcci.clue_push_channel = #{cluePushChannel}
             </if>
-            <if test="cluePushStatus !=null and cluePushStatus!=''">
-                and bcci.clue_push_status =  #{cluePushStatus}
+            <if test="cluePushChannel == 'fail'">
+                and (bcci.clue_push_channel = '' or bcci.clue_push_channel is null)
             </if>
-            <if test="pushTimeStart !=null and pushTimeStart!=''">
-                <![CDATA[  and bcci.push_time >=#{pushTimeStart} ]]>
+            <if test="cluePushStatus != null and cluePushStatus != ''">
+                and bcci.clue_push_status = #{cluePushStatus}
             </if>
-            <if test="pushTimeEnd !=null and pushTimeEnd!=''">
-                <![CDATA[  and bcci.push_time <#{pushTimeEnd} ]]>
+            <if test="pushTimeStart != null and pushTimeStart != ''">
+                <![CDATA[ and bcci.push_time >= #{pushTimeStart} ]]>
             </if>
-            <if test="callBackTimeStart !=null and callBackTimeStart!=''">
-                <![CDATA[  and bcci.call_back_time >=#{callBackTimeStart} ]]>
+            <if test="pushTimeEnd != null and pushTimeEnd != ''">
+                <![CDATA[ and bcci.push_time < #{pushTimeEnd} ]]>
             </if>
-            <if test="callBackTimeEnd !=null and callBackTimeEnd!=''">
-                <![CDATA[  and bcci.call_back_time <#{callBackTimeEnd} ]]>
+            <if test="status != null and status != ''">
+                and bcrl.status = #{status}
+            </if>
+            <if test="callBackTimeStart != null and callBackTimeStart != ''">
+                <![CDATA[ and bcci.call_back_time >= #{callBackTimeStart} ]]>
+            </if>
+            <if test="callBackTimeEnd != null and callBackTimeEnd != ''">
+                <![CDATA[ and bcci.call_back_time < #{callBackTimeEnd} ]]>
             </if>
         </where>
         order by bcci.create_time desc
@@ -153,5 +163,18 @@
         </foreach>
     </update>
 
+    <select id="getCarInfoLike" resultType="com.br.marketing.vo.CarClueInfoVo">
+        select id,api_code,brand,series,city
+        from b_car_clue_info bcci
+        <where>
+            bcci.status = 1
+            <if test="search !=null and search!=''">
+                and (bcci.brand like concat("%", #{search},"%")
+                or bcci.series like concat("%", #{search},"%")
+                or bcci.city like concat("%", #{search},"%"))
+            </if>
+        </where>
+        order by bcci.id desc
+    </select>
 
 </mapper>

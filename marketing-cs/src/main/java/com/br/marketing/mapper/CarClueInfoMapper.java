@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.vo.CarClueInfoVo;
 import org.apache.ibatis.annotations.Param;
 
@@ -24,4 +25,6 @@ public interface CarClueInfoMapper extends CarClueInfoMapperBase {
 
     List<String> queryApiCodes(@Param("pushStatus")Integer pushStatus,
                                @Param("callBackStatus")Integer callBackStatus);
+
+    List<CarClueInfoVo> getCarInfoLike(@Param("search") String search);
 }

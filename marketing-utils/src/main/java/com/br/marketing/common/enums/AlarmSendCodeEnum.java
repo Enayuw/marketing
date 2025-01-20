@@ -272,6 +272,8 @@ public enum AlarmSendCodeEnum {
 
     ES_RETRY_DATAERROR("6040001", "ES补推数据异常"),
 
+    HX_CAR_CLUE_INTERFACE("6041001", "海星车线索接口异常"),
+
     //萨摩耶定制业务异常,立即推送
     SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR("6041001", "萨摩耶定制上传业务异常"),
     SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR("6041002", "萨摩耶定制转化业务异常"),

@@ -7,6 +7,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.carclue.CarClueClient;
+import com.br.marketing.client.carclue.dto.HxClueCommitDTO;
 import com.br.marketing.client.hxchannel.HxChannelClient;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -154,6 +155,21 @@ public class RedisController {
             } else if ("car".equals(interfaceType)) {
                 Result<JSONArray> ycCar = carClueClient.getYcCar();
                 return JSON.toJSONString(ycCar);
+            } else if ("commit".equals(interfaceType)) {
+                HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
+                hxClueCommitDTO.setChannelId("umOFo6Lmtx7z8Xpk");
+                hxClueCommitDTO.setPhone("13000000000");
+                hxClueCommitDTO.setMember("马");
+                hxClueCommitDTO.setProvence("贵州省");
+                hxClueCommitDTO.setCity("贵阳");
+                hxClueCommitDTO.setBrand("东风奕派");
+                hxClueCommitDTO.setSeries("eπ007");
+                hxClueCommitDTO.setSeriesId(10553);
+                hxClueCommitDTO.setPushTask("7-1");
+                hxClueCommitDTO.setSoundUrl("123");
+                hxClueCommitDTO.setBuyTime("2025-04-20");
+                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp");
+                return JSON.toJSONString(clueRes);
             }
         } else if ("zj".equals(carType)) {
             if ("city".equals(interfaceType)) {

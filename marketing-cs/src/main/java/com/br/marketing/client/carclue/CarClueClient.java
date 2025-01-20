@@ -3,18 +3,27 @@ package com.br.marketing.client.carclue;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
-import com.br.marketing.client.carclue.dto.HxInterfaceConfigDTO;
+import com.br.marketing.client.carclue.dto.HxClueCommitDTO;
+import com.br.marketing.client.carclue.vo.ClueDetailVO;
+import com.br.marketing.client.carclue.vo.ClueResVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.ApiRecordLogDTO;
+import com.br.marketing.enums.ApiNmEnum;
+import com.br.marketing.service.IInterfaceLogService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.beans.BeanMap;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.net.URLEncoder;
@@ -34,69 +43,117 @@ public class CarClueClient {
     @Value(value = "${api.hxCar.carList:'http://haoyunlailai.cn:6001/open_api/v1/car_list'}")
     private String carList;
 
+    @Value(value = "${api.hxCar.commitClue:'http://haoyunlailai.cn:6001/open_api/v1/test_commit_clue'}")
+    private String commitClue;
+
     @Value("${api.biocloo.isProxy:true}")
     private Boolean isProxy;
+
+    @Resource
+    IInterfaceLogService iInterfaceLogService;
 
     @Resource
     private HttpProxyClient httpProxyClient;
 
     /**
-     * 获取之家城市
+     * 线索上报接口
+     *
+     * @param dto
+     * @param channelKey
      * @return
+     */
+    public Result<String> commitClue(HxClueCommitDTO dto, String channelKey) {
+
+        try {
+            BeanMap beanMap = BeanMap.create(dto);
+            String sign = generateSign(beanMap, channelKey);
+            dto.setSign(sign);
+            ApiRecordLogDTO record = iInterfaceLogService.isRecord(ApiNmEnum.CARCLUECOMMIT);
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(dto
+                    , commitClue
+                    , isProxy
+                    , MediaType.APPLICATION_JSON_UTF8_VALUE
+                    , ""
+                    , record.getIsDbLog()
+                    , record.getIsFileLog());
+            if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HX_CAR_CLUE_INTERFACE.getCode(),
+                        String.format("请求参数:%s,返回:%s", JSON.toJSONString(dto), JSON.toJSONString(resMap)), "调用海星车线索【线索提交】接口异常"));
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+            }
+            String content = resMap.get("content");
+            ClueResVO<ClueDetailVO> resVO = JSON.parseObject(content, new TypeReference<ClueResVO<ClueDetailVO>>() {
+            }.getType());
+            if (Integer.valueOf("20000").equals(resVO.getCode())) {
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resVO.getData().getClueId());
+            }
+
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(resMap));
+
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+    }
+
+
+    /**
+     * 获取之家城市
+     *
+     * @return {
+     * "code": 1,
+     * "data": [
      * {
-     *     "code": 1,
-     *     "data": [
-     *         {
-     *             "nodes": [
-     *                 {
-     *                     "name": "石家庄",
-     *                     "id": 37
-     *                 },
-     *                 {
-     *                     "name": "廊坊",
-     *                     "id": 61
-     *                 },
-     *                 {
-     *                     "name": "衡水",
-     *                     "id": 72
-     *                 },
-     *                 {
-     *                     "name": "唐山",
-     *                     "id": 84
-     *                 },
-     *                 {
-     *                     "name": "秦皇岛",
-     *                     "id": 99
-     *                 },
-     *                 {
-     *                     "name": "邯郸",
-     *                     "id": 107
-     *                 },
-     *                 {
-     *                     "name": "邢台",
-     *                     "id": 127
-     *                 },
-     *                 {
-     *                     "name": "保定",
-     *                     "id": 147
-     *                 },
-     *                 {
-     *                     "name": "张家口",
-     *                     "id": 173
-     *                 },
-     *                 {
-     *                     "name": "承德",
-     *                     "id": 191
-     *                 },
-     *                 {
-     *                     "name": "沧州",
-     *                     "id": 203
-     *                 }
-     *             ],
-     *             "name": "河北",
-     *             "id": 36
-     *         }
-     *     ]
+     * "nodes": [
+     * {
+     * "name": "石家庄",
+     * "id": 37
+     * },
+     * {
+     * "name": "廊坊",
+     * "id": 61
+     * },
+     * {
+     * "name": "衡水",
+     * "id": 72
+     * },
+     * {
+     * "name": "唐山",
+     * "id": 84
+     * },
+     * {
+     * "name": "秦皇岛",
+     * "id": 99
+     * },
+     * {
+     * "name": "邯郸",
+     * "id": 107
+     * },
+     * {
+     * "name": "邢台",
+     * "id": 127
+     * },
+     * {
+     * "name": "保定",
+     * "id": 147
+     * },
+     * {
+     * "name": "张家口",
+     * "id": 173
+     * },
+     * {
+     * "name": "承德",
+     * "id": 191
+     * },
+     * {
+     * "name": "沧州",
+     * "id": 203
+     * }
+     * ],
+     * "name": "河北",
+     * "id": 36
+     * }
+     * ]
      * }
      */
     public Result<JSONArray> getZjCity() {
@@ -129,7 +186,7 @@ public class CarClueClient {
     private Result<JSONArray> getCity(String channelId, String channelKey, String task) {
 
         try {
-            Map<String, String> data = new HashMap<>();
+            Map<String, Object> data = new HashMap<>();
             data.put("channel_id", channelId);
             data.put("task", task);
 
@@ -141,6 +198,9 @@ public class CarClueClient {
             // 请求异常
             if (!"200".equals(resMap.get("httpcode"))
                     || StringUtils.isBlank(resMap.get("content"))) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HX_CAR_CLUE_INTERFACE.getCode(),
+                        String.format("请求参数:%s,返回:%s", JSON.toJSONString(data), JSON.toJSONString(resMap))
+                        , "调用海星车线索【城市配置】接口异常"));
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
             }
 
@@ -151,8 +211,7 @@ public class CarClueClient {
                         .setCode(ResultCode.SUCCESS.getValue())
                         .setDate(resJo.getJSONArray("data"));
             }
-            return new Result<>()
-                    .setCode(ResultCode.FAIL.getValue());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(resMap));
         } catch (Exception ex) {
             return new Result<>()
                     .setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -161,19 +220,19 @@ public class CarClueClient {
 
     /**
      * 获取之家车型
-     * @return
+     *
+     * @return {
+     * "code": 1,
+     * "data": [
      * {
-     *     "code": 1,
-     *     "data": [
-     *         {
-     *             "son_brand_id": 779,
-     *             "series_name": "奥迪Q7",
-     *             "brand_name": "奥迪",
-     *             "son_brand_name": "奥迪进口",
-     *             "brand_id": 565,
-     *             "series_id": 2542
-     *         }
-     *         ]
+     * "son_brand_id": 779,
+     * "series_name": "奥迪Q7",
+     * "brand_name": "奥迪",
+     * "son_brand_name": "奥迪进口",
+     * "brand_id": 565,
+     * "series_id": 2542
+     * }
+     * ]
      * }
      */
     public Result<JSONArray> getZjCar() {
@@ -186,17 +245,17 @@ public class CarClueClient {
 
     /**
      * 获取易车车型
-     * @return
+     *
+     * @return {
+     * "code": 1,
+     * "data": [
      * {
-     *     "code": 1,
-     *     "data": [
-     *         {
-     *             "brandName": "辅恒汽车",
-     *             "seriesName": "景飞牌雅典纳",
-     *             "brandId": 767,
-     *             "seriesId": 10513
-     *         }
-     *         ]
+     * "brandName": "辅恒汽车",
+     * "seriesName": "景飞牌雅典纳",
+     * "brandId": 767,
+     * "seriesId": 10513
+     * }
+     * ]
      * }
      */
     public Result<JSONArray> getYcCar() {
@@ -210,7 +269,7 @@ public class CarClueClient {
     private Result<JSONArray> getCar(String channelId, String channelKey, String task) {
 
         try {
-            Map<String, String> data = new HashMap<>();
+            Map<String, Object> data = new HashMap<>();
             data.put("channel_id", channelId);
             data.put("task", task);
             data.put("page", "1");
@@ -224,6 +283,9 @@ public class CarClueClient {
             // 请求异常
             if (!"200".equals(resMap.get("httpcode"))
                     || StringUtils.isBlank(resMap.get("content"))) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HX_CAR_CLUE_INTERFACE.getCode(),
+                        String.format("请求参数:%s,返回:%s", JSON.toJSONString(data), JSON.toJSONString(resMap))
+                        , "调用海星车线索【车系配置】接口异常"));
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
             }
 
@@ -234,15 +296,15 @@ public class CarClueClient {
                         .setCode(ResultCode.SUCCESS.getValue())
                         .setDate(resJo.getJSONArray("data"));
             }
-            return new Result<>()
-                    .setCode(ResultCode.FAIL.getValue());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(resMap));
         } catch (Exception ex) {
             return new Result<>()
                     .setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
 
-    private static String param(Map<String, String> data) {
+
+    private static String param(Map<String, Object> data) {
         StringBuilder sb = new StringBuilder();
         for (String key : data.keySet()) {
             if (sb.length() > 0) {
@@ -251,18 +313,18 @@ public class CarClueClient {
             sb.append(key)
                     .append("=")
                     .append("task".equals(key)
-                            ? URLEncoder.encode(data.get(key))
+                            ? URLEncoder.encode(String.valueOf(data.get(key)))
                             : data.get(key));
         }
         return sb.toString();
     }
 
 
-    public static String generateSign(Map<String, String> data, String channelKey) {
+    public static String generateSign(Map<String, Object> data, String channelKey) {
         // 1. 过滤掉空值和 sign 字段
-        Map<String, String> filteredData = new HashMap<>();
-        for (Map.Entry<String, String> entry : data.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().isEmpty() && !"sign".equalsIgnoreCase(entry.getKey())) {
+        Map<String, Object> filteredData = new HashMap<>();
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (entry.getValue() != null && !ObjectUtils.isEmpty(entry.getValue()) && !"sign".equalsIgnoreCase(entry.getKey())) {
                 filteredData.put(entry.getKey().toUpperCase(), entry.getValue()); // 转大写
             }
         }
