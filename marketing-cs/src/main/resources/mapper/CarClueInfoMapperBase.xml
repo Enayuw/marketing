@@ -22,7 +22,7 @@
     <result column="city" property="city" jdbcType="VARCHAR" />
     <result column="clue_match_city_id" property="clueMatchCityId" jdbcType="VARCHAR" />
     <result column="clue_match_city" property="clueMatchCity" jdbcType="VARCHAR" />
-    <result column="recordingPath" property="recordingpath" jdbcType="VARCHAR" />
+    <result column="recording_path" property="recordingpath" jdbcType="VARCHAR" />
     <result column="clue_id" property="clueId" jdbcType="VARCHAR" />
     <result column="clue_push_channel" property="cluePushChannel" jdbcType="VARCHAR" />
     <result column="clue_data_status" property="clueDataStatus" jdbcType="INTEGER" />
@@ -100,7 +100,7 @@
     id, cid, api_code, cust_num, cell, intention, brand, `member`, series, clue_match_brand_id, 
     clue_match_brand, clue_match_series_id, clue_match_series, match_brand_series_type, 
     province, clue_match_province_id, clue_match_province, city, clue_match_city_id, 
-    clue_match_city, recordingPath, clue_id, clue_push_channel, clue_data_status, clue_complete_status, 
+    clue_match_city, recording_path, clue_id, clue_push_channel, clue_data_status, clue_complete_status,
     clue_push_status, clue_callback_status, clue_error_reason, clue_callback_result, 
     extend_info, create_time, clean_time, push_time, call_back_time, update_time
   </sql>
@@ -144,7 +144,7 @@
       clue_match_brand, clue_match_series_id, clue_match_series, 
       match_brand_series_type, province, clue_match_province_id, 
       clue_match_province, city, clue_match_city_id, 
-      clue_match_city, recordingPath, clue_id, 
+      clue_match_city, recording_path, clue_id,
       clue_push_channel, clue_data_status, clue_complete_status, 
       clue_push_status, clue_callback_status, clue_error_reason, 
       clue_callback_result, extend_info, create_time, 
@@ -227,7 +227,7 @@
         clue_match_city,
       </if>
       <if test="recordingpath != null" >
-        recordingPath,
+        recording_path,
       </if>
       <if test="clueId != null" >
         clue_id,
@@ -447,7 +447,7 @@
         clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
       </if>
       <if test="record.recordingpath != null" >
-        recordingPath = #{record.recordingpath,jdbcType=VARCHAR},
+        recording_path = #{record.recordingpath,jdbcType=VARCHAR},
       </if>
       <if test="record.clueId != null" >
         clue_id = #{record.clueId,jdbcType=VARCHAR},
@@ -518,7 +518,7 @@
       city = #{record.city,jdbcType=VARCHAR},
       clue_match_city_id = #{record.clueMatchCityId,jdbcType=VARCHAR},
       clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
-      recordingPath = #{record.recordingpath,jdbcType=VARCHAR},
+      recording_path = #{record.recordingpath,jdbcType=VARCHAR},
       clue_id = #{record.clueId,jdbcType=VARCHAR},
       clue_push_channel = #{record.cluePushChannel,jdbcType=VARCHAR},
       clue_data_status = #{record.clueDataStatus,jdbcType=INTEGER},
@@ -598,7 +598,7 @@
         clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
       </if>
       <if test="recordingpath != null" >
-        recordingPath = #{recordingpath,jdbcType=VARCHAR},
+        recording_path = #{recordingpath,jdbcType=VARCHAR},
       </if>
       <if test="clueId != null" >
         clue_id = #{clueId,jdbcType=VARCHAR},
@@ -666,7 +666,7 @@
       city = #{city,jdbcType=VARCHAR},
       clue_match_city_id = #{clueMatchCityId,jdbcType=VARCHAR},
       clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
-      recordingPath = #{recordingpath,jdbcType=VARCHAR},
+      recording_path = #{recordingpath,jdbcType=VARCHAR},
       clue_id = #{clueId,jdbcType=VARCHAR},
       clue_push_channel = #{cluePushChannel,jdbcType=VARCHAR},
       clue_data_status = #{clueDataStatus,jdbcType=INTEGER},

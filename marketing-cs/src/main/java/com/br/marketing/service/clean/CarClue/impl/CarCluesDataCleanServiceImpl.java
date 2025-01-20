@@ -157,10 +157,11 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                     // 上传入库apiCode
                     uploadDataDTO.setApiCode(apiCode);
                     uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
-                    pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                    carClueInfoMapper.batchInsert(carClueInfos);
                     updateCallRecordLogStatus(successRecordIds, 2);
                     updateCallRecordLogStatus(failRecordIds, 3);
+                    pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                    carClueInfoMapper.batchInsert(carClueInfos);
+
                 });
             }
         } catch (Exception e) {
@@ -202,6 +203,6 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
         callRecordLog.setInboundStatus(status);
         CallRecordLogExample callRecordLogExample = new CallRecordLogExample();
         callRecordLogExample.createCriteria().andRecordIdIn(recordIds);
-        callRecordLogMapper.updateByExample(callRecordLog, callRecordLogExample);
+        callRecordLogMapper.updateByExampleSelective(callRecordLog, callRecordLogExample);
     }
 }

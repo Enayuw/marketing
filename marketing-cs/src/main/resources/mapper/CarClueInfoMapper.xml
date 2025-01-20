@@ -90,6 +90,9 @@
     </select>
 
     <insert id="batchInsert" parameterType="list">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
         INSERT INTO b_car_clue_info (
         cid,
         api_code,
