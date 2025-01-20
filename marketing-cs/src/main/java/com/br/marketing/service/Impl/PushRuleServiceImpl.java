@@ -694,7 +694,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private static void sqlCollect(List<String> querySqls, boolean isPreview, String xcDynaFalsePackageId, String conditions, String batchNumber) {
-        String dynaDataSql = null;
+        String dynaDataSql;
         if (isPreview) {
             dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id in "
                     + xcDynaFalsePackageId;
@@ -767,17 +767,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isEmpty(batchNumber)) {
                 continue;
             }
-            int total = getQueryRuleScoreCountSql(batchNumber);
-            if (total > 40000000) {
-                for (int i = 0; i <= total / 30000000; i++) {
-                    sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, i);
-                }
-            }
+//            int total = getQueryRuleScoreCountSql(batchNumber);
+//            if (total > 40000000) {
+//                for (int i = 0; i <= total / 30000000; i++) {
+//                    sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, i);
+//                }
+//            }
             sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, null);
         }
     }
 
-    private static void sqlCollect(List<String> querySqls, Boolean isPreviewForOpt, String conditions, String batchNumber, Integer pageIndex) {
+    private void sqlCollect(List<String> querySqls, Boolean isPreviewForOpt, String conditions, String batchNumber, Integer pageIndex) {
         String querySql = falseQuerySqlOpt(conditions, batchNumber, pageIndex);
         if (isPreviewForOpt) {
             String queryCountSql = "select count(0) from (" + querySql + ") countSql;";
@@ -787,7 +787,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private static String falseQuerySqlOpt(String conditions, String batchNumber, Integer pageIndex) {
+    private String falseQuerySqlOpt(String conditions, String batchNumber, Integer pageIndex) {
         StringBuilder queryRuleScoreDataSql = new StringBuilder();
         queryRuleScoreDataSql
                 .append("select id, cell, is_delete from b_xiecheng_colliding_")
@@ -797,11 +797,18 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (pageIndex != null) {
             queryRuleScoreDataSql.append(" order by id limit ").append(pageIndex * 30000000).append(", 30000000");
         }
+        List<String> xcDynaFalsePackageIds = marketingCommonConfig.getXcDynaFalsePackageIds();
+        if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
+            xcDynaFalsePackageIds = Arrays.asList("120007");
+        }
+        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream()
+                .collect(Collectors.joining(",", "(", ")"));
         String querySql =
                 "SELECT a.id, a.cell FROM " +
                         "(" + queryRuleScoreDataSql + ") AS a " +
                         "LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0 " +
-                        "LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.is_delete = 0 " +
+                        "LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and package_id in "
+                        + xcDynaFalsePackageIdString + " and c.is_delete = 0 " +
                         "WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0";
         return querySql;
     }
