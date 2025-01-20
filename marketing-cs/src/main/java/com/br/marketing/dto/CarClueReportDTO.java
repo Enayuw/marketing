@@ -13,6 +13,8 @@ public class CarClueReportDTO {
 
     @NotNull(message = "Page size cannot be null")
     private Integer size = 10;
+    @ApiModelProperty(value = "品牌、车系、城市")
+    private String search;
     @ApiModelProperty(value = "上传开始时间")
     private String createTimeStart;
     @ApiModelProperty(value = "上传结束时间")

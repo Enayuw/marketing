@@ -24,6 +24,9 @@
     </select>
 
     <insert id="batchInsert" parameterType="list">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
         INSERT INTO b_call_record_log (
         record_id,
         api_code,

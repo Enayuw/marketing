@@ -96,7 +96,7 @@
     </select>
 
     <select id="cleanDataOfMinId" resultType="java.lang.Long">
-        SELECT min(id)
+        SELECT min(bcr.id)
         FROM b_call_record bcr
                  LEFT JOIN b_call_record_log bcrl
                            ON bcr.id = bcrl.record_id

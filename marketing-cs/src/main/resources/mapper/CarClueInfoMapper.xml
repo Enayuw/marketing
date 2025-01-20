@@ -67,6 +67,11 @@
             <if test="callBackTimeEnd != null and callBackTimeEnd != ''">
                 <![CDATA[ and bcci.call_back_time < #{callBackTimeEnd} ]]>
             </if>
+            <if test="search !=null and search!=''">
+                and (bcci.brand like concat("%", #{search},"%")
+                or bcci.series like concat("%", #{search},"%")
+                or bcci.city like concat("%", #{search},"%"))
+            </if>
         </where>
         order by bcci.create_time desc
     </select>
@@ -85,6 +90,9 @@
     </select>
 
     <insert id="batchInsert" parameterType="list">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
         INSERT INTO b_car_clue_info (
         cid,
         api_code,
@@ -109,6 +117,7 @@
         create_time,
         clean_time,
         push_time,
+        member,
         call_back_time
         )
         VALUES
@@ -147,6 +156,7 @@
             <if test="item.createTime != null">#{item.createTime, jdbcType=TIMESTAMP},</if>
             <if test="item.cleanTime != null">#{item.cleanTime, jdbcType=TIMESTAMP},</if>
             <if test="item.pushTime != null">#{item.pushTime, jdbcType=TIMESTAMP},</if>
+            <if test="item.member != null">#{item.member, jdbcType=VARCHAR},</if>
             <if test="item.callBackTime != null">#{item.callBackTime, jdbcType=TIMESTAMP}</if>
             )
         </foreach>
@@ -163,18 +173,5 @@
         </foreach>
     </update>
 
-    <select id="getCarInfoLike" resultType="com.br.marketing.vo.CarClueInfoVo">
-        select id,api_code,brand,series,city
-        from b_car_clue_info bcci
-        <where>
-            bcci.status = 1
-            <if test="search !=null and search!=''">
-                and (bcci.brand like concat("%", #{search},"%")
-                or bcci.series like concat("%", #{search},"%")
-                or bcci.city like concat("%", #{search},"%"))
-            </if>
-        </where>
-        order by bcci.id desc
-    </select>
 
 </mapper>
