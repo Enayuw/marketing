@@ -77,7 +77,6 @@ public class ScoreXieChengServiceImpl {
             } else {
                 querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
             }
-            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
@@ -142,7 +141,7 @@ public class ScoreXieChengServiceImpl {
         }
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
         for(String batchNumber : batchNumberList){
-            if(StringUtils.isNotEmpty(batchNumber)){
+            if(StringUtils.isEmpty(batchNumber)){
                 continue;
             }
             String scoreSql = "select id,cell from b_xiecheng_colliding_".concat(batchNumber)
