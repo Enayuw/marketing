@@ -67,6 +67,11 @@
             <if test="callBackTimeEnd != null and callBackTimeEnd != ''">
                 <![CDATA[ and bcci.call_back_time < #{callBackTimeEnd} ]]>
             </if>
+            <if test="search !=null and search!=''">
+                and (bcci.brand like concat("%", #{search},"%")
+                or bcci.series like concat("%", #{search},"%")
+                or bcci.city like concat("%", #{search},"%"))
+            </if>
         </where>
         order by bcci.create_time desc
     </select>
@@ -163,18 +168,5 @@
         </foreach>
     </update>
 
-    <select id="getCarInfoLike" resultType="com.br.marketing.vo.CarClueInfoVo">
-        select id,api_code,brand,series,city
-        from b_car_clue_info bcci
-        <where>
-            bcci.status = 1
-            <if test="search !=null and search!=''">
-                and (bcci.brand like concat("%", #{search},"%")
-                or bcci.series like concat("%", #{search},"%")
-                or bcci.city like concat("%", #{search},"%"))
-            </if>
-        </where>
-        order by bcci.id desc
-    </select>
 
 </mapper>

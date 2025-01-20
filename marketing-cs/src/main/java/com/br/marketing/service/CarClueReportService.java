@@ -30,24 +30,10 @@ public interface CarClueReportService {
 
     /**
      * 编辑车线索信息
-     * @param vo
+     * @param voList
      * @return
      */
     ApiResult<Boolean> editCarClues(List<CarClueInfoVo> voList);
 
-    /**
-     * 品牌、车系、城市
-     *
-     * @param search
-     * @return
-     */
-    List<CarClueInfoVo> getCarInfoLike(String search);
-
-    /**
-     * 根据车渠道获取相应apiCode
-     * @param key
-     * @return
-     */
-    ApiResult<String> getValueByKey(String key);
 
 }

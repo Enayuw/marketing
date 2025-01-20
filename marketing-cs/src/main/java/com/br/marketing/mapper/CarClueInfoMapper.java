@@ -25,6 +25,4 @@ public interface CarClueInfoMapper extends CarClueInfoMapperBase {
 
     List<String> queryApiCodes(@Param("pushStatus")Integer pushStatus,
                                @Param("callBackStatus")Integer callBackStatus);
-
-    List<CarClueInfoVo> getCarInfoLike(@Param("search") String search);
 }

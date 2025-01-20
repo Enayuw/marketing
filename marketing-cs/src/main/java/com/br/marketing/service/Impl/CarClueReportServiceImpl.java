@@ -52,7 +52,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("clueDataStatus", request.getClueDataStatus());
         params.put("updateTimeStart", request.getUpdateTimeStart());
         params.put("updateTimeEnd", request.getUpdateTimeEnd());
-        params.put("cluePushChannel", request.getCluePushChannel());
+        params.put("cluePushChannel", getValueByKey(request.getCluePushChannel()));
         params.put("cluePushStatus", request.getCluePushStatus());
         params.put("pushTimeStart", request.getPushTimeStart());
         params.put("pushTimeEnd", request.getPushTimeEnd());
@@ -122,24 +122,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         }
     }
 
-
-
-    @Override
-    public List<CarClueInfoVo> getCarInfoLike(String search) {
-        List<CarClueInfoVo> list = carClueInfoMapper.getCarInfoLike(search);
-
-        List<CarClueInfoVo> vos = list.stream().map(marketingCustomer -> {
-            CarClueInfoVo vo = new CarClueInfoVo();
-            org.springframework.beans.BeanUtils.copyProperties(marketingCustomer, vo);
-            vo.setId(marketingCustomer.getId());
-            return vo;
-        }).collect(Collectors.toList());
-
-        return vos;
-    }
-
-    @Override
-    public ApiResult<String> getValueByKey(String key) {
+    public String getValueByKey(String key) {
         try {
             Map<String, JSONObject> clueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
             JSONObject jsonObject = clueApiCodeMapping.get("channel");
@@ -149,11 +132,11 @@ public class CarClueReportServiceImpl implements CarClueReportService {
             }
             String string = jsonObject.getString(key);
             String result = ObjectUtil.isNotEmpty(string) ? string : "fail";
-            return new ApiResult<String>().success().setData(result);
+            return result;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "获取推送渠道映射失败！错误信息：" + e.getMessage()), e);
-            return new ApiResult<String>().fail("处理失败，请稍后重试！");
+            return "fail";
         }
     }
 

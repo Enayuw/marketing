@@ -66,33 +66,5 @@ public class CarClueReportController {
         }
     }
 
-    @GetMapping("/getCarInfoLike")
-    @ApiOperation(value = "品牌、车系、城市",notes = "品牌、车系、城市")
-    @ApiImplicitParams({@ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")})
-    @AddDataAuthBusiness
-    public ApiResult<List<CarClueInfoVo>> getCarInfoLike(String search){
-        try {
-            //查询
-            List<CarClueInfoVo> list = carClueReportService.getCarInfoLike(search);
-            return new ApiResult<List<CarClueInfoVo>>().success(list);
-        } catch (ParamValidErrorException ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    "获取品牌、车系、城市失败！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<List<CarClueInfoVo>>().fail(ServiceResultEnum.FAILED);
-        }
-    }
-
-    @PostMapping("/getApiCode")
-    @ApiOperation(value = "获取推送渠道映射", notes = "根据渠道获取对应的API Code")
-    public ApiResult<String> getApiCode(@ApiParam(value = "渠道", required = true) @RequestParam String key) {
-        try {
-            return carClueReportService.getValueByKey(key);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    "获取推送渠道映射失败！错误信息：" + e.getMessage()), e);
-            return new ApiResult<String>().fail("处理失败，请稍后重试！");
-        }
-    }
-
 
 }
