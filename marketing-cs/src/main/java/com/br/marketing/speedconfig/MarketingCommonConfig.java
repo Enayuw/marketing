@@ -2537,6 +2537,7 @@ public class MarketingCommonConfig {
 
     /**
      * 车线索数据清洗配置
+     * eg:{"limit":2000,"threadNum":10}
      */
     private JSONObject carClueDataCleanConfig;
 
