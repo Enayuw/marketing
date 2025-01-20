@@ -176,11 +176,11 @@ public class CarClueClient {
      * }]
      * }
      */
-    public Result<JSONArray> getYcCity() {
+    public Result<JSONArray> getYcCity(String task) {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String ycChannelId = jo.getString("ycChannelId");
         String ycChannelKey = jo.getString("ycChannelKey");
-        return getCity(ycChannelId, ycChannelKey, "6+");
+        return getCity(ycChannelId, ycChannelKey, task);
     }
 
     private Result<JSONArray> getCity(String channelId, String channelKey, String task) {
@@ -258,12 +258,11 @@ public class CarClueClient {
      * ]
      * }
      */
-    public Result<JSONArray> getYcCar() {
+    public Result<JSONArray> getYcCar(String task) {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String ycChannelId = jo.getString("ycChannelId");
         String ycChannelKey = jo.getString("ycChannelKey");
-        String ycTask = jo.getString("ycTask");
-        return getCar(ycChannelId, ycChannelKey, ycTask);
+        return getCar(ycChannelId, ycChannelKey, task);
     }
 
     private Result<JSONArray> getCar(String channelId, String channelKey, String task) {

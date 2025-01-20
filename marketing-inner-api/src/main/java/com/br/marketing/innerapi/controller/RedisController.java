@@ -148,12 +148,12 @@ public class RedisController {
 
     @GetMapping("/testCarInterface")
     public String testCarInterface(@RequestParam("carType") String carType, @RequestParam("interfaceType") String interfaceType) {
-        if ("yc".equals(carType)) {
+        if ("yc-ka".equals(carType)) {
             if ("city".equals(interfaceType)) {
-                Result<JSONArray> ycCity = carClueClient.getYcCity();
+                Result<JSONArray> ycCity = carClueClient.getYcCity("7-1");
                 return JSON.toJSONString(ycCity);
             } else if ("car".equals(interfaceType)) {
-                Result<JSONArray> ycCar = carClueClient.getYcCar();
+                Result<JSONArray> ycCar = carClueClient.getYcCar("7-1");
                 return JSON.toJSONString(ycCar);
             } else if ("commit".equals(interfaceType)) {
                 HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
@@ -166,6 +166,29 @@ public class RedisController {
                 hxClueCommitDTO.setSeries("eπ007");
                 hxClueCommitDTO.setSeriesId(10553);
                 hxClueCommitDTO.setPushTask("7-1");
+                hxClueCommitDTO.setSoundUrl("123");
+                hxClueCommitDTO.setBuyTime("2025-04-20");
+                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp");
+                return JSON.toJSONString(clueRes);
+            }
+        } else  if ("yc-member".equals(carType)) {
+            if ("city".equals(interfaceType)) {
+                Result<JSONArray> ycCity = carClueClient.getYcCity("6+");
+                return JSON.toJSONString(ycCity);
+            } else if ("car".equals(interfaceType)) {
+                Result<JSONArray> ycCar = carClueClient.getYcCar("6+");
+                return JSON.toJSONString(ycCar);
+            } else if ("commit".equals(interfaceType)) {
+                HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
+                hxClueCommitDTO.setChannelId("umOFo6Lmtx7z8Xpk");
+                hxClueCommitDTO.setPhone("13000000000");
+                hxClueCommitDTO.setMember("马");
+                hxClueCommitDTO.setProvence("贵州省");
+                hxClueCommitDTO.setCity("贵阳");
+                hxClueCommitDTO.setBrand("东风奕派");
+                hxClueCommitDTO.setSeries("eπ007");
+                hxClueCommitDTO.setSeriesId(10553);
+                hxClueCommitDTO.setPushTask("6+");
                 hxClueCommitDTO.setSoundUrl("123");
                 hxClueCommitDTO.setBuyTime("2025-04-20");
                 Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp");
