@@ -2551,7 +2551,7 @@ public class MarketingCommonConfig {
      * 车线索apiCode映射：0-易车，1-海星之家
      * eg:{"7410xxx":0,"7410xxx":1}
      */
-    private Map<String, Integer> carClueApiCodeMapping = new HashMap<>();
+    private Map<String, JSONObject> carClueApiCodeMapping = new HashMap<>();
 
 
     /**

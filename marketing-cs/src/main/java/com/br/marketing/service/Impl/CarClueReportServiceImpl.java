@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -35,8 +37,6 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     @Resource
     CarClueInfoMapper carClueInfoMapper;
 
-    @Resource
-    private CallRecordLogMapper callRecordLogMapper;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -141,13 +141,14 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     @Override
     public ApiResult<String> getValueByKey(String key) {
         try {
-            Map<String, Integer> clueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
-            if (clueApiCodeMapping == null) {
+            Map<String, JSONObject> clueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
+            JSONObject jsonObject = clueApiCodeMapping.get("channel");
+            if (ObjectUtil.isEmpty(jsonObject)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                         "渠道不存在！"));
             }
-            Integer value = clueApiCodeMapping.getOrDefault(key, null);
-            String result = value != null ? String.valueOf(value) : "fail";
+            String string = jsonObject.getString(key);
+            String result = ObjectUtil.isNotEmpty(string) ? string : "fail";
             return new ApiResult<String>().success().setData(result);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
