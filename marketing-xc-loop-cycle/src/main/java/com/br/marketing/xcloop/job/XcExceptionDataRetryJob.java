@@ -92,7 +92,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             if (alertedLog == null) {
                 XieChengCollidingDataLog dataLog = logMapper.selectByOverCount(createTimeStart);
                 updateByAlert(dataLog);
-                String msg = "携程撞库暂停通知：code返回707";
+                String msg = "携程撞库暂停通知：撞满撞库额度";
                 return new Pair<>(1, msg);
             }
 

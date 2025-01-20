@@ -50,6 +50,14 @@ public interface ClueChannelConfigService {
 
 
     /**
+     * 获取指定渠道商的匹配实现
+     * @param apiCodeChannel
+     * @return
+     */
+    AbstractClueChannelMatch getChannelMatchImpl(String apiCodeChannel);
+
+
+    /**
      * 更新车线索配置
      * @return
      */

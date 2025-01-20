@@ -22,10 +22,14 @@ public abstract class AbstractClueChannelFilter {
      * @param carClueInfo
      * @return
      */
-    public Result filter(CarClueInfo carClueInfo) {
-        Result action = action(carClueInfo);
+    public Result filter(CarClueInfo carClueInfo, String apiCode) {
+        Result action = action(carClueInfo, apiCode);
         if (action.isSuccess()) {
-            updateClueStatus(carClueInfo.getId());
+            //updateClueStatus(carClueInfo.getId());
+            carClueInfo.setClueDataStatus(CarClueDataStatusEnum.INVALID_CLUE.getValue());
+            StringBuilder sb = new StringBuilder();
+            sb.append("【").append(label()).append("】");
+            carClueInfo.setClueErrorReason(sb.toString());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         return new Result().setCode(ResultCode.FAIL.getValue());
@@ -49,7 +53,7 @@ public abstract class AbstractClueChannelFilter {
      * @param carClueInfo
      * @return
      */
-    abstract Result<String> action(CarClueInfo carClueInfo);
+    abstract Result<String> action(CarClueInfo carClueInfo,String apiCode);
 
     /**
      * 过滤规则的名称

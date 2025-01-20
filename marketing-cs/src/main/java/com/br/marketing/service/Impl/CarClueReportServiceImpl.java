@@ -5,22 +5,20 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.CallRecordLog;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
+import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -65,10 +63,13 @@ public class CarClueReportServiceImpl implements CarClueReportService {
             CallRecordLog callRecordLog = callRecordLogMapper.selectByrecordId(carClueInfoVo.getId());
             String status = ObjectUtil.isNotEmpty(callRecordLog) ? callRecordLog.getInboundStatus().toString() : "0";
             carClueInfoVo.setStatus(status);
+            String encryptCell = encryptCell(carClueInfoVo.getCell());
+            carClueInfoVo.setCell(encryptCell);
         });
 
         return PageResultReturn.setPageResult(list, current, size);
     }
+
 
 
     @Override
@@ -84,6 +85,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                 BeanUtils.copyProperties(clueInfo, vo);
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
+                clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                 clueInfo.setUpdateTime(new Date());
                 clueInfoList.add(clueInfo);
             } catch (Exception e) {
@@ -108,5 +110,17 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                     "批量编辑车线索信息失败！"), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
+    }
+
+
+
+    public String encryptCell(String cell) {
+        if (cell == null || cell.isEmpty()) {
+            return "";
+        }
+        if (cell.length() < 7) {
+            return cell;
+        }
+        return cell.substring(0, 3) + "****" + cell.substring(7);
     }
 }

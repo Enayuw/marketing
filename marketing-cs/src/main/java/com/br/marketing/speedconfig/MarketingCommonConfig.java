@@ -2501,6 +2501,18 @@ public class MarketingCommonConfig {
     private JSONObject smyCustomizeDataConfig;
 
     /**
+     * 模拟跑分推决策异常开关 true:开启挡板。false:关闭挡板
+     * {"7410950":{"general":{"esRetry":true,"policyRetry":false},"xiecheng":{"esRetry":true,"policyRetry":false}}}
+     * general：通用推决策
+     *     esRetry：es查询异常
+     *     policyRetry：推决策异常
+     * xiecheng：携程推决策
+     *     esRetry：es查询异常
+     *     policyRetry：推决策异常
+     */
+    private HashMap<String, JSONObject> policyRetrySwitch;
+
+    /**
      * 萨摩耶客制化数据清洗配置
      * {"uploadThread":10,"transferThread":10}
      */
@@ -2525,8 +2537,22 @@ public class MarketingCommonConfig {
 
     /**
      * 车线索数据清洗配置
+     * eg:{"limit":2000,"threadNum":10}
      */
     private JSONObject carClueDataCleanConfig;
+
+
+    /**
+     * 车线索黑名单配置
+     */
+    private Map<String, List<String>> carClueBlackListConfig;
+
+    /**
+     * 车线索apiCode映射：0-易车，1-海星之家
+     * eg:{"7410xxx":0,"7410xxx":1}
+     */
+    private Map<String, Integer> carClueApiCodeMapping = new HashMap<>();
+
 
     /**
      * 海星接口配置
