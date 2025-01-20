@@ -1,11 +1,11 @@
 package com.br.marketing.service.Impl.carclue.impl;
 
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.entity.CarChannelConfig;
-import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.Impl.carclue.CarClueService;
 import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
+import com.br.marketing.service.carclue.clueenums.CarClueMatchTypeEnum;
 import com.br.marketing.service.carclue.filter.AbstractClueChannelFilter;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
 import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
@@ -33,7 +33,7 @@ public class CarClueServiceImpl implements CarClueService {
     private CarClueInfoMapper carClueInfoMapper;
 
 
-    @Override
+/*    @Override
     public void carClueCleanHandler(CarClueInfo carClueInfo, Object brandCitycConfig, List<CarChannelConfig> channelConfigList) {
 
         for (CarChannelConfig config : channelConfigList) {
@@ -52,7 +52,7 @@ public class CarClueServiceImpl implements CarClueService {
         //更新线索状态
         carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
 
-    }
+    }*/
 
     @Override
     public void pushCarClueHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelPush channelPushImpl) {
@@ -74,6 +74,26 @@ public class CarClueServiceImpl implements CarClueService {
                 carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
             }
         }
+    }
+
+    @Override
+    public void carClueCleanHandler(CarClueInfo carClueInfo, List<CarClueProvincesInformation> carClueProvincesInfoList,
+                                    List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList, List<CarChannelConfig> channelConfigList) {
+        for (CarChannelConfig config : channelConfigList) {
+            List<AbstractClueChannelFilter> channelFilterList = clueChannelConfigService.getChannelFilter(config.getApiCode());
+            //命中过滤规则，进入下次循环
+            if (isFilterHandler(carClueInfo, config.getApiCode(), channelFilterList)) {
+                continue;
+            }
+            //线索匹配实现
+            AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(config.getApiCode());
+            Result matchResult = channelMatch.action(carClueInfo, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList);
+            if (matchResult.isSuccess() && carClueInfo.getMatchBrandSeriesType().equals(CarClueMatchTypeEnum.COMPLETE_MATCH.getValue())) {
+                break;
+            }
+        }
+        //更新线索状态
+        carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
     }
 
     private Boolean isFilterHandler(CarClueInfo carClueInfo, String apiCode, List<AbstractClueChannelFilter> channelFilterList) {
