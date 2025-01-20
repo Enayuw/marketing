@@ -2,11 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CarClueRelationalMapping;
 import com.br.marketing.entity.CarClueRelationalMappingExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 public interface CarClueRelationalMappingMapperBase {
-    long countByExample(CarClueRelationalMappingExample example);
+    int countByExample(CarClueRelationalMappingExample example);
 
     int deleteByExample(CarClueRelationalMappingExample example);
 

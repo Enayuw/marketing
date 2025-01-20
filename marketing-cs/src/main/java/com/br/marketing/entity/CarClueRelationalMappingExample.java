@@ -12,7 +12,7 @@ public class CarClueRelationalMappingExample {
     protected List<Criteria> oredCriteria;
 
     public CarClueRelationalMappingExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class CarClueRelationalMappingExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -785,62 +785,52 @@ public class CarClueRelationalMappingExample {
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeEqualTo(String value) {
+        public Criteria andProvinceTypeEqualTo(Integer value) {
             addCriterion("province_type =", value, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeNotEqualTo(String value) {
+        public Criteria andProvinceTypeNotEqualTo(Integer value) {
             addCriterion("province_type <>", value, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeGreaterThan(String value) {
+        public Criteria andProvinceTypeGreaterThan(Integer value) {
             addCriterion("province_type >", value, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeGreaterThanOrEqualTo(String value) {
+        public Criteria andProvinceTypeGreaterThanOrEqualTo(Integer value) {
             addCriterion("province_type >=", value, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeLessThan(String value) {
+        public Criteria andProvinceTypeLessThan(Integer value) {
             addCriterion("province_type <", value, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeLessThanOrEqualTo(String value) {
+        public Criteria andProvinceTypeLessThanOrEqualTo(Integer value) {
             addCriterion("province_type <=", value, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeLike(String value) {
-            addCriterion("province_type like", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeNotLike(String value) {
-            addCriterion("province_type not like", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeIn(List<String> values) {
+        public Criteria andProvinceTypeIn(List<Integer> values) {
             addCriterion("province_type in", values, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeNotIn(List<String> values) {
+        public Criteria andProvinceTypeNotIn(List<Integer> values) {
             addCriterion("province_type not in", values, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeBetween(String value1, String value2) {
+        public Criteria andProvinceTypeBetween(Integer value1, Integer value2) {
             addCriterion("province_type between", value1, value2, "provinceType");
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeNotBetween(String value1, String value2) {
+        public Criteria andProvinceTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("province_type not between", value1, value2, "provinceType");
             return (Criteria) this;
         }
@@ -1096,9 +1086,8 @@ public class CarClueRelationalMappingExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }
