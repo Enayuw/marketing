@@ -19,6 +19,8 @@ import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.UserCenterHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +28,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -161,4 +166,60 @@ public class RedisController {
         }
         return "noMatch";
     }
+
+    /**
+     * 外采映射数据生成SQL
+     * @return
+     */
+    @GetMapping("/getCarClueInit")
+    public StringBuilder getCarClueInit(){
+        String excelFilePath = "C:\\Users\\bingxu.kong\\Desktop\\车线索\\外采需求明细0120.xlsx";
+        StringBuilder stringBuilder = new StringBuilder();
+        try (FileInputStream fis = new FileInputStream(new File(excelFilePath));
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                StringBuilder insertStatement = new StringBuilder("INSERT INTO b_car_clue_init_mapping (");
+
+                // 处理表头
+                Row headerRow = sheet.getRow(0);
+                for (Cell cell : headerRow) {
+                    insertStatement.append(cell.getStringCellValue()).append(", ");
+                }
+                insertStatement.setLength(insertStatement.length() - 2); // 移除最后的逗号和空格
+                insertStatement.append(") VALUES ");
+
+                // 处理内容
+                for (int j = 1; j <= sheet.getLastRowNum(); j++) {
+                    Row row = sheet.getRow(j);
+                    insertStatement.append("(");
+                    for (Cell cell : row) {
+                        if (cell.getCellType() == CellType.BLANK) {
+                            insertStatement.append("null, ");
+                        } else {
+                            switch (cell.getCellType()) {
+                                case STRING:
+                                    String cellValue = cell.toString().replace("\n", ",");
+                                    insertStatement.append("'").append(cellValue).append("', ");
+                                    break;
+                                case NUMERIC:
+                                    insertStatement.append((int) cell.getNumericCellValue()).append(", ");
+                                    break;
+                            }
+
+                        }
+                    }
+                    insertStatement.setLength(insertStatement.length() - 2); // 移除最后的逗号和空格
+                    insertStatement.append("), ");
+                }
+                insertStatement.setLength(insertStatement.length() - 2); // 移除最后的逗号和空格
+                insertStatement.append(";");
+                stringBuilder.append(insertStatement);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return stringBuilder;
+    }
+
 }
