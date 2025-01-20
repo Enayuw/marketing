@@ -234,6 +234,12 @@ api:
     baseUrl: https://callcenter.biocloo.com.cn
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
     isProxy: true
+  hxCar:
+    baseUrl: http://haoyunlailai.cn:6001
+    carList: ${api.hxCar.baseUrl}/open_api/v1/car_list
+    cityList: ${api.hxCar.baseUrl}/open_api/v1/city_list
+    commitClue: ${api.hxCar.baseUrl}/open_api/v1/commit_clue
+    isProxy: true
 #elastic-job配置
 SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job

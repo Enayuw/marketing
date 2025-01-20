@@ -2527,5 +2527,11 @@ public class MarketingCommonConfig {
      * 车线索数据清洗配置
      */
     private JSONObject carClueDataCleanConfig;
+
+    /**
+     * 海星接口配置
+     * {"ycChannelId":"umOFo6Lmtx7z8Xpk","ycChannelKey":"o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp","zjChannelId":"5GVOZ5BwGytObRYy","zjChannelKey":"l3ocI61BJAZ1xnTXePd6t1WIzMYOwUUo"}
+     */
+    private JSONObject hxClientConfig;
 }
 
