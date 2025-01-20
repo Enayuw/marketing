@@ -12,7 +12,7 @@ public class CarClueProvincesInformationExample {
     protected List<Criteria> oredCriteria;
 
     public CarClueProvincesInformationExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class CarClueProvincesInformationExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -165,73 +165,73 @@ public class CarClueProvincesInformationExample {
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeIsNull() {
-            addCriterion("provinces_type is null");
+        public Criteria andApiCodeIsNull() {
+            addCriterion("api_code is null");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeIsNotNull() {
-            addCriterion("provinces_type is not null");
+        public Criteria andApiCodeIsNotNull() {
+            addCriterion("api_code is not null");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeEqualTo(String value) {
-            addCriterion("provinces_type =", value, "provincesType");
+        public Criteria andApiCodeEqualTo(String value) {
+            addCriterion("api_code =", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeNotEqualTo(String value) {
-            addCriterion("provinces_type <>", value, "provincesType");
+        public Criteria andApiCodeNotEqualTo(String value) {
+            addCriterion("api_code <>", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeGreaterThan(String value) {
-            addCriterion("provinces_type >", value, "provincesType");
+        public Criteria andApiCodeGreaterThan(String value) {
+            addCriterion("api_code >", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("provinces_type >=", value, "provincesType");
+        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("api_code >=", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeLessThan(String value) {
-            addCriterion("provinces_type <", value, "provincesType");
+        public Criteria andApiCodeLessThan(String value) {
+            addCriterion("api_code <", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeLessThanOrEqualTo(String value) {
-            addCriterion("provinces_type <=", value, "provincesType");
+        public Criteria andApiCodeLessThanOrEqualTo(String value) {
+            addCriterion("api_code <=", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeLike(String value) {
-            addCriterion("provinces_type like", value, "provincesType");
+        public Criteria andApiCodeLike(String value) {
+            addCriterion("api_code like", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeNotLike(String value) {
-            addCriterion("provinces_type not like", value, "provincesType");
+        public Criteria andApiCodeNotLike(String value) {
+            addCriterion("api_code not like", value, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeIn(List<String> values) {
-            addCriterion("provinces_type in", values, "provincesType");
+        public Criteria andApiCodeIn(List<String> values) {
+            addCriterion("api_code in", values, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeNotIn(List<String> values) {
-            addCriterion("provinces_type not in", values, "provincesType");
+        public Criteria andApiCodeNotIn(List<String> values) {
+            addCriterion("api_code not in", values, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeBetween(String value1, String value2) {
-            addCriterion("provinces_type between", value1, value2, "provincesType");
+        public Criteria andApiCodeBetween(String value1, String value2) {
+            addCriterion("api_code between", value1, value2, "apiCode");
             return (Criteria) this;
         }
 
-        public Criteria andProvincesTypeNotBetween(String value1, String value2) {
-            addCriterion("provinces_type not between", value1, value2, "provincesType");
+        public Criteria andApiCodeNotBetween(String value1, String value2) {
+            addCriterion("api_code not between", value1, value2, "apiCode");
             return (Criteria) this;
         }
 
@@ -746,9 +746,8 @@ public class CarClueProvincesInformationExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

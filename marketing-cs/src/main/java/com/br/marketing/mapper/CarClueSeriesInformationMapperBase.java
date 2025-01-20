@@ -2,11 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CarClueSeriesInformation;
 import com.br.marketing.entity.CarClueSeriesInformationExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 public interface CarClueSeriesInformationMapperBase {
-    long countByExample(CarClueSeriesInformationExample example);
+    int countByExample(CarClueSeriesInformationExample example);
 
     int deleteByExample(CarClueSeriesInformationExample example);
 

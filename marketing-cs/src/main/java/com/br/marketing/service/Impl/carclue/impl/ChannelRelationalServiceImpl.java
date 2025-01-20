@@ -19,7 +19,9 @@ import com.br.marketing.mapper.CarClueInitMappingMapper;
 import com.br.marketing.mapper.CarClueProvincesInformationMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.CarClueSeriesInformationMapper;
+import com.br.marketing.service.Impl.CarClueReportServiceImpl;
 import com.br.marketing.service.Impl.carclue.ChannelRelationalService;
+import com.br.marketing.service.carclue.clueenums.ChannelRule;
 import com.br.marketing.service.carclue.clueenums.ProvincesTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,7 +44,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     CarClueProvincesInformationMapper carClueProvincesInformationMapper;
     @Resource
     CarClueSeriesInformationMapper carClueSeriesInformationMapper;
+    @Resource
     CarClueInitMappingMapper carClueInitMappingMapper;
+    @Resource
+    CarClueRelationalMappingMapper carClueRelationalMappingMapper;
+    @Resource
+    CarClueReportServiceImpl carClueReportServiceImpl;
 
     private static final String YCKATASK = "7-1";
     private static final String YCMEMBERTASK = "6+";
@@ -51,12 +58,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     public void getProvinceAndCity() {
         //省市信息
         buildZjCity();
-        buildYcCity(YCKATASK, String.valueOf(ProvincesTypeEnum.YCKA.getValue()));
-        buildYcCity(YCMEMBERTASK,"1");
+        buildYcCity(YCKATASK, ChannelRule.MatchChannelRuleEnum.YC_KA.getLabel());
+        buildYcCity(YCMEMBERTASK,ChannelRule.MatchChannelRuleEnum.YC_MEMBER.getLabel());
         //车辆信息
         buildZjCar();
-        buildYcCar(YCKATASK);
-        buildYcCar(YCMEMBERTASK);
+        buildYcCar(YCKATASK,ChannelRule.MatchChannelRuleEnum.YC_KA.getLabel());
+        buildYcCar(YCMEMBERTASK,ChannelRule.MatchChannelRuleEnum.YC_MEMBER.getLabel());
     }
 
     private void buildZjCity() {
@@ -81,7 +88,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     Integer cityId = node.getInteger("id");
                     String cityName = node.getString("name");
                     CarClueProvincesInformation carClueProvincesInformation = new CarClueProvincesInformation();
-                    carClueProvincesInformation.setProvincesType("1");
+                    carClueProvincesInformation.setApiCode(carClueReportServiceImpl.getValueByKey
+                            (ChannelRule.MatchChannelRuleEnum.ZJ.getLabel()));
                     carClueProvincesInformation.setProvinceId(provinceId);
                     carClueProvincesInformation.setProvinceName(provinceName);
                     carClueProvincesInformation.setCityId(cityId);
@@ -108,7 +116,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject firstData = jsonArray.getJSONObject(i);
                 CarClueProvincesInformation carClueProvincesInformation = new CarClueProvincesInformation();
-                carClueProvincesInformation.setProvincesType("0");
+                carClueProvincesInformation.setApiCode(carClueReportServiceImpl.getValueByKey(provincesType));
                 carClueProvincesInformation.setProvinceId(firstData.getInteger("provinceId"));
                 carClueProvincesInformation.setProvinceName(firstData.getString("provinceName"));
                 carClueProvincesInformation.setCityId(firstData.getInteger("cityId"));
@@ -136,7 +144,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject firstData = jsonArray.getJSONObject(i);
                 CarClueSeriesInformation carClueSeriesInformation = new CarClueSeriesInformation();
-                carClueSeriesInformation.setSeriesType("1");
+                carClueSeriesInformation.setApiCode(carClueReportServiceImpl.getValueByKey
+                        (ChannelRule.MatchChannelRuleEnum.ZJ.getLabel()));
                 carClueSeriesInformation.setBrandId(firstData.getInteger("brand_id"));
                 carClueSeriesInformation.setBrandName(firstData.getString("brand_name"));
                 carClueSeriesInformation.setSubBrandId(firstData.getInteger("son_brand_id"));
@@ -151,7 +160,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         }
     }
 
-    private void buildYcCar(String task) {
+    private void buildYcCar(String task,String provincesType) {
         Result<JSONArray> ycCarResult = carClueClient.getYcCar(task);
 
         JSONArray jsonArray = new JSONArray();
@@ -165,7 +174,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject firstData = jsonArray.getJSONObject(i);
                 CarClueSeriesInformation carClueSeriesInformation = new CarClueSeriesInformation();
-                carClueSeriesInformation.setSeriesType("0");
+                carClueSeriesInformation.setApiCode(carClueReportServiceImpl.getValueByKey(provincesType));
                 carClueSeriesInformation.setBrandId(firstData.getInteger("brandId"));
                 carClueSeriesInformation.setBrandName(firstData.getString("brandName"));
                 carClueSeriesInformation.setSeriesId(firstData.getInteger("seriesId"));
@@ -180,31 +189,59 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     @Override
     public void relationalMapping() {
-        //获取省市集合
-        CarClueProvincesInformationExample carClueProvincesInformationExample = new CarClueProvincesInformationExample();
-        carClueProvincesInformationExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
-        List<CarClueProvincesInformation> carClueProvincesInformations = carClueProvincesInformationMapper.selectByExample(carClueProvincesInformationExample);
-        Map<String, List<CarClueProvincesInformation>> groupedByProvincesType = carClueProvincesInformations.stream()
-                .collect(Collectors.groupingBy(CarClueProvincesInformation::getProvincesType));
         //获取品牌车系集合
         CarClueSeriesInformationExample carClueSeriesInformationExample = new CarClueSeriesInformationExample();
         carClueSeriesInformationExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
-        List<CarClueSeriesInformation> carClueSeriesInformations = carClueSeriesInformationMapper.selectByExample(carClueSeriesInformationExample);
-        Map<String, List<CarClueSeriesInformation>> groupedBySeriesType = carClueSeriesInformations.stream()
-                .collect(Collectors.groupingBy(CarClueSeriesInformation::getSeriesType));
-
-
+        List<CarClueSeriesInformation> list = carClueSeriesInformationMapper.selectByExample(carClueSeriesInformationExample);
+        Map<String, List<CarClueSeriesInformation>> groupedBySeriesType = list.stream()
+                .collect(Collectors.groupingBy(CarClueSeriesInformation::getApiCode));
 
         //获取外采初始信息
         CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
         carClueInitMappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
         List<CarClueInitMapping> carClueInitMappingList = carClueInitMappingMapper.selectByExample(carClueInitMappingExample);
-        //匹配初始信息
-        for (CarClueInitMapping carClueInitMapping : carClueInitMappingList) {
-            carClueInitMapping.getApiCode();
-        }
-        //校验信息准确性
-        //最终映射关系存储外采关系表
+
+        Map<String, List<CarClueInitMapping>> carClueInitMappingMap = carClueInitMappingList.stream()
+                .collect(Collectors.groupingBy(CarClueInitMapping::getApiCode));
+
+        carClueInitMappingMap.forEach((apiCode, v) -> {
+            List<CarClueSeriesInformation> carClueSeriesInformations = groupedBySeriesType.get(apiCode);
+
+            //匹配初始信息
+            for (CarClueInitMapping carClueInitMapping : v) {
+                Integer brandId = null;
+                for (CarClueSeriesInformation carClueSeriesInformation : carClueSeriesInformations) {
+                    //匹配品牌id
+                    if(carClueSeriesInformation.getBrandName().equals(carClueInitMapping.getBrandName())){
+                        brandId = carClueSeriesInformation.getBrandId();
+                    }
+
+                    //匹配车系id
+                    String seriesName = carClueInitMapping.getSeriesName();
+                    String[] split = seriesName.split(",");
+                    for (String s : split){
+                        if(carClueSeriesInformation.getSeriesName().equals(s)){
+                            CarClueRelationalMapping carClueRelationalMapping = new CarClueRelationalMapping();
+                            carClueRelationalMapping.setApiCode(carClueSeriesInformation.getApiCode());
+                            carClueRelationalMapping.setBrandId(brandId);
+                            carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
+                            carClueRelationalMapping.setSeriesId(carClueSeriesInformation.getSeriesId());
+                            carClueRelationalMapping.setSeriesName(carClueInitMapping.getSeriesName());
+                            carClueRelationalMapping.setSatisfyProvinceName(carClueInitMapping.getSatisfyProvinceName());
+                            carClueRelationalMapping.setSatisfyCityName(carClueInitMapping.getSatisfyCityName());
+                            carClueRelationalMapping.setExcludeProvinceName(carClueInitMapping.getExcludeProvinceName());
+                            carClueRelationalMapping.setExcludeCityName(carClueInitMapping.getExcludeCityName());
+                            //todo
+                            carClueRelationalMapping.setProvinceType(0);
+                            carClueRelationalMapping.setAppletDate(LocalDate.now().toString());
+                            carClueRelationalMapping.setCreateTime(new Date());
+                            carClueRelationalMapping.setUpdateTime(new Date());
+                            carClueRelationalMappingMapper.insertSelective(carClueRelationalMapping);
+                        }
+                    }
+                }
+            }
+        });
     }
 
 }
