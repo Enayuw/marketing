@@ -36,7 +36,7 @@ public class ToPolicyPatLoanRule implements AssembleData<PushMarketingUserDetail
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
-        pushData.setPhone(get3keyValue(syncUser.getCell(), "cell", customerTagsVO.getPushJc3keyType()));
+        pushData.setPhone(syncUser.getCellMd5());
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
@@ -82,7 +82,7 @@ public class ToPolicyPatLoanRule implements AssembleData<PushMarketingUserDetail
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
-        buildJson(jsonObject, syncUser, customerTagsVO.getPushJc3keyType());
+        buildJson(jsonObject, syncUser);
         pushData.setVariables(jsonObject);
         return pushData;
     }
@@ -114,12 +114,12 @@ public class ToPolicyPatLoanRule implements AssembleData<PushMarketingUserDetail
         return null;
     }
 
-    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
         jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
-        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
-        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
+        jsonObject.put("idCard", emptyDefault(syncUser.getIdCard()));
+        jsonObject.put("name", emptyDefault(syncUser.getName()));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
 //        jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
         jsonObject.put("operateType", emptyDefault(syncUser.getOperateType()));
