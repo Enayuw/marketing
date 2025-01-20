@@ -47,6 +47,19 @@ public class CarClueClient {
         return getCity(zjChannelId, zjChannelKey, "xsc");
     }
 
+    /**
+     * @return 格式
+     * {
+     * "code": 1,
+     * "data": [
+     * {
+     * "cityName": "福州",
+     * "provinceName": "福建省",
+     * "cityId": 301,
+     * "provinceId": 350000
+     * }]
+     * }
+     */
     public Result<JSONArray> getYcCity() {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String ycChannelId = jo.getString("ycChannelId");
@@ -91,14 +104,16 @@ public class CarClueClient {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String zjChannelId = jo.getString("zjChannelId");
         String zjChannelKey = jo.getString("zjChannelKey");
-        return getCar(zjChannelId, zjChannelKey, "xsc");
+        String zjTask = jo.getString("zjTask");
+        return getCar(zjChannelId, zjChannelKey, zjTask);
     }
 
     public Result<JSONArray> getYcCar() {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
         String ycChannelId = jo.getString("ycChannelId");
         String ycChannelKey = jo.getString("ycChannelKey");
-        return getCar(ycChannelId, ycChannelKey, "6+");
+        String ycTask = jo.getString("ycTask");
+        return getCar(ycChannelId, ycChannelKey, ycTask);
     }
 
     private Result<JSONArray> getCar(String channelId, String channelKey, String task) {

@@ -1,7 +1,9 @@
-package com.br.marketing.service.carclue.push;
+package com.br.marketing.service.carclue.push.impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
+import org.springframework.stereotype.Service;
 
 /**
  * @ClassName StarZhiJiaClueChannelPush
@@ -9,6 +11,7 @@ import com.br.marketing.entity.CarClueInfo;
  * @Author kongbx
  * @Date 2025/1/19 15:12
  */
+@Service
 public class StarZhiJiaClueChannelPush extends AbstractClueChannelPush {
 
     @Override
