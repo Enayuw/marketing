@@ -1,17 +1,16 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
-import com.br.marketing.entity.CallRecordLog;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 车线索列表
@@ -38,11 +38,13 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     @Resource
     private CallRecordLogMapper callRecordLogMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public PageResultReturn getReportList(CarClueReportDTO request) {
         Integer current = request.getCurrent();
         Integer size = request.getSize();
-
         Map params = new HashMap();
         params.put("createTimeStart", request.getCreateTimeStart());
         params.put("createTimeEnd", request.getCreateTimeEnd());
@@ -54,20 +56,28 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("cluePushStatus", request.getCluePushStatus());
         params.put("pushTimeStart", request.getPushTimeStart());
         params.put("pushTimeEnd", request.getPushTimeEnd());
+        params.put("status", request.getStatus());
         params.put("callBackTimeStart", request.getCallBackTimeStart());
         params.put("callBackTimeEnd", request.getCallBackTimeEnd());
 
         PageHelper.startPage(current, size);
         List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
         list.forEach((CarClueInfoVo carClueInfoVo) -> {
-            CallRecordLog callRecordLog = callRecordLogMapper.selectByrecordId(carClueInfoVo.getId());
-            String status = ObjectUtil.isNotEmpty(callRecordLog) ? callRecordLog.getInboundStatus().toString() : "0";
-            carClueInfoVo.setStatus(status);
             String encryptCell = encryptCell(carClueInfoVo.getCell());
             carClueInfoVo.setCell(encryptCell);
         });
 
         return PageResultReturn.setPageResult(list, current, size);
+    }
+
+    public String encryptCell(String cell) {
+        if (cell == null || cell.isEmpty()) {
+            return "";
+        }
+        if (cell.length() < 7) {
+            return cell;
+        }
+        return cell.substring(0, 3) + "****" + cell.substring(7);
     }
 
 
@@ -114,13 +124,37 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
 
 
-    public String encryptCell(String cell) {
-        if (cell == null || cell.isEmpty()) {
-            return "";
-        }
-        if (cell.length() < 7) {
-            return cell;
-        }
-        return cell.substring(0, 3) + "****" + cell.substring(7);
+    @Override
+    public List<CarClueInfoVo> getCarInfoLike(String search) {
+        List<CarClueInfoVo> list = carClueInfoMapper.getCarInfoLike(search);
+
+        List<CarClueInfoVo> vos = list.stream().map(marketingCustomer -> {
+            CarClueInfoVo vo = new CarClueInfoVo();
+            org.springframework.beans.BeanUtils.copyProperties(marketingCustomer, vo);
+            vo.setId(marketingCustomer.getId());
+            return vo;
+        }).collect(Collectors.toList());
+
+        return vos;
     }
+
+    @Override
+    public ApiResult<String> getValueByKey(String key) {
+        try {
+            Map<String, Integer> clueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
+            if (clueApiCodeMapping == null) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                        "渠道不存在！"));
+            }
+            Integer value = clueApiCodeMapping.getOrDefault(key, null);
+            String result = value != null ? String.valueOf(value) : "fail";
+            return new ApiResult<String>().success().setData(result);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "获取推送渠道映射失败！错误信息：" + e.getMessage()), e);
+            return new ApiResult<String>().fail("处理失败，请稍后重试！");
+        }
+    }
+
+
 }
