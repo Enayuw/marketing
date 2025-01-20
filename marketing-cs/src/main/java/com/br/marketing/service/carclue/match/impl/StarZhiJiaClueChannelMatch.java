@@ -1,12 +1,12 @@
-package com.br.marketing.service.carclue.match;
+package com.br.marketing.service.carclue.match.impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
 import org.springframework.stereotype.Service;
 
-
 @Service
-public class YiCarClueChannelMatch extends AbstractClueChannelMatch{
+public class StarZhiJiaClueChannelMatch extends AbstractClueChannelMatch {
 
 
     @Override
@@ -16,7 +16,6 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch{
 
     @Override
     public String label() {
-        return "Yi_Car_Channel_Match";
-
+        return "Star_Zhijia_Channel_Match";
     }
 }

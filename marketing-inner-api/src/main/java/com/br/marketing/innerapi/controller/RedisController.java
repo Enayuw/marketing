@@ -1,10 +1,13 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.carclue.CarClueClient;
+import com.br.marketing.client.hxchannel.HxChannelClient;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -41,13 +45,13 @@ public class RedisController {
     UserCenterHandler userCenterHandler;
 
     @GetMapping("testM")
-    public String testM(String msg){
+    public String testM(String msg) {
         Result<Boolean> booleanResult = userCenterHandler.handleDataUserCenter(msg);
         return JSONObject.toJSONString(booleanResult);
     }
 
     @GetMapping("testNX")
-    public String testNX(String taskId){
+    public String testNX(String taskId) {
         try {
             String taskByPushRuleGetLock = RedisKeyConstant.TASK_PUSH_RULE_GET_LOCK.concat(":" + taskId);
             UUID uuid = UUID.randomUUID();
@@ -63,13 +67,13 @@ public class RedisController {
     }
 
     @GetMapping("get")
-    public String get(@RequestParam("key") String key,@RequestParam(value = "type",required = false) String type) {
-        if(!redisChgService.exists(key)){
+    public String get(@RequestParam("key") String key, @RequestParam(value = "type", required = false) String type) {
+        if (!redisChgService.exists(key)) {
             return "key不存在";
         }
-        if("Set".equals(type)){
+        if ("Set".equals(type)) {
             return JSON.toJSONString(redisChgService.smembers(key));
-        }else{
+        } else {
             return redisChgService.get(key);
         }
     }
@@ -87,8 +91,8 @@ public class RedisController {
     }
 
     @GetMapping("/clearInnerCache")
-    public String clearInnerCache(@RequestParam("type") Integer type){
-        if(Integer.valueOf(1).equals(type)){
+    public String clearInnerCache(@RequestParam("type") Integer type) {
+        if (Integer.valueOf(1).equals(type)) {
             ProductResultByConfigSimpleServiceImpl.flagScoreByinnerList.clear();
         }
         return "success";
@@ -98,11 +102,11 @@ public class RedisController {
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
     @GetMapping("/test")
-    public String test(){
+    public String test() {
         String ab = "{\"apiCode\":\"7410438\",\"jsonData\":{\"accessNumber\":\"juman_20220905_01\",\"batchNumber\":\"juman_20220905\",\"data\":[{\"caseNumber\":\"20220905_01\",\"phone\":\"AgsNΒ7VlVSWwkAVwY\",\"variables\":{\"groupType\":\"促首登\",\"score\":\"83.0\",\"scoreDate\":\"2021-07-26\",\"scoreName\":\"scorencashonshcdlyxf\",\"taskId\":\"82021072601\",\"update\":\"\",\"sleepGroup\":\"540+\"}}],\"extendData\":{\"sampleTotal\":\"1\",\"scoreName\":\"scorencashonshcdlyxf\"},\"method\":\"caseAdd\"},\"platApiCode\":\"7410438\"}";
         PushMarketingUserDTO o = JSON.parseObject(ab, new TypeReference<PushMarketingUserDTO>() {
         }.getType());
-        Result<Integer> integerResult = intelligentCustomerServiceClient.pushRuleCenterToPolicy(o, 123L, "123",1);
+        Result<Integer> integerResult = intelligentCustomerServiceClient.pushRuleCenterToPolicy(o, 123L, "123", 1);
         System.out.println(integerResult.getMessage());
         return "";
     }
@@ -121,15 +125,40 @@ public class RedisController {
     }
 
     @GetMapping("/getScoreToCustomerBigKey")
-    public String getScoreToCustomerBigKey(Long fileId){
+    public String getScoreToCustomerBigKey(Long fileId) {
         HashMap<String, Boolean> res = new HashMap<>();
         for (int i = 0; i < 4; i++) {
             String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
                     .concat(":").concat(fileId.toString())
                     .concat(":").concat("" + i);
             Boolean exists = redisChgService.exists(key);
-            res.put(key,exists);
+            res.put(key, exists);
         }
         return JSON.toJSONString(res);
+    }
+
+    @Resource
+    CarClueClient carClueClient;
+
+    @GetMapping("/testCarInterface")
+    public String testCarInterface(@RequestParam("carType") String carType, @RequestParam("interfaceType") String interfaceType) {
+        if ("yc".equals(carType)) {
+            if ("city".equals(interfaceType)) {
+                Result<JSONArray> ycCity = carClueClient.getYcCity();
+                return JSON.toJSONString(ycCity);
+            } else if ("car".equals(interfaceType)) {
+                Result<JSONArray> ycCar = carClueClient.getYcCar();
+                return JSON.toJSONString(ycCar);
+            }
+        } else if ("zj".equals(carType)) {
+            if ("city".equals(interfaceType)) {
+                Result<JSONArray> zjCity = carClueClient.getZjCity();
+                return JSON.toJSONString(zjCity);
+            } else if ("car".equals(interfaceType)) {
+                Result<JSONArray> zjCar = carClueClient.getZjCar();
+                return JSON.toJSONString(zjCar);
+            }
+        }
+        return "noMatch";
     }
 }
