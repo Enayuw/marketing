@@ -1,17 +1,21 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * b_car_clue_info
- * @author 
- */
-public class CarClueInfo implements Serializable {
+public class CarClueInfo {
+    /**
+     * 
+     */
     private Long id;
 
+    /**
+     * 
+     */
     private String cid;
 
+    /**
+     * 
+     */
     private String apiCode;
 
     /**
@@ -33,6 +37,11 @@ public class CarClueInfo implements Serializable {
      * 原品牌信息
      */
     private String brand;
+
+    /**
+     * 姓氏
+     */
+    private String member;
 
     /**
      * 原车系信息
@@ -169,8 +178,6 @@ public class CarClueInfo implements Serializable {
      */
     private Date updateTime;
 
-    private static final long serialVersionUID = 1L;
-
     public Long getId() {
         return id;
     }
@@ -184,7 +191,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setCid(String cid) {
-        this.cid = cid;
+        this.cid = cid == null ? null : cid.trim();
     }
 
     public String getApiCode() {
@@ -192,7 +199,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public String getCustNum() {
@@ -200,7 +207,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setCustNum(String custNum) {
-        this.custNum = custNum;
+        this.custNum = custNum == null ? null : custNum.trim();
     }
 
     public String getCell() {
@@ -208,7 +215,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setCell(String cell) {
-        this.cell = cell;
+        this.cell = cell == null ? null : cell.trim();
     }
 
     public String getIntention() {
@@ -216,7 +223,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setIntention(String intention) {
-        this.intention = intention;
+        this.intention = intention == null ? null : intention.trim();
     }
 
     public String getBrand() {
@@ -224,7 +231,15 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setBrand(String brand) {
-        this.brand = brand;
+        this.brand = brand == null ? null : brand.trim();
+    }
+
+    public String getMember() {
+        return member;
+    }
+
+    public void setMember(String member) {
+        this.member = member == null ? null : member.trim();
     }
 
     public String getSeries() {
@@ -232,7 +247,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setSeries(String series) {
-        this.series = series;
+        this.series = series == null ? null : series.trim();
     }
 
     public String getClueMatchBrandId() {
@@ -240,7 +255,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchBrandId(String clueMatchBrandId) {
-        this.clueMatchBrandId = clueMatchBrandId;
+        this.clueMatchBrandId = clueMatchBrandId == null ? null : clueMatchBrandId.trim();
     }
 
     public String getClueMatchBrand() {
@@ -248,7 +263,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchBrand(String clueMatchBrand) {
-        this.clueMatchBrand = clueMatchBrand;
+        this.clueMatchBrand = clueMatchBrand == null ? null : clueMatchBrand.trim();
     }
 
     public String getClueMatchSeriesId() {
@@ -256,7 +271,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchSeriesId(String clueMatchSeriesId) {
-        this.clueMatchSeriesId = clueMatchSeriesId;
+        this.clueMatchSeriesId = clueMatchSeriesId == null ? null : clueMatchSeriesId.trim();
     }
 
     public String getClueMatchSeries() {
@@ -264,7 +279,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchSeries(String clueMatchSeries) {
-        this.clueMatchSeries = clueMatchSeries;
+        this.clueMatchSeries = clueMatchSeries == null ? null : clueMatchSeries.trim();
     }
 
     public Integer getMatchBrandSeriesType() {
@@ -280,7 +295,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setProvince(String province) {
-        this.province = province;
+        this.province = province == null ? null : province.trim();
     }
 
     public String getClueMatchProvinceId() {
@@ -288,7 +303,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchProvinceId(String clueMatchProvinceId) {
-        this.clueMatchProvinceId = clueMatchProvinceId;
+        this.clueMatchProvinceId = clueMatchProvinceId == null ? null : clueMatchProvinceId.trim();
     }
 
     public String getClueMatchProvince() {
@@ -296,7 +311,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchProvince(String clueMatchProvince) {
-        this.clueMatchProvince = clueMatchProvince;
+        this.clueMatchProvince = clueMatchProvince == null ? null : clueMatchProvince.trim();
     }
 
     public String getCity() {
@@ -304,7 +319,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setCity(String city) {
-        this.city = city;
+        this.city = city == null ? null : city.trim();
     }
 
     public String getClueMatchCityId() {
@@ -312,7 +327,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchCityId(String clueMatchCityId) {
-        this.clueMatchCityId = clueMatchCityId;
+        this.clueMatchCityId = clueMatchCityId == null ? null : clueMatchCityId.trim();
     }
 
     public String getClueMatchCity() {
@@ -320,7 +335,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueMatchCity(String clueMatchCity) {
-        this.clueMatchCity = clueMatchCity;
+        this.clueMatchCity = clueMatchCity == null ? null : clueMatchCity.trim();
     }
 
     public String getRecordingpath() {
@@ -328,7 +343,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setRecordingpath(String recordingpath) {
-        this.recordingpath = recordingpath;
+        this.recordingpath = recordingpath == null ? null : recordingpath.trim();
     }
 
     public String getClueId() {
@@ -336,7 +351,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueId(String clueId) {
-        this.clueId = clueId;
+        this.clueId = clueId == null ? null : clueId.trim();
     }
 
     public String getCluePushChannel() {
@@ -344,7 +359,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setCluePushChannel(String cluePushChannel) {
-        this.cluePushChannel = cluePushChannel;
+        this.cluePushChannel = cluePushChannel == null ? null : cluePushChannel.trim();
     }
 
     public Integer getClueDataStatus() {
@@ -384,7 +399,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueErrorReason(String clueErrorReason) {
-        this.clueErrorReason = clueErrorReason;
+        this.clueErrorReason = clueErrorReason == null ? null : clueErrorReason.trim();
     }
 
     public String getClueCallbackResult() {
@@ -392,7 +407,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setClueCallbackResult(String clueCallbackResult) {
-        this.clueCallbackResult = clueCallbackResult;
+        this.clueCallbackResult = clueCallbackResult == null ? null : clueCallbackResult.trim();
     }
 
     public String getExtendInfo() {
@@ -400,7 +415,7 @@ public class CarClueInfo implements Serializable {
     }
 
     public void setExtendInfo(String extendInfo) {
-        this.extendInfo = extendInfo;
+        this.extendInfo = extendInfo == null ? null : extendInfo.trim();
     }
 
     public Date getCreateTime() {

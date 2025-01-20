@@ -4,7 +4,6 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.vo.CarClueInfoVo;
-import com.br.marketing.vo.SyncConfigEditVO;
 
 import java.util.List;
 
@@ -29,9 +28,10 @@ public interface CarClueReportService {
 
     /**
      * 编辑车线索信息
-     * @param vo
+     * @param voList
      * @return
      */
     ApiResult<Boolean> editCarClues(List<CarClueInfoVo> voList);
+
 
 }

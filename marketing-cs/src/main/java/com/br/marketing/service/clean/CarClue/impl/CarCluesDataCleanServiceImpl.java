@@ -29,6 +29,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -64,7 +65,8 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
 
     public void clean(String apiCode, String date) {
         String cid = tableCreateService.getCId(apiCode);
-        List<String> carClueIntentionGrades = marketingCommonConfig.getCarClueIntentionGrades();
+        Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
+        List<String> carClueIntentionGrades = carClueStorageConfig.get("carClueIntentionGrades");
         JSONObject carClueDataCleanConfig = marketingCommonConfig.getCarClueDataCleanConfig();
         Integer limit = carClueDataCleanConfig.getInteger("limit");
         Integer threadNum = carClueDataCleanConfig.getInteger("threadNum");
@@ -106,6 +108,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         String province = getPhoneFromJsonObject(jsonObject, "province");
                         String city = getPhoneFromJsonObject(jsonObject, "city");
                         String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
+                        String member = getPhoneFromJsonObject(jsonObject, "member");
                         String intentionGrade = callRecord.getIntentionGrade();
                         if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
                             CarClueInfo carClueInfo = new CarClueInfo();
@@ -122,6 +125,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                             carClueInfo.setProvince(province);
                             carClueInfo.setCity(city);
                             carClueInfo.setCluePushChannel(resourceType);
+                            carClueInfo.setMember(member);
                             carClueInfo.setCreateTime(new Date());
                             carClueInfo.setUpdateTime(new Date());
                             carClueInfos.add(carClueInfo);
@@ -153,10 +157,11 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                     // 上传入库apiCode
                     uploadDataDTO.setApiCode(apiCode);
                     uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
-                    pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                    carClueInfoMapper.batchInsert(carClueInfos);
                     updateCallRecordLogStatus(successRecordIds, 2);
                     updateCallRecordLogStatus(failRecordIds, 3);
+                    pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                    carClueInfoMapper.batchInsert(carClueInfos);
+
                 });
             }
         } catch (Exception e) {
@@ -198,6 +203,6 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
         callRecordLog.setInboundStatus(status);
         CallRecordLogExample callRecordLogExample = new CallRecordLogExample();
         callRecordLogExample.createCriteria().andRecordIdIn(recordIds);
-        callRecordLogMapper.updateByExample(callRecordLog, callRecordLogExample);
+        callRecordLogMapper.updateByExampleSelective(callRecordLog, callRecordLogExample);
     }
 }

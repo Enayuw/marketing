@@ -9,7 +9,6 @@ import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.CarClueReportService;
 import com.br.marketing.vo.CarClueInfoVo;
-import com.br.marketing.vo.SyncConfigEditVO;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,6 @@ public class CarClueReportController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CarClueInfoVo.class)})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getReportList(@RequestBody @Valid CarClueReportDTO request) {
-        // 调用服务层
         PageResultReturn result = carClueReportService.getReportList(request);
         if (result != null) {
             return new ApiResult<PageResultReturn>().success(result);
@@ -64,5 +62,6 @@ public class CarClueReportController {
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
+
 
 }

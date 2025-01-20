@@ -12,7 +12,7 @@ public class CarClueInfoExample {
     protected List<Criteria> oredCriteria;
 
     public CarClueInfoExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class CarClueInfoExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -582,6 +582,76 @@ public class CarClueInfoExample {
 
         public Criteria andBrandNotBetween(String value1, String value2) {
             addCriterion("brand not between", value1, value2, "brand");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberIsNull() {
+            addCriterion("`member` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberIsNotNull() {
+            addCriterion("`member` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberEqualTo(String value) {
+            addCriterion("`member` =", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberNotEqualTo(String value) {
+            addCriterion("`member` <>", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberGreaterThan(String value) {
+            addCriterion("`member` >", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberGreaterThanOrEqualTo(String value) {
+            addCriterion("`member` >=", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberLessThan(String value) {
+            addCriterion("`member` <", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberLessThanOrEqualTo(String value) {
+            addCriterion("`member` <=", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberLike(String value) {
+            addCriterion("`member` like", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberNotLike(String value) {
+            addCriterion("`member` not like", value, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberIn(List<String> values) {
+            addCriterion("`member` in", values, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberNotIn(List<String> values) {
+            addCriterion("`member` not in", values, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberBetween(String value1, String value2) {
+            addCriterion("`member` between", value1, value2, "member");
+            return (Criteria) this;
+        }
+
+        public Criteria andMemberNotBetween(String value1, String value2) {
+            addCriterion("`member` not between", value1, value2, "member");
             return (Criteria) this;
         }
 
@@ -2376,9 +2446,8 @@ public class CarClueInfoExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

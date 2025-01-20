@@ -12,7 +12,7 @@ public class CarClueInitMappingExample {
     protected List<Criteria> oredCriteria;
 
     public CarClueInitMappingExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class CarClueInitMappingExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -375,6 +375,76 @@ public class CarClueInitMappingExample {
             return (Criteria) this;
         }
 
+        public Criteria andNationIsNull() {
+            addCriterion("nation is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationIsNotNull() {
+            addCriterion("nation is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationEqualTo(String value) {
+            addCriterion("nation =", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationNotEqualTo(String value) {
+            addCriterion("nation <>", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationGreaterThan(String value) {
+            addCriterion("nation >", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationGreaterThanOrEqualTo(String value) {
+            addCriterion("nation >=", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationLessThan(String value) {
+            addCriterion("nation <", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationLessThanOrEqualTo(String value) {
+            addCriterion("nation <=", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationLike(String value) {
+            addCriterion("nation like", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationNotLike(String value) {
+            addCriterion("nation not like", value, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationIn(List<String> values) {
+            addCriterion("nation in", values, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationNotIn(List<String> values) {
+            addCriterion("nation not in", values, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationBetween(String value1, String value2) {
+            addCriterion("nation between", value1, value2, "nation");
+            return (Criteria) this;
+        }
+
+        public Criteria andNationNotBetween(String value1, String value2) {
+            addCriterion("nation not between", value1, value2, "nation");
+            return (Criteria) this;
+        }
+
         public Criteria andSatisfyProvinceNameIsNull() {
             addCriterion("satisfy_province_name is null");
             return (Criteria) this;
@@ -655,76 +725,6 @@ public class CarClueInitMappingExample {
             return (Criteria) this;
         }
 
-        public Criteria andProvinceTypeIsNull() {
-            addCriterion("province_type is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeIsNotNull() {
-            addCriterion("province_type is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeEqualTo(String value) {
-            addCriterion("province_type =", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeNotEqualTo(String value) {
-            addCriterion("province_type <>", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeGreaterThan(String value) {
-            addCriterion("province_type >", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("province_type >=", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeLessThan(String value) {
-            addCriterion("province_type <", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeLessThanOrEqualTo(String value) {
-            addCriterion("province_type <=", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeLike(String value) {
-            addCriterion("province_type like", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeNotLike(String value) {
-            addCriterion("province_type not like", value, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeIn(List<String> values) {
-            addCriterion("province_type in", values, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeNotIn(List<String> values) {
-            addCriterion("province_type not in", values, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeBetween(String value1, String value2) {
-            addCriterion("province_type between", value1, value2, "provinceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andProvinceTypeNotBetween(String value1, String value2) {
-            addCriterion("province_type not between", value1, value2, "provinceType");
-            return (Criteria) this;
-        }
-
         public Criteria andAppletDateIsNull() {
             addCriterion("applet_date is null");
             return (Criteria) this;
@@ -976,9 +976,8 @@ public class CarClueInitMappingExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

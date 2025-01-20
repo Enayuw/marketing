@@ -1,17 +1,18 @@
 package com.br.marketing.service.Impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
-import com.br.marketing.entity.CallRecordLog;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -35,14 +36,14 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     @Resource
     CarClueInfoMapper carClueInfoMapper;
 
+
     @Resource
-    private CallRecordLogMapper callRecordLogMapper;
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public PageResultReturn getReportList(CarClueReportDTO request) {
         Integer current = request.getCurrent();
         Integer size = request.getSize();
-
         Map params = new HashMap();
         params.put("createTimeStart", request.getCreateTimeStart());
         params.put("createTimeEnd", request.getCreateTimeEnd());
@@ -50,24 +51,32 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("clueDataStatus", request.getClueDataStatus());
         params.put("updateTimeStart", request.getUpdateTimeStart());
         params.put("updateTimeEnd", request.getUpdateTimeEnd());
-        params.put("cluePushChannel", request.getCluePushChannel());
+        params.put("cluePushChannel", getValueByKey(request.getCluePushChannel()));
         params.put("cluePushStatus", request.getCluePushStatus());
         params.put("pushTimeStart", request.getPushTimeStart());
         params.put("pushTimeEnd", request.getPushTimeEnd());
+        params.put("status", request.getStatus());
         params.put("callBackTimeStart", request.getCallBackTimeStart());
         params.put("callBackTimeEnd", request.getCallBackTimeEnd());
 
         PageHelper.startPage(current, size);
         List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
         list.forEach((CarClueInfoVo carClueInfoVo) -> {
-            CallRecordLog callRecordLog = callRecordLogMapper.selectByrecordId(carClueInfoVo.getId());
-            String status = ObjectUtil.isNotEmpty(callRecordLog) ? callRecordLog.getInboundStatus().toString() : "0";
-            carClueInfoVo.setStatus(status);
             String encryptCell = encryptCell(carClueInfoVo.getCell());
             carClueInfoVo.setCell(encryptCell);
         });
 
         return PageResultReturn.setPageResult(list, current, size);
+    }
+
+    public String encryptCell(String cell) {
+        if (cell == null || cell.isEmpty()) {
+            return "";
+        }
+        if (cell.length() < 7) {
+            return cell;
+        }
+        return cell.substring(0, 3) + "****" + cell.substring(7);
     }
 
 
@@ -112,15 +121,23 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         }
     }
 
-
-
-    public String encryptCell(String cell) {
-        if (cell == null || cell.isEmpty()) {
-            return "";
+    public String getValueByKey(String key) {
+        try {
+            Map<String, JSONObject> clueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
+            JSONObject jsonObject = clueApiCodeMapping.get("channel");
+            if (ObjectUtil.isEmpty(jsonObject)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                        "渠道不存在！"));
+            }
+            String string = jsonObject.getString(key);
+            String result = ObjectUtil.isNotEmpty(string) ? string : "fail";
+            return result;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "获取推送渠道映射失败！错误信息：" + e.getMessage()), e);
+            return "fail";
         }
-        if (cell.length() < 7) {
-            return cell;
-        }
-        return cell.substring(0, 3) + "****" + cell.substring(7);
     }
+
+
 }

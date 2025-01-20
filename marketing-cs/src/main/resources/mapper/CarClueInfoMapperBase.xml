@@ -1,61 +1,62 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.CarClueInfoMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CarClueInfo">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="cid" jdbcType="VARCHAR" property="cid" />
-    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="cust_num" jdbcType="VARCHAR" property="custNum" />
-    <result column="cell" jdbcType="VARCHAR" property="cell" />
-    <result column="intention" jdbcType="VARCHAR" property="intention" />
-    <result column="brand" jdbcType="VARCHAR" property="brand" />
-    <result column="series" jdbcType="VARCHAR" property="series" />
-    <result column="clue_match_brand_id" jdbcType="VARCHAR" property="clueMatchBrandId" />
-    <result column="clue_match_brand" jdbcType="VARCHAR" property="clueMatchBrand" />
-    <result column="clue_match_series_id" jdbcType="VARCHAR" property="clueMatchSeriesId" />
-    <result column="clue_match_series" jdbcType="VARCHAR" property="clueMatchSeries" />
-    <result column="match_brand_series_type" jdbcType="INTEGER" property="matchBrandSeriesType" />
-    <result column="province" jdbcType="VARCHAR" property="province" />
-    <result column="clue_match_province_id" jdbcType="VARCHAR" property="clueMatchProvinceId" />
-    <result column="clue_match_province" jdbcType="VARCHAR" property="clueMatchProvince" />
-    <result column="city" jdbcType="VARCHAR" property="city" />
-    <result column="clue_match_city_id" jdbcType="VARCHAR" property="clueMatchCityId" />
-    <result column="clue_match_city" jdbcType="VARCHAR" property="clueMatchCity" />
-    <result column="recordingPath" jdbcType="VARCHAR" property="recordingpath" />
-    <result column="clue_id" jdbcType="VARCHAR" property="clueId" />
-    <result column="clue_push_channel" jdbcType="VARCHAR" property="cluePushChannel" />
-    <result column="clue_data_status" jdbcType="INTEGER" property="clueDataStatus" />
-    <result column="clue_complete_status" jdbcType="INTEGER" property="clueCompleteStatus" />
-    <result column="clue_push_status" jdbcType="INTEGER" property="cluePushStatus" />
-    <result column="clue_callback_status" jdbcType="INTEGER" property="clueCallbackStatus" />
-    <result column="clue_error_reason" jdbcType="VARCHAR" property="clueErrorReason" />
-    <result column="clue_callback_result" jdbcType="VARCHAR" property="clueCallbackResult" />
-    <result column="extend_info" jdbcType="VARCHAR" property="extendInfo" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="clean_time" jdbcType="TIMESTAMP" property="cleanTime" />
-    <result column="push_time" jdbcType="TIMESTAMP" property="pushTime" />
-    <result column="call_back_time" jdbcType="TIMESTAMP" property="callBackTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CarClueInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CarClueInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="intention" property="intention" jdbcType="VARCHAR" />
+    <result column="brand" property="brand" jdbcType="VARCHAR" />
+    <result column="member" property="member" jdbcType="VARCHAR" />
+    <result column="series" property="series" jdbcType="VARCHAR" />
+    <result column="clue_match_brand_id" property="clueMatchBrandId" jdbcType="VARCHAR" />
+    <result column="clue_match_brand" property="clueMatchBrand" jdbcType="VARCHAR" />
+    <result column="clue_match_series_id" property="clueMatchSeriesId" jdbcType="VARCHAR" />
+    <result column="clue_match_series" property="clueMatchSeries" jdbcType="VARCHAR" />
+    <result column="match_brand_series_type" property="matchBrandSeriesType" jdbcType="INTEGER" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="clue_match_province_id" property="clueMatchProvinceId" jdbcType="VARCHAR" />
+    <result column="clue_match_province" property="clueMatchProvince" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="clue_match_city_id" property="clueMatchCityId" jdbcType="VARCHAR" />
+    <result column="clue_match_city" property="clueMatchCity" jdbcType="VARCHAR" />
+    <result column="recording_path" property="recordingpath" jdbcType="VARCHAR" />
+    <result column="clue_id" property="clueId" jdbcType="VARCHAR" />
+    <result column="clue_push_channel" property="cluePushChannel" jdbcType="VARCHAR" />
+    <result column="clue_data_status" property="clueDataStatus" jdbcType="INTEGER" />
+    <result column="clue_complete_status" property="clueCompleteStatus" jdbcType="INTEGER" />
+    <result column="clue_push_status" property="cluePushStatus" jdbcType="INTEGER" />
+    <result column="clue_callback_status" property="clueCallbackStatus" jdbcType="INTEGER" />
+    <result column="clue_error_reason" property="clueErrorReason" jdbcType="VARCHAR" />
+    <result column="clue_callback_result" property="clueCallbackResult" jdbcType="VARCHAR" />
+    <result column="extend_info" property="extendInfo" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="clean_time" property="cleanTime" jdbcType="TIMESTAMP" />
+    <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
+    <result column="call_back_time" property="callBackTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -66,25 +67,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -95,392 +96,407 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
-    id, cid, api_code, cust_num, cell, intention, brand, series, clue_match_brand_id, 
+  <sql id="Base_Column_List" >
+    id, cid, api_code, cust_num, cell, intention, brand, `member`, series, clue_match_brand_id, 
     clue_match_brand, clue_match_series_id, clue_match_series, match_brand_series_type, 
     province, clue_match_province_id, clue_match_province, city, clue_match_city_id, 
-    clue_match_city, recordingPath, clue_id, clue_push_channel, clue_data_status, clue_complete_status, 
+    clue_match_city, recording_path, clue_id, clue_push_channel, clue_data_status, clue_complete_status,
     clue_push_status, clue_callback_status, clue_error_reason, clue_callback_result, 
     extend_info, create_time, clean_time, push_time, call_back_time, update_time
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.CarClueInfoExample" resultMap="BaseResultMap">
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInfoExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_car_clue_info
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
     from b_car_clue_info
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_car_clue_info
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CarClueInfoExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CarClueInfoExample" >
     delete from b_car_clue_info
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CarClueInfo" useGeneratedKeys="true">
+  <insert id="insert" parameterType="com.br.marketing.entity.CarClueInfo" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_car_clue_info (cid, api_code, cust_num, 
       cell, intention, brand, 
-      series, clue_match_brand_id, clue_match_brand, 
-      clue_match_series_id, clue_match_series, match_brand_series_type, 
-      province, clue_match_province_id, clue_match_province, 
-      city, clue_match_city_id, clue_match_city, 
-      recordingPath, clue_id, clue_push_channel, 
-      clue_data_status, clue_complete_status, clue_push_status, 
-      clue_callback_status, clue_error_reason, clue_callback_result, 
-      extend_info, create_time, clean_time, 
-      push_time, call_back_time, update_time
-      )
+      `member`, series, clue_match_brand_id, 
+      clue_match_brand, clue_match_series_id, clue_match_series, 
+      match_brand_series_type, province, clue_match_province_id, 
+      clue_match_province, city, clue_match_city_id, 
+      clue_match_city, recording_path, clue_id,
+      clue_push_channel, clue_data_status, clue_complete_status, 
+      clue_push_status, clue_callback_status, clue_error_reason, 
+      clue_callback_result, extend_info, create_time, 
+      clean_time, push_time, call_back_time, 
+      update_time)
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
       #{cell,jdbcType=VARCHAR}, #{intention,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR}, 
-      #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR}, #{clueMatchBrand,jdbcType=VARCHAR}, 
-      #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR}, #{matchBrandSeriesType,jdbcType=INTEGER}, 
-      #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR}, #{clueMatchProvince,jdbcType=VARCHAR}, 
-      #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR}, #{clueMatchCity,jdbcType=VARCHAR}, 
-      #{recordingpath,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR}, #{cluePushChannel,jdbcType=VARCHAR}, 
-      #{clueDataStatus,jdbcType=INTEGER}, #{clueCompleteStatus,jdbcType=INTEGER}, #{cluePushStatus,jdbcType=INTEGER}, 
-      #{clueCallbackStatus,jdbcType=INTEGER}, #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR}, 
-      #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{cleanTime,jdbcType=TIMESTAMP}, 
-      #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{member,jdbcType=VARCHAR}, #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR}, 
+      #{clueMatchBrand,jdbcType=VARCHAR}, #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR}, 
+      #{matchBrandSeriesType,jdbcType=INTEGER}, #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR}, 
+      #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR}, 
+      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingpath,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR}, 
+      #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER}, #{clueCompleteStatus,jdbcType=INTEGER}, 
+      #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER}, #{clueErrorReason,jdbcType=VARCHAR}, 
+      #{clueCallbackResult,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CarClueInfo" useGeneratedKeys="true">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueInfo" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_car_clue_info
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="cid != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
         cid,
       </if>
-      <if test="apiCode != null">
+      <if test="apiCode != null" >
         api_code,
       </if>
-      <if test="custNum != null">
+      <if test="custNum != null" >
         cust_num,
       </if>
-      <if test="cell != null">
+      <if test="cell != null" >
         cell,
       </if>
-      <if test="intention != null">
+      <if test="intention != null" >
         intention,
       </if>
-      <if test="brand != null">
+      <if test="brand != null" >
         brand,
       </if>
-      <if test="series != null">
+      <if test="member != null" >
+        `member`,
+      </if>
+      <if test="series != null" >
         series,
       </if>
-      <if test="clueMatchBrandId != null">
+      <if test="clueMatchBrandId != null" >
         clue_match_brand_id,
       </if>
-      <if test="clueMatchBrand != null">
+      <if test="clueMatchBrand != null" >
         clue_match_brand,
       </if>
-      <if test="clueMatchSeriesId != null">
+      <if test="clueMatchSeriesId != null" >
         clue_match_series_id,
       </if>
-      <if test="clueMatchSeries != null">
+      <if test="clueMatchSeries != null" >
         clue_match_series,
       </if>
-      <if test="matchBrandSeriesType != null">
+      <if test="matchBrandSeriesType != null" >
         match_brand_series_type,
       </if>
-      <if test="province != null">
+      <if test="province != null" >
         province,
       </if>
-      <if test="clueMatchProvinceId != null">
+      <if test="clueMatchProvinceId != null" >
         clue_match_province_id,
       </if>
-      <if test="clueMatchProvince != null">
+      <if test="clueMatchProvince != null" >
         clue_match_province,
       </if>
-      <if test="city != null">
+      <if test="city != null" >
         city,
       </if>
-      <if test="clueMatchCityId != null">
+      <if test="clueMatchCityId != null" >
         clue_match_city_id,
       </if>
-      <if test="clueMatchCity != null">
+      <if test="clueMatchCity != null" >
         clue_match_city,
       </if>
-      <if test="recordingpath != null">
-        recordingPath,
+      <if test="recordingpath != null" >
+        recording_path,
       </if>
-      <if test="clueId != null">
+      <if test="clueId != null" >
         clue_id,
       </if>
-      <if test="cluePushChannel != null">
+      <if test="cluePushChannel != null" >
         clue_push_channel,
       </if>
-      <if test="clueDataStatus != null">
+      <if test="clueDataStatus != null" >
         clue_data_status,
       </if>
-      <if test="clueCompleteStatus != null">
+      <if test="clueCompleteStatus != null" >
         clue_complete_status,
       </if>
-      <if test="cluePushStatus != null">
+      <if test="cluePushStatus != null" >
         clue_push_status,
       </if>
-      <if test="clueCallbackStatus != null">
+      <if test="clueCallbackStatus != null" >
         clue_callback_status,
       </if>
-      <if test="clueErrorReason != null">
+      <if test="clueErrorReason != null" >
         clue_error_reason,
       </if>
-      <if test="clueCallbackResult != null">
+      <if test="clueCallbackResult != null" >
         clue_callback_result,
       </if>
-      <if test="extendInfo != null">
+      <if test="extendInfo != null" >
         extend_info,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="cleanTime != null">
+      <if test="cleanTime != null" >
         clean_time,
       </if>
-      <if test="pushTime != null">
+      <if test="pushTime != null" >
         push_time,
       </if>
-      <if test="callBackTime != null">
+      <if test="callBackTime != null" >
         call_back_time,
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time,
       </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="cid != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
         #{cid,jdbcType=VARCHAR},
       </if>
-      <if test="apiCode != null">
+      <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="custNum != null">
+      <if test="custNum != null" >
         #{custNum,jdbcType=VARCHAR},
       </if>
-      <if test="cell != null">
+      <if test="cell != null" >
         #{cell,jdbcType=VARCHAR},
       </if>
-      <if test="intention != null">
+      <if test="intention != null" >
         #{intention,jdbcType=VARCHAR},
       </if>
-      <if test="brand != null">
+      <if test="brand != null" >
         #{brand,jdbcType=VARCHAR},
       </if>
-      <if test="series != null">
+      <if test="member != null" >
+        #{member,jdbcType=VARCHAR},
+      </if>
+      <if test="series != null" >
         #{series,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchBrandId != null">
+      <if test="clueMatchBrandId != null" >
         #{clueMatchBrandId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchBrand != null">
+      <if test="clueMatchBrand != null" >
         #{clueMatchBrand,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchSeriesId != null">
+      <if test="clueMatchSeriesId != null" >
         #{clueMatchSeriesId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchSeries != null">
+      <if test="clueMatchSeries != null" >
         #{clueMatchSeries,jdbcType=VARCHAR},
       </if>
-      <if test="matchBrandSeriesType != null">
+      <if test="matchBrandSeriesType != null" >
         #{matchBrandSeriesType,jdbcType=INTEGER},
       </if>
-      <if test="province != null">
+      <if test="province != null" >
         #{province,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchProvinceId != null">
+      <if test="clueMatchProvinceId != null" >
         #{clueMatchProvinceId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchProvince != null">
+      <if test="clueMatchProvince != null" >
         #{clueMatchProvince,jdbcType=VARCHAR},
       </if>
-      <if test="city != null">
+      <if test="city != null" >
         #{city,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchCityId != null">
+      <if test="clueMatchCityId != null" >
         #{clueMatchCityId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchCity != null">
+      <if test="clueMatchCity != null" >
         #{clueMatchCity,jdbcType=VARCHAR},
       </if>
-      <if test="recordingpath != null">
+      <if test="recordingpath != null" >
         #{recordingpath,jdbcType=VARCHAR},
       </if>
-      <if test="clueId != null">
+      <if test="clueId != null" >
         #{clueId,jdbcType=VARCHAR},
       </if>
-      <if test="cluePushChannel != null">
+      <if test="cluePushChannel != null" >
         #{cluePushChannel,jdbcType=VARCHAR},
       </if>
-      <if test="clueDataStatus != null">
+      <if test="clueDataStatus != null" >
         #{clueDataStatus,jdbcType=INTEGER},
       </if>
-      <if test="clueCompleteStatus != null">
+      <if test="clueCompleteStatus != null" >
         #{clueCompleteStatus,jdbcType=INTEGER},
       </if>
-      <if test="cluePushStatus != null">
+      <if test="cluePushStatus != null" >
         #{cluePushStatus,jdbcType=INTEGER},
       </if>
-      <if test="clueCallbackStatus != null">
+      <if test="clueCallbackStatus != null" >
         #{clueCallbackStatus,jdbcType=INTEGER},
       </if>
-      <if test="clueErrorReason != null">
+      <if test="clueErrorReason != null" >
         #{clueErrorReason,jdbcType=VARCHAR},
       </if>
-      <if test="clueCallbackResult != null">
+      <if test="clueCallbackResult != null" >
         #{clueCallbackResult,jdbcType=VARCHAR},
       </if>
-      <if test="extendInfo != null">
+      <if test="extendInfo != null" >
         #{extendInfo,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="cleanTime != null">
+      <if test="cleanTime != null" >
         #{cleanTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="pushTime != null">
+      <if test="pushTime != null" >
         #{pushTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="callBackTime != null">
+      <if test="callBackTime != null" >
         #{callBackTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.CarClueInfoExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.CarClueInfoExample" resultType="java.lang.Integer" >
     select count(*) from b_car_clue_info
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_car_clue_info
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.cid != null">
+      <if test="record.cid != null" >
         cid = #{record.cid,jdbcType=VARCHAR},
       </if>
-      <if test="record.apiCode != null">
+      <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.custNum != null">
+      <if test="record.custNum != null" >
         cust_num = #{record.custNum,jdbcType=VARCHAR},
       </if>
-      <if test="record.cell != null">
+      <if test="record.cell != null" >
         cell = #{record.cell,jdbcType=VARCHAR},
       </if>
-      <if test="record.intention != null">
+      <if test="record.intention != null" >
         intention = #{record.intention,jdbcType=VARCHAR},
       </if>
-      <if test="record.brand != null">
+      <if test="record.brand != null" >
         brand = #{record.brand,jdbcType=VARCHAR},
       </if>
-      <if test="record.series != null">
+      <if test="record.member != null" >
+        `member` = #{record.member,jdbcType=VARCHAR},
+      </if>
+      <if test="record.series != null" >
         series = #{record.series,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchBrandId != null">
+      <if test="record.clueMatchBrandId != null" >
         clue_match_brand_id = #{record.clueMatchBrandId,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchBrand != null">
+      <if test="record.clueMatchBrand != null" >
         clue_match_brand = #{record.clueMatchBrand,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchSeriesId != null">
+      <if test="record.clueMatchSeriesId != null" >
         clue_match_series_id = #{record.clueMatchSeriesId,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchSeries != null">
+      <if test="record.clueMatchSeries != null" >
         clue_match_series = #{record.clueMatchSeries,jdbcType=VARCHAR},
       </if>
-      <if test="record.matchBrandSeriesType != null">
+      <if test="record.matchBrandSeriesType != null" >
         match_brand_series_type = #{record.matchBrandSeriesType,jdbcType=INTEGER},
       </if>
-      <if test="record.province != null">
+      <if test="record.province != null" >
         province = #{record.province,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchProvinceId != null">
+      <if test="record.clueMatchProvinceId != null" >
         clue_match_province_id = #{record.clueMatchProvinceId,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchProvince != null">
+      <if test="record.clueMatchProvince != null" >
         clue_match_province = #{record.clueMatchProvince,jdbcType=VARCHAR},
       </if>
-      <if test="record.city != null">
+      <if test="record.city != null" >
         city = #{record.city,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchCityId != null">
+      <if test="record.clueMatchCityId != null" >
         clue_match_city_id = #{record.clueMatchCityId,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueMatchCity != null">
+      <if test="record.clueMatchCity != null" >
         clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
       </if>
-      <if test="record.recordingpath != null">
-        recordingPath = #{record.recordingpath,jdbcType=VARCHAR},
+      <if test="record.recordingpath != null" >
+        recording_path = #{record.recordingpath,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueId != null">
+      <if test="record.clueId != null" >
         clue_id = #{record.clueId,jdbcType=VARCHAR},
       </if>
-      <if test="record.cluePushChannel != null">
+      <if test="record.cluePushChannel != null" >
         clue_push_channel = #{record.cluePushChannel,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueDataStatus != null">
+      <if test="record.clueDataStatus != null" >
         clue_data_status = #{record.clueDataStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.clueCompleteStatus != null">
+      <if test="record.clueCompleteStatus != null" >
         clue_complete_status = #{record.clueCompleteStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.cluePushStatus != null">
+      <if test="record.cluePushStatus != null" >
         clue_push_status = #{record.cluePushStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.clueCallbackStatus != null">
+      <if test="record.clueCallbackStatus != null" >
         clue_callback_status = #{record.clueCallbackStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.clueErrorReason != null">
+      <if test="record.clueErrorReason != null" >
         clue_error_reason = #{record.clueErrorReason,jdbcType=VARCHAR},
       </if>
-      <if test="record.clueCallbackResult != null">
+      <if test="record.clueCallbackResult != null" >
         clue_callback_result = #{record.clueCallbackResult,jdbcType=VARCHAR},
       </if>
-      <if test="record.extendInfo != null">
+      <if test="record.extendInfo != null" >
         extend_info = #{record.extendInfo,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.cleanTime != null">
+      <if test="record.cleanTime != null" >
         clean_time = #{record.cleanTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.pushTime != null">
+      <if test="record.pushTime != null" >
         push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.callBackTime != null">
+      <if test="record.callBackTime != null" >
         call_back_time = #{record.callBackTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null">
+      <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExample" parameterType="map" >
     update b_car_clue_info
     set id = #{record.id,jdbcType=BIGINT},
       cid = #{record.cid,jdbcType=VARCHAR},
@@ -489,6 +505,7 @@
       cell = #{record.cell,jdbcType=VARCHAR},
       intention = #{record.intention,jdbcType=VARCHAR},
       brand = #{record.brand,jdbcType=VARCHAR},
+      `member` = #{record.member,jdbcType=VARCHAR},
       series = #{record.series,jdbcType=VARCHAR},
       clue_match_brand_id = #{record.clueMatchBrandId,jdbcType=VARCHAR},
       clue_match_brand = #{record.clueMatchBrand,jdbcType=VARCHAR},
@@ -501,7 +518,7 @@
       city = #{record.city,jdbcType=VARCHAR},
       clue_match_city_id = #{record.clueMatchCityId,jdbcType=VARCHAR},
       clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
-      recordingPath = #{record.recordingpath,jdbcType=VARCHAR},
+      recording_path = #{record.recordingpath,jdbcType=VARCHAR},
       clue_id = #{record.clueId,jdbcType=VARCHAR},
       clue_push_channel = #{record.cluePushChannel,jdbcType=VARCHAR},
       clue_data_status = #{record.clueDataStatus,jdbcType=INTEGER},
@@ -516,116 +533,119 @@
       push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       call_back_time = #{record.callBackTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CarClueInfo">
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CarClueInfo" >
     update b_car_clue_info
-    <set>
-      <if test="cid != null">
+    <set >
+      <if test="cid != null" >
         cid = #{cid,jdbcType=VARCHAR},
       </if>
-      <if test="apiCode != null">
+      <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="custNum != null">
+      <if test="custNum != null" >
         cust_num = #{custNum,jdbcType=VARCHAR},
       </if>
-      <if test="cell != null">
+      <if test="cell != null" >
         cell = #{cell,jdbcType=VARCHAR},
       </if>
-      <if test="intention != null">
+      <if test="intention != null" >
         intention = #{intention,jdbcType=VARCHAR},
       </if>
-      <if test="brand != null">
+      <if test="brand != null" >
         brand = #{brand,jdbcType=VARCHAR},
       </if>
-      <if test="series != null">
+      <if test="member != null" >
+        `member` = #{member,jdbcType=VARCHAR},
+      </if>
+      <if test="series != null" >
         series = #{series,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchBrandId != null">
+      <if test="clueMatchBrandId != null" >
         clue_match_brand_id = #{clueMatchBrandId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchBrand != null">
+      <if test="clueMatchBrand != null" >
         clue_match_brand = #{clueMatchBrand,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchSeriesId != null">
+      <if test="clueMatchSeriesId != null" >
         clue_match_series_id = #{clueMatchSeriesId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchSeries != null">
+      <if test="clueMatchSeries != null" >
         clue_match_series = #{clueMatchSeries,jdbcType=VARCHAR},
       </if>
-      <if test="matchBrandSeriesType != null">
+      <if test="matchBrandSeriesType != null" >
         match_brand_series_type = #{matchBrandSeriesType,jdbcType=INTEGER},
       </if>
-      <if test="province != null">
+      <if test="province != null" >
         province = #{province,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchProvinceId != null">
+      <if test="clueMatchProvinceId != null" >
         clue_match_province_id = #{clueMatchProvinceId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchProvince != null">
+      <if test="clueMatchProvince != null" >
         clue_match_province = #{clueMatchProvince,jdbcType=VARCHAR},
       </if>
-      <if test="city != null">
+      <if test="city != null" >
         city = #{city,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchCityId != null">
+      <if test="clueMatchCityId != null" >
         clue_match_city_id = #{clueMatchCityId,jdbcType=VARCHAR},
       </if>
-      <if test="clueMatchCity != null">
+      <if test="clueMatchCity != null" >
         clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
       </if>
-      <if test="recordingpath != null">
-        recordingPath = #{recordingpath,jdbcType=VARCHAR},
+      <if test="recordingpath != null" >
+        recording_path = #{recordingpath,jdbcType=VARCHAR},
       </if>
-      <if test="clueId != null">
+      <if test="clueId != null" >
         clue_id = #{clueId,jdbcType=VARCHAR},
       </if>
-      <if test="cluePushChannel != null">
+      <if test="cluePushChannel != null" >
         clue_push_channel = #{cluePushChannel,jdbcType=VARCHAR},
       </if>
-      <if test="clueDataStatus != null">
+      <if test="clueDataStatus != null" >
         clue_data_status = #{clueDataStatus,jdbcType=INTEGER},
       </if>
-      <if test="clueCompleteStatus != null">
+      <if test="clueCompleteStatus != null" >
         clue_complete_status = #{clueCompleteStatus,jdbcType=INTEGER},
       </if>
-      <if test="cluePushStatus != null">
+      <if test="cluePushStatus != null" >
         clue_push_status = #{cluePushStatus,jdbcType=INTEGER},
       </if>
-      <if test="clueCallbackStatus != null">
+      <if test="clueCallbackStatus != null" >
         clue_callback_status = #{clueCallbackStatus,jdbcType=INTEGER},
       </if>
-      <if test="clueErrorReason != null">
+      <if test="clueErrorReason != null" >
         clue_error_reason = #{clueErrorReason,jdbcType=VARCHAR},
       </if>
-      <if test="clueCallbackResult != null">
+      <if test="clueCallbackResult != null" >
         clue_callback_result = #{clueCallbackResult,jdbcType=VARCHAR},
       </if>
-      <if test="extendInfo != null">
+      <if test="extendInfo != null" >
         extend_info = #{extendInfo,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="cleanTime != null">
+      <if test="cleanTime != null" >
         clean_time = #{cleanTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="pushTime != null">
+      <if test="pushTime != null" >
         push_time = #{pushTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="callBackTime != null">
+      <if test="callBackTime != null" >
         call_back_time = #{callBackTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CarClueInfo">
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CarClueInfo" >
     update b_car_clue_info
     set cid = #{cid,jdbcType=VARCHAR},
       api_code = #{apiCode,jdbcType=VARCHAR},
@@ -633,6 +653,7 @@
       cell = #{cell,jdbcType=VARCHAR},
       intention = #{intention,jdbcType=VARCHAR},
       brand = #{brand,jdbcType=VARCHAR},
+      `member` = #{member,jdbcType=VARCHAR},
       series = #{series,jdbcType=VARCHAR},
       clue_match_brand_id = #{clueMatchBrandId,jdbcType=VARCHAR},
       clue_match_brand = #{clueMatchBrand,jdbcType=VARCHAR},
@@ -645,7 +666,7 @@
       city = #{city,jdbcType=VARCHAR},
       clue_match_city_id = #{clueMatchCityId,jdbcType=VARCHAR},
       clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
-      recordingPath = #{recordingpath,jdbcType=VARCHAR},
+      recording_path = #{recordingpath,jdbcType=VARCHAR},
       clue_id = #{clueId,jdbcType=VARCHAR},
       clue_push_channel = #{cluePushChannel,jdbcType=VARCHAR},
       clue_data_status = #{clueDataStatus,jdbcType=INTEGER},

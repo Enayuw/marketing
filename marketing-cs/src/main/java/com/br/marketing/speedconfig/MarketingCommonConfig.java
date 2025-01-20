@@ -2526,14 +2526,10 @@ public class MarketingCommonConfig {
     private Map<String, Object> smyBlacklistConfig = new HashMap<>();
 
     /**
-     * 车线索入库apiCode
+     * 车线索入库配置
+     * {"carClueApiCodes":["7410733"],"carClueIntentionGrades":["A","B","a","b"]}
      */
-    private List<String> carClueApiCodes;
-
-    /**
-     * 车线索入库意向
-     */
-    private List<String> carClueIntentionGrades;
+    private Map<String, List<String>> carClueStorageConfig;
 
     /**
      * 车线索数据清洗配置
@@ -2551,7 +2547,7 @@ public class MarketingCommonConfig {
      * 车线索apiCode映射：0-易车，1-海星之家
      * eg:{"7410xxx":0,"7410xxx":1}
      */
-    private Map<String, Integer> carClueApiCodeMapping = new HashMap<>();
+    private Map<String, JSONObject> carClueApiCodeMapping = new HashMap<>();
 
 
     /**

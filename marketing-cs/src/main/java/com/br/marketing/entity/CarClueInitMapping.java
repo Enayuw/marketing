@@ -1,15 +1,11 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
-/**
- * b_car_clue_init_mapping
- * @author 
- */
-@Data
-public class CarClueInitMapping implements Serializable {
+public class CarClueInitMapping {
+    /**
+     * 
+     */
     private Long id;
 
     /**
@@ -26,6 +22,11 @@ public class CarClueInitMapping implements Serializable {
      * 车系名称
      */
     private String seriesName;
+
+    /**
+     * 全国
+     */
+    private String nation;
 
     /**
      * 固定省份名称
@@ -48,11 +49,6 @@ public class CarClueInitMapping implements Serializable {
     private String excludeCityName;
 
     /**
-     * 省市类型 0-全国 1-固定 2-排除
-     */
-    private String provinceType;
-
-    /**
      * 上传日期
      */
     private String appletDate;
@@ -62,6 +58,9 @@ public class CarClueInitMapping implements Serializable {
      */
     private Date createTime;
 
+    /**
+     * 
+     */
     private Date updateTime;
 
     /**
@@ -69,5 +68,107 @@ public class CarClueInitMapping implements Serializable {
      */
     private Integer isDel;
 
-    private static final long serialVersionUID = 1L;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName == null ? null : brandName.trim();
+    }
+
+    public String getSeriesName() {
+        return seriesName;
+    }
+
+    public void setSeriesName(String seriesName) {
+        this.seriesName = seriesName == null ? null : seriesName.trim();
+    }
+
+    public String getNation() {
+        return nation;
+    }
+
+    public void setNation(String nation) {
+        this.nation = nation == null ? null : nation.trim();
+    }
+
+    public String getSatisfyProvinceName() {
+        return satisfyProvinceName;
+    }
+
+    public void setSatisfyProvinceName(String satisfyProvinceName) {
+        this.satisfyProvinceName = satisfyProvinceName == null ? null : satisfyProvinceName.trim();
+    }
+
+    public String getSatisfyCityName() {
+        return satisfyCityName;
+    }
+
+    public void setSatisfyCityName(String satisfyCityName) {
+        this.satisfyCityName = satisfyCityName == null ? null : satisfyCityName.trim();
+    }
+
+    public String getExcludeProvinceName() {
+        return excludeProvinceName;
+    }
+
+    public void setExcludeProvinceName(String excludeProvinceName) {
+        this.excludeProvinceName = excludeProvinceName == null ? null : excludeProvinceName.trim();
+    }
+
+    public String getExcludeCityName() {
+        return excludeCityName;
+    }
+
+    public void setExcludeCityName(String excludeCityName) {
+        this.excludeCityName = excludeCityName == null ? null : excludeCityName.trim();
+    }
+
+    public String getAppletDate() {
+        return appletDate;
+    }
+
+    public void setAppletDate(String appletDate) {
+        this.appletDate = appletDate == null ? null : appletDate.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
 }
