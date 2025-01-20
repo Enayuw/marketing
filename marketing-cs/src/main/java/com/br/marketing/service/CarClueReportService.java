@@ -4,8 +4,6 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.vo.CarClueInfoVo;
-import com.br.marketing.vo.MarketingCustomerVO;
-import com.br.marketing.vo.SyncConfigEditVO;
 
 import java.util.List;
 
