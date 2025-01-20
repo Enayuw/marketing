@@ -49,12 +49,12 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
             String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
                     ? jsonObject.getString("strategyCode")
                     : "";
-            String strategyCode = StringUtils.isNotEmpty(strategyCodeOriginal)
-                    ?  strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12)
-                    : "";
-            String userType  = StringUtils.isNotEmpty(strategyCodeOriginal)
-                    ?  strategyCodeOriginal.substring(0, strategyCodeOriginal.length() - 12)
-                    : "";
+            String strategyCode = strategyCodeOriginal.length() < 12
+                    ? strategyCodeOriginal
+                    : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
+            String userType  = strategyCodeOriginal.length() <= 12
+                    ? emptyDefault(syncUser.getUserType())
+                    : strategyCodeOriginal.substring(0, strategyCodeOriginal.length() - 12);
             String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
                     ? jsonObject.getString("batchName")
                     : (appletDate + "_" + apiCode);
