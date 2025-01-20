@@ -1,6 +1,6 @@
 package com.br.marketing.mapper;
 
-public interface CarClueInitMappingMapper extends CarClueRelationalMappingMapperBase{
+public interface CarClueInitMappingMapper extends CarClueInitMappingMapperBase{
 
 
 

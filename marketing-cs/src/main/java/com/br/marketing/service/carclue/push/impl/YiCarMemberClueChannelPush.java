@@ -23,22 +23,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
- * @ClassName StarZhiJiaClueChannelPush
- * @Description 海星之家推送车线索
+ * @ClassName YiCarMemberClueChannelPush
+ * @Description 易车会员推送车线索
  * @Author kongbx
- * @Date 2025/1/19 15:12
+ * @Date 2025/1/20 19:47
  */
 @Service
 @Slf4j
-public class StarZhiJiaClueChannelPush extends AbstractClueChannelPush {
-
+public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
     @Resource
     CarClueClient carClueClient;
     @Resource
     CarClueInfoMapper carClueInfoMapper;
-    private static final String channelId = "5GVOZ5BwGytObRYy";
-    private static final String channelKey = "l3ocI61BJAZ1xnTXePd6t1WIzMYOwUUo";
-    private static final String pushTask = "xsc";
+    private static final String channelId = "umOFo6Lmtx7z8Xpk";
+    private static final String channelKey = "o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp";
+    private static final String pushTask = "6+";
     private static final String soundUrl = "123";
 
     @Override
@@ -67,7 +66,7 @@ public class StarZhiJiaClueChannelPush extends AbstractClueChannelPush {
         } else {
             clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
-                    , "车线索-之家，推送线索异常,result= " + clueRes.getMessage()));
+                    , "车线索-易车会员，推送线索异常,result= " + clueRes.getMessage()));
         }
         carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
@@ -75,7 +74,6 @@ public class StarZhiJiaClueChannelPush extends AbstractClueChannelPush {
 
     @Override
     public String label() {
-        return ChannelRule.PushChannelRuleEnum.ZJ_PUSH.getLabel();
+        return ChannelRule.PushChannelRuleEnum.YC_MEMBER_PUSH.getLabel();
     }
-
 }

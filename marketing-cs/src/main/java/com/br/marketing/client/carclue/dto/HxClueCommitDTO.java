@@ -14,8 +14,8 @@ public class HxClueCommitDTO {
     @JSONField(name = "member")
     private String member;
 
-    @JSONField(name = "provence")
-    private String provence;
+    @JSONField(name = "province")
+    private String province;
 
     @JSONField(name = "city")
     private String city;

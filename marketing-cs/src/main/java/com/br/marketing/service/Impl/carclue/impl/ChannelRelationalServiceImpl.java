@@ -2,6 +2,9 @@ package com.br.marketing.service.Impl.carclue.impl;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -10,9 +13,11 @@ import com.br.marketing.client.carclue.CarClueClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.entity.CarClueProvincesInformation;
-import com.br.marketing.entity.CarClueSeriesInformation;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.CarClueInitMappingMapper;
 import com.br.marketing.mapper.CarClueProvincesInformationMapper;
+import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.CarClueSeriesInformationMapper;
 import com.br.marketing.service.Impl.carclue.ChannelRelationalService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +41,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     CarClueProvincesInformationMapper carClueProvincesInformationMapper;
     @Resource
     CarClueSeriesInformationMapper carClueSeriesInformationMapper;
+    CarClueInitMappingMapper carClueInitMappingMapper;
 
     @Override
     public void getProvinceAndCity() {
@@ -168,8 +174,29 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     @Override
     public void relationalMapping() {
+        //获取省市集合
+        CarClueProvincesInformationExample carClueProvincesInformationExample = new CarClueProvincesInformationExample();
+        carClueProvincesInformationExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarClueProvincesInformation> carClueProvincesInformations = carClueProvincesInformationMapper.selectByExample(carClueProvincesInformationExample);
+        Map<String, List<CarClueProvincesInformation>> groupedByProvincesType = carClueProvincesInformations.stream()
+                .collect(Collectors.groupingBy(CarClueProvincesInformation::getProvincesType));
+        //获取品牌车系集合
+        CarClueSeriesInformationExample carClueSeriesInformationExample = new CarClueSeriesInformationExample();
+        carClueSeriesInformationExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarClueSeriesInformation> carClueSeriesInformations = carClueSeriesInformationMapper.selectByExample(carClueSeriesInformationExample);
+        Map<String, List<CarClueSeriesInformation>> groupedBySeriesType = carClueSeriesInformations.stream()
+                .collect(Collectors.groupingBy(CarClueSeriesInformation::getSeriesType));
+
+
+
         //获取外采初始信息
+        CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
+        carClueInitMappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarClueInitMapping> carClueInitMappingList = carClueInitMappingMapper.selectByExample(carClueInitMappingExample);
         //匹配初始信息
+        for (CarClueInitMapping carClueInitMapping : carClueInitMappingList) {
+            carClueInitMapping.getApiCode();
+        }
         //校验信息准确性
         //最终映射关系存储外采关系表
     }
