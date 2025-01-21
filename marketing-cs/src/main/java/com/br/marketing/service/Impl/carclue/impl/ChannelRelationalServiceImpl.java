@@ -238,11 +238,11 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     carClueRelationalMapping.setProvinceType(ProvinceTypeEnum.EXCLUDE.getValue());
                 }
 
+                StringBuilder stringBuilder = new StringBuilder();
                 List<CarClueSeriesInformation> brandNameList = brandNameMap.get(carClueInitMapping.getBrandName());
                 if(CollectionUtils.isEmpty(brandNameList)){
+                    stringBuilder.append("未匹配到该品牌：").append(carClueInitMapping.getBrandName());
                     carClueRelationalMapping.setMatchingType(1);
-                    carClueRelationalMapping.setMatchingCause("未匹配到该品牌："+carClueInitMapping.getBrandName());
-                    carClueRelationalMapping.setIsDel(9);
                 }else {
                     carClueRelationalMapping.setBrandId(brandNameList.get(0).getBrandId());
                 }
@@ -267,9 +267,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                 for (String s : split){
                     List<CarClueSeriesInformation> seriesNameList = seriesNameMap.get(s);
                     if(CollectionUtils.isEmpty(seriesNameList)){
+                        stringBuilder.append("未匹配到该车系：").append(s);
                         carClueRelationalMapping.setMatchingType(1);
-                        carClueRelationalMapping.setMatchingCause("未匹配到该车系："+s);
-                        carClueRelationalMapping.setIsDel(9);
                     }else {
                         carClueRelationalMapping.setSeriesId(seriesNameList.get(0).getSeriesId());
                     }
@@ -280,6 +279,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     carClueRelationalMapping.setSatisfyCityName(carClueInitMapping.getSatisfyCityName());
                     carClueRelationalMapping.setExcludeProvinceName(carClueInitMapping.getExcludeProvinceName());
                     carClueRelationalMapping.setExcludeCityName(carClueInitMapping.getExcludeCityName());
+                    carClueRelationalMapping.setMatchingCause(stringBuilder.toString());
                     carClueRelationalMapping.setAppletDate(LocalDate.now().toString());
                     carClueRelationalMapping.setCreateTime(new Date());
                     carClueRelationalMapping.setUpdateTime(new Date());
