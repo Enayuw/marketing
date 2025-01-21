@@ -27,6 +27,11 @@ public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBa
                                              @Param("loopCycleReavedFileId") Long loopCycleReavedFileId);
 
     void batchSaveReavedDataInToRob(@Param("cells") List<String> cells, @Param("apiCode") String apiCode,
-                                  @Param("dataSourceType") String dataSourceType, @Param("packageId") Long packageId);
+                                    @Param("dataSourceType") String dataSourceType, @Param("packageId") Long packageId);
 
+    List<String> selectDuplicateDataByFileId(@Param("list") List<String> list, @Param("apiCode") String apiCode,
+                                             @Param("highValueAndReavedFileIds") String highValueAndReavedFileIds);
+
+    List<String> selectDuplicateDataByCreateTime(@Param("list") List<String> list, @Param("apiCode") String apiCode, @Param("today") Date today,
+                                                 @Param("tomorrow") Date tomorrow);
 }

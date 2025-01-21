@@ -104,8 +104,8 @@
     clue_match_brand, clue_match_series_id, clue_match_series, match_brand_series_type, 
     province, clue_match_province_id, clue_match_province, city, clue_match_city_id, 
     clue_match_city, recording_path, clue_id, clue_push_channel, clue_data_status, clue_complete_status, 
-    clue_push_status, clue_callback_status, clue_push_error_reason, clue_error_reason, 
-    clue_callback_result, clue_callback_push_state, clue_callback_final_state, extend_info, 
+    clue_push_status, clue_callback_status, clue_push_error_reason, clue_error_reason,
+    clue_callback_result, clue_callback_push_state, clue_callback_final_state, extend_info,
     create_time, clean_time, push_time, call_back_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInfoExample" >
@@ -150,9 +150,9 @@
       clue_match_province, city, clue_match_city_id, 
       clue_match_city, recording_path, clue_id, 
       clue_push_channel, clue_data_status, clue_complete_status, 
-      clue_push_status, clue_callback_status, clue_push_error_reason, 
-      clue_error_reason, clue_callback_result, clue_callback_push_state, 
-      clue_callback_final_state, extend_info, create_time, 
+      clue_push_status, clue_callback_status, clue_push_error_reason,
+      clue_error_reason, clue_callback_result, clue_callback_push_state,
+      clue_callback_final_state, extend_info, create_time,
       clean_time, push_time, call_back_time, 
       update_time)
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
@@ -163,9 +163,9 @@
       #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR}, 
       #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR}, 
       #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER}, #{clueCompleteStatus,jdbcType=INTEGER}, 
-      #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER}, #{cluePushErrorReason,jdbcType=VARCHAR}, 
-      #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR}, #{clueCallbackPushState,jdbcType=INTEGER}, 
-      #{clueCallbackFinalState,jdbcType=INTEGER}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER}, #{cluePushErrorReason,jdbcType=VARCHAR},
+      #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR}, #{clueCallbackPushState,jdbcType=INTEGER},
+      #{clueCallbackFinalState,jdbcType=INTEGER}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
       #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP}, 
       #{updateTime,jdbcType=TIMESTAMP})
   </insert>

@@ -5,11 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.FtpClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.bi.BiApiClient;
 import com.br.marketing.client.bi.input.OffLineScoreDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.RegexConstants;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -23,11 +25,13 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
-import com.br.marketing.push.service.PushFinishService;
-import com.br.marketing.push.service.PushService;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.service.sftp.PushFinishSucService;
+import com.br.marketing.service.sftp.PushService;
+import com.br.marketing.service.sftp.PushToSftpService;
+import com.br.marketing.service.sftp.impl.PushToSftpServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -96,10 +100,13 @@ public class MergeWithMessageServiceImpl {
     MarketingTaskService marketingTaskService;
 
     @Autowired
-    PushFinishService pushFinishService;
-
-    @Autowired
     PushService pushService;
+    @Autowired
+    RedisChgService redisChgService;
+    @Autowired
+    PushToSftpService pushToSftpService;
+    @Resource
+    RetryMainLogMapper retryMainLogMapper;
 
     public Result<Boolean> consumerInitFileMsg(Long fileId) {
         Boolean res = Boolean.FALSE;
@@ -111,9 +118,21 @@ public class MergeWithMessageServiceImpl {
         Customer customer = customerMapper.getCustomerByApiCode(file.getApiCode());
         List<LoanFile> pushList = mergeService.process(loanFiles, customer);
         if (pushList != null && pushList.size() > 0) {
-            pushService.push(pushList);
-            for (LoanFile loanFile : pushList) {
-                pushFinishService.pushFinish(loanFile.getId());
+            Result result = pushToSftpService.pushFiles(pushList);
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                RetryMainLog retryMainLog = new RetryMainLog();
+                retryMainLog.setRetryType(1);
+                retryMainLog.setRetryParam(JSON.toJSONString(pushList));
+                retryMainLog.setRetryParamType(List.class.getName());
+                retryMainLog.setRetryService(PushToSftpServiceImpl.class.getName());
+                retryMainLog.setRetryMethod("pushFiles");
+                retryMainLog.setServiceType(2);
+                retryMainLog.setRetryNum(0);
+                retryMainLog.setRetryStatus(1);
+                retryMainLog.setCreateTime(new Date());
+                retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                retryMainLog.setRetryMaxNum(3);
+                retryMainLogMapper.insertSelective(retryMainLog);
             }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);

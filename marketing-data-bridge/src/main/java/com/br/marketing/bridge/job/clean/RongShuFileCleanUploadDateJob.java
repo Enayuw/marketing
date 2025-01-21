@@ -1,5 +1,6 @@
 package com.br.marketing.bridge.job.clean;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -26,6 +27,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.xml.bind.DatatypeConverter;
@@ -108,19 +110,26 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         LocalDate localDate = localDateTime.toLocalDate();
         LocalTime time = localDateTime.toLocalTime();
         String regex = marketingCommonConfig.getRongShuCleanUploadConfig().getOrDefault("regex", "\t");
+
+        // b_marketing_clean_create_task_rule 数据清洗自动生成任务规则
         MarketingCleanCreateTaskRuleExample example = new MarketingCleanCreateTaskRuleExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(0).andDataTypeEqualTo(1);
         List<MarketingCleanCreateTaskRule> taskRules = marketingCleanCreateTaskRuleMapper.selectByExample(example);
+
         for (MarketingCleanCreateTaskRule taskRule : taskRules) {
             if (1 == taskRule.getTaskCreateRule() && 1 == taskRule.getDataType()) {
                 String startTime = taskRule.getStartTime();
+                // TODO time.isBefore(LocalTime.parse(startTime))
                 if (StringUtils.isEmpty(startTime) || time.isBefore(LocalTime.parse(startTime))) {
                     Long syncConfigId = taskRule.getSyncConfigId();
+
+                    // b_marketing_clean_data_file
                     MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
                     fileExample.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(syncConfigId)
                             .andIsDelEqualTo(1).andCreateTimeGreaterThanOrEqualTo(Date.from(instant));
                     fileExample.setOrderByClause("create_time");
                     List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
+
                     for (MarketingCleanDataFile dataFile : cleanDataFiles) {
                         stopCheckOrUpdate(apiCode);
                         String md5Value = dataFile.getMd5Value();
@@ -132,12 +141,15 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         } catch (Exception e) {
                             log.warn(e.getMessage(), e);
                         }
+
                         long sum = 0;
                         boolean bool = true;
                         try {
+                            // md5Check
                             if (1 == taskRule.getIsMd5Check() && StringUtils.isNotBlank(md5Value) && md5Check(dataFile, map)) {
                                 continue;
                             }
+
                             String localPath = dataFile.getLocalPath();
                             File srcFile = new File(localPath.concat(File.separator).concat(fileName));
                             if (srcFile.exists()) {
@@ -357,13 +369,18 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         List<String> fileHeader = fileHeaders.length == 0 ? FILE_HEADER : Arrays.asList(fileHeaders);
         String name = file.getName();
         String apiCode = dataFile.getApiCode();
+        // appletDateSet
         Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
         MarketingCleanDataFile dataFileNew = null;
-        Map<String, JSONObject> map = new HashMap<>(2048);
+        Map<String, JSONObject> fileDataMap = new HashMap<>(2048);
+
         long rowNum = 0L;
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String rowData;
             while ((rowData = reader.readLine()) != null) {
+                if(StringUtils.isBlank(rowData)){
+                    continue;
+                }
                 stopCheckOrUpdate(apiCode);
                 if (rowNum == 0) {
                     boolean b = md5CheckDetailsFile(file, dataFile, dingdingMap);
@@ -379,26 +396,27 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     }
                 }
                 String[] split = rowData.split(regex);
-                String uid = split[0];
-                JSONObject object = new JSONObject();
+                JSONObject fileDataJo = new JSONObject();
                 int size = fileHeader.size();
-                for (int i = 1; i < size; i++) {
-                    object.put(fileHeader.get(i), split[i]);
+                for (int i = 0; i < size; i++) {
+                    fileDataJo.put(fileHeader.get(i), split[i]);
                 }
-                map.put(uid, object);
-                if (map.size() == 2000 && dataFileNew.getId() != null) {
-                    Map<String, JSONObject> finalMap = map;
+                String uid = fileDataJo.getString("uid");
+                fileDataMap.put(uid, fileDataJo);
+                if (fileDataMap.size() == 2000 && dataFileNew.getId() != null) {
+                    Map<String, JSONObject> finalFileDataMap = fileDataMap;
                     MarketingCleanDataFile finalDataFileNew = dataFileNew;
                     THREAD_POOL.submit(() -> {
-                        update(apiCode, finalMap, appletDateSet, finalDataFileNew);
-                        finalMap.clear();
+                        update(apiCode, finalFileDataMap, appletDateSet, finalDataFileNew);
+                        finalFileDataMap.clear();
                     });
-                    map = new HashMap<>(2048);
+                    fileDataMap = new HashMap<>(2048);
                 }
                 rowNum++;
             }
-            if (dataFileNew != null && dataFileNew.getId() != null && map.size() != 0) {
-                update(apiCode, map, appletDateSet, dataFileNew);
+            // TODO
+            if (dataFileNew != null && dataFileNew.getId() != null && fileDataMap.size() != 0) {
+                update(apiCode, fileDataMap, appletDateSet, dataFileNew);
             }
             updateDataFile(dataFileNew, isCreate);
         } catch (Exception e) {
@@ -468,44 +486,85 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      * 2024-08-09 18:13
      * 更新
      */
-    private void update(String apiCode, Map<String, JSONObject> map, Set<String> appletDateSet
+    private void update(String apiCode, Map<String, JSONObject> fileDataMap, Set<String> appletDateSet
             , MarketingCleanDataFile dataFileNew) {
+        Map<String, String> commonFieldMap = marketingCommonConfig.getRongShuCleanUploadCommonFieldMap();
+        Map<String, String> extendFieldMap = marketingCommonConfig.getRongShuCleanUploadExtendFieldMap();
+
         List<MarketingSyncUser> list = marketingSyncUserMapper
-                .getReserveFieldByCustNumAndAppletDateList(apiCode, map.keySet(), appletDateSet);
+                .getReserveFieldByCustNumAndAppletDateList(apiCode, fileDataMap.keySet(), appletDateSet);
+        // idSet, syncIds
         Set<Long> idSet = list.stream().map(MarketingSyncUser::getId).collect(Collectors.toSet());
         Set<Long> syncIds = new HashSet<>();
         if (idSet.size() > 0) {
             syncIds.addAll(rongshuPaofenFileUpdateSyncCleanLogMapper.getSyncApicodeId(apiCode, dataFileNew.getId(), idSet));
         }
+        //
         for (MarketingSyncUser syncUser : list) {
             syncUser.setApiCode(apiCode);
             Long id = syncUser.getId();
             if (syncIds.contains(id)) {
                 continue;
             }
-            String reserveField1 = syncUser.getReserveField1();
-            RongshuPaofenFileUpdateSyncCleanLog cleanLog = new RongshuPaofenFileUpdateSyncCleanLog();
-            cleanLog.setApiCode(apiCode);
-            cleanLog.setHistoryDataJson(reserveField1);
-            cleanLog.setSyncApicodeId(id);
-            cleanLog.setMarketingCleanDataFileId(dataFileNew.getId());
-            cleanLog.setIsSuccess(1);
-            cleanLog.setCreateTime(new Date());
-            cleanLog.setUid(syncUser.getCustNum());
-            cleanLog.setUpdateTime(cleanLog.getUpdateTime());
-            JSONObject newData = map.get(syncUser.getCustNum());
-            cleanLog.setNewDataJson(newData.toJSONString());
-            if (JSONObject.isValidObject(reserveField1)) {
-                JSONObject oldData = JSONObject.parseObject(reserveField1);
-                newData.forEach((String key, Object value) -> oldData.put(key, value.toString()));
-                syncUser.setReserveField1(oldData.toJSONString());
-                marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
-                cleanLog.setIsSuccess(0);
-            } else if (StringUtils.isBlank(reserveField1)) {
-                syncUser.setReserveField1(newData.toJSONString());
-                marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
+            Map<String, Object> syncUserMap = BeanUtil.beanToMap(syncUser);
+            JSONObject oldDataJson = new JSONObject();
+            JSONObject newDataJson = new JSONObject();
+            String oldReserveField1 = syncUser.getReserveField1();
+            JSONObject fileDataJo = fileDataMap.get(syncUser.getCustNum());
+            List<Map<String, String>> fieldItemList = new ArrayList<>();
+
+            // commonField
+            if (!CollectionUtils.isEmpty(commonFieldMap)) {
+                commonFieldMap.forEach((String key, String value) -> {
+                    Map<String, String> fieldItemMap = new HashMap<>();
+                    fieldItemMap.put(value, fileDataJo.getString(key));
+                    fieldItemList.add(fieldItemMap);
+                    //
+                    oldDataJson.put(value, syncUserMap.get(value));
+                    newDataJson.put(value, fileDataJo.getString(key));
+                });
             }
-            rongshuPaofenFileUpdateSyncCleanLogMapper.insertSelective(cleanLog);
+
+            // extendField
+            if (!CollectionUtils.isEmpty(extendFieldMap)) {
+                JSONObject extendDataJo = new JSONObject();
+                extendFieldMap.forEach((String key, String value) -> extendDataJo.put(key, fileDataJo.getString(key)));
+
+                if (StringUtils.isBlank(oldReserveField1)) {
+                    Map<String, String> fieldItemMap = new HashMap<>();
+                    fieldItemMap.put("reserve_field1", extendDataJo.toJSONString());
+                    fieldItemList.add(fieldItemMap);
+                    //
+                    oldDataJson.put("reserve_field1", "");
+                    newDataJson.put("reserve_field1", extendDataJo.toJSONString());
+                }
+                if (JSONObject.isValidObject(oldReserveField1)) {
+                    JSONObject oldReserveField1Jo = JSONObject.parseObject(oldReserveField1);
+                    extendFieldMap.forEach((String key, String value) -> oldReserveField1Jo.put(value, extendDataJo.getString(key)));
+                    Map<String, String> fieldItemMap = new HashMap<>();
+                    fieldItemMap.put("reserve_field1", oldReserveField1Jo.toJSONString());
+                    fieldItemList.add(fieldItemMap);
+                    //
+                    oldDataJson.put("reserve_field1", oldReserveField1);
+                    newDataJson.put("reserve_field1", oldReserveField1Jo.toJSONString());
+                }
+            }
+
+            if (!CollectionUtils.isEmpty(fieldItemList)) {
+                marketingSyncUserMapper.cleanUpdateById(apiCode, syncUser.getId(), fieldItemList);
+
+                RongshuPaofenFileUpdateSyncCleanLog cleanLog = new RongshuPaofenFileUpdateSyncCleanLog();
+                cleanLog.setApiCode(apiCode);
+                cleanLog.setHistoryDataJson(oldDataJson.toJSONString());
+                cleanLog.setSyncApicodeId(id);
+                cleanLog.setMarketingCleanDataFileId(dataFileNew.getId());
+                cleanLog.setCreateTime(new Date());
+                cleanLog.setUid(syncUser.getCustNum());
+                cleanLog.setUpdateTime(cleanLog.getUpdateTime());
+                cleanLog.setNewDataJson(newDataJson.toJSONString());
+                cleanLog.setIsSuccess(0);
+                rongshuPaofenFileUpdateSyncCleanLogMapper.insertSelective(cleanLog);
+            }
         }
     }
 

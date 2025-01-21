@@ -1,6 +1,5 @@
-package com.br.marketing.push.service;
+package com.br.marketing.service.sftp;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.LoanFile;
 
 /**

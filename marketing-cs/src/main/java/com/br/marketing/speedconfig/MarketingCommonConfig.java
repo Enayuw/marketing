@@ -1972,8 +1972,8 @@ public class MarketingCommonConfig {
     private Integer wubaCollidingDataMaxCountLimit;
 
     /**
-     * 58提交周期撞库开关(true:开启，false关闭)
-     * {"T":true,"S":true}
+     * 58提交周期撞库与去重开关(T/S控制是否开启去重和撞库，eliminate控制去重。true:开启，false关闭)
+     * {"T":true,"S":true,"eliminate":true}
      */
     private HashMap<String, Boolean> wuBaCollidingDataSwitch;
 
@@ -2208,6 +2208,7 @@ public class MarketingCommonConfig {
      * 推决策报警apiCode集合
      */
     private List<String> pushAlarmApiCode;
+
     /**
      *  * 2024-08-13 15:42
      * 榕树上传数据清洗线程池配置
@@ -2215,6 +2216,16 @@ public class MarketingCommonConfig {
      * eg：[25,50],25为核心线程数，50为最大线程数,核心线程数为0时程序停止
      */
     private Map<String,String> rongShuCleanUploadConfig = new HashMap<>();
+
+    /**
+     * 榕树上传数据清洗-通用字段映射
+     */
+    private Map<String,String> rongShuCleanUploadCommonFieldMap = new HashMap<>();
+
+    /**
+     * 榕树上传数据清洗-扩展字段映射
+     */
+    private Map<String,String> rongShuCleanUploadExtendFieldMap = new HashMap<>();
 
     /**
      * 奇富360数据提取custNum对应上传字段
@@ -2555,5 +2566,30 @@ public class MarketingCommonConfig {
      * {"ycChannelId":"umOFo6Lmtx7z8Xpk","ycChannelKey":"o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp","ycTask":"6+","zjChannelId":"5GVOZ5BwGytObRYy","zjChannelKey":"l3ocI61BJAZ1xnTXePd6t1WIzMYOwUUo","zjTask":"xsc"}
      */
     private JSONObject hxClientConfig;
+
+    /**
+     * 携程false包补充量级预览优化开关
+     */
+    private Boolean xcFalsePackagePushPreviewOptFlag;
+
+    /**
+     * 携程false动态包剔除量级预览优化开关
+     */
+    private Boolean xcFalsePackageDynaPushPreviewOptFlag;
+
+    /**
+     * 携程true包推送决策量级预览优化开关
+     */
+    private Boolean xcTruePushCustomerPushPreviewOptFlag;
+
+    /**
+     * 携程规则中心false包操作优化线程数
+     */
+    private Integer xcFalsePackageOptSoleNum;
+    /**
+     * 上传文件至远程sftp服务器是否异常开关
+     */
+    private Boolean uploadFileSftp;
+
 }
 
