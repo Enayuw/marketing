@@ -57,6 +57,15 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     @Override
     public void getProvinceAndCity() {
+
+        CarClueProvincesInformationExample carClueProvincesInformationExample = new CarClueProvincesInformationExample();
+        carClueProvincesInformationExample.createCriteria()
+                .andAppletDateEqualTo(LocalDate.now().toString())
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        int i = carClueProvincesInformationMapper.countByExample(carClueProvincesInformationExample);
+        if(i > 0){
+            return;
+        }
         //省市信息
         buildZjCity();
         buildYcCity(YCKATASK, ChannelRule.MatchChannelRuleEnum.YC_KA.getLabel());
@@ -231,21 +240,41 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
                 List<CarClueSeriesInformation> brandNameList = brandNameMap.get(carClueInitMapping.getBrandName());
                 if(CollectionUtils.isEmpty(brandNameList)){
-                    return;
+                    carClueRelationalMapping.setMatchingType(1);
+                    carClueRelationalMapping.setMatchingCause("未匹配到该品牌："+carClueInitMapping.getBrandName());
+                    carClueRelationalMapping.setIsDel(9);
+                }else {
+                    carClueRelationalMapping.setBrandId(brandNameList.get(0).getBrandId());
                 }
-                Integer brandId = brandNameList.get(0).getBrandId();
 
                 String seriesName = carClueInitMapping.getSeriesName();
+                if(seriesName == null || "全系".equals(seriesName)){
+                    carClueRelationalMapping.setApiCode(carClueInitMapping.getApiCode());
+                    carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
+                    carClueRelationalMapping.setSeriesName(seriesName);
+                    carClueRelationalMapping.setSatisfyProvinceName(carClueInitMapping.getSatisfyProvinceName());
+                    carClueRelationalMapping.setSatisfyCityName(carClueInitMapping.getSatisfyCityName());
+                    carClueRelationalMapping.setExcludeProvinceName(carClueInitMapping.getExcludeProvinceName());
+                    carClueRelationalMapping.setExcludeCityName(carClueInitMapping.getExcludeCityName());
+                    carClueRelationalMapping.setAppletDate(LocalDate.now().toString());
+                    carClueRelationalMapping.setCreateTime(new Date());
+                    carClueRelationalMapping.setUpdateTime(new Date());
+                    carClueRelationalMappingMapper.insertSelective(carClueRelationalMapping);
+                    continue;
+                }
+
                 String[] split = seriesName.split(",");
                 for (String s : split){
                     List<CarClueSeriesInformation> seriesNameList = seriesNameMap.get(s);
                     if(CollectionUtils.isEmpty(seriesNameList)){
-                        return;
+                        carClueRelationalMapping.setMatchingType(1);
+                        carClueRelationalMapping.setMatchingCause("未匹配到该车系："+s);
+                        carClueRelationalMapping.setIsDel(9);
+                    }else {
+                        carClueRelationalMapping.setSeriesId(seriesNameList.get(0).getSeriesId());
                     }
                     carClueRelationalMapping.setApiCode(carClueInitMapping.getApiCode());
-                    carClueRelationalMapping.setBrandId(brandId);
                     carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
-                    carClueRelationalMapping.setSeriesId(seriesNameList.get(0).getSeriesId());
                     carClueRelationalMapping.setSeriesName(s);
                     carClueRelationalMapping.setSatisfyProvinceName(carClueInitMapping.getSatisfyProvinceName());
                     carClueRelationalMapping.setSatisfyCityName(carClueInitMapping.getSatisfyCityName());

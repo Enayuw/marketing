@@ -59,6 +59,16 @@ public class CarClueRelationalMapping {
     private Integer provinceType;
 
     /**
+     * 匹配结果 0-成功 1-失败
+     */
+    private Integer matchingType;
+
+    /**
+     * 匹配失败原因
+     */
+    private String matchingCause;
+
+    /**
      * 清洗日期
      */
     private String appletDate;
@@ -164,6 +174,22 @@ public class CarClueRelationalMapping {
 
     public void setProvinceType(Integer provinceType) {
         this.provinceType = provinceType;
+    }
+
+    public Integer getMatchingType() {
+        return matchingType;
+    }
+
+    public void setMatchingType(Integer matchingType) {
+        this.matchingType = matchingType;
+    }
+
+    public String getMatchingCause() {
+        return matchingCause;
+    }
+
+    public void setMatchingCause(String matchingCause) {
+        this.matchingCause = matchingCause == null ? null : matchingCause.trim();
     }
 
     public String getAppletDate() {

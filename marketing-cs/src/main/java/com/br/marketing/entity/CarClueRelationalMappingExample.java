@@ -835,6 +835,136 @@ public class CarClueRelationalMappingExample {
             return (Criteria) this;
         }
 
+        public Criteria andMatchingTypeIsNull() {
+            addCriterion("matching_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeIsNotNull() {
+            addCriterion("matching_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeEqualTo(Integer value) {
+            addCriterion("matching_type =", value, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeNotEqualTo(Integer value) {
+            addCriterion("matching_type <>", value, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeGreaterThan(Integer value) {
+            addCriterion("matching_type >", value, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("matching_type >=", value, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeLessThan(Integer value) {
+            addCriterion("matching_type <", value, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("matching_type <=", value, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeIn(List<Integer> values) {
+            addCriterion("matching_type in", values, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeNotIn(List<Integer> values) {
+            addCriterion("matching_type not in", values, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeBetween(Integer value1, Integer value2) {
+            addCriterion("matching_type between", value1, value2, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("matching_type not between", value1, value2, "matchingType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseIsNull() {
+            addCriterion("matching_cause is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseIsNotNull() {
+            addCriterion("matching_cause is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseEqualTo(String value) {
+            addCriterion("matching_cause =", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseNotEqualTo(String value) {
+            addCriterion("matching_cause <>", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseGreaterThan(String value) {
+            addCriterion("matching_cause >", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseGreaterThanOrEqualTo(String value) {
+            addCriterion("matching_cause >=", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseLessThan(String value) {
+            addCriterion("matching_cause <", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseLessThanOrEqualTo(String value) {
+            addCriterion("matching_cause <=", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseLike(String value) {
+            addCriterion("matching_cause like", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseNotLike(String value) {
+            addCriterion("matching_cause not like", value, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseIn(List<String> values) {
+            addCriterion("matching_cause in", values, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseNotIn(List<String> values) {
+            addCriterion("matching_cause not in", values, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseBetween(String value1, String value2) {
+            addCriterion("matching_cause between", value1, value2, "matchingCause");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchingCauseNotBetween(String value1, String value2) {
+            addCriterion("matching_cause not between", value1, value2, "matchingCause");
+            return (Criteria) this;
+        }
+
         public Criteria andAppletDateIsNull() {
             addCriterion("applet_date is null");
             return (Criteria) this;

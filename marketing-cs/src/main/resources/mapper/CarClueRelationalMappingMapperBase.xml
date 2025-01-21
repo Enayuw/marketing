@@ -13,6 +13,8 @@
     <result column="exclude_province_name" property="excludeProvinceName" jdbcType="VARCHAR" />
     <result column="exclude_city_name" property="excludeCityName" jdbcType="VARCHAR" />
     <result column="province_type" property="provinceType" jdbcType="INTEGER" />
+    <result column="matching_type" property="matchingType" jdbcType="INTEGER" />
+    <result column="matching_cause" property="matchingCause" jdbcType="VARCHAR" />
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -78,8 +80,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, brand_id, brand_name, series_id, series_name, satisfy_province_name, 
-    satisfy_city_name, exclude_province_name, exclude_city_name, province_type, applet_date, 
-    create_time, update_time, is_del
+    satisfy_city_name, exclude_province_name, exclude_city_name, province_type, matching_type, 
+    matching_cause, applet_date, create_time, update_time, is_del
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueRelationalMappingExample" >
     select
@@ -118,13 +120,15 @@
     insert into b_car_clue_relational_mapping (api_code, brand_id, brand_name, 
       series_id, series_name, satisfy_province_name, 
       satisfy_city_name, exclude_province_name, exclude_city_name, 
-      province_type, applet_date, create_time, 
-      update_time, is_del)
+      province_type, matching_type, matching_cause, 
+      applet_date, create_time, update_time, 
+      is_del)
     values (#{apiCode,jdbcType=VARCHAR}, #{brandId,jdbcType=INTEGER}, #{brandName,jdbcType=VARCHAR}, 
       #{seriesId,jdbcType=INTEGER}, #{seriesName,jdbcType=VARCHAR}, #{satisfyProvinceName,jdbcType=VARCHAR}, 
       #{satisfyCityName,jdbcType=VARCHAR}, #{excludeProvinceName,jdbcType=VARCHAR}, #{excludeCityName,jdbcType=VARCHAR}, 
-      #{provinceType,jdbcType=INTEGER}, #{appletDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER})
+      #{provinceType,jdbcType=INTEGER}, #{matchingType,jdbcType=INTEGER}, #{matchingCause,jdbcType=VARCHAR}, 
+      #{appletDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{isDel,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueRelationalMapping" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -161,6 +165,12 @@
       </if>
       <if test="provinceType != null" >
         province_type,
+      </if>
+      <if test="matchingType != null" >
+        matching_type,
+      </if>
+      <if test="matchingCause != null" >
+        matching_cause,
       </if>
       <if test="appletDate != null" >
         applet_date,
@@ -205,6 +215,12 @@
       </if>
       <if test="provinceType != null" >
         #{provinceType,jdbcType=INTEGER},
+      </if>
+      <if test="matchingType != null" >
+        #{matchingType,jdbcType=INTEGER},
+      </if>
+      <if test="matchingCause != null" >
+        #{matchingCause,jdbcType=VARCHAR},
       </if>
       <if test="appletDate != null" >
         #{appletDate,jdbcType=VARCHAR},
@@ -262,6 +278,12 @@
       <if test="record.provinceType != null" >
         province_type = #{record.provinceType,jdbcType=INTEGER},
       </if>
+      <if test="record.matchingType != null" >
+        matching_type = #{record.matchingType,jdbcType=INTEGER},
+      </if>
+      <if test="record.matchingCause != null" >
+        matching_cause = #{record.matchingCause,jdbcType=VARCHAR},
+      </if>
       <if test="record.appletDate != null" >
         applet_date = #{record.appletDate,jdbcType=VARCHAR},
       </if>
@@ -292,6 +314,8 @@
       exclude_province_name = #{record.excludeProvinceName,jdbcType=VARCHAR},
       exclude_city_name = #{record.excludeCityName,jdbcType=VARCHAR},
       province_type = #{record.provinceType,jdbcType=INTEGER},
+      matching_type = #{record.matchingType,jdbcType=INTEGER},
+      matching_cause = #{record.matchingCause,jdbcType=VARCHAR},
       applet_date = #{record.appletDate,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -333,6 +357,12 @@
       <if test="provinceType != null" >
         province_type = #{provinceType,jdbcType=INTEGER},
       </if>
+      <if test="matchingType != null" >
+        matching_type = #{matchingType,jdbcType=INTEGER},
+      </if>
+      <if test="matchingCause != null" >
+        matching_cause = #{matchingCause,jdbcType=VARCHAR},
+      </if>
       <if test="appletDate != null" >
         applet_date = #{appletDate,jdbcType=VARCHAR},
       </if>
@@ -360,6 +390,8 @@
       exclude_province_name = #{excludeProvinceName,jdbcType=VARCHAR},
       exclude_city_name = #{excludeCityName,jdbcType=VARCHAR},
       province_type = #{provinceType,jdbcType=INTEGER},
+      matching_type = #{matchingType,jdbcType=INTEGER},
+      matching_cause = #{matchingCause,jdbcType=VARCHAR},
       applet_date = #{appletDate,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
