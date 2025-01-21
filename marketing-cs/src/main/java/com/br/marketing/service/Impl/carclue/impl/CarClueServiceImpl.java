@@ -56,23 +56,15 @@ public class CarClueServiceImpl implements CarClueService {
 
     @Override
     public void pushCarClueHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelPush channelPushImpl) {
-
         for (CarClueInfo carClueInfo : carClueInfoList) {
-            Result pushResult = channelPushImpl.push(carClueInfo);
-            if (pushResult.isSuccess()) {
-                carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
-            }
+            channelPushImpl.push(carClueInfo);
         }
-
     }
 
     @Override
     public void carClueCallBackHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelCallBack channelCallBackImpl) {
         for (CarClueInfo carClueInfo : carClueInfoList) {
-            Result callbackResult = channelCallBackImpl.callback(carClueInfo);
-            if (callbackResult.isSuccess()) {
-                carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
-            }
+            channelCallBackImpl.callback(carClueInfo);
         }
     }
 
