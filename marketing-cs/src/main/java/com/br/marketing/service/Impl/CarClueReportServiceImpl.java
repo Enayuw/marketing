@@ -9,10 +9,12 @@ import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
+import com.br.marketing.service.carclue.clueenums.CarClueCompleteStatusEnum;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +43,6 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     public PageResultReturn getReportList(CarClueReportDTO request) {
         Integer current = request.getCurrent();
         Integer size = request.getSize();
-        List<String> cluePushChannel = getValueByKey(request.getCluePushChannel());
-        cluePushChannel =  cluePushChannel.contains("fail") ? null : cluePushChannel;
 
         Map params = new HashMap();
         params.put("createTimeStart", request.getCreateTimeStart());
@@ -51,7 +51,16 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("clueDataStatus", request.getClueDataStatus());
         params.put("updateTimeStart", request.getUpdateTimeStart());
         params.put("updateTimeEnd", request.getUpdateTimeEnd());
-        params.put("cluePushChannel", cluePushChannel);
+        if (ObjectUtil.isNotEmpty(request.getCluePushChannel())) {
+            List<String> cluePushChannel = getValueByKey(request.getCluePushChannel());
+            if (cluePushChannel.contains("fail")) {
+                params.put("cluePushChannel", null);
+                params.put("queryNullOrEmpty", true);
+            } else {
+                params.put("cluePushChannel", cluePushChannel);
+                params.put("queryNullOrEmpty", false);
+            }
+        }
         params.put("cluePushStatus", request.getCluePushStatus());
         params.put("pushTimeStart", request.getPushTimeStart());
         params.put("pushTimeEnd", request.getPushTimeEnd());
@@ -86,7 +95,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         if (voList == null || voList.isEmpty()) {
             return new ApiResult<Boolean>().fail(false, "更新列表不能为空");
         }
-
+        List<Integer> list = Arrays.asList(CarClueDataStatusEnum.ABNORMAL_CLUE.getValue(), CarClueDataStatusEnum.LACK_CLUE.getValue());
         for (CarClueInfoVo vo : voList) {
             CarClueInfo clueInfo = new CarClueInfo();
             try {
@@ -94,6 +103,15 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
                 clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
+                if (list.contains(vo.getClueDataStatus())) {
+                    if (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue().equals(vo.getClueDataStatus())) {
+                        clueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.AETIFICAL_ABNORMAL_COMPLETE.getValue());
+                    } else {
+                        clueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.AETIFICAL_LACK_COMPLETE.getValue());
+                    }
+                } else {
+                    return new ApiResult<Boolean>().fail(false, "更新数据不存在异常/确实线索");
+                }
                 clueInfo.setUpdateTime(new Date());
                 carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
             } catch (Exception e) {
@@ -114,11 +132,11 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                         "渠道不存在！"));
             }
             List<String> carClueApiCodes = channel.get(key);
-            return ObjectUtil.isNotEmpty(carClueApiCodes) ? carClueApiCodes : Arrays.asList("fail");
+            return ObjectUtil.isNotEmpty(carClueApiCodes) ? carClueApiCodes : new ArrayList<>();
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "获取推送渠道映射失败！错误信息：" + e.getMessage()), e);
-            return Arrays.asList("fail");
+            return new ArrayList<>();
         }
     }
 
