@@ -1,8 +1,8 @@
-package com.br.marketing.datarelayservice.vo;
+package com.br.marketing.datarelayservice.vo.carclue;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import lombok.Data;
+import com.br.marketing.datarelayservice.enums.carclue.CarClueRepEnum;
 
 
 public class CarClueResponse {
@@ -32,8 +32,8 @@ public class CarClueResponse {
 
     public static CarClueResponse fromResult(Result result) {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            return new CarClueResponse().setResultCode(1).setMessage("成功");
+            return new CarClueResponse().setResultCode(CarClueRepEnum.SUCCESS.getCode()).setMessage("成功");
         }
-        return new CarClueResponse().setResultCode(0).setMessage(result.getMessage());
+        return new CarClueResponse().setResultCode(CarClueRepEnum.FAIL.getCode()).setMessage(result.getMessage());
     }
 }
