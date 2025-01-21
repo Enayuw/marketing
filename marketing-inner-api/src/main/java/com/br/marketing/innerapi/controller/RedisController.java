@@ -207,13 +207,13 @@ public class RedisController {
                 hxClueCommitDTO.setPhone("13000000000");
                 hxClueCommitDTO.setMember("马");
                 hxClueCommitDTO.setProvince("天津");
-                hxClueCommitDTO.setCityId(19);
+//                hxClueCommitDTO.setCityId(19);
                 hxClueCommitDTO.setCity("天津");
                 hxClueCommitDTO.setBrand("WEY");
                 hxClueCommitDTO.setSeries("坦克300");
                 hxClueCommitDTO.setSeriesId(1019);
                 hxClueCommitDTO.setPushTask("xsc");
-                hxClueCommitDTO.setSoundUrl("123");
+                hxClueCommitDTO.setSoundUrl("http://www.baidu.com");
                 hxClueCommitDTO.setBuyTime("2025-04-20");
                 Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "l3ocI61BJAZ1xnTXePd6t1WIzMYOwUUo");
                 return JSON.toJSONString(clueRes);
