@@ -2544,5 +2544,10 @@ public class MarketingCommonConfig {
      * 携程规则中心false包操作优化线程数
      */
     private Integer xcFalsePackageOptSoleNum;
+    /**
+     * 上传文件至远程sftp服务器是否异常开关
+     */
+    private Boolean uploadFileSftp;
+
 }
 

@@ -277,6 +277,7 @@ public enum AlarmSendCodeEnum {
     SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR("6041002", "萨摩耶定制转化业务异常"),
     //萨摩耶黑名单自动化过滤未查询到手机号,阶梯推送
     SAMOYE_TRANSFER_PHONE_NOT_FIND("6041003", "萨摩耶黑名单自动化过滤未查询到手机号"),
+    PUSH_TO_SFTP("6042003", "跑分文件推送SFTP异常"),
     //萨摩耶黑名单传输业务异常,立即推送
     SMY_SERVICEERROR("6050001", "萨摩耶黑名单传输业务异常"),
     //萨摩耶接口调用失败,阶梯推送
