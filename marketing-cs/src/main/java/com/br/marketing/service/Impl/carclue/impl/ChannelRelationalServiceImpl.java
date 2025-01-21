@@ -55,6 +55,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     private static final String YCKATASK = "7-1";
     private static final String YCMEMBERTASK = "6+";
+    private static final String TITL = "车线索外采数据相关-";
 
     @Override
     public void getProvinceAndCity() {
@@ -81,11 +82,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         Result<JSONArray> zjCityResult = carClueClient.getZjCity();
 
         if (!ResultCode.SUCCESS.getValue().equals(zjCityResult.getCode())) {
-            log.warn("车线索-之家，省市调用异常, result= {}", zjCityResult.getMessage());
+            log.warn(TITL + "之家，省市调用异常, result= {}", zjCityResult.getMessage());
             return;
         }
         JSONArray jsonArray = zjCityResult.getData();
         if (jsonArray == null || jsonArray.isEmpty()) {
+            log.warn(TITL + "之家，省市调用异常，返回数据为空");
             return;
         }
         List<CarClueProvincesInformation> list = new ArrayList<>();
@@ -125,11 +127,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         Result<JSONArray> ycCityResult = carClueClient.getYcCity(task);
 
         if (!ResultCode.SUCCESS.getValue().equals(ycCityResult.getCode())) {
-            log.warn("车线索-易车，省市调用异常, result= {}", ycCityResult.getMessage());
+            log.warn(TITL + "易车，省市调用异常, provincesType = {}, result= {}", provincesType, ycCityResult.getMessage());
             return;
         }
         JSONArray jsonArray = ycCityResult.getData();
         if (jsonArray == null || jsonArray.isEmpty()) {
+            log.warn(TITL + "易车，省市调用异常，返回数据为空  provincesType = {},",provincesType);
             return;
         }
         List<CarClueProvincesInformation> list = new ArrayList<>();
@@ -160,11 +163,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         Result<JSONArray> zjCarResult = carClueClient.getZjCar();
 
         if (!ResultCode.SUCCESS.getValue().equals(zjCarResult.getCode())) {
-            log.warn("车线索-之家，车辆信息获取异常, result= {}", zjCarResult.getMessage());
+            log.warn(TITL + "之家，车辆信息获取异常, result= {}", zjCarResult.getMessage());
             return;
         }
         JSONArray jsonArray = zjCarResult.getData();
         if (jsonArray == null || jsonArray.isEmpty()) {
+            log.warn(TITL + "之家，车辆信息获取异常，返回数据为空");
             return;
         }
 
@@ -200,11 +204,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
 
         if (!ResultCode.SUCCESS.getValue().equals(ycCarResult.getCode())) {
-            log.warn("车线索-易车，车辆信息获取异常, result= {}", ycCarResult.getMessage());
+            log.warn(TITL + "易车，车辆信息获取异常, provincesType = {}, result= {}", provincesType, ycCarResult.getMessage());
             return;
         }
         JSONArray jsonArray = ycCarResult.getData();
         if (jsonArray == null || jsonArray.isEmpty()) {
+            log.warn(TITL + "易车，车辆信息获取异常，返回数据为空, provincesType = {}",provincesType);
             return;
         }
 
@@ -267,12 +272,16 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                 for (CarClueInitMapping carClueInitMapping : v) {
 
                     CarClueRelationalMapping carClueRelationalMapping = new CarClueRelationalMapping();
+                    carClueRelationalMapping.setMatchingType(0);
                     //判断省市类型
-                    if(carClueInitMapping.getNation() != null){
+                    if (carClueInitMapping.getNation() != null &&
+                            carClueInitMapping.getExcludeProvinceName() == null &&
+                            carClueInitMapping.getExcludeCityName() == null) {
                         carClueRelationalMapping.setProvinceType(ProvinceTypeEnum.NATIONWIDE.getValue());
-                    }else if(carClueInitMapping.getSatisfyProvinceName() != null || carClueInitMapping.getSatisfyCityName() != null){
+                    } else if (carClueInitMapping.getSatisfyProvinceName() != null ||
+                            carClueInitMapping.getSatisfyCityName() != null) {
                         carClueRelationalMapping.setProvinceType(ProvinceTypeEnum.FIXED.getValue());
-                    }else if(carClueInitMapping.getExcludeProvinceName() != null || carClueInitMapping.getExcludeCityName() != null){
+                    } else {
                         carClueRelationalMapping.setProvinceType(ProvinceTypeEnum.EXCLUDE.getValue());
                     }
 
@@ -335,8 +344,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                 }
             });
         }catch (Exception e){
-            log.warn("维护外采渠道商信息异常, {}", e);
+            log.warn("维护外采渠道商信息异常 ={}", e);
         }
     }
+
 
 }

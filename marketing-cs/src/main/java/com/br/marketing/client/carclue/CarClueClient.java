@@ -187,8 +187,8 @@ public class CarClueClient {
 
         try {
             JSONObject jo = marketingCommonConfig.getHxClientConfig();
-            String channelId = jo.getString("ycChannelId");
-            String channelKey = jo.getString("ycChannelKey");
+            String channelId = jo.getString("channelId");
+            String channelKey = jo.getString("channelKey");
             Map<String, Object> data = new HashMap<>();
             data.put("channel_id", channelId);
             data.put("task", task);
@@ -267,8 +267,8 @@ public class CarClueClient {
 
         try {
             JSONObject jo = marketingCommonConfig.getHxClientConfig();
-            String channelId = jo.getString("ycChannelId");
-            String channelKey = jo.getString("ycChannelKey");
+            String channelId = jo.getString("channelId");
+            String channelKey = jo.getString("channelKey");
             Map<String, Object> data = new HashMap<>();
             data.put("channel_id", channelId);
             data.put("task", task);
