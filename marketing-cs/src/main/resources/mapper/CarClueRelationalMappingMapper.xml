@@ -2,6 +2,45 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.CarClueRelationalMappingMapper">
 
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_car_clue_relational_mapping (
+        api_code,
+        brand_id,
+        brand_name,
+        series_id,
+        series_name,
+        satisfy_province_name,
+        satisfy_city_name,
+        exclude_province_name,
+        exclude_city_name,
+        province_type,
+        matching_type,
+        matching_cause,
+        applet_date,
+        create_time,
+        update_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            <if test="item.apiCode != null and item.apiCode != ''">#{item.apiCode, jdbcType=VARCHAR},</if>
+            <if test="item.brandId != null and item.brandId != ''">#{item.brandId, jdbcType=INTEGER},</if>
+            <if test="item.brandName != null and item.brandName != ''">#{item.brandName, jdbcType=VARCHAR},</if>
+            <if test="item.seriesId != null and item.seriesId != ''">#{item.seriesId, jdbcType=INTEGER},</if>
+            <if test="item.seriesName != null and item.seriesName != ''">#{item.seriesName, jdbcType=VARCHAR},</if>
+            <if test="item.satisfyProvinceName != null and item.satisfyProvinceName != ''">#{item.satisfyProvinceName, jdbcType=VARCHAR},</if>
+            <if test="item.satisfyCityName != null and item.satisfyCityName != ''">#{item.satisfyCityName, jdbcType=VARCHAR},</if>
+            <if test="item.excludeProvinceName != null and item.excludeProvinceName != ''">#{item.excludeProvinceName, jdbcType=VARCHAR},</if>
+            <if test="item.excludeCityName != null and item.excludeCityName != ''">#{item.excludeCityName, jdbcType=VARCHAR},</if>
+            <if test="item.provinceType != null and item.provinceType != ''">#{item.provinceType, jdbcType=INTEGER},</if>
+            <if test="item.matchingType != null and item.matchingType != ''">#{item.matchingType, jdbcType=INTEGER},</if>
+            <if test="item.matchingCause != null and item.matchingCause != ''">#{item.matchingCause, jdbcType=VARCHAR},</if>
+            DATE_FORMAT(NOW(), '%Y-%m-%d'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+        </foreach>
+    </insert>
 
     <select id="getMaxCleanDate" resultType="java.lang.String">
 
