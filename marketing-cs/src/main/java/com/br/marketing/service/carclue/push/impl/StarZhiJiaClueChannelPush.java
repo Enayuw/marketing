@@ -68,17 +68,20 @@ public class StarZhiJiaClueChannelPush extends AbstractClueChannelPush {
                 clueInfo.setCluePushStatus(CarCluePushStatusEnum.SUCCESS.getValue());
                 clueInfo.setClueId(clueRes.getData());
             } else {
-                clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
-                clueInfo.setCluePushErrorReason(clueRes.getMessage());
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
                         , "车线索-之家，推送线索异常,result= " + clueRes.getMessage()));
+
+                clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
+                clueInfo.setCluePushErrorReason(clueRes.getMessage());
+                carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
+                return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
                     , "车线索-之家，推送线索异常,线索id= " + carClueInfo.getClueId()));
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
+            return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
 

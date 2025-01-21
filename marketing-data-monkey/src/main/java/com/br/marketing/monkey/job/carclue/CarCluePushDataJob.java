@@ -46,23 +46,23 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         log.warn(TITLE + "start");
         long start = System.currentTimeMillis();
-        List<String> apiCodes = carClueInfoMapper.queryApiCodes(CarCluePushStatusEnum.READY.getValue());
-        if(CollectionUtil.isEmpty(apiCodes)){
+        List<String> channels = carClueInfoMapper.queryApiCodes(CarCluePushStatusEnum.READY.getValue());
+        if(CollectionUtil.isEmpty(channels)){
             return;
         }
-        pushCarClue(apiCodes);
+        pushCarClue(channels);
 
         long end = System.currentTimeMillis();
         log.warn(TITLE + "end, 耗时{}ms", end-start);
     }
 
-    private void pushCarClue(List<String> apiCodes) {
+    private void pushCarClue(List<String> channels) {
         ThreadPoolExecutor pushCarClueThread =
                 BrExecutors.getThreadPool(5, 5);
 
-        for (String apiCode : apiCodes) {
+        for (String channel : channels) {
 
-            AbstractClueChannelPush channelPushImpl = clueChannelConfigService.getChannelPushImpl(apiCode);
+            AbstractClueChannelPush channelPushImpl = clueChannelConfigService.getChannelPushImpl(channel);
 
             if(channelPushImpl == null){
                 continue;
@@ -75,7 +75,7 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
                 carClueInfoExample.setOrderByClause("id limit 2000");
 
                 CarClueInfoExample.Criteria criteria = carClueInfoExample.createCriteria()
-                        .andApiCodeEqualTo(apiCode)
+                        .andCluePushChannelEqualTo(channel)
                         .andCluePushStatusEqualTo(CarCluePushStatusEnum.READY.getValue());
 
                 if (minId != null) {

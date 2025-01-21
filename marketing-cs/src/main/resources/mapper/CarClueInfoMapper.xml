@@ -80,10 +80,10 @@
     </select>
 
     <select id="queryApiCodes" resultType="java.lang.String">
-        select api_code
+        select clue_push_channel
         from b_car_clue_info
-        where clue_push_status =  #{pushStatus}
-        group by api_code
+        where clue_push_status = #{pushStatus}
+        group by clue_push_channel
     </select>
 
     <insert id="batchInsert" parameterType="list">
