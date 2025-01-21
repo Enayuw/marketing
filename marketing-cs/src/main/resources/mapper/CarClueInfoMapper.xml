@@ -22,7 +22,8 @@
         bcci.clue_push_status as cluePushStatus,
         DATE_FORMAT(bcci.push_time, '%Y-%m-%d %H:%i:%s') as pushTime,
         DATE_FORMAT(bcci.call_back_time, '%Y-%m-%d %H:%i:%s') as callBackTime,
-        bcci.clue_callback_push_state as clueCallbackPushState
+        bcci.clue_callback_push_state as clueCallbackPushState,
+        bcci.recording_path as recordingPath
         from b_car_clue_info bcci
         <where>
             <if test="createTimeStart != null and createTimeStart != ''">

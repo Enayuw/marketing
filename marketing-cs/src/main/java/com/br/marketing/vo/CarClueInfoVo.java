@@ -1,7 +1,6 @@
 package com.br.marketing.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -61,5 +60,7 @@ public class CarClueInfoVo {
     @ApiModelProperty("回调时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date callBackTime;
+    @ApiModelProperty("录音地址")
+    private String recordingPath;
 
 }
