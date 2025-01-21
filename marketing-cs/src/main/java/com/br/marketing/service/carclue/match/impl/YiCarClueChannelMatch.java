@@ -118,7 +118,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         } else {
             carClueInfo.setClueMatchSeriesId(clueRelationalMapping.getSeriesId().toString());
         }
-        carClueInfo.setClueErrorReason(null);
+        carClueInfo.setClueErrorReason("");
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
