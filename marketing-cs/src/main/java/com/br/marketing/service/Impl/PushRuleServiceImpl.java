@@ -699,9 +699,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id in "
                     + xcDynaFalsePackageId;
         } else {
-            dynaDataSql = "select rob.cell_sha256_code_list as cell, rob.id as id from b_xiecheng_colliding_data_rob rob inner join b_xiecheng_colliding_"
-                    + batchNumber + " batch on rob.cell_sha256_code_list = batch.cell and rob.is_delete = 0 and rob.is_delete = 0 and rob.package_id in "
-                    + xcDynaFalsePackageId;
+            dynaDataSql = "select rob.cell_sha256_code_list as cell, rob.id as id from b_xiecheng_colliding_data_rob rob " +
+                    "inner join b_xiecheng_colliding_" + batchNumber + " batch on rob.cell_sha256_code_list = batch.cell " +
+                    "and rob.is_delete = 0 and rob.is_delete = 0 and rob.package_id in " + xcDynaFalsePackageId;
         }
         StringBuilder scoreSql = new StringBuilder();
         scoreSql.append("select id, cell from b_xiecheng_colliding_")
@@ -721,18 +721,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             condition.append("null");
         }
         querySqls.add(condition.toString());
-    }
-
-    private int getQueryRuleScoreCountSql(String batchNumber) {
-        int total = 0;
-        String queryRuleScoreCountSql = "select count(0) from b_xiecheng_colliding_" + batchNumber;
-        try {
-            total = scoreRecordMapper.getXieChengDataNumdoris_(queryRuleScoreCountSql);
-            log.warn("规则中心跑分文件{},量级{}", batchNumber, total);
-        } catch (Exception e) {
-            log.error("规则中心跑分文件量级查询Doris异常,sql={}", queryRuleScoreCountSql, e);
-        }
-        return total;
     }
 
     /**
@@ -887,7 +875,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param collidingFilterDTO
      * @param querySqls
      */
-    private void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+    private void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
+                                   XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
