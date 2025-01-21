@@ -107,13 +107,11 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         String carSeries = getPhoneFromJsonObject(jsonObject, "carSeries");
                         String province = getPhoneFromJsonObject(jsonObject, "province");
                         String city = getPhoneFromJsonObject(jsonObject, "city");
-                        String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
                         String member = getPhoneFromJsonObject(jsonObject, "member");
                         String intentionGrade = callRecord.getIntentionGrade();
                         if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
                             CarClueInfo carClueInfo = new CarClueInfo();
                             carClueInfo.setCid(cid);
-                            // 线索明细apiCode
                             carClueInfo.setApiCode(apiCode);
                             carClueInfo.setCustNum(callRecord.getCaseNum());
                             carClueInfo.setCell(callRecord.getCaseNum());
@@ -124,7 +122,6 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                             carClueInfo.setCell(phone);
                             carClueInfo.setProvince(province);
                             carClueInfo.setCity(city);
-                            carClueInfo.setCluePushChannel(resourceType);
                             carClueInfo.setMember(member);
                             carClueInfo.setCreateTime(new Date());
                             carClueInfo.setUpdateTime(new Date());
@@ -147,14 +144,13 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         reserveField1.put("series", carSeries);
                         reserveField1.put("province", province);
                         reserveField1.put("city", city);
-                        reserveField1.put("cluePushChannel", resourceType);
+                        reserveField1.put("member", member);
                         marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
                         dataItems.add(marketingPreUserDetailDTO);
                         successRecordIds.add(callRecord.getId());
                     }
                     userDTO.setDataItems(dataItems);
                     UploadDataDTO uploadDataDTO = new UploadDataDTO();
-                    // 上传入库apiCode
                     uploadDataDTO.setApiCode(apiCode);
                     uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
                     pushInfoService.pushUploadByRetry(uploadDataDTO, null);
