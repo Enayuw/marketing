@@ -19,6 +19,7 @@ import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushInfoService;
+import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.service.clean.CarClue.CarCluesDataToDBService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
@@ -123,6 +124,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                             carClueInfo.setProvince(province);
                             carClueInfo.setCity(city);
                             carClueInfo.setMember(member);
+                            carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                             carClueInfo.setCreateTime(new Date());
                             carClueInfo.setUpdateTime(new Date());
                             carClueInfos.add(carClueInfo);

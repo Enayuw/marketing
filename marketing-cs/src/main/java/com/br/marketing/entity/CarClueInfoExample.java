@@ -1486,72 +1486,72 @@ public class CarClueInfoExample {
         }
 
         public Criteria andRecordingPathIsNull() {
-            addCriterion("recordingPath is null");
+            addCriterion("recording_path is null");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathIsNotNull() {
-            addCriterion("recordingPath is not null");
+            addCriterion("recording_path is not null");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathEqualTo(String value) {
-            addCriterion("recordingPath =", value, "recordingpath");
+            addCriterion("recording_path =", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathNotEqualTo(String value) {
-            addCriterion("recordingPath <>", value, "recordingpath");
+            addCriterion("recording_path <>", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathGreaterThan(String value) {
-            addCriterion("recordingPath >", value, "recordingpath");
+            addCriterion("recording_path >", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathGreaterThanOrEqualTo(String value) {
-            addCriterion("recordingPath >=", value, "recordingpath");
+            addCriterion("recording_path >=", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathLessThan(String value) {
-            addCriterion("recordingPath <", value, "recordingpath");
+            addCriterion("recording_path <", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathLessThanOrEqualTo(String value) {
-            addCriterion("recordingPath <=", value, "recordingpath");
+            addCriterion("recording_path <=", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathLike(String value) {
-            addCriterion("recordingPath like", value, "recordingpath");
+            addCriterion("recording_path like", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathNotLike(String value) {
-            addCriterion("recordingPath not like", value, "recordingpath");
+            addCriterion("recording_path not like", value, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathIn(List<String> values) {
-            addCriterion("recordingPath in", values, "recordingpath");
+            addCriterion("recording_path in", values, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathNotIn(List<String> values) {
-            addCriterion("recordingPath not in", values, "recordingpath");
+            addCriterion("recording_path not in", values, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathBetween(String value1, String value2) {
-            addCriterion("recordingPath between", value1, value2, "recordingpath");
+            addCriterion("recording_path between", value1, value2, "recordingPath");
             return (Criteria) this;
         }
 
         public Criteria andRecordingPathNotBetween(String value1, String value2) {
-            addCriterion("recordingPath not between", value1, value2, "recordingpath");
+            addCriterion("recording_path not between", value1, value2, "recordingPath");
             return (Criteria) this;
         }
 
@@ -1935,6 +1935,76 @@ public class CarClueInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andCluePushErrorReasonIsNull() {
+            addCriterion("clue_push_error_reason is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonIsNotNull() {
+            addCriterion("clue_push_error_reason is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonEqualTo(String value) {
+            addCriterion("clue_push_error_reason =", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotEqualTo(String value) {
+            addCriterion("clue_push_error_reason <>", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonGreaterThan(String value) {
+            addCriterion("clue_push_error_reason >", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonGreaterThanOrEqualTo(String value) {
+            addCriterion("clue_push_error_reason >=", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonLessThan(String value) {
+            addCriterion("clue_push_error_reason <", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonLessThanOrEqualTo(String value) {
+            addCriterion("clue_push_error_reason <=", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonLike(String value) {
+            addCriterion("clue_push_error_reason like", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotLike(String value) {
+            addCriterion("clue_push_error_reason not like", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonIn(List<String> values) {
+            addCriterion("clue_push_error_reason in", values, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotIn(List<String> values) {
+            addCriterion("clue_push_error_reason not in", values, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonBetween(String value1, String value2) {
+            addCriterion("clue_push_error_reason between", value1, value2, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotBetween(String value1, String value2) {
+            addCriterion("clue_push_error_reason not between", value1, value2, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
         public Criteria andClueErrorReasonIsNull() {
             addCriterion("clue_error_reason is null");
             return (Criteria) this;
@@ -2072,6 +2142,126 @@ public class CarClueInfoExample {
 
         public Criteria andClueCallbackResultNotBetween(String value1, String value2) {
             addCriterion("clue_callback_result not between", value1, value2, "clueCallbackResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateIsNull() {
+            addCriterion("clue_callback_push_state is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateIsNotNull() {
+            addCriterion("clue_callback_push_state is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateEqualTo(Integer value) {
+            addCriterion("clue_callback_push_state =", value, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateNotEqualTo(Integer value) {
+            addCriterion("clue_callback_push_state <>", value, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateGreaterThan(Integer value) {
+            addCriterion("clue_callback_push_state >", value, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateGreaterThanOrEqualTo(Integer value) {
+            addCriterion("clue_callback_push_state >=", value, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateLessThan(Integer value) {
+            addCriterion("clue_callback_push_state <", value, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateLessThanOrEqualTo(Integer value) {
+            addCriterion("clue_callback_push_state <=", value, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateIn(List<Integer> values) {
+            addCriterion("clue_callback_push_state in", values, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateNotIn(List<Integer> values) {
+            addCriterion("clue_callback_push_state not in", values, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateBetween(Integer value1, Integer value2) {
+            addCriterion("clue_callback_push_state between", value1, value2, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackPushStateNotBetween(Integer value1, Integer value2) {
+            addCriterion("clue_callback_push_state not between", value1, value2, "clueCallbackPushState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateIsNull() {
+            addCriterion("clue_callback_final_state is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateIsNotNull() {
+            addCriterion("clue_callback_final_state is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateEqualTo(Integer value) {
+            addCriterion("clue_callback_final_state =", value, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateNotEqualTo(Integer value) {
+            addCriterion("clue_callback_final_state <>", value, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateGreaterThan(Integer value) {
+            addCriterion("clue_callback_final_state >", value, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateGreaterThanOrEqualTo(Integer value) {
+            addCriterion("clue_callback_final_state >=", value, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateLessThan(Integer value) {
+            addCriterion("clue_callback_final_state <", value, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateLessThanOrEqualTo(Integer value) {
+            addCriterion("clue_callback_final_state <=", value, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateIn(List<Integer> values) {
+            addCriterion("clue_callback_final_state in", values, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateNotIn(List<Integer> values) {
+            addCriterion("clue_callback_final_state not in", values, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateBetween(Integer value1, Integer value2) {
+            addCriterion("clue_callback_final_state between", value1, value2, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andClueCallbackFinalStateNotBetween(Integer value1, Integer value2) {
+            addCriterion("clue_callback_final_state not between", value1, value2, "clueCallbackFinalState");
             return (Criteria) this;
         }
 

@@ -1,17 +1,13 @@
-package com.br.marketing.push.service.impl;
+package com.br.marketing.service.sftp.impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.LoanFileMapper;
-import com.br.marketing.push.service.ZipFileCheckService;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.sftp.ZipFileCheckService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,7 +17,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;

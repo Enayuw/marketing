@@ -38,42 +38,51 @@ public class YiCarKAClueChannelPush extends AbstractClueChannelPush {
     CarClueClient carClueClient;
     @Resource
     CarClueInfoMapper carClueInfoMapper;
+    private static final String channelId = "umOFo6Lmtx7z8Xpk";
+    private static final String channelKey = "o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp";
+    private static final String pushTask = "7-1";
     private static final String soundUrl = "123";
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result push(CarClueInfo carClueInfo) {
-        JSONObject jo = marketingCommonConfig.getHxClientConfig();
-        String task = jo.getString("ycKaTask");
-        CarClueInfo clueInfo = new CarClueInfo();
-        clueInfo.setId(carClueInfo.getId());
-        clueInfo.setUpdateTime(new Date());
-        HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
-        hxClueCommitDTO.setPhone(carClueInfo.getCell());
-        hxClueCommitDTO.setMember(carClueInfo.getMember());
-        hxClueCommitDTO.setProvince(carClueInfo.getClueMatchProvince());
-        hxClueCommitDTO.setCity(carClueInfo.getClueMatchCity());
-        hxClueCommitDTO.setBrand(carClueInfo.getClueMatchBrand());
-        hxClueCommitDTO.setSeries(carClueInfo.getClueMatchSeries());
-        hxClueCommitDTO.setSeriesId(Integer.parseInt(carClueInfo.getClueMatchSeriesId()));
-        hxClueCommitDTO.setPushTask(task);
-        hxClueCommitDTO.setSoundUrl(soundUrl);
-        hxClueCommitDTO.setBuyTime(LocalDate.now().plusDays(90).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
-        if (ResultCode.SUCCESS.getValue().equals(clueRes.getCode())) {
-            clueInfo.setCluePushStatus(CarCluePushStatusEnum.SUCCESS.getValue());
-            clueInfo.setClueId(clueRes.getData());
-        } else {
-            clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
+        try {
+            JSONObject jo = marketingCommonConfig.getHxClientConfig();
+            String task = jo.getString("ycKaTask");
+            CarClueInfo clueInfo = new CarClueInfo();
+            clueInfo.setId(carClueInfo.getId());
+            clueInfo.setUpdateTime(new Date());
+            HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
+            hxClueCommitDTO.setPhone(carClueInfo.getCell());
+            hxClueCommitDTO.setMember(carClueInfo.getMember());
+            hxClueCommitDTO.setProvince(carClueInfo.getClueMatchProvince());
+            hxClueCommitDTO.setCity(carClueInfo.getClueMatchCity());
+            hxClueCommitDTO.setBrand(carClueInfo.getClueMatchBrand());
+            hxClueCommitDTO.setSeries(carClueInfo.getClueMatchSeries());
+            hxClueCommitDTO.setSeriesId(Integer.parseInt(carClueInfo.getClueMatchSeriesId()));
+            hxClueCommitDTO.setPushTask(task);
+            hxClueCommitDTO.setSoundUrl(soundUrl);
+            hxClueCommitDTO.setBuyTime(LocalDate.now().plusDays(90).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
+            if (ResultCode.SUCCESS.getValue().equals(clueRes.getCode())) {
+                clueInfo.setCluePushStatus(CarCluePushStatusEnum.SUCCESS.getValue());
+                clueInfo.setClueId(clueRes.getData());
+            } else {
+                clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
+                        , "车线索-易车KA，推送线索异常,result= " + clueRes.getMessage()));
+            }
+            carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
-                    , "车线索-易车KA，推送线索异常,result= " + clueRes.getMessage()));
+                    , "车线索-易车KA，推送线索异常,线索id= " + carClueInfo.getClueId()));
+            return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
-        carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 
     @Override
