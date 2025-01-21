@@ -29,8 +29,11 @@
     <result column="clue_complete_status" property="clueCompleteStatus" jdbcType="INTEGER" />
     <result column="clue_push_status" property="cluePushStatus" jdbcType="INTEGER" />
     <result column="clue_callback_status" property="clueCallbackStatus" jdbcType="INTEGER" />
+    <result column="clue_push_error_reason" property="cluePushErrorReason" jdbcType="VARCHAR" />
     <result column="clue_error_reason" property="clueErrorReason" jdbcType="VARCHAR" />
     <result column="clue_callback_result" property="clueCallbackResult" jdbcType="VARCHAR" />
+    <result column="clue_callback_push_state" property="clueCallbackPushState" jdbcType="INTEGER" />
+    <result column="clue_callback_final_state" property="clueCallbackFinalState" jdbcType="INTEGER" />
     <result column="extend_info" property="extendInfo" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="clean_time" property="cleanTime" jdbcType="TIMESTAMP" />
@@ -100,9 +103,10 @@
     id, cid, api_code, cust_num, cell, intention, brand, `member`, series, clue_match_brand_id, 
     clue_match_brand, clue_match_series_id, clue_match_series, match_brand_series_type, 
     province, clue_match_province_id, clue_match_province, city, clue_match_city_id, 
-    clue_match_city, recording_path, clue_id, clue_push_channel, clue_data_status, clue_complete_status,
-    clue_push_status, clue_callback_status, clue_error_reason, clue_callback_result, 
-    extend_info, create_time, clean_time, push_time, call_back_time, update_time
+    clue_match_city, recording_path, clue_id, clue_push_channel, clue_data_status, clue_complete_status, 
+    clue_push_status, clue_callback_status, clue_push_error_reason, clue_error_reason, 
+    clue_callback_result, clue_callback_push_state, clue_callback_final_state, extend_info, 
+    create_time, clean_time, push_time, call_back_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInfoExample" >
     select
@@ -144,10 +148,11 @@
       clue_match_brand, clue_match_series_id, clue_match_series, 
       match_brand_series_type, province, clue_match_province_id, 
       clue_match_province, city, clue_match_city_id, 
-      clue_match_city, recording_path, clue_id,
+      clue_match_city, recording_path, clue_id, 
       clue_push_channel, clue_data_status, clue_complete_status, 
-      clue_push_status, clue_callback_status, clue_error_reason, 
-      clue_callback_result, extend_info, create_time, 
+      clue_push_status, clue_callback_status, clue_push_error_reason, 
+      clue_error_reason, clue_callback_result, clue_callback_push_state, 
+      clue_callback_final_state, extend_info, create_time, 
       clean_time, push_time, call_back_time, 
       update_time)
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
@@ -156,10 +161,11 @@
       #{clueMatchBrand,jdbcType=VARCHAR}, #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR}, 
       #{matchBrandSeriesType,jdbcType=INTEGER}, #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR}, 
       #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR}, 
-      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR},
+      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR}, 
       #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER}, #{clueCompleteStatus,jdbcType=INTEGER}, 
-      #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER}, #{clueErrorReason,jdbcType=VARCHAR}, 
-      #{clueCallbackResult,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER}, #{cluePushErrorReason,jdbcType=VARCHAR}, 
+      #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR}, #{clueCallbackPushState,jdbcType=INTEGER}, 
+      #{clueCallbackFinalState,jdbcType=INTEGER}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
       #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP}, 
       #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -247,11 +253,20 @@
       <if test="clueCallbackStatus != null" >
         clue_callback_status,
       </if>
+      <if test="cluePushErrorReason != null" >
+        clue_push_error_reason,
+      </if>
       <if test="clueErrorReason != null" >
         clue_error_reason,
       </if>
       <if test="clueCallbackResult != null" >
         clue_callback_result,
+      </if>
+      <if test="clueCallbackPushState != null" >
+        clue_callback_push_state,
+      </if>
+      <if test="clueCallbackFinalState != null" >
+        clue_callback_final_state,
       </if>
       <if test="extendInfo != null" >
         extend_info,
@@ -351,11 +366,20 @@
       <if test="clueCallbackStatus != null" >
         #{clueCallbackStatus,jdbcType=INTEGER},
       </if>
+      <if test="cluePushErrorReason != null" >
+        #{cluePushErrorReason,jdbcType=VARCHAR},
+      </if>
       <if test="clueErrorReason != null" >
         #{clueErrorReason,jdbcType=VARCHAR},
       </if>
       <if test="clueCallbackResult != null" >
         #{clueCallbackResult,jdbcType=VARCHAR},
+      </if>
+      <if test="clueCallbackPushState != null" >
+        #{clueCallbackPushState,jdbcType=INTEGER},
+      </if>
+      <if test="clueCallbackFinalState != null" >
+        #{clueCallbackFinalState,jdbcType=INTEGER},
       </if>
       <if test="extendInfo != null" >
         #{extendInfo,jdbcType=VARCHAR},
@@ -467,11 +491,20 @@
       <if test="record.clueCallbackStatus != null" >
         clue_callback_status = #{record.clueCallbackStatus,jdbcType=INTEGER},
       </if>
+      <if test="record.cluePushErrorReason != null" >
+        clue_push_error_reason = #{record.cluePushErrorReason,jdbcType=VARCHAR},
+      </if>
       <if test="record.clueErrorReason != null" >
         clue_error_reason = #{record.clueErrorReason,jdbcType=VARCHAR},
       </if>
       <if test="record.clueCallbackResult != null" >
         clue_callback_result = #{record.clueCallbackResult,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clueCallbackPushState != null" >
+        clue_callback_push_state = #{record.clueCallbackPushState,jdbcType=INTEGER},
+      </if>
+      <if test="record.clueCallbackFinalState != null" >
+        clue_callback_final_state = #{record.clueCallbackFinalState,jdbcType=INTEGER},
       </if>
       <if test="record.extendInfo != null" >
         extend_info = #{record.extendInfo,jdbcType=VARCHAR},
@@ -525,8 +558,11 @@
       clue_complete_status = #{record.clueCompleteStatus,jdbcType=INTEGER},
       clue_push_status = #{record.cluePushStatus,jdbcType=INTEGER},
       clue_callback_status = #{record.clueCallbackStatus,jdbcType=INTEGER},
+      clue_push_error_reason = #{record.cluePushErrorReason,jdbcType=VARCHAR},
       clue_error_reason = #{record.clueErrorReason,jdbcType=VARCHAR},
       clue_callback_result = #{record.clueCallbackResult,jdbcType=VARCHAR},
+      clue_callback_push_state = #{record.clueCallbackPushState,jdbcType=INTEGER},
+      clue_callback_final_state = #{record.clueCallbackFinalState,jdbcType=INTEGER},
       extend_info = #{record.extendInfo,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       clean_time = #{record.cleanTime,jdbcType=TIMESTAMP},
@@ -618,11 +654,20 @@
       <if test="clueCallbackStatus != null" >
         clue_callback_status = #{clueCallbackStatus,jdbcType=INTEGER},
       </if>
+      <if test="cluePushErrorReason != null" >
+        clue_push_error_reason = #{cluePushErrorReason,jdbcType=VARCHAR},
+      </if>
       <if test="clueErrorReason != null" >
         clue_error_reason = #{clueErrorReason,jdbcType=VARCHAR},
       </if>
       <if test="clueCallbackResult != null" >
         clue_callback_result = #{clueCallbackResult,jdbcType=VARCHAR},
+      </if>
+      <if test="clueCallbackPushState != null" >
+        clue_callback_push_state = #{clueCallbackPushState,jdbcType=INTEGER},
+      </if>
+      <if test="clueCallbackFinalState != null" >
+        clue_callback_final_state = #{clueCallbackFinalState,jdbcType=INTEGER},
       </if>
       <if test="extendInfo != null" >
         extend_info = #{extendInfo,jdbcType=VARCHAR},
@@ -673,8 +718,11 @@
       clue_complete_status = #{clueCompleteStatus,jdbcType=INTEGER},
       clue_push_status = #{cluePushStatus,jdbcType=INTEGER},
       clue_callback_status = #{clueCallbackStatus,jdbcType=INTEGER},
+      clue_push_error_reason = #{cluePushErrorReason,jdbcType=VARCHAR},
       clue_error_reason = #{clueErrorReason,jdbcType=VARCHAR},
       clue_callback_result = #{clueCallbackResult,jdbcType=VARCHAR},
+      clue_callback_push_state = #{clueCallbackPushState,jdbcType=INTEGER},
+      clue_callback_final_state = #{clueCallbackFinalState,jdbcType=INTEGER},
       extend_info = #{extendInfo,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       clean_time = #{cleanTime,jdbcType=TIMESTAMP},

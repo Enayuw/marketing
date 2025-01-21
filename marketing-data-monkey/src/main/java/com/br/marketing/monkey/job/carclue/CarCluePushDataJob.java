@@ -46,8 +46,7 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         log.warn(TITLE + "start");
         long start = System.currentTimeMillis();
-        List<String> apiCodes = carClueInfoMapper.queryApiCodes(CarCluePushStatusEnum.READY.getValue(),
-                null);
+        List<String> apiCodes = carClueInfoMapper.queryApiCodes(CarCluePushStatusEnum.READY.getValue());
         if(CollectionUtil.isEmpty(apiCodes)){
             return;
         }
@@ -64,6 +63,10 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
         for (String apiCode : apiCodes) {
 
             AbstractClueChannelPush channelPushImpl = clueChannelConfigService.getChannelPushImpl(apiCode);
+
+            if(channelPushImpl == null){
+                continue;
+            }
 
             Long minId = null;
             boolean isContiue = Boolean.TRUE;

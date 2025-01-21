@@ -45,32 +45,40 @@ public class StarZhiJiaClueChannelPush extends AbstractClueChannelPush {
     @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result push(CarClueInfo carClueInfo) {
-        CarClueInfo clueInfo = new CarClueInfo();
-        clueInfo.setId(carClueInfo.getId());
-        clueInfo.setUpdateTime(new Date());
-        HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
-        hxClueCommitDTO.setChannelId(channelId);
-        hxClueCommitDTO.setPhone(carClueInfo.getCell());
-        hxClueCommitDTO.setMember(carClueInfo.getMember());
-        hxClueCommitDTO.setProvince(carClueInfo.getClueMatchProvince());
-        hxClueCommitDTO.setCity(carClueInfo.getClueMatchCity());
-        hxClueCommitDTO.setBrand(carClueInfo.getClueMatchBrand());
-        hxClueCommitDTO.setSeries(carClueInfo.getClueMatchSeries());
-        hxClueCommitDTO.setSeriesId(Integer.parseInt(carClueInfo.getClueMatchSeriesId()));
-        hxClueCommitDTO.setPushTask(pushTask);
-        hxClueCommitDTO.setSoundUrl(soundUrl);
-        hxClueCommitDTO.setBuyTime(LocalDate.now().plusDays(90).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, channelKey);
-        if (ResultCode.SUCCESS.getValue().equals(clueRes.getCode())) {
-            clueInfo.setCluePushStatus(CarCluePushStatusEnum.SUCCESS.getValue());
-            clueInfo.setClueId(clueRes.getData());
-        } else {
-            clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
+        try {
+            CarClueInfo clueInfo = new CarClueInfo();
+            clueInfo.setId(carClueInfo.getId());
+            clueInfo.setUpdateTime(new Date());
+            HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
+            hxClueCommitDTO.setChannelId(channelId);
+            hxClueCommitDTO.setPhone(carClueInfo.getCell());
+            hxClueCommitDTO.setMember(carClueInfo.getMember());
+            hxClueCommitDTO.setProvince(carClueInfo.getClueMatchProvince());
+            hxClueCommitDTO.setCity(carClueInfo.getClueMatchCity());
+            hxClueCommitDTO.setBrand(carClueInfo.getClueMatchBrand());
+            hxClueCommitDTO.setSeries(carClueInfo.getClueMatchSeries());
+            if(carClueInfo.getClueMatchSeriesId() != null){
+                hxClueCommitDTO.setSeriesId(Integer.parseInt(carClueInfo.getClueMatchSeriesId()));
+            }
+            hxClueCommitDTO.setPushTask(pushTask);
+            hxClueCommitDTO.setSoundUrl(soundUrl);
+            hxClueCommitDTO.setBuyTime(LocalDate.now().plusDays(90).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, channelKey);
+            if (ResultCode.SUCCESS.getValue().equals(clueRes.getCode())) {
+                clueInfo.setCluePushStatus(CarCluePushStatusEnum.SUCCESS.getValue());
+                clueInfo.setClueId(clueRes.getData());
+            } else {
+                clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
+                        , "车线索-之家，推送线索异常,result= " + clueRes.getMessage()));
+            }
+            carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
-                    , "车线索-之家，推送线索异常,result= " + clueRes.getMessage()));
+                    , "车线索-之家，推送线索异常,线索id= " + carClueInfo.getClueId()));
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
-        carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 
     @Override

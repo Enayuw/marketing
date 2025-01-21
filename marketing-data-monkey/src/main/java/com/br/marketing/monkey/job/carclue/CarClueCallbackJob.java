@@ -49,8 +49,7 @@ public class CarClueCallbackJob extends AbstractSimpleElasticJob {
         log.warn(TITLE + "start");
         long start = System.currentTimeMillis();
 
-        List<String> apiCodes = carClueInfoMapper.queryApiCodes(null,
-                CarClueCallBackStatusEnum.READY.getValue());
+        List<String> apiCodes = carClueInfoMapper.queryApiCodes(CarClueCallBackStatusEnum.READY.getValue());
         if(CollectionUtil.isEmpty(apiCodes)){
             return;
         }
