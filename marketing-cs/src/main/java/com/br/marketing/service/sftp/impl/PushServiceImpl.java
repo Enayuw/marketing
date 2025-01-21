@@ -1,17 +1,15 @@
-package com.br.marketing.push.service.impl;
+package com.br.marketing.service.sftp.impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.file.FtpUtil2;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.LoanFileMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
-import com.br.marketing.push.service.PushService;
-import com.br.marketing.push.service.ZipFileCheckService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.sftp.PushService;
+import com.br.marketing.service.sftp.ZipFileCheckService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,12 +40,13 @@ public class PushServiceImpl implements PushService {
     private String sftpPwd;
     @Resource
     ZipFileCheckService zipFileCheckServiceImpl;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public void push(List<LoanFile> files) {
+    public void push(List<LoanFile> files) throws Exception {
         checkZipFile(files);
         pushToSftp(files);
-
     }
     private void checkZipFile(List<LoanFile> files){
         for(LoanFile blf:files){
@@ -58,7 +57,7 @@ public class PushServiceImpl implements PushService {
 
     }
 
-    public void pushToSftp(List<LoanFile> files){
+    private void pushToSftp(List<LoanFile> files) throws Exception {
         String apiCode=files.get(0).getApiCode();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
@@ -69,6 +68,7 @@ public class PushServiceImpl implements PushService {
                 File file = new File(zipFilePathAndName);
                 if(file.exists()){
                     log.warn("push zip to sftp :{}",blf.getZipFileName());
+                    checkMockSwitch();
                     boolean flag= sftpClient.uploadFile(remotePath, blf.getZipFileName(), zipFilePathAndName);
                     if(flag){
                         String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
@@ -86,16 +86,24 @@ public class PushServiceImpl implements PushService {
             }
 
         } catch (Exception e) {
-            log.error("Exception",e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
+                    "跑分文件推送SFTP异常，apiCode："+apiCode), e);
+            throw e;
         }finally {
             try {
                 sftpClient.disconnect();
             } catch (Exception e) {
-                log.error("Exception",e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
+                        "跑分文件推送SFTP异常，apiCode："+apiCode), e);
             }
         }
     }
 
-
+    public void checkMockSwitch() throws Exception {
+        Boolean uploadFileSftp = marketingCommonConfig.getUploadFileSftp();
+        if(uploadFileSftp){
+            throw new Exception();
+        }
+    }
 
 }
