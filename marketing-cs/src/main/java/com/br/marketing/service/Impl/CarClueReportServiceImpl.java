@@ -66,6 +66,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("status", request.getStatus());
         params.put("callBackTimeStart", request.getCallBackTimeStart());
         params.put("callBackTimeEnd", request.getCallBackTimeEnd());
+        params.put("search", request.getSearch());
 
         PageHelper.startPage(current, size);
         List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
