@@ -12,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 public class XieChengEsJsonHandler {
 
@@ -86,6 +87,7 @@ public class XieChengEsJsonHandler {
         Map<String, Object> couponCode = collidingFilterDTO.getCoupon_code();
         Map<String, Object> couponDesc = collidingFilterDTO.getCoupon_desc();
         String customerGroup = collidingFilterDTO.getCustomerGroup();
+        String info = collidingFilterDTO.getInfo();
 
         if (!CollectionUtils.isEmpty(releaseTime)) {
             Object value = releaseTime.get("value");
@@ -115,6 +117,16 @@ public class XieChengEsJsonHandler {
                 zkTrueCondition.append(" and ");
             }
             zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("customer_group", "=", customerGroup));
+        }
+        if (!Objects.isNull(info)) {
+            if (StringUtils.isNotEmpty(zkTrueCondition.toString())) {
+                zkTrueCondition.append(" and ");
+            }
+            if (info.equals("") || info.equalsIgnoreCase("NULL")) {
+                zkTrueCondition.append("info is null");
+            } else {
+                zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("info", "=", info));
+            }
         }
         return zkTrueCondition.toString();
     }
