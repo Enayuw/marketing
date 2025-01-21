@@ -63,6 +63,17 @@ public class CarClueClient {
      */
     public Result<String> commitClue(HxClueCommitDTO dto) {
 
+        //获取挡板开关
+        Map<String, Object> mock = marketingCommonConfig.getCommitClueMock();
+        if (mock.get("switch") == Boolean.TRUE) {
+            log.warn("线索上报进入挡板");
+            long start = System.currentTimeMillis();
+            Result<String> stringResult = commitClueMock(mock);
+            long end = System.currentTimeMillis();
+            log.warn("线索上报结束挡板, result:{}, 耗时:{}", stringResult, end - start);
+            return stringResult;
+        }
+
         try {
             JSONObject jo = marketingCommonConfig.getHxClientConfig();
             String channelId = jo.getString("channelId");
@@ -100,6 +111,24 @@ public class CarClueClient {
         }
     }
 
+    /**
+     * 挡板
+     * @return
+     */
+    private Result<String> commitClueMock(Map<String, Object> mock) {
+        Result<String> result = new Result<>();
+        Integer code = (Integer) mock.get("code");
+        if(ResultCode.SUCCESS.getValue().equals(code)){
+            Random random = new Random();
+            result.setDate(String.valueOf(random.nextInt(5)));
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("请求成功");
+            return result;
+        }
+        result.setCode(ResultCode.FAIL.getValue());
+        result.setMessage("请求失败");
+        return result;
+    }
 
     /**
      * 获取之家城市

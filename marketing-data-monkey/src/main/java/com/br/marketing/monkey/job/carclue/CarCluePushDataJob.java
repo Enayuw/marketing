@@ -65,6 +65,7 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
             AbstractClueChannelPush channelPushImpl = clueChannelConfigService.getChannelPushImpl(channel);
 
             if(channelPushImpl == null){
+                log.warn(TITLE + "未找到推送实现，channel：{}", channel);
                 continue;
             }
 

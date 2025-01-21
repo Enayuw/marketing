@@ -37,9 +37,6 @@ public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
     CarClueClient carClueClient;
     @Resource
     CarClueInfoMapper carClueInfoMapper;
-
-    private static final String soundUrl = "123";
-
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
@@ -64,7 +61,7 @@ public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
                 hxClueCommitDTO.setSeriesId(Integer.parseInt(carClueInfo.getClueMatchSeriesId()));
             }
             hxClueCommitDTO.setPushTask(task);
-            hxClueCommitDTO.setSoundUrl(soundUrl);
+            hxClueCommitDTO.setSoundUrl(carClueInfo.getRecordingPath());
             hxClueCommitDTO.setBuyTime(LocalDate.now().plusDays(90).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
             if (ResultCode.SUCCESS.getValue().equals(clueRes.getCode())) {
