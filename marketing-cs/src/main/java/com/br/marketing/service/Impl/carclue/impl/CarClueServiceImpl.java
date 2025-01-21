@@ -14,7 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 车线索service
@@ -50,19 +52,28 @@ public class CarClueServiceImpl implements CarClueService {
     public void carClueCleanHandler(CarClueInfo carClueInfo, List<CarClueProvincesInformation> carClueProvincesInfoList,
                                     List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList, List<CarChannelConfig> channelConfigList) {
         for (CarChannelConfig config : channelConfigList) {
-            List<AbstractClueChannelFilter> channelFilterList = clueChannelConfigService.getChannelFilter(config.getApiCode());
+            String configApicode = config.getApiCode();
+            List<AbstractClueChannelFilter> channelFilterList = clueChannelConfigService.getChannelFilter(configApicode);
             //命中过滤规则，进入下次循环
-            if (isFilterHandler(carClueInfo, config.getApiCode(), channelFilterList)) {
+            if (isFilterHandler(carClueInfo, configApicode, channelFilterList)) {
                 continue;
             }
             //线索匹配实现
-            AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(config.getApiCode());
-            Result matchResult = channelMatch.action(carClueInfo, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList);
+            AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(configApicode);
+
+            List<CarClueProvincesInformation> provincesInfoConfig = carClueProvincesInfoList.stream().filter(carClueProvinces ->
+                    carClueProvinces.getApiCode().equals(configApicode)).collect(Collectors.toList());
+            List<CarClueSeriesInformation> seriesInfoConfig = carClueSeriesInfoList.stream().filter(carClueSeriesInfo ->
+                    carClueSeriesInfo.getApiCode().equals(configApicode)).collect(Collectors.toList());
+            List<CarClueRelationalMapping> relationalMappingConfig = carClueRelationalMappingList.stream().filter(carClueRelationalMapping ->
+                    carClueRelationalMapping.getApiCode().equals(configApicode)).collect(Collectors.toList());
+            Result matchResult = channelMatch.action(carClueInfo, provincesInfoConfig, seriesInfoConfig, relationalMappingConfig);
             if (matchResult.isSuccess() && carClueInfo.getMatchBrandSeriesType().equals(CarClueMatchTypeEnum.COMPLETE_MATCH.getValue())) {
                 break;
             }
         }
         //更新线索状态
+        carClueInfo.setCleanTime(new Date());
         carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
     }
 
