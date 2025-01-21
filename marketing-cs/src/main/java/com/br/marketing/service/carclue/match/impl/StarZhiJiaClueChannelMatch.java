@@ -6,7 +6,6 @@ import com.br.marketing.entity.CarClueProvincesInformation;
 import com.br.marketing.entity.CarClueRelationalMapping;
 import com.br.marketing.entity.CarClueSeriesInformation;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
-import com.br.marketing.service.carclue.match.config.StarZhiJiaChannelConfig;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

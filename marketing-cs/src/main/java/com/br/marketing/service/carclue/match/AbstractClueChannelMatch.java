@@ -5,7 +5,6 @@ import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.entity.CarClueProvincesInformation;
 import com.br.marketing.entity.CarClueRelationalMapping;
 import com.br.marketing.entity.CarClueSeriesInformation;
-import com.br.marketing.service.carclue.match.config.ClueChannelConfig;
 
 import java.util.List;
 

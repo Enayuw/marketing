@@ -13,7 +13,6 @@ import com.br.marketing.service.carclue.clueenums.CarClueMatchTypeEnum;
 import com.br.marketing.service.carclue.clueenums.CarCluePushStatusEnum;
 import com.br.marketing.service.carclue.common.MatchPatternCommon;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
-import com.br.marketing.service.carclue.match.config.YiCarChannelConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 

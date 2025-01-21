@@ -529,7 +529,7 @@
     />
 
     <job:simple id="【monkey】-CarCluePushDataJob"
-                class="com.br.marketing.monkey.job.smy.CarCluePushDataJob"
+                class="com.br.marketing.monkey.job.carclue.CarCluePushDataJob"
                 cron="0 0 18 29 9 ? 2099-2099"
                 description="车线索推送"
                 registry-center-ref="regCenter"
@@ -544,7 +544,7 @@
     />
 
     <job:simple id="【monkey】-ChannelRelationalJob"
-                class="com.br.marketing.monkey.job.smy.ChannelRelationalJob"
+                class="com.br.marketing.monkey.job.carclue.ChannelRelationalJob"
                 cron="0 0 18 29 9 ? 2099-2099"
                 description="外采渠道商信息维护"
                 registry-center-ref="regCenter"
