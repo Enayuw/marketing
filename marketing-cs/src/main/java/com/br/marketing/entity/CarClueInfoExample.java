@@ -1485,72 +1485,72 @@ public class CarClueInfoExample {
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathIsNull() {
+        public Criteria andRecordingPathIsNull() {
             addCriterion("recordingPath is null");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathIsNotNull() {
+        public Criteria andRecordingPathIsNotNull() {
             addCriterion("recordingPath is not null");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathEqualTo(String value) {
+        public Criteria andRecordingPathEqualTo(String value) {
             addCriterion("recordingPath =", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathNotEqualTo(String value) {
+        public Criteria andRecordingPathNotEqualTo(String value) {
             addCriterion("recordingPath <>", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathGreaterThan(String value) {
+        public Criteria andRecordingPathGreaterThan(String value) {
             addCriterion("recordingPath >", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathGreaterThanOrEqualTo(String value) {
+        public Criteria andRecordingPathGreaterThanOrEqualTo(String value) {
             addCriterion("recordingPath >=", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathLessThan(String value) {
+        public Criteria andRecordingPathLessThan(String value) {
             addCriterion("recordingPath <", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathLessThanOrEqualTo(String value) {
+        public Criteria andRecordingPathLessThanOrEqualTo(String value) {
             addCriterion("recordingPath <=", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathLike(String value) {
+        public Criteria andRecordingPathLike(String value) {
             addCriterion("recordingPath like", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathNotLike(String value) {
+        public Criteria andRecordingPathNotLike(String value) {
             addCriterion("recordingPath not like", value, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathIn(List<String> values) {
+        public Criteria andRecordingPathIn(List<String> values) {
             addCriterion("recordingPath in", values, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathNotIn(List<String> values) {
+        public Criteria andRecordingPathNotIn(List<String> values) {
             addCriterion("recordingPath not in", values, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathBetween(String value1, String value2) {
+        public Criteria andRecordingPathBetween(String value1, String value2) {
             addCriterion("recordingPath between", value1, value2, "recordingpath");
             return (Criteria) this;
         }
 
-        public Criteria andRecordingpathNotBetween(String value1, String value2) {
+        public Criteria andRecordingPathNotBetween(String value1, String value2) {
             addCriterion("recordingPath not between", value1, value2, "recordingpath");
             return (Criteria) this;
         }

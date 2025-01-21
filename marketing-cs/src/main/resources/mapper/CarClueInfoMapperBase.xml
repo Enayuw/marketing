@@ -22,7 +22,7 @@
     <result column="city" property="city" jdbcType="VARCHAR" />
     <result column="clue_match_city_id" property="clueMatchCityId" jdbcType="VARCHAR" />
     <result column="clue_match_city" property="clueMatchCity" jdbcType="VARCHAR" />
-    <result column="recording_path" property="recordingpath" jdbcType="VARCHAR" />
+    <result column="recording_path" property="recordingPath" jdbcType="VARCHAR" />
     <result column="clue_id" property="clueId" jdbcType="VARCHAR" />
     <result column="clue_push_channel" property="cluePushChannel" jdbcType="VARCHAR" />
     <result column="clue_data_status" property="clueDataStatus" jdbcType="INTEGER" />
@@ -156,7 +156,7 @@
       #{clueMatchBrand,jdbcType=VARCHAR}, #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR}, 
       #{matchBrandSeriesType,jdbcType=INTEGER}, #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR}, 
       #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR}, 
-      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingpath,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR}, 
+      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR},
       #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER}, #{clueCompleteStatus,jdbcType=INTEGER}, 
       #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER}, #{clueErrorReason,jdbcType=VARCHAR}, 
       #{clueCallbackResult,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
@@ -226,7 +226,7 @@
       <if test="clueMatchCity != null" >
         clue_match_city,
       </if>
-      <if test="recordingpath != null" >
+      <if test="recordingPath != null" >
         recording_path,
       </if>
       <if test="clueId != null" >
@@ -330,8 +330,8 @@
       <if test="clueMatchCity != null" >
         #{clueMatchCity,jdbcType=VARCHAR},
       </if>
-      <if test="recordingpath != null" >
-        #{recordingpath,jdbcType=VARCHAR},
+      <if test="recordingPath != null" >
+        #{recordingPath,jdbcType=VARCHAR},
       </if>
       <if test="clueId != null" >
         #{clueId,jdbcType=VARCHAR},
@@ -446,8 +446,8 @@
       <if test="record.clueMatchCity != null" >
         clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
       </if>
-      <if test="record.recordingpath != null" >
-        recording_path = #{record.recordingpath,jdbcType=VARCHAR},
+      <if test="record.recordingPath != null" >
+        recording_path = #{record.recordingPath,jdbcType=VARCHAR},
       </if>
       <if test="record.clueId != null" >
         clue_id = #{record.clueId,jdbcType=VARCHAR},
@@ -518,7 +518,7 @@
       city = #{record.city,jdbcType=VARCHAR},
       clue_match_city_id = #{record.clueMatchCityId,jdbcType=VARCHAR},
       clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
-      recording_path = #{record.recordingpath,jdbcType=VARCHAR},
+      recording_path = #{record.recordingPath,jdbcType=VARCHAR},
       clue_id = #{record.clueId,jdbcType=VARCHAR},
       clue_push_channel = #{record.cluePushChannel,jdbcType=VARCHAR},
       clue_data_status = #{record.clueDataStatus,jdbcType=INTEGER},
@@ -597,8 +597,8 @@
       <if test="clueMatchCity != null" >
         clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
       </if>
-      <if test="recordingpath != null" >
-        recording_path = #{recordingpath,jdbcType=VARCHAR},
+      <if test="recordingPath != null" >
+        recording_path = #{recordingPath,jdbcType=VARCHAR},
       </if>
       <if test="clueId != null" >
         clue_id = #{clueId,jdbcType=VARCHAR},
@@ -666,7 +666,7 @@
       city = #{city,jdbcType=VARCHAR},
       clue_match_city_id = #{clueMatchCityId,jdbcType=VARCHAR},
       clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
-      recording_path = #{recordingpath,jdbcType=VARCHAR},
+      recording_path = #{recordingPath,jdbcType=VARCHAR},
       clue_id = #{clueId,jdbcType=VARCHAR},
       clue_push_channel = #{cluePushChannel,jdbcType=VARCHAR},
       clue_data_status = #{clueDataStatus,jdbcType=INTEGER},

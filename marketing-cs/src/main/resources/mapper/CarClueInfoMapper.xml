@@ -21,7 +21,7 @@
         bcci.clue_push_status as cluePushStatus,
         DATE_FORMAT(bcci.push_time, '%Y-%m-%d %H:%i:%s') as pushTime,
         DATE_FORMAT(bcci.call_back_time, '%Y-%m-%d %H:%i:%s') as callBackTime,
-        COALESCE(bcrl.status, 0) as status
+        COALESCE(bcrl.inbound_status, 0) as status
         from b_car_clue_info bcci
         left join b_call_record_log bcrl on bcci.id = bcrl.record_id
         <where>
@@ -43,10 +43,13 @@
             <if test="updateTimeEnd != null and updateTimeEnd != ''">
                 <![CDATA[ and bcci.update_time < #{updateTimeEnd} ]]>
             </if>
-            <if test="cluePushChannel != null and cluePushChannel != ''">
-                and bcci.clue_push_channel = #{cluePushChannel}
+            <if test="cluePushChannel != null and !cluePushChannel.isEmpty()">
+                AND bcci.clue_push_channel IN
+                <foreach collection="cluePushChannel" item="channel" open="(" separator="," close=")">
+                    #{channel}
+                </foreach>
             </if>
-            <if test="cluePushChannel == 'fail'">
+            <if test="cluePushChannel == null or clueDataStatus == ''">
                 and (bcci.clue_push_channel = '' or bcci.clue_push_channel is null)
             </if>
             <if test="cluePushStatus != null and cluePushStatus != ''">
@@ -59,7 +62,7 @@
                 <![CDATA[ and bcci.push_time < #{pushTimeEnd} ]]>
             </if>
             <if test="status != null and status != ''">
-                and bcrl.status = #{status}
+                and bcrl.inbound_status = #{status}
             </if>
             <if test="callBackTimeStart != null and callBackTimeStart != ''">
                 <![CDATA[ and bcci.call_back_time >= #{callBackTimeStart} ]]>

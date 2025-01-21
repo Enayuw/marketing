@@ -1,11 +1,9 @@
 package com.br.marketing.service.Impl;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.CarClueInfo;
@@ -16,7 +14,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,6 +41,9 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     public PageResultReturn getReportList(CarClueReportDTO request) {
         Integer current = request.getCurrent();
         Integer size = request.getSize();
+        List<String> cluePushChannel = getValueByKey(request.getCluePushChannel());
+        cluePushChannel =  cluePushChannel.contains("fail") ? null : cluePushChannel;
+
         Map params = new HashMap();
         params.put("createTimeStart", request.getCreateTimeStart());
         params.put("createTimeEnd", request.getCreateTimeEnd());
@@ -51,7 +51,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("clueDataStatus", request.getClueDataStatus());
         params.put("updateTimeStart", request.getUpdateTimeStart());
         params.put("updateTimeEnd", request.getUpdateTimeEnd());
-        params.put("cluePushChannel", getValueByKey(request.getCluePushChannel()));
+        params.put("cluePushChannel", cluePushChannel);
         params.put("cluePushStatus", request.getCluePushStatus());
         params.put("pushTimeStart", request.getPushTimeStart());
         params.put("pushTimeEnd", request.getPushTimeEnd());
@@ -87,55 +87,38 @@ public class CarClueReportServiceImpl implements CarClueReportService {
             return new ApiResult<Boolean>().fail(false, "更新列表不能为空");
         }
 
-        List<CarClueInfo> clueInfoList = new ArrayList<>();
         for (CarClueInfoVo vo : voList) {
             CarClueInfo clueInfo = new CarClueInfo();
             try {
-                BeanUtils.copyProperties(clueInfo, vo);
+                clueInfo.setId(vo.getId());
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
                 clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                 clueInfo.setUpdateTime(new Date());
-                clueInfoList.add(clueInfo);
+                carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(
                         AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                         "编辑车线索信息失败！voId: " + vo.getId()), e);
             }
         }
-
-        try {
-            int updatedRows = carClueInfoMapper.batchUpdate(clueInfoList);
-            if (updatedRows <= 0) {
-                log.warn(AlertLog.buildWarnMessage(
-                        AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                        "批量编辑车线索信息失败！更新行数为0"));
-                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
-            }
-            return new ApiResult<Boolean>().success(true);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    "批量编辑车线索信息失败！"), e);
-            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
-        }
+        return new ApiResult<Boolean>().success(true);
     }
 
-    public String getValueByKey(String key) {
+    public List<String>  getValueByKey(String key) {
         try {
-            Map<String, JSONObject> clueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
-            JSONObject jsonObject = clueApiCodeMapping.get("channel");
-            if (ObjectUtil.isEmpty(jsonObject)) {
+            Map<String, Map<String, List>> carClueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
+            Map<String, List> channel = carClueApiCodeMapping.get("channel");
+            if (ObjectUtil.isEmpty(channel)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                         "渠道不存在！"));
             }
-            String string = jsonObject.getString(key);
-            String result = ObjectUtil.isNotEmpty(string) ? string : "fail";
-            return result;
+            List<String> carClueApiCodes = channel.get(key);
+            return ObjectUtil.isNotEmpty(carClueApiCodes) ? carClueApiCodes : Arrays.asList("fail");
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "获取推送渠道映射失败！错误信息：" + e.getMessage()), e);
-            return "fail";
+            return Arrays.asList("fail");
         }
     }
 
