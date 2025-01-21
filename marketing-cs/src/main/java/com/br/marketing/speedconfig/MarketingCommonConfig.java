@@ -2208,6 +2208,7 @@ public class MarketingCommonConfig {
      * 推决策报警apiCode集合
      */
     private List<String> pushAlarmApiCode;
+
     /**
      *  * 2024-08-13 15:42
      * 榕树上传数据清洗线程池配置
@@ -2215,6 +2216,16 @@ public class MarketingCommonConfig {
      * eg：[25,50],25为核心线程数，50为最大线程数,核心线程数为0时程序停止
      */
     private Map<String,String> rongShuCleanUploadConfig = new HashMap<>();
+
+    /**
+     * 榕树上传数据清洗-通用字段映射
+     */
+    private Map<String,String> rongShuCleanUploadCommonFieldMap = new HashMap<>();
+
+    /**
+     * 榕树上传数据清洗-扩展字段映射
+     */
+    private Map<String,String> rongShuCleanUploadExtendFieldMap = new HashMap<>();
 
     /**
      * 奇富360数据提取custNum对应上传字段
