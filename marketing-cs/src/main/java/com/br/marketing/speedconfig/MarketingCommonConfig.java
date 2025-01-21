@@ -2524,5 +2524,25 @@ public class MarketingCommonConfig {
      * mock 1 开启
      */
     private Map<String, Object> smyBlacklistConfig = new HashMap<>();
+
+    /**
+     * 携程false包补充量级预览优化开关
+     */
+    private Boolean xcFalsePackagePushPreviewOptFlag;
+
+    /**
+     * 携程false动态包剔除量级预览优化开关
+     */
+    private Boolean xcFalsePackageDynaPushPreviewOptFlag;
+
+    /**
+     * 携程true包推送决策量级预览优化开关
+     */
+    private Boolean xcTruePushCustomerPushPreviewOptFlag;
+
+    /**
+     * 携程规则中心false包操作优化线程数
+     */
+    private Integer xcFalsePackageOptSoleNum;
 }
 
