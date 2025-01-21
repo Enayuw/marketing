@@ -168,7 +168,7 @@ public class RedisController {
                 hxClueCommitDTO.setPushTask("7-1");
                 hxClueCommitDTO.setSoundUrl("123");
                 hxClueCommitDTO.setBuyTime("2025-04-20");
-                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp");
+                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
                 return JSON.toJSONString(clueRes);
             }
         } else  if ("yc-member".equals(carType)) {
@@ -191,7 +191,7 @@ public class RedisController {
                 hxClueCommitDTO.setPushTask("6+");
                 hxClueCommitDTO.setSoundUrl("123");
                 hxClueCommitDTO.setBuyTime("2025-04-20");
-                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp");
+                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
                 return JSON.toJSONString(clueRes);
             }
         } else if ("zj".equals(carType)) {
@@ -203,7 +203,7 @@ public class RedisController {
                 return JSON.toJSONString(zjCar);
             }else if ("commit".equals(interfaceType)) {
                 HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
-                hxClueCommitDTO.setChannelId("5GVOZ5BwGytObRYy");
+                hxClueCommitDTO.setChannelId("IxFRGOyohB1vuQDk");
                 hxClueCommitDTO.setPhone("13000000000");
                 hxClueCommitDTO.setMember("马");
                 hxClueCommitDTO.setProvince("天津");
@@ -215,7 +215,7 @@ public class RedisController {
                 hxClueCommitDTO.setPushTask("xsc");
                 hxClueCommitDTO.setSoundUrl("http://www.baidu.com");
                 hxClueCommitDTO.setBuyTime("2025-04-20");
-                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "l3ocI61BJAZ1xnTXePd6t1WIzMYOwUUo");
+                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
                 return JSON.toJSONString(clueRes);
             }
         }

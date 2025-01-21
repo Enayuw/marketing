@@ -59,12 +59,16 @@ public class CarClueClient {
      * 线索上报接口
      *
      * @param dto
-     * @param channelKey
      * @return
      */
-    public Result<String> commitClue(HxClueCommitDTO dto, String channelKey) {
+    public Result<String> commitClue(HxClueCommitDTO dto) {
 
         try {
+            JSONObject jo = marketingCommonConfig.getHxClientConfig();
+            String channelId = jo.getString("channelId");
+            String channelKey = jo.getString("channelKey");
+            dto.setChannelId(channelId);
+
             BeanMap beanMap = BeanMap.create(dto);
             String sign = generateSign(beanMap, channelKey);
             dto.setSign(sign);
@@ -158,9 +162,8 @@ public class CarClueClient {
      */
     public Result<JSONArray> getZjCity() {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
-        String zjChannelId = jo.getString("zjChannelId");
-        String zjChannelKey = jo.getString("zjChannelKey");
-        return getCity(zjChannelId, zjChannelKey, "xsc");
+        String task = jo.getString("zjTask");
+        return getCity( task);
     }
 
     /**
@@ -177,15 +180,15 @@ public class CarClueClient {
      * }
      */
     public Result<JSONArray> getYcCity(String task) {
-        JSONObject jo = marketingCommonConfig.getHxClientConfig();
-        String ycChannelId = jo.getString("ycChannelId");
-        String ycChannelKey = jo.getString("ycChannelKey");
-        return getCity(ycChannelId, ycChannelKey, task);
+        return getCity(task);
     }
 
-    private Result<JSONArray> getCity(String channelId, String channelKey, String task) {
+    private Result<JSONArray> getCity( String task) {
 
         try {
+            JSONObject jo = marketingCommonConfig.getHxClientConfig();
+            String channelId = jo.getString("ycChannelId");
+            String channelKey = jo.getString("ycChannelKey");
             Map<String, Object> data = new HashMap<>();
             data.put("channel_id", channelId);
             data.put("task", task);
@@ -237,10 +240,8 @@ public class CarClueClient {
      */
     public Result<JSONArray> getZjCar() {
         JSONObject jo = marketingCommonConfig.getHxClientConfig();
-        String zjChannelId = jo.getString("zjChannelId");
-        String zjChannelKey = jo.getString("zjChannelKey");
         String zjTask = jo.getString("zjTask");
-        return getCar(zjChannelId, zjChannelKey, zjTask);
+        return getCar(zjTask);
     }
 
     /**
@@ -259,15 +260,15 @@ public class CarClueClient {
      * }
      */
     public Result<JSONArray> getYcCar(String task) {
-        JSONObject jo = marketingCommonConfig.getHxClientConfig();
-        String ycChannelId = jo.getString("ycChannelId");
-        String ycChannelKey = jo.getString("ycChannelKey");
-        return getCar(ycChannelId, ycChannelKey, task);
+        return getCar(task);
     }
 
-    private Result<JSONArray> getCar(String channelId, String channelKey, String task) {
+    private Result<JSONArray> getCar(String task) {
 
         try {
+            JSONObject jo = marketingCommonConfig.getHxClientConfig();
+            String channelId = jo.getString("ycChannelId");
+            String channelKey = jo.getString("ycChannelKey");
             Map<String, Object> data = new HashMap<>();
             data.put("channel_id", channelId);
             data.put("task", task);

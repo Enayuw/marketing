@@ -2552,7 +2552,7 @@ public class MarketingCommonConfig {
 
     /**
      * 海星接口配置
-     * {"ycChannelId":"umOFo6Lmtx7z8Xpk","ycChannelKey":"o7nY20ah2NBuEafQV1NmuYVgr8EEWRlp","ycTask":"6+","zjChannelId":"5GVOZ5BwGytObRYy","zjChannelKey":"l3ocI61BJAZ1xnTXePd6t1WIzMYOwUUo","zjTask":"xsc"}
+     * {"channelId":"IxFRGOyohB1vuQDk","channelKey":"N0H9hfbPVfhQtEdUqbc1doP8pD42x8Qw","ycKaTask":"7-1","ycMemberTask":"6+","zjTask":"xsc"}
      */
     private JSONObject hxClientConfig;
 }
