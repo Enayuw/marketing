@@ -21,7 +21,7 @@ public class HxClueCommitDTO {
     private String city;
 
     @JSONField(name = "city_id")
-    private int cityId;
+    private Integer cityId;
 
     @JSONField(name = "brand")
     private String brand;

@@ -201,6 +201,22 @@ public class RedisController {
             } else if ("car".equals(interfaceType)) {
                 Result<JSONArray> zjCar = carClueClient.getZjCar();
                 return JSON.toJSONString(zjCar);
+            }else if ("commit".equals(interfaceType)) {
+                HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
+                hxClueCommitDTO.setChannelId("5GVOZ5BwGytObRYy");
+                hxClueCommitDTO.setPhone("13000000000");
+                hxClueCommitDTO.setMember("马");
+                hxClueCommitDTO.setProvince("天津");
+                hxClueCommitDTO.setCityId(19);
+                hxClueCommitDTO.setCity("天津");
+                hxClueCommitDTO.setBrand("WEY");
+                hxClueCommitDTO.setSeries("坦克300");
+                hxClueCommitDTO.setSeriesId(1019);
+                hxClueCommitDTO.setPushTask("xsc");
+                hxClueCommitDTO.setSoundUrl("123");
+                hxClueCommitDTO.setBuyTime("2025-04-20");
+                Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO, "l3ocI61BJAZ1xnTXePd6t1WIzMYOwUUo");
+                return JSON.toJSONString(clueRes);
             }
         }
         return "noMatch";
