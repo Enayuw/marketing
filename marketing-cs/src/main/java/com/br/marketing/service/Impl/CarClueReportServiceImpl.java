@@ -68,8 +68,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("callBackTimeEnd", request.getCallBackTimeEnd());
 
         PageHelper.startPage(current, size);
-        List<CarClueInfo> list = carClueInfoMapper.selectList(params);
-        list.forEach((CarClueInfo carClueInfoVo) -> {
+        List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
+        list.forEach((CarClueInfoVo carClueInfoVo) -> {
             String encryptCell = encryptCell(carClueInfoVo.getCell());
             carClueInfoVo.setCell(encryptCell);
         });
