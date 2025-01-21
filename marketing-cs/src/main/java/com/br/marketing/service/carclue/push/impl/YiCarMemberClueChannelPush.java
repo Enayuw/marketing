@@ -68,6 +68,7 @@ public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
                 clueInfo.setClueId(clueRes.getData());
             } else {
                 clueInfo.setCluePushStatus(CarCluePushStatusEnum.FAIL.getValue());
+                clueInfo.setCluePushErrorReason(clueRes.getMessage());
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
                         , "车线索-易车会员，推送线索异常,result= " + clueRes.getMessage()));
             }
