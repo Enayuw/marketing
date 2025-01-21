@@ -1972,8 +1972,8 @@ public class MarketingCommonConfig {
     private Integer wubaCollidingDataMaxCountLimit;
 
     /**
-     * 58提交周期撞库开关(true:开启，false关闭)
-     * {"T":true,"S":true}
+     * 58提交周期撞库与去重开关(T/S控制是否开启去重和撞库，eliminate控制去重。true:开启，false关闭)
+     * {"T":true,"S":true,"eliminate":true}
      */
     private HashMap<String, Boolean> wuBaCollidingDataSwitch;
 

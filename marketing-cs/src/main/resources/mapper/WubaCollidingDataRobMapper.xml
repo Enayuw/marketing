@@ -65,4 +65,25 @@
             (#{item}, #{apiCode}, #{dataSourceType}, #{packageId}, now())
         </foreach>
     </insert>
+
+    <select id="selectDuplicateDataByFileId" resultType="java.lang.String">
+        select cell
+        from b_wuba_colliding_data_rob
+        where is_deleted = 0 and api_code = #{apiCode} and package_id in ${highValueAndReavedFileIds}
+        and cell in
+        <foreach collection="list" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </select>
+
+    <select id="selectDuplicateDataByCreateTime" resultType="java.lang.String">
+        select cell
+        from b_wuba_colliding_data_rob
+        where is_deleted = 0 and api_code = #{apiCode}
+        <![CDATA[ and (create_time >= #{today} and create_time < #{tomorrow} ]]>)
+        and cell in
+        <foreach collection="list" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </select>
 </mapper>

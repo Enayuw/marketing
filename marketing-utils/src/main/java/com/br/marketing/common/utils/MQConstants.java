@@ -106,6 +106,7 @@ public class MQConstants {
     public static final String MARKETING_GUOMEI_DATA_CLEAN_QUEUE = "marketing_guomei_data_clean_queue";
     public static final String MARKETING_GUOMEI_BLACK_DATA_CLEAN_QUEUE = "marketing_guomei_black_data_clean_queue";
     public static final String MARKETING_HENGCHANG_DATA_CLEAN_QUEUE = "marketing_hengchang_data_clean_queue";
+    public static final String MARKETING_WUBA_COLLIDING_ELIMINATE_QUEUE = "marketing_wuba_colliding_eliminate_queue";
 
     /**
      * routingkey
@@ -209,4 +210,5 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_HENGCHANG_DATA_CLEAN = "marketing.hengchang.data.clean";
 
     public static final String ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN = "marketing.guomei.black.data.clean";
+    public static final String ROUTING_KEY_MARKETING_WUBA_COLLIDING_ELIMINATE = "marketing.wuba.colliding.eliminate";
 }
