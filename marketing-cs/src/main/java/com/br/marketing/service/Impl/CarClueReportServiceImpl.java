@@ -110,7 +110,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                         clueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.AETIFICAL_LACK_COMPLETE.getValue());
                     }
                 } else {
-                    return new ApiResult<Boolean>().fail(false, "更新数据不存在异常/确实线索");
+                    log.warn(" 此条数据不是异常线索或缺失线索，无法修改完成状态！ 数据ID： " + vo.getId());
+                    continue;
                 }
                 clueInfo.setUpdateTime(new Date());
                 carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
