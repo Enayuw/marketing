@@ -56,7 +56,7 @@ public class CarClueInfoVo {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date pushTime;
     @ApiModelProperty(value = "入库状态")
-    private String clueCallbackPushState;
+    private String clueCallbackFinalState;
     @ApiModelProperty("回调时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date callBackTime;

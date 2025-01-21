@@ -22,7 +22,7 @@
         bcci.clue_push_status as cluePushStatus,
         DATE_FORMAT(bcci.push_time, '%Y-%m-%d %H:%i:%s') as pushTime,
         DATE_FORMAT(bcci.call_back_time, '%Y-%m-%d %H:%i:%s') as callBackTime,
-        bcci.clue_callback_push_state as clueCallbackPushState,
+        bcci.clue_callback_final_state as clueCallbackFinalState,
         bcci.recording_path as recordingPath
         from b_car_clue_info bcci
         <where>
@@ -63,7 +63,7 @@
                 <![CDATA[ and bcci.push_time < #{pushTimeEnd} ]]>
             </if>
             <if test="status != null and status != ''">
-                and bcci.clue_callback_push_state = #{status}
+                and bcci.clue_callback_final_state = #{status}
             </if>
             <if test="callBackTimeStart != null and callBackTimeStart != ''">
                 <![CDATA[ and bcci.call_back_time >= #{callBackTimeStart} ]]>
