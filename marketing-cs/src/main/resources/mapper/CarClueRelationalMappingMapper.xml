@@ -23,18 +23,18 @@
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
-            <if test="item.apiCode != null and item.apiCode != ''">#{item.apiCode, jdbcType=VARCHAR},</if>
-            <if test="item.brandId != null and item.brandId != ''">#{item.brandId, jdbcType=INTEGER},</if>
-            <if test="item.brandName != null and item.brandName != ''">#{item.brandName, jdbcType=VARCHAR},</if>
-            <if test="item.seriesId != null and item.seriesId != ''">#{item.seriesId, jdbcType=INTEGER},</if>
-            <if test="item.seriesName != null and item.seriesName != ''">#{item.seriesName, jdbcType=VARCHAR},</if>
-            <if test="item.satisfyProvinceName != null and item.satisfyProvinceName != ''">#{item.satisfyProvinceName, jdbcType=VARCHAR},</if>
-            <if test="item.satisfyCityName != null and item.satisfyCityName != ''">#{item.satisfyCityName, jdbcType=VARCHAR},</if>
-            <if test="item.excludeProvinceName != null and item.excludeProvinceName != ''">#{item.excludeProvinceName, jdbcType=VARCHAR},</if>
-            <if test="item.excludeCityName != null and item.excludeCityName != ''">#{item.excludeCityName, jdbcType=VARCHAR},</if>
-            <if test="item.provinceType != null and item.provinceType != ''">#{item.provinceType, jdbcType=INTEGER},</if>
-            <if test="item.matchingType != null and item.matchingType != ''">#{item.matchingType, jdbcType=INTEGER},</if>
-            <if test="item.matchingCause != null and item.matchingCause != ''">#{item.matchingCause, jdbcType=VARCHAR},</if>
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.brandId, jdbcType=INTEGER},
+            #{item.brandName, jdbcType=VARCHAR},
+            #{item.seriesId, jdbcType=INTEGER},
+            #{item.seriesName, jdbcType=VARCHAR},
+            #{item.satisfyProvinceName, jdbcType=VARCHAR},
+            #{item.satisfyCityName, jdbcType=VARCHAR},
+            #{item.excludeProvinceName, jdbcType=VARCHAR},
+            #{item.excludeCityName, jdbcType=VARCHAR},
+            #{item.provinceType, jdbcType=INTEGER},
+            #{item.matchingType, jdbcType=INTEGER},
+            #{item.matchingCause, jdbcType=VARCHAR},
             DATE_FORMAT(NOW(), '%Y-%m-%d'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')

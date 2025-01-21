@@ -16,11 +16,11 @@
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
-            <if test="item.apiCode != null and item.apiCode != ''">#{item.apiCode, jdbcType=VARCHAR},</if>
-            <if test="item.provinceId != null and item.provinceId != ''">#{item.provinceId, jdbcType=INTEGER},</if>
-            <if test="item.provinceName != null and item.provinceName != ''">#{item.provinceName, jdbcType=VARCHAR},</if>
-            <if test="item.cityId != null and item.cityId != ''">#{item.cityId, jdbcType=INTEGER},</if>
-            <if test="item.cityName != null and item.cityName != ''">#{item.cityName, jdbcType=VARCHAR},</if>
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.provinceId, jdbcType=INTEGER},
+            #{item.provinceName, jdbcType=VARCHAR},
+            #{item.cityId, jdbcType=INTEGER},
+            #{item.cityName, jdbcType=VARCHAR},
             DATE_FORMAT(NOW(), '%Y-%m-%d'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')

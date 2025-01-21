@@ -18,13 +18,13 @@
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
-            <if test="item.apiCode != null and item.apiCode != ''">#{item.apiCode, jdbcType=VARCHAR},</if>
-            <if test="item.brandId != null and item.brandId != ''">#{item.brandId, jdbcType=INTEGER},</if>
-            <if test="item.brandName != null and item.brandName != ''">#{item.brandName, jdbcType=VARCHAR},</if>
-            <if test="item.subBrandId != null and item.subBrandId != ''">#{item.subBrandId, jdbcType=INTEGER},</if>
-            <if test="item.subBrandName != null and item.subBrandName != ''">#{item.subBrandName, jdbcType=VARCHAR},</if>
-            <if test="item.seriesId != null and item.seriesId != ''">#{item.seriesId, jdbcType=INTEGER},</if>
-            <if test="item.seriesName != null and item.seriesName != ''">#{item.seriesName, jdbcType=VARCHAR},</if>
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.brandId, jdbcType=INTEGER},
+            #{item.brandName, jdbcType=VARCHAR},
+            #{item.subBrandId, jdbcType=INTEGER},
+            #{item.subBrandName, jdbcType=VARCHAR},
+            #{item.seriesId, jdbcType=INTEGER},
+            #{item.seriesName, jdbcType=VARCHAR},
             DATE_FORMAT(NOW(), '%Y-%m-%d'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')

@@ -79,65 +79,79 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     private void buildZjCity() {
         Result<JSONArray> zjCityResult = carClueClient.getZjCity();
-        JSONArray jsonArray = new JSONArray();
-        if (ResultCode.SUCCESS.getValue().equals(zjCityResult.getCode())) {
-            jsonArray = zjCityResult.getData();
-        } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
-                    , "车线索-之家，省市调用异常,result= " + zjCityResult.getMessage()));
+
+        if (!ResultCode.SUCCESS.getValue().equals(zjCityResult.getCode())) {
+            log.warn("车线索-之家，省市调用异常, result= {}", zjCityResult.getMessage());
+            return;
         }
-        if (jsonArray != null && !jsonArray.isEmpty()) {
-            List<CarClueProvincesInformation> list = new ArrayList<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject firstData = jsonArray.getJSONObject(i);
-                Integer provinceId = firstData.getInteger("id");
-                String provinceName = firstData.getString("name");
-                JSONArray nodesArray = firstData.getJSONArray("nodes");
-                for (int j = 0; j < nodesArray.size(); j++) {
-                    JSONObject node = nodesArray.getJSONObject(j);
-                    Integer cityId = node.getInteger("id");
-                    String cityName = node.getString("name");
-                    CarClueProvincesInformation carClueProvincesInformation = new CarClueProvincesInformation();
-                    carClueProvincesInformation.setApiCode(carClueReportServiceImpl.getValueByKey
-                            (ChannelRule.MatchChannelRuleEnum.ZJ.getLabel()).get(0));
-                    carClueProvincesInformation.setProvinceId(provinceId);
-                    carClueProvincesInformation.setProvinceName(provinceName);
-                    carClueProvincesInformation.setCityId(cityId);
-                    carClueProvincesInformation.setCityName(cityName);
-                    carClueProvincesInformation.setAppletDate(LocalDate.now().toString());
-                    carClueProvincesInformation.setCreateTime(new Date());
-                    carClueProvincesInformation.setUpdateTime(new Date());
-                    list.add(carClueProvincesInformation);
+        JSONArray jsonArray = zjCityResult.getData();
+        if (jsonArray == null || jsonArray.isEmpty()) {
+            return;
+        }
+        List<CarClueProvincesInformation> list = new ArrayList<>();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject firstData = jsonArray.getJSONObject(i);
+            Integer provinceId = firstData.getInteger("id");
+            String provinceName = firstData.getString("name");
+            JSONArray nodesArray = firstData.getJSONArray("nodes");
+            for (int j = 0; j < nodesArray.size(); j++) {
+                JSONObject node = nodesArray.getJSONObject(j);
+                Integer cityId = node.getInteger("id");
+                String cityName = node.getString("name");
+                CarClueProvincesInformation info = new CarClueProvincesInformation();
+                info.setApiCode(carClueReportServiceImpl.getValueByKey
+                        (ChannelRule.MatchChannelRuleEnum.ZJ.getLabel()).get(0));
+                info.setProvinceId(provinceId);
+                info.setProvinceName(provinceName);
+                info.setCityId(cityId);
+                info.setCityName(cityName);
+                info.setAppletDate(LocalDate.now().toString());
+                info.setCreateTime(new Date());
+                info.setUpdateTime(new Date());
+                list.add(info);
+                if (list.size() >= 500) {
+                    carClueProvincesInformationMapper.batchInsert(list);
+                    list.clear();
                 }
             }
-            carClueProvincesInformationMapper.batchInsert(list);
+            // 插入剩余的数据
+            if (!list.isEmpty()) {
+                carClueProvincesInformationMapper.batchInsert(list);
+            }
         }
     }
 
-    private void buildYcCity(String task,String provincesType) {
+    private void buildYcCity(String task, String provincesType) {
         Result<JSONArray> ycCityResult = carClueClient.getYcCity(task);
-        JSONArray jsonArray = new JSONArray();
-        if (ResultCode.SUCCESS.getValue().equals(ycCityResult.getCode())) {
-            jsonArray = ycCityResult.getData();
-        } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
-                    , "车线索-易车，省市调用异常,result= " + ycCityResult.getMessage()));
+
+        if (!ResultCode.SUCCESS.getValue().equals(ycCityResult.getCode())) {
+            log.warn("车线索-易车，省市调用异常, result= {}", ycCityResult.getMessage());
+            return;
         }
-        if (jsonArray != null && !jsonArray.isEmpty()) {
-            List<CarClueProvincesInformation> list = new ArrayList<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject firstData = jsonArray.getJSONObject(i);
-                CarClueProvincesInformation carClueProvincesInformation = new CarClueProvincesInformation();
-                carClueProvincesInformation.setApiCode(carClueReportServiceImpl.getValueByKey(provincesType).get(0));
-                carClueProvincesInformation.setProvinceId(firstData.getInteger("provinceId"));
-                carClueProvincesInformation.setProvinceName(firstData.getString("provinceName"));
-                carClueProvincesInformation.setCityId(firstData.getInteger("cityId"));
-                carClueProvincesInformation.setCityName(firstData.getString("cityName"));
-                carClueProvincesInformation.setAppletDate(LocalDate.now().toString());
-                carClueProvincesInformation.setCreateTime(new Date());
-                carClueProvincesInformation.setUpdateTime(new Date());
-                list.add(carClueProvincesInformation);
+        JSONArray jsonArray = ycCityResult.getData();
+        if (jsonArray == null || jsonArray.isEmpty()) {
+            return;
+        }
+        List<CarClueProvincesInformation> list = new ArrayList<>();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject firstData = jsonArray.getJSONObject(i);
+            CarClueProvincesInformation info = new CarClueProvincesInformation();
+            info.setApiCode(carClueReportServiceImpl.getValueByKey(provincesType).get(0));
+            info.setProvinceId(firstData.getInteger("provinceId"));
+            info.setProvinceName(firstData.getString("provinceName"));
+            info.setCityId(firstData.getInteger("cityId"));
+            info.setCityName(firstData.getString("cityName"));
+            info.setAppletDate(LocalDate.now().toString());
+            info.setCreateTime(new Date());
+            info.setUpdateTime(new Date());
+            list.add(info);
+            if (list.size() >= 500) {
+                carClueProvincesInformationMapper.batchInsert(list);
+                list.clear();
             }
+        }
+        // 插入剩余的数据
+        if (!list.isEmpty()) {
             carClueProvincesInformationMapper.batchInsert(list);
         }
     }
@@ -145,31 +159,38 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private void buildZjCar() {
         Result<JSONArray> zjCarResult = carClueClient.getZjCar();
 
-        JSONArray jsonArray = new JSONArray();
-        if (ResultCode.SUCCESS.getValue().equals(zjCarResult.getCode())) {
-            jsonArray = zjCarResult.getData();
-        } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
-                    , "车线索-之家，车辆信息获取异常,result= " + zjCarResult.getMessage()));
+        if (!ResultCode.SUCCESS.getValue().equals(zjCarResult.getCode())) {
+            log.warn("车线索-之家，车辆信息获取异常, result= {}", zjCarResult.getMessage());
+            return;
         }
-        if (jsonArray != null && !jsonArray.isEmpty()) {
-            List<CarClueSeriesInformation> list = new ArrayList<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject firstData = jsonArray.getJSONObject(i);
-                CarClueSeriesInformation carClueSeriesInformation = new CarClueSeriesInformation();
-                carClueSeriesInformation.setApiCode(carClueReportServiceImpl.getValueByKey
-                        (ChannelRule.MatchChannelRuleEnum.ZJ.getLabel()).get(0));
-                carClueSeriesInformation.setBrandId(firstData.getInteger("brand_id"));
-                carClueSeriesInformation.setBrandName(firstData.getString("brand_name"));
-                carClueSeriesInformation.setSubBrandId(firstData.getInteger("son_brand_id"));
-                carClueSeriesInformation.setSubBrandName(firstData.getString("son_brand_name"));
-                carClueSeriesInformation.setSeriesId(firstData.getInteger("series_id"));
-                carClueSeriesInformation.setSeriesName(firstData.getString("series_name"));
-                carClueSeriesInformation.setAppletDate(LocalDate.now().toString());
-                carClueSeriesInformation.setCreateTime(new Date());
-                carClueSeriesInformation.setUpdateTime(new Date());
-                list.add(carClueSeriesInformation);
+        JSONArray jsonArray = zjCarResult.getData();
+        if (jsonArray == null || jsonArray.isEmpty()) {
+            return;
+        }
+
+        List<CarClueSeriesInformation> list = new ArrayList<>();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject firstData = jsonArray.getJSONObject(i);
+            CarClueSeriesInformation info = new CarClueSeriesInformation();
+            info.setApiCode(carClueReportServiceImpl.getValueByKey
+                    (ChannelRule.MatchChannelRuleEnum.ZJ.getLabel()).get(0));
+            info.setBrandId(firstData.getInteger("brand_id"));
+            info.setBrandName(firstData.getString("brand_name"));
+            info.setSubBrandId(firstData.getInteger("son_brand_id"));
+            info.setSubBrandName(firstData.getString("son_brand_name"));
+            info.setSeriesId(firstData.getInteger("series_id"));
+            info.setSeriesName(firstData.getString("series_name"));
+            info.setAppletDate(LocalDate.now().toString());
+            info.setCreateTime(new Date());
+            info.setUpdateTime(new Date());
+            list.add(info);
+            if (list.size() >= 500) {
+                carClueSeriesInformationMapper.batchInsert(list);
+                list.clear();
             }
+        }
+        // 插入剩余的数据
+        if (!list.isEmpty()) {
             carClueSeriesInformationMapper.batchInsert(list);
         }
     }
@@ -177,28 +198,36 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private void buildYcCar(String task,String provincesType) {
         Result<JSONArray> ycCarResult = carClueClient.getYcCar(task);
 
-        JSONArray jsonArray = new JSONArray();
-        if (ResultCode.SUCCESS.getValue().equals(ycCarResult.getCode())) {
-            jsonArray = ycCarResult.getData();
-        } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
-                    , "车线索-易车，车辆信息获取异常,result= " + ycCarResult.getMessage()));
+
+        if (!ResultCode.SUCCESS.getValue().equals(ycCarResult.getCode())) {
+            log.warn("车线索-易车，车辆信息获取异常, result= {}", ycCarResult.getMessage());
+            return;
         }
-        if (jsonArray != null && !jsonArray.isEmpty()) {
-            List<CarClueSeriesInformation> list = new ArrayList<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject firstData = jsonArray.getJSONObject(i);
-                CarClueSeriesInformation carClueSeriesInformation = new CarClueSeriesInformation();
-                carClueSeriesInformation.setApiCode(carClueReportServiceImpl.getValueByKey(provincesType).get(0));
-                carClueSeriesInformation.setBrandId(firstData.getInteger("brandId"));
-                carClueSeriesInformation.setBrandName(firstData.getString("brandName"));
-                carClueSeriesInformation.setSeriesId(firstData.getInteger("seriesId"));
-                carClueSeriesInformation.setSeriesName(firstData.getString("seriesName"));
-                carClueSeriesInformation.setAppletDate(LocalDate.now().toString());
-                carClueSeriesInformation.setCreateTime(new Date());
-                carClueSeriesInformation.setUpdateTime(new Date());
-                list.add(carClueSeriesInformation);
+        JSONArray jsonArray = ycCarResult.getData();
+        if (jsonArray == null || jsonArray.isEmpty()) {
+            return;
+        }
+
+        List<CarClueSeriesInformation> list = new ArrayList<>();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject firstData = jsonArray.getJSONObject(i);
+            CarClueSeriesInformation info = new CarClueSeriesInformation();
+            info.setApiCode(carClueReportServiceImpl.getValueByKey(provincesType).get(0));
+            info.setBrandId(firstData.getInteger("brandId"));
+            info.setBrandName(firstData.getString("brandName"));
+            info.setSeriesId(firstData.getInteger("seriesId"));
+            info.setSeriesName(firstData.getString("seriesName"));
+            info.setAppletDate(LocalDate.now().toString());
+            info.setCreateTime(new Date());
+            info.setUpdateTime(new Date());
+            list.add(info);
+            if (list.size() >= 500) {
+                carClueSeriesInformationMapper.batchInsert(list);
+                list.clear();
             }
+        }
+        // 插入剩余的数据
+        if (!list.isEmpty()) {
             carClueSeriesInformationMapper.batchInsert(list);
         }
     }
@@ -250,7 +279,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     StringBuilder stringBuilder = new StringBuilder();
                     List<CarClueSeriesInformation> brandNameList = brandNameMap.get(carClueInitMapping.getBrandName());
                     if(CollectionUtils.isEmpty(brandNameList)){
-                        stringBuilder.append("未匹配到该品牌：").append(carClueInitMapping.getBrandName());
+                        stringBuilder.append("未匹配到该品牌：").append(carClueInitMapping.getBrandName()).append(" | ");
                         carClueRelationalMapping.setMatchingType(1);
                     }else {
                         carClueRelationalMapping.setBrandId(brandNameList.get(0).getBrandId());
@@ -276,7 +305,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     for (String s : split){
                         List<CarClueSeriesInformation> seriesNameList = seriesNameMap.get(s);
                         if(CollectionUtils.isEmpty(seriesNameList)){
-                            stringBuilder.append("未匹配到该车系：").append(s);
+                            stringBuilder.append("未匹配到该车系：").append(s).append(" | ");
                             carClueRelationalMapping.setMatchingType(1);
                         }else {
                             carClueRelationalMapping.setSeriesId(seriesNameList.get(0).getSeriesId());
@@ -293,9 +322,17 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                         carClueRelationalMapping.setCreateTime(new Date());
                         carClueRelationalMapping.setUpdateTime(new Date());
                         list1.add(carClueRelationalMapping);
+                        if (list1.size() >= 500) {
+                            carClueRelationalMappingMapper.batchInsert(list1);
+                            list1.clear();
+                        }
+                    }
+                    // 插入剩余的数据
+                    if (!list1.isEmpty()) {
+                        carClueRelationalMappingMapper.batchInsert(list1);
+                        list1.clear();
                     }
                 }
-                carClueRelationalMappingMapper.batchInsert(list1);
             });
         }catch (Exception e){
             log.warn("维护外采渠道商信息异常, {}", e);
