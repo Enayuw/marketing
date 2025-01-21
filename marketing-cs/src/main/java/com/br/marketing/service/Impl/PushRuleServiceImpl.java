@@ -807,7 +807,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 "SELECT a.id, a.cell FROM " +
                         "(" + queryRuleScoreDataSql + ") AS a " +
                         "LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0 " +
-                        "LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and package_id in "
+                        "LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.package_id in "
                         + xcDynaFalsePackageIdString + " and c.is_delete = 0 " +
                         "WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0";
         return querySql;
