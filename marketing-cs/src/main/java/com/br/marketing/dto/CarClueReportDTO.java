@@ -9,10 +9,10 @@ import javax.validation.constraints.NotNull;
 @Data
 public class CarClueReportDTO {
     @NotNull(message = "Page number cannot be null")
-    private Integer current = 1;
+    private Integer current;
 
     @NotNull(message = "Page size cannot be null")
-    private Integer size = 10;
+    private Integer size;
     @ApiModelProperty(value = "品牌、车系、城市")
     private String search;
     @ApiModelProperty(value = "上传开始时间")
