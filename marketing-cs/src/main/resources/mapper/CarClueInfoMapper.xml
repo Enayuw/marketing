@@ -43,14 +43,14 @@
             <if test="updateTimeEnd != null and updateTimeEnd != ''">
                 <![CDATA[ and bcci.update_time < #{updateTimeEnd} ]]>
             </if>
-            <if test="cluePushChannel != null and !cluePushChannel.isEmpty()">
+            <if test="queryNullOrEmpty != null and queryNullOrEmpty">
+                AND (bcci.clue_push_channel IS NULL OR bcci.clue_push_channel = '')
+            </if>
+            <if test="cluePushChannel != null and !cluePushChannel.isEmpty() and (queryNullOrEmpty == null or !queryNullOrEmpty)">
                 AND bcci.clue_push_channel IN
                 <foreach collection="cluePushChannel" item="channel" open="(" separator="," close=")">
                     #{channel}
                 </foreach>
-            </if>
-            <if test="cluePushChannel == null or clueDataStatus == ''">
-                and (bcci.clue_push_channel = '' or bcci.clue_push_channel is null)
             </if>
             <if test="cluePushStatus != null and cluePushStatus != ''">
                 and bcci.clue_push_status = #{cluePushStatus}

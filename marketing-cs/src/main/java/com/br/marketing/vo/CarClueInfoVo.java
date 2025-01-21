@@ -30,7 +30,7 @@ public class CarClueInfoVo {
     @ApiModelProperty(value = "线索ID")
     private String clueId;
     @ApiModelProperty(value = "线索状态")
-    private String clueDataStatus;
+    private int clueDataStatus;
     @ApiModelProperty(value = "外呼意向")
     private String intention;
     @ApiModelProperty(value = "品牌")
