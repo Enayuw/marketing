@@ -52,6 +52,11 @@ public class XieChengCollidingDataLoopCycle{
     private Integer customerGroup;
 
     /**
+     * 撞库info
+     */
+    private String info;
+
+    /**
      * 最近一次撞库时间
      */
     private Date pushTime;
