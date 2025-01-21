@@ -219,6 +219,7 @@
             market_coupon_list = #{marketCouponList,jdbcType=VARCHAR},
             coupon_code = #{couponCode,jdbcType=VARCHAR},
             coupon_desc = #{couponDesc,jdbcType=VARCHAR},
+            info = #{info},
             <if test="pushTime != null">
                 push_time = #{pushTime,jdbcType=TIMESTAMP},
             </if>

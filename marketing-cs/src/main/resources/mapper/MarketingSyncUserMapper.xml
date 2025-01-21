@@ -1108,4 +1108,14 @@
         where id = #{id, jdbcType=BIGINT}
     </update>
 
+    <select id="getCellLatestByCustNum" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cell,cust_num
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        and status=1
+        and is_repeat in (1,2)
+        order by applet_time desc
+        limit 1
+    </select>
+
 </mapper>

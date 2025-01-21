@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 
 public interface WubaCollidingDataFrontMapper extends WubaCollidingDataFrontMapperBase {
+    List<WubaCollidingDataFront> selectNoDupDataByLocalIdtikv_(@Param("localId") Long localId, @Param("apiCode") String apiCode,
+                                                               @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
     List<WubaCollidingDataFront> selectNoDupDataByCurDatetikv_(@Param("localId") Long localId, @Param("apiCode") String apiCode,
                                                                @Param("minId") Long minId, @Param("pageSize") Integer pageSize,
                                                                @Param("today") Date today, @Param("tomorrow") Date tomorrow,

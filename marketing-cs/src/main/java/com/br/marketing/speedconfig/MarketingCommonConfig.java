@@ -1972,8 +1972,8 @@ public class MarketingCommonConfig {
     private Integer wubaCollidingDataMaxCountLimit;
 
     /**
-     * 58提交周期撞库开关(true:开启，false关闭)
-     * {"T":true,"S":true}
+     * 58提交周期撞库与去重开关(T/S控制是否开启去重和撞库，eliminate控制去重。true:开启，false关闭)
+     * {"T":true,"S":true,"eliminate":true}
      */
     private HashMap<String, Boolean> wuBaCollidingDataSwitch;
 
@@ -2535,5 +2535,25 @@ public class MarketingCommonConfig {
      * mock 1 开启
      */
     private Map<String, Object> smyBlacklistConfig = new HashMap<>();
+
+    /**
+     * 携程false包补充量级预览优化开关
+     */
+    private Boolean xcFalsePackagePushPreviewOptFlag;
+
+    /**
+     * 携程false动态包剔除量级预览优化开关
+     */
+    private Boolean xcFalsePackageDynaPushPreviewOptFlag;
+
+    /**
+     * 携程true包推送决策量级预览优化开关
+     */
+    private Boolean xcTruePushCustomerPushPreviewOptFlag;
+
+    /**
+     * 携程规则中心false包操作优化线程数
+     */
+    private Integer xcFalsePackageOptSoleNum;
 }
 

@@ -44,7 +44,7 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
             wubaCollidingDataRobMapper.batchSaveData(wubaCollidingDataFronts, localFile.getApiCode());
             wubaCollidingDataFrontMapper.batchUpdatePushStatusByCell(wubaCollidingDataFronts, localFile.getId(), localFile.getApiCode());
         } catch (Exception e) {
-            String subject = "58同步撞库数据作业，子线程处理异常！";
+            String subject = "58同步撞库数据作业，数据入库，子线程处理异常！";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
                     , subject), e);
         }

@@ -14,4 +14,5 @@ public interface WubaCollidingDataSecondLoopCycleMapper extends WubaCollidingDat
     void batchUpdatePushTimeById(@Param("datas") List<WubaCollidingData> data);
     void batchSaveData(@Param("list") List<String> list, @Param("apiCode") String apiCode, @Param("dataSourceType") String dataSourceType);
     void batchDeleteByCell(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);
+    List<String> selectDuplicateData(@Param("list") List<String> list, @Param("apiCode") String apiCode);
 }
