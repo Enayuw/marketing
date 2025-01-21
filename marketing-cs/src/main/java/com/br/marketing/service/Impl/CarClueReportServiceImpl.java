@@ -14,7 +14,6 @@ import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -69,8 +68,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("callBackTimeEnd", request.getCallBackTimeEnd());
 
         PageHelper.startPage(current, size);
-        List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
-        list.forEach((CarClueInfoVo carClueInfoVo) -> {
+        List<CarClueInfo> list = carClueInfoMapper.selectList(params);
+        list.forEach((CarClueInfo carClueInfoVo) -> {
             String encryptCell = encryptCell(carClueInfoVo.getCell());
             carClueInfoVo.setCell(encryptCell);
         });

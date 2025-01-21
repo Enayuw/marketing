@@ -31,6 +31,8 @@ public class CarClueInfoVo {
     private String clueId;
     @ApiModelProperty(value = "线索状态")
     private int clueDataStatus;
+    @ApiModelProperty(value = "线索补全状态")
+    private int clueCompleteStatus;
     @ApiModelProperty(value = "外呼意向")
     private String intention;
     @ApiModelProperty(value = "品牌")
@@ -55,7 +57,7 @@ public class CarClueInfoVo {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date pushTime;
     @ApiModelProperty(value = "入库状态")
-    private String status;
+    private String clueCallbackPushState;
     @ApiModelProperty("回调时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date callBackTime;
