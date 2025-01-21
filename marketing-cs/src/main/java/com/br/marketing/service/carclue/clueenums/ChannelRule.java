@@ -19,7 +19,8 @@ public class ChannelRule {
     public enum FilterChannelRuleEnum {
         YC_KA_FILTER("yc-ka-filter"),
         YC_MEMBER_FILTER("yc-member-filter"),
-        ZJ_FILTER("zj-filter");
+        ZJ_FILTER("zj-filter"),
+        BLACK_LIST_FILTER("black_list_filter");
         private String label;
     }
 

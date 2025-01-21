@@ -3,6 +3,7 @@ package com.br.marketing.service.carclue.filter;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.service.carclue.clueenums.ChannelRule;
 import com.br.marketing.service.carclue.common.MatchPatternCommon;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,6 @@ public class BlackListClueFilter extends AbstractClueChannelFilter {
 
     @Override
     public String label() {
-        return "Black_List_Filter";
+        return ChannelRule.FilterChannelRuleEnum.BLACK_LIST_FILTER.getLabel();
     }
 }

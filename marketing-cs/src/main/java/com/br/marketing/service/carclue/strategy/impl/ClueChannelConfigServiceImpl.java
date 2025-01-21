@@ -133,7 +133,7 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
     public AbstractClueChannelMatch getChannelMatchImpl(String apiCodeChannel) {
         List<CarChannelConfig> configs = getChannelConfig();
         Optional<String> pushOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
-                .map(t -> t.getStrategyPush()).findFirst();
+                .map(t -> t.getStrategyMatch()).findFirst();
         return pushOpt.isPresent() ? clueChannelMatchMapByLabel.get(pushOpt.get()) : null;
     }
 

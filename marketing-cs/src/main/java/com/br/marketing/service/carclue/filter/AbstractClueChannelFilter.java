@@ -28,7 +28,7 @@ public abstract class AbstractClueChannelFilter {
             //updateClueStatus(carClueInfo.getId());
             carClueInfo.setClueDataStatus(CarClueDataStatusEnum.INVALID_CLUE.getValue());
             StringBuilder sb = new StringBuilder();
-            sb.append("【").append(label()).append("】");
+            sb.append("[").append(label()).append("]");
             carClueInfo.setClueErrorReason(sb.toString());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }

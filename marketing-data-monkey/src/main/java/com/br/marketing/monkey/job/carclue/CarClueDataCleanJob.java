@@ -51,14 +51,12 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
     private CarClueRelationalMappingMapper carClueRelationalMappingMapper;
 
 
-    @Autowired
-    private ClueChannelConfigService clueChannelConfigService;
 
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
-        String apiCode = "3710012";
+        String apiCode = "7410733";
         CarClueInfoExample carClueInfoExample = new CarClueInfoExample();
         carClueInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andClueDataStatusEqualTo(CarClueDataStatusEnum.READY.getValue())
                 .andCreateTimeGreaterThan(Date.from(LocalDate.now().minusDays(1).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
@@ -76,10 +74,10 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         provincesInformationExample.createCriteria().andAppletDateEqualTo(proviceCleanDate);
         List<CarClueProvincesInformation> carClueProvincesInfoList = carClueProvincesInformationMapper.selectByExample(provincesInformationExample);
         CarClueSeriesInformationExample seriesInformationExample = new CarClueSeriesInformationExample();
-        seriesInformationExample.createCriteria().andAppletDateEqualTo(proviceCleanDate);
+        seriesInformationExample.createCriteria().andAppletDateEqualTo(seriesCleanDate);
         List<CarClueSeriesInformation> carClueSeriesInfoList = carClueSeriesInformationMapper.selectByExample(seriesInformationExample);
         CarClueRelationalMappingExample carClueRelationalMappingExample = new CarClueRelationalMappingExample();
-        carClueRelationalMappingExample.createCriteria().andAppletDateEqualTo(proviceCleanDate);
+        carClueRelationalMappingExample.createCriteria().andAppletDateEqualTo(relationCleanDate).andMatchingTypeEqualTo(0);
         List<CarClueRelationalMapping> carClueRelationalMappingList = carClueRelationalMappingMapper.selectByExample(carClueRelationalMappingExample);
         if (CollectionUtils.isEmpty(carClueProvincesInfoList) || CollectionUtils.isEmpty(carClueSeriesInfoList) ||
                 CollectionUtils.isEmpty(carClueRelationalMappingList)) {
@@ -93,6 +91,8 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         channelConfigList.sort(Comparator.comparingInt(t -> t.getOrder()));
         carClueInfoList.forEach(carClueInfo -> {
             try {
+                //清除错误信息
+                carClueInfo.setClueErrorReason("");
                 carClueService.carClueCleanHandler(carClueInfo, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList,
                         channelConfigList);
             } catch (Exception e) {
