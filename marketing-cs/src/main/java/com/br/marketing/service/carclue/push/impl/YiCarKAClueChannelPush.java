@@ -72,13 +72,15 @@ public class YiCarKAClueChannelPush extends AbstractClueChannelPush {
                 clueInfo.setCluePushErrorReason(clueRes.getMessage());
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
                         , "车线索-易车KA，推送线索异常,result= " + clueRes.getMessage()));
+                carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
+                return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode()
                     , "车线索-易车KA，推送线索异常,线索id= " + carClueInfo.getClueId()));
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
+            return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
 

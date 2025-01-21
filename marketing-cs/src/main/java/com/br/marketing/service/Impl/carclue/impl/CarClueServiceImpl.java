@@ -32,28 +32,6 @@ public class CarClueServiceImpl implements CarClueService {
     @Autowired
     private CarClueInfoMapper carClueInfoMapper;
 
-
-/*    @Override
-    public void carClueCleanHandler(CarClueInfo carClueInfo, Object brandCitycConfig, List<CarChannelConfig> channelConfigList) {
-
-        for (CarChannelConfig config : channelConfigList) {
-            List<AbstractClueChannelFilter> channelFilterList = clueChannelConfigService.getChannelFilter(config.getApiCode());
-            //命中过滤规则，进入下次循环
-            if (isFilterHandler(carClueInfo, config.getApiCode(), channelFilterList)) {
-                continue;
-            }
-            //线索匹配实现
-            AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(config.getApiCode());
-            Result matchResult = channelMatch.action(carClueInfo);
-            if (matchResult.isSuccess()) {
-                break;
-            }
-        }
-        //更新线索状态
-        carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
-
-    }*/
-
     @Override
     public void pushCarClueHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelPush channelPushImpl) {
         for (CarClueInfo carClueInfo : carClueInfoList) {
