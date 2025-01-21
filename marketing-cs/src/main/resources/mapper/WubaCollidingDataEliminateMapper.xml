@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaCollidingDataEliminateMapper">
+    <select id="selectDuplicateData" resultType="java.lang.String">
+        select cell
+        from b_wuba_colliding_data_eliminate
+        where is_deleted = 0
+        and cell in
+        <foreach collection="list" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </select>
+
+    <insert id="batchSaveDataByBatchNoAndPushTime">
+        INSERT INTO b_wuba_colliding_data_eliminate (cell, biz_type, api_code, batch_id, push_time)
+        VALUES
+        <foreach collection="list" item="cell" separator=",">
+            (#{cell}, 1, #{apiCode}, #{batchId}, now())
+        </foreach>
+    </insert>
+</mapper>
