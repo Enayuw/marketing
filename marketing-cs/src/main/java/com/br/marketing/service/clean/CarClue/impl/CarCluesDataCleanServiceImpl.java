@@ -101,55 +101,61 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                     List<Long> failRecordIds = Lists.newArrayList();
 
                     for (CallRecord callRecord : callRecords) {
-                        String userProperties = callRecord.getUserProperties();
-                        JSONObject jsonObject = JSON.parseObject(userProperties);
-                        String phone = getPhoneFromJsonObject(jsonObject, "phone");
-                        String carBrand = getPhoneFromJsonObject(jsonObject, "carBrand");
-                        String carSeries = getPhoneFromJsonObject(jsonObject, "carSeries");
-                        String province = getPhoneFromJsonObject(jsonObject, "province");
-                        String city = getPhoneFromJsonObject(jsonObject, "city");
-                        String member = getPhoneFromJsonObject(jsonObject, "firstName");
-                        String intentionGrade = callRecord.getIntentionGrade();
-                        if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
-                            CarClueInfo carClueInfo = new CarClueInfo();
-                            carClueInfo.setCid(cid);
-                            carClueInfo.setApiCode(apiCode);
-                            carClueInfo.setCustNum(callRecord.getCaseNum());
-                            carClueInfo.setCell(callRecord.getCaseNum());
-                            carClueInfo.setIntention(intentionGrade);
-                            carClueInfo.setRecordingPath(callRecord.getRecordingPath());
-                            carClueInfo.setBrand(carBrand);
-                            carClueInfo.setSeries(carSeries);
-                            carClueInfo.setCell(phone);
-                            carClueInfo.setProvince(province);
-                            carClueInfo.setCity(city);
-                            carClueInfo.setMember(member);
-                            carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
-                            carClueInfo.setCreateTime(new Date());
-                            carClueInfo.setUpdateTime(new Date());
-                            carClueInfos.add(carClueInfo);
-                        }
-                        if (ObjectUtil.isEmpty(jsonObject) || ObjectUtil.isEmpty(phone)) {
+                        try {
+                            String userProperties = callRecord.getUserProperties();
+                            JSONObject jsonObject = JSON.parseObject(userProperties);
+                            String phone = getPhoneFromJsonObject(jsonObject, "phone");
+                            String carBrand = getPhoneFromJsonObject(jsonObject, "carBrand");
+                            String carSeries = getPhoneFromJsonObject(jsonObject, "carSeries");
+                            String province = getPhoneFromJsonObject(jsonObject, "province");
+                            String city = getPhoneFromJsonObject(jsonObject, "city");
+                            String member = getPhoneFromJsonObject(jsonObject, "firstName");
+                            String intentionGrade = callRecord.getIntentionGrade();
+                            if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
+                                CarClueInfo carClueInfo = new CarClueInfo();
+                                carClueInfo.setCid(cid);
+                                carClueInfo.setApiCode(apiCode);
+                                carClueInfo.setCustNum(callRecord.getCaseNum());
+                                carClueInfo.setCell(callRecord.getCaseNum());
+                                carClueInfo.setIntention(intentionGrade);
+                                carClueInfo.setRecordingPath(callRecord.getRecordingPath());
+                                carClueInfo.setBrand(carBrand);
+                                carClueInfo.setSeries(carSeries);
+                                carClueInfo.setCell(phone);
+                                carClueInfo.setProvince(province);
+                                carClueInfo.setCity(city);
+                                carClueInfo.setMember(member);
+                                carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
+                                carClueInfo.setCreateTime(new Date());
+                                carClueInfo.setUpdateTime(new Date());
+                                carClueInfos.add(carClueInfo);
+                            }
+                            if (ObjectUtil.isEmpty(jsonObject) || ObjectUtil.isEmpty(phone)) {
+                                failRecordIds.add(callRecord.getId());
+                                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                                        "车线索数据入库异常：通话明细用户信息或手机号为空！"));
+                                continue;
+                            }
+                            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+                            marketingPreUserDetailDTO.setCell(phone);
+                            marketingPreUserDetailDTO.setCustNum(callRecord.getCaseNum());
+                            JSONObject reserveField1 = new JSONObject();
+                            reserveField1.put("userType", "新车");
+                            reserveField1.put("recordingPath", callRecord.getRecordingPath());
+                            reserveField1.put("intentionGrade", intentionGrade);
+                            reserveField1.put("brand", carBrand);
+                            reserveField1.put("series", carSeries);
+                            reserveField1.put("province", province);
+                            reserveField1.put("city", city);
+                            reserveField1.put("member", member);
+                            marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
+                            dataItems.add(marketingPreUserDetailDTO);
+                            successRecordIds.add(callRecord.getId());
+                        } catch (Exception e) {
                             failRecordIds.add(callRecord.getId());
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                                    "车线索数据入库异常：通话明细用户信息或手机号为空！"));
-                            continue;
+                                    "车线索数据入库异常！异常信息：" + e.getMessage()), e);
                         }
-                        MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-                        marketingPreUserDetailDTO.setCell(phone);
-                        marketingPreUserDetailDTO.setCustNum(callRecord.getCaseNum());
-                        JSONObject reserveField1 = new JSONObject();
-                        reserveField1.put("userType", "新车");
-                        reserveField1.put("recordingPath", callRecord.getRecordingPath());
-                        reserveField1.put("intentionGrade", intentionGrade);
-                        reserveField1.put("brand", carBrand);
-                        reserveField1.put("series", carSeries);
-                        reserveField1.put("province", province);
-                        reserveField1.put("city", city);
-                        reserveField1.put("member", member);
-                        marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
-                        dataItems.add(marketingPreUserDetailDTO);
-                        successRecordIds.add(callRecord.getId());
                     }
                     userDTO.setDataItems(dataItems);
                     UploadDataDTO uploadDataDTO = new UploadDataDTO();

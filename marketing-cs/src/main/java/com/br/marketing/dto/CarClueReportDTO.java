@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 
 @Data
@@ -22,7 +23,7 @@ public class CarClueReportDTO {
     @ApiModelProperty(value = "外呼意向")
     private String intention;
     @ApiModelProperty(value = "线索状态")
-    private Integer clueDataStatus;
+    private List<Integer> clueDataStatus;
     @ApiModelProperty(value = "修改开始时间")
     private String updateTimeStart;
     @ApiModelProperty(value = "修改结束时间")

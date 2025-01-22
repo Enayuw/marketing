@@ -47,7 +47,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("createTimeStart", request.getCreateTimeStart());
         params.put("createTimeEnd", request.getCreateTimeEnd());
         params.put("intention", request.getIntention());
-        params.put("clueDataStatus", request.getClueDataStatus());
+        params.put("clueDataStatusList", request.getClueDataStatus());
         params.put("updateTimeStart", request.getUpdateTimeStart());
         params.put("updateTimeEnd", request.getUpdateTimeEnd());
         if (ObjectUtil.isNotEmpty(request.getCluePushChannel())) {

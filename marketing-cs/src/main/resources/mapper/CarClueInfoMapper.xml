@@ -35,8 +35,11 @@
             <if test="intention != null and intention != ''">
                 and bcci.intention = #{intention}
             </if>
-            <if test="clueDataStatus != null and clueDataStatus != ''">
-                and bcci.clue_data_status = #{clueDataStatus}
+            <if test="clueDataStatusList != null and !clueDataStatusList.isEmpty()">
+                AND bcci.clue_data_status IN
+                <foreach collection="clueDataStatusList" item="clueDataStatus" open="(" separator="," close=")">
+                    #{clueDataStatus}
+                </foreach>
             </if>
             <if test="updateTimeStart != null and updateTimeStart != ''">
                 <![CDATA[ and bcci.update_time >= #{updateTimeStart} ]]>
