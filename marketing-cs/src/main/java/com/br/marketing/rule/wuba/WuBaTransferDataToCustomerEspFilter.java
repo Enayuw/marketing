@@ -4,11 +4,15 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.WuBaRuleCollectDataImpl;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -16,6 +20,9 @@ import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author peng.kang
@@ -34,6 +41,14 @@ public class WuBaTransferDataToCustomerEspFilter implements AssembleData<Convers
         conversionData.setCaseNum(marketingTransferSyncUser.getCustNum());
         conversionData.setPartnerProcessDate(DateUtils.format(marketingTransferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         conversionData.setInversionStatus("2");
+
+        WuBaRuleCollectDataImpl.WuBaRuleNecessaryData ruleNecessaryData =
+                (WuBaRuleCollectDataImpl.WuBaRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getSyncUserValidityPeriodMap();
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get(marketingTransferSyncUser.getCustNum());
+        List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
+
         conversionData.setExpireDate(DateUtil.today() + " 23:59:59");
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(marketingTransferSyncUser, vo);
