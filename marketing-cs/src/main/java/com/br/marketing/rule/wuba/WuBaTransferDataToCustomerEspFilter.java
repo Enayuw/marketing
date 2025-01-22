@@ -45,26 +45,17 @@ public class WuBaTransferDataToCustomerEspFilter implements AssembleData<Convers
         conversionData.setCaseNum(marketingTransferSyncUser.getCustNum());
         conversionData.setPartnerProcessDate(DateUtils.format(marketingTransferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         conversionData.setInversionStatus("2");
-
-        WuBaRuleCollectDataImpl.WuBaRuleNecessaryData ruleNecessaryData =
-                (WuBaRuleCollectDataImpl.WuBaRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getSyncUserValidityPeriodMap();
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get(marketingTransferSyncUser.getCustNum());
-        List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         String phone = "";
-        if (CollectionUtils.isEmpty(syncUsers)) {
-            try {
-                phone = RpcClientProxy.decode(marketingTransferSyncUser.getCustNum(), "cell", "md5", "");
-            } catch (Exception e) {
-                String title = "58新客转化推送客服custNum解密失败!";
-                String msg = marketingTransferSyncUser.getCustNum();
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
-                        , title));
-                return null;
-            }
-        }else {
-            phone = BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell());
+        try {
+            phone = RpcClientProxy.decode(marketingTransferSyncUser.getCustNum(), "cell", "md5", "");
+        } catch (Exception e) {
+            String title = "58新客转化推送客服custNum解密失败!";
+            String msg = marketingTransferSyncUser.getCustNum();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
+            return null;
         }
+
         conversionData.setPhone(phone);
         conversionData.setExpireDate(DateUtil.today() + " 23:59:59");
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
@@ -99,6 +90,6 @@ public class WuBaTransferDataToCustomerEspFilter implements AssembleData<Convers
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.WUBA_TRANSFER_FILTER_COLLECTION.getCode();
+        return null;
     }
 }
