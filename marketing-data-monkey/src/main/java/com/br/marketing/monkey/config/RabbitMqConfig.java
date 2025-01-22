@@ -1,60 +1,19 @@
 package com.br.marketing.monkey.config;
 
-
 import com.br.marketing.common.enums.ClusterEnum;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
-import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * //				    _ooOoo_
- * //				   o8888888o
- * //				   88" . "88
- * //				   (| -_- |)
- * //				   O\  =  /O
- * //			    ____/`---'\____
- * //			  .'  \\|     |//  `.
- * //		     /  \\|||  :  |||//  \
- * //		    /  _|||||--:--|||||_  \
- * //		    | / | \\\  -  /// | \ |
- * //		    | \_|  ''\-:-/''  |_/ |
- * //		    \  .-\__  `-`  ___/-. /
- * //		  ___`...'  /--.--\  '...`___
- * //	   ."" '< `.___\_<|>_/___.'  >' "".
- * //	   | | : `- \`.;`\ _ /`;.`/ -` : | |
- * //	    \ \ `-.  \_ __\ /__ _/  .-` / /
- * // ======`-.____`-.____\____/.-`____.-`======
- * //				    `=---='
- * //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- * //			  Buddha Bless, No Bug !
- *
- * @Author xiaoxin.pang
- * @Date 2020/9/11 17:09
- * @Description:
- **/
 @Configuration
-@Slf4j
 public class RabbitMqConfig {
     public static final int MQ_LISTENER = 1;
 
@@ -125,5 +84,4 @@ public class RabbitMqConfig {
         configurer.configure(factory, connectionFactory);
         return factory;
     }
-
 }
