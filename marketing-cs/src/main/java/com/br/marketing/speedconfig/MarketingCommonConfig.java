@@ -2560,5 +2560,10 @@ public class MarketingCommonConfig {
      */
     private Boolean uploadFileSftp;
 
+    /**
+     * 运营的客户类型集合
+     */
+    private List<String> opeApiTypes;
+
 }
 
