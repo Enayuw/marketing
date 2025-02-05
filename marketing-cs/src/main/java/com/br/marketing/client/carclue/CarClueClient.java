@@ -120,7 +120,8 @@ public class CarClueClient {
         Integer code = (Integer) mock.get("code");
         if(ResultCode.SUCCESS.getValue().equals(code)){
             Random random = new Random();
-            result.setDate(String.valueOf(random.nextInt(5)));
+            int number = 10000 + random.nextInt(10000); // 生成一个5位数
+            result.setDate(String.valueOf(number));
             result.setCode(ResultCode.SUCCESS.getValue());
             result.setMessage("请求成功");
             return result;
