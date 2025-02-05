@@ -37,7 +37,7 @@ public class CarClueReportDTO {
     @ApiModelProperty(value = "推送结束时间")
     private String pushTimeEnd;
     @ApiModelProperty(value = "数据入库状态")
-    private Integer status;
+    private Integer clueCallbackFinalState;
     @ApiModelProperty(value = "回调开始时间")
     private String callBackTimeStart;
     @ApiModelProperty(value = "回调结束时间")

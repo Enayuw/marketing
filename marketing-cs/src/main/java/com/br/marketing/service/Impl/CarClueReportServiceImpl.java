@@ -63,7 +63,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("cluePushStatus", request.getCluePushStatus());
         params.put("pushTimeStart", request.getPushTimeStart());
         params.put("pushTimeEnd", request.getPushTimeEnd());
-        params.put("status", request.getStatus());
+        params.put("status", request.getClueCallbackFinalState());
         params.put("callBackTimeStart", request.getCallBackTimeStart());
         params.put("callBackTimeEnd", request.getCallBackTimeEnd());
         params.put("search", request.getSearch());
