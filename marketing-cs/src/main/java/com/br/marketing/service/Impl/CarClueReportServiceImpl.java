@@ -73,6 +73,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         list.forEach((CarClueInfoVo carClueInfoVo) -> {
             String encryptCell = encryptCell(carClueInfoVo.getCell());
             carClueInfoVo.setCell(encryptCell);
+            String cluePushChannel = getCluePushChannel(carClueInfoVo.getCluePushChannel());
+            carClueInfoVo.setCluePushChannel(cluePushChannel);
         });
 
         return PageResultReturn.setPageResult(list, current, size);
@@ -126,8 +128,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
     public List<String>  getValueByKey(String key) {
         try {
-            Map<String, Map<String, List>> carClueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
-            Map<String, List> channel = carClueApiCodeMapping.get("channel");
+            Map<String, Object> carClueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
+            Map<String, List> channel = (Map<String, List>) carClueApiCodeMapping.get("channel");
             if (ObjectUtil.isEmpty(channel)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                         "渠道不存在！"));
@@ -141,5 +143,16 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         }
     }
 
+    public String getCluePushChannel(String apiCode) {
+        Map<String, Object> configMap = marketingCommonConfig.getCarClueApiCodeMapping();
+
+        if (configMap == null || !configMap.containsKey("apiCodeAndCarClue")) {
+            return null;
+        }
+
+        Map<String, String> apiCodeAndCarClue = (Map<String, String>) configMap.get("apiCodeAndCarClue");
+
+        return apiCodeAndCarClue.getOrDefault(apiCode, null);
+    }
 
 }
