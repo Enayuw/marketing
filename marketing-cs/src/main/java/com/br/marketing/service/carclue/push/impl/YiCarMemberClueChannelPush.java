@@ -50,6 +50,7 @@ public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
             CarClueInfo clueInfo = new CarClueInfo();
             clueInfo.setId(carClueInfo.getId());
             clueInfo.setUpdateTime(new Date());
+            clueInfo.setPushTime(new Date());
             HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
             hxClueCommitDTO.setPhone(carClueInfo.getCell());
             hxClueCommitDTO.setMember(carClueInfo.getMember());
