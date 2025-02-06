@@ -95,12 +95,12 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
 
     @Override
-    public ApiResult<Boolean> editCarClues(List<CarClueInfoVo> voList) {
+    public ApiResult<Boolean> editCarClues(List<CarClueInfo> voList) {
         if (voList == null || voList.isEmpty()) {
             return new ApiResult<Boolean>().fail(false, "更新列表不能为空");
         }
         List<Integer> list = Arrays.asList(CarClueDataStatusEnum.ABNORMAL_CLUE.getValue(), CarClueDataStatusEnum.LACK_CLUE.getValue());
-        for (CarClueInfoVo vo : voList) {
+        for (CarClueInfo vo : voList) {
             CarClueInfo clueInfo = new CarClueInfo();
             try {
                 clueInfo.setId(vo.getId());

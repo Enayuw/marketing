@@ -6,6 +6,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.CarClueReportService;
 import com.br.marketing.vo.CarClueInfoVo;
@@ -53,7 +54,7 @@ public class CarClueReportController {
 
     @ApiOperation(value = "批量编辑车线索信息", notes = "批量编辑车线索信息")
     @PostMapping("/editCarClues")
-    public ApiResult<Boolean> editCarClues(@RequestBody @Validated List<CarClueInfoVo> voList) {
+    public ApiResult<Boolean> editCarClues(@RequestBody @Validated List<CarClueInfo> voList) {
         try {
             return carClueReportService.editCarClues(voList);
         } catch (Exception ex) {

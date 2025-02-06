@@ -3,6 +3,7 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.vo.CarClueInfoVo;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public interface CarClueReportService {
      * @param voList
      * @return
      */
-    ApiResult<Boolean> editCarClues(List<CarClueInfoVo> voList);
+    ApiResult<Boolean> editCarClues(List<CarClueInfo> voList);
 
 
 }

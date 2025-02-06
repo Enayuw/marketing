@@ -56,7 +56,7 @@
                     #{channel}
                 </foreach>
             </if>
-            <if test="cluePushStatus != null and cluePushStatus != ''">
+            <if test="cluePushStatus != null">
                 and bcci.clue_push_status = #{cluePushStatus}
             </if>
             <if test="pushTimeStart != null and pushTimeStart != ''">
