@@ -42,4 +42,9 @@ public class CarClueReportDTO {
     private String callBackTimeStart;
     @ApiModelProperty(value = "回调结束时间")
     private String callBackTimeEnd;
+    @ApiModelProperty(value = "排序字段")
+    private String orderByField;
+    @ApiModelProperty(value = "排序方式（ASC / DESC）")
+    private String orderByType;
+
 }

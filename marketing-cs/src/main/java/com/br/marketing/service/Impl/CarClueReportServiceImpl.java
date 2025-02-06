@@ -70,6 +70,13 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("callBackTimeEnd", request.getCallBackTimeEnd());
         params.put("search", request.getSearch());
 
+        List<String> allowedFields = Arrays.asList("create_time", "update_time", "push_time", "call_back_time");
+        String orderByField = allowedFields.contains(request.getOrderByField()) ? request.getOrderByField() : "create_time";
+        String orderByType = "DESC".equalsIgnoreCase(request.getOrderByType()) ? "DESC" : "ASC";
+
+        params.put("orderByField", orderByField);
+        params.put("orderByType", orderByType);
+
         PageHelper.startPage(current, size);
         List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
         list.forEach((CarClueInfoVo carClueInfoVo) -> {

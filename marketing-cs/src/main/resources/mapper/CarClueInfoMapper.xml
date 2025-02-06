@@ -12,6 +12,14 @@
         bcci.clue_data_status as clueDataStatus,
         bcci.clue_complete_status as clueCompleteStatus,
         bcci.intention,
+        CASE
+        WHEN bcci.clue_data_status = 1 THEN bcci.clue_match_brand
+        ELSE bcci.brand
+        END AS brand,
+        CASE
+        WHEN bcci.clue_data_status = 1 THEN bcci.clue_match_series
+        ELSE bcci.series
+        END AS series,
         bcci.brand,
         bcci.series,
         bcci.city,
@@ -65,7 +73,7 @@
             <if test="pushTimeEnd != null and pushTimeEnd != ''">
                 <![CDATA[ and bcci.push_time < #{pushTimeEnd} ]]>
             </if>
-            <if test="status != null and status != ''">
+            <if test="status != null">
                 and bcci.clue_callback_final_state = #{status}
             </if>
             <if test="callBackTimeStart != null and callBackTimeStart != ''">
@@ -80,7 +88,7 @@
                 or bcci.city like concat("%", #{search},"%"))
             </if>
         </where>
-        order by bcci.create_time desc
+        order by ${orderByField} ${orderByType}
     </select>
 
     <select id="queryApiCodes" resultType="java.lang.String">
