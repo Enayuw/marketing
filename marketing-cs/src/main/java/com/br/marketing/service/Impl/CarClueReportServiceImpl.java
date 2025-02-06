@@ -71,8 +71,10 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         params.put("search", request.getSearch());
 
         List<String> allowedFields = Arrays.asList("create_time", "update_time", "push_time", "call_back_time");
-        String orderByField = allowedFields.contains(request.getOrderByField()) ? request.getOrderByField() : "create_time";
-        String orderByType = "DESC".equalsIgnoreCase(request.getOrderByType()) ? "DESC" : "ASC";
+        String orderByField = camelToSnake(request.getOrderByField());
+        if (!allowedFields.contains(orderByField)) {
+            orderByField = "create_time";
+        }String orderByType = "DESC".equalsIgnoreCase(request.getOrderByType()) ? "DESC" : "ASC";
 
         params.put("orderByField", orderByField);
         params.put("orderByType", orderByType);
@@ -163,6 +165,13 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         Map<String, String> apiCodeAndCarClue = (Map<String, String>) configMap.get("apiCodeAndCarClue");
 
         return apiCodeAndCarClue.getOrDefault(apiCode, null);
+    }
+
+    private String camelToSnake(String str) {
+        if (str == null) {
+            return null;
+        }
+        return str.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 
 }
