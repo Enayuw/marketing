@@ -15,6 +15,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -34,7 +35,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     @Resource
     CarClueInfoMapper carClueInfoMapper;
 
-
+    @Resource
+    EntityOptServiceImpl entityOptService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -116,6 +118,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                     continue;
                 }
                 clueInfo.setUpdateTime(new Date());
+                entityOptService.writeOptLog(vo.getId(), clueInfo, vo);
                 carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(
