@@ -74,7 +74,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         String orderByField = camelToSnake(request.getOrderByField());
         if (!allowedFields.contains(orderByField)) {
             orderByField = "create_time";
-        }String orderByType = "DESC".equalsIgnoreCase(request.getOrderByType()) ? "DESC" : "ASC";
+        }
+        String orderByType = "ASC".equalsIgnoreCase(request.getOrderByType()) ? "ASC" : "DESC";
 
         params.put("orderByField", orderByField);
         params.put("orderByType", orderByType);
