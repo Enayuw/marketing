@@ -100,25 +100,22 @@
         FROM b_call_record bcr
                  LEFT JOIN b_call_record_log bcrl
                            ON bcr.id = bcrl.record_id
-                               AND date (bcrl.create_time) = #{date}
-            AND bcrl.api_code = #{apiCode,jdbcType=VARCHAR}
         WHERE bcr.api_code = #{apiCode,jdbcType=VARCHAR}
-          and date (bcr.create_time) = #{date}
+          and bcr.create_time >= #{date}
           AND bcrl.record_id IS NULL;
     </select>
 
     <select id="cleanDataByMinId" resultType="com.br.marketing.entity.CallRecord">
-        SELECT bcr.* FROM b_call_record bcr
-        LEFT JOIN b_call_record_log bcrl
-        ON bcr.id = bcrl.record_id
-        and bcrl.api_code = #{apiCode,jdbcType=VARCHAR}
-        and DATE(bcrl.create_time) = #{date}
+        SELECT bcr.*
+        FROM b_call_record bcr
+            LEFT JOIN b_call_record_log bcrl
+                ON bcr.id = bcrl.record_id
         WHERE bcr.api_code = #{apiCode,jdbcType=VARCHAR}
-        AND DATE(bcr.create_time) = #{date}
+          AND bcr.create_time >= #{date}
         <if test="minId != null and minId > 0">
             and bcr.id > #{minId,jdbcType=BIGINT}
         </if>
-        AND bcrl.record_id IS NULL
+          AND bcrl.record_id IS NULL
         ORDER BY bcr.id
         LIMIT #{limit,jdbcType=INTEGER}
     </select>

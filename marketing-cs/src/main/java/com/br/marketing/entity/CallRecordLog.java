@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class CallRecordLog {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -14,7 +14,7 @@ public class CallRecordLog {
     private Long recordId;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -47,6 +47,11 @@ public class CallRecordLog {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 错误信息
+     */
+    private String errorMessage;
 
     public Long getId() {
         return id;
@@ -118,5 +123,13 @@ public class CallRecordLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage == null ? null : errorMessage.trim();
     }
 }
