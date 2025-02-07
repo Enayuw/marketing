@@ -14,6 +14,8 @@ import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.black.PushBlackListRequest;
+import com.br.marketing.client.dassservice.input.csos.DaasCsosDataAdapDTO;
+import com.br.marketing.client.dassservice.input.csos.DaasCsosDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
@@ -83,6 +85,9 @@ public class DassServiceClient {
 
     @Value("${api.dass.batchHermesUserData:00}")
     private String batchHermesUserData;
+
+    @Value("${api.dass.postWealthUserData:00}")
+    private String postCsosData;
 
     static String ibuBatchToDass = "IBTD";
 
@@ -506,5 +511,70 @@ public class DassServiceClient {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
 
+    }
+
+    /**
+     * 推送财富数据
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result postCsosData(DaasCsosDataAdapDTO daasCsosDataAdapDTO) {
+        Result result = new Result();
+        try {
+            List<DaasCsosDataDTO> daasCsosDataDTOList = daasCsosDataAdapDTO.getDaasCsosDataDTOList();
+            long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+            List sortList = new ArrayList();
+            sortList.add(String.valueOf(l));
+            daasCsosDataDTOList.forEach(t -> {
+                BeanMap beanMap = BeanMap.create(t);
+                for (Object k : beanMap.keySet()) {
+                    if (String.valueOf(k).equals("id")) {
+                        continue;
+                    }
+                    Object o = beanMap.get(k);
+                    if (String.valueOf(k).equals("phone")) {
+                        sortList.add(AESUtil.decrypt(String.valueOf(o), ascKey));
+                        continue;
+                    }
+                    if (o == null) {
+                        continue;
+                    } else if (o instanceof String) {
+                        if (StringUtils.isBlank(String.valueOf(o))) {
+                            continue;
+                        }
+                    } else if (o instanceof List) {
+                        List o1 = (List) o;
+                        if (CollectionUtils.isEmpty(o1)) {
+                            continue;
+                        }
+                    }
+                    sortList.add(String.valueOf(o));
+                }
+            });
+            Collections.sort(sortList);
+            String param = Joiner.on("").join(sortList);
+            String sign = DigestUtils.md5DigestAsHex(String.format(secretKey + "%s", param).getBytes());
+            HashMap requestParam = new HashMap();
+            requestParam.put("ts", l);
+            requestParam.put("sign", sign);
+            requestParam.put("data", daasCsosDataDTOList);
+            HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postCsosData,
+                    isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+            final String httpCode = hashMap.getOrDefault("httpcode", "5000");
+            if (httpCode.equals("200")) {
+                final String respStr = hashMap.getOrDefault("content", "");
+                log.warn("%%应答内容：[{}]", respStr);
+                if (StringUtils.isEmpty(respStr)) {
+                    result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                    return result;
+                }
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
+            } else {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
+            }
+            return result;
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "推送Daas财富接口异常"), ex);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+        }
     }
 }
