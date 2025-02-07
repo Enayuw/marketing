@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.carclue;
+package com.br.marketing.service.carclue;
 
 /**
  * @ClassName ChannelRelationalService

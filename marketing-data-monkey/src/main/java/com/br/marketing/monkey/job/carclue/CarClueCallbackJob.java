@@ -7,7 +7,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.entity.CarClueInfoExample;
 import com.br.marketing.mapper.CarClueInfoMapper;
-import com.br.marketing.service.Impl.carclue.CarClueService;
+import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
 import com.br.marketing.service.carclue.clueenums.CarClueCallBackStatusEnum;
 import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;

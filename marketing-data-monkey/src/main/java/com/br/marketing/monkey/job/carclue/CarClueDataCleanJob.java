@@ -5,13 +5,11 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
-import com.br.marketing.service.Impl.carclue.CarClueService;
+import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
-import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 

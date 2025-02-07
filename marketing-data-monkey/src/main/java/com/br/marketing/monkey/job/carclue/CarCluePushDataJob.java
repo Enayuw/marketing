@@ -6,7 +6,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;;
 import com.br.marketing.mapper.CarClueInfoMapper;
-import com.br.marketing.service.Impl.carclue.CarClueService;
+import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.clueenums.CarCluePushStatusEnum;
 import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
 import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;

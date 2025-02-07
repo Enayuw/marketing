@@ -1,6 +1,6 @@
 package com.br.marketing.monkey.job.carclue;
 
-import com.br.marketing.service.Impl.carclue.ChannelRelationalService;
+import com.br.marketing.service.carclue.ChannelRelationalService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;

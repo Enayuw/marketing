@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.carclue;
+package com.br.marketing.service.carclue;
 
 import com.br.marketing.entity.*;
 import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;

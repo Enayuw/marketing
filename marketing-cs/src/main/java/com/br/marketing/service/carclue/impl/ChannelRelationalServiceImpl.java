@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.carclue.impl;
+package com.br.marketing.service.carclue.impl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import com.br.marketing.mapper.CarClueProvincesInformationMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.CarClueSeriesInformationMapper;
 import com.br.marketing.service.Impl.CarClueReportServiceImpl;
-import com.br.marketing.service.Impl.carclue.ChannelRelationalService;
+import com.br.marketing.service.carclue.ChannelRelationalService;
 import com.br.marketing.service.carclue.clueenums.ChannelRule;
 import com.br.marketing.service.carclue.clueenums.ProvinceTypeEnum;
 import lombok.extern.slf4j.Slf4j;
