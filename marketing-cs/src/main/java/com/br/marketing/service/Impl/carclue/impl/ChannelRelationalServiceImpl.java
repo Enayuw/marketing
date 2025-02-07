@@ -19,7 +19,7 @@ import com.br.marketing.mapper.CarClueInitMappingMapper;
 import com.br.marketing.mapper.CarClueProvincesInformationMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.CarClueSeriesInformationMapper;
-import com.br.marketing.service.Impl.CarClueReportServiceImpl;
+import com.br.marketing.service.carclue.web.impl.CarClueReportServiceImpl;
 import com.br.marketing.service.Impl.carclue.ChannelRelationalService;
 import com.br.marketing.service.carclue.clueenums.ChannelRule;
 import com.br.marketing.service.carclue.clueenums.ProvinceTypeEnum;

@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl;
+package com.br.marketing.service.carclue.web.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
@@ -8,14 +8,14 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
-import com.br.marketing.service.*;
+import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.carclue.web.CarClueReportService;
 import com.br.marketing.service.carclue.clueenums.CarClueCompleteStatusEnum;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

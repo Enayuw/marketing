@@ -1,4 +1,4 @@
-package com.br.marketing.service.clean.CarClue.impl;
+package com.br.marketing.service.carclue.todb.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
@@ -20,7 +20,7 @@ import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
-import com.br.marketing.service.clean.CarClue.CarCluesDataToDBService;
+import com.br.marketing.service.carclue.todb.CarCluesDataToDBService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;

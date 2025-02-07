@@ -1,6 +1,6 @@
 package com.br.marketing.check.job.carclue;
 
-import com.br.marketing.service.clean.CarClue.CarCluesDataToDBService;
+import com.br.marketing.service.carclue.todb.CarCluesDataToDBService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
