@@ -187,7 +187,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
                         pushInfoService.pushUploadByRetry(uploadDataDTO, null);
                         carClueInfoMapper.batchInsert(carClueInfos);
-                            updateCallRecordLogStatus(successRecords, 2);
+                        updateCallRecordLogStatus(successRecords, 2);
                         updateCallRecordLogStatus(failRecords, 3);
                     } catch (Exception e) {
                         List<Long> recordIds = callRecords.stream().map(CallRecord::getId).collect(Collectors.toList());
