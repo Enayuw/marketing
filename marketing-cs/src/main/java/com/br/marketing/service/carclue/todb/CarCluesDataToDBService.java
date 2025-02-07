@@ -1,4 +1,4 @@
-package com.br.marketing.service.clean.CarClue;
+package com.br.marketing.service.carclue.todb;
 
 import java.util.List;
 

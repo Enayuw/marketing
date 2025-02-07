@@ -12,9 +12,9 @@ import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +37,8 @@ public class UserCenterHandler {
     MarketingCustomerMapper marketingCustomerMapper;
     @Resource
     RedisChgService redisChgService;
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
 
     public Result<Boolean> handleDataUserCenter(String mes) {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
@@ -46,8 +48,8 @@ public class UserCenterHandler {
         String apiCode = jsonObject.getString("apiCode");
         String operateType = jsonObject.getString("operateType");
         String apiType = jsonObject.getString("apiType");
-
-        if(!"智能运营".equals(apiType) && !"智能客服".equals(apiType)){
+        List<String> opeApiTypes = marketingCommonConfig.getOpeApiTypes();
+        if(!opeApiTypes.contains(apiType)){
             return result;
         }
 
@@ -71,7 +73,7 @@ public class UserCenterHandler {
             if ("智能运营".equals(apiType)) {
                 buildMerchant(apiCode,marketingCustomer);
             }else {
-                queryApiType(apiCode);
+                queryApiType(apiCode, apiType);
             }
             redisChgService.unlock(key, lockValue);
             log.warn(TITLE + "handleDataUserCenter释放锁成功, {}", apiCode);
@@ -85,21 +87,23 @@ public class UserCenterHandler {
 
     /**
      * 判断该apiCode是否已存在
+     *
      * @param apiCode
+     * @param apiType
      */
-    private void queryApiType(String apiCode) {
+    private void queryApiType(String apiCode, String apiType) {
         MarketingCustomer marketingCustomer = new MarketingCustomer();
         MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
         marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode);
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
         if (marketingCustomers.isEmpty()) {
-            marketingCustomer = buildCustomer(apiCode);
+            marketingCustomer = buildCustomer(apiCode, apiType);
             marketingCustomer.setCreateTime(new Date());
             marketingCustomerMapper.insertSelective(marketingCustomer);
         } else {
-            String apiType = marketingCustomers.get(0).getApiType();
-            if("智能客服".equals(apiType)){
-                marketingCustomer = buildCustomer(apiCode);
+            apiType = marketingCustomers.get(0).getApiType();
+            if(!"智能运营".equals(apiType)){
+                marketingCustomer = buildCustomer(apiCode, apiType);
                 marketingCustomer.setUpdateTime(new Date());
                 marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
             }
@@ -152,9 +156,11 @@ public class UserCenterHandler {
 
     /**
      * 构建智能客服参数
+     *
      * @param apiCode
+     * @param apiType
      */
-    private MarketingCustomer buildCustomer(String apiCode) {
+    private MarketingCustomer buildCustomer(String apiCode, String apiType) {
         MarketingCustomer marketingCustomer = new MarketingCustomer();
         String customerMsg = RpcClientProxy.getCustomerMsg(apiCode);
         String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
@@ -169,7 +175,7 @@ public class UserCenterHandler {
             marketingCustomer.setAccountType(customerJSONObj.getInteger("account_type"));
             marketingCustomer.setStatus(customerJSONObj.getByte("account_status"));
             marketingCustomer.setApiCode(apiCode);
-            marketingCustomer.setApiType("智能客服");
+            marketingCustomer.setApiType(apiType);
         }
         return marketingCustomer;
     }

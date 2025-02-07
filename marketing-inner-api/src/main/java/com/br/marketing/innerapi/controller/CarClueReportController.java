@@ -8,7 +8,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
-import com.br.marketing.service.CarClueReportService;
+import com.br.marketing.service.carclue.web.CarClueReportService;
 import com.br.marketing.vo.CarClueInfoVo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;

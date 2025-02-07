@@ -2596,5 +2596,10 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, Object> commitClueMock;
 
+    /**
+     * 运营的客户类型集合
+     */
+    private List<String> opeApiTypes;
+
 }
 
