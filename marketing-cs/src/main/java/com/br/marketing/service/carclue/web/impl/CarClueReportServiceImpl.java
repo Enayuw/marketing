@@ -2,6 +2,7 @@ package com.br.marketing.service.carclue.web.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -94,13 +95,21 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     }
 
     public String encryptCell(String cell) {
-        if (cell == null || cell.isEmpty()) {
-            return "";
+        try {
+            BrCipherMaker.getInstance().decode(cell);
+            if (cell == null || cell.isEmpty()) {
+                return "";
+            }
+            if (cell.length() < 7) {
+                return cell;
+            }
+            return cell.substring(0, 3) + "****" + cell.substring(7);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "线索数据收集号解密失败！cell: " + cell), e);
         }
-        if (cell.length() < 7) {
-            return cell;
-        }
-        return cell.substring(0, 3) + "****" + cell.substring(7);
+        return "";
     }
 
 

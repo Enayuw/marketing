@@ -11,6 +11,7 @@
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="error_message" property="errorMessage" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -71,8 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, record_id, api_code, case_num, intention_grade, inbound_status, applet_date, 
-    create_time, update_time
+    id, record_id, api_code, case_num, intention_grade, inbound_status, applet_date,
+    create_time, update_time, error_message
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CallRecordLogExample" >
     select
@@ -89,7 +90,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_call_record_log
     where id = #{id,jdbcType=BIGINT}
@@ -108,12 +109,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_call_record_log (record_id, api_code, case_num, 
-      intention_grade, inbound_status, applet_date, 
-      create_time, update_time)
-    values (#{recordId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{caseNum,jdbcType=VARCHAR}, 
-      #{intentionGrade,jdbcType=VARCHAR}, #{inboundStatus,jdbcType=INTEGER}, #{appletDate,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_call_record_log (record_id, api_code, case_num,
+    intention_grade, inbound_status, applet_date,
+    create_time, update_time, error_message
+    )
+    values (#{recordId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{caseNum,jdbcType=VARCHAR},
+    #{intentionGrade,jdbcType=VARCHAR}, #{inboundStatus,jdbcType=INTEGER}, #{appletDate,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{errorMessage,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CallRecordLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -145,6 +148,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="errorMessage != null" >
+        error_message,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="recordId != null" >
@@ -170,6 +176,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errorMessage != null" >
+        #{errorMessage,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -209,6 +218,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.errorMessage != null" >
+        error_message = #{record.errorMessage,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -217,14 +229,15 @@
   <update id="updateByExample" parameterType="map" >
     update b_call_record_log
     set id = #{record.id,jdbcType=BIGINT},
-      record_id = #{record.recordId,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      case_num = #{record.caseNum,jdbcType=VARCHAR},
-      intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
-      inbound_status = #{record.inboundStatus,jdbcType=INTEGER},
-      applet_date = #{record.appletDate,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    record_id = #{record.recordId,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    case_num = #{record.caseNum,jdbcType=VARCHAR},
+    intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
+    inbound_status = #{record.inboundStatus,jdbcType=INTEGER},
+    applet_date = #{record.appletDate,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    error_message = #{record.errorMessage,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -256,19 +269,23 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="errorMessage != null" >
+        error_message = #{errorMessage,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CallRecordLog" >
     update b_call_record_log
     set record_id = #{recordId,jdbcType=BIGINT},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      case_num = #{caseNum,jdbcType=VARCHAR},
-      intention_grade = #{intentionGrade,jdbcType=VARCHAR},
-      inbound_status = #{inboundStatus,jdbcType=INTEGER},
-      applet_date = #{appletDate,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        case_num = #{caseNum,jdbcType=VARCHAR},
+        intention_grade = #{intentionGrade,jdbcType=VARCHAR},
+        inbound_status = #{inboundStatus,jdbcType=INTEGER},
+        applet_date = #{appletDate,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        error_message = #{errorMessage,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
