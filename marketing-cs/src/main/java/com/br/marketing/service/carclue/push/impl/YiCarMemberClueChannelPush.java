@@ -3,6 +3,7 @@ package com.br.marketing.service.carclue.push.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.encryption.BrCipherMaker;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.carclue.CarClueClient;
 import com.br.marketing.client.carclue.dto.HxClueCommitDTO;
@@ -10,6 +11,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.carclue.clueenums.CarCluePushStatusEnum;
@@ -52,7 +54,9 @@ public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
             clueInfo.setUpdateTime(new Date());
             clueInfo.setPushTime(new Date());
             HxClueCommitDTO hxClueCommitDTO = new HxClueCommitDTO();
-            hxClueCommitDTO.setPhone(carClueInfo.getCell());
+            if(!StringUtils.isEmpty(carClueInfo.getCell())){
+                hxClueCommitDTO.setPhone(BrCipherMaker.getInstance().decode(carClueInfo.getCell()));
+            }
             hxClueCommitDTO.setMember(carClueInfo.getMember());
             hxClueCommitDTO.setProvince(carClueInfo.getClueMatchProvince());
             hxClueCommitDTO.setCity(carClueInfo.getClueMatchCity());
