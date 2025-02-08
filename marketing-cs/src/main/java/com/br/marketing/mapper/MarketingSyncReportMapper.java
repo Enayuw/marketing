@@ -101,5 +101,15 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
     Map<String, Long> selectGroupMaxMinId(@Param("apiCode")String apiCode, @Param("indexId")Long indexId,
                                                    @Param("groupNum")Integer groupNum,@Param("sqlCondition")String sqlCondition);
 
+    /**
+     * 统计上传记录关键信息：正常入库条数，去重后条数，上传开始时间，上传结束时间
+     * @param apiCode
+     * @param userType
+     * @param uploadDate
+     * @return
+     */
+    Map<String,Object> selectUploadMagnStatInfo(@Param("apiCode") String apiCode,
+                                                @Param("userType") String userType,
+                                                @Param("uploadDate") String uploadDate);
 
 }
