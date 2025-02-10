@@ -16,6 +16,7 @@ import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
+import org.springframework.beans.BeanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -123,6 +124,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         for (CarClueInfo vo : voList) {
             CarClueInfo clueInfo = new CarClueInfo();
             try {
+                CarClueInfo carClueInfo = carClueInfoMapper.selectByPrimaryKey(vo.getId());
                 clueInfo.setId(vo.getId());
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
@@ -138,7 +140,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                     continue;
                 }
                 clueInfo.setUpdateTime(new Date());
-                entityOptService.writeOptLog(vo.getId(), clueInfo, vo);
+                entityOptService.writeOptLog(vo.getId(), clueInfo, carClueInfo);
                 carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(
