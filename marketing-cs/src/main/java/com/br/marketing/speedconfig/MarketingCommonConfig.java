@@ -2565,5 +2565,13 @@ public class MarketingCommonConfig {
      */
     private List<String> opeApiTypes;
 
+    /**
+     * 规则中心推决策参数大小
+     * eg:{"general":500,"xiecheng":500}
+     * general：通用推决策
+     * xiecheng：携程推决策
+     */
+    private JSONObject toPolicyParamSize;
+
 }
 
