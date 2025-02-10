@@ -18,6 +18,7 @@ import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushInfoService;
+import com.br.marketing.service.carclue.clueenums.CarClueCompleteStatusEnum;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.service.carclue.todb.CarCluesDataToDBService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -118,7 +119,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     failRecords.add(callRecordLog);
                                     // 钉钉报警
                                     String content =
-                                            ("车线索入库异常 " + LocalDate.now() + "\n通话明细id    异常原因\n"
+                                            ("车线索入库异常 " + LocalDate.now() + "\n通话明细id      异常原因\n"
                                                     .concat(callRecordLog.getId().toString())
                                                     .concat("      " + ("通话明细用户信息或手机号为空!"))
                                                     .concat("\n"));
@@ -147,6 +148,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setCity(city);
                                     carClueInfo.setMember(member);
                                     carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
+                                    carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
                                     carClueInfo.setCreateTime(new Date());
                                     carClueInfo.setUpdateTime(new Date());
                                     carClueInfos.add(carClueInfo);
@@ -172,7 +174,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 failRecords.add(callRecordLog);
                                 // 钉钉报警
                                 String content =
-                                        ("车线索入库异常 " + LocalDate.now() + "\n通话明细id    异常原因\n"
+                                        ("车线索入库异常 " + LocalDate.now() + "\n通话明细id      异常原因\n"
                                                 .concat(callRecordLog.getId().toString())
                                                 .concat("      " + ("通话明细组装过程异常!"))
                                                 .concat("\n"));
