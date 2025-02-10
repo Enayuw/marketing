@@ -11,7 +11,7 @@ import lombok.Getter;
 @Getter
 public enum CarClueCompleteStatusEnum {
 
-    NORMAL_COMPLETE(0, "无需补全"),
+    NORMAL_COMPLETE(0, "未补全"),
     SYSTEM_COMPLETE(1, "系统补全"),
     AETIFICAL_LACK_COMPLETE(2, "缺失线索手动补全"),
     AETIFICAL_ABNORMAL_COMPLETE(3, "异常线索手动补全");

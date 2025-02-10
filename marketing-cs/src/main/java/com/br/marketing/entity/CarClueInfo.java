@@ -124,7 +124,7 @@ public class CarClueInfo {
     private Integer clueDataStatus;
 
     /**
-     * 线索补全状态：0-无需补全；1-系统补全；2-缺失线索手动补全；3-异常线索手动补全
+     * 线索补全状态：0-未补全；1-系统补全；2-缺失线索手动补全；3-异常线索手动补全
      */
     private Integer clueCompleteStatus;
 
