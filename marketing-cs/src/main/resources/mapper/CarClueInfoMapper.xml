@@ -20,9 +20,10 @@
         WHEN bcci.clue_data_status = 1 THEN bcci.clue_match_series
         ELSE bcci.series
         END AS series,
-        bcci.brand,
-        bcci.series,
-        bcci.city,
+        CASE
+        WHEN bcci.clue_data_status = 1 THEN bcci.clue_match_city
+        ELSE bcci.city
+        END AS city,
         bcci.cell,
         DATE_FORMAT(bcci.clean_time, '%Y-%m-%d %H:%i:%s') as cleanTime,
         DATE_FORMAT(bcci.update_time, '%Y-%m-%d %H:%i:%s') as updateTime,
@@ -85,7 +86,9 @@
             <if test="search !=null and search!=''">
                 and (bcci.brand like concat("%", #{search},"%")
                 or bcci.series like concat("%", #{search},"%")
-                or bcci.city like concat("%", #{search},"%"))
+                or bcci.city like concat("%", #{search},"%")
+                or bcci.clue_match_brand like concat("%", #{search},"%")
+                or bcci.clue_match_series like concat("%", #{search},"%"))
             </if>
         </where>
         order by ${orderByField} ${orderByType}
