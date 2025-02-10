@@ -32,7 +32,8 @@
         DATE_FORMAT(bcci.push_time, '%Y-%m-%d %H:%i:%s') as pushTime,
         DATE_FORMAT(bcci.call_back_time, '%Y-%m-%d %H:%i:%s') as callBackTime,
         bcci.clue_callback_final_state as clueCallbackFinalState,
-        bcci.recording_path as recordingPath
+        bcci.recording_path as recordingPath,
+        bcci.resource_type as resourceType
         from b_car_clue_info bcci
         <where>
             <if test="createTimeStart != null and createTimeStart != ''">
@@ -109,7 +110,7 @@
         match_brand_series_type, province, clue_match_province_id, clue_match_province,
         city, clue_match_city_id, clue_match_city, recording_path, clue_id,
         clue_push_channel, clue_data_status, clue_complete_status, clue_push_status,
-        clue_callback_status, clue_error_reason, clue_callback_result, extend_info,
+        clue_callback_status, clue_error_reason, clue_callback_result, resource_type, extend_info,
         create_time, clean_time, push_time, call_back_time
         )
         VALUES
@@ -142,6 +143,7 @@
             #{item.clueCallbackStatus, jdbcType=INTEGER},
             #{item.clueErrorReason, jdbcType=VARCHAR},
             #{item.clueCallbackResult, jdbcType=VARCHAR},
+            #{item.resourceType, jdbcType=VARCHAR},
             #{item.extendInfo, jdbcType=VARCHAR},
             #{item.createTime, jdbcType=TIMESTAMP},
             #{item.cleanTime, jdbcType=TIMESTAMP},

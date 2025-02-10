@@ -4,17 +4,17 @@ import java.util.Date;
 
 public class CarClueInfo {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String cid;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -162,6 +162,11 @@ public class CarClueInfo {
      * 回调结果
      */
     private Integer clueCallbackFinalState;
+
+    /**
+     * 资源标识
+     */
+    private String resourceType;
 
     /**
      * 扩展信息字段
@@ -447,6 +452,14 @@ public class CarClueInfo {
 
     public void setClueCallbackFinalState(Integer clueCallbackFinalState) {
         this.clueCallbackFinalState = clueCallbackFinalState;
+    }
+
+    public String getResourceType() {
+        return resourceType;
+    }
+
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType == null ? null : resourceType.trim();
     }
 
     public String getExtendInfo() {

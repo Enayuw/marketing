@@ -133,6 +133,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 String province = getPhoneFromJsonObject(jsonObject, "province");
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
                                 String member = getPhoneFromJsonObject(jsonObject, "firstName");
+                                String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
                                 String intentionGrade = callRecord.getIntentionGrade();
                                 if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
                                     CarClueInfo carClueInfo = new CarClueInfo();
@@ -147,6 +148,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setProvince(province);
                                     carClueInfo.setCity(city);
                                     carClueInfo.setMember(member);
+                                    carClueInfo.setResourceType(resourceType);
                                     carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                                     carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
                                     carClueInfo.setCreateTime(new Date());
@@ -166,6 +168,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 reserveField1.put("province", province);
                                 reserveField1.put("city", city);
                                 reserveField1.put("member", member);
+                                reserveField1.put("resourceType", resourceType);
                                 marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
                                 dataItems.add(marketingPreUserDetailDTO);
                                 successRecords.add(callRecordLog);

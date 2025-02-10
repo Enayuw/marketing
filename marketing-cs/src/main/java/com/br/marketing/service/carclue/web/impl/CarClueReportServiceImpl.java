@@ -97,7 +97,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
     public String encryptCell(String cell) {
         try {
-            BrCipherMaker.getInstance().decode(cell);
+            cell = BrCipherMaker.getInstance().decode(cell);
             if (cell == null || cell.isEmpty()) {
                 return "";
             }

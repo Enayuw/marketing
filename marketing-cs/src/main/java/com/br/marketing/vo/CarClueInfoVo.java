@@ -62,5 +62,7 @@ public class CarClueInfoVo {
     private Date callBackTime;
     @ApiModelProperty("录音地址")
     private String recordingPath;
+    @ApiModelProperty("资源标识")
+    private String resourceType;
 
 }
