@@ -88,7 +88,8 @@
                 or bcci.series like concat("%", #{search},"%")
                 or bcci.city like concat("%", #{search},"%")
                 or bcci.clue_match_brand like concat("%", #{search},"%")
-                or bcci.clue_match_series like concat("%", #{search},"%"))
+                or bcci.clue_match_series like concat("%", #{search},"%")
+                or bcci.clue_match_city like concat("%", #{search},"%"))
             </if>
         </where>
         order by ${orderByField} ${orderByType}
