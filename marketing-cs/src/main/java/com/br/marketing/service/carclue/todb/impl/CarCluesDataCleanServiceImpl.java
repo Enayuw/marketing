@@ -118,7 +118,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     failRecords.add(callRecordLog);
                                     // 钉钉报警
                                     String content =
-                                            ("车线索入库异常 " + LocalDate.now() + "\n通话明细id  异常原因\n"
+                                            ("车线索入库异常 " + LocalDate.now() + "\n通话明细id    异常原因\n"
                                                     .concat(callRecordLog.getId().toString())
                                                     .concat("      " + ("通话明细用户信息或手机号为空!"))
                                                     .concat("\n"));
@@ -172,7 +172,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 failRecords.add(callRecordLog);
                                 // 钉钉报警
                                 String content =
-                                        ("车线索入库异常 " + LocalDate.now() + "\n通话明细id  异常原因\n"
+                                        ("车线索入库异常 " + LocalDate.now() + "\n通话明细id    异常原因\n"
                                                 .concat(callRecordLog.getId().toString())
                                                 .concat("      " + ("通话明细组装过程异常!"))
                                                 .concat("\n"));
