@@ -2181,6 +2181,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         if (!StringUtils.isEmpty(res)) {
             return res;
         }
+        if(StringUtils.isNotBlank(name)){
+            return name;
+        }
         return "1";
     }
 
