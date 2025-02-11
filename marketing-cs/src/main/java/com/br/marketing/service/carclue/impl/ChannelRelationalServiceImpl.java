@@ -119,10 +119,10 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     list.clear();
                 }
             }
-            // 插入剩余的数据
-            if (!list.isEmpty()) {
-                carClueProvincesInformationMapper.batchInsert(list);
-            }
+        }
+        // 插入剩余的数据
+        if (!list.isEmpty()) {
+            carClueProvincesInformationMapper.batchInsert(list);
         }
     }
 
