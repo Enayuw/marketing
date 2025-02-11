@@ -14,6 +14,8 @@ import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
+import com.br.marketing.client.dassservice.input.csos.DaasCsosDataAdapDTO;
+import com.br.marketing.client.dassservice.input.csos.DaasCsosDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
@@ -72,27 +74,7 @@ import com.br.marketing.entity.XiechengSmsQuitData;
 import com.br.marketing.entity.XiechengSmsQuitDataExample;
 import com.br.marketing.entity.YiqianbaoData;
 import com.br.marketing.entity.YiqianbaoDataExample;
-import com.br.marketing.mapper.HaierCollidingDataLogMapper;
-import com.br.marketing.mapper.HaierCollidingDataMapper;
-import com.br.marketing.mapper.HaierDataMapper;
-import com.br.marketing.mapper.HaierReqMapper;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTransferInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.PhoneSaleExtendShuheMapper;
-import com.br.marketing.mapper.PhoneSaleIbuMapper;
-import com.br.marketing.mapper.PhoneSaleMapper;
-import com.br.marketing.mapper.PhoneSaleTransferMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
-import com.br.marketing.mapper.TwosevenFileMapper;
-import com.br.marketing.mapper.XieChengDataMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataVtMapper;
-import com.br.marketing.mapper.XiechengSmsQuitDataMapper;
-import com.br.marketing.mapper.YiqianbaoDataMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
@@ -274,6 +256,9 @@ public class PushDataServiceImpl implements PushDataService {
     private HaierCollidingDataMapper haierCollidingDataMapper;
     @Resource
     private HaierCollidingDataLogMapper haierCollidingDataLogMapper;
+
+    @Resource
+    private CsosPhoneSaleMapper csosPhoneSaleMapper;
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -1391,6 +1376,8 @@ public class PushDataServiceImpl implements PushDataService {
 
         xieChengSendAlarm(failNum, "携程短信撞库接口重试推送异常，请检查");
     }
+
+
     @Override
     public void  pushXieChengSmsCollidingToDbData(String data) {
         try {
@@ -2105,5 +2092,77 @@ public class PushDataServiceImpl implements PushDataService {
     private void modifyThreadPool(ThreadPoolExecutor threadPool, Integer poolSize){
         threadPool.setCorePoolSize(poolSize);
         threadPool.setMaximumPoolSize(poolSize);
+    }
+
+    @Override
+    public Result pushCsosDassData(Long id) {
+        Boolean actionMark = true;
+        Long minId = null;
+        String key = "dass:push:threadnum";
+        Integer threadNum = 5;
+        if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
+            threadNum = Integer.valueOf(redisChgService.get(key));
+        }
+        modifyThreadPool(pushDassThreadPool, threadNum);
+
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+        }
+
+        localFile.setPushStartTime(new Date());
+
+        Integer number = 0;
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        while (actionMark) {
+            List<DaasCsosDataDTO> phoneSales = csosPhoneSaleMapper.getPushCsosDassData(id, minId);
+            number += phoneSales.size();
+            if (phoneSales.size() > 0) {
+                DaasCsosDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
+                DaasCsosDataAdapDTO dto = new DaasCsosDataAdapDTO();
+                dto.setDaasCsosDataDTOList(phoneSales);
+                minId = phoneSale.getId();
+
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                    try {
+                        Result result = dassServiceClient.postCsosData(dto);
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            RetryMainLog mainLog = new RetryMainLog();
+                            mainLog.setRetryType(1);
+                            mainLog.setRetryParam(JSON.toJSONString(dto));
+                            mainLog.setRetryParamType(dto.getClass().getName());
+                            mainLog.setRetryService("dassServiceClient");
+                            mainLog.setRetryMethod("postCsosData");
+                            mainLog.setRetryNum(0);
+                            mainLog.setRetryMaxNum(3);
+                            mainLog.setRetryStatus(1);
+                            mainLog.setCreateTime(new Date());
+                            mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                            retryMainLogMapper.insertSelective(mainLog);
+                        }
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                "sftp文件推送Dass财富接口子线程异常，异常日志：" + e.getMessage()), e);
+                    }
+                }, pushDassThreadPool);
+                futures.add(future);
+            } else {
+                actionMark = false;
+            }
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(number);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
+                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("数量：".concat(number.toString()).concat("\r\n"))
+                    .append("文件推送dass(财富接口)结束".concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 }

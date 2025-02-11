@@ -12,7 +12,7 @@ public class LocalFileExample {
     protected List<Criteria> oredCriteria;
 
     public LocalFileExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class LocalFileExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -586,72 +586,72 @@ public class LocalFileExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(String value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(String value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(String value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(String value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(String value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(String value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLike(String value) {
-            addCriterion("status like", value, "status");
+            addCriterion("`status` like", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotLike(String value) {
-            addCriterion("status not like", value, "status");
+            addCriterion("`status` not like", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<String> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<String> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(String value1, String value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(String value1, String value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -1214,10 +1214,81 @@ public class LocalFileExample {
             addCriterion("push_status not between", value1, value2, "pushStatus");
             return (Criteria) this;
         }
+
+        public Criteria andErrorMessageIsNull() {
+            addCriterion("error_message is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageIsNotNull() {
+            addCriterion("error_message is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageEqualTo(String value) {
+            addCriterion("error_message =", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageNotEqualTo(String value) {
+            addCriterion("error_message <>", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageGreaterThan(String value) {
+            addCriterion("error_message >", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageGreaterThanOrEqualTo(String value) {
+            addCriterion("error_message >=", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageLessThan(String value) {
+            addCriterion("error_message <", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageLessThanOrEqualTo(String value) {
+            addCriterion("error_message <=", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageLike(String value) {
+            addCriterion("error_message like", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageNotLike(String value) {
+            addCriterion("error_message not like", value, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageIn(List<String> values) {
+            addCriterion("error_message in", values, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageNotIn(List<String> values) {
+            addCriterion("error_message not in", values, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageBetween(String value1, String value2) {
+            addCriterion("error_message between", value1, value2, "errorMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorMessageNotBetween(String value1, String value2) {
+            addCriterion("error_message not between", value1, value2, "errorMessage");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }
