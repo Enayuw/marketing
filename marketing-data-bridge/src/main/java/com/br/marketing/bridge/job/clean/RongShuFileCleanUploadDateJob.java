@@ -525,15 +525,15 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 commonFieldMap.forEach((String key, String value) -> {
                     Map<String, String> fieldItemMap = new HashMap<>();
                     if(cipherMap.containsKey(key)){
-                        Map<String, String> cipherResMap = cipherField(key, fileDataJo.getString(key), cipherMap.get(key));
-                        fieldItemList.add(cipherResMap);
+                        fieldItemMap = cipherField(key, fileDataJo.getString(key), cipherMap.get(key));
                     } else {
                         fieldItemMap.put(value, fileDataJo.getString(key));
-                        fieldItemList.add(fieldItemMap);
                     }
-                    //
-                    oldDataJson.put(value, syncUserMap.get(value));
-                    newDataJson.put(value, fileDataJo.getString(key));
+                    if(!CollectionUtils.isEmpty(fieldItemMap)){
+                        fieldItemList.add(fieldItemMap);
+                        oldDataJson.put(value, syncUserMap.get(value));
+                        newDataJson.putAll(fieldItemMap);
+                    }
                 });
             }
 
@@ -583,7 +583,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     private Map<String, String> cipherField(String fileDataKey, String fileDataValue, Map<String, String> cipherConfig) {
         Map<String, String> resMap= new HashMap<>();
 
-        String content = StringUtils.isBlank(fileDataValue) ? "" : fileDataKey;
+        String content = StringUtils.isBlank(fileDataValue) ? "" : fileDataValue;
         String decryptType = cipherConfig.get("decryptType");
 
         switch (decryptType){
@@ -592,11 +592,13 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     return resMap;
                 }
                 content = RpcClientProxy.decode(content, fileDataKey, "md5", "");
+                break;
             case "sha256":
                 if(content.length() != 64){
                     return resMap;
                 }
                 content = RpcClientProxy.decode(content, fileDataKey, "sha", "");
+                break;
         }
 
         if (StringUtils.isBlank(content)) {
