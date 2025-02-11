@@ -153,16 +153,6 @@
         </foreach>
     </insert>
 
-    <update id="batchUpdate">
-        <foreach collection="list" item="item" separator=";">
-            UPDATE b_car_clue_info
-            SET
-            brand = #{item.brand, jdbcType=VARCHAR},
-            series = #{item.series, jdbcType=VARCHAR},
-            update_time = #{item.updateTime, jdbcType=TIMESTAMP}
-            WHERE id = #{item.id}
-        </foreach>
-    </update>
 
 
 </mapper>
