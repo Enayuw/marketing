@@ -108,7 +108,7 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
      * @param uploadDate
      * @return
      */
-    Map<String,Object> selectUploadMagnStatInfo(@Param("apiCode") String apiCode,
+    Map<String,Object> selectUploadMagnStatInfotiflash_(@Param("apiCode") String apiCode,
                                                 @Param("userType") String userType,
                                                 @Param("uploadDate") String uploadDate);
 
