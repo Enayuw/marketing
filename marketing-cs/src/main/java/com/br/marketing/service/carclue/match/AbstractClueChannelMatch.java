@@ -20,7 +20,7 @@ public abstract class AbstractClueChannelMatch {
      * @param carClueInfo
      * @return
      */
-    public abstract Result action(CarClueInfo carClueInfo, List<CarClueProvincesInformation> provincesInfoConfig, List<CarClueSeriesInformation>
+    public abstract Result<CarClueInfo> action(CarClueInfo carClueInfo, List<CarClueProvincesInformation> provincesInfoConfig, List<CarClueSeriesInformation>
             seriesInfoConfig, List<CarClueRelationalMapping> relationalMappingConfig);
 
 

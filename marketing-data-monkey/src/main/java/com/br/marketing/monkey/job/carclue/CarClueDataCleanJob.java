@@ -7,9 +7,12 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
+import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -19,6 +22,7 @@ import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 车线索数据清洗作业job
@@ -48,16 +52,19 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
     @Resource
     private CarClueRelationalMappingMapper carClueRelationalMappingMapper;
 
-
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
 
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
-        String apiCode = "7410733";
+        // 通话明细apiCode
+        Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
+        List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
+        String apiCode = carClueApiCodes.get(0);
         CarClueInfoExample carClueInfoExample = new CarClueInfoExample();
-        carClueInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andClueDataStatusEqualTo(CarClueDataStatusEnum.READY.getValue())
-                .andCreateTimeGreaterThan(Date.from(LocalDate.now().minusDays(1).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
+        carClueInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andClueDataStatusEqualTo(CarClueDataStatusEnum.READY.getValue());
         carClueInfoExample.setOrderByClause("create_time asc limit 2000");
         List<CarClueInfo> carClueInfoList = carClueInfoMapper.selectByExample(carClueInfoExample);
         //查询城市，车型配置
@@ -65,7 +72,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         String seriesCleanDate = carClueSeriesInformationMapper.getMaxCleanDate();
         String relationCleanDate = carClueRelationalMappingMapper.getMaxCleanDate();
         if (StringUtils.isEmpty(proviceCleanDate) || StringUtils.isEmpty(seriesCleanDate) || StringUtils.isEmpty(relationCleanDate)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "车线索清洗配置最大清洗日期为空，请关注"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗配置最大清洗日期为空，请关注"));
             return;
         }
         CarClueProvincesInformationExample provincesInformationExample = new CarClueProvincesInformationExample();
@@ -79,7 +86,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         List<CarClueRelationalMapping> carClueRelationalMappingList = carClueRelationalMappingMapper.selectByExample(carClueRelationalMappingExample);
         if (CollectionUtils.isEmpty(carClueProvincesInfoList) || CollectionUtils.isEmpty(carClueSeriesInfoList) ||
                 CollectionUtils.isEmpty(carClueRelationalMappingList)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "车线索清洗配置为空，请关注"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗配置为空，请关注"));
             return;
         }
         //查询渠道商配置
@@ -94,7 +101,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
                 carClueService.carClueCleanHandler(carClueInfo, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList,
                         channelConfigList);
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "车线索清洗异常，请关注"), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗异常，请关注"), e);
             }
         });
 

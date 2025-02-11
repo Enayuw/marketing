@@ -30,7 +30,7 @@ public abstract class AbstractClueChannelFilter {
             StringBuilder sb = new StringBuilder();
             sb.append("[").append(label()).append("]");
             carClueInfo.setClueErrorReason(sb.toString());
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(carClueInfo);
         }
         return new Result().setCode(ResultCode.FAIL.getValue());
     }
