@@ -19,10 +19,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 车线索数据清洗作业job
@@ -98,8 +95,10 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
             try {
                 //清除错误信息
                 carClueInfo.setClueErrorReason("");
+                List<CarChannelConfig> configList = new ArrayList<>();
+                configList.addAll(channelConfigList);
                 carClueService.carClueCleanHandler(carClueInfo, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList,
-                        channelConfigList);
+                        configList);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗异常，请关注"), e);
             }
