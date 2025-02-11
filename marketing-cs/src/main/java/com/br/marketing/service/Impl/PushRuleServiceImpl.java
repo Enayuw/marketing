@@ -1654,9 +1654,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         userDetailDTOS.add(dto1);
                     }
                     //推送任务基础信息
-                    JSONObject toPolicyParamSize = marketingCommonConfig.getToPolicyParamSize();
-                    int paramSize = toPolicyParamSize.getInteger("general") == null ? 500 : toPolicyParamSize.getInteger("general");
-                    List<List<PushMarketingUserDetailDTO>> partition = Lists.partition(userDetailDTOS, paramSize);
+                    List<List<PushMarketingUserDetailDTO>> partition =
+                            toPolicyByRuleService.splitParam(customerInfoPushMain.getmApiCode(), userDetailDTOS);
                     Integer batch = 0;
                     for (List<PushMarketingUserDetailDTO> userDetailDTOList : partition) {
                         PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();

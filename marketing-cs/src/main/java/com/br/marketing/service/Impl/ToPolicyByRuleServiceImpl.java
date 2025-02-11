@@ -7,6 +7,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -18,6 +19,7 @@ import com.br.marketing.enums.*;
 import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -122,6 +125,18 @@ public class ToPolicyByRuleServiceImpl implements ToPolicyByRuleService {
         }
     }
 
+    @Override
+    public List<List<PushMarketingUserDetailDTO>> splitParam(String apiCode, List<PushMarketingUserDetailDTO> userDetailDTOS) {
+        List<List<PushMarketingUserDetailDTO>> partition = new ArrayList<>();
+        HashMap<String, Integer> toPolicyParamSize = marketingCommonConfig.getToPolicyParamSize();
+        Integer paramSize = toPolicyParamSize.get(apiCode);
+        if(paramSize != null){
+            partition = Lists.partition(userDetailDTOS, paramSize);
+        }else {
+            partition.add(userDetailDTOS);
+        }
+        return partition;
+    }
 
     private Result<Integer> rePushPolicyData(ErrorMark errorMark, boolean b) {
         Result<Integer> result = new Result<>();

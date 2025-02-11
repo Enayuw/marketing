@@ -2567,11 +2567,9 @@ public class MarketingCommonConfig {
 
     /**
      * 规则中心推决策参数大小
-     * eg:{"general":500,"xiecheng":500}
-     * general：通用推决策
-     * xiecheng：携程推决策
+     * eg:{"7410950":500,"7410960":500}
      */
-    private JSONObject toPolicyParamSize;
+    private HashMap<String, Integer> toPolicyParamSize;
 
 }
 

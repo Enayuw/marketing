@@ -324,9 +324,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs, scFlag, markWithEsFlag, scoreLables);
             //推送任务基础信息
-            JSONObject toPolicyParamSize = marketingCommonConfig.getToPolicyParamSize();
-            int paramSize = toPolicyParamSize.getInteger("xiecheng") == null ? 500 : toPolicyParamSize.getInteger("xiecheng");
-            List<List<PushMarketingUserDetailDTO>> partition = Lists.partition(userDetailDTOS, paramSize);
+            List<List<PushMarketingUserDetailDTO>> partition =
+                    toPolicyByRuleService.splitParam(customerInfoPushMain.getmApiCode(), userDetailDTOS);
             for (List<PushMarketingUserDetailDTO> userDetailDTOList : partition) {
                 PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                 pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
