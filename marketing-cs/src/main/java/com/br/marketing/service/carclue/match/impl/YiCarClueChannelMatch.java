@@ -12,10 +12,12 @@ import com.br.marketing.entity.CarClueSeriesInformation;
 import com.br.marketing.service.carclue.clueenums.*;
 import com.br.marketing.service.carclue.common.MatchPatternCommon;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +26,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     public static final String ALL_SERVIES = "全系";
+
 
 
     @Override
@@ -62,7 +67,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             }
         }
         //城市匹配
-        String cityMatch = MatchPatternCommon.fuzzyMatchByShort(city, cityConfig);
+        String cityMatch = MatchPatternCommon.fuzzyMatchByShort(city, cityConfig,marketingCommonConfig.getCarClueFilterStr());
         if (StringUtils.isEmpty(cityMatch)) {
             carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("城市未在配置表中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
@@ -150,7 +155,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         String series = carClueInfo.getSeries();
         List<String> seriesList = seriesInfoConfig.stream().map(CarClueSeriesInformation::getSeriesName).collect(Collectors.toList());
         //匹配车系
-        String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesList);
+        String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesList,marketingCommonConfig.getCarClueFilterStr());
         if (StringUtils.isNotEmpty(seriesMatch)) {
             List<String> brandList =   getBrandBySeries(seriesMatch,seriesInfoConfig);
             if(brandList.size()>1){

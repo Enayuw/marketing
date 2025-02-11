@@ -1,9 +1,12 @@
 package com.br.marketing.service.carclue.common;
 
 import com.br.common.util.StringUtils;
+import com.google.common.collect.Lists;
 import org.springframework.util.CollectionUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -57,23 +60,30 @@ public class MatchPatternCommon {
      *
      * @param content  匹配值
      * @param listData 匹配集合
+     * @param filterStr 需要过滤的特殊字符
      * @return String 匹配字符串
      */
-    public static String fuzzyMatchByShort(String content, List<String> listData) {
+    public static String fuzzyMatchByShort(String content, List<String> listData, String filterStr) {
         if (StringUtils.isEmpty(content)) {
             return null;
         }
         if (listData.contains(content)) {
             return content;
         }
-        List<String> result = listData.stream().filter(target ->
-                (StringUtils.containsIgnoreCase(content, target) || StringUtils.containsIgnoreCase(target, content))).collect(Collectors.toList());
+        String filterRegex = "[" + filterStr + "]";
+        String source = content.replaceAll("\\s*", "").replaceAll(filterRegex, "");
+        Map<String, String> targetMap =  new HashMap<>();
+        listData.forEach(data->{
+            targetMap.put(data.replaceAll("\\s*", "").replaceAll(filterRegex, ""),data);
+        });
+        List<String> result = targetMap.keySet().stream().filter(target ->
+                (StringUtils.containsIgnoreCase(source, target) || StringUtils.containsIgnoreCase(target, source))).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(result)) {
             return null;
         }
         Optional<String> shortestString = result.stream().min(String::compareToIgnoreCase);
 
-        return shortestString.isPresent() ? shortestString.get() : null;
+        return shortestString.isPresent() ? targetMap.get(shortestString.get()) : null;
 
     }
 

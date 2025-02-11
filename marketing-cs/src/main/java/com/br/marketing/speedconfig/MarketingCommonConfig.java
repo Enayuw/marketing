@@ -2601,5 +2601,10 @@ public class MarketingCommonConfig {
      */
     private List<String> opeApiTypes;
 
+    /**
+     * 车线索过滤特殊字符:.#
+     */
+    private String carClueFilterStr;
+
 }
 
