@@ -195,72 +195,63 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                 List<String> appletDateList = syncReportMapper.getAppletDate(apiCode, userType, createStartDate, createEndDate
                                         , appletDateStart);
                                 for (String appletDate : appletDateList) {
-                                    //上传开始时间
-                                    String appletBeginTime = getAppletTime(apiCode, userType, appletDate, Boolean.TRUE);
-                                    if (StringUtils.isNotBlank(appletBeginTime)) {
-                                        //数据正常入库条数
-                                        Integer uploadNum = getUploadNum(apiCode, userType, appletDate, Boolean.TRUE);
-                                        if (uploadNum != null && uploadNum > 0) {
-                                            //判断是否更新
-                                            MarketingSyncReport report = selectMarketingSyncReport(apiCode, userType, appletDate);
-                                            MarketingSyncReport modifyReport = new MarketingSyncReport();
-                                            //统计reserve_field1的key集合
-                                            HashSet<String> keySet = new HashSet<>();
-                                            try {
-                                                List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode, userType, appletDate);
-                                                keysList.forEach((String key) -> {
-                                                    if (StringUtils.isEmpty(key)) {
-                                                        return;
-                                                    }
-                                                    List<String> fieldList = Arrays.asList(key.trim().substring(1, key.length() - 2).replace
-                                                            ("\"", "").replaceAll("\\s+", "").split(","));
-                                                    keySet.addAll(fieldList);
-                                                });
-                                                modifyReport.setReserveField1Key(String.join(",", keySet));
-                                            } catch (Exception e) {
-                                                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                                                        "上传数据统计扩展字段key异常"), e);
+                                    //统计上传记录关键信息
+                                    Map<String, Object> uploadMagnStatInfo = syncReportMapper.selectUploadMagnStatInfotiflash_(apiCode, userType, uploadDate);
+                                    Integer normalNum = Integer.parseInt(uploadMagnStatInfo.get("normalNum").toString());
+                                    if (normalNum == 0) {
+                                        continue;
+                                    }
+                                    Integer duplicateRemovalNum = Integer.parseInt(uploadMagnStatInfo.get("duplicateRemovalNum").toString());
+                                    Date appletBeginTime = DateHelper.parseDate(uploadMagnStatInfo.get("appletBeginTime").toString());
+                                    Date appletEndTime = DateHelper.parseDate(uploadMagnStatInfo.get("appletEndTime").toString());
+                                    MarketingSyncReport modifyReport = new MarketingSyncReport();
+                                    //统计reserve_field1的key集合
+                                    HashSet<String> keySet = new HashSet<>();
+                                    try {
+                                        List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode, userType, appletDate);
+                                        keysList.forEach((String key) -> {
+                                            if (StringUtils.isEmpty(key)) {
+                                                return;
                                             }
-                                            Date appletEndTime = DateHelper.parseDate(getAppletTime(apiCode, userType, appletDate, Boolean.FALSE));
-                                            if (report == null) {
-                                                //新增
-                                                modifyReport.setAppletBeginTime(DateHelper.parseDate(appletBeginTime));
-                                                //场景
-                                                modifyReport.setUserType(userType);
-                                                //上传日期
-                                                modifyReport.setAppletDate(appletDate);
-                                                //客户编号
-                                                modifyReport.setCid(customer.getCid());
-                                                //apiCode
-                                                modifyReport.setApiCode(apiCode);
-                                                //客户名称
-                                                modifyReport.setShortName(customer.getShortName());
-                                                //上传结束时间
-                                                modifyReport.setAppletEndTime(appletEndTime);
-                                                modifyReport.setCreateTime(new Date());
-                                            }
-                                            //数据正常入库条数
-                                            modifyReport.setNormalNum(uploadNum);
-                                            //去重后数据量
-                                            modifyReport.setDuplicateRemovalNum(getUploadNum(apiCode, userType, appletDate, Boolean.FALSE));
-                                            //入库
-                                            if (report == null) {
-                                                log.warn("新增上传数据统计：{}", JSON.toJSONString(modifyReport));
-                                                syncReportMapper.insert(modifyReport);
-                                            } else {
-                                                Date appletEndTimeReport = report.getAppletEndTime();
-                                                //更新
-                                                if (appletEndTime.compareTo(appletEndTimeReport) == 1) {
-                                                    modifyReport.setId(report.getId());
-                                                    modifyReport.setAppletEndTime(appletEndTime);
-                                                    log.warn("编辑上传数据统计：{}", JSON.toJSONString(modifyReport));
-                                                    syncReportMapper.modifyReportById(modifyReport);
-                                                }
-                                            }
-                                        }
+                                            List<String> fieldList = Arrays.asList(key.trim().substring(1, key.length() - 2).replace
+                                                    ("\"", "").replaceAll("\\s+", "").split(","));
+                                            keySet.addAll(fieldList);
+                                        });
+                                        modifyReport.setReserveField1Key(String.join(",", keySet));
+                                    } catch (Exception e) {
+                                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                                                "上传数据统计扩展字段key异常"), e);
+                                    }
+                                    //数据正常入库条数
+                                    modifyReport.setNormalNum(normalNum);
+                                    //去重后数据量
+                                    modifyReport.setDuplicateRemovalNum(duplicateRemovalNum);
+                                    //上传结束时间
+                                    modifyReport.setAppletEndTime(appletEndTime);
+                                    MarketingSyncReport report = selectMarketingSyncReport(apiCode, userType, appletDate);
+                                    //判断是否更新
+                                    if (report == null) {
+                                        //新增
+                                        modifyReport.setAppletBeginTime(appletBeginTime);
+                                        //场景
+                                        modifyReport.setUserType(userType);
+                                        //上传日期
+                                        modifyReport.setAppletDate(appletDate);
+                                        //客户编号
+                                        modifyReport.setCid(customer.getCid());
+                                        //apiCode
+                                        modifyReport.setApiCode(apiCode);
+                                        //客户名称
+                                        modifyReport.setShortName(customer.getShortName());
+                                        modifyReport.setCreateTime(new Date());
+                                        log.warn("新增上传数据统计：{}", JSON.toJSONString(modifyReport));
+                                        syncReportMapper.insert(modifyReport);
+                                    } else {
+                                        modifyReport.setId(report.getId());
+                                        log.warn("编辑上传数据统计：{}", JSON.toJSONString(modifyReport));
+                                        syncReportMapper.modifyReportById(modifyReport);
                                     }
                                 }
-
                             }
                             log.warn("上传记录更新耗时：{}s", (System.currentTimeMillis() - start) / 1000);
                         }
