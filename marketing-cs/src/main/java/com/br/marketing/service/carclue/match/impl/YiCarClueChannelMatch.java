@@ -33,7 +33,6 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
     public static final String ALL_SERVIES = "全系";
 
 
-
     @Override
     public Result<CarClueInfo> action(CarClueInfo carClueInfo, List<CarClueProvincesInformation> provincesInfoConfig, List<CarClueSeriesInformation>
             seriesInfoConfig, List<CarClueRelationalMapping> relationalMappingConfig) {
@@ -45,7 +44,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         List<String> cityConfig = provincesInfoConfig.stream().map(CarClueProvincesInformation::getCityName).collect(Collectors.toList());
         //数据缺失
         if (StringUtils.isEmpty(city) || StringUtils.isEmpty(series)) {
-            carClueErrorReasonSet(carClueInfo,"渠道[".concat(configApiCode).concat("]").concat("城市或车系为空"), CarClueDataStatusEnum.LACK_CLUE.getValue());
+            carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("城市或车系为空"), CarClueDataStatusEnum.LACK_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
         }
         //精确匹配
@@ -54,13 +53,11 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             carClueInfo.setClueMatchBrand(brand);
             carClueInfo.setClueMatchSeries(series);
             carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.COMPLETE_MATCH.getValue());
-            carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
+            //为空进行赋值补全状态
+            if (Objects.isNull(carClueInfo.getClueCompleteStatus())) {
+                carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
+            }
         } else {
-            /*//有效线索并且模糊匹配，结束
-            if (carClueInfo.getClueDataStatus().equals(CarClueDataStatusEnum.NORMAL_CLUE.getValue()) &&
-                    carClueInfo.getMatchBrandSeriesType().equals(CarClueMatchTypeEnum.FUZZY_MATCH.getValue())) {
-                return new Result().setCode(ResultCode.FAIL.getValue());
-            }*/
             if (!culeFuzzyMatch(carClueInfo, brandConfig, seriesInfoConfig)) {
                 carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("品牌车系匹配失败"),
                         CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
@@ -68,7 +65,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             }
         }
         //城市匹配
-        String cityMatch = MatchPatternCommon.fuzzyMatchByShort(city, cityConfig,marketingCommonConfig.getCarClueFilterStr());
+        String cityMatch = MatchPatternCommon.fuzzyMatchByShort(city, cityConfig, marketingCommonConfig.getCarClueFilterStr());
         if (StringUtils.isEmpty(cityMatch)) {
             carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("城市未在配置表中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
@@ -149,7 +146,6 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         }
     }
 
-    
 
     private Boolean culeFuzzyMatch(CarClueInfo carClueInfo, List<String> brandConfig, List<CarClueSeriesInformation> seriesInfoConfig) {
 
@@ -158,54 +154,28 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         String series = carClueInfo.getSeries();
         List<String> seriesList = seriesInfoConfig.stream().map(CarClueSeriesInformation::getSeriesName).collect(Collectors.toList());
         //匹配车系
-        String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesList,marketingCommonConfig.getCarClueFilterStr());
+        String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesList, marketingCommonConfig.getCarClueFilterStr());
         if (StringUtils.isNotEmpty(seriesMatch)) {
-            List<String> brandList =   getBrandBySeries(seriesMatch,seriesInfoConfig);
-            if(brandList.size()==1){
+            List<String> brandList = getBrandBySeries(seriesMatch, seriesInfoConfig);
+            if (brandList.size() == 1) {
                 brand = brandList.get(0);
             }
-            if(brandList.size()>1){
-                if(brandList.contains(carClueInfo.getBrand())){
+            if (brandList.size() > 1) {
+                if (brandList.contains(carClueInfo.getBrand())) {
                     brand = carClueInfo.getBrand();
-                }else {
+                } else {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车系匹配出多个品牌series=" + seriesMatch));
                     return seriesResult;
                 }
             }
             carClueInfo.setClueMatchBrand(brand);
             carClueInfo.setClueMatchSeries(seriesMatch);
-            carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.SYSTEM_COMPLETE.getValue());
+            if (Objects.isNull(carClueInfo.getClueCompleteStatus())) {
+                carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.SYSTEM_COMPLETE.getValue());
+            }
             carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());
             seriesResult = Boolean.TRUE;
         }
-
-        /*if (StringUtils.isEmpty(brand)) {
-            //根据车系找品牌
-            List<String> seriesConfig = seriesInfoConfig.stream().map(CarClueSeriesInformation::getSeriesName).collect(Collectors.toList());
-            String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesConfig);
-            if (StringUtils.isNotEmpty(seriesMatch)) {
-                String brandName = seriesInfoConfig.stream().filter(seriesInformation -> seriesInformation.getSeriesName().equals(seriesMatch))
-                        .collect(Collectors.toList()).get(0).getBrandName();
-                carClueInfo.setClueMatchBrand(brandName);
-                carClueInfo.setClueMatchSeries(seriesMatch);
-                carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.SYSTEM_COMPLETE.getValue());
-                carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());
-                seriesResult = Boolean.TRUE;
-            }
-        } else {
-            String brandMatch = MatchPatternCommon.fuzzyMatchByShort(brand, brandConfig);
-            if (StringUtils.isNotEmpty(brandMatch)) {
-                List<String> seriesConfig = getSeriesBybrand(brandMatch, seriesInfoConfig);
-                String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesConfig);
-                if (StringUtils.isNotEmpty(seriesMatch)) {
-                    carClueInfo.setClueMatchBrand(brandMatch);
-                    carClueInfo.setClueMatchSeries(seriesMatch);
-                    carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
-                    carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());
-                    seriesResult = Boolean.TRUE;
-                }
-            }
-        }*/
         return seriesResult;
 
     }
