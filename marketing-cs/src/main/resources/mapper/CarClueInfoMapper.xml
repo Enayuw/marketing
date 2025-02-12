@@ -51,17 +51,12 @@
                     #{clueDataStatus}
                 </foreach>
             </if>
-            <choose>
-                <when test="clueCompleteStatusList != null and !clueCompleteStatusList.isEmpty()">
-                    AND bcci.clue_complete_status IN
-                    <foreach collection="clueCompleteStatusList" item="clueCompleteStatus" open="(" separator="," close=")">
-                        #{clueCompleteStatus}
-                    </foreach>
-                </when>
-                <otherwise>
-                    AND bcci.clue_complete_status != 0
-                </otherwise>
-            </choose>
+            <if test="clueCompleteStatusList != null and !clueCompleteStatusList.isEmpty()">
+                AND bcci.clue_complete_status IN
+                <foreach collection="clueCompleteStatusList" item="clueCompleteStatus" open="(" separator="," close=")">
+                    #{clueCompleteStatus}
+                </foreach>
+            </if>
             <if test="updateTimeStart != null and updateTimeStart != ''">
                 <![CDATA[ and bcci.update_time >= #{updateTimeStart} ]]>
             </if>
