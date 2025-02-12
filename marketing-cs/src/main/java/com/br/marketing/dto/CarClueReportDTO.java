@@ -24,6 +24,8 @@ public class CarClueReportDTO {
     private String intention;
     @ApiModelProperty(value = "线索状态")
     private List<Integer> clueDataStatus;
+    @ApiModelProperty(value = "线索补全状态")
+    private List<Integer> clueCompleteStatus;
     @ApiModelProperty(value = "修改开始时间")
     private String updateTimeStart;
     @ApiModelProperty(value = "修改结束时间")
