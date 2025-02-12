@@ -4,10 +4,7 @@ import com.br.common.util.StringUtils;
 import com.google.common.collect.Lists;
 import org.springframework.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MatchPatternCommon {
@@ -81,9 +78,9 @@ public class MatchPatternCommon {
         if (CollectionUtils.isEmpty(result)) {
             return null;
         }
-        Optional<String> shortestString = result.stream().min(String::compareToIgnoreCase);
+        String shortestString = result.stream().min(Comparator.comparingInt(String::length)).orElse(null);
 
-        return shortestString.isPresent() ? targetMap.get(shortestString.get()) : null;
+        return StringUtils.isNotEmpty(shortestString) ? targetMap.get(shortestString) : null;
 
     }
 

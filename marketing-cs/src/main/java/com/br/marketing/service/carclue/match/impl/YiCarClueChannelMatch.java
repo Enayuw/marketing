@@ -77,7 +77,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         List<CarClueRelationalMapping> relationBrand = relationalMappingConfig.stream().filter(relationalMapping -> relationalMapping.getBrandName()
                 .equals(carClueInfo.getClueMatchBrand())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(relationBrand)) {
-            carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("品牌未在映射表中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
+            carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("品牌=").concat(carClueInfo.getClueMatchBrand()).concat("未在映射表中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
         }
         //获取映射表中车系
@@ -90,7 +90,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             List<CarClueRelationalMapping> seriesConfig = relationBrand.stream().filter(relationalMapping -> relationalMapping.getSeriesName()
                     .equals(carClueInfo.getClueMatchSeries())).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(seriesConfig)) {
-                carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("车系未在映射表中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
+                carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("车系=").concat(carClueInfo.getClueMatchSeries()).concat("未在映射表中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
             }
             clueRelationalMapping = seriesConfig.get(0);
@@ -101,7 +101,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             getCityByProvince(relationCityList, clueRelationalMapping.getSatisfyProvinceName(), clueRelationalMapping.getSatisfyCityName(), provincesInfoConfig);
             //不在映射城市中
             if (!relationCityList.contains(cityMatch)) {
-                carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("城市不在映射表中城市中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
+                carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("城市=").concat(cityMatch).concat("不在映射表中城市中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
             }
         }
@@ -109,7 +109,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             getCityByProvince(relationNotCityList, clueRelationalMapping.getExcludeProvinceName(), clueRelationalMapping.getExcludeCityName(), provincesInfoConfig);
             //在排除的城市中
             if (relationNotCityList.contains(cityMatch)) {
-                carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("城市在映射表中排除城市中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
+                carClueErrorReasonSet(carClueInfo, "渠道[".concat(configApiCode).concat("]").concat("城市=").concat(cityMatch).concat("在映射表中排除城市中，匹配失败"), CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
             }
         }
@@ -150,25 +150,41 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
     private Boolean culeFuzzyMatch(CarClueInfo carClueInfo, List<String> brandConfig, List<CarClueSeriesInformation> seriesInfoConfig) {
 
         Boolean seriesResult = Boolean.FALSE;
-        String brand = "";
+        String matchBrand = "";
         String series = carClueInfo.getSeries();
         List<String> seriesList = seriesInfoConfig.stream().map(CarClueSeriesInformation::getSeriesName).collect(Collectors.toList());
-        //匹配车系
+        String brandMatch = MatchPatternCommon.fuzzyMatchByShort(carClueInfo.getBrand(), brandConfig, marketingCommonConfig.getCarClueFilterStr());
+        //品牌车系匹配
+        if (StringUtils.isNotEmpty(brandMatch)) {
+            List<String> seriesConfig = getSeriesBybrand(brandMatch, seriesInfoConfig);
+            String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesConfig, marketingCommonConfig.getCarClueFilterStr());
+            if (StringUtils.isNotEmpty(seriesMatch)) {
+                carClueInfo.setClueMatchBrand(brandMatch);
+                carClueInfo.setClueMatchSeries(seriesMatch);
+                if (Objects.isNull(carClueInfo.getClueCompleteStatus())) {
+                    carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
+                }
+                carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());
+                return Boolean.TRUE;
+            }
+        }
+
+        //品牌车系未匹配成功，模糊匹配车系
         String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesList, marketingCommonConfig.getCarClueFilterStr());
         if (StringUtils.isNotEmpty(seriesMatch)) {
             List<String> brandList = getBrandBySeries(seriesMatch, seriesInfoConfig);
             if (brandList.size() == 1) {
-                brand = brandList.get(0);
+                matchBrand = brandList.get(0);
             }
             if (brandList.size() > 1) {
                 if (brandList.contains(carClueInfo.getBrand())) {
-                    brand = carClueInfo.getBrand();
+                    matchBrand = carClueInfo.getBrand();
                 } else {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车系匹配出多个品牌series=" + seriesMatch));
                     return seriesResult;
                 }
             }
-            carClueInfo.setClueMatchBrand(brand);
+            carClueInfo.setClueMatchBrand(matchBrand);
             carClueInfo.setClueMatchSeries(seriesMatch);
             if (Objects.isNull(carClueInfo.getClueCompleteStatus())) {
                 carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.SYSTEM_COMPLETE.getValue());
