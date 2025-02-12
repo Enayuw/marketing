@@ -13,6 +13,7 @@ import com.br.marketing.service.carclue.clueenums.*;
 import com.br.marketing.service.carclue.common.MatchPatternCommon;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -148,21 +149,30 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         }
     }
 
+    
+
     private Boolean culeFuzzyMatch(CarClueInfo carClueInfo, List<String> brandConfig, List<CarClueSeriesInformation> seriesInfoConfig) {
 
         Boolean seriesResult = Boolean.FALSE;
-        String brand = carClueInfo.getBrand();
+        String brand = "";
         String series = carClueInfo.getSeries();
         List<String> seriesList = seriesInfoConfig.stream().map(CarClueSeriesInformation::getSeriesName).collect(Collectors.toList());
         //匹配车系
         String seriesMatch = MatchPatternCommon.fuzzyMatchByShort(series, seriesList,marketingCommonConfig.getCarClueFilterStr());
         if (StringUtils.isNotEmpty(seriesMatch)) {
             List<String> brandList =   getBrandBySeries(seriesMatch,seriesInfoConfig);
-            if(brandList.size()>1){
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车系匹配出多个品牌series="+seriesMatch));
-                return seriesResult;
+            if(brandList.size()==1){
+                brand = brandList.get(0);
             }
-            carClueInfo.setClueMatchBrand(brandList.get(0));
+            if(brandList.size()>1){
+                if(brandList.contains(carClueInfo.getBrand())){
+                    brand = carClueInfo.getBrand();
+                }else {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车系匹配出多个品牌series=" + seriesMatch));
+                    return seriesResult;
+                }
+            }
+            carClueInfo.setClueMatchBrand(brand);
             carClueInfo.setClueMatchSeries(seriesMatch);
             carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.SYSTEM_COMPLETE.getValue());
             carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());

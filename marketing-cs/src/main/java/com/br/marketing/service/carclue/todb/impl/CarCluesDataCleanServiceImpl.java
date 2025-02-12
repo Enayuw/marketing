@@ -265,21 +265,26 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
      * 发送钉钉文本消息
      */
     private void sendDingDingTextMessage(String content, Map<String, Object> sendMgsInfoMap) {
-        DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
-        DingDingTextMessage.Text text = new DingDingTextMessage.Text();
-        dingDingTextMessage.setText(text);
-        JSONArray ats = (JSONArray) sendMgsInfoMap.get("at");
-        if (ats != null) {
-            At at = new At();
-            at.setAtMobiles(ats.toJavaList(String.class));
-            dingDingTextMessage.setAt(at);
+        try {
+            DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
+            DingDingTextMessage.Text text = new DingDingTextMessage.Text();
+            dingDingTextMessage.setText(text);
+            JSONArray ats = (JSONArray) sendMgsInfoMap.get("at");
+            if (ats != null) {
+                At at = new At();
+                at.setAtMobiles(ats.toJavaList(String.class));
+                dingDingTextMessage.setAt(at);
+            }
+            text.setContent(content);
+            log.warn(dingDingTextMessage.toString());
+            // 发送实时消息
+            dingDingRobotHookService.sendMessageGroup(sendMgsInfoMap.get("token").toString()
+                    , sendMgsInfoMap.get("secret").toString()
+                    , dingDingTextMessage);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据入库机器人告警异常！"), e);
         }
-        text.setContent(content);
-        log.warn(dingDingTextMessage.toString());
-        // 发送实时消息
-        dingDingRobotHookService.sendMessageGroup(sendMgsInfoMap.get("token").toString()
-                , sendMgsInfoMap.get("secret").toString()
-                , dingDingTextMessage);
     }
 
 }

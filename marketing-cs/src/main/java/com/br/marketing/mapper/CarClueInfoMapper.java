@@ -20,7 +20,5 @@ public interface CarClueInfoMapper extends CarClueInfoMapperBase {
     int batchInsert(@Param("carClueInfoList") List<CarClueInfo> carClueInfoList);
 
 
-    int batchUpdate(List<CarClueInfo> clueInfoList);
-
     List<String> queryApiCodes(@Param("pushStatus")Integer pushStatus);
 }
