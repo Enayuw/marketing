@@ -65,7 +65,6 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         // 通话明细apiCode
         Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
         List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
-        String apiCode = carClueApiCodes.get(0);
         //查询城市，车型配置
         String proviceCleanDate = carClueProvincesInformationMapper.getMaxCleanDate();
         String seriesCleanDate = carClueSeriesInformationMapper.getMaxCleanDate();
@@ -97,7 +96,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         Boolean mark = Boolean.TRUE;
         Long minId = null;
         while (mark) {
-            List<CarClueInfo> carClueInfoList = carClueInfoMapper.selectCarClueByMinId(apiCode, CarClueDataStatusEnum.READY.getValue(), minId);
+            List<CarClueInfo> carClueInfoList = carClueInfoMapper.selectCarClueByMinId(carClueApiCodes, CarClueDataStatusEnum.READY.getValue(), minId);
             if (carClueInfoList.size() <= 0) {
                 mark = Boolean.FALSE;
                 continue;
@@ -135,7 +134,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗异常，请关注"), e);
             }
         });
-        log.warn("车线索清洗单批次，耗时：{}",System.currentTimeMillis()-start);
+        log.warn("车线索清洗单批次，耗时：{}ms",System.currentTimeMillis()-start);
 
     }
 }

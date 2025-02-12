@@ -22,5 +22,5 @@ public interface CarClueInfoMapper extends CarClueInfoMapperBase {
 
     List<String> queryApiCodes(@Param("pushStatus")Integer pushStatus);
 
-    List<CarClueInfo> selectCarClueByMinId(@Param("apiCode")String apiCode, @Param("status")Integer status, @Param("minId")Long minId);
+    List<CarClueInfo> selectCarClueByMinId(@Param("apiCodeList")List<String> apiCodeList, @Param("status")Integer status, @Param("minId")Long minId);
 }

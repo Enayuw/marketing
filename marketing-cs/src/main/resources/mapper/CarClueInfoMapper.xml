@@ -156,7 +156,11 @@
     <select id="selectCarClueByMinId" resultType="com.br.marketing.entity.CarClueInfo">
         select *
         from b_car_clue_info
-        where api_code = #{apiCode} and clue_data_status = #{status}
+        where api_code IN
+        <foreach collection="apiCodeList" item="apicode" open="(" separator="," close=")">
+            #{apicode}
+        </foreach>
+        and clue_data_status = #{status}
         <if test="minId != null and minId >0">
             and `id` > #{minId}
         </if>
