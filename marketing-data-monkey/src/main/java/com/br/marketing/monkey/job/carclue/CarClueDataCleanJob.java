@@ -3,6 +3,7 @@ package com.br.marketing.monkey.job.carclue;
 import com.br.common.log.AlertLog;
 import com.br.common.util.StringUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.carclue.CarClueService;
@@ -11,6 +12,7 @@ import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,8 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 车线索数据清洗作业job
@@ -52,6 +56,8 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
+    public static ThreadPoolExecutor pushCluePool = BrExecutors.getThreadPool(10, 10);
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -60,10 +66,6 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
         List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
         String apiCode = carClueApiCodes.get(0);
-        CarClueInfoExample carClueInfoExample = new CarClueInfoExample();
-        carClueInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andClueDataStatusEqualTo(CarClueDataStatusEnum.READY.getValue());
-        carClueInfoExample.setOrderByClause("create_time asc limit 2000");
-        List<CarClueInfo> carClueInfoList = carClueInfoMapper.selectByExample(carClueInfoExample);
         //查询城市，车型配置
         String proviceCleanDate = carClueProvincesInformationMapper.getMaxCleanDate();
         String seriesCleanDate = carClueSeriesInformationMapper.getMaxCleanDate();
@@ -91,6 +93,36 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         channelConfigExample.createCriteria().andIsDelEqualTo(1);
         List<CarChannelConfig> channelConfigList = carChannelConfigMapper.selectByExample(channelConfigExample);
         channelConfigList.sort(Comparator.comparingInt(t -> t.getOrder()));
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        Boolean mark = Boolean.TRUE;
+        Long minId = null;
+        while (mark) {
+            List<CarClueInfo> carClueInfoList = carClueInfoMapper.selectCarClueByMinId(apiCode, CarClueDataStatusEnum.READY.getValue(), minId);
+            if (carClueInfoList.size() <= 0) {
+                mark = Boolean.FALSE;
+                continue;
+            }
+            minId = carClueInfoList.get(carClueInfoList.size() - 1).getId();
+            List<List<CarClueInfo>> partitions = Lists.partition(carClueInfoList, 500);
+            for (List<CarClueInfo> partition : partitions) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        cleanClueList(partition, channelConfigList, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList);
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗线程处理异常，请关注"), e);
+                    }
+                }, pushCluePool));
+
+            }
+
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    }
+
+
+    private void cleanClueList(List<CarClueInfo> carClueInfoList, List<CarChannelConfig> channelConfigList, List<CarClueProvincesInformation>
+            carClueProvincesInfoList, List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList) {
+        Long start=System.currentTimeMillis();
         carClueInfoList.forEach(carClueInfo -> {
             try {
                 //清除错误信息
@@ -103,6 +135,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗异常，请关注"), e);
             }
         });
+        log.warn("车线索清洗单批次，耗时：{}",System.currentTimeMillis()-start);
 
     }
 }

@@ -77,6 +77,7 @@ public class CarClueServiceImpl implements CarClueService {
             carClueInfo.setClueErrorReason(filterError.toString());
             //更新线索状态
             carClueInfo.setCleanTime(new Date());
+            carClueInfo.setUpdateTime(new Date());
             carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
             return;
         }
@@ -114,6 +115,7 @@ public class CarClueServiceImpl implements CarClueService {
             BeanUtils.copyProperties(fuzzyResult.getData(), carClueInfo);
             //更新线索状态
             carClueInfo.setCleanTime(new Date());
+            carClueInfo.setUpdateTime(new Date());
             carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
             return;
         }
@@ -122,6 +124,7 @@ public class CarClueServiceImpl implements CarClueService {
         carClueInfo.setClueErrorReason(matchError.toString());
         carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
         carClueInfo.setCleanTime(new Date());
+        carClueInfo.setUpdateTime(new Date());
         carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
     }
 

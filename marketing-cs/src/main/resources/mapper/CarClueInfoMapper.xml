@@ -153,6 +153,14 @@
         </foreach>
     </insert>
 
-
+    <select id="selectCarClueByMinId" resultType="com.br.marketing.entity.CarClueInfo">
+        select *
+        from b_car_clue_info
+        where api_code = #{apiCode} and clue_data_status = #{status}
+        <if test="minId != null and minId >0">
+            and `id` > #{minId}
+        </if>
+        order by `id` asc limit 2000
+    </select>
 
 </mapper>
