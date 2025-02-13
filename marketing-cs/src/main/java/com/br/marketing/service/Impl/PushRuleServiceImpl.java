@@ -1654,25 +1654,31 @@ public class PushRuleServiceImpl implements PushRuleService {
                         userDetailDTOS.add(dto1);
                     }
                     //推送任务基础信息
-                    PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
-                    pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
-                    pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part) ? "0" : part) + "_" + sn);
-                    pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
-                    pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
-                    if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {
-                        pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
+                    List<List<PushMarketingUserDetailDTO>> partition =
+                            toPolicyByRuleService.splitParam(customerInfoPushMain.getmApiCode(), userDetailDTOS);
+                    Integer batch = 0;
+                    for (List<PushMarketingUserDetailDTO> userDetailDTOList : partition) {
+                        PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+                        pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+                        pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
+                        pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part) ? "0" : part) + "_" + sn + "_" +batch);
+                        pushMarketingUserTaskInfoDTO.setData(userDetailDTOList);
+                        pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
+                        pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
+                        if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {
+                            pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
+                        }
+                        //传输参数信息
+                        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                        pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
+                        pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
+                        pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
+                        resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
+                                , pushMarketingUserTaskInfoDTO.getAccessNumber()
+                                , customerInfoPushMain.getId()
+                                , userDetailDTOList.size(),null)));
+                        batch ++;
                     }
-                    //传输参数信息
-                    PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-                    pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
-                    pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
-                    pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-                    resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
-                            , pushMarketingUserTaskInfoDTO.getAccessNumber()
-                            , customerInfoPushMain.getId()
-                            , userDetailDTOS.size(),null)));
                 } catch (Exception ex) {
                     String error = String.format("任务id：%s，当前片：%s，当前页码：%d，异常："
                             , customerInfoPushMain.getId().toString()

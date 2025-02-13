@@ -2565,5 +2565,11 @@ public class MarketingCommonConfig {
      */
     private List<String> opeApiTypes;
 
+    /**
+     * 规则中心推决策参数大小
+     * eg:{"7410950":500,"7410960":500}
+     */
+    private HashMap<String, Integer> toPolicyParamSize;
+
 }
 
