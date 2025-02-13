@@ -111,7 +111,7 @@
 
     <insert id="batchInsert" parameterType="list">
         INSERT INTO b_car_clue_info (
-        cid, api_code, cust_num, cell, intention, brand, series,
+        cid, api_code, cust_num, cell, intention, brand, member, series,
         clue_match_brand_id, clue_match_brand, clue_match_series_id, clue_match_series,
         match_brand_series_type, province, clue_match_province_id, clue_match_province,
         city, clue_match_city_id, clue_match_city, recording_path, clue_id,
@@ -128,6 +128,7 @@
             #{item.cell, jdbcType=VARCHAR},
             #{item.intention, jdbcType=VARCHAR},
             #{item.brand, jdbcType=VARCHAR},
+            #{item.member, jdbcType=VARCHAR},
             #{item.series, jdbcType=VARCHAR},
             #{item.clueMatchBrandId, jdbcType=VARCHAR},
             #{item.clueMatchBrand, jdbcType=VARCHAR},

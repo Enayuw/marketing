@@ -128,11 +128,11 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                             "车线索数据入库异常：通话明细用户信息或手机号为空！"));
                                     continue;
                                 }
-                                String carBrand = getPhoneFromJsonObject(jsonObject, "carBrand");
-                                String carSeries = getPhoneFromJsonObject(jsonObject, "carSeries");
+                                String carBrand = getPhoneFromJsonObject(jsonObject, "brandName");
+                                String carSeries = getPhoneFromJsonObject(jsonObject, "seriesName");
                                 String province = getPhoneFromJsonObject(jsonObject, "province");
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
-                                String member = getPhoneFromJsonObject(jsonObject, "firstName");
+                                String member = getPhoneFromJsonObject(jsonObject, "cusName");
                                 String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
                                 String intentionGrade = callRecord.getIntentionGrade();
                                 if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
@@ -191,7 +191,9 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         uploadDataDTO.setApiCode(apiCode);
                         uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
                         pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                        carClueInfoMapper.batchInsert(carClueInfos);
+                        if (ObjectUtil.isNotEmpty(carClueInfos)) {
+                            carClueInfoMapper.batchInsert(carClueInfos);
+                        }
                         updateCallRecordLogStatus(successRecords, 2);
                         updateCallRecordLogStatus(failRecords, 3);
                     } catch (Exception e) {
