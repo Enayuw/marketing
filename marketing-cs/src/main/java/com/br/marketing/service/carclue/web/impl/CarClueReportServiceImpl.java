@@ -121,7 +121,10 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         if (voList == null || voList.isEmpty()) {
             return new ApiResult<Boolean>().fail(false, "更新列表不能为空");
         }
-        List<Integer> list = Arrays.asList(CarClueDataStatusEnum.ABNORMAL_CLUE.getValue(), CarClueDataStatusEnum.LACK_CLUE.getValue());
+        List<Integer> carClueDataStatusList = Arrays.asList(CarClueDataStatusEnum.ABNORMAL_CLUE.getValue(),
+                CarClueDataStatusEnum.LACK_CLUE.getValue());
+        List<Integer> carClueCompleteStatusList =
+                Arrays.asList(CarClueCompleteStatusEnum.AETIFICAL_ABNORMAL_COMPLETE.getValue(), CarClueCompleteStatusEnum.AETIFICAL_LACK_COMPLETE.getValue());
         for (CarClueInfo vo : voList) {
             CarClueInfo clueInfo = new CarClueInfo();
             try {
@@ -131,17 +134,12 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                 clueInfo.setSeries(vo.getSeries());
                 clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                 Integer clueCompleteStatus = carClueInfo.getClueCompleteStatus();
-                if (list.contains(vo.getClueDataStatus())  &&
-                        (ObjectUtil.isEmpty(clueCompleteStatus)
-                                || clueCompleteStatus.equals(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue()))) {
+                if (carClueDataStatusList.contains(vo.getClueDataStatus()) && !carClueCompleteStatusList.contains(clueCompleteStatus)) {
                     if (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue().equals(vo.getClueDataStatus())) {
                         clueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.AETIFICAL_ABNORMAL_COMPLETE.getValue());
                     } else {
                         clueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.AETIFICAL_LACK_COMPLETE.getValue());
                     }
-                } else {
-                    log.warn(" 此条数据不是异常线索或缺失线索，无法修改完成状态！ 数据ID： " + vo.getId());
-                    continue;
                 }
                 clueInfo.setUpdateTime(new Date());
                 entityOptService.writeOptLog(vo.getId(), clueInfo, carClueInfo);
