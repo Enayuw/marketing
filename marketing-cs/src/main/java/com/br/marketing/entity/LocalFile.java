@@ -1,21 +1,17 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class LocalFile {
-    /**
-     * 
-     */
+/**
+ * b_local_file
+ * @author 
+ */
+public class LocalFile implements Serializable {
     private Long id;
 
-    /**
-     * 
-     */
     private String cid;
 
-    /**
-     * 
-     */
     private String apiCode;
 
     /**
@@ -28,9 +24,6 @@ public class LocalFile {
      */
     private String srcPath;
 
-    /**
-     * 
-     */
     private String fileName;
 
     /**
@@ -39,18 +32,15 @@ public class LocalFile {
     private String localPath;
 
     /**
-     * 状态，1成功，0失败
+     * 状态，1-处理中，2-处理完成
      */
     private String status;
 
     /**
-     * 状态，1校验通过，2表头有问题，3数据有问题
+     * 状态，1校验通过，2表头有问题，3数据有问题，4-文件内容为空
      */
     private String complete;
 
-    /**
-     * 
-     */
     private Integer actualNumber;
 
     /**
@@ -88,6 +78,13 @@ public class LocalFile {
      */
     private String pushStatus;
 
+    /**
+     * 错误信息描述
+     */
+    private String errorMessage;
+
+    private static final long serialVersionUID = 1L;
+
     public Long getId() {
         return id;
     }
@@ -101,7 +98,7 @@ public class LocalFile {
     }
 
     public void setCid(String cid) {
-        this.cid = cid == null ? null : cid.trim();
+        this.cid = cid;
     }
 
     public String getApiCode() {
@@ -109,7 +106,7 @@ public class LocalFile {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
+        this.apiCode = apiCode;
     }
 
     public String getFileType() {
@@ -117,7 +114,7 @@ public class LocalFile {
     }
 
     public void setFileType(String fileType) {
-        this.fileType = fileType == null ? null : fileType.trim();
+        this.fileType = fileType;
     }
 
     public String getSrcPath() {
@@ -125,7 +122,7 @@ public class LocalFile {
     }
 
     public void setSrcPath(String srcPath) {
-        this.srcPath = srcPath == null ? null : srcPath.trim();
+        this.srcPath = srcPath;
     }
 
     public String getFileName() {
@@ -133,7 +130,7 @@ public class LocalFile {
     }
 
     public void setFileName(String fileName) {
-        this.fileName = fileName == null ? null : fileName.trim();
+        this.fileName = fileName;
     }
 
     public String getLocalPath() {
@@ -141,7 +138,7 @@ public class LocalFile {
     }
 
     public void setLocalPath(String localPath) {
-        this.localPath = localPath == null ? null : localPath.trim();
+        this.localPath = localPath;
     }
 
     public String getStatus() {
@@ -149,7 +146,7 @@ public class LocalFile {
     }
 
     public void setStatus(String status) {
-        this.status = status == null ? null : status.trim();
+        this.status = status;
     }
 
     public String getComplete() {
@@ -157,7 +154,7 @@ public class LocalFile {
     }
 
     public void setComplete(String complete) {
-        this.complete = complete == null ? null : complete.trim();
+        this.complete = complete;
     }
 
     public Integer getActualNumber() {
@@ -221,6 +218,14 @@ public class LocalFile {
     }
 
     public void setPushStatus(String pushStatus) {
-        this.pushStatus = pushStatus == null ? null : pushStatus.trim();
+        this.pushStatus = pushStatus;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

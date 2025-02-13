@@ -57,8 +57,12 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             updateFile.setId(localFile.getId());
             updateFile.setPushStatus("1");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-
-            pushDataService.pushDassData(localFile.getId());
+            //文件名以csosnew开头，推送财富Daas接口
+            if(localFile.getFileName().startsWith("csosnew")){
+                pushDataService.pushCsosDassData(localFile.getId());
+            }else {
+                pushDataService.pushDassData(localFile.getId());
+            }
             if (zhongYuanList.contains(localFile.getApiCode())) {
                 zhongYuanService.pushOutBoundData(localFile.getId());
             }

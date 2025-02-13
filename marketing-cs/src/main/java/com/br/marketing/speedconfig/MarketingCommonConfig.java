@@ -2605,6 +2605,11 @@ public class MarketingCommonConfig {
      * 车线索过滤特殊字符:.#
      */
     private String carClueFilterStr;
+    /**
+     * 规则中心推决策参数大小
+     * eg:{"7410950":500,"7410960":500}
+     */
+    private HashMap<String, Integer> toPolicyParamSize;
 
 }
 

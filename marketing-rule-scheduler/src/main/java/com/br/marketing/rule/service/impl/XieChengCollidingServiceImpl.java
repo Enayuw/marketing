@@ -324,44 +324,48 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs, scFlag, markWithEsFlag, scoreLables);
             //推送任务基础信息
-            PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
-            pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
-            pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-            pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + UUID.randomUUID());
-            pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
-            pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
-            pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
-            if(StringUtils.isNotEmpty(customerInfoPushMain.getStrategyCode())){
-                pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
-            }
-            //传输参数信息
-            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-            pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
-            pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
-            pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-
-            // 模拟推决策异常
-            if(toPolicyByRuleService.mockSwitch(pushMarketingUserDTO.getApiCode(),
-                    MockSwitchEnum.XIECHENG.getValue(), MockSwitchEnum.POLICYRETRY.getValue())){
-
-                result.setCode(ResultCode.TIME_OUT.getValue());
-            }else {
-                result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                        pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
-                if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                    result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                            pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
+            List<List<PushMarketingUserDetailDTO>> partition =
+                    toPolicyByRuleService.splitParam(customerInfoPushMain.getmApiCode(), userDetailDTOS);
+            for (List<PushMarketingUserDetailDTO> userDetailDTOList : partition) {
+                PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+                pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+                pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
+                pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + UUID.randomUUID());
+                pushMarketingUserTaskInfoDTO.setData(userDetailDTOList);
+                pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
+                pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
+                if(StringUtils.isNotEmpty(customerInfoPushMain.getStrategyCode())){
+                    pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
                 }
+                //传输参数信息
+                PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
+                pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
+                pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
+
+                // 模拟推决策异常
+                if(toPolicyByRuleService.mockSwitch(pushMarketingUserDTO.getApiCode(),
+                        MockSwitchEnum.XIECHENG.getValue(), MockSwitchEnum.POLICYRETRY.getValue())){
+
+                    result.setCode(ResultCode.TIME_OUT.getValue());
+                }else {
+                    result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                            pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOList.size());
+                    if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+                        result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                                pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOList.size());
+                    }
+                }
+                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    log.error(TITLE + "重试失败 accessNumber:{}", pushMarketingUserTaskInfoDTO.getAccessNumber());
+                }
+                if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
+                        || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+                    insertPolicyErrorMark(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                            pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOList.size());
+                }
+                result.setDate(userDetailDTOList.size());
             }
-            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error(TITLE + "重试失败 accessNumber:{}", pushMarketingUserTaskInfoDTO.getAccessNumber());
-            }
-            if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
-                    || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                insertPolicyErrorMark(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                        pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
-            }
-            result.setDate(userDetailDTOS.size());
         } catch (Exception e) {
             result.setCode(ResultCode.FAIL.getValue());
             log.error(TITLE + "异常", e);
