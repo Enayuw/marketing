@@ -191,7 +191,9 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         uploadDataDTO.setApiCode(apiCode);
                         uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
                         pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                        carClueInfoMapper.batchInsert(carClueInfos);
+                        if (ObjectUtil.isNotEmpty(carClueInfos)) {
+                            carClueInfoMapper.batchInsert(carClueInfos);
+                        }
                         updateCallRecordLogStatus(successRecords, 2);
                         updateCallRecordLogStatus(failRecords, 3);
                     } catch (Exception e) {
