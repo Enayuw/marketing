@@ -89,7 +89,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         list.forEach((CarClueInfoVo carClueInfoVo) -> {
             String encryptCell = encryptCell(carClueInfoVo.getCell());
             carClueInfoVo.setCell(encryptCell);
-            String cluePushChannel = getCluePushChannel(carClueInfoVo.getCluePushChannel());
+            String cluePushChannel = getChannelByApiCode(carClueInfoVo.getCluePushChannel());
             carClueInfoVo.setCluePushChannel(cluePushChannel);
         });
 
@@ -130,7 +130,10 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
                 clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
-                if (list.contains(vo.getClueDataStatus())) {
+                Integer clueCompleteStatus = carClueInfo.getClueCompleteStatus();
+                if (list.contains(vo.getClueDataStatus())  &&
+                        (ObjectUtil.isEmpty(clueCompleteStatus)
+                                || clueCompleteStatus.equals(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue()))) {
                     if (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue().equals(vo.getClueDataStatus())) {
                         clueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.AETIFICAL_ABNORMAL_COMPLETE.getValue());
                     } else {
@@ -169,16 +172,22 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         }
     }
 
-    public String getCluePushChannel(String apiCode) {
+    public String getChannelByApiCode(String apiCode) {
         Map<String, Object> configMap = marketingCommonConfig.getCarClueApiCodeMapping();
 
-        if (configMap == null || !configMap.containsKey("apiCodeAndCarClue")) {
+        if (configMap == null || !configMap.containsKey("channel")) {
             return null;
         }
 
-        Map<String, String> apiCodeAndCarClue = (Map<String, String>) configMap.get("apiCodeAndCarClue");
+        Map<String, List<String>> channelMap = (Map<String, List<String>>) configMap.get("channel");
 
-        return apiCodeAndCarClue.getOrDefault(apiCode, null);
+        for (Map.Entry<String, List<String>> entry : channelMap.entrySet()) {
+            if (entry.getValue().contains(apiCode)) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 
     private String camelToSnake(String str) {
