@@ -76,6 +76,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
     @Autowired
     IDxService iDxService;
 
+    @Resource
+    CsosPhoneSaleMapper csosPhoneSaleMapper;
+
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
@@ -1924,6 +1927,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(errorNum.get());
     }
 
+
     private void updatePhoneSale(MarketingSyncUser _marketingSyncUser, MarketingTransferSyncUser _transferSyncUser, PhoneSale phoneSale,
                                  PhoneSale computeSale,Map<String, List<CallRecord>> callrecord,String cell){
         String name = "";
@@ -1994,4 +1998,193 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(phoneSales);
     }
+
+
+    @Override
+    public Result csosPhoneTodb(TxtToDbDTO dto) {
+        CsosPhoneSale phoneSale = new CsosPhoneSale();
+        String row = dto.getContent();
+        HashMap<Integer, String> address = dto.getAddress();
+        HashMap<Integer, String> extSetFields = dto.getExtSetField();
+        Integer line = dto.getLine();
+        List<String> datas = Splitter.on(",").splitToList(row);
+        JSONObject jo = null;
+        String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;source不能为空;";
+        phoneSale.setApiCode(dto.getApiCode());
+        phoneSale.setLocalId(dto.getLocalId().toString());
+        phoneSale.setStatus(1);
+        try {
+            Boolean phoneMark = Boolean.TRUE;
+            if (datas.size() != address.size()) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
+                csosPhoneSaleMapper.insertSelective(phoneSale);
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                switch (sureaddress) {
+                    case "uid":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("uid不能为空;", "");
+                        }
+                        phoneSale.setUid(datas.get(i));
+                        break;
+                    case "phone":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("phone不能为空;", "");
+                            Result<String> stringResult = decryptPhone(datas.get(i));
+                            phoneSale.setPhoneAes(datas.get(i));
+                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                                phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
+                            } else {
+                                phoneMark = Boolean.FALSE;
+                            }
+                        }
+                        break;
+                    case "name":
+                            String name = datas.get(i);
+                            phoneSale.setNameAes(name);
+                            phoneSale.setName(decryptCsosName(name));
+                        break;
+                    case "gender":
+                        phoneSale.setGender(datas.get(i));
+                        break;
+                    case "orgname":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("orgName不能为空;", "");
+                            phoneSale.setOrgname(datas.get(i));
+                        }
+                        break;
+                    case "source":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("source不能为空;", "");
+                            phoneSale.setSource(datas.get(i));
+                        }
+                        break;
+                    case "user_type":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("user_type不能为空;", "");
+                            phoneSale.setUserType(datas.get(i));
+                        }
+                        break;
+                    case "household_registration":
+                        phoneSale.setHouseholdRegistration(datas.get(i));
+                        break;
+                    case "age":
+                        phoneSale.setAge(datas.get(i));
+                        break;
+                    case "account_open_date":
+                        phoneSale.setAccountOpenDate(datas.get(i));
+                        break;
+                    case "account_channel":
+                        phoneSale.setAccountChannel(datas.get(i));
+                        break;
+                    case "last_login_app":
+                        phoneSale.setLastLoginApp(datas.get(i));
+                        break;
+                    case "invest_level":
+                        phoneSale.setInvestLevel(datas.get(i));
+                        break;
+                    case "purchase_intent_score":
+                        phoneSale.setPurchaseIntentScore(datas.get(i));
+                        break;
+                    case "marketing_acceptance_level":
+                        phoneSale.setMarketingAcceptanceLevel(datas.get(i));
+                        break;
+                    case "multi_position_count":
+                        phoneSale.setMultiPositionCount(datas.get(i));
+                        break;
+                    case "available_balance":
+                        phoneSale.setAvailableBalance(datas.get(i));
+                        break;
+                    case "account_assets":
+                        phoneSale.setAccountAssets(datas.get(i));
+                        break;
+                    case "deposit_position":
+                        phoneSale.setDepositPosition(datas.get(i));
+                        break;
+                    case "wealth_position":
+                        phoneSale.setWealthPosition(datas.get(i));
+                        break;
+                    case "fund_position":
+                        phoneSale.setFundPosition(datas.get(i));
+                        break;
+                    case "insurance_position":
+                        phoneSale.setInsurancePosition(datas.get(i));
+                        break;
+                    case "buy_and_redeem_record":
+                        phoneSale.setBuyAndRedeemRecord(datas.get(i));
+                        break;
+                    case "has_loan":
+                        phoneSale.setHasLoan(datas.get(i));
+                        break;
+                    case "has_wechat":
+                        phoneSale.setHasWechat(datas.get(i));
+                        break;
+                    case "risk_level":
+                        phoneSale.setRiskLevel(datas.get(i));
+                        break;
+                    case "third_party_custody":
+                        phoneSale.setThirdPartyCustody(datas.get(i));
+                        break;
+                    case "extend":
+                        String s = extSetFields.get(i);
+                        if (StringUtils.isNotBlank(s)) {
+                            if (jo == null) {
+                                jo = new JSONObject();
+                            }
+                            jo.put(s, datas.get(i));
+                        }
+                        break;
+                }
+                if (jo != null) {
+                    phoneSale.setExtend(jo.toJSONString());
+                }
+            }
+            if (!StringUtils.isEmpty(error)) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+            } else if (!phoneMark) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            }
+            Date date = new Date();
+            phoneSale.setCreateTime(date);
+            phoneSale.setUpdateTime(date);
+            csosPhoneSaleMapper.insertSelective(phoneSale);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            phoneSale.setStatus(2);
+            phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            csosPhoneSaleMapper.insertSelective(phoneSale);
+        }
+        return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
+                ? ResultCode.SUCCESS.getValue()
+                : ResultCode.FAIL.getValue());
+    }
+
+
+
+    public String decryptCsosName(String name) {
+        if(StringUtils.isEmpty(name)){
+            return "1";
+        }
+        String res = "";
+        if (DecodeGrpcClient.isMd5(name)) {
+            //cell md5
+            res = RpcClientProxy.decode(name, "name", "md5", "");
+        } else if (name.length() == 64) {
+            //cell sha256
+            res = RpcClientProxy.decode(name, "name", "sha", "");
+        }
+        if (!StringUtils.isEmpty(res)) {
+            return res;
+        }
+        if(StringUtils.isNotBlank(name)){
+            return name;
+        }
+        return "1";
+    }
+
 }

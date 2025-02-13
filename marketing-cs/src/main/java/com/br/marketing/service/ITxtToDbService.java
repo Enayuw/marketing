@@ -41,4 +41,6 @@ public interface ITxtToDbService {
     Result phoneTodbByYiXin(TxtToDbDTO content);
 
     Result<Integer> phoneTodbByYiXinAfterAction(LocalFile file);
+
+    Result csosPhoneTodb(TxtToDbDTO txtToDbDTO);
 }

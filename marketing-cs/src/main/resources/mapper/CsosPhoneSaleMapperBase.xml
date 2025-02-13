@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.CsosPhoneSaleMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CsosPhoneSale">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="local_id" jdbcType="VARCHAR" property="localId" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="data_message" jdbcType="VARCHAR" property="dataMessage" />
+    <result column="uid" jdbcType="VARCHAR" property="uid" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="phone_aes" jdbcType="VARCHAR" property="phoneAes" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="name_aes" jdbcType="VARCHAR" property="nameAes" />
+    <result column="gender" jdbcType="VARCHAR" property="gender" />
+    <result column="orgname" jdbcType="VARCHAR" property="orgname" />
+    <result column="source" jdbcType="VARCHAR" property="source" />
+    <result column="user_type" jdbcType="VARCHAR" property="userType" />
+    <result column="household_registration" jdbcType="VARCHAR" property="householdRegistration" />
+    <result column="age" jdbcType="VARCHAR" property="age" />
+    <result column="account_open_date" jdbcType="VARCHAR" property="accountOpenDate" />
+    <result column="account_channel" jdbcType="VARCHAR" property="accountChannel" />
+    <result column="last_login_app" jdbcType="VARCHAR" property="lastLoginApp" />
+    <result column="invest_level" jdbcType="VARCHAR" property="investLevel" />
+    <result column="purchase_intent_score" jdbcType="VARCHAR" property="purchaseIntentScore" />
+    <result column="marketing_acceptance_level" jdbcType="VARCHAR" property="marketingAcceptanceLevel" />
+    <result column="multi_position_count" jdbcType="VARCHAR" property="multiPositionCount" />
+    <result column="available_balance" jdbcType="VARCHAR" property="availableBalance" />
+    <result column="account_assets" jdbcType="VARCHAR" property="accountAssets" />
+    <result column="deposit_position" jdbcType="VARCHAR" property="depositPosition" />
+    <result column="wealth_position" jdbcType="VARCHAR" property="wealthPosition" />
+    <result column="fund_position" jdbcType="VARCHAR" property="fundPosition" />
+    <result column="insurance_position" jdbcType="VARCHAR" property="insurancePosition" />
+    <result column="buy_and_redeem_record" jdbcType="VARCHAR" property="buyAndRedeemRecord" />
+    <result column="has_loan" jdbcType="VARCHAR" property="hasLoan" />
+    <result column="has_wechat" jdbcType="VARCHAR" property="hasWechat" />
+    <result column="risk_level" jdbcType="VARCHAR" property="riskLevel" />
+    <result column="third_party_custody" jdbcType="VARCHAR" property="thirdPartyCustody" />
+    <result column="extend" jdbcType="VARCHAR" property="extend" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, api_code, local_id, `status`, data_message, `uid`, phone, phone_aes, `name`, 
+    name_aes, gender, orgname, `source`, user_type, household_registration, age, account_open_date, 
+    account_channel, last_login_app, invest_level, purchase_intent_score, marketing_acceptance_level, 
+    multi_position_count, available_balance, account_assets, deposit_position, wealth_position, 
+    fund_position, insurance_position, buy_and_redeem_record, has_loan, has_wechat, risk_level, 
+    third_party_custody, extend, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.CsosPhoneSaleExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_csos_phone_sale
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_csos_phone_sale
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_csos_phone_sale
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CsosPhoneSaleExample">
+    delete from b_csos_phone_sale
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CsosPhoneSale" useGeneratedKeys="true">
+    insert into b_csos_phone_sale (api_code, local_id, `status`, 
+      data_message, `uid`, phone, 
+      phone_aes, `name`, name_aes, 
+      gender, orgname, `source`, 
+      user_type, household_registration, age, 
+      account_open_date, account_channel, last_login_app, 
+      invest_level, purchase_intent_score, marketing_acceptance_level, 
+      multi_position_count, available_balance, account_assets, 
+      deposit_position, wealth_position, fund_position, 
+      insurance_position, buy_and_redeem_record, 
+      has_loan, has_wechat, risk_level, 
+      third_party_custody, extend, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{dataMessage,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
+      #{phoneAes,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{nameAes,jdbcType=VARCHAR}, 
+      #{gender,jdbcType=VARCHAR}, #{orgname,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, 
+      #{userType,jdbcType=VARCHAR}, #{householdRegistration,jdbcType=VARCHAR}, #{age,jdbcType=VARCHAR}, 
+      #{accountOpenDate,jdbcType=VARCHAR}, #{accountChannel,jdbcType=VARCHAR}, #{lastLoginApp,jdbcType=VARCHAR}, 
+      #{investLevel,jdbcType=VARCHAR}, #{purchaseIntentScore,jdbcType=VARCHAR}, #{marketingAcceptanceLevel,jdbcType=VARCHAR}, 
+      #{multiPositionCount,jdbcType=VARCHAR}, #{availableBalance,jdbcType=VARCHAR}, #{accountAssets,jdbcType=VARCHAR}, 
+      #{depositPosition,jdbcType=VARCHAR}, #{wealthPosition,jdbcType=VARCHAR}, #{fundPosition,jdbcType=VARCHAR}, 
+      #{insurancePosition,jdbcType=VARCHAR}, #{buyAndRedeemRecord,jdbcType=VARCHAR}, 
+      #{hasLoan,jdbcType=VARCHAR}, #{hasWechat,jdbcType=VARCHAR}, #{riskLevel,jdbcType=VARCHAR}, 
+      #{thirdPartyCustody,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CsosPhoneSale" useGeneratedKeys="true">
+    insert into b_csos_phone_sale
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        api_code,
+      </if>
+      <if test="localId != null">
+        local_id,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="dataMessage != null">
+        data_message,
+      </if>
+      <if test="uid != null">
+        `uid`,
+      </if>
+      <if test="phone != null">
+        phone,
+      </if>
+      <if test="phoneAes != null">
+        phone_aes,
+      </if>
+      <if test="name != null">
+        `name`,
+      </if>
+      <if test="nameAes != null">
+        name_aes,
+      </if>
+      <if test="gender != null">
+        gender,
+      </if>
+      <if test="orgname != null">
+        orgname,
+      </if>
+      <if test="source != null">
+        `source`,
+      </if>
+      <if test="userType != null">
+        user_type,
+      </if>
+      <if test="householdRegistration != null">
+        household_registration,
+      </if>
+      <if test="age != null">
+        age,
+      </if>
+      <if test="accountOpenDate != null">
+        account_open_date,
+      </if>
+      <if test="accountChannel != null">
+        account_channel,
+      </if>
+      <if test="lastLoginApp != null">
+        last_login_app,
+      </if>
+      <if test="investLevel != null">
+        invest_level,
+      </if>
+      <if test="purchaseIntentScore != null">
+        purchase_intent_score,
+      </if>
+      <if test="marketingAcceptanceLevel != null">
+        marketing_acceptance_level,
+      </if>
+      <if test="multiPositionCount != null">
+        multi_position_count,
+      </if>
+      <if test="availableBalance != null">
+        available_balance,
+      </if>
+      <if test="accountAssets != null">
+        account_assets,
+      </if>
+      <if test="depositPosition != null">
+        deposit_position,
+      </if>
+      <if test="wealthPosition != null">
+        wealth_position,
+      </if>
+      <if test="fundPosition != null">
+        fund_position,
+      </if>
+      <if test="insurancePosition != null">
+        insurance_position,
+      </if>
+      <if test="buyAndRedeemRecord != null">
+        buy_and_redeem_record,
+      </if>
+      <if test="hasLoan != null">
+        has_loan,
+      </if>
+      <if test="hasWechat != null">
+        has_wechat,
+      </if>
+      <if test="riskLevel != null">
+        risk_level,
+      </if>
+      <if test="thirdPartyCustody != null">
+        third_party_custody,
+      </if>
+      <if test="extend != null">
+        extend,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null">
+        #{localId,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null">
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null">
+        #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneAes != null">
+        #{phoneAes,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="nameAes != null">
+        #{nameAes,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null">
+        #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="orgname != null">
+        #{orgname,jdbcType=VARCHAR},
+      </if>
+      <if test="source != null">
+        #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null">
+        #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="householdRegistration != null">
+        #{householdRegistration,jdbcType=VARCHAR},
+      </if>
+      <if test="age != null">
+        #{age,jdbcType=VARCHAR},
+      </if>
+      <if test="accountOpenDate != null">
+        #{accountOpenDate,jdbcType=VARCHAR},
+      </if>
+      <if test="accountChannel != null">
+        #{accountChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="lastLoginApp != null">
+        #{lastLoginApp,jdbcType=VARCHAR},
+      </if>
+      <if test="investLevel != null">
+        #{investLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="purchaseIntentScore != null">
+        #{purchaseIntentScore,jdbcType=VARCHAR},
+      </if>
+      <if test="marketingAcceptanceLevel != null">
+        #{marketingAcceptanceLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="multiPositionCount != null">
+        #{multiPositionCount,jdbcType=VARCHAR},
+      </if>
+      <if test="availableBalance != null">
+        #{availableBalance,jdbcType=VARCHAR},
+      </if>
+      <if test="accountAssets != null">
+        #{accountAssets,jdbcType=VARCHAR},
+      </if>
+      <if test="depositPosition != null">
+        #{depositPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="wealthPosition != null">
+        #{wealthPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="fundPosition != null">
+        #{fundPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="insurancePosition != null">
+        #{insurancePosition,jdbcType=VARCHAR},
+      </if>
+      <if test="buyAndRedeemRecord != null">
+        #{buyAndRedeemRecord,jdbcType=VARCHAR},
+      </if>
+      <if test="hasLoan != null">
+        #{hasLoan,jdbcType=VARCHAR},
+      </if>
+      <if test="hasWechat != null">
+        #{hasWechat,jdbcType=VARCHAR},
+      </if>
+      <if test="riskLevel != null">
+        #{riskLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="thirdPartyCustody != null">
+        #{thirdPartyCustody,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null">
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.CsosPhoneSaleExample" resultType="java.lang.Long">
+    select count(*) from b_csos_phone_sale
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_csos_phone_sale
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localId != null">
+        local_id = #{record.localId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataMessage != null">
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.uid != null">
+        `uid` = #{record.uid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.phone != null">
+        phone = #{record.phone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.phoneAes != null">
+        phone_aes = #{record.phoneAes,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null">
+        `name` = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.nameAes != null">
+        name_aes = #{record.nameAes,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gender != null">
+        gender = #{record.gender,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgname != null">
+        orgname = #{record.orgname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.source != null">
+        `source` = #{record.source,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userType != null">
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.householdRegistration != null">
+        household_registration = #{record.householdRegistration,jdbcType=VARCHAR},
+      </if>
+      <if test="record.age != null">
+        age = #{record.age,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accountOpenDate != null">
+        account_open_date = #{record.accountOpenDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accountChannel != null">
+        account_channel = #{record.accountChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastLoginApp != null">
+        last_login_app = #{record.lastLoginApp,jdbcType=VARCHAR},
+      </if>
+      <if test="record.investLevel != null">
+        invest_level = #{record.investLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.purchaseIntentScore != null">
+        purchase_intent_score = #{record.purchaseIntentScore,jdbcType=VARCHAR},
+      </if>
+      <if test="record.marketingAcceptanceLevel != null">
+        marketing_acceptance_level = #{record.marketingAcceptanceLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.multiPositionCount != null">
+        multi_position_count = #{record.multiPositionCount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.availableBalance != null">
+        available_balance = #{record.availableBalance,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accountAssets != null">
+        account_assets = #{record.accountAssets,jdbcType=VARCHAR},
+      </if>
+      <if test="record.depositPosition != null">
+        deposit_position = #{record.depositPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wealthPosition != null">
+        wealth_position = #{record.wealthPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fundPosition != null">
+        fund_position = #{record.fundPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.insurancePosition != null">
+        insurance_position = #{record.insurancePosition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.buyAndRedeemRecord != null">
+        buy_and_redeem_record = #{record.buyAndRedeemRecord,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hasLoan != null">
+        has_loan = #{record.hasLoan,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hasWechat != null">
+        has_wechat = #{record.hasWechat,jdbcType=VARCHAR},
+      </if>
+      <if test="record.riskLevel != null">
+        risk_level = #{record.riskLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.thirdPartyCustody != null">
+        third_party_custody = #{record.thirdPartyCustody,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null">
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_csos_phone_sale
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      local_id = #{record.localId,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      `uid` = #{record.uid,jdbcType=VARCHAR},
+      phone = #{record.phone,jdbcType=VARCHAR},
+      phone_aes = #{record.phoneAes,jdbcType=VARCHAR},
+      `name` = #{record.name,jdbcType=VARCHAR},
+      name_aes = #{record.nameAes,jdbcType=VARCHAR},
+      gender = #{record.gender,jdbcType=VARCHAR},
+      orgname = #{record.orgname,jdbcType=VARCHAR},
+      `source` = #{record.source,jdbcType=VARCHAR},
+      user_type = #{record.userType,jdbcType=VARCHAR},
+      household_registration = #{record.householdRegistration,jdbcType=VARCHAR},
+      age = #{record.age,jdbcType=VARCHAR},
+      account_open_date = #{record.accountOpenDate,jdbcType=VARCHAR},
+      account_channel = #{record.accountChannel,jdbcType=VARCHAR},
+      last_login_app = #{record.lastLoginApp,jdbcType=VARCHAR},
+      invest_level = #{record.investLevel,jdbcType=VARCHAR},
+      purchase_intent_score = #{record.purchaseIntentScore,jdbcType=VARCHAR},
+      marketing_acceptance_level = #{record.marketingAcceptanceLevel,jdbcType=VARCHAR},
+      multi_position_count = #{record.multiPositionCount,jdbcType=VARCHAR},
+      available_balance = #{record.availableBalance,jdbcType=VARCHAR},
+      account_assets = #{record.accountAssets,jdbcType=VARCHAR},
+      deposit_position = #{record.depositPosition,jdbcType=VARCHAR},
+      wealth_position = #{record.wealthPosition,jdbcType=VARCHAR},
+      fund_position = #{record.fundPosition,jdbcType=VARCHAR},
+      insurance_position = #{record.insurancePosition,jdbcType=VARCHAR},
+      buy_and_redeem_record = #{record.buyAndRedeemRecord,jdbcType=VARCHAR},
+      has_loan = #{record.hasLoan,jdbcType=VARCHAR},
+      has_wechat = #{record.hasWechat,jdbcType=VARCHAR},
+      risk_level = #{record.riskLevel,jdbcType=VARCHAR},
+      third_party_custody = #{record.thirdPartyCustody,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CsosPhoneSale">
+    update b_csos_phone_sale
+    <set>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null">
+        local_id = #{localId,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null">
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null">
+        `uid` = #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneAes != null">
+        phone_aes = #{phoneAes,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="nameAes != null">
+        name_aes = #{nameAes,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null">
+        gender = #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="orgname != null">
+        orgname = #{orgname,jdbcType=VARCHAR},
+      </if>
+      <if test="source != null">
+        `source` = #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null">
+        user_type = #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="householdRegistration != null">
+        household_registration = #{householdRegistration,jdbcType=VARCHAR},
+      </if>
+      <if test="age != null">
+        age = #{age,jdbcType=VARCHAR},
+      </if>
+      <if test="accountOpenDate != null">
+        account_open_date = #{accountOpenDate,jdbcType=VARCHAR},
+      </if>
+      <if test="accountChannel != null">
+        account_channel = #{accountChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="lastLoginApp != null">
+        last_login_app = #{lastLoginApp,jdbcType=VARCHAR},
+      </if>
+      <if test="investLevel != null">
+        invest_level = #{investLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="purchaseIntentScore != null">
+        purchase_intent_score = #{purchaseIntentScore,jdbcType=VARCHAR},
+      </if>
+      <if test="marketingAcceptanceLevel != null">
+        marketing_acceptance_level = #{marketingAcceptanceLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="multiPositionCount != null">
+        multi_position_count = #{multiPositionCount,jdbcType=VARCHAR},
+      </if>
+      <if test="availableBalance != null">
+        available_balance = #{availableBalance,jdbcType=VARCHAR},
+      </if>
+      <if test="accountAssets != null">
+        account_assets = #{accountAssets,jdbcType=VARCHAR},
+      </if>
+      <if test="depositPosition != null">
+        deposit_position = #{depositPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="wealthPosition != null">
+        wealth_position = #{wealthPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="fundPosition != null">
+        fund_position = #{fundPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="insurancePosition != null">
+        insurance_position = #{insurancePosition,jdbcType=VARCHAR},
+      </if>
+      <if test="buyAndRedeemRecord != null">
+        buy_and_redeem_record = #{buyAndRedeemRecord,jdbcType=VARCHAR},
+      </if>
+      <if test="hasLoan != null">
+        has_loan = #{hasLoan,jdbcType=VARCHAR},
+      </if>
+      <if test="hasWechat != null">
+        has_wechat = #{hasWechat,jdbcType=VARCHAR},
+      </if>
+      <if test="riskLevel != null">
+        risk_level = #{riskLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="thirdPartyCustody != null">
+        third_party_custody = #{thirdPartyCustody,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null">
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CsosPhoneSale">
+    update b_csos_phone_sale
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      local_id = #{localId,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      `uid` = #{uid,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      phone_aes = #{phoneAes,jdbcType=VARCHAR},
+      `name` = #{name,jdbcType=VARCHAR},
+      name_aes = #{nameAes,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=VARCHAR},
+      orgname = #{orgname,jdbcType=VARCHAR},
+      `source` = #{source,jdbcType=VARCHAR},
+      user_type = #{userType,jdbcType=VARCHAR},
+      household_registration = #{householdRegistration,jdbcType=VARCHAR},
+      age = #{age,jdbcType=VARCHAR},
+      account_open_date = #{accountOpenDate,jdbcType=VARCHAR},
+      account_channel = #{accountChannel,jdbcType=VARCHAR},
+      last_login_app = #{lastLoginApp,jdbcType=VARCHAR},
+      invest_level = #{investLevel,jdbcType=VARCHAR},
+      purchase_intent_score = #{purchaseIntentScore,jdbcType=VARCHAR},
+      marketing_acceptance_level = #{marketingAcceptanceLevel,jdbcType=VARCHAR},
+      multi_position_count = #{multiPositionCount,jdbcType=VARCHAR},
+      available_balance = #{availableBalance,jdbcType=VARCHAR},
+      account_assets = #{accountAssets,jdbcType=VARCHAR},
+      deposit_position = #{depositPosition,jdbcType=VARCHAR},
+      wealth_position = #{wealthPosition,jdbcType=VARCHAR},
+      fund_position = #{fundPosition,jdbcType=VARCHAR},
+      insurance_position = #{insurancePosition,jdbcType=VARCHAR},
+      buy_and_redeem_record = #{buyAndRedeemRecord,jdbcType=VARCHAR},
+      has_loan = #{hasLoan,jdbcType=VARCHAR},
+      has_wechat = #{hasWechat,jdbcType=VARCHAR},
+      risk_level = #{riskLevel,jdbcType=VARCHAR},
+      third_party_custody = #{thirdPartyCustody,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
