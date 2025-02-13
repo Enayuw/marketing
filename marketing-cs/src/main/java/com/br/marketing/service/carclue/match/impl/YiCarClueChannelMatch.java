@@ -163,7 +163,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
                 carClueInfo.setClueMatchSeries(seriesMatch);
                 //非手动补全
                 if (carClueInfo.getClueCompleteStatus() == 0 || carClueInfo.getClueCompleteStatus() == 1) {
-                    carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
+                    carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.SYSTEM_COMPLETE.getValue());
                 }
                 carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());
                 return Boolean.TRUE;
