@@ -53,8 +53,8 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             carClueInfo.setClueMatchBrand(brand);
             carClueInfo.setClueMatchSeries(series);
             carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.COMPLETE_MATCH.getValue());
-            //为空进行赋值补全状态
-            if (Objects.isNull(carClueInfo.getClueCompleteStatus())) {
+            //非手动补全
+            if (carClueInfo.getClueCompleteStatus() == 0 || carClueInfo.getClueCompleteStatus() == 1) {
                 carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
             }
         } else {
@@ -161,7 +161,8 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             if (StringUtils.isNotEmpty(seriesMatch)) {
                 carClueInfo.setClueMatchBrand(brandMatch);
                 carClueInfo.setClueMatchSeries(seriesMatch);
-                if (Objects.isNull(carClueInfo.getClueCompleteStatus())) {
+                //非手动补全
+                if (carClueInfo.getClueCompleteStatus() == 0 || carClueInfo.getClueCompleteStatus() == 1) {
                     carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
                 }
                 carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());
@@ -186,7 +187,8 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             }
             carClueInfo.setClueMatchBrand(matchBrand);
             carClueInfo.setClueMatchSeries(seriesMatch);
-            if (Objects.isNull(carClueInfo.getClueCompleteStatus())) {
+            //非手动补全
+            if (carClueInfo.getClueCompleteStatus() == 0 || carClueInfo.getClueCompleteStatus() == 1) {
                 carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.SYSTEM_COMPLETE.getValue());
             }
             carClueInfo.setMatchBrandSeriesType(CarClueMatchTypeEnum.FUZZY_MATCH.getValue());
