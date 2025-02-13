@@ -4,17 +4,17 @@ import java.util.Date;
 
 public class CarClueInfo {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String cid;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -124,7 +124,7 @@ public class CarClueInfo {
     private Integer clueDataStatus;
 
     /**
-     * 线索补全状态：0-无需补全；1-系统补全；2-缺失线索手动补全；3-异常线索手动补全
+     * 线索补全状态：0-未补全；1-系统补全；2-缺失线索手动补全；3-异常线索手动补全
      */
     private Integer clueCompleteStatus;
 
@@ -137,6 +137,11 @@ public class CarClueInfo {
      * 回调状态：0-待回调；1-回调成功；2-回调失败
      */
     private Integer clueCallbackStatus;
+
+    /**
+     * 线索推送异常原因
+     */
+    private String cluePushErrorReason;
 
     /**
      * 线索异常原因
@@ -157,6 +162,11 @@ public class CarClueInfo {
      * 回调结果
      */
     private Integer clueCallbackFinalState;
+
+    /**
+     * 资源标识
+     */
+    private String resourceType;
 
     /**
      * 扩展信息字段
@@ -404,6 +414,14 @@ public class CarClueInfo {
         this.clueCallbackStatus = clueCallbackStatus;
     }
 
+    public String getCluePushErrorReason() {
+        return cluePushErrorReason;
+    }
+
+    public void setCluePushErrorReason(String cluePushErrorReason) {
+        this.cluePushErrorReason = cluePushErrorReason == null ? null : cluePushErrorReason.trim();
+    }
+
     public String getClueErrorReason() {
         return clueErrorReason;
     }
@@ -434,6 +452,14 @@ public class CarClueInfo {
 
     public void setClueCallbackFinalState(Integer clueCallbackFinalState) {
         this.clueCallbackFinalState = clueCallbackFinalState;
+    }
+
+    public String getResourceType() {
+        return resourceType;
+    }
+
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType == null ? null : resourceType.trim();
     }
 
     public String getExtendInfo() {

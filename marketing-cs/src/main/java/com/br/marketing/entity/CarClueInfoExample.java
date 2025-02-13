@@ -1935,6 +1935,76 @@ public class CarClueInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andCluePushErrorReasonIsNull() {
+            addCriterion("clue_push_error_reason is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonIsNotNull() {
+            addCriterion("clue_push_error_reason is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonEqualTo(String value) {
+            addCriterion("clue_push_error_reason =", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotEqualTo(String value) {
+            addCriterion("clue_push_error_reason <>", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonGreaterThan(String value) {
+            addCriterion("clue_push_error_reason >", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonGreaterThanOrEqualTo(String value) {
+            addCriterion("clue_push_error_reason >=", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonLessThan(String value) {
+            addCriterion("clue_push_error_reason <", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonLessThanOrEqualTo(String value) {
+            addCriterion("clue_push_error_reason <=", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonLike(String value) {
+            addCriterion("clue_push_error_reason like", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotLike(String value) {
+            addCriterion("clue_push_error_reason not like", value, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonIn(List<String> values) {
+            addCriterion("clue_push_error_reason in", values, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotIn(List<String> values) {
+            addCriterion("clue_push_error_reason not in", values, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonBetween(String value1, String value2) {
+            addCriterion("clue_push_error_reason between", value1, value2, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
+        public Criteria andCluePushErrorReasonNotBetween(String value1, String value2) {
+            addCriterion("clue_push_error_reason not between", value1, value2, "cluePushErrorReason");
+            return (Criteria) this;
+        }
+
         public Criteria andClueErrorReasonIsNull() {
             addCriterion("clue_error_reason is null");
             return (Criteria) this;
@@ -2192,6 +2262,76 @@ public class CarClueInfoExample {
 
         public Criteria andClueCallbackFinalStateNotBetween(Integer value1, Integer value2) {
             addCriterion("clue_callback_final_state not between", value1, value2, "clueCallbackFinalState");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeIsNull() {
+            addCriterion("resource_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeIsNotNull() {
+            addCriterion("resource_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeEqualTo(String value) {
+            addCriterion("resource_type =", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeNotEqualTo(String value) {
+            addCriterion("resource_type <>", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeGreaterThan(String value) {
+            addCriterion("resource_type >", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("resource_type >=", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeLessThan(String value) {
+            addCriterion("resource_type <", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeLessThanOrEqualTo(String value) {
+            addCriterion("resource_type <=", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeLike(String value) {
+            addCriterion("resource_type like", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeNotLike(String value) {
+            addCriterion("resource_type not like", value, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeIn(List<String> values) {
+            addCriterion("resource_type in", values, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeNotIn(List<String> values) {
+            addCriterion("resource_type not in", values, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeBetween(String value1, String value2) {
+            addCriterion("resource_type between", value1, value2, "resourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceTypeNotBetween(String value1, String value2) {
+            addCriterion("resource_type not between", value1, value2, "resourceType");
             return (Criteria) this;
         }
 

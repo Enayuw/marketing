@@ -324,6 +324,12 @@ api:
     secret: tKkr6BqgnGHPij3E3zzJEiyhXUi2T6Xt
     aesKey: 91d23007684c45f5a750fa97d4594821
     isProxy: true
+  hxCar:
+    baseUrl: http://haoyunlailai.cn:6001
+    carList: ${api.hxCar.baseUrl}/open_api/v1/car_list
+    cityList: ${api.hxCar.baseUrl}/open_api/v1/city_list
+    commitClue: ${api.hxCar.baseUrl}/open_api/v1/test_commit_clue
+    isProxy: true
 
 spring:
   rabbitmq:

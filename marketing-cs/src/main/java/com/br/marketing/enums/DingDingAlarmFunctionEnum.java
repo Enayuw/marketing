@@ -22,6 +22,7 @@ public enum DingDingAlarmFunctionEnum {
     //360 有效期变更通知
     QIFU_VALIDITY_CHANGE,
     RONGSHU_FILE_CLEAN_UPLOAD_READFILE,
+    CARCLUES_ERROR_MESSAGE,
 
     ;
 }

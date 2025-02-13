@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.CarClueSeriesInformationMapper">
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_car_clue_series_information (
+        api_code,
+        brand_id,
+        brand_name,
+        sub_brand_id,
+        sub_brand_name,
+        series_id,
+        series_name,
+        applet_date,
+        create_time,
+        update_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.brandId, jdbcType=INTEGER},
+            #{item.brandName, jdbcType=VARCHAR},
+            #{item.subBrandId, jdbcType=INTEGER},
+            #{item.subBrandName, jdbcType=VARCHAR},
+            #{item.seriesId, jdbcType=INTEGER},
+            #{item.seriesName, jdbcType=VARCHAR},
+            DATE_FORMAT(NOW(), '%Y-%m-%d'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+        </foreach>
+    </insert>
+
+    <select id="getMaxCleanDate" resultType="java.lang.String">
+
+        select max(applet_date)
+        from b_car_clue_series_information
+        where is_del = 1
+
+    </select>
+
+
+
+</mapper>

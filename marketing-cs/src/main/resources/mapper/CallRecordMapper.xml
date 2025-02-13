@@ -94,4 +94,44 @@
         and date(create_time) = #{nowDate}
         group by case_num
     </select>
+
+    <select id="cleanDataOfMinId" resultType="java.lang.Long">
+        SELECT min(bcr.id)
+        FROM b_call_record bcr
+                 LEFT JOIN b_call_record_log bcrl
+                           ON bcr.id = bcrl.record_id
+        WHERE bcr.api_code = #{apiCode,jdbcType=VARCHAR}
+          and bcr.create_time >= #{date}
+          AND bcrl.record_id IS NULL;
+    </select>
+
+    <select id="cleanDataByMinId" resultType="com.br.marketing.entity.CallRecord">
+        SELECT bcr.*
+        FROM b_call_record bcr
+            LEFT JOIN b_call_record_log bcrl
+                ON bcr.id = bcrl.record_id
+        WHERE bcr.api_code = #{apiCode,jdbcType=VARCHAR}
+          AND bcr.create_time >= #{date}
+        <if test="minId != null and minId > 0">
+            and bcr.id > #{minId,jdbcType=BIGINT}
+        </if>
+          AND bcrl.record_id IS NULL
+        ORDER BY bcr.id
+        LIMIT #{limit,jdbcType=INTEGER}
+    </select>
+
+    <update id="updateSyncStatusByIds">
+        update b_call_record
+        set sync_status=#{syncStatus}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateSyncStatusById">
+        update b_call_record
+        set sync_status = #{syncStatus}
+        where id = #{id}
+    </update>
 </mapper>
