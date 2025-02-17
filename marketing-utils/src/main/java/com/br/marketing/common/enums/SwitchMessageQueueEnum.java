@@ -9,13 +9,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum SwitchMessageQueueEnum {
-    /**
-     * 消息队列配置
-     */
     MARKETING_AI_PREUSER_RECEIVE("Marketing.Ai.PreUser.Receive", "MARKETING_AI_PREUSER_RECEIVE",
             new String[]{"MARKETING_AI_PREUSER_RECEIVE_1", "MARKETING_AI_PREUSER_RECEIVE_2"}, "AI上传数据队列"),
+
     MARKETING_AI_UNIVERSAL_RECEIVE("Marketing.Ai.Universal.Receive", "MARKETING_AI_UNIVERSAL_RECEIVE",
             new String[]{"MARKETING_AI_UNIVERSAL_RECEIVE_1", "MARKETING_AI_UNIVERSAL_RECEIVE_2"}, "AI推送下游通用队列");
+
 
     private final String route_key;
     private final String default_queue;
