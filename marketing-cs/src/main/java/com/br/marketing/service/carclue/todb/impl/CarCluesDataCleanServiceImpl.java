@@ -134,23 +134,24 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
                                 String member = getPhoneFromJsonObject(jsonObject, "cusName");
                                 String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
-                                String intentionGrade = callRecord.getIntentionGrade();
+                                String intentionGrade = ObjectUtil.isNotEmpty(callRecord.getIntentionGrade()) ?
+                                        callRecord.getIntentionGrade() : "";
                                 if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
                                     CarClueInfo carClueInfo = new CarClueInfo();
                                     carClueInfo.setCid(cid);
                                     carClueInfo.setApiCode(apiCode);
                                     carClueInfo.setCustNum(callRecord.getCaseNum());
-                                    carClueInfo.setIntention(intentionGrade);
-                                    carClueInfo.setRecordingPath(callRecord.getRecordingPath());
-                                    carClueInfo.setBrand(carBrand);
-                                    carClueInfo.setSeries(carSeries);
                                     carClueInfo.setCell(phone);
+                                    carClueInfo.setIntention(intentionGrade);
+                                    carClueInfo.setBrand(carBrand);
+                                    carClueInfo.setMember(member);
+                                    carClueInfo.setSeries(carSeries);
                                     carClueInfo.setProvince(province);
                                     carClueInfo.setCity(city);
-                                    carClueInfo.setMember(member);
-                                    carClueInfo.setResourceType(resourceType);
+                                    carClueInfo.setRecordingPath(callRecord.getRecordingPath());
                                     carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                                     carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
+                                    carClueInfo.setResourceType(resourceType);
                                     carClueInfo.setCreateTime(new Date());
                                     carClueInfo.setUpdateTime(new Date());
                                     carClueInfos.add(carClueInfo);
