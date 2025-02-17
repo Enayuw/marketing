@@ -107,6 +107,11 @@ public class MQConstants {
     public static final String MARKETING_GUOMEI_BLACK_DATA_CLEAN_QUEUE = "marketing_guomei_black_data_clean_queue";
     public static final String MARKETING_HENGCHANG_DATA_CLEAN_QUEUE = "marketing_hengchang_data_clean_queue";
     public static final String MARKETING_WUBA_COLLIDING_ELIMINATE_QUEUE = "marketing_wuba_colliding_eliminate_queue";
+    // AI上传数据队列
+    public static final String MARKETING_AI_PREUSER_RECEIVE = "marketing_ai_preuser_receive";
+    // AI推送下游通用队列
+    public static final String MARKETING_AI_UNIVERSAL_RECEIVE = "marketing_ai_universal_receive";
+
 
     /**
      * routingkey
@@ -211,4 +216,9 @@ public class MQConstants {
 
     public static final String ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN = "marketing.guomei.black.data.clean";
     public static final String ROUTING_KEY_MARKETING_WUBA_COLLIDING_ELIMINATE = "marketing.wuba.colliding.eliminate";
+
+    // AI上传数据队列路由键
+    public static final String ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE = "Marketing.Ai.PreUser.Receive";
+    // AI推送下游通用队列
+    public static final String ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE = "Marketing.Ai.Universal.Receive";
 }
