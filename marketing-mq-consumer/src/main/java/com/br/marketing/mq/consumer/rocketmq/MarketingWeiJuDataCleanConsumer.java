@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.weiju.WeiJuDataCleanService;
+import com.br.marketing.service.clean.weiju.WeiJuDataCleanService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
