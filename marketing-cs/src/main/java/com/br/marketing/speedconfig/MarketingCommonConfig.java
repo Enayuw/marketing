@@ -2583,6 +2583,11 @@ public class MarketingCommonConfig {
     private Boolean xcTruePushCustomerPushPreviewOptFlag;
 
     /**
+     * 携程true包剔除量级预览优化开关
+     */
+    private Boolean xcTrueDeletePushPreviewOptFlag;
+
+    /**
      * 携程规则中心false包操作优化线程数
      */
     private Integer xcFalsePackageOptSoleNum;
@@ -2610,6 +2615,11 @@ public class MarketingCommonConfig {
      * eg:{"7410950":500,"7410960":500}
      */
     private HashMap<String, Integer> toPolicyParamSize;
+
+    /**
+     * 携程false包补充小时值
+     */
+    private Integer xcFalseFalsePackageCleanHour;
 
 }
 
