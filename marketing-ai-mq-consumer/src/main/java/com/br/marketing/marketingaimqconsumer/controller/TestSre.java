@@ -1,7 +1,12 @@
 package com.br.marketing.marketingaimqconsumer.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 不包含MOM发送的测试
@@ -23,24 +29,37 @@ import javax.annotation.Resource;
 @RequestMapping("/sre/")
 @Slf4j
 public class TestSre {
-
+    @Resource
+    RedisChgService redisChgService;
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
+    /**
+     * 验证tidb、rabbitmq、redis、grpc、speed
+     * @param all
+     * @param key
+     * @return
+     */
     @GetMapping("/testSre")
-    public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){
+    public String testApiToDb(@RequestParam("all") String all, @RequestParam("key") String key, @RequestParam("value") String value) {
+        log.warn("all:[{}],key:{},value:{}", all, key, value);
         boolean allFlag = false;
-        if(null != all && "WhoAreYou".equals(all)){
+        if (null != all && "WhoAreYou".equals(all)) {
             allFlag = true;
         }
-        if(allFlag || "log".equals(key)){
+        if (allFlag || "log".equals(key)) {
             log.warn("warn-testSre-key:[{}]", key);
             log.error("error-testSre-key:[{}]", key);
         }
-        if(allFlag || "speed".equals(key)){
+
+        if (allFlag || "speed".equals(key)) {
             log.warn("testSre-speed-key:[{}]-value:[{}]", key, JSON.toJSONString(marketingCommonConfig));
         }
-        if(allFlag || "grpc".equals(key)){
+        if (allFlag || "grpc".equals(key)) {
             // 解密grpc
             String query = DecodeGrpcClient.query("913fb4b537fb433d437edabdfe23b256", "cell"
                     , "md5", "7410086_20240123135700_1234");
@@ -48,10 +67,19 @@ public class TestSre {
             // 商户中心
             String companyMsg = UserCenterGrpcClient.getCompanyMsg("7410086");
             log.warn("商户中心grpc-:[{}]", companyMsg);
-            // 用户中心
-            MerchantParam merchantParam = UserCenterGrpcClient.getMerchantParam("7410785");
-            log.warn("用户中心grpc-:[{}]", JSON.toJSONString(merchantParam));
+        }
 
+        if ("redis".equals(key)) {
+            log.warn("redis-key:[{}]", value);
+            log.warn("redis-value:{}", redisChgService.get(value));
+        }
+        if ("rabbitmq".equals(key)) {
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE, String.valueOf(value));
+            log.warn("rabbitmq-成功");
+        }
+        if ("tidb".equals(key)) {
+            List<MarketingCustomer> customers = marketingCustomerMapper.getNameByApiCodeList(value);
+            log.warn("tidb-:[{}]", JSON.toJSONString(customers));
         }
         return "success";
     }
