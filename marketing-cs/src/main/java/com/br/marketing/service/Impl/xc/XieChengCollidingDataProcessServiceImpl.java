@@ -185,9 +185,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskTypeEqualTo(0)
-                .andTaskStatusEqualTo(1);
+                .andTaskStatusEqualTo(1)
+                .andIsDeleteEqualTo(0);
         processTaskExample.setOrderByClause("create_time asc");
         List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(processTaskExample);
         return taskList;
@@ -204,9 +205,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskTypeEqualTo(0)
-                .andTaskStatusEqualTo(0);
+                .andTaskStatusEqualTo(0)
+                .andIsDeleteEqualTo(0);
         XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
         processTask.setTaskStatus(1);
         processTask.setUpdateTime(new Date());

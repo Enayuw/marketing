@@ -1121,10 +1121,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", batchNumberList));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
-        Integer xcFalseFalsePackageCleanHour = marketingCommonConfig.getXcFalseFalsePackageCleanHour();
         try {
-            xiechengCollidingDataProcessTask
-                    .setTaskStartTime(DateHelper.getDateByHour(DateHelper.parseDate(collidingFilterDTO.getCleanTime()),xcFalseFalsePackageCleanHour));
+            xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
         } catch (Exception e) {
             log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
@@ -1221,10 +1219,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPrePlanNum());
         Integer xcFalseFalsePackageCleanHour = marketingCommonConfig.getXcFalseFalsePackageCleanHour();
-
         try {
             xiechengCollidingDataProcessTask
-                    .setTaskStartTime(DateHelper.getDateByHour(DateHelper.parseDate(collidingFilterDTO.getCleanTime()),xcFalseFalsePackageCleanHour));
+                    .setTaskStartTime(DateHelper.getDateByHour(
+                            DateHelper.parseDate(collidingFilterDTO.getCleanTime()),xcFalseFalsePackageCleanHour));
         } catch (Exception e) {
             log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
