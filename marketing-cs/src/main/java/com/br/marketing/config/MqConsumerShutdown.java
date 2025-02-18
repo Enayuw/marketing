@@ -44,6 +44,9 @@ public class MqConsumerShutdown {
             Optional.ofNullable(drlcMap).ifPresent(
                     (Map<String, DefaultRocketMQListenerContainer> map) -> {
                         int size = map.size();
+                        if (size == 0) {
+                            return;
+                        }
                         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(size, size, new SynchronousQueue<>()
                                 , "RocketMQ-Consumer-Shutdown");
                         CompletionService<DefaultMQPushConsumer> completionService = new ExecutorCompletionService<>(threadPool);
