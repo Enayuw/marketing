@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
 import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
@@ -114,6 +115,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -218,6 +220,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     PushDecisionsMapper pushDecisionsMapper;
+    @Resource
+    ErrorMarkMapper errorMarkMapper;
+    @Resource
+    private ToPolicyByRuleService toPolicyByRuleService;
+
+    private static final String TITLE = "【通用跑分文件推决策】";
 
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
@@ -390,10 +398,13 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result<CustomerInfoPushMain> getPushTask() {
         Date date = Date.from(LocalDate.now().minusDays(2L).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        List<Integer> list = Lists.newArrayList();
+        list.add(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
+        list.add(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
         CustomerInfoPushMainExample pushMainExample = new CustomerInfoPushMainExample();
         pushMainExample.setOrderByClause(" create_time,id limit 1");
         pushMainExample.createCriteria()
-                .andMStatusEqualTo(PushRuleStatusEnum.TO_BE_RUNNING.getValue())
+                .andMStatusIn(list)
                 .andCreateTimeGreaterThanOrEqualTo(date);
         List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(pushMainExample);
         if (customerInfoPushMains.size() > 0) {
@@ -407,16 +418,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         String lockValue = getCanPushTaskLock(taskId);
         if (StringUtils.isNotBlank(lockValue)) {
             CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(taskId);
-            if (!customerInfoPushMain.getmStatus().equals(PushRuleStatusEnum.TO_BE_RUNNING.getValue())) {
+            if (customerInfoPushMain.getmStatus().equals(PushRuleStatusEnum.TO_BE_RUNNING.getValue())) {
+                CustomerInfoPushMain updateEntity = new CustomerInfoPushMain();
+                updateEntity.setId(taskId);
+                updateEntity.setmStatus(PushRuleStatusEnum.RUNNING.getValue());
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(updateEntity);
                 removeCanPushTaskLock(taskId, lockValue);
-                return new Result().setCode(ResultCode.FAIL.getValue());
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }else if(customerInfoPushMain.getmStatus().equals(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue())){
+                CustomerInfoPushMain updateEntity = new CustomerInfoPushMain();
+                updateEntity.setId(taskId);
+                updateEntity.setmStatus(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue());
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(updateEntity);
+                removeCanPushTaskLock(taskId, lockValue);
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
-            CustomerInfoPushMain updateEntity = new CustomerInfoPushMain();
-            updateEntity.setId(taskId);
-            updateEntity.setmStatus(PushRuleStatusEnum.RUNNING.getValue());
-            customerInfoPushMainMapper.updateByPrimaryKeySelective(updateEntity);
             removeCanPushTaskLock(taskId, lockValue);
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
+            return new Result().setCode(ResultCode.FAIL.getValue());
         }
         return new Result().setCode(ResultCode.FAIL.getValue());
     }
@@ -475,7 +493,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
             pushNum = dto.getmPrePlanNum();
             customerInfoPushMain.setFilterType(1);
-            customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO));
+            Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
+            if (!xcTruePushCustomerPushPreviewOptFlag) {
+                customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO));
+            } else {
+                List<String> querySqls = new ArrayList<>();
+                cycleDataQueryOpt(jsonObject, dto.getBatchNumberList(), collidingFilterDTO, querySqls);
+                customerInfoPushMain.setExtend(String.join(";", querySqls));
+            }
         } else {
             Result<PushViewVO> totalRes = getTotal(dto);
             if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
@@ -573,6 +598,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //blacklist_delete有值时，前端控制不会做量级预览
         int total = 0;
         String querySql = "";
+        List<String> querySqls = new ArrayList<>();
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
@@ -580,7 +606,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         if ("true".equals(collidingFilterDTO.getResult())) {
             if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
                 //推决策
-                querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+                Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
+                if (xcTruePushCustomerPushPreviewOptFlag) {
+                    cycleDataQueryOpt(jsonObject, batchNumberList, collidingFilterDTO, querySqls);
+                } else {
+                    querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+                }
             } else {
                 //true包剔除
                 querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
@@ -589,23 +620,112 @@ public class PushRuleServiceImpl implements PushRuleService {
             String info = collidingFilterDTO.getInfo();
             if (Objects.isNull(info)) {
                 //false包补充
-                querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
+                Boolean xcFalsePackagePushPreviewOptFlag = marketingCommonConfig.getXcFalsePackagePushPreviewOptFlag();
+                if (xcFalsePackagePushPreviewOptFlag) {
+                    falseDataQueryOpt(jsonObject, batchNumberList, querySqls, true);
+                } else {
+                    querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
+                }
             } else {
                 if (info.equals("") || info.equalsIgnoreCase("NULL")) {
                     //false动态包剔除
-                    querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList,
-                            marketingCommonConfig.getXcDynaFalsePackageIds(), true);
+                    Boolean xcFalsePackageDynaPushPreviewOptFlag = marketingCommonConfig.getXcFalsePackageDynaPushPreviewOptFlag();
+                    if (xcFalsePackageDynaPushPreviewOptFlag) {
+                        dynaPackageDeleteConditionOpt(
+                                jsonObject, batchNumberList, marketingCommonConfig.getXcDynaFalsePackageIds(), querySqls, true);
+                    } else {
+                        querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList,
+                                marketingCommonConfig.getXcDynaFalsePackageIds(), true);
+                    }
                 }
             }
         }
-        log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
         // 查询Doris
         try {
-            total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
+            if (CollectionUtils.isEmpty(querySqls)) {
+                log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
+                total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
+            } else {
+                log.warn("规则中心携程={} 的试算量级样例sql={}", collidingFilterDTO.getResult(), querySqls.get(0));
+                total = getTotalOpt(querySqls, marketingCommonConfig.getXcFalsePackageOptSoleNum());
+            }
         } catch (Exception e) {
-            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
+            if (CollectionUtils.isEmpty(querySqls)) {
+                log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
+            } else {
+                log.error("规则中心-携程撞库筛选查询Doris异常,sqls={}", String.join("", querySqls), e);
+            }
         }
         return total;
+    }
+
+
+
+    /**
+     * @param querySqls
+     * @param xcFalsePackageOptSoleNum
+     * @return int
+     * @description 多线程获取量级
+     * @author hedongshuo
+     * @date 2025/1/7 16:01
+     **/
+    private int getTotalOpt(List<String> querySqls, Integer xcFalsePackageOptSoleNum) {
+        AtomicInteger batchCount = new AtomicInteger(0);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xcFalsePackageOptSoleNum, xcFalsePackageOptSoleNum);
+        for (String sql : querySqls) {
+            futures.add(CompletableFuture.runAsync(() -> {
+                batchCount.addAndGet(scoreRecordMapper.getXieChengDataNumdoris_(sql));
+            }, threadPool));
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        return batchCount.get();
+    }
+
+    private void dynaPackageDeleteConditionOpt(
+            JSONObject jsonObject, List<String> batchNumberList, List<String> xcDynaFalsePackageIds, List<String> querySqls, boolean isPreview) {
+        if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
+            xcDynaFalsePackageIds = Arrays.asList("120007");
+        }
+        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream()
+                .collect(Collectors.joining(",", "(", ")"));
+        String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        for (String batchNumber : batchNumberList) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+            sqlCollect(querySqls, isPreview, xcDynaFalsePackageIdString, conditions, batchNumber);
+        }
+    }
+
+    private static void sqlCollect(List<String> querySqls, boolean isPreview, String xcDynaFalsePackageId, String conditions, String batchNumber) {
+        String dynaDataSql;
+        if (isPreview) {
+            dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id in "
+                    + xcDynaFalsePackageId;
+        } else {
+            dynaDataSql = "select rob.cell_sha256_code_list as cell, rob.id as id from b_xiecheng_colliding_data_rob rob " +
+                    "inner join b_xiecheng_colliding_" + batchNumber + " batch on rob.cell_sha256_code_list = batch.cell " +
+                    "and rob.is_delete = 0 and rob.is_delete = 0 and rob.package_id in " + xcDynaFalsePackageId;
+        }
+        StringBuilder scoreSql = new StringBuilder();
+        scoreSql.append("select id, cell from b_xiecheng_colliding_")
+                .append(batchNumber)
+                .append(" where ")
+                .append(conditions)
+                .append(" and is_delete = 0");
+        StringBuilder condition = new StringBuilder();
+        condition.append("select count(0) from (")
+                .append(dynaDataSql).append(") dyna left join (")
+                .append(scoreSql)
+                .append(") score on dyna.cell = score.cell ")
+                .append(" where score.id is ");
+        if (isPreview) {
+            condition.append("not null");
+        } else {
+            condition.append("null");
+        }
+        querySqls.add(condition.toString());
     }
 
     /**
@@ -624,6 +744,66 @@ public class PushRuleServiceImpl implements PushRuleService {
         String condition = falseDataCondition(jsonObject, batchNumberList, cleanTime);
         querySql.append("select count(1) from (").append(condition).append(") a ;");
         return querySql.toString();
+    }
+
+    /**
+     * @param jsonObject
+     * @param batchNumberList
+     * @param querySqls
+     * @description false包预估量级sql优化
+     * @author hedongshuo
+     * @date 2025/1/2 15:32
+     **/
+    private void falseDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, List<String> querySqls, Boolean isPreviewForOpt) {
+        String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        for (String batchNumber : batchNumberList) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+//            int total = getQueryRuleScoreCountSql(batchNumber);
+//            if (total > 40000000) {
+//                for (int i = 0; i <= total / 30000000; i++) {
+//                    sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, i);
+//                }
+//            }
+            sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, null);
+        }
+    }
+
+    private void sqlCollect(List<String> querySqls, Boolean isPreviewForOpt, String conditions, String batchNumber, Integer pageIndex) {
+        String querySql = falseQuerySqlOpt(conditions, batchNumber, pageIndex);
+        if (isPreviewForOpt) {
+            String queryCountSql = "select count(0) from (" + querySql + ") countSql;";
+            querySqls.add(queryCountSql);
+        } else {
+            querySqls.add(querySql);
+        }
+    }
+
+    private String falseQuerySqlOpt(String conditions, String batchNumber, Integer pageIndex) {
+        StringBuilder queryRuleScoreDataSql = new StringBuilder();
+        queryRuleScoreDataSql
+                .append("select id, cell, is_delete from b_xiecheng_colliding_")
+                .append(batchNumber)
+                .append(" where ")
+                .append(conditions);
+        if (pageIndex != null) {
+            queryRuleScoreDataSql.append(" order by id limit ").append(pageIndex * 30000000).append(", 30000000");
+        }
+        List<String> xcDynaFalsePackageIds = marketingCommonConfig.getXcDynaFalsePackageIds();
+        if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
+            xcDynaFalsePackageIds = Arrays.asList("120007");
+        }
+        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream()
+                .collect(Collectors.joining(",", "(", ")"));
+        String querySql =
+                "SELECT a.id, a.cell FROM " +
+                        "(" + queryRuleScoreDataSql + ") AS a " +
+                        "LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0 " +
+                        "LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.package_id in "
+                        + xcDynaFalsePackageIdString + " and c.is_delete = 0 " +
+                        "WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0";
+        return querySql;
     }
 
     /**
@@ -692,6 +872,39 @@ public class PushRuleServiceImpl implements PushRuleService {
         return falseAndscoreSql.append(whereSql).toString();
     }
 
+    /**
+     * 跑分数据和周期表数据交集量级预览
+     *
+     * @param jsonObject
+     * @param batchNumberList
+     * @param collidingFilterDTO
+     * @param querySqls
+     */
+    private void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
+                                   XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        //True关联查询
+        //true筛选字段处理
+        String condition = XieChengEsJsonHandler.zkTrueCondition(collidingFilterDTO);
+        if (StringUtils.isNotEmpty(condition)) {
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + condition
+                    + " and is_delete=0";
+        }
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        for(String batchNumber : batchNumberList){
+            if(StringUtils.isEmpty(batchNumber)){
+                continue;
+            }
+            String scoreSql = "select id,cell from b_xiecheng_colliding_".concat(batchNumber)
+                    .concat(" where ").concat(sqlCondition).concat(" and is_delete=0");
+            StringBuilder cycleAndScoreSql = new StringBuilder();
+            cycleAndScoreSql.append("select count(1) from (").append(scoreSql).append(") score inner join (").append(cycleSql).append(") cycle on " +
+                    "score.cell = cycle.cell;");
+            querySqls.add(cycleAndScoreSql.toString());
+        }
+    }
+
     private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
@@ -704,7 +917,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     + " and is_delete=0";
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
-        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+        cycleAndscoreSql.append("select count(1) from (").append(scoreSql).append(") score inner join (").append(cycleSql).append(") cycle on " +
                 "score.cell = cycle.cell;");
         return cycleAndscoreSql.toString();
     }
@@ -904,8 +1117,16 @@ public class PushRuleServiceImpl implements PushRuleService {
             return cycleDataDeleteQuery(jsonObject, batchNumberList, cleanTime);
         }
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
-            return dynaPackageDeleteCondition(jsonObject, batchNumberList,
-                    marketingCommonConfig.getXcDynaFalsePackageIds(), false);
+            Boolean xcFalsePackageDynaPushPreviewOptFlag = marketingCommonConfig.getXcFalsePackageDynaPushPreviewOptFlag();
+            if (xcFalsePackageDynaPushPreviewOptFlag) {
+                List<String> querySqls = new ArrayList<>();
+                dynaPackageDeleteConditionOpt(
+                        jsonObject, batchNumberList, marketingCommonConfig.getXcDynaFalsePackageIds(), querySqls, true);
+                return String.join(";", querySqls);
+            } else {
+                return dynaPackageDeleteCondition(
+                        jsonObject, batchNumberList, marketingCommonConfig.getXcDynaFalsePackageIds(), false);
+            }
         }
         return "";
     }
@@ -948,8 +1169,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(0);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataCondition(jsonObject, dto.getBatchNumberList(),
-                collidingFilterDTO.getCleanTime()));
+        Boolean xcFalsePackagePushPreviewOptFlag = marketingCommonConfig.getXcFalsePackagePushPreviewOptFlag();
+        if (!xcFalsePackagePushPreviewOptFlag) {
+            xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataCondition(jsonObject, dto.getBatchNumberList(),
+                    collidingFilterDTO.getCleanTime()));
+        } else {
+            List<String> querySqls = new ArrayList<>();
+            falseDataQueryOpt(jsonObject, dto.getBatchNumberList(), querySqls, false);
+            xiechengCollidingDataProcessTask.setTaskExecutionSql(String.join(";", querySqls));
+        }
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
@@ -983,6 +1211,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("result与blacklist_delete不能同时传入！");
         }
         String deleteSql = null;
+        List<String> querySqls = new ArrayList<>();
         //result = true
         if (StringUtils.isNotEmpty(result)) {
             if ("true".equals(result)) {
@@ -993,17 +1222,31 @@ public class PushRuleServiceImpl implements PushRuleService {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("result=false时，info不能为空！");
                 } else {
                     if (info.equals("") || info.equalsIgnoreCase("NULL")) {
-                        deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(),
-                                marketingCommonConfig.getXcDynaFalsePackageIds(), false);
+                        Boolean xcFalsePackageDynaPushPreviewOptFlag = marketingCommonConfig.getXcFalsePackageDynaPushPreviewOptFlag();
+                        if (xcFalsePackageDynaPushPreviewOptFlag) {
+                            dynaPackageDeleteConditionOpt(
+                                    jsonObject, dto.getBatchNumberList(), marketingCommonConfig.getXcDynaFalsePackageIds(), querySqls, false);
+                        } else {
+                            deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(),
+                                    marketingCommonConfig.getXcDynaFalsePackageIds(), false);
+                        }
                     }
                 }
             }
         }
         // doris查询
         try {
-            num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+            if (CollectionUtils.isEmpty(querySqls)) {
+                num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+            } else {
+                num = getTotalOpt(querySqls, marketingCommonConfig.getXcFalsePackageOptSoleNum());
+            }
         } catch (Exception e) {
-            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", deleteSql, e);
+            if (CollectionUtils.isEmpty(querySqls)) {
+                log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", deleteSql, e);
+            } else {
+                log.error("规则中心-携程撞库筛选查询Doris异常,sqls={}", String.join(";", querySqls), e);
+            }
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
     }
@@ -1028,7 +1271,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
         List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
-        int total = customerInfoPushMain.getmRealyNum();
+        // 补推逻辑
+        if(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
+                .equals(customerInfoPushMain.getmStatus())){
+            // 推决策重试
+            toPolicyByRuleService.makeUpPolicyData(customerInfoPushMain,
+                    MockSwitchEnum.GENERAL.getValue());
+            // 是否存在ES重试数据
+            int i = retryEsData(customerInfoPushMain);
+            if(i == 0){
+                Integer status = toPolicyByRuleService.queryExistError(customerInfoPushMain.getId(),
+                        FilterTypeEnum.GENERAL_POLICY.getValue());
+                CustomerInfoPushMain main = new CustomerInfoPushMain();
+                main.setId(customerInfoPushMain.getId());
+                main.setmStatus(status);
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+            }
+        }
+
         List<String> numList = new ArrayList<>();
         List<Long> fileIds = new ArrayList<>();
         for (CustomerInfoPushBatch customerInfoPushBatch : customerInfoPushBatches) {
@@ -1080,8 +1341,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             parNum = 1;
             getEsNum = 1;
         }
-        Integer realTotalNum = 0;
-        Integer timeOutTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
@@ -1125,24 +1384,36 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
+
         try {
-            Integer count = 0;
-            for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
-                List<Future<Result<Integer>>> futures = actionFuture.get();
-                for (Future<Result<Integer>> pushFuture : futures) {
-                    Result<Integer> pushRes = pushFuture.get();
-                    if (ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())) {
-                        main.setmStatus(PushRuleStatusEnum.CONFIRMED_TIME_OUT.getValue());
-                        timeOutTotalNum += pushRes.getData();
-                    } else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
-                        main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                        count++;
-                    } else {
-                        realTotalNum += pushRes.getData();
+            int retryCount = 0;
+            int failCount = 0;
+            try {
+                for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
+                    List<Future<Result<Integer>>> futures = actionFuture.get();
+                    for (Future<Result<Integer>> pushFuture : futures) {
+                        Result<Integer> pushRes = pushFuture.get();
+                        if (ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())
+                                || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(pushRes.getCode())) {
+                            retryCount++;
+                        } else if (ResultCode.FAIL.getValue().equals(pushRes.getCode())) {
+                            failCount++;
+                        }
                     }
                 }
+               if(failCount > 0){
+                    main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                }else{
+                   Integer status = toPolicyByRuleService.queryExistError(customerInfoPushMain.getId(),
+                           FilterTypeEnum.GENERAL_POLICY.getValue());
+                   main.setmStatus(status);
+               }
+            } catch (Exception ex) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
+                main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
             }
-            if (count > 0) {
+            log.warn(TITLE + "规则中心推送决策结果：retryCount：" + retryCount + ",failCount:" + failCount);
+            if (failCount > 0) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("推送决策失败：\n");
                 sb.append("apiCode：" + customerInfoPushMain.getmApiCode());
@@ -1165,16 +1436,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
         }
-
-        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
+        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}"
                 , customerInfoPushMain.getId()
                 , System.currentTimeMillis() - startTime
                 , System.currentTimeMillis() - initTime
-                , customerInfoPushMain.getmRealyNum(), realTotalNum, timeOutTotalNum);
+                , customerInfoPushMain.getmRealyNum());
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private int retryEsData(CustomerInfoPushMain customerInfoPushMain) {
+        // 查询ES重试数据
+        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+        errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                .andTypeEqualTo(ErrorMarkTypeEnum.ES_ERROR.getValue())
+                .andRetryTotalAttemptsLessThan(3);
+
+        return errorMarkMapper.countByExample(errorMarkExample);
     }
 
     class actionEs implements Callable<List<Future<Result<Integer>>>> {
@@ -1247,7 +1528,28 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , total
                     , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
-            for (int i = 1; i <= totalPage; i++) {
+
+            ErrorMark errorMark = new ErrorMark();
+            int i1 = 1;
+            // 判断该任务是否为异常待补推任务
+            if(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
+                    .equals(customerInfoPushMain.getmStatus())){
+
+                // 查询待补推数据
+                ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+                errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                        .andPartEqualTo(part)
+                        .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue());
+                List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
+                // 查询当前part下的异常数据
+                if(!CollectionUtils.isEmpty(errorMarks)){
+                    errorMark = errorMarks.get(0);
+                    i1 = errorMark.getPageSize();
+                    searchAfterStr = errorMark.getSearchAfter();
+                }
+            }
+
+            for (int i = i1; i <= totalPage; i++) {
                 try {
                     String sn = String.valueOf(i);
                     if (i == totalPage && totalYuShu > 0) {
@@ -1256,13 +1558,46 @@ public class PushRuleServiceImpl implements PushRuleService {
                         queryBaseBean.setPageSize(pageSize);
                     }
                     queryBaseBean.setSearchAfter(searchAfterStr);
-                    List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+
+                    List<MarketingHistory> marketingHistories;
+
+                    // 模拟es异常
+                    boolean b = toPolicyByRuleService.mockSwitch(customerInfoPushMain.getmApiCode(),
+                            MockSwitchEnum.GENERAL.getValue(), MockSwitchEnum.ESRETRY.getValue());
+                    if(b){
+                        marketingHistories = null;
+                    }else {
+                        marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                    }
+                    //查询ES异常
+                    if(marketingHistories == null){
+                        if(errorMark.getId() != null){
+                            // 已存在补推记录
+                            if(errorMark.getRetryTotalAttempts() < 3){
+                                updateErrorMark(errorMark,errorMark.getRetryTotalAttempts() + 1);
+                            }
+                        }else {
+                            insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
+                        }
+                        return resList;
+                    }
+
+                    if (errorMark.getId() != null) {
+                        ErrorMark errorMark1 = new ErrorMark();
+                        errorMark1.setId(errorMark.getId());
+                        errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
+                        errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+                    }
+
                     Integer realNum = marketingHistories.size();
                     log.warn("任务id：{}，当前片：{}，获取的数量：{}，当前页码：{}"
                             , customerInfoPushMain.getId()
                             , StringUtils.isBlank(part) ? "" : part
                             , realNum
                             , i);
+                    if(realNum == 0){
+                        continue;
+                    }
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -1323,38 +1658,62 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }
                         userDetailDTOS.add(dto1);
                     }
-//                    log.warn("营销推决策组装数据展示-main.id-dtos："
-//                            + customerInfoPushMain.getId().toString() + "-" + JSON.toJSONString(userDetailDTOS));
                     //推送任务基础信息
-                    PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
-                    pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
-                    pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part) ? "0" : part) + "_" + sn);
-                    pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
-                    pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
-                    if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {
-                        pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
+                    List<List<PushMarketingUserDetailDTO>> partition =
+                            toPolicyByRuleService.splitParam(customerInfoPushMain.getmApiCode(), userDetailDTOS);
+                    Integer batch = 0;
+                    for (List<PushMarketingUserDetailDTO> userDetailDTOList : partition) {
+                        PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+                        pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+                        pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
+                        pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part) ? "0" : part) + "_" + sn + "_" +batch);
+                        pushMarketingUserTaskInfoDTO.setData(userDetailDTOList);
+                        pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
+                        pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
+                        if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {
+                            pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
+                        }
+                        //传输参数信息
+                        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                        pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
+                        pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
+                        pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
+                        resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
+                                , pushMarketingUserTaskInfoDTO.getAccessNumber()
+                                , customerInfoPushMain.getId()
+                                , userDetailDTOList.size(),null)));
+                        batch ++;
                     }
-                    //传输参数信息
-                    PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-                    pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
-                    pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
-                    pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-                    resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
-                            , pushMarketingUserTaskInfoDTO.getAccessNumber()
-                            , customerInfoPushMain.getId()
-                            , userDetailDTOS.size())));
                 } catch (Exception ex) {
                     String error = String.format("任务id：%s，当前片：%s，当前页码：%d，异常："
                             , customerInfoPushMain.getId().toString()
                             , StringUtils.isBlank(part) ? "" : part
                             , i);
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), error), ex);
+                    Result<Integer> result = new Result<>();
+                    result.setCode(ResultCode.FAIL.getValue());
+                    Callable<Result<Integer>> resultCallable = (Callable) () -> result;
+                    resList.add(pushJcPool.submit(resultCallable));
                 }
             }
             return resList;
         }
+    }
+
+    private void insertNewErrorMark(CustomerInfoPushMain customerInfoPushMain, String part, int pageSize, String searchAfterStr, String esCondition) {
+        // 新增异常待补推数据
+        ErrorMark errorMark = new ErrorMark();
+        errorMark.setApiCode(customerInfoPushMain.getmApiCode());
+        errorMark.setmId(customerInfoPushMain.getId());
+        errorMark.setPart(part);
+        errorMark.setPageSize(pageSize);
+        errorMark.setSearchAfter(searchAfterStr);
+        errorMark.setEsCondition(esCondition);
+        errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
+        errorMark.setAppletDate(LocalDate.now().toString());
+        errorMark.setCreateTime(new Date());
+        errorMark.setUpdateTime(new Date());
+        errorMarkMapper.insertSelective(errorMark);
     }
 
     private void markForCell(JSONObject varObject, JSONObject fields) {
@@ -1381,30 +1740,73 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Integer size;
 
-        public PushJcAction(PushMarketingUserDTO pushMarketingUserDTO, String accessNumber, Long mainId, Integer size) {
+        private ErrorMark errorMark;
+
+        public PushJcAction(PushMarketingUserDTO pushMarketingUserDTO, String accessNumber, Long mainId, Integer size, ErrorMark errorMark) {
             this.pushMarketingUserDTO = pushMarketingUserDTO;
             this.accessNumber = accessNumber;
             this.mainId = mainId;
             this.size = size;
+            this.errorMark = errorMark;
         }
 
         @Override
         public Result<Integer> call() {
-            Result<Integer> result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
-                    accessNumber, size);
-            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())
-                    || ResultCode.TIME_OUT.getValue().equals(result.getCode())) {
+            Result<Integer> result = new Result<>();
+            // 模拟推决策异常
+            boolean b = toPolicyByRuleService.mockSwitch(pushMarketingUserDTO.getApiCode(),
+                    MockSwitchEnum.GENERAL.getValue(), MockSwitchEnum.POLICYRETRY.getValue());
+            if(b){
+                result.setCode(ResultCode.TIME_OUT.getValue());
+            }else {
                 result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                         accessNumber, size);
+                if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())
+                        || ResultCode.TIME_OUT.getValue().equals(result.getCode())) {
+                    result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
+                            accessNumber, size);
+                }
             }
+
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
                         , "推送决策重试失败 accessNumber:" + accessNumber + " - " + JSON.toJSONString(result)));
+            }
+
+            if (ResultCode.TIME_OUT.getValue().equals(result.getCode()) ||
+                    ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+                insertErrorMark(pushMarketingUserDTO, mainId, accessNumber, size);
             }
             result.setDate(size);
             return result;
         }
     }
+
+    // 更新错误标记
+    private void updateErrorMark(ErrorMark errorMark, int retryAttempts) {
+        ErrorMark errorMark1 = new ErrorMark();
+        errorMark1.setId(errorMark.getId());
+        errorMark1.setRetryTotalAttempts(retryAttempts);
+        errorMark1.setUpdateTime(new Date());
+        errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+    }
+
+    // 插入错误标记
+    private void insertErrorMark(PushMarketingUserDTO pushMarketingUserDTO, Long mainId, String accessNumber, int size) {
+        ErrorMark errorMark = new ErrorMark();
+        errorMark.setApiCode(pushMarketingUserDTO.getApiCode());
+        errorMark.setmId(mainId);
+        errorMark.setAccessNumber(accessNumber);
+        errorMark.setPushSize(size);
+        errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));
+        errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
+        errorMark.setType(ErrorMarkTypeEnum.POLICY_ERROR.getValue());
+        errorMark.setAppletDate(LocalDate.now().toString());
+        errorMark.setCreateTime(new Date());
+        errorMark.setUpdateTime(new Date());
+        errorMarkMapper.insertSelective(errorMark);
+    }
+
 
     @Override
     public Result<Boolean> getCustomerStatus(CustomerInfoPushMain customerInfoPushMain) {

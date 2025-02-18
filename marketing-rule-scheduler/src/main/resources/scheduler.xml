@@ -27,7 +27,7 @@
 
     <job:simple id="【rule】-ToPolicyByRuleJob"
                 class="com.br.marketing.rule.job.ToPolicyByRuleJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="规则中心推送决策任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -42,7 +42,7 @@
 
     <job:simple id="【rule】-CustomerPushStatusQueryJob"
                 class="com.br.marketing.rule.job.CustomerPushStatusQueryJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="规则中心推送决策结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -57,7 +57,7 @@
 
     <job:simple id="【rule】-AutoBuildPushPolicyJob"
                 class="com.br.marketing.rule.job.AutoBuildPushPolicyJob"
-                cron="0 0/5 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="创建推送决策任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -72,7 +72,7 @@
 
     <job:simple id="【rule】-AutoRefreshConfigJob"
                 class="com.br.marketing.rule.job.AutoRefreshConfigJob"
-                cron="0 0/5 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="自动刷新推送决策任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

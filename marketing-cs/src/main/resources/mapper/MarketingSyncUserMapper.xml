@@ -1085,4 +1085,37 @@
         and b.reserve_field1->>'$.planId'='${planId}'
     </select>
 
+    <update id="cleanUpdateById">
+        update b_marketing_sync_${apiCode}
+        <set>
+        <foreach collection="fieldItemList" item="fieldItem" separator=",">
+            <if test="fieldItem.cust_num != null"> cust_num = #{fieldItem.cust_num}</if>
+            <if test="fieldItem.id_card != null"> id_card = #{fieldItem.id_card}</if>
+            <if test="fieldItem.name != null"> name = #{fieldItem.name}</if>
+            <if test="fieldItem.cell != null"> cell = #{fieldItem.cell}</if>
+            <if test="fieldItem.cell_md5 != null"> cell_md5 = #{fieldItem.cell_md5}</if>
+            <if test="fieldItem.cell_sha256 != null"> cell_sha256 = #{fieldItem.cell_sha256}</if>
+            <if test="fieldItem.group_type != null"> group_type = #{fieldItem.group_type}</if>
+            <if test="fieldItem.user_type != null"> user_type = #{fieldItem.user_type}</if>
+            <if test="fieldItem.operate_type != null"> operate_type = #{fieldItem.operate_type}</if>
+            <if test="fieldItem.register_date != null"> register_date = #{fieldItem.register_date}</if>
+            <if test="fieldItem.reserve_field1 != null"> reserve_field1 = #{fieldItem.reserve_field1}</if>
+            <if test="fieldItem.reserve_field2 != null"> reserve_field2 = #{fieldItem.reserve_field2}</if>
+            <if test="fieldItem.applet_date != null"> applet_date = #{fieldItem.applet_date}</if>
+            <if test="fieldItem.fail_type != null"> fail_type = #{fieldItem.fail_type}</if>
+        </foreach>
+        </set>
+        where id = #{id, jdbcType=BIGINT}
+    </update>
+
+    <select id="getCellLatestByCustNum" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cell,cust_num
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        and status=1
+        and is_repeat in (1,2)
+        order by applet_time desc
+        limit 1
+    </select>
+
 </mapper>

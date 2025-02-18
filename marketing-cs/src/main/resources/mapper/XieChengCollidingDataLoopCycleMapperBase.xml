@@ -11,6 +11,7 @@
     <result column="coupon_code" property="couponCode" jdbcType="VARCHAR" />
     <result column="coupon_desc" property="couponDesc" jdbcType="VARCHAR" />
     <result column="customer_group" property="customerGroup" jdbcType="INTEGER" />
+    <result column="info" property="info" jdbcType="VARCHAR" />
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
@@ -78,7 +79,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, package_id, data_source_type, cell_sha256_code_list, release_time, market_coupon_list,
-    coupon_code, coupon_desc, customer_group, push_time, is_delete, extend, create_time,
+    coupon_code, coupon_desc, customer_group, info, push_time, is_delete, extend, create_time,
     update_time, retry_count
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycleExample" >
@@ -117,14 +118,14 @@
     </selectKey>
     insert into b_xiecheng_colliding_data_loop_cycle (package_id, data_source_type, cell_sha256_code_list,
     release_time, market_coupon_list, coupon_code,
-    coupon_desc, customer_group, push_time,
+    coupon_desc, customer_group, info, push_time,
     is_delete, extend, create_time,
     update_time, retry_count)
     values (#{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR},
     #{releaseTime,jdbcType=TIMESTAMP}, #{marketCouponList,jdbcType=VARCHAR}, #{couponCode,jdbcType=VARCHAR},
-    #{couponDesc,jdbcType=VARCHAR}, #{customerGroup,jdbcType=INTEGER}, #{pushTime,jdbcType=TIMESTAMP},
-    #{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
-    #{updateTime,jdbcType=TIMESTAMP}, #{retryCount,jdbcType=INTEGER})
+    #{couponDesc,jdbcType=VARCHAR}, #{customerGroup,jdbcType=INTEGER}, #{info,jdbcType=VARCHAR},
+    #{pushTime,jdbcType=TIMESTAMP},#{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{retryCount,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -155,6 +156,9 @@
       </if>
       <if test="customerGroup != null" >
         customer_group,
+      </if>
+      <if test="info != null" >
+        info,
       </if>
       <if test="pushTime != null" >
         push_time,
@@ -199,6 +203,9 @@
       </if>
       <if test="customerGroup != null" >
         #{customerGroup,jdbcType=INTEGER},
+      </if>
+      <if test="info != null" >
+        #{info,jdbcType=VARCHAR},
       </if>
       <if test="pushTime != null" >
         #{pushTime,jdbcType=TIMESTAMP},
@@ -256,6 +263,9 @@
       <if test="record.customerGroup != null" >
         customer_group = #{record.customerGroup,jdbcType=INTEGER},
       </if>
+      <if test="record.info != null" >
+        info = #{record.info,jdbcType=VARCHAR},
+      </if>
       <if test="record.pushTime != null" >
         push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       </if>
@@ -290,6 +300,7 @@
     coupon_code = #{record.couponCode,jdbcType=VARCHAR},
     coupon_desc = #{record.couponDesc,jdbcType=VARCHAR},
     customer_group = #{record.customerGroup,jdbcType=INTEGER},
+    info = #{record.info,jdbcType=VARCHAR},
     push_time = #{record.pushTime,jdbcType=TIMESTAMP},
     is_delete = #{record.isDelete,jdbcType=INTEGER},
     extend = #{record.extend,jdbcType=VARCHAR},
@@ -327,6 +338,9 @@
       <if test="customerGroup != null" >
         customer_group = #{customerGroup,jdbcType=INTEGER},
       </if>
+      <if test="info != null" >
+        info = #{info,jdbcType=VARCHAR},
+      </if>
       <if test="pushTime != null" >
         push_time = #{pushTime,jdbcType=TIMESTAMP},
       </if>
@@ -358,6 +372,7 @@
         coupon_code = #{couponCode,jdbcType=VARCHAR},
         coupon_desc = #{couponDesc,jdbcType=VARCHAR},
         customer_group = #{customerGroup,jdbcType=INTEGER},
+        info = #{info,jdbcType=VARCHAR},
         push_time = #{pushTime,jdbcType=TIMESTAMP},
         is_delete = #{isDelete,jdbcType=INTEGER},
         extend = #{extend,jdbcType=VARCHAR},

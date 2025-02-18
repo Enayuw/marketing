@@ -117,6 +117,7 @@ public class SftpToDbByCommonService {
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setComplete("4");
+            updateFile.setErrorMessage(String.format("%s 文件内容为空", context.getTxtFileName()));
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             return false;
         }
@@ -130,6 +131,7 @@ public class SftpToDbByCommonService {
             LocalFile updateFile = new LocalFile();
             updateFile.setId(localFile.getId());
             updateFile.setComplete("2");
+            updateFile.setErrorMessage(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage()));
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             return false;
         }

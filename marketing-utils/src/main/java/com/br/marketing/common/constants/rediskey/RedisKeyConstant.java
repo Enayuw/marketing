@@ -295,5 +295,7 @@ public class RedisKeyConstant {
      */
     public static final String DATA_GROUP_RESULT_NUM = prefix.concat("data:group:resultnum");
 
+    public static final String CLUE_CONFIG = prefix.concat("clue:config");
+
 
 }

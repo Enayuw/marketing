@@ -273,11 +273,14 @@ public enum AlarmSendCodeEnum {
 
     ES_RETRY_DATAERROR("6040001", "ES补推数据异常"),
 
+    HX_CAR_CLUE_INTERFACE("6041001", "海星车线索接口异常"),
+
     //萨摩耶定制业务异常,立即推送
     SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR("6041001", "萨摩耶定制上传业务异常"),
     SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR("6041002", "萨摩耶定制转化业务异常"),
     //萨摩耶黑名单自动化过滤未查询到手机号,阶梯推送
     SAMOYE_TRANSFER_PHONE_NOT_FIND("6041003", "萨摩耶黑名单自动化过滤未查询到手机号"),
+    PUSH_TO_SFTP("6042003", "跑分文件推送SFTP异常"),
     //萨摩耶黑名单传输业务异常,立即推送
     SMY_SERVICEERROR("6050001", "萨摩耶黑名单传输业务异常"),
     //萨摩耶接口调用失败,阶梯推送
@@ -285,6 +288,9 @@ public enum AlarmSendCodeEnum {
 
     //恒昌业务异常,立即推送
     HENGCHANG_SERVICEERROR("6051001", "恒昌业务异常"),
+
+    //车线索业务异常,立即推送
+    CARCLUE_SERVICEERROR("6052001", "车线索业务异常"),
     ;
 
     /**

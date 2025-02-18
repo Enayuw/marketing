@@ -79,4 +79,6 @@ public interface PushDataService {
      * @return
      */
     void retryPushXieChengSmsCollidingToDbData(Long localId);
+
+    Result pushCsosDassData(Long id);
 }

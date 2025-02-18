@@ -233,6 +233,12 @@ api:
     baseUrl: http://58.33.156.202:57436
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
     isProxy: true
+  hxCar:
+    baseUrl: http://haoyunlailai.cn:6001
+    carList: ${api.hxCar.baseUrl}/open_api/v1/car_list
+    cityList: ${api.hxCar.baseUrl}/open_api/v1/city_list
+    commitClue: ${api.hxCar.baseUrl}/open_api/v1/test_commit_clue
+    isProxy: true
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job

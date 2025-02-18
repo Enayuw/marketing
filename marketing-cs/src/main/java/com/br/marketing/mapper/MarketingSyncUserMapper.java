@@ -1,7 +1,6 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.bo.CellValidityPeriodBO;
-import com.br.marketing.client.robotaiapi.input.CaseNumDTO;
 import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
 
@@ -435,5 +434,22 @@ public interface MarketingSyncUserMapper {
                                                        @Param("userType") String userType,
                                                        @Param("taskId") Long taskId,
                                                        @Param("pageSize") Integer pageSize);
+
+
+    int cleanUpdateById(
+            @Param("apiCode") String apiCode,
+            @Param("id") Long id,
+            @Param("fieldItemList") List<Map<String, String>> fieldItemList
+    );
+
+    /**
+     * 根据 custNum 找最新的一条cell
+     * @param apiCode:
+     * @param custNumSet:
+     * return String
+     * @author guangxiu.li
+     * @date 2025/1/8
+     */
+    MarketingSyncUser getCellLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
 }

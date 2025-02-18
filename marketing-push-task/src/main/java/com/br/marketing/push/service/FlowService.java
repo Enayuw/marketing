@@ -5,9 +5,9 @@ import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.push.PushApplication;
 import com.br.marketing.push.service.impl.MergeServiceImpl;
-import com.br.marketing.push.service.impl.PushServiceImpl;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.ICompatibleService;
+import com.br.marketing.service.sftp.PushService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +54,8 @@ public class FlowService {
 
     @Autowired
     ICompatibleService iCompatibleService;
+    @Autowired
+    PushService pushService;
 
     public void flow(Customer customer){
         List<LoanFile> pushList;
@@ -74,7 +76,7 @@ public class FlowService {
              * 文件推送
              */
             if(pushList !=null&&pushList.size()>0){
-                PushService pushService= PushApplication.ac.getBean(PushServiceImpl.class);
+                //PushService pushService= PushApplication.ac.getBean(PushServiceImpl.class);
                 pushService.push(pushList);
 
                 for (LoanFile loanFile : pushList) {

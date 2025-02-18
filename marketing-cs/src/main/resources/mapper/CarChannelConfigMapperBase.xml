@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CarChannelConfigMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CarChannelConfig" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="order" property="order" jdbcType="VARCHAR" />
+    <result column="strategy_config_info" property="strategyConfigInfo" jdbcType="VARCHAR" />
+    <result column="strategy_fitler" property="strategyFitler" jdbcType="VARCHAR" />
+    <result column="strategy_match" property="strategyMatch" jdbcType="VARCHAR" />
+    <result column="strategy_push" property="strategyPush" jdbcType="VARCHAR" />
+    <result column="strategy_callback" property="strategyCallback" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, cid, api_code, `name`, `order`, strategy_config_info, strategy_fitler, strategy_match, 
+    strategy_push, strategy_callback, is_del, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarChannelConfigExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_car_channel_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_car_channel_config
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_car_channel_config
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CarChannelConfigExample" >
+    delete from b_car_channel_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.CarChannelConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_car_channel_config (cid, api_code, `name`, 
+      `order`, strategy_config_info, strategy_fitler, 
+      strategy_match, strategy_push, strategy_callback, 
+      is_del, create_time, update_time
+      )
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
+      #{order,jdbcType=VARCHAR}, #{strategyConfigInfo,jdbcType=VARCHAR}, #{strategyFitler,jdbcType=VARCHAR}, 
+      #{strategyMatch,jdbcType=VARCHAR}, #{strategyPush,jdbcType=VARCHAR}, #{strategyCallback,jdbcType=VARCHAR}, 
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.CarChannelConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_car_channel_config
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        cid,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="name != null" >
+        `name`,
+      </if>
+      <if test="order != null" >
+        `order`,
+      </if>
+      <if test="strategyConfigInfo != null" >
+        strategy_config_info,
+      </if>
+      <if test="strategyFitler != null" >
+        strategy_fitler,
+      </if>
+      <if test="strategyMatch != null" >
+        strategy_match,
+      </if>
+      <if test="strategyPush != null" >
+        strategy_push,
+      </if>
+      <if test="strategyCallback != null" >
+        strategy_callback,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="order != null" >
+        #{order,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyConfigInfo != null" >
+        #{strategyConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyFitler != null" >
+        #{strategyFitler,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyMatch != null" >
+        #{strategyMatch,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyPush != null" >
+        #{strategyPush,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyCallback != null" >
+        #{strategyCallback,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.CarChannelConfigExample" resultType="java.lang.Integer" >
+    select count(*) from b_car_channel_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_car_channel_config
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null" >
+        `name` = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.order != null" >
+        `order` = #{record.order,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyConfigInfo != null" >
+        strategy_config_info = #{record.strategyConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyFitler != null" >
+        strategy_fitler = #{record.strategyFitler,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyMatch != null" >
+        strategy_match = #{record.strategyMatch,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyPush != null" >
+        strategy_push = #{record.strategyPush,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyCallback != null" >
+        strategy_callback = #{record.strategyCallback,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_car_channel_config
+    set id = #{record.id,jdbcType=BIGINT},
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      `name` = #{record.name,jdbcType=VARCHAR},
+      `order` = #{record.order,jdbcType=VARCHAR},
+      strategy_config_info = #{record.strategyConfigInfo,jdbcType=VARCHAR},
+      strategy_fitler = #{record.strategyFitler,jdbcType=VARCHAR},
+      strategy_match = #{record.strategyMatch,jdbcType=VARCHAR},
+      strategy_push = #{record.strategyPush,jdbcType=VARCHAR},
+      strategy_callback = #{record.strategyCallback,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CarChannelConfig" >
+    update b_car_channel_config
+    <set >
+      <if test="cid != null" >
+        cid = #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="order != null" >
+        `order` = #{order,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyConfigInfo != null" >
+        strategy_config_info = #{strategyConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyFitler != null" >
+        strategy_fitler = #{strategyFitler,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyMatch != null" >
+        strategy_match = #{strategyMatch,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyPush != null" >
+        strategy_push = #{strategyPush,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyCallback != null" >
+        strategy_callback = #{strategyCallback,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CarChannelConfig" >
+    update b_car_channel_config
+    set cid = #{cid,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      `name` = #{name,jdbcType=VARCHAR},
+      `order` = #{order,jdbcType=VARCHAR},
+      strategy_config_info = #{strategyConfigInfo,jdbcType=VARCHAR},
+      strategy_fitler = #{strategyFitler,jdbcType=VARCHAR},
+      strategy_match = #{strategyMatch,jdbcType=VARCHAR},
+      strategy_push = #{strategyPush,jdbcType=VARCHAR},
+      strategy_callback = #{strategyCallback,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

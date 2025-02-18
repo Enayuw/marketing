@@ -1982,8 +1982,8 @@ public class MarketingCommonConfig {
     private Integer wubaCollidingDataMaxCountLimit;
 
     /**
-     * 58提交周期撞库开关(true:开启，false关闭)
-     * {"T":true,"S":true}
+     * 58提交周期撞库与去重开关(T/S控制是否开启去重和撞库，eliminate控制去重。true:开启，false关闭)
+     * {"T":true,"S":true,"eliminate":true}
      */
     private HashMap<String, Boolean> wuBaCollidingDataSwitch;
 
@@ -2246,6 +2246,7 @@ public class MarketingCommonConfig {
      * 推决策报警apiCode集合
      */
     private List<String> pushAlarmApiCode;
+
     /**
      *  * 2024-08-13 15:42
      * 榕树上传数据清洗线程池配置
@@ -2253,6 +2254,16 @@ public class MarketingCommonConfig {
      * eg：[25,50],25为核心线程数，50为最大线程数,核心线程数为0时程序停止
      */
     private Map<String,String> rongShuCleanUploadConfig = new HashMap<>();
+
+    /**
+     * 榕树上传数据清洗-通用字段映射
+     */
+    private Map<String,String> rongShuCleanUploadCommonFieldMap = new HashMap<>();
+
+    /**
+     * 榕树上传数据清洗-扩展字段映射
+     */
+    private Map<String,String> rongShuCleanUploadExtendFieldMap = new HashMap<>();
 
     /**
      * 奇富360数据提取custNum对应上传字段
@@ -2539,6 +2550,18 @@ public class MarketingCommonConfig {
     private JSONObject smyCustomizeDataConfig;
 
     /**
+     * 模拟跑分推决策异常开关 true:开启挡板。false:关闭挡板
+     * {"7410950":{"general":{"esRetry":true,"policyRetry":false},"xiecheng":{"esRetry":true,"policyRetry":false}}}
+     * general：通用推决策
+     *     esRetry：es查询异常
+     *     policyRetry：推决策异常
+     * xiecheng：携程推决策
+     *     esRetry：es查询异常
+     *     policyRetry：推决策异常
+     */
+    private HashMap<String, JSONObject> policyRetrySwitch;
+
+    /**
      * 萨摩耶客制化数据清洗配置
      * {"uploadThread":10,"transferThread":10}
      */
@@ -2550,5 +2573,81 @@ public class MarketingCommonConfig {
      * mock 1 开启
      */
     private Map<String, Object> smyBlacklistConfig = new HashMap<>();
+
+    /**
+     * 车线索入库配置
+     * {"carClueApiCodes":["7410733"],"carClueIntentionGrades":["A","B","a","b"]}
+     */
+    private Map<String, List<String>> carClueStorageConfig;
+
+    /**
+     * 车线索数据清洗配置
+     * eg:{"limit":2000,"threadNum":10}
+     */
+    private JSONObject carClueDataCleanConfig;
+
+
+    /**
+     * 车线索黑名单配置
+     */
+    private Map<String, List<String>> carClueBlackListConfig;
+
+    /**
+     * 车线索apiCode映射：0-易车，1-海星之家
+     * eg:{"7410xxx":0,"7410xxx":1}
+     */
+    private Map<String, Object> carClueApiCodeMapping = new HashMap<>();
+
+
+    /**
+     * 海星接口配置
+     * {"channelId":"IxFRGOyohB1vuQDk","channelKey":"N0H9hfbPVfhQtEdUqbc1doP8pD42x8Qw","ycKaTask":"7-1","ycMemberTask":"6+","zjTask":"xsc"}
+     */
+    private JSONObject hxClientConfig;
+
+    /**
+     * 携程false包补充量级预览优化开关
+     */
+    private Boolean xcFalsePackagePushPreviewOptFlag;
+
+    /**
+     * 携程false动态包剔除量级预览优化开关
+     */
+    private Boolean xcFalsePackageDynaPushPreviewOptFlag;
+
+    /**
+     * 携程true包推送决策量级预览优化开关
+     */
+    private Boolean xcTruePushCustomerPushPreviewOptFlag;
+
+    /**
+     * 携程规则中心false包操作优化线程数
+     */
+    private Integer xcFalsePackageOptSoleNum;
+    /**
+     * 上传文件至远程sftp服务器是否异常开关
+     */
+    private Boolean uploadFileSftp;
+
+    /**
+     * 线索上报接口挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, Object> commitClueMock;
+
+    /**
+     * 运营的客户类型集合
+     */
+    private List<String> opeApiTypes;
+
+    /**
+     * 车线索过滤特殊字符:.#
+     */
+    private String carClueFilterStr;
+    /**
+     * 规则中心推决策参数大小
+     * eg:{"7410950":500,"7410960":500}
+     */
+    private HashMap<String, Integer> toPolicyParamSize;
+
 }
 
