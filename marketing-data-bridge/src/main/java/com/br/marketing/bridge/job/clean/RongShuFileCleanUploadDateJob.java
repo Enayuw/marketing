@@ -530,7 +530,11 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         fieldItemMap.put(value, fileDataJo.getString(key));
                     }
                     if(!CollectionUtils.isEmpty(fieldItemMap)){
-                        fieldItemList.add(fieldItemMap);
+                        fieldItemMap.forEach((String fieldItemKey, String fieldItemValue) -> {
+                            Map<String, String> fieldMap = new HashMap<>();
+                            fieldMap.put(fieldItemKey, fieldItemValue);
+                            fieldItemList.add(fieldMap);
+                        });
                         oldDataJson.put(value, syncUserMap.get(value));
                         newDataJson.putAll(fieldItemMap);
                     }
