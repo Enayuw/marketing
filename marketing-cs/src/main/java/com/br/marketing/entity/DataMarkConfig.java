@@ -14,7 +14,7 @@ public class DataMarkConfig {
     private String apiCode;
 
     /**
-     * 0-与榕树注册用户求交标签；1-客群标签；2-利率标签；3-高风险标签；4-黑名单标签；5-白名单标签
+     * 标记类型：0-与榕树注册用户求交标签；1-客群标签；2-利率标签；3-高风险标签；4-黑名单标签；5-白名单标签
      */
     private Integer markType;
 
@@ -24,14 +24,19 @@ public class DataMarkConfig {
     private String markOutField;
 
     /**
+     * 标记输出取值类型：0-匹配；1-默认
+     */
+    private Integer markOutValueType;
+
+    /**
      * 打标条件
      */
     private String markCondition;
 
     /**
-     * 默认值
+     * 标记输出取值
      */
-    private String defaultValue;
+    private String markOutValue;
 
     /**
      * 是否有效 1-有效；9-失效
@@ -80,6 +85,14 @@ public class DataMarkConfig {
         this.markOutField = markOutField == null ? null : markOutField.trim();
     }
 
+    public Integer getMarkOutValueType() {
+        return markOutValueType;
+    }
+
+    public void setMarkOutValueType(Integer markOutValueType) {
+        this.markOutValueType = markOutValueType;
+    }
+
     public String getMarkCondition() {
         return markCondition;
     }
@@ -88,12 +101,12 @@ public class DataMarkConfig {
         this.markCondition = markCondition == null ? null : markCondition.trim();
     }
 
-    public String getDefaultValue() {
-        return defaultValue;
+    public String getMarkOutValue() {
+        return markOutValue;
     }
 
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue == null ? null : defaultValue.trim();
+    public void setMarkOutValue(String markOutValue) {
+        this.markOutValue = markOutValue == null ? null : markOutValue.trim();
     }
 
     public Integer getIsDel() {

@@ -365,6 +365,66 @@ public class DataMarkConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andMarkOutValueTypeIsNull() {
+            addCriterion("mark_out_value_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeIsNotNull() {
+            addCriterion("mark_out_value_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeEqualTo(Integer value) {
+            addCriterion("mark_out_value_type =", value, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeNotEqualTo(Integer value) {
+            addCriterion("mark_out_value_type <>", value, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeGreaterThan(Integer value) {
+            addCriterion("mark_out_value_type >", value, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("mark_out_value_type >=", value, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeLessThan(Integer value) {
+            addCriterion("mark_out_value_type <", value, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("mark_out_value_type <=", value, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeIn(List<Integer> values) {
+            addCriterion("mark_out_value_type in", values, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeNotIn(List<Integer> values) {
+            addCriterion("mark_out_value_type not in", values, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeBetween(Integer value1, Integer value2) {
+            addCriterion("mark_out_value_type between", value1, value2, "markOutValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarkOutValueTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("mark_out_value_type not between", value1, value2, "markOutValueType");
+            return (Criteria) this;
+        }
+
         public Criteria andMarkConditionIsNull() {
             addCriterion("mark_condition is null");
             return (Criteria) this;
@@ -435,73 +495,73 @@ public class DataMarkConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueIsNull() {
-            addCriterion("default_value is null");
+        public Criteria andMarkOutValueIsNull() {
+            addCriterion("mark_out_value is null");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueIsNotNull() {
-            addCriterion("default_value is not null");
+        public Criteria andMarkOutValueIsNotNull() {
+            addCriterion("mark_out_value is not null");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueEqualTo(String value) {
-            addCriterion("default_value =", value, "defaultValue");
+        public Criteria andMarkOutValueEqualTo(String value) {
+            addCriterion("mark_out_value =", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueNotEqualTo(String value) {
-            addCriterion("default_value <>", value, "defaultValue");
+        public Criteria andMarkOutValueNotEqualTo(String value) {
+            addCriterion("mark_out_value <>", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueGreaterThan(String value) {
-            addCriterion("default_value >", value, "defaultValue");
+        public Criteria andMarkOutValueGreaterThan(String value) {
+            addCriterion("mark_out_value >", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueGreaterThanOrEqualTo(String value) {
-            addCriterion("default_value >=", value, "defaultValue");
+        public Criteria andMarkOutValueGreaterThanOrEqualTo(String value) {
+            addCriterion("mark_out_value >=", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueLessThan(String value) {
-            addCriterion("default_value <", value, "defaultValue");
+        public Criteria andMarkOutValueLessThan(String value) {
+            addCriterion("mark_out_value <", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueLessThanOrEqualTo(String value) {
-            addCriterion("default_value <=", value, "defaultValue");
+        public Criteria andMarkOutValueLessThanOrEqualTo(String value) {
+            addCriterion("mark_out_value <=", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueLike(String value) {
-            addCriterion("default_value like", value, "defaultValue");
+        public Criteria andMarkOutValueLike(String value) {
+            addCriterion("mark_out_value like", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueNotLike(String value) {
-            addCriterion("default_value not like", value, "defaultValue");
+        public Criteria andMarkOutValueNotLike(String value) {
+            addCriterion("mark_out_value not like", value, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueIn(List<String> values) {
-            addCriterion("default_value in", values, "defaultValue");
+        public Criteria andMarkOutValueIn(List<String> values) {
+            addCriterion("mark_out_value in", values, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueNotIn(List<String> values) {
-            addCriterion("default_value not in", values, "defaultValue");
+        public Criteria andMarkOutValueNotIn(List<String> values) {
+            addCriterion("mark_out_value not in", values, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueBetween(String value1, String value2) {
-            addCriterion("default_value between", value1, value2, "defaultValue");
+        public Criteria andMarkOutValueBetween(String value1, String value2) {
+            addCriterion("mark_out_value between", value1, value2, "markOutValue");
             return (Criteria) this;
         }
 
-        public Criteria andDefaultValueNotBetween(String value1, String value2) {
-            addCriterion("default_value not between", value1, value2, "defaultValue");
+        public Criteria andMarkOutValueNotBetween(String value1, String value2) {
+            addCriterion("mark_out_value not between", value1, value2, "markOutValue");
             return (Criteria) this;
         }
 
