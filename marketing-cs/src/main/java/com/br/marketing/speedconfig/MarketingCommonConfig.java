@@ -2611,5 +2611,11 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, Integer> toPolicyParamSize;
 
+    /**
+     * 异业打标手机号自动化同步配置
+     * eg:{"7410717":"cell_md5","7410718":"cell_sha256","7410720":"cell_log"}
+     */
+    private Map<String, String> autoSyncCellToFlagDataEncTypeConfig;
+
 }
 

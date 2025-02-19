@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.FlagDataMapper" >
+<mapper namespace="com.br.marketing.mapper.FlagDataMapper">
     <update id="updateTaskIdByLocalId" parameterType="java.lang.Long">
         update b_marketing_flag_data
         set task_id = #{taskId}
         where local_id = #{localId}
           and task_id is null limit 100000;
+    </update>
+
+    <update id="updateByDynamicEncCell">
+        UPDATE b_marketing_flag_data
+        <choose>
+            <when test="encType == 'cell_md5'">
+                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog}
+                WHERE cell_md5 = #{cellMd5}
+            </when>
+            <when test="encType == 'cell_sha256'">
+                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog}
+                WHERE cell_sha256 = #{cellSha256}
+            </when>
+            <when test="encType == 'cell_log'">
+                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256}
+                WHERE cell_log = #{cellLog}
+            </when>
+        </choose>
+        and api_code = #{apiCode}
     </update>
 </mapper>

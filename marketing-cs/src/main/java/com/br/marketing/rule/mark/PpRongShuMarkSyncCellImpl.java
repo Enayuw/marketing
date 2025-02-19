@@ -34,12 +34,12 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
-            FlagDataExample example = new FlagDataExample();
-            example.createCriteria().andCellMd5EqualTo(syncUser.getCellMd5()).andApiCodeEqualTo(syncUser.getApiCode());
-            FlagData flagData = new FlagData();
-            flagData.setCellSha256(syncUser.getCellSha256());
-            flagData.setCellLog(syncUser.getCell());
-            flagDataMapper.updateByExample(flagData, example);
+            String encType = marketingCommonConfig.getAutoSyncCellToFlagDataEncTypeConfig().get(syncUser.getApiCode());
+            String cellMd5 = syncUser.getCellMd5();
+            String cellSha256 = syncUser.getCellSha256();
+            String cellLog = syncUser.getCell();
+            String apiCode = syncUser.getApiCode();
+            flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType);
             return true;
         }
 
