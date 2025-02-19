@@ -65,7 +65,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         //城市匹配
         String cityMatch = MatchPatternCommon.fuzzyMatchByShort(city, cityConfig, marketingCommonConfig.getCarClueFilterStr());
         if (StringUtils.isEmpty(cityMatch)) {
-            carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("城市未在配置表中，匹配失败"),
+            carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("城市未在城市配置表中"),
                     CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
         }
@@ -77,7 +77,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
                 .equals(carClueInfo.getClueMatchBrand())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(relationBrand)) {
             carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("品牌=").concat(carClueInfo.
-                    getClueMatchBrand()).concat("未在映射表中，匹配失败"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
+                    getClueMatchBrand()).concat("未在外采配置中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
         }
         //获取映射表中车系
@@ -91,7 +91,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
                     .equals(carClueInfo.getClueMatchSeries())).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(seriesConfig)) {
                 carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("车系=").concat(
-                        carClueInfo.getClueMatchSeries()).concat("未在映射表中，匹配失败"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
+                        carClueInfo.getClueMatchSeries()).concat("未在外采配置中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
             }
             clueRelationalMapping = seriesConfig.get(0);
@@ -104,7 +104,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             //不在映射城市中
             if (!relationCityList.contains(cityMatch)) {
                 carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("城市=").concat(cityMatch).
-                        concat("不在映射表中城市中，匹配失败"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
+                        concat("未在外采配置中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
             }
         }
@@ -114,7 +114,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
             //在排除的城市中
             if (relationNotCityList.contains(cityMatch)) {
                 carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("城市=").concat(cityMatch).
-                        concat("在映射表中排除城市中，匹配失败"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
+                        concat("在外采配置的排除城市中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
             }
         }
