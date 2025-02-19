@@ -302,4 +302,10 @@ public class RedisKeyConstant {
      */
     public static final String DATA_WHITELIST_MARK = prefix.concat("datawhitelistmark");
 
+    /**
+     * 打标更新ES锁
+     */
+    public static final String DATA_UPDATE_ES_MARK = prefix.concat("dataupdateesmark");
+
+
 }
