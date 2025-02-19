@@ -12,4 +12,5 @@ public interface FlagDataMapper extends FlagDataMapperBase{
 
     void insertbI_(@Param("list") List<FlagDataDTO> list);
 
+    int updateTaskIdByLocalId(Long localId);
 }

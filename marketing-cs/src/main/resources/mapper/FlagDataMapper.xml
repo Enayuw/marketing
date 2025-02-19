@@ -41,4 +41,10 @@
         ${querySql}
     </select>
 
+    <update id="updateTaskIdByLocalId" parameterType="java.lang.Long">
+        update b_marketing_flag_data
+        set task_id = #{taskId}
+        where local_id = #{localId}
+          and task_id is null limit 100000;
+    </update>
 </mapper>
