@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.FlagDataMapper" >
+    <update id="updateTaskIdByLocalId" parameterType="java.lang.Long">
+        update b_marketing_flag_data
+        set task_id = #{taskId}
+        where local_id = #{localId}
+          and task_id is null limit 100000;
+    </update>
 </mapper>
