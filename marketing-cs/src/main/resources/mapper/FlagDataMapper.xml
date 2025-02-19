@@ -1,4 +1,44 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.FlagDataMapper" >
+
+    <insert id="insertbI_" parameterType="list">
+        INSERT INTO b_marketing_flag_mark (
+        flag_new_cust,
+        flag_riskgroup,
+        flag_interest,
+        flag_age,
+        flag_province,
+        flag_special_small,
+        flag_specialrisklevel_rule,
+        flag_indexcs,
+        flag_applyloan,
+        flag_intellaudio_blacklist,
+        flag_without_willingness,
+        flag_score_whitelist,
+        flag_whitelist
+        )values
+        <foreach collection="list" item="data" separator=",">
+            (
+            #{data.flagNewCust,jdbcType=INTEGER},
+            #{data.flagRiskgroup,jdbcType=VARCHAR},
+            #{data.flagInterest,jdbcType=INTEGER},
+            #{data.flagAge,jdbcType=INTEGER},
+            #{data.flagProvince,jdbcType=INTEGER},
+            #{data.flagSpecialSmall,jdbcType=VARCHAR},
+            #{data.flagSpecialrisklevel,jdbcType=INTEGER},
+            #{data.flagIndexcs,jdbcType=INTEGER},
+            #{data.flagApplyloan,jdbcType=INTEGER},
+            #{data.flagIntellaudioBlacklist,jdbcType=INTEGER},
+            #{data.flagWithoutWillingness,jdbcType=VARCHAR},
+            #{data.flagScoreWhitelist,jdbcType=INTEGER},
+            #{data.flagWhitelist,jdbcType=INTEGER}
+             )
+        </foreach>
+    </insert>
+
+    <select id="queryDataByCellbI_" resultType="com.br.marketing.dto.mark.FlagDataDTO">
+        ${querySql}
+    </select>
+
 </mapper>

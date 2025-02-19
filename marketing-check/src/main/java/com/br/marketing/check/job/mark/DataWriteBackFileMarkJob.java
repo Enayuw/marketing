@@ -1,11 +1,12 @@
 package com.br.marketing.check.job.mark;
 
-import com.br.marketing.client.RedisChgService;
+import com.br.marketing.service.mark.DataWriteBackFileMarkService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 
 /**
@@ -18,12 +19,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DataWriteBackFileMarkJob extends AbstractSimpleElasticJob {
 
-    @Autowired
-    RedisChgService redisChgService;
+    @Resource
+    private DataWriteBackFileMarkService dataWriteBackFileMarkService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-
+        long start = System.currentTimeMillis();
+        dataWriteBackFileMarkService.process();
+        log.warn("pp停车文件数据回写，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
 }
