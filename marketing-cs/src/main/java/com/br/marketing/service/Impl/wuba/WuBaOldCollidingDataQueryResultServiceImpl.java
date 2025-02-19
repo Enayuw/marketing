@@ -1,27 +1,27 @@
 package com.br.marketing.service.Impl.wuba;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.wuba.WuBaOldServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingCleanDataTask;
-import com.br.marketing.entity.WubaCollidingData;
-import com.br.marketing.entity.WubaOldCollidingDataBatchNo;
-import com.br.marketing.entity.WubaOldCollidingDataLog;
-import com.br.marketing.entity.WubaOldCollidingDataSyncClean;
-import com.br.marketing.entity.WubaOldCollidingDataSyncCleanExample;
-import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
-import com.br.marketing.mapper.WubaOldCollidingBatchNoMapper;
-import com.br.marketing.mapper.WubaOldCollidingDataLogMapper;
-import com.br.marketing.mapper.WubaOldCollidingDataSyncCleanMapper;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.DataCleaningAutoService;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.CustomerTransferHandler;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -30,11 +30,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Description 58老客查询撞库结果实现类
@@ -59,6 +61,15 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
     DataCleaningAutoService cleaningAutoService;
     @Autowired
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    WubaCollidingDataEliminateMapper wubaCollidingDataEliminateMapper;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+    @Resource
+    CustomerTransferHandler customerTransferHandler;
+
     private final static int PARTATION_SIZE = 50;
     ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10);
 
@@ -106,6 +117,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
     }
 
     private void queryAndSaveResult(WubaOldCollidingDataBatchNo wubaCollidingBatchNo, Long taskId) {
+        Long batchNoId = wubaCollidingBatchNo.getId();
         String batchNo = wubaCollidingBatchNo.getBatchNo();
         String apiCode = wubaCollidingBatchNo.getApiCode();
         if (StringUtils.isEmpty(batchNo)) {
@@ -194,6 +206,15 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
             }
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            // 撞得status=-1数据
+            List<WubaCollidingData> eliminateDatas = getResultDataByStatus(jsonArray, -1);
+            List<String> eliminateCells = eliminateDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
+
+            // status=-1发送mq，推送外呼
+            if (!CollectionUtils.isEmpty(eliminateCells)) {
+                sendEliminateDataToMq(batchNoId);
+            }
         }
     }
 
@@ -248,5 +269,87 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
                 .andBatchNoIn(batchNos).andApiCodeEqualTo(apiCode)
                 .andCleanStatusEqualTo(0);
         return wubaOldCollidingDataSyncCleanMapper.countByExample(example);
+    }
+
+    private List<WubaCollidingData> getResultDataByStatus(JSONArray jsonArray, Integer status) {
+        Stream<JSONObject> trueDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), status));
+        List<WubaCollidingData> trueDatas = trueDataStream.map((JSONObject t) -> {
+            WubaCollidingData data = new WubaCollidingData();
+            data.setCell(t.getString(MOBILE_ENCRYPT));
+            data.setStatus(String.valueOf(status));
+            data.setExtend(JSON.toJSONString(t));
+            return data;
+        }).collect(Collectors.toList());
+        return trueDatas;
+    }
+
+    private void sendEliminateDataToMq(Long batchNoId) {
+        try {
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE, String.valueOf(batchNoId));
+            log.warn("58老客-查询撞库结果作业 status-1发送mq，batchNoId:{}", batchNoId);
+        } catch (Exception e) {
+            String title = "58老客-查询撞库结果作业，status-1数据发送mq失败";
+            String msg = e.getMessage();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
+        }
+    }
+
+    @Override
+    public Result<Boolean> buildEliminateAndPushToRobot(String batchIdStr) {
+        Long batchId = Long.valueOf(batchIdStr);
+        WubaCollidingDataEliminateExample example = new WubaCollidingDataEliminateExample();
+        example.createCriteria().andBatchIdEqualTo(batchId).andIsDeletedEqualTo(0);
+        List<WubaCollidingDataEliminate> eliminateList = wubaCollidingDataEliminateMapper.selectByExample(example);
+        if (CollectionUtils.isEmpty(eliminateList)) {
+            String title = "58撞库status=-1数据消费端，查询异常";
+            String msg = "根据batchNo查询数据为空";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+
+        String apiCode = eliminateList.get(0).getApiCode();
+        String tCid = tableCreateService.getTcId(eliminateList.get(0).getApiCode());
+        List<ConversionData> conversionDataList = eliminateList.stream().map(t -> {
+            ConversionData conversionData = new ConversionData();
+            conversionData.setCaseNum(t.getCell());
+            String phone;
+            // md5解密
+            try {
+                phone = RpcClientProxy.decode(t.getCell(), "cell", "md5", "");
+            } catch (Exception e) {
+                String title = "58撞库status=-1数据消费端，手机号md5解密异常！";
+                String msg = t.getCell();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                        , title));
+                return null;
+            }
+            conversionData.setPhone(phone);
+            conversionData.setDataId(String.valueOf(t.getId()));
+            conversionData.setCid(tCid);
+            conversionData.setPartnerProcessDate(DateUtil.now());
+            conversionData.setInversionStatus("2");
+            conversionData.setInversionInfo(JSON.toJSONString(new JSONObject()));
+
+            return conversionData;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setTransferInfoId(batchId);
+        context.setApiCode(apiCode);
+        try {
+            customerTransferHandler.call(conversionDataList, context);
+        } catch (Exception e) {
+            String title = "58撞库status=-1数据消费端，推送外呼异常";
+            String msg = e.getMessage();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
+        }
+
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }
