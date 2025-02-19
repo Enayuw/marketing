@@ -297,5 +297,9 @@ public class RedisKeyConstant {
 
     public static final String CLUE_CONFIG = prefix.concat("clue:config");
 
+    /**
+     * 打标白名单锁
+     */
+    public static final String DATA_WHITELIST_MARK = prefix.concat("datawhitelistmark");
 
 }
