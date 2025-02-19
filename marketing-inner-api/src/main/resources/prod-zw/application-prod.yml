@@ -79,8 +79,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing
-      username: u_pd_marketing
-      password: qTODziGYQsq11aw8Js2V
+      username: ENC(mysql-prod-ai-marketing-user)
+      password: ENC(mysql-prod-ai-marketing-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -233,6 +233,12 @@ api:
   biocloo:
     baseUrl: https://callcenter.biocloo.com.cn
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
+    isProxy: true
+  hxCar:
+    baseUrl: http://haoyunlailai.cn:6001
+    carList: ${api.hxCar.baseUrl}/open_api/v1/car_list
+    cityList: ${api.hxCar.baseUrl}/open_api/v1/city_list
+    commitClue: ${api.hxCar.baseUrl}/open_api/v1/commit_clue
     isProxy: true
 #elastic-job配置
 SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
