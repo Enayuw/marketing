@@ -2,6 +2,8 @@ package com.br.marketing.rule.mark;
 
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.FlagData;
+import com.br.marketing.entity.FlagDataExample;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.rule.AssembleData;
@@ -22,15 +24,22 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
     MarketingCommonConfig marketingCommonConfig;
     @Autowired
     FlagDataMapper flagDataMapper;
+
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         return null;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingSyncUser) {
+            MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
+            FlagDataExample example = new FlagDataExample();
+            example.createCriteria().andCellMd5EqualTo(syncUser.getCellMd5()).andApiCodeEqualTo(syncUser.getApiCode());
+            FlagData flagData = new FlagData();
+            flagData.setCellSha256(syncUser.getCellSha256());
+            flagData.setCellLog(syncUser.getCell());
+            flagDataMapper.updateByExample(flagData, example);
             return true;
         }
 
