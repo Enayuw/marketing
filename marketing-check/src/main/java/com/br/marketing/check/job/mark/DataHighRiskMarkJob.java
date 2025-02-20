@@ -1,9 +1,12 @@
 package com.br.marketing.check.job.mark;
 
+import com.br.marketing.service.mark.DataHighRiskMarkService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 /**
  * pp停车-榕树数据打标规则-高风险打标
@@ -15,8 +18,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DataHighRiskMarkJob extends AbstractSimpleElasticJob {
 
+    @Resource
+    DataHighRiskMarkService dataHighRiskMarkService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-
+        dataHighRiskMarkService.process();
     }
 }
