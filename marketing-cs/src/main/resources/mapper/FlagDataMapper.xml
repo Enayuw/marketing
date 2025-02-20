@@ -45,10 +45,10 @@
         </foreach>
     </update>
 
-    <select id="queryFlagNewCustComputation" parameterType="java.lang.Integer" resultType="com.br.marketing.entity.FlagData">
+    <select id="queryFlagNewCustComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,cell_md5
         from b_marketing_flag_data
-        where flag_new_cust_computation is null and status = 1 limit #{pageSize}
+        where flag_new_cust_computation is null and status = 1 and api_code = #{apiCode} limit #{pageSize}
     </select>
 
     <update id="batchUpdateFlagNewCustComputationByIds">
@@ -77,4 +77,44 @@
         </foreach>
     </update>
 
+    <select id="queryLogCellByDatebI_" resultType="com.br.marketing.dto.mark.FlagDataCarryLogCell">
+        select id,cell_log
+        from b_marketing_flag_data
+        where api_code = #{apiCode} and create_time > #{date}
+        and status = 1 and cell_log is not null
+        and flag_high_risk_computation is null and is_delete = 0
+        limit #{pageSize}
+    </select>
+
+    <select id="queryRiskGroupAndInterestData" resultType="com.br.marketing.entity.FlagData">
+        select id,cell_md5 from b_marketing_flag_data
+        where api_code = #{apiCode} and status = 1 and flag_customer_base_computation is null
+        limit #{pageSize}
+    </select>
+
+    <update id="batchUpdateFlagStatusById">
+        update b_marketing_flag_data
+        set flag_customer_base_computation = #{flagStatus}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="queryOdsOrgDataByCellbI_" resultType="com.br.marketing.entity.FlagData">
+        select cell_md5, user_type, api_code from ods_all_apicode_upload_data_rongshu_distinct
+        where cell_md5 in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <update id="batchUpdateRiskGroupAndInterestFlagById">
+        update b_marketing_flag_data
+        set flag_riskgroup = #{flagRiskGroup}, flag_customer_base_computation = #{flagStatus}
+        where id in
+        <foreach collection="data" item="item" separator="," open="(" close=")">
+            #{item.id}
+        </foreach>
+    </update>
 </mapper>

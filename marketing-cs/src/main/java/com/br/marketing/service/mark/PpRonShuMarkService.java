@@ -1,6 +1,9 @@
 package com.br.marketing.service.mark;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.FlagData;
+
+import java.util.List;
 
 /**
  * @ClassName PpRonShuMarkService
@@ -11,4 +14,5 @@ public interface PpRonShuMarkService {
 
     Result<Boolean> createCleanTask(Long localId);
 
+    void markAndUpdateFlagStatus(List<FlagData> flagData);
 }

@@ -49,7 +49,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                 try {
                     redisChgService.lock(key, lockValue);
                     //打标表数据查询
-                    List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(marketingCommonConfig.getDataMarkPageSize());
+                    List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(marketingCommonConfig.getDataMarkPageSize(), apiCode);
                     if (CollectionUtil.isEmpty(list)) {
                         redisChgService.unlock(key, lockValue);
                         break;
@@ -63,7 +63,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     //打标更新:flag_new_cust
                     updateFlagNewCust(threadPool, list);
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
@@ -108,7 +108,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     "pp停车与榕树求交作业线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }

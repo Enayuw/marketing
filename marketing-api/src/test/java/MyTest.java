@@ -18,6 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -266,6 +267,8 @@ public class MyTest {
     public void test11() {
         String format = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         System.out.println(format);
+        Date from = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        System.out.println(from);
     }
 
 
