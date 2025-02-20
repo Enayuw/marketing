@@ -7,18 +7,19 @@ import com.br.marketing.entity.FlagData;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface FlagDataMapper extends FlagDataMapperBase{
 
-    List<FlagDataDTO> queryDataByCellbI_(@Param("querySql") String querySql);
+    List<Map<String, Object>> queryDataByCellbI_(@Param("querySql") String querySql);
 
-    void insertbI_(@Param("list") List<FlagDataDTO> list);
+    void insertbI_(@Param("querySql") String querySql);
 
     int updateTaskIdByLocalId(Long localId);
 
     int updateByDynamicEncCell(String cellMd5, String cellSha256, String cellLog, String apiCode, String encType);
 
-    int batchUpdateEsStatusById(@Param("ids") List<Long> ids);
+    int batchUpdateEsStatusById(@Param("ids") List<Long> ids,@Param("status") Integer status);
 
     List<FlagData> queryFlagNewCustComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
@@ -32,4 +33,11 @@ public interface FlagDataMapper extends FlagDataMapperBase{
     List<FlagDataCarryLogCell> queryLogCellByDatebI_(@Param("apiCode") String apiCode,
                                                      @Param("date") String date,
                                                      @Param("pageSize") Integer pageSize);
+
+    List<FlagData> queryRiskGroupAndInterestData(String apiCode, Integer pageSize);
+    int batchUpdateFlagStatusById(@Param("ids") List<Long> ids, Integer flagStatus);
+
+    List<FlagData> queryOdsOrgDataByCellbI_(@Param("cells") List<String> cells);
+
+    int batchUpdateRiskGroupAndInterestFlagById(@Param("data") List<FlagData> data, Integer flagStatus, String flagRiskGroup);
 }

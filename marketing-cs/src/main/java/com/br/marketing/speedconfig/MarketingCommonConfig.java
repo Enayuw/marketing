@@ -2631,5 +2631,11 @@ public class MarketingCommonConfig {
      * 数据打标线程
      */
     private Integer dataMarkThreadNum;
+
+    /**
+     * 数据打标字段
+     */
+    private List<String> dataMarkField;
+
 }
 

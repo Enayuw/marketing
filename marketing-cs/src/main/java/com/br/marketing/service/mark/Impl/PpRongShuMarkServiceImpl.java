@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.mapper.FlagDataMapper;
@@ -17,6 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @Description pp榕树打标实现
@@ -69,5 +74,64 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         cleanDataTask.setId(taskId);
         cleanDataTask.setCleanStatus(0);
         marketingCleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTask);
+    }
+
+    @Override
+    public void markAndUpdateFlagStatus(List<FlagData> flagData) {
+        try {
+            // 打标表cell
+            List<String> flagDataCells = flagData.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
+            // 基底表数据
+            List<FlagData> orgDataByCellbI = flagDataMapper.queryOdsOrgDataByCellbI_(flagDataCells);
+
+            // 更新客群标签
+            handleRiskGroup(flagData, orgDataByCellbI);
+
+            // 更新利率标签
+            handleInterest(flagData, orgDataByCellbI);
+        } catch (Exception e) {
+            String subject = "pp榕树更新客群和利率标签，子线程处理异常";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                    , subject), e);
+        }
+    }
+
+    private void handleInterest(List<FlagData> flagData, List<FlagData> orgDataByCellbI) {
+        String interestConfig = "24";
+        String otherInterestConfig = "36";
+        List<String> interestApiCodeConfig = Arrays.asList("3710058 ", "3710160");
+        // 匹配到利率标签的基底表数据
+        List<String> matchedOrgData = orgDataByCellbI.stream().filter(t ->
+                interestApiCodeConfig.contains(t.getApiCode())
+        ).map(FlagData::getCellMd5).collect(Collectors.toList());
+        List<FlagData> flagDataByApiCode = flagData.stream().filter(t -> matchedOrgData.contains(t.getCellMd5())).collect(Collectors.toList());
+        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByApiCode, 1, interestConfig);
+
+        // 未匹配到利率标签的基底表数据
+        List<String> unMatchedOrgCell = orgDataByCellbI.stream().filter(t ->
+                !interestApiCodeConfig.contains(t.getUserType())
+        ).map(FlagData::getCellMd5).collect(Collectors.toList());
+        List<FlagData> flagDataOther = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
+        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataOther, 1, otherInterestConfig);
+    }
+
+    private void handleRiskGroup(List<FlagData> flagData, List<FlagData> orgDataByCellbI) {
+        List<String> userTypeConfig = Arrays.asList("复贷", "新客");
+        // 匹配到客群标签的基底表数据
+        Map<String, List<FlagData>> mapGroupByUserType = orgDataByCellbI.stream().filter(t ->
+                userTypeConfig.contains(t.getUserType())).collect(Collectors.groupingBy(FlagData::getUserType));
+
+        for (String userType : mapGroupByUserType.keySet()) {
+            List<String> cellByUserType = mapGroupByUserType.get(userType).stream().map(FlagData::getCellMd5).collect(Collectors.toList());
+            List<FlagData> flagDataByUserType = flagData.stream().filter(t -> cellByUserType.contains(t.getCellMd5())).collect(Collectors.toList());
+            flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByUserType, 1, userType);
+        }
+
+        // 未匹配到客群标签的基底表数据
+        List<String> unMatchedOrgCell = orgDataByCellbI.stream().filter(t ->
+                !userTypeConfig.contains(t.getUserType())
+        ).map(FlagData::getCellMd5).collect(Collectors.toList());
+        List<FlagData> flagDataUnMatch = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
+        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataUnMatch, 1, "其他");
     }
 }
