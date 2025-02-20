@@ -49,7 +49,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                 try {
                     redisChgService.lock(key, lockValue);
                     //打标表数据查询
-                    List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(marketingCommonConfig.getDataMarkPageSize());
+                    List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(marketingCommonConfig.getDataMarkPageSize(), apiCode);
                     if (CollectionUtil.isEmpty(list)) {
                         redisChgService.unlock(key, lockValue);
                         break;

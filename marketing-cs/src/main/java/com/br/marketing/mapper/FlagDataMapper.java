@@ -19,7 +19,7 @@ public interface FlagDataMapper extends FlagDataMapperBase{
 
     int batchUpdateEsStatusById(@Param("ids") List<Long> ids);
 
-    List<FlagData> queryFlagNewCustComputation(@Param("pageSize") Integer pageSize);
+    List<FlagData> queryFlagNewCustComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
     void batchUpdateFlagNewCustComputationByIds(@Param("ids") List<Long> ids);
 
