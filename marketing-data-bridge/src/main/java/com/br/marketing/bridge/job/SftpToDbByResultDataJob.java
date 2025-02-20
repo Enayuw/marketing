@@ -205,10 +205,18 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                                         , iTxtToDbService::phoneTodb);
                             } else {
                                 ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
-                                sftpToDbByCommonService.actionTxtFile(context
-                                        , localFile
-                                        , baseHeads
-                                        , iTxtToDbService::phoneTodb);
+                                ArrayList<String> csosBaseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type","source"));
+                                if(fileName.startsWith("csosnew")){
+                                    sftpToDbByCommonService.actionTxtFile(context
+                                            , localFile
+                                            , csosBaseHeads
+                                            , iTxtToDbService::csosPhoneTodb);
+                                }else {
+                                    sftpToDbByCommonService.actionTxtFile(context
+                                            , localFile
+                                            , baseHeads
+                                            , iTxtToDbService::phoneTodb);
+                                }
                             }
 
                             // 更新推送状态为待推送

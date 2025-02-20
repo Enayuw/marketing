@@ -353,5 +353,16 @@
     </where>
   </select>
 
+  <select id="selectUploadMagnStatInfotiflash_" resultType="java.util.Map">
+    select count(1) as normalNum,
+           count(case when (status = 1 and is_repeat in (1,2)) then 1 else null end) as duplicateRemovalNum,
+           DATE_FORMAT(min(create_time),"%Y-%m-%d %H:%i:%s") as appletBeginTime,
+           DATE_FORMAT(max(create_time),"%Y-%m-%d %H:%i:%s") as appletEndTime
+    from
+        b_marketing_sync_${apiCode}
+    where
+        applet_date = #{uploadDate,jdbcType=VARCHAR}
+        and (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
+  </select>
 
 </mapper>

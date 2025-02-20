@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @Author: Bairong
@@ -351,7 +352,8 @@ public class SftpToDbUtils {
         }
         Boolean startExt = false;
         if(!heads.containsAll(baseHeads)){
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
+            List<String> lackHead = baseHeads.stream().filter(field -> !heads.contains(field)).collect(Collectors.toList());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段:"+String.join(",", lackHead));
         }
         for (int i = 0; i < heads.size(); i++) {
             String s = heads.get(i);

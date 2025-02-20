@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CallRecordLogMapper" >
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_call_record_log (
+        record_id,
+        api_code,
+        case_num,
+        intention_grade,
+        inbound_status,
+        applet_date,
+        create_time,
+        update_time
+        )
+        VALUES
+        <foreach collection="callRecords" item="item" separator=",">
+            (
+            #{item.id, jdbcType=VARCHAR},
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.caseNum, jdbcType=VARCHAR},
+             #{item.intentionGrade, jdbcType=VARCHAR},
+            1,
+            DATE_FORMAT(NOW(), '%Y-%m-%d'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+        </foreach>
+    </insert>
+</mapper>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.CarClueRelationalMappingMapper">
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_car_clue_relational_mapping (
+        api_code,
+        brand_id,
+        brand_name,
+        series_id,
+        series_name,
+        satisfy_province_name,
+        satisfy_city_name,
+        exclude_province_name,
+        exclude_city_name,
+        province_type,
+        matching_type,
+        matching_cause,
+        applet_date,
+        create_time,
+        update_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.brandId, jdbcType=INTEGER},
+            #{item.brandName, jdbcType=VARCHAR},
+            #{item.seriesId, jdbcType=INTEGER},
+            #{item.seriesName, jdbcType=VARCHAR},
+            #{item.satisfyProvinceName, jdbcType=VARCHAR},
+            #{item.satisfyCityName, jdbcType=VARCHAR},
+            #{item.excludeProvinceName, jdbcType=VARCHAR},
+            #{item.excludeCityName, jdbcType=VARCHAR},
+            #{item.provinceType, jdbcType=INTEGER},
+            #{item.matchingType, jdbcType=INTEGER},
+            #{item.matchingCause, jdbcType=VARCHAR},
+            DATE_FORMAT(NOW(), '%Y-%m-%d'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+        </foreach>
+    </insert>
+
+    <select id="getMaxCleanDate" resultType="java.lang.String">
+
+        select max(applet_date)
+        from b_car_clue_relational_mapping
+        where is_del = 1
+
+
+    </select>
+</mapper>

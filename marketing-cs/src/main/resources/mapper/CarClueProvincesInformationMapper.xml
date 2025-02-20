@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.CarClueProvincesInformationMapper">
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_car_clue_provinces_information (
+        api_code,
+        province_id,
+        province_name,
+        city_id,
+        city_name,
+        applet_date,
+        create_time,
+        update_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.provinceId, jdbcType=INTEGER},
+            #{item.provinceName, jdbcType=VARCHAR},
+            #{item.cityId, jdbcType=INTEGER},
+            #{item.cityName, jdbcType=VARCHAR},
+            DATE_FORMAT(NOW(), '%Y-%m-%d'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
+            DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+        </foreach>
+    </insert>
+
+    <select id="getMaxCleanDate" resultType="java.lang.String">
+
+        select max(applet_date)
+        from b_car_clue_provinces_information
+        where is_del = 1
+
+    </select>
+</mapper>

@@ -2542,6 +2542,37 @@ public class MarketingCommonConfig {
     private Map<String, Object> smyBlacklistConfig = new HashMap<>();
 
     /**
+     * 车线索入库配置
+     * {"carClueApiCodes":["7410733"],"carClueIntentionGrades":["A","B","a","b"]}
+     */
+    private Map<String, List<String>> carClueStorageConfig;
+
+    /**
+     * 车线索数据清洗配置
+     * eg:{"limit":2000,"threadNum":10}
+     */
+    private JSONObject carClueDataCleanConfig;
+
+
+    /**
+     * 车线索黑名单配置
+     */
+    private Map<String, List<String>> carClueBlackListConfig;
+
+    /**
+     * 车线索apiCode映射：0-易车，1-海星之家
+     * eg:{"7410xxx":0,"7410xxx":1}
+     */
+    private Map<String, Object> carClueApiCodeMapping = new HashMap<>();
+
+
+    /**
+     * 海星接口配置
+     * {"channelId":"IxFRGOyohB1vuQDk","channelKey":"N0H9hfbPVfhQtEdUqbc1doP8pD42x8Qw","ycKaTask":"7-1","ycMemberTask":"6+","zjTask":"xsc"}
+     */
+    private JSONObject hxClientConfig;
+
+    /**
      * 携程false包补充量级预览优化开关
      */
     private Boolean xcFalsePackagePushPreviewOptFlag;
@@ -2566,9 +2597,24 @@ public class MarketingCommonConfig {
     private Boolean uploadFileSftp;
 
     /**
+     * 线索上报接口挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, Object> commitClueMock;
+
+    /**
      * 运营的客户类型集合
      */
     private List<String> opeApiTypes;
+
+    /**
+     * 车线索过滤特殊字符:.#
+     */
+    private String carClueFilterStr;
+    /**
+     * 规则中心推决策参数大小
+     * eg:{"7410950":500,"7410960":500}
+     */
+    private HashMap<String, Integer> toPolicyParamSize;
 
 }
 
