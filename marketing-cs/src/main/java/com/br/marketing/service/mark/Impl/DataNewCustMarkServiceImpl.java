@@ -63,7 +63,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     //打标更新:flag_new_cust
                     updateFlagNewCust(threadPool, list);
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
