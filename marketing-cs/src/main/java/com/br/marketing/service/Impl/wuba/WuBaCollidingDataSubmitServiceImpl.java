@@ -231,22 +231,19 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     }
 
     /**
-     * 查询待撞数据，顺序为：周期场景2 → 周期场景1 → 高价值 → 手动上传 → 周期1的-2包 → 周期2的-2包 → 手动上传的-2包
+     * 查询待撞数据，顺序为：高价值数据>非金融周期数据>金融周期数据>非金融周期-2数据> 金融周期-2数据>历史补包-2数据>手动补包数据
      * @param apiCode
      * @param limit
      * @return
      */
     private Pair<String, List<WubaCollidingData>> getCollidingDatas(String apiCode, Integer limit) {
         DateTime nowDate = DateUtil.parse(LocalDate.now().toString(), DatePattern.NORM_DATE_PATTERN);
-        // 周期场景2的数据
-        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
-            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
-            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
-            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
-            List<WubaCollidingData> loopCycles = wubaCollidingDataSecondLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
-                    limit);
-            if (!CollectionUtils.isEmpty(loopCycles)) {
-                return new Pair<>(S, loopCycles);
+        // 高价值数据
+        List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
+        if (!CollectionUtils.isEmpty(highValueFiles)) {
+            List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectHighValueCollidingData(limit, apiCode, nowDate, highValueFiles);
+            if (!CollectionUtils.isEmpty(robs)) {
+                return new Pair<>(H, robs);
             }
         }
 
@@ -262,19 +259,16 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             }
         }
 
-        // 高价值数据
-        List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
-        if (!CollectionUtils.isEmpty(highValueFiles)) {
-            List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectHighValueCollidingData(limit, apiCode, nowDate, highValueFiles);
-            if (!CollectionUtils.isEmpty(robs)) {
-                return new Pair<>(H, robs);
+        // 周期场景2的数据
+        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
+            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
+            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
+            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
+            List<WubaCollidingData> loopCycles = wubaCollidingDataSecondLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
+                    limit);
+            if (!CollectionUtils.isEmpty(loopCycles)) {
+                return new Pair<>(S, loopCycles);
             }
-        }
-
-        // 手动上传数据
-        List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectCollidingData(limit, apiCode);
-        if (!CollectionUtils.isEmpty(robs)) {
-            return new Pair<>(F, robs);
         }
 
         // 非高价值周期非金融TRUE的-2
@@ -309,6 +303,12 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             if (!CollectionUtils.isEmpty(supplyReaveds)) {
                 return new Pair<>(K, supplyReaveds);
             }
+        }
+
+        // 手动上传数据
+        List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectCollidingData(limit, apiCode);
+        if (!CollectionUtils.isEmpty(robs)) {
+            return new Pair<>(F, robs);
         }
 
         return new Pair<>(null, null);
