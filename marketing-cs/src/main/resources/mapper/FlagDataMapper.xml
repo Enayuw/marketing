@@ -101,7 +101,7 @@
     <update id="batchUpdateFlagNewCustComputationByCells">
         update b_marketing_flag_data
         set flag_new_cust_computation = #{flagNewCustComputation},
-        set flag_new_cust = #{flagNewCust}
+            flag_new_cust = #{flagNewCust}
         where cell_md5 in
         <foreach collection="cells" item="cell" separator="," open="(" close=")">
             #{cell}
