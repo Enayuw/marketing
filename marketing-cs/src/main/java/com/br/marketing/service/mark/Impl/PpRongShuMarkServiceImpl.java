@@ -1,8 +1,10 @@
 package com.br.marketing.service.mark.Impl;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.mapper.FlagDataMapper;
@@ -44,7 +46,14 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
 
         // 更新打标表任务id
         while (true) {
-            int count = flagDataMapper.updateTaskIdByLocalId(localId);
+            int count = 0;
+            try {
+                count = flagDataMapper.updateTaskIdByLocalId(localId);
+            } catch (Exception e) {
+                String subject = "pp榕树更新打标表taskId异常,localFIleId:" + localFile.getId();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                        , subject), e);
+            }
             if (count == 0) {
                 break;
             }

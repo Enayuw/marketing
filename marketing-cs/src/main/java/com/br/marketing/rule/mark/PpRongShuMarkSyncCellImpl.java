@@ -1,9 +1,9 @@
 package com.br.marketing.rule.mark;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.FlagData;
-import com.br.marketing.entity.FlagDataExample;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.rule.AssembleData;
@@ -39,7 +39,13 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
             String cellSha256 = syncUser.getCellSha256();
             String cellLog = syncUser.getCell();
             String apiCode = syncUser.getApiCode();
-            flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType);
+            try {
+                flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType);
+            } catch (Exception e) {
+                String subject = "pp榕树打标更新sha256和log手机号异常,cellMd5:" + cellMd5;
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                        , subject), e);
+            }
             return true;
         }
 
