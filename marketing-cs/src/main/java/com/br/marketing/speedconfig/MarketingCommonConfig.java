@@ -2617,5 +2617,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, String> autoSyncCellToFlagDataEncTypeConfig;
 
+    /**
+     * 数据打标api_code
+     */
+    private List<String> dataMarkApiCodes;
+
 }
 
