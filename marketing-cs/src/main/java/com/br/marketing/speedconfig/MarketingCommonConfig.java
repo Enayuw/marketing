@@ -2622,5 +2622,14 @@ public class MarketingCommonConfig {
      */
     private List<String> dataMarkApiCodes;
 
+    /**
+     * 数据打标分页大小
+     */
+    private Integer dataMarkPageSize;
+
+    /**
+     * 数据打标线程
+     */
+    private Integer dataMarkThreadNum;
 }
 
