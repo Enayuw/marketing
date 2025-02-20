@@ -32,4 +32,11 @@ public interface FlagDataMapper extends FlagDataMapperBase{
     List<FlagDataCarryLogCell> queryLogCellByDatebI_(@Param("apiCode") String apiCode,
                                                      @Param("date") String date,
                                                      @Param("pageSize") Integer pageSize);
+
+    List<FlagData> queryRiskGroupAndInterestData(String apiCode, Integer pageSize);
+    int batchUpdateFlagStatusById(@Param("ids") List<Long> ids, Integer flagStatus);
+
+    List<FlagData> queryOdsOrgDataByCellbI_(@Param("cells") List<String> cells);
+
+    int batchUpdateRiskGroupAndInterestFlagById(@Param("data") List<FlagData> data, Integer flagStatus, String flagRiskGroup);
 }
