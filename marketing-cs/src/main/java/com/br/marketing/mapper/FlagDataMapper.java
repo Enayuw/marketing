@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.dto.mark.FlagDataCarryLogCell;
 import com.br.marketing.dto.mark.FlagDataDTO;
 import com.br.marketing.entity.FlagData;
 import org.apache.ibatis.annotations.Param;
@@ -27,4 +28,8 @@ public interface FlagDataMapper extends FlagDataMapperBase{
                                                   @Param("flagNewCust") Integer flagNewCust,
                                                   @Param("flagNewCustComputation") Integer flagNewCustComputation);
     List<String> intersectionWithRongshubI_(@Param("cells") List<String> cells);
+
+    List<FlagDataCarryLogCell> queryLogCellByDatebI_(@Param("apiCode") String apiCode,
+                                                     @Param("date") String date,
+                                                     @Param("pageSize") Integer pageSize);
 }

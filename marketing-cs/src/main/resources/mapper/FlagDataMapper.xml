@@ -108,4 +108,13 @@
         </foreach>
     </update>
 
+    <select id="queryLogCellByDatebI_" resultType="com.br.marketing.dto.mark.FlagDataCarryLogCell">
+        select id,cell_log
+        from b_marketing_flag_data
+        where api_code = #{apiCode} and create_time > #{date}
+        and status = 1 and cell_log is not null
+        and flag_high_risk_computation is null and is_delete = 0
+        limit #{pageSize}
+    </select>
+
 </mapper>
