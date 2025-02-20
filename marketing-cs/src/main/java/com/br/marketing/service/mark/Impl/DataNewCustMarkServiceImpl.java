@@ -108,7 +108,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     "pp停车与榕树求交作业线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }
