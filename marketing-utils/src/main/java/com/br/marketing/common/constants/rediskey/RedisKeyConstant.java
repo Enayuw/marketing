@@ -307,5 +307,8 @@ public class RedisKeyConstant {
      */
     public static final String DATA_UPDATE_ES_MARK = prefix.concat("dataupdateesmark");
 
-
+    /**
+     * 打标榕树重复注册锁
+     */
+    public static final String DATA_RONGSHU_MARK = prefix.concat("datarongshumark");
 }

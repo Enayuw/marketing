@@ -76,4 +76,36 @@
         </foreach>
     </update>
 
+    <select id="queryFlagNewCustComputation" parameterType="java.lang.Integer" resultType="com.br.marketing.entity.FlagData">
+        select id,cell_md5
+        from b_marketing_flag_data
+        where flag_new_cust_computation is null and status = 1 limit #{pageSize}
+    </select>
+
+    <update id="batchUpdateFlagNewCustComputationByIds">
+        update b_marketing_flag_data
+        set flag_new_cust_computation = 0
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="intersectionWithRongshubI_" resultType="java.lang.String">
+        select cell from tmp_rongshu_20250113 where cell in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <update id="batchUpdateFlagNewCustComputationByCells">
+        update b_marketing_flag_data
+        set flag_new_cust_computation = #{flagNewCustComputation},
+        set flag_new_cust = #{flagNewCust}
+        where cell_md5 in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </update>
+
 </mapper>

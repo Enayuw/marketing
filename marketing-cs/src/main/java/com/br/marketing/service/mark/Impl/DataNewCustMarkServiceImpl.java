@@ -1,0 +1,116 @@
+package com.br.marketing.service.mark.Impl;
+
+import cn.hutool.core.collection.CollectionUtil;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.FlagData;
+import com.br.marketing.mapper.FlagDataMapper;
+import com.br.marketing.service.mark.DataNewCustMarkService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+/**
+ * @author peng.kang
+ * @description: 与榕树求交打标实现类
+ * @date 2025/2/20 14:56
+ */
+@Service
+@Slf4j
+public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
+    private final static int PARTATION_SIZE = 2000;
+    @Resource
+    FlagDataMapper flagDataMapper;
+    @Autowired
+    RedisChgService redisChgService;
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
+
+    @Override
+    public void process() {
+        marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
+            Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+            String key = RedisKeyConstant.DATA_RONGSHU_MARK.concat(":").concat(apiCode);
+            while (true) {
+                String lockValue = UUID.randomUUID().toString();
+                try {
+                    redisChgService.lock(key, lockValue);
+                    //打标表数据查询
+                    List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(marketingCommonConfig.getDataMarkPageSize());
+                    if (CollectionUtil.isEmpty(list)) {
+                        redisChgService.unlock(key, lockValue);
+                        break;
+                    }
+                    //更新状态:flag_new_cust_computation
+                    List<Long> ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
+                    updateFlagNewCustComputation(threadPool, ids);
+                    //释放锁
+                    redisChgService.unlock(key, lockValue);
+
+                    //打标更新:flag_new_cust
+                    updateFlagNewCust(threadPool, list);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                            "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    redisChgService.unlock(key, lockValue);
+                    threadPoolShutDown(threadPool);
+                    break;
+                }
+            }
+            threadPoolShutDown(threadPool);
+        });
+    }
+
+    void updateFlagNewCust(ThreadPoolExecutor threadPool, List<FlagData> ids) {
+        List<List<FlagData>> partitions = Lists.partition(ids, PARTATION_SIZE);
+        for (List<FlagData> partition : partitions) {
+            threadPool.submit(() -> markAndUpdateFlagNewCust(partition));
+        }
+    }
+
+    void updateFlagNewCustComputation(ThreadPoolExecutor threadPool, List<Long> ids) {
+        List<List<Long>> partitions = Lists.partition(ids, PARTATION_SIZE);
+        for (List<Long> partition : partitions) {
+            threadPool.submit(() -> flagDataMapper.batchUpdateFlagNewCustComputationByIds(partition));
+        }
+    }
+
+    void markAndUpdateFlagNewCust(List<FlagData> list) {
+        List<String> originalCells = list.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
+        //doris求交查询(榕树7000w)
+        List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
+        if (CollectionUtil.isNotEmpty(intersectionCells)) {
+            flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 1, 1);
+        }
+        originalCells.removeAll(intersectionCells);
+        flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, 0, 1);
+
+    }
+
+    private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("pp停车与榕树求交作业线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                    "pp停车与榕树求交作业线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            Thread.currentThread().interrupt();
+        }
+    }
+}
