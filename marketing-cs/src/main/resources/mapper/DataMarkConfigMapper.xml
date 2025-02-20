@@ -6,8 +6,9 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="mark_type" property="markType" jdbcType="INTEGER" />
     <result column="mark_out_field" property="markOutField" jdbcType="VARCHAR" />
+    <result column="mark_out_value_type" property="markOutValueType" jdbcType="INTEGER" />
     <result column="mark_condition" property="markCondition" jdbcType="VARCHAR" />
-    <result column="default_value" property="defaultValue" jdbcType="VARCHAR" />
+    <result column="mark_out_value" property="markOutValue" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -71,8 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, mark_type, mark_out_field, mark_condition, default_value, is_del, create_time, 
-    update_time
+    id, api_code, mark_type, mark_out_field, mark_out_value_type, mark_condition, mark_out_value,
+    is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DataMarkConfigExample" >
     select
@@ -89,7 +90,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_data_mark_config
     where id = #{id,jdbcType=BIGINT}
@@ -108,12 +109,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_data_mark_config (api_code, mark_type, mark_out_field, 
-      mark_condition, default_value, is_del, 
-      create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{markType,jdbcType=INTEGER}, #{markOutField,jdbcType=VARCHAR}, 
-      #{markCondition,jdbcType=VARCHAR}, #{defaultValue,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_data_mark_config (api_code, mark_type, mark_out_field,
+    mark_out_value_type, mark_condition, mark_out_value,
+    is_del, create_time, update_time
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{markType,jdbcType=INTEGER}, #{markOutField,jdbcType=VARCHAR},
+    #{markOutValueType,jdbcType=INTEGER}, #{markCondition,jdbcType=VARCHAR}, #{markOutValue,jdbcType=VARCHAR},
+    #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DataMarkConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -130,11 +133,14 @@
       <if test="markOutField != null" >
         mark_out_field,
       </if>
+      <if test="markOutValueType != null" >
+        mark_out_value_type,
+      </if>
       <if test="markCondition != null" >
         mark_condition,
       </if>
-      <if test="defaultValue != null" >
-        default_value,
+      <if test="markOutValue != null" >
+        mark_out_value,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -156,11 +162,14 @@
       <if test="markOutField != null" >
         #{markOutField,jdbcType=VARCHAR},
       </if>
+      <if test="markOutValueType != null" >
+        #{markOutValueType,jdbcType=INTEGER},
+      </if>
       <if test="markCondition != null" >
         #{markCondition,jdbcType=VARCHAR},
       </if>
-      <if test="defaultValue != null" >
-        #{defaultValue,jdbcType=VARCHAR},
+      <if test="markOutValue != null" >
+        #{markOutValue,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -194,11 +203,14 @@
       <if test="record.markOutField != null" >
         mark_out_field = #{record.markOutField,jdbcType=VARCHAR},
       </if>
+      <if test="record.markOutValueType != null" >
+        mark_out_value_type = #{record.markOutValueType,jdbcType=INTEGER},
+      </if>
       <if test="record.markCondition != null" >
         mark_condition = #{record.markCondition,jdbcType=VARCHAR},
       </if>
-      <if test="record.defaultValue != null" >
-        default_value = #{record.defaultValue,jdbcType=VARCHAR},
+      <if test="record.markOutValue != null" >
+        mark_out_value = #{record.markOutValue,jdbcType=VARCHAR},
       </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
@@ -217,14 +229,15 @@
   <update id="updateByExample" parameterType="map" >
     update b_data_mark_config
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      mark_type = #{record.markType,jdbcType=INTEGER},
-      mark_out_field = #{record.markOutField,jdbcType=VARCHAR},
-      mark_condition = #{record.markCondition,jdbcType=VARCHAR},
-      default_value = #{record.defaultValue,jdbcType=VARCHAR},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    mark_type = #{record.markType,jdbcType=INTEGER},
+    mark_out_field = #{record.markOutField,jdbcType=VARCHAR},
+    mark_out_value_type = #{record.markOutValueType,jdbcType=INTEGER},
+    mark_condition = #{record.markCondition,jdbcType=VARCHAR},
+    mark_out_value = #{record.markOutValue,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -241,11 +254,14 @@
       <if test="markOutField != null" >
         mark_out_field = #{markOutField,jdbcType=VARCHAR},
       </if>
+      <if test="markOutValueType != null" >
+        mark_out_value_type = #{markOutValueType,jdbcType=INTEGER},
+      </if>
       <if test="markCondition != null" >
         mark_condition = #{markCondition,jdbcType=VARCHAR},
       </if>
-      <if test="defaultValue != null" >
-        default_value = #{defaultValue,jdbcType=VARCHAR},
+      <if test="markOutValue != null" >
+        mark_out_value = #{markOutValue,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
@@ -262,13 +278,14 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataMarkConfig" >
     update b_data_mark_config
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      mark_type = #{markType,jdbcType=INTEGER},
-      mark_out_field = #{markOutField,jdbcType=VARCHAR},
-      mark_condition = #{markCondition,jdbcType=VARCHAR},
-      default_value = #{defaultValue,jdbcType=VARCHAR},
-      is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        mark_type = #{markType,jdbcType=INTEGER},
+        mark_out_field = #{markOutField,jdbcType=VARCHAR},
+        mark_out_value_type = #{markOutValueType,jdbcType=INTEGER},
+        mark_condition = #{markCondition,jdbcType=VARCHAR},
+        mark_out_value = #{markOutValue,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -3,6 +3,7 @@ package com.br.marketing.service.mark.Impl;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.mark.FlagDataCarryLogCell;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
@@ -17,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -77,7 +79,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 //1.抢锁
                 redisChgService.lock(key, lockValue);
                 //2.查数据
-                List<FlagData> flagDataList = getFlagData(apiCode, straHisFile);
+                List<FlagDataCarryLogCell> flagDataList = getFlagData(apiCode, straHisFile);
                 //3.查询es
 
             } catch (Exception e) {
@@ -95,10 +97,12 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @author hedongshuo
      * @date 2025/2/20 17:36
      **/
-    private List<FlagData> getFlagData(String apiCode, StraHisFile straHisFile) {
+    private List<FlagDataCarryLogCell> getFlagData(String apiCode, StraHisFile straHisFile) {
         Integer dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize();
-
-        return null;
+        return flagDataMapper.queryLogCellByDatebI_(
+                apiCode,
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                dataMarkPageSize);
     }
 
     /**
