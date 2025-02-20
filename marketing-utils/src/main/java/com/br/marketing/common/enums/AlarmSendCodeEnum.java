@@ -292,7 +292,7 @@ public enum AlarmSendCodeEnum {
     CARCLUE_SERVICEERROR("6052001", "车线索业务异常"),
 
     //pp停车业务告警码
-    PP_PARKING_SERVICEERROR("6060001", "pp停车业务异常"),
+    PP_MARKING_SERVICEERROR("6060001", "pp停车业务异常"),
     ;
 
     /**
