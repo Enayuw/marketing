@@ -9,6 +9,7 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.FlagData;
@@ -23,14 +24,14 @@ import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.mark.DataUpdateEsMarkService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -44,60 +45,72 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
+    private final static int PARTATION_SIZE = 2000;
+
     @Autowired
     RedisChgService redisChgService;
     @Resource
     FlagDataMapper flagDataMapper;
     @Autowired
     private MarketingHistoryEsService marketingHistoryEsService;
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
     private static final String TITLE = "【pp停车数据更新es】";
+
 
     @Override
     public void process() {
+        marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
+            Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
+            Integer dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize();
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+            String key = RedisKeyConstant.DATA_UPDATE_ES_MARK.concat(":").concat(apiCode);
+            while (true) {
+                String lockValue = UUID.randomUUID().toString();
+                try {
+                    redisChgService.lock(key, lockValue);
 
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
-        Long minId = null;
-        boolean isContiue = Boolean.TRUE;
-        while (isContiue) {
-            // 分页查询打标数据
-            FlagDataExample flagDataExample = new FlagDataExample();
-            flagDataExample.setOrderByClause("id limit 2000");
+                    FlagDataExample flagDataExample = new FlagDataExample();
+                    flagDataExample.setOrderByClause("id limit " + dataMarkPageSize);
 
-            FlagDataExample.Criteria criteria = flagDataExample.createCriteria()
-                    .andApiCodeEqualTo("7410717")
-                    .andCreateDateEqualTo(1)
-                    .andFlagNewCustComputationEqualTo(1)
-                    .andFlagCustomerBaseComputationEqualTo(1)
-                    .andFlagHighRiskComputationEqualTo(1)
-                    .andFlagBlacklistComputationEqualTo(1)
-                    .andFlagWhitelistComputationEqualTo(1)
-                    .andEsSyncStatusEqualTo(EsSyncStatusEnum.INITIAL.getValue());
-            // 找到最新文件 batchNumber+fieldId
-            if (minId != null) {
-                criteria.andIdGreaterThan(minId);
+                    flagDataExample.createCriteria()
+                            .andApiCodeEqualTo(apiCode)
+                            .andAppletDateEqualTo(new Date())
+                            .andFlagNewCustComputationEqualTo(1)
+                            .andFlagCustomerBaseComputationEqualTo(1)
+                            .andFlagHighRiskComputationEqualTo(1)
+                            .andFlagBlacklistComputationEqualTo(1)
+                            .andFlagWhitelistComputationEqualTo(1)
+                            .andEsSyncStatusEqualTo(EsSyncStatusEnum.INITIAL.getValue());
+                    //打标表数据查询
+                    List<FlagData> flagDataList = flagDataMapper.selectByExample(flagDataExample);
+                    if (CollectionUtil.isEmpty(flagDataList)) {
+                        redisChgService.unlock(key, lockValue);
+                        break;
+                    }
+                    //更新打标表状态
+                    List<Long> ids = flagDataList.stream().map(FlagData::getId).collect(Collectors.toList());
+                    flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.SYNCING.getValue());
+                    //释放锁
+                    redisChgService.unlock(key, lockValue);
+
+                    List<List<FlagData>> partitions = Lists.partition(flagDataList, PARTATION_SIZE);
+                    for (List<FlagData> list : partitions) {
+                        threadPool.submit(() -> updateEsMarkData(list));
+                    }
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                            TITLE + "抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    redisChgService.unlock(key, lockValue);
+                    threadPoolShutDown(threadPool);
+                    break;
+                }
             }
-            List<FlagData> flagDataList = flagDataMapper.selectByExample(flagDataExample);
-            if (CollectionUtil.isEmpty(flagDataList)) {
-                isContiue = Boolean.FALSE;
-                continue;
-            }
-            minId = flagDataList.get(flagDataList.size() - 1).getId();
-            // 更新ES
-            threadPool.submit(() -> updateEsMarkData(flagDataList));
-        }
-        threadPool.shutdown();
-        try {
-            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.warn(TITLE + "线程池关闭");
-            }
-        } catch (InterruptedException ex) {
-            threadPool.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "线程池关闭！异常"), ex);
-            Thread.currentThread().interrupt();
-        }
+            threadPoolShutDown(threadPool);
+        });
     }
 
-    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     private void updateEsMarkData(List<FlagData> flagDataList) {
         try {
@@ -131,7 +144,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     MarketingHistory marketingHistory = entry.getValue();
                     List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
                     FlagData flagData = groupedByCellLog.get(marketingHistory.getCell());
-                    buildParams(marketingConditions,flagData);
+                    buildParams(marketingConditions, flagData);
                     JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
                     params.put("_id", entry.getKey());
                     RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
@@ -140,22 +153,17 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             }
             //更新打标表状态
             List<Long> ids = flagDataList.stream().map(FlagData::getId).collect(Collectors.toList());
-            if(!CollectionUtil.isEmpty(ids)){
-                flagDataMapper.batchUpdateEsStatusById(ids);
+            if (!CollectionUtil.isEmpty(ids)) {
+                flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.COMPLETE.getValue());
             }
-        }catch (Exception e){
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                    TITLE+"出现异常，" + "errorMessage=" + e.getMessage()), e);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                    TITLE + "出现异常，" + "errorMessage=" + e.getMessage()), e);
         }
     }
 
     private void buildParams(List<MarketingCondition> conditions, FlagData flagData) {
-        List<String> fieldKeys = Arrays.asList(
-                "flagNewCust", "flagRiskgroup", "flagInterest", "flagAge",
-                "flagProvince", "flagSpecialSmall", "flagSpecialrisklevelRule", "flagIndexcs",
-                "flagApplyloan", "flagIntellaudioBlacklist", "flagWithoutWillingness",
-                "flagScoreWhitelist", "flagWhitelist"
-        );
+        List<String> fieldKeys = marketingCommonConfig.getDataMarkField();
         for (String fieldKey : fieldKeys) {
             MarketingCondition condition = new MarketingCondition();
             condition.setFieldKey(fieldKey);
@@ -207,5 +215,20 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             conditions.add(condition);
         }
     }
+
+    private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info(TITLE + "线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                    TITLE + "线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            Thread.currentThread().interrupt();
+        }
+    }
+
 
 }

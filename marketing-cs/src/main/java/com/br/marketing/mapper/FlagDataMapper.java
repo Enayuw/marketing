@@ -6,18 +6,19 @@ import com.br.marketing.entity.FlagData;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface FlagDataMapper extends FlagDataMapperBase{
 
-    List<FlagDataDTO> queryDataByCellbI_(@Param("querySql") String querySql);
+    List<Map<String, Object>> queryDataByCellbI_(@Param("querySql") String querySql);
 
-    void insertbI_(@Param("list") List<FlagDataDTO> list);
+    void insertbI_(@Param("querySql") String querySql);
 
     int updateTaskIdByLocalId(Long localId);
 
     int updateByDynamicEncCell(String cellMd5, String cellSha256, String cellLog, String apiCode, String encType);
 
-    int batchUpdateEsStatusById(@Param("ids") List<Long> ids);
+    int batchUpdateEsStatusById(@Param("ids") List<Long> ids,@Param("status") Integer status);
 
     List<FlagData> queryFlagNewCustComputation(@Param("pageSize") Integer pageSize);
 
