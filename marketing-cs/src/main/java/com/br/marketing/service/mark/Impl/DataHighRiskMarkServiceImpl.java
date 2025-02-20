@@ -22,7 +22,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
     @Override
     public void process() {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
-            //1.查询【b_local_file】
+            //1.查询跑分任务表
 
         });
 
