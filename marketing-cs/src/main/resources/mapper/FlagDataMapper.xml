@@ -66,4 +66,14 @@
         </choose>
         and api_code = #{apiCode}
     </update>
+
+    <update id="batchUpdateEsStatusById">
+        update b_marketing_flag_data
+        set es_sync_status = 1
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

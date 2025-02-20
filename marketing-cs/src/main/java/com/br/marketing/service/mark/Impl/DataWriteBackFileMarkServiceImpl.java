@@ -43,10 +43,31 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     @Override
     public void process() {
-        // 同步数据写入doris
-        syncData();
-        // 生成文件
-        generateFile();
+        if(checkEsStatus()){
+            // 同步数据写入doris
+            syncData();
+            // 生成文件
+            generateFile();
+        }
+    }
+
+    /**
+     * 判断es数据是否补充完毕
+     * @return
+     */
+    private boolean checkEsStatus() {
+        Boolean aFalse = Boolean.TRUE;
+        FlagDataExample flagDataExample = new FlagDataExample();
+        FlagDataExample.Criteria criteria = flagDataExample.createCriteria()
+                .andApiCodeEqualTo("7410717")
+                .andCreateDateEqualTo(1)
+                .andEsSyncStatusIsNull();
+        int i = flagDataMapper.countByExample(flagDataExample);
+        if(i >0){
+            log.warn(TITLE + "es数据未补充完毕");
+            aFalse = Boolean.FALSE;
+        }
+        return aFalse;
     }
 
     private void syncData() {
