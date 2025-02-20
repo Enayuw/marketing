@@ -4,8 +4,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.FlagData;
@@ -94,6 +97,8 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
         }
     }
 
+    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     private void updateEsMarkData(List<FlagData> flagDataList) {
         try {
             String index = EsHandleUtil.getDateFromBatchNumber("batchNumber");
@@ -132,6 +137,11 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
                             EsIceType.MARKETING.getCode());
                 }
+            }
+            //更新打标表状态
+            List<Long> ids = flagDataList.stream().map(FlagData::getId).collect(Collectors.toList());
+            if(!CollectionUtil.isEmpty(ids)){
+                flagDataMapper.batchUpdateEsStatusById(ids);
             }
         }catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
