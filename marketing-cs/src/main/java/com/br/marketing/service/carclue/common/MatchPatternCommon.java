@@ -5,10 +5,13 @@ import com.google.common.collect.Lists;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class MatchPatternCommon {
 
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s*");
 
     /**
      * 精确/完全匹配方法
@@ -68,10 +71,10 @@ public class MatchPatternCommon {
             return content;
         }
         String filterRegex = "[" + filterStr + "]";
-        String source = content.replaceAll("\\s*", "").replaceAll(filterRegex, "");
+        String source = removeWhitespace(content).replaceAll(filterRegex, "");
         Map<String, String> targetMap =  new HashMap<>();
         listData.forEach(data->{
-            targetMap.put(data.replaceAll("\\s*", "").replaceAll(filterRegex, ""),data);
+            targetMap.put(removeWhitespace(data).replaceAll(filterRegex, ""),data);
         });
         List<String> result = targetMap.keySet().stream().filter(target ->
                 (StringUtils.containsIgnoreCase(source, target) || StringUtils.containsIgnoreCase(target, source))).collect(Collectors.toList());
@@ -82,6 +85,15 @@ public class MatchPatternCommon {
 
         return StringUtils.isNotEmpty(shortestString) ? targetMap.get(shortestString) : null;
 
+    }
+
+
+
+    public static String removeWhitespace(String content) {
+        Matcher matcher = WHITESPACE_PATTERN.matcher(content);
+        // 使用replaceAll方法替换所有匹配到的空白字符为空字符串
+        String result = matcher.replaceAll("");
+        return result;
     }
 
 

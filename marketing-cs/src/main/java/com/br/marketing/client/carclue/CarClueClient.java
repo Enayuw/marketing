@@ -46,7 +46,7 @@ public class CarClueClient {
     @Value(value = "${api.hxCar.commitClue:'http://haoyunlailai.cn:6001/open_api/v1/test_commit_clue'}")
     private String commitClue;
 
-    @Value("${api.biocloo.isProxy:true}")
+    @Value("${api.hxCar.isProxy:true}")
     private Boolean isProxy;
 
     @Resource
