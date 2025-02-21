@@ -1,26 +1,32 @@
 package com.br.marketing.service.mark.Impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.mark.FlagDataCarryLogCell;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DataMarkEnum;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.es.bean.QueryBaseBean;
+import com.br.marketing.es.service.MarketingHistoryEsService;
+import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.mark.DataHighRiskMarkService;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -52,6 +58,14 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
 
     @Resource
     DataMarkCommonService dataMarkCommonService;
+
+    @Resource
+    MarketingHistoryEsService marketingHistoryEsService;
+
+    private final static Integer splitNum = 1500;
+    private final static Integer esPageSize = 2000;
+
+
 
     @Override
     public void process() {
@@ -96,14 +110,56 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 }
                 //3.更新数据
                 updateFlagData(flagDataList);
-                //3.查询es
-
+                //4.释放锁
+                redisChgService.unlock(key, lockValue);
+                //5.数据拆分，打标
+                markWithThread(apiCode, straHisFile, flagDataList, threadPool);
 
             } catch (Exception e) {
 
             }
 
         }
+    }
+
+    /**
+     * @description 通过线程拆分数据，打标
+     * @param apiCode
+     * @param straHisFile
+     * @param flagDataList
+     * @param threadPool
+     * @return void
+     * @author hedongshuo
+     * @date 2025/2/21 15:48
+     **/
+    private void markWithThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataList, ThreadPoolExecutor threadPool) {
+        List<List<FlagDataCarryLogCell>> partition = Lists.partition(flagDataList, splitNum);
+        partition.forEach((List <FlagDataCarryLogCell> flagDataCarryLogCells) -> {
+            threadPool.submit(() -> {
+                markForThread(apiCode, straHisFile, flagDataCarryLogCells);
+            });
+        });
+        
+    }
+
+    /**
+     * @description 在线程中对数据打标
+     * @param apiCode
+     * @param straHisFile
+     * @param flagDataCarryLogCells
+     * @return void
+     * @author hedongshuo
+     * @date 2025/2/21 16:00
+     **/
+    private void markForThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataCarryLogCells) {
+        //1.查询es
+        List<String> cellLogs = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getCellLog).collect(Collectors.toList());
+        List<MarketingHistory> marketingHistories =
+                dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize);
+        //2.打标
+
+
+
     }
 
     /**
@@ -150,26 +206,4 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 dataMarkPageSize);
     }
 
-    /**
-     * @description 获取当天最新的跑分文件
-     * @param apiCode
-     * @return void
-     * @author hedongshuo
-     * @date 2025/2/20 16:18
-     **/
-    private StraHisFile getStraHisFile(String apiCode) {
-        Date beginTimeOfDay = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andStatusEqualTo(2)
-                .andTypeEqualTo(2)
-                .andCreateTimeGreaterThanOrEqualTo(beginTimeOfDay);
-        straHisFileExample.setOrderByClause("create_time desc limit 1");
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-        if (CollectionUtils.isEmpty(straHisFiles)) {
-            return null;
-        }
-        return straHisFiles.get(0);
-    }
 }
