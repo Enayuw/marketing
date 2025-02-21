@@ -8,7 +8,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.mapper.FlagDataMapper;
-import com.br.marketing.service.mark.DataNewCustMarkService;
+import com.br.marketing.service.mark.DataBlackListMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +24,12 @@ import java.util.stream.Collectors;
 
 /**
  * @author peng.kang
- * @description: 与榕树求交打标实现类
- * @date 2025/2/20 14:56
+ * @description: pp停车-与外呼黑名单打标
+ * @date 2025/2/21 10:16
  */
 @Service
 @Slf4j
-public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
+public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
     private final static int PARTATION_SIZE = 2000;
     @Resource
     FlagDataMapper flagDataMapper;
@@ -50,20 +50,20 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                 try {
                     redisChgService.lock(key, lockValue);
                     //打标表数据查询
-                    List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(pageSize, apiCode);
+                    List<FlagData> list = flagDataMapper.queryFlagBlackListComputation(pageSize, apiCode);
                     if (CollectionUtil.isEmpty(list)) {
                         redisChgService.unlock(key, lockValue);
                         threadPoolShutDown(threadPool);
                         break;
                     }
-                    //更新状态:flag_new_cust_computation
+                    //更新状态:flag_blacklist_computation
                     List<Long> ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
-                    updateFlagNewCustComputation(threadPool, ids);
+                    updateFlagBlackListComputation(threadPool, ids);
                     //释放锁
                     redisChgService.unlock(key, lockValue);
 
-                    //打标更新:flag_new_cust
-                    updateFlagNewCust(threadPool, list);
+                    //打标更新:flag_intellaudio_blacklist
+                    updateFlagIntellaudioBlacklist(threadPool, list);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
@@ -76,23 +76,25 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
         });
     }
 
-    void updateFlagNewCust(ThreadPoolExecutor threadPool, List<FlagData> ids) {
+    void updateFlagIntellaudioBlacklist(ThreadPoolExecutor threadPool, List<FlagData> ids) {
         List<List<FlagData>> partitions = Lists.partition(ids, PARTATION_SIZE);
         for (List<FlagData> partition : partitions) {
-            threadPool.submit(() -> markAndUpdateFlagNewCust(partition));
+            threadPool.submit(() -> markAndUpdateBlacklist(partition));
         }
     }
 
-    void updateFlagNewCustComputation(ThreadPoolExecutor threadPool, List<Long> ids) {
+    void updateFlagBlackListComputation(ThreadPoolExecutor threadPool, List<Long> ids) {
         List<List<Long>> partitions = Lists.partition(ids, PARTATION_SIZE);
         for (List<Long> partition : partitions) {
-            threadPool.submit(() -> flagDataMapper.batchUpdateFlagNewCustComputationByIds(partition));
+            threadPool.submit(() -> flagDataMapper.batchUpdateFlagBlackListComputationByIds(partition));
         }
     }
 
-    void markAndUpdateFlagNewCust(List<FlagData> list) {
+
+    //todo:
+    void markAndUpdateBlacklist(List<FlagData> list) {
         List<String> originalCells = list.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
-        //doris求交查询(榕树7000w)
+        //doris求交查询(外呼黑名单)
         List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
         if (CollectionUtil.isNotEmpty(intersectionCells)) {
             flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 1, 1);
@@ -106,12 +108,12 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("pp停车与榕树求交线程池关闭");
+                log.info("pp停车与外呼黑名单打标线程池关闭");
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    "pp停车与榕树求交线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+                    "pp停车与外呼黑名单打标线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }
     }

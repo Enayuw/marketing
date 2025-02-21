@@ -23,7 +23,11 @@ public interface FlagDataMapper extends FlagDataMapperBase{
 
     List<FlagData> queryFlagNewCustComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
+    List<FlagData> queryFlagBlackListComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
+
     void batchUpdateFlagNewCustComputationByIds(@Param("ids") List<Long> ids);
+
+    void batchUpdateFlagBlackListComputationByIds(@Param("ids") List<Long> ids);
 
     void batchUpdateFlagNewCustComputationByCells(@Param("cells") List<String> cells,
                                                   @Param("flagNewCust") Integer flagNewCust,
