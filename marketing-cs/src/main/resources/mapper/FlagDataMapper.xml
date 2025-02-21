@@ -48,13 +48,15 @@
     <select id="queryFlagNewCustComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,cell_md5
         from b_marketing_flag_data
-        where flag_new_cust_computation is null and status = 1 and api_code = #{apiCode} limit #{pageSize}
+        where flag_new_cust_computation is null and status = 1 and is_delete = 0
+        and api_code = #{apiCode} limit #{pageSize}
     </select>
 
     <select id="queryFlagBlackListComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,cell_md5
         from b_marketing_flag_data
-        where flag_blacklist_computation is null and status = 1 and api_code = #{apiCode} limit #{pageSize}
+        where flag_blacklist_computation is null and status = 1 and is_delete = 0
+        and api_code = #{apiCode} limit #{pageSize}
     </select>
 
     <update id="batchUpdateFlagNewCustComputationByIds">
