@@ -226,9 +226,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskTypeEqualTo(0)
-                .andTaskStatusEqualTo(0);
+                .andTaskStatusEqualTo(0)
+                .andIsDeleteEqualTo(0);
         int unCleanedTaskCount = taskMapper.countByExample(processTaskExample);
         if (unCleanedTaskCount > 0) {
             return true;
