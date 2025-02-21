@@ -300,11 +300,11 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
     @Override
     public Result<Boolean> buildEliminateAndPushToRobot(String batchIdStr) {
         Long batchId = Long.valueOf(batchIdStr);
-        WubaCollidingDataEliminateExample example = new WubaCollidingDataEliminateExample();
-        example.createCriteria().andBatchIdEqualTo(batchId).andIsDeletedEqualTo(0);
-        List<WubaCollidingDataEliminate> eliminateList = wubaCollidingDataEliminateMapper.selectByExample(example);
+        WubaOldCollidingDataLogExample example = new WubaOldCollidingDataLogExample();
+        example.createCriteria().andBatchNoEqualTo(batchIdStr).andStatusEqualTo("-1").andIsDeletedEqualTo(0);
+        List<WubaOldCollidingDataLog> eliminateList = wubaOldCollidingDataLogMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(eliminateList)) {
-            String title = "58撞库status=-1数据消费端，查询异常";
+            String title = "58老客撞库status=-1数据消费端，查询异常";
             String msg = "根据batchNo查询数据为空";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , title));
@@ -313,6 +313,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
 
         String apiCode = eliminateList.get(0).getApiCode();
         String tCid = tableCreateService.getTcId(eliminateList.get(0).getApiCode());
+
         List<ConversionData> conversionDataList = eliminateList.stream().map(t -> {
             ConversionData conversionData = new ConversionData();
             conversionData.setCaseNum(t.getCell());
@@ -345,8 +346,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
         } catch (Exception e) {
             String title = "58撞库status=-1数据消费端，推送外呼异常";
             String msg = e.getMessage();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
-                    , title));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg, title));
             wuBaServiceClient.sendDingDingAlert(title, msg);
         }
 
