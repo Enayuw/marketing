@@ -23,6 +23,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -92,6 +93,9 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
             List<String> flagDataCells = flagData.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
             // 基底表数据
             List<FlagData> orgDataByCellbI = flagDataMapper.queryOdsOrgDataByCellbI_(flagDataCells);
+            if (CollectionUtils.isEmpty(orgDataByCellbI)) {
+                return;
+            }
 
             List<DataMarkConfig> dataMarkConfigByRiskGroup =
                     dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_RISKGROUP.getMarkType())).collect(Collectors.toList());
@@ -121,11 +125,14 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         for (String condition : conditionMap.keySet()) {
             List<DataMarkConfig> dataMarkConfigs = conditionMap.get(condition);
             String markOutValue = dataMarkConfigs.get(0).getMarkOutValue();
-            List<String> matchedOrgData = orgDataByCellbI.stream().filter(t -> isMatch(t, condition)
-            ).map(FlagData::getCellMd5).collect(Collectors.toList());
+            List<String> matchedOrgData =
+                    orgDataByCellbI.stream().filter(t -> isMatch(t, condition)).map(FlagData::getCellMd5).collect(Collectors.toList());
             List<FlagData> flagDataByApiCode = flagData.stream().filter(t -> matchedOrgData.contains(t.getCellMd5())).collect(Collectors.toList());
-            flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByApiCode, 1, markOutValue);
             matchedCellList.addAll(matchedOrgData);
+            if (CollectionUtils.isEmpty(flagDataByApiCode)) {
+                continue;
+            }
+            flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByApiCode, 1, markOutValue);
         }
 
         // 未匹配到利率标签的基底表数据
@@ -133,6 +140,9 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
                 orgDataByCellbI.stream().map(FlagData::getCellMd5).filter(cellMd5 -> !matchedCellList.contains(cellMd5)).collect(Collectors.toList());
         // 未匹配到利率标签的打标表数据
         List<FlagData> flagDataOther = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(flagDataOther)) {
+            return;
+        }
         flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataOther, 1, otherInterestConfig);
     }
 
@@ -158,6 +168,9 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         for (String userType : mapGroupByUserType.keySet()) {
             List<String> cellByUserType = mapGroupByUserType.get(userType).stream().map(FlagData::getCellMd5).collect(Collectors.toList());
             List<FlagData> flagDataByUserType = flagData.stream().filter(t -> cellByUserType.contains(t.getCellMd5())).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(flagDataByUserType)) {
+                continue;
+            }
             flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByUserType, 1, userType);
         }
 
@@ -166,6 +179,9 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
                 !userTypeConfig.contains(t.getUserType())
         ).map(FlagData::getCellMd5).collect(Collectors.toList());
         List<FlagData> flagDataUnMatch = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(flagDataUnMatch)) {
+            return;
+        }
         flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataUnMatch, 1, configMap.get(1).get(0).getMarkOutValue());
     }
 }
