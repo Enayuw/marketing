@@ -36,11 +36,13 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String encType = marketingCommonConfig.getAutoSyncCellToFlagDataEncTypeConfig().get(syncUser.getApiCode());
             String cellMd5 = syncUser.getCellMd5();
+            String userType = syncUser.getUserType();
             String cellSha256 = syncUser.getCellSha256();
             String cellLog = syncUser.getCell();
             String apiCode = syncUser.getApiCode();
+            String appletDate = syncUser.getAppletDate();
             try {
-                flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType);
+                flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType, appletDate, userType);
             } catch (Exception e) {
                 String subject = "pp榕树打标更新sha256和log手机号异常,cellMd5:" + cellMd5;
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()

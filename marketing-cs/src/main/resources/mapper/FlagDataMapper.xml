@@ -21,15 +21,15 @@
         UPDATE b_marketing_flag_data
         <choose>
             <when test="encType == 'cell_md5'">
-                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog}
+                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog},applet_date = #{appletDate}, userType = #{userType}
                 WHERE cell_md5 = #{cellMd5}
             </when>
             <when test="encType == 'cell_sha256'">
-                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog}
+                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog,applet_date = #{appletDate}, userType = #{userType}
                 WHERE cell_sha256 = #{cellSha256}
             </when>
             <when test="encType == 'cell_log'">
-                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256}
+                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256},applet_date = #{appletDate}, userType = #{userType}
                 WHERE cell_log = #{cellLog}
             </when>
         </choose>
