@@ -2637,5 +2637,10 @@ public class MarketingCommonConfig {
      */
     private List<String> dataMarkField;
 
+    /**
+     * pp停车黑名单输出配置
+     */
+    private Map<String, Integer> ppCarBlackList;
+
 }
 

@@ -32,7 +32,14 @@ public interface FlagDataMapper extends FlagDataMapperBase{
     void batchUpdateFlagNewCustComputationByCells(@Param("cells") List<String> cells,
                                                   @Param("flagNewCust") Integer flagNewCust,
                                                   @Param("flagNewCustComputation") Integer flagNewCustComputation);
+
+    void batchUpdateFlagBlackListComputationByCells(@Param("cells") List<String> cells,
+                                                  @Param("flagBlacklist") Integer flagBlacklist,
+                                                  @Param("flagBlacklistComputation") Integer flagBlacklistComputation);
+
     List<String> intersectionWithRongshubI_(@Param("cells") List<String> cells);
+
+    List<String> intersectionWithBlackList(@Param("cells") List<String> cells,@Param("type") Integer type);
 
     List<FlagDataCarryLogCell> queryLogCellByDatebI_(@Param("apiCode") String apiCode,
                                                      @Param("date") String date,

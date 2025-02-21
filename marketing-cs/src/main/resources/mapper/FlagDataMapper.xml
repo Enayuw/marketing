@@ -82,10 +82,29 @@
         </foreach>
     </select>
 
+    <select id="intersectionWithBlackList" resultType="java.lang.String">
+        select cell_md5 from b_ppCar_black_list where
+        label_type = #{type}
+        and cell_md5 in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </select>
+
     <update id="batchUpdateFlagNewCustComputationByCells">
         update b_marketing_flag_data
         set flag_new_cust_computation = #{flagNewCustComputation},
             flag_new_cust = #{flagNewCust}
+        where cell_md5 in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateFlagBlackListComputationByCells">
+        update b_marketing_flag_data
+        set flag_blacklist_computation = #{flagBlacklistComputation},
+        flag_intellaudio_blacklist = #{flagBlacklist}
         where cell_md5 in
         <foreach collection="cells" item="cell" separator="," open="(" close=")">
             #{cell}

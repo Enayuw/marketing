@@ -311,4 +311,8 @@ public class RedisKeyConstant {
      * 打标榕树重复注册锁
      */
     public static final String DATA_RONGSHU_MARK = prefix.concat("datarongshumark");
+    /**
+     * 打标pp停车黑名单注册锁
+     */
+    public static final String DATA_BLACKLIST_MARK = prefix.concat("datablacklistmark");
 }

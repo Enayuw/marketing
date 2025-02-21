@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -41,10 +42,11 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
     @Override
     public void process() {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
+            Map<String, Integer> blackListOutput = marketingCommonConfig.getPpCarBlackList();
             Integer pageSize = marketingCommonConfig.getDataMarkPageSize();
             Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-            String key = RedisKeyConstant.DATA_RONGSHU_MARK.concat(":").concat(apiCode);
+            String key = RedisKeyConstant.DATA_BLACKLIST_MARK.concat(":").concat(apiCode);
             while (true) {
                 String lockValue = UUID.randomUUID().toString();
                 try {
@@ -63,10 +65,10 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
                     redisChgService.unlock(key, lockValue);
 
                     //打标更新:flag_intellaudio_blacklist
-                    updateFlagIntellaudioBlacklist(threadPool, list);
+                    updateFlagIntellaudioBlacklist(threadPool, list, blackListOutput);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                            "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                            "pp停车与黑名单打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                     break;
@@ -76,10 +78,10 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
         });
     }
 
-    void updateFlagIntellaudioBlacklist(ThreadPoolExecutor threadPool, List<FlagData> ids) {
+    void updateFlagIntellaudioBlacklist(ThreadPoolExecutor threadPool, List<FlagData> ids, Map<String, Integer> blackListOutput) {
         List<List<FlagData>> partitions = Lists.partition(ids, PARTATION_SIZE);
         for (List<FlagData> partition : partitions) {
-            threadPool.submit(() -> markAndUpdateBlacklist(partition));
+            threadPool.submit(() -> markAndUpdateBlacklist(partition, blackListOutput));
         }
     }
 
@@ -90,17 +92,15 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
         }
     }
 
-
-    //todo:
-    void markAndUpdateBlacklist(List<FlagData> list) {
+    void markAndUpdateBlacklist(List<FlagData> list, Map<String, Integer> blackListOutput) {
         List<String> originalCells = list.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
-        //doris求交查询(外呼黑名单)
-        List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
+        //求交查询(外呼黑名单)
+        List<String> intersectionCells = flagDataMapper.intersectionWithBlackList(originalCells, blackListOutput.get("type"));
         if (CollectionUtil.isNotEmpty(intersectionCells)) {
-            flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 1, 1);
+            flagDataMapper.batchUpdateFlagBlackListComputationByCells(intersectionCells, blackListOutput.get("flagIntellaudioBlacklist"), 1);
+            originalCells.removeAll(intersectionCells);
         }
-        originalCells.removeAll(intersectionCells);
-        flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, 0, 1);
+        flagDataMapper.batchUpdateFlagBlackListComputationByCells(originalCells, 0, 1);
 
     }
 
