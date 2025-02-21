@@ -69,7 +69,6 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             if (null == straHisFile) {
                 return;
             }
-
             Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
             int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
@@ -90,7 +89,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                             .andFlagHighRiskComputationEqualTo(1)
                             .andFlagBlacklistComputationEqualTo(1)
                             .andFlagWhitelistComputationEqualTo(1)
-                            .andEsSyncStatusEqualTo(EsSyncStatusEnum.INITIAL.getValue());
+                            .andEsSyncStatusIsNull();
                     //打标表数据查询
                     List<FlagData> flagDataList = flagDataMapper.selectByExample(flagDataExample);
                     if (CollectionUtil.isEmpty(flagDataList)) {
@@ -185,43 +184,37 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             condition.setFieldKey(fieldKey);
             String value;
             switch (fieldKey) {
-                case "flagNewCust":
+                case "flag_new_cust":
                     value = String.valueOf(flagData.getFlagNewCust());
                     break;
-                case "flagRiskgroup":
+                case "flag_riskgroup":
                     value = String.valueOf(flagData.getFlagRiskgroup());
                     break;
-                case "flagInterest":
+                case "flag_interest":
                     value = String.valueOf(flagData.getFlagInterest());
                     break;
-                case "flagAge":
+                case "flag_age":
                     value = String.valueOf(flagData.getFlagAge());
                     break;
-                case "flagProvince":
+                case "flag_province":
                     value = String.valueOf(flagData.getFlagProvince());
                     break;
-                case "flagSpecialSmall":
+                case "flag_special_small":
                     value = String.valueOf(flagData.getFlagSpecialSmall());
                     break;
-                case "flagSpecialrisklevelRule":
+                case "flag_specialrisklevel_rule":
                     value = String.valueOf(flagData.getFlagSpecialrisklevelRule());
                     break;
-                case "flagIndexcs":
-                    value = String.valueOf(flagData.getFlagIndexcs());
-                    break;
-                case "flagApplyloan":
+                case "flag_applyloan":
                     value = String.valueOf(flagData.getFlagApplyloan());
                     break;
-                case "flagIntellaudioBlacklist":
+                case "flag_intellaudio_blacklist":
                     value = String.valueOf(flagData.getFlagIntellaudioBlacklist());
                     break;
-                case "flagWithoutWillingness":
+                case "flag_without_willingness":
                     value = String.valueOf(flagData.getFlagWithoutWillingness());
                     break;
-                case "flagScoreWhitelist":
-                    value = String.valueOf(flagData.getFlagScoreWhitelist());
-                    break;
-                case "flagWhitelist":
+                case "flag_whitelist":
                     value = String.valueOf(flagData.getFlagWhitelist());
                     break;
                 default:
