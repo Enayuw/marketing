@@ -99,7 +99,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                         threadPool.submit(() -> updateEsMarkData(list));
                     }
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             TITLE + "抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
@@ -157,7 +157,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.COMPLETE.getValue());
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "出现异常，" + "errorMessage=" + e.getMessage()), e);
         }
     }
@@ -224,7 +224,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_PARKING_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }

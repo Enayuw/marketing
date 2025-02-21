@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -60,6 +61,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     FlagDataMapper flagDataMapper;
     private static final String fileName = "test0220.txt";
     private static final String path = "C:\\Users\\bingxu.kong\\Desktop\\test0220";
+
     private static final String remotePath = "远程服务器地址";
     private static final String TITLE = "【pp停车文件数据回写】";
 
@@ -102,9 +104,12 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     private void syncData(String apiCode) {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         try {
-            Files.createDirectories(Paths.get(path));
-            Path filePath = Paths.get(path, fileName);
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(filePath), StandardCharsets.UTF_8));
+
+
+
+            //Files.createDirectories(Paths.get(path));
+            //Path filePath = Paths.get(path, fileName);
+            //BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(filePath), StandardCharsets.UTF_8));
 
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
@@ -192,13 +197,33 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         return flagDataResult;
     }
 
-    private void writeDataToFile(List<Map<String, Object>> dataList, BufferedWriter writer) {
+    private void writeDataToFile(List<Map<String, Object>> dataList, Writer writer) {
         try {
             if (CollectionUtil.isEmpty(dataList)) {
                 return;
             }
+
+            String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+            String descPath = syncConfigService.getPath().concat("ppToFile/").concat("apiCode").concat("/").concat(syncDate).concat("/");
+            String fileAllPath = descPath.concat("test0220.txt");
+            File writeDic = new File(fileAllPath);
+            if (!writeDic.exists()) {
+                writeDic.mkdirs();
+            }
+            Writer writer1 = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(writeDic.toPath()), StandardCharsets.UTF_8));
+
+            Path path = Paths.get(fileAllPath);
+            // 读取文件的第一行
+            try (BufferedReader reader = Files.newBufferedReader(path)) {
+                String firstLine = reader.readLine();
+                if (firstLine == null) {
+                    return;
+                }
+            }
+
+
             // 检查文件是否已经存在文件头
-            boolean headerExists = checkHeaderExists(path+"/"+fileName, dataList);
+            boolean headerExists = checkHeaderExists(fileAllPath, dataList);
             // 如果文件头不存在，则写入文件头
             if (!headerExists) {
                 List<String> columnNames = new ArrayList<>(dataList.get(0).keySet());
@@ -244,7 +269,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     private void pushFileSftp() {
         SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
         try {
-            sftpClient.uploadFile(remotePath, fileName, path+"/"+fileName);
+            sftpClient.uploadFile("/UploadFiles/marketing/7410717/output/20250221/", fileName, path+"/"+fileName);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
                     TITLE + "文件推送SFTP异常，apiCode："), e);
