@@ -105,10 +105,8 @@ public class DataWhiteListMarkServiceImpl implements DataWhiteListMarkService {
                         || flagData.getFlagRiskgroup().equals("授信未提现")
                         || (flagData.getFlagRiskgroup().equals("拒件") && flagData.getFlagScoreWhitelist() == 1)
                         || (flagData.getFlagRiskgroup().equals("注册未进件") && flagData.getFlagScoreWhitelist() == 1)) {
-                    flagData.setFlagWhitelist(1);
                     whiteListIds.add(flagData.getId());
                 } else {
-                    flagData.setFlagWhitelist(1);
                     notWhiteListIds.add(flagData.getId());
                 }
             }
