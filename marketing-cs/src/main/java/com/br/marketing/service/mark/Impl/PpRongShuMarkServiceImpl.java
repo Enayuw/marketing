@@ -63,7 +63,7 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         while (true) {
             int count = 0;
             try {
-                count = flagDataMapper.updateTaskIdByLocalId(localId);
+                count = flagDataMapper.updateTaskIdByLocalId(localId, taskId);
             } catch (Exception e) {
                 String subject = "pp榕树更新打标表taskId异常,localFIleId:" + localFile.getId();
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
