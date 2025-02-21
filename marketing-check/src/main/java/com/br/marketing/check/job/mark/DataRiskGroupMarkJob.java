@@ -6,8 +6,11 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.DataMarkConfig;
+import com.br.marketing.entity.DataMarkConfigExample;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.enums.DataMarkEnum;
+import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.mark.PpRonShuMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -41,6 +44,8 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
     private final ThreadPoolExecutor pool = BrExecutors.getThreadPool(30, 30);
     @Resource
     private PpRonShuMarkService ppRonShuMarkService;
+    @Resource
+    DataMarkConfigMapper dataMarkConfigMapper;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -71,18 +76,23 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                 }
 
                 // 更新数据标签
-                markData(flagData);
+                markData(flagData, apiCode);
             }
         });
     }
 
-    private void markData(List<FlagData> flagData) {
+    private void markData(List<FlagData> flagData, String apiCode) {
+        DataMarkConfigExample markConfigExample = new DataMarkConfigExample();
+        markConfigExample.createCriteria().andIsDelEqualTo(1)
+                .andApiCodeEqualTo(apiCode);
+        List<DataMarkConfig> dataMarkConfigs = dataMarkConfigMapper.selectByExample(markConfigExample);
+
         pool.setCorePoolSize(marketingCommonConfig.getDataGroupThreadNum());
         pool.setMaximumPoolSize(marketingCommonConfig.getDataGroupThreadNum());
         Lists.partition(flagData, 2000).forEach(partition -> {
             pool.submit(() -> {
                 List<FlagData> list = new ArrayList<>(partition);
-                ppRonShuMarkService.markAndUpdateFlagStatus(list);
+                ppRonShuMarkService.markAndUpdateFlagStatus(list, apiCode, dataMarkConfigs);
             });
         });
     }
