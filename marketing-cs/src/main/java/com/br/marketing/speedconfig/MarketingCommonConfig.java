@@ -2634,8 +2634,13 @@ public class MarketingCommonConfig {
 
     /**
      * 数据打标字段
+     */private List<String> dataMarkField;
+
+    /**
+     * pp停车同步文件表
      */
-    private List<String> dataMarkField;
+    private String dataMarkTableName;
+
 
     /**
      * pp停车黑名单输出配置

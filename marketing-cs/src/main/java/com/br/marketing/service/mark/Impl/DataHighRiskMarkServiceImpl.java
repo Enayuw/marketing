@@ -4,13 +4,13 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.mark.FlagDataCarryLogCell;
-import com.br.marketing.entity.FlagData;
-import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.DataMarkEnum;
+import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.mark.DataHighRiskMarkService;
+import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -46,11 +47,17 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
     @Resource
     FlagDataMapper flagDataMapper;
 
+    @Resource
+    DataMarkConfigMapper markConfigMapper;
+
+    @Resource
+    DataMarkCommonService dataMarkCommonService;
+
     @Override
     public void process() {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
             //1.查询跑分任务表
-            StraHisFile straHisFile = getStraHisFile(apiCode);
+            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
             if (null == straHisFile) {
                 return;
             }
@@ -73,6 +80,8 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @param threadPool
      */
     private void markProcess(String apiCode, StraHisFile straHisFile, ThreadPoolExecutor threadPool) {
+        //获取打标配置[b_data_mark_config]
+        List<DataMarkConfig> markConfigs = getMarkConfigs(apiCode);
         String key = RedisKeyConstant.prefix.concat(DataMarkEnum.MARK_HIGHRISK.getMarkRedisKey()).concat(":").concat(apiCode);
         for (; ; ) {
             String lockValue = UUID.randomUUID().toString();
@@ -89,11 +98,28 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 updateFlagData(flagDataList);
                 //3.查询es
 
+
             } catch (Exception e) {
 
             }
 
         }
+    }
+
+    /**
+     * @description 获取打标配置
+     * @param apiCode
+     * @return List<DataMarkConfig>
+     * @author hedongshuo
+     * @date 2025/2/21 11:11
+     **/
+    private List<DataMarkConfig> getMarkConfigs(String apiCode) {
+        DataMarkConfigExample markConfigExample = new DataMarkConfigExample();
+        markConfigExample.createCriteria()
+                .andIsDelEqualTo(1)
+                .andApiCodeEqualTo(apiCode)
+                .andMarkTypeIn(Arrays.asList(DataMarkEnum.MARK_HIGHRISK.getMarkType(), DataMarkEnum.MARK_WHITELIST.getMarkType()));
+        return markConfigMapper.selectByExample(markConfigExample);
     }
 
     /**
@@ -105,6 +131,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      **/
     private void updateFlagData(List<FlagDataCarryLogCell> flagDataList) {
         List<Long> ids = flagDataList.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
+        flagDataMapper.batchUpdateHighRiskStatusById(ids, 0);
     }
 
     /**

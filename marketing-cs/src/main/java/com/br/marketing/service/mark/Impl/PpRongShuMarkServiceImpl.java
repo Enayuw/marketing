@@ -5,9 +5,13 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.DataMarkConfig;
+import com.br.marketing.entity.DataMarkConfigExample;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingCleanDataTask;
+import com.br.marketing.enums.DataMarkEnum;
+import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
@@ -15,10 +19,16 @@ import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.mark.PpRonShuMarkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,10 +63,10 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         while (true) {
             int count = 0;
             try {
-                count = flagDataMapper.updateTaskIdByLocalId(localId);
+                count = flagDataMapper.updateTaskIdByLocalId(localId, taskId);
             } catch (Exception e) {
                 String subject = "pp榕树更新打标表taskId异常,localFIleId:" + localFile.getId();
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
                         , subject), e);
             }
             if (count == 0) {
@@ -77,46 +87,80 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
     }
 
     @Override
-    public void markAndUpdateFlagStatus(List<FlagData> flagData) {
+    public void markAndUpdateFlagStatus(List<FlagData> flagData, String apiCode, List<DataMarkConfig> dataMarkConfigs) {
         try {
             // 打标表cell
             List<String> flagDataCells = flagData.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
             // 基底表数据
             List<FlagData> orgDataByCellbI = flagDataMapper.queryOdsOrgDataByCellbI_(flagDataCells);
+            if (CollectionUtils.isEmpty(orgDataByCellbI)) {
+                return;
+            }
 
+            List<DataMarkConfig> dataMarkConfigByRiskGroup =
+                    dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_RISKGROUP.getMarkType())).collect(Collectors.toList());
             // 更新客群标签
-            handleRiskGroup(flagData, orgDataByCellbI);
+            handleRiskGroup(flagData, orgDataByCellbI, dataMarkConfigByRiskGroup);
 
+            List<DataMarkConfig> dataMarkConfigByInterest =
+                    dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_INTEREST.getMarkType())).collect(Collectors.toList());
             // 更新利率标签
-            handleInterest(flagData, orgDataByCellbI);
+            handleInterest(flagData, orgDataByCellbI, dataMarkConfigByInterest);
         } catch (Exception e) {
             String subject = "pp榕树更新客群和利率标签，子线程处理异常";
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
                     , subject), e);
         }
     }
 
-    private void handleInterest(List<FlagData> flagData, List<FlagData> orgDataByCellbI) {
-        String interestConfig = "24";
-        String otherInterestConfig = "36";
-        List<String> interestApiCodeConfig = Arrays.asList("3710058 ", "3710160");
+    private void handleInterest(List<FlagData> flagData, List<FlagData> orgDataByCellbI, List<DataMarkConfig> dataMarkConfigByInterest) {
+        Map<Integer, List<DataMarkConfig>> configMap =
+                dataMarkConfigByInterest.stream().collect(Collectors.groupingBy(DataMarkConfig::getMarkOutValueType));
+        // 匹配到利率标签的配置
+        Map<String, List<DataMarkConfig>> conditionMap = configMap.get(0).stream().collect(Collectors.groupingBy(DataMarkConfig::getMarkCondition));
+        String otherInterestConfig = configMap.get(1).get(0).getMarkOutValue();
+
         // 匹配到利率标签的基底表数据
-        List<String> matchedOrgData = orgDataByCellbI.stream().filter(t ->
-                interestApiCodeConfig.contains(t.getApiCode())
-        ).map(FlagData::getCellMd5).collect(Collectors.toList());
-        List<FlagData> flagDataByApiCode = flagData.stream().filter(t -> matchedOrgData.contains(t.getCellMd5())).collect(Collectors.toList());
-        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByApiCode, 1, interestConfig);
+        List<String> matchedCellList = new ArrayList<>();
+        for (String condition : conditionMap.keySet()) {
+            List<DataMarkConfig> dataMarkConfigs = conditionMap.get(condition);
+            String markOutValue = dataMarkConfigs.get(0).getMarkOutValue();
+            List<String> matchedOrgData =
+                    orgDataByCellbI.stream().filter(t -> isMatch(t, condition)).map(FlagData::getCellMd5).collect(Collectors.toList());
+            List<FlagData> flagDataByApiCode = flagData.stream().filter(t -> matchedOrgData.contains(t.getCellMd5())).collect(Collectors.toList());
+            matchedCellList.addAll(matchedOrgData);
+            if (CollectionUtils.isEmpty(flagDataByApiCode)) {
+                continue;
+            }
+            flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByApiCode, 1, markOutValue);
+        }
 
         // 未匹配到利率标签的基底表数据
-        List<String> unMatchedOrgCell = orgDataByCellbI.stream().filter(t ->
-                !interestApiCodeConfig.contains(t.getUserType())
-        ).map(FlagData::getCellMd5).collect(Collectors.toList());
+        List<String> unMatchedOrgCell =
+                orgDataByCellbI.stream().map(FlagData::getCellMd5).filter(cellMd5 -> !matchedCellList.contains(cellMd5)).collect(Collectors.toList());
+        // 未匹配到利率标签的打标表数据
         List<FlagData> flagDataOther = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(flagDataOther)) {
+            return;
+        }
         flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataOther, 1, otherInterestConfig);
     }
 
-    private void handleRiskGroup(List<FlagData> flagData, List<FlagData> orgDataByCellbI) {
-        List<String> userTypeConfig = Arrays.asList("复贷", "新客");
+    private Boolean isMatch(FlagData t, String condition) {
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        Map map = new HashMap<String, String>();
+        map.put("api_code", t.getApiCode());
+        context.setVariables(map);
+        ExpressionParser parser = new SpelExpressionParser();
+        Boolean isMatch = parser.parseExpression(condition).getValue(context, Boolean.class);
+        return isMatch;
+    }
+
+    private void handleRiskGroup(List<FlagData> flagData, List<FlagData> orgDataByCellbI, List<DataMarkConfig> dataMarkConfigByRiskGroup) {
+        Map<Integer, List<DataMarkConfig>> configMap =
+                dataMarkConfigByRiskGroup.stream().collect(Collectors.groupingBy(DataMarkConfig::getMarkOutValueType));
+        List<String> userTypeConfig = Arrays.asList(configMap.get(0).get(0).getMarkOutValue().split(","));
+
         // 匹配到客群标签的基底表数据
         Map<String, List<FlagData>> mapGroupByUserType = orgDataByCellbI.stream().filter(t ->
                 userTypeConfig.contains(t.getUserType())).collect(Collectors.groupingBy(FlagData::getUserType));
@@ -124,6 +168,9 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         for (String userType : mapGroupByUserType.keySet()) {
             List<String> cellByUserType = mapGroupByUserType.get(userType).stream().map(FlagData::getCellMd5).collect(Collectors.toList());
             List<FlagData> flagDataByUserType = flagData.stream().filter(t -> cellByUserType.contains(t.getCellMd5())).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(flagDataByUserType)) {
+                continue;
+            }
             flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByUserType, 1, userType);
         }
 
@@ -132,6 +179,9 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
                 !userTypeConfig.contains(t.getUserType())
         ).map(FlagData::getCellMd5).collect(Collectors.toList());
         List<FlagData> flagDataUnMatch = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
-        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataUnMatch, 1, "其他");
+        if (CollectionUtils.isEmpty(flagDataUnMatch)) {
+            return;
+        }
+        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataUnMatch, 1, configMap.get(1).get(0).getMarkOutValue());
     }
 }

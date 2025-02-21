@@ -41,7 +41,7 @@ public class FlagData {
     /**
      * 上传日期
      */
-    private Date appletDate;
+    private String appletDate;
 
     /**
      * 本地文件记录id
@@ -314,12 +314,12 @@ public class FlagData {
         this.userType = userType == null ? null : userType.trim();
     }
 
-    public Date getAppletDate() {
+    public String getAppletDate() {
         return appletDate;
     }
 
-    public void setAppletDate(Date appletDate) {
-        this.appletDate = appletDate;
+    public void setAppletDate(String appletDate) {
+        this.appletDate = appletDate == null ? null : appletDate.trim();
     }
 
     public Long getLocalId() {

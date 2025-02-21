@@ -151,4 +151,12 @@
             #{item.id}
         </foreach>
     </update>
+
+    <update id="batchUpdateHighRiskStatusById">
+        update b_marketing_flag_data set flag_high_risk_computation = #{flagHighRiskComputation}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

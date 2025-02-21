@@ -15,7 +15,7 @@ public interface FlagDataMapper extends FlagDataMapperBase{
 
     void insertbI_(@Param("querySql") String querySql);
 
-    int updateTaskIdByLocalId(Long localId);
+    int updateTaskIdByLocalId(Long localId, Long taskId);
 
     int updateByDynamicEncCell(String cellMd5, String cellSha256, String cellLog, String apiCode, String encType);
 
@@ -51,4 +51,6 @@ public interface FlagDataMapper extends FlagDataMapperBase{
     List<FlagData> queryOdsOrgDataByCellbI_(@Param("cells") List<String> cells);
 
     int batchUpdateRiskGroupAndInterestFlagById(@Param("data") List<FlagData> data, Integer flagStatus, String flagRiskGroup);
+
+    int batchUpdateHighRiskStatusById(@Param("ids") List<Long> ids, Integer flagHighRiskComputation);
 }

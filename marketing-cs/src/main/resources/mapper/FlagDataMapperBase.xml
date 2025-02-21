@@ -9,7 +9,7 @@
     <result column="task_id" property="taskId" jdbcType="BIGINT" />
     <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
     <result column="user_type" property="userType" jdbcType="VARCHAR" />
-    <result column="applet_date" property="appletDate" jdbcType="DATE" />
+    <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="local_id" property="localId" jdbcType="BIGINT" />
     <result column="cell_md5" property="cellMd5" jdbcType="VARCHAR" />
     <result column="cell_sha256" property="cellSha256" jdbcType="VARCHAR" />
@@ -179,7 +179,7 @@
       create_date, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{cleanStatus,jdbcType=INTEGER}, 
       #{taskId,jdbcType=BIGINT}, #{custNum,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
-      #{appletDate,jdbcType=DATE}, #{localId,jdbcType=BIGINT}, #{cellMd5,jdbcType=VARCHAR}, 
+      #{appletDate,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{cellMd5,jdbcType=VARCHAR}, 
       #{cellSha256,jdbcType=VARCHAR}, #{cellLog,jdbcType=VARCHAR}, #{dtWhitelist,jdbcType=DATE}, 
       #{flagNewCust,jdbcType=INTEGER}, #{flagNewCustComputation,jdbcType=INTEGER}, #{flagRiskgroup,jdbcType=VARCHAR}, 
       #{flagInterest,jdbcType=INTEGER}, #{flagCustomerBaseComputation,jdbcType=INTEGER}, 
@@ -374,7 +374,7 @@
         #{userType,jdbcType=VARCHAR},
       </if>
       <if test="appletDate != null" >
-        #{appletDate,jdbcType=DATE},
+        #{appletDate,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
         #{localId,jdbcType=BIGINT},
@@ -538,7 +538,7 @@
         user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
       <if test="record.appletDate != null" >
-        applet_date = #{record.appletDate,jdbcType=DATE},
+        applet_date = #{record.appletDate,jdbcType=VARCHAR},
       </if>
       <if test="record.localId != null" >
         local_id = #{record.localId,jdbcType=BIGINT},
@@ -683,7 +683,7 @@
       task_id = #{record.taskId,jdbcType=BIGINT},
       cust_num = #{record.custNum,jdbcType=VARCHAR},
       user_type = #{record.userType,jdbcType=VARCHAR},
-      applet_date = #{record.appletDate,jdbcType=DATE},
+      applet_date = #{record.appletDate,jdbcType=VARCHAR},
       local_id = #{record.localId,jdbcType=BIGINT},
       cell_md5 = #{record.cellMd5,jdbcType=VARCHAR},
       cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
@@ -753,7 +753,7 @@
         user_type = #{userType,jdbcType=VARCHAR},
       </if>
       <if test="appletDate != null" >
-        applet_date = #{appletDate,jdbcType=DATE},
+        applet_date = #{appletDate,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
         local_id = #{localId,jdbcType=BIGINT},
@@ -895,7 +895,7 @@
       task_id = #{taskId,jdbcType=BIGINT},
       cust_num = #{custNum,jdbcType=VARCHAR},
       user_type = #{userType,jdbcType=VARCHAR},
-      applet_date = #{appletDate,jdbcType=DATE},
+      applet_date = #{appletDate,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
       cell_md5 = #{cellMd5,jdbcType=VARCHAR},
       cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
