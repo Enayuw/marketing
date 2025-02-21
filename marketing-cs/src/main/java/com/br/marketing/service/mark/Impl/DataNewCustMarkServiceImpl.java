@@ -96,8 +96,8 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
         List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
         if (CollectionUtil.isNotEmpty(intersectionCells)) {
             flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 1, 1);
+            originalCells.removeAll(intersectionCells);
         }
-        originalCells.removeAll(intersectionCells);
         flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, 0, 1);
 
     }
