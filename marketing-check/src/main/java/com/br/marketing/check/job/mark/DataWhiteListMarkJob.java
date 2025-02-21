@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.service.mark.DataWhiteListMarkService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -21,25 +22,15 @@ import java.util.UUID;
 @Slf4j
 public class DataWhiteListMarkJob extends AbstractSimpleElasticJob {
 
+
     @Autowired
-    RedisChgService redisChgService;
+    private DataWhiteListMarkService dataWhiteListMarkService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
+        long start = System.currentTimeMillis();
+        dataWhiteListMarkService.process();
+        log.warn("pp停车白名单打标数据，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
 
-        String key = RedisKeyConstant.DATA_WHITELIST_MARK.concat(":").concat("api_code值");
-        String lockValue = UUID.randomUUID().toString();
-        try {
-            boolean lock = redisChgService.lock(key, lockValue, 5000L);
-            if (lock) {
-              // 查询待标记的数据
-                // 更新白名单计算字段为标记中
-                // 释放锁
-            }
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                    "携程清洗抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
-            redisChgService.unlock(key, lockValue);
-        }
     }
 }

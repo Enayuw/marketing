@@ -140,4 +140,33 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="queryFlagWhiteListComputation"  resultType="com.br.marketing.entity.FlagData">
+        select id,flag_score_whitelist,flag_riskgroup
+        from b_marketing_flag_data
+        where flag_whitelist_computation is null
+          and flag_score_whitelist is not null
+          and flag_riskgroup is not null
+        and status = 1 and api_code = #{apiCode}
+        limit #{pageSize}
+    </select>
+
+    <update id="batchUpdateFlagWhiteListByIds">
+        update b_marketing_flag_data
+        set flag_whitelist_computation = #{flagWhitelistComputation},
+        flag_whitelist = #{flagWhitelist}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateFlagWhiteListComputationByIds">
+        update b_marketing_flag_data
+        set flag_whitelist_computation = #{flagWhitelistComputation}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>
