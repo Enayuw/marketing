@@ -592,53 +592,63 @@ public class FlagDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateEqualTo(Date value) {
-            addCriterionForJDBCDate("applet_date =", value, "appletDate");
+        public Criteria andAppletDateEqualTo(String value) {
+            addCriterion("applet_date =", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateNotEqualTo(Date value) {
-            addCriterionForJDBCDate("applet_date <>", value, "appletDate");
+        public Criteria andAppletDateNotEqualTo(String value) {
+            addCriterion("applet_date <>", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateGreaterThan(Date value) {
-            addCriterionForJDBCDate("applet_date >", value, "appletDate");
+        public Criteria andAppletDateGreaterThan(String value) {
+            addCriterion("applet_date >", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("applet_date >=", value, "appletDate");
+        public Criteria andAppletDateGreaterThanOrEqualTo(String value) {
+            addCriterion("applet_date >=", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateLessThan(Date value) {
-            addCriterionForJDBCDate("applet_date <", value, "appletDate");
+        public Criteria andAppletDateLessThan(String value) {
+            addCriterion("applet_date <", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("applet_date <=", value, "appletDate");
+        public Criteria andAppletDateLessThanOrEqualTo(String value) {
+            addCriterion("applet_date <=", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateIn(List<Date> values) {
-            addCriterionForJDBCDate("applet_date in", values, "appletDate");
+        public Criteria andAppletDateLike(String value) {
+            addCriterion("applet_date like", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateNotIn(List<Date> values) {
-            addCriterionForJDBCDate("applet_date not in", values, "appletDate");
+        public Criteria andAppletDateNotLike(String value) {
+            addCriterion("applet_date not like", value, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("applet_date between", value1, value2, "appletDate");
+        public Criteria andAppletDateIn(List<String> values) {
+            addCriterion("applet_date in", values, "appletDate");
             return (Criteria) this;
         }
 
-        public Criteria andAppletDateNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("applet_date not between", value1, value2, "appletDate");
+        public Criteria andAppletDateNotIn(List<String> values) {
+            addCriterion("applet_date not in", values, "appletDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppletDateBetween(String value1, String value2) {
+            addCriterion("applet_date between", value1, value2, "appletDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppletDateNotBetween(String value1, String value2) {
+            addCriterion("applet_date not between", value1, value2, "appletDate");
             return (Criteria) this;
         }
 

@@ -14,6 +14,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.FlagDataExample;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.enums.EsSyncStatusEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -23,6 +24,7 @@ import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.FlagDataMapper;
+import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.service.mark.DataUpdateEsMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
@@ -31,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -45,24 +48,30 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
-    private final static int PARTATION_SIZE = 2000;
+    private final static int PARTITION_SIZE = 2000;
 
     @Autowired
     RedisChgService redisChgService;
-    @Resource
-    FlagDataMapper flagDataMapper;
     @Autowired
     private MarketingHistoryEsService marketingHistoryEsService;
+    @Resource
+    FlagDataMapper flagDataMapper;
+    @Resource
+    DataMarkCommonService dataMarkCommonService;
     @Resource
     MarketingCommonConfig marketingCommonConfig;
     private static final String TITLE = "【pp停车数据更新es】";
 
-
     @Override
     public void process() {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
+            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
+            if (null == straHisFile) {
+                return;
+            }
+
             Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
-            Integer dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize();
+            int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             String key = RedisKeyConstant.DATA_UPDATE_ES_MARK.concat(":").concat(apiCode);
             while (true) {
@@ -75,7 +84,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
 
                     flagDataExample.createCriteria()
                             .andApiCodeEqualTo(apiCode)
-                            .andAppletDateEqualTo(new Date())
+                            .andAppletDateEqualTo(LocalDate.now().toString())
                             .andFlagNewCustComputationEqualTo(1)
                             .andFlagCustomerBaseComputationEqualTo(1)
                             .andFlagHighRiskComputationEqualTo(1)
@@ -94,9 +103,9 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     //释放锁
                     redisChgService.unlock(key, lockValue);
 
-                    List<List<FlagData>> partitions = Lists.partition(flagDataList, PARTATION_SIZE);
+                    List<List<FlagData>> partitions = Lists.partition(flagDataList, PARTITION_SIZE);
                     for (List<FlagData> list : partitions) {
-                        threadPool.submit(() -> updateEsMarkData(list));
+                        threadPool.submit(() -> updateEsMarkData(list,straHisFile));
                     }
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
@@ -112,12 +121,14 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    private void updateEsMarkData(List<FlagData> flagDataList) {
+    private void updateEsMarkData(List<FlagData> flagDataList, StraHisFile straHisFile) {
         try {
-            String index = EsHandleUtil.getDateFromBatchNumber("batchNumber");
+            String index = EsHandleUtil.getDateFromBatchNumber(straHisFile.getBatchNumber());
+
             List<String> cellLogList = flagDataList.stream().map(FlagData::getCellLog).collect(Collectors.toList());
             Map<String, FlagData> groupedByCellLog = flagDataList.stream()
                     .collect(Collectors.toMap(FlagData::getCellLog, data -> data, (oldValue, newValue) -> newValue));
+
             // 查询es数据
             JSONObject jsonData = new JSONObject();
             jsonData.put("type", "logic");
@@ -131,13 +142,18 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             data.add(cellCondition);
             jsonData.put("data", data);
             QueryBaseBean queryBaseBean = new QueryBaseBean();
-            queryBaseBean.setApiCode("7410717");
-            queryBaseBean.setBatchNumbers("batchNumber");
-            queryBaseBean.setFileIds(String.valueOf("fieldId"));
+            queryBaseBean.setApiCode(straHisFile.getApiCode());
+            queryBaseBean.setBatchNumbers(straHisFile.getBatchNumber());
+            queryBaseBean.setFileIds(String.valueOf(straHisFile.getId()));
             queryBaseBean.setJsonData(jsonData.toJSONString());
             queryBaseBean.setPageSize(2000);
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
+
+            if(CollectionUtil.isEmpty(marketingHistoryMapList)){
+                log.warn(TITLE+"查询ES数据为空");
+                return;
+            }
             // 更新es数据
             for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
                 for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
@@ -229,6 +245,5 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             Thread.currentThread().interrupt();
         }
     }
-
 
 }
