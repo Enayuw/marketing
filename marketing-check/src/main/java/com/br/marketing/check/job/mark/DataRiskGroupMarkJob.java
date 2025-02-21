@@ -72,7 +72,13 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                     break;
                 } finally {
                     // 释放锁
-                    redisChgService.unlock(lockKey, lockValue);
+                    try {
+                        redisChgService.unlock(lockKey, lockValue);
+                    } catch (Exception e) {
+                        String subject = "pp榕树客群、利率标签打标，释放锁异常";
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                                , subject), e);
+                    }
                 }
 
                 // 更新数据标签

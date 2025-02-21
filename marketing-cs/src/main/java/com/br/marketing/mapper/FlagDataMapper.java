@@ -15,7 +15,7 @@ public interface FlagDataMapper extends FlagDataMapperBase{
 
     void insertbI_(@Param("querySql") String querySql);
 
-    int updateTaskIdByLocalId(Long localId);
+    int updateTaskIdByLocalId(Long localId, Long taskId);
 
     int updateByDynamicEncCell(String cellMd5, String cellSha256, String cellLog, String apiCode, String encType);
 
