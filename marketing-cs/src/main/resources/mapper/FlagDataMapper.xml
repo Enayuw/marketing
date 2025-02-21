@@ -83,7 +83,7 @@
     </select>
 
     <select id="intersectionWithBlackList" resultType="java.lang.String">
-        select cell_md5 from b_ppCar_black_list where
+        select cell_md5 from b_pp_car_black_list where
         label_type = #{type}
         and cell_md5 in
         <foreach collection="cells" item="cell" separator="," open="(" close=")">
