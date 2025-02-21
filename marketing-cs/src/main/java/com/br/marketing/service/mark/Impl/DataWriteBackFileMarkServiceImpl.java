@@ -107,9 +107,9 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
 
 
-            //Files.createDirectories(Paths.get(path));
-            //Path filePath = Paths.get(path, fileName);
-            //BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(filePath), StandardCharsets.UTF_8));
+            Files.createDirectories(Paths.get(path));
+            Path filePath = Paths.get(path, fileName);
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(filePath), StandardCharsets.UTF_8));
 
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
