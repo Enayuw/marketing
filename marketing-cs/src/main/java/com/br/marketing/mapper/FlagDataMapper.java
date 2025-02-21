@@ -53,4 +53,12 @@ public interface FlagDataMapper extends FlagDataMapperBase{
     int batchUpdateRiskGroupAndInterestFlagById(@Param("data") List<FlagData> data, Integer flagStatus, String flagRiskGroup);
 
     int batchUpdateHighRiskStatusById(@Param("ids") List<Long> ids, Integer flagHighRiskComputation);
+
+    List<FlagData> queryFlagWhiteListComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
+    void batchUpdateFlagWhiteListByIds(@Param("ids") List<Long> ids,
+                                                  @Param("flagWhitelistComputation") Integer flagWhitelistComputation,
+                                                  @Param("flagWhitelist") Integer flagWhitelist);
+
+    void batchUpdateFlagWhiteListComputationByIds(@Param("ids") List<Long> ids,
+                                                  @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
 }
