@@ -54,7 +54,7 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
 
     @Override
     public String label() {
-        return "pp_RongShu_Mark_Sync_Cell_To_FlagData";
+        return "Pp_RongShu_Mark_Sync_Cell_To_FlagData";
     }
 
     @Override
