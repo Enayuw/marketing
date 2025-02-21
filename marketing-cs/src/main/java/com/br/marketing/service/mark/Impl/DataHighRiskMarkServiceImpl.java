@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * @description 高风险打标实现
@@ -80,6 +81,12 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 redisChgService.lock(key, lockValue);
                 //2.查数据
                 List<FlagDataCarryLogCell> flagDataList = getFlagData(apiCode, straHisFile);
+                if (CollectionUtils.isEmpty(flagDataList)) {
+                    redisChgService.unlock(key, lockValue);
+                    break;
+                }
+                //3.更新数据
+                updateFlagData(flagDataList);
                 //3.查询es
 
             } catch (Exception e) {
@@ -87,6 +94,17 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             }
 
         }
+    }
+
+    /**
+     * @description 将数据状态更新
+     * @param flagDataList
+     * @return void
+     * @author hedongshuo
+     * @date 2025/2/20 20:59
+     **/
+    private void updateFlagData(List<FlagDataCarryLogCell> flagDataList) {
+        List<Long> ids = flagDataList.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
     }
 
     /**
