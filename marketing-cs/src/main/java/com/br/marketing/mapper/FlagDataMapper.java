@@ -9,17 +9,19 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
-public interface FlagDataMapper extends FlagDataMapperBase{
+public interface FlagDataMapper extends FlagDataMapperBase {
 
     List<Map<String, Object>> queryDataByCellbI_(@Param("querySql") String querySql);
 
     void insertbI_(@Param("querySql") String querySql);
 
-    int updateTaskIdByLocalId(Long localId, Long taskId);
+    int updateTaskIdByLocalId(@Param("localId") Long localId, @Param("taskId") Long taskId);
 
-    int updateByDynamicEncCell(String cellMd5, String cellSha256, String cellLog, String apiCode, String encType);
+    int updateByDynamicEncCell(@Param("cellMd5") String cellMd5, @Param("cellSha256") String cellSha256, @Param("cellLog") String cellLog, @Param(
+            "apiCode") String apiCode, @Param("encType") String encType, @Param("appletDate") String appletDate,
+                               @Param("userType") String userType);
 
-    int batchUpdateEsStatusById(@Param("ids") List<Long> ids,@Param("status") Integer status);
+    int batchUpdateEsStatusById(@Param("ids") List<Long> ids, @Param("status") Integer status);
 
     List<FlagData> queryFlagNewCustComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
@@ -37,6 +39,7 @@ public interface FlagDataMapper extends FlagDataMapperBase{
                                                   @Param("flagBlacklist") Integer flagBlacklist,
                                                   @Param("flagBlacklistComputation") Integer flagBlacklistComputation);
 
+
     List<String> intersectionWithRongshubI_(@Param("cells") List<String> cells);
 
     List<String> intersectionWithBlackList(@Param("cells") List<String> cells,@Param("type") Integer type);
@@ -46,6 +49,7 @@ public interface FlagDataMapper extends FlagDataMapperBase{
                                                      @Param("pageSize") Integer pageSize);
 
     List<FlagData> queryRiskGroupAndInterestData(String apiCode, Integer pageSize);
+
     int batchUpdateFlagStatusById(@Param("ids") List<Long> ids, Integer flagStatus);
 
     List<FlagData> queryOdsOrgDataByCellbI_(@Param("cells") List<String> cells);

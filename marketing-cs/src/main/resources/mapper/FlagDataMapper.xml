@@ -21,15 +21,15 @@
         UPDATE b_marketing_flag_data
         <choose>
             <when test="encType == 'cell_md5'">
-                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog}
+                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog},applet_date = #{appletDate}, user_type = #{userType}
                 WHERE cell_md5 = #{cellMd5}
             </when>
             <when test="encType == 'cell_sha256'">
-                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog}
+                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog,applet_date = #{appletDate}, user_type = #{userType}
                 WHERE cell_sha256 = #{cellSha256}
             </when>
             <when test="encType == 'cell_log'">
-                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256}
+                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256},applet_date = #{appletDate}, user_type = #{userType}
                 WHERE cell_log = #{cellLog}
             </when>
         </choose>
@@ -48,13 +48,15 @@
     <select id="queryFlagNewCustComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,cell_md5
         from b_marketing_flag_data
-        where flag_new_cust_computation is null and status = 1 and api_code = #{apiCode} limit #{pageSize}
+        where flag_new_cust_computation is null and status = 1 and is_delete = 0
+        and api_code = #{apiCode} limit #{pageSize}
     </select>
 
     <select id="queryFlagBlackListComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,cell_md5
         from b_marketing_flag_data
-        where flag_blacklist_computation is null and status = 1 and api_code = #{apiCode} limit #{pageSize}
+        where flag_blacklist_computation is null and status = 1 and is_delete = 0
+        and api_code = #{apiCode} limit #{pageSize}
     </select>
 
     <update id="batchUpdateFlagNewCustComputationByIds">
