@@ -65,7 +65,7 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
                 count = flagDataMapper.updateTaskIdByLocalId(localId);
             } catch (Exception e) {
                 String subject = "pp榕树更新打标表taskId异常,localFIleId:" + localFile.getId();
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
                         , subject), e);
             }
             if (count == 0) {
@@ -104,7 +104,7 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
             handleInterest(flagData, orgDataByCellbI, dataMarkConfigByInterest);
         } catch (Exception e) {
             String subject = "pp榕树更新客群和利率标签，子线程处理异常";
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
                     , subject), e);
         }
     }

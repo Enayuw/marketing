@@ -43,7 +43,7 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
                 flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType);
             } catch (Exception e) {
                 String subject = "pp榕树打标更新sha256和log手机号异常,cellMd5:" + cellMd5;
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
                         , subject), e);
             }
             return true;
@@ -54,7 +54,7 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
 
     @Override
     public String label() {
-        return null;
+        return "pp_RongShu_Mark_Sync_Cell_To_FlagData";
     }
 
     @Override
