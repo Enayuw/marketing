@@ -44,4 +44,6 @@ public interface FlagDataMapper extends FlagDataMapperBase{
     List<FlagData> queryOdsOrgDataByCellbI_(@Param("cells") List<String> cells);
 
     int batchUpdateRiskGroupAndInterestFlagById(@Param("data") List<FlagData> data, Integer flagStatus, String flagRiskGroup);
+
+    int batchUpdateHighRiskStatusById(@Param("ids") List<Long> ids, Integer flagHighRiskComputation);
 }
