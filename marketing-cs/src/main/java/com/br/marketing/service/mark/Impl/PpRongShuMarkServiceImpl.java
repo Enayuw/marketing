@@ -26,11 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -182,10 +178,12 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
 //        if (CollectionUtils.isEmpty(flagDataUnMatch)) {
 //            return;
 //        }
+        Set<String> cellBiSet = orgDataByCellbI.stream()
+                .map(FlagData::getCellMd5)
+                .collect(Collectors.toSet());
         List<FlagData> differenceFlagData = flagData.stream()
-                .filter(f -> !orgDataByCellbI.contains(f)) // 过滤掉 list2 中包含的元素
+                .filter(f -> !cellBiSet.contains(f.getCellMd5())) // 过滤掉 list2 中包含的元素
                 .collect(Collectors.toList());
         flagDataUnMatch.addAll(differenceFlagData);
-        flagDataMapper.batchUpdateRiskGroupFlagById(flagDataUnMatch, configMap.get(1).get(0).getMarkOutValue());
     }
 }
