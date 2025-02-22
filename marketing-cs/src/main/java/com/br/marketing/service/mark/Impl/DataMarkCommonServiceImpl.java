@@ -2,22 +2,28 @@ package com.br.marketing.service.mark.Impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.entity.DataMarkConfig;
+import com.br.marketing.entity.DataMarkConfigExample;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.enums.DataMarkEnum;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
+import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -28,6 +34,9 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
 
     @Resource
     MarketingHistoryEsService marketingHistoryEsService;
+
+    @Resource
+    DataMarkConfigMapper markConfigMapper;
 
 
     @Override
@@ -66,4 +75,25 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
         queryBaseBean.setPageSize(esPageSize);
         return marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
     }
+
+    @Override
+    public List<DataMarkConfig> getMarkConfigs(String apiCode, Integer markType) {
+        DataMarkConfigExample markConfigExample = new DataMarkConfigExample();
+        markConfigExample.createCriteria()
+                .andIsDelEqualTo(1)
+                .andApiCodeEqualTo(apiCode)
+                .andMarkTypeEqualTo(markType);
+        return markConfigMapper.selectByExample(markConfigExample);
+    }
+
+    @Override
+    public Boolean isMatch(Map scoreMap, String condition) {
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        context.setVariables(scoreMap);
+        ExpressionParser parser = new SpelExpressionParser();
+        Boolean isMatch = parser.parseExpression(condition).getValue(context, Boolean.class);
+        return isMatch;
+    }
+
+
 }

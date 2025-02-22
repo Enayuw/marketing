@@ -113,12 +113,13 @@
         </foreach>
     </update>
 
-    <select id="queryLogCellByDatebI_" resultType="com.br.marketing.dto.mark.FlagDataCarryLogCell">
-        select id,cell_log
+    <select id="queryLogCellByDate" resultType="com.br.marketing.dto.mark.FlagDataCarryLogCell">
+        select id,cell_log,flag_riskgroup
         from b_marketing_flag_data
         where api_code = #{apiCode} and create_time > #{date}
         and status = 1 and cell_log is not null
-        and flag_high_risk_computation is null and is_delete = 0
+        and flag_high_risk_computation is null
+        and flag_riskgroup is not null and is_delete = 0
         limit #{pageSize}
     </select>
 
@@ -162,7 +163,8 @@
         </foreach>
     </update>
     <update id="batchUpdateHighRiskStatusById">
-        update b_marketing_flag_data set flag_high_risk_computation = #{flagHighRiskComputation}
+        update b_marketing_flag_data
+        set flag_high_risk_computation = #{flagHighRiskComputation}, flag_whitelist_computation = #{flagWhitelistComputation}
         where id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
@@ -177,6 +179,7 @@
           and status = 1 and api_code = #{apiCode}
         limit #{pageSize}
     </select>
+
     <select id="queryFlagWhiteListComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,flag_score_whitelist,flag_riskgroup
         from b_marketing_flag_data
@@ -196,6 +199,7 @@
             #{id}
         </foreach>
     </update>
+
     <update id="batchUpdateCellDecodeListByIds" >
             UPDATE b_marketing_flag_data
             SET
@@ -217,6 +221,7 @@
             #{id}
         </foreach>
     </update>
+
     <update id="batchUpdateCellDecodeListComputationByIds">
         update b_marketing_flag_data
         set flag_cell_decode_computation = #{flagWhitelistComputation}
