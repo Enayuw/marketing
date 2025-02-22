@@ -14,6 +14,7 @@
     <result column="cell_md5" property="cellMd5" jdbcType="VARCHAR" />
     <result column="cell_sha256" property="cellSha256" jdbcType="VARCHAR" />
     <result column="cell_log" property="cellLog" jdbcType="VARCHAR" />
+    <result column="flag_cell_decode_computation" property="flagCellDecodeComputation" jdbcType="INTEGER" />
     <result column="dt_whitelist" property="dtWhitelist" jdbcType="DATE" />
     <result column="flag_new_cust" property="flagNewCust" jdbcType="INTEGER" />
     <result column="flag_new_cust_computation" property="flagNewCustComputation" jdbcType="INTEGER" />
@@ -26,6 +27,11 @@
     <result column="flag_specialrisklevel_rule" property="flagSpecialrisklevelRule" jdbcType="INTEGER" />
     <result column="flag_indexcs" property="flagIndexcs" jdbcType="INTEGER" />
     <result column="flag_applyloan" property="flagApplyloan" jdbcType="INTEGER" />
+    <result column="flag_scoreysbase" property="flagScoreysbase" jdbcType="INTEGER" />
+    <result column="flag_scorefxsbbaseb" property="flagScorefxsbbaseb" jdbcType="INTEGER" />
+    <result column="flag_scorescashonregisternologin" property="flagScorescashonregisternologin" jdbcType="INTEGER" />
+    <result column="flag_scorescashonyxxy" property="flagScorescashonyxxy" jdbcType="INTEGER" />
+    <result column="flag_scorencashonzawswyyym" property="flagScorencashonzawswyyym" jdbcType="INTEGER" />
     <result column="flag_high_risk_computation" property="flagHighRiskComputation" jdbcType="INTEGER" />
     <result column="flag_intellaudio_blacklist" property="flagIntellaudioBlacklist" jdbcType="INTEGER" />
     <result column="flag_without_willingness" property="flagWithoutWillingness" jdbcType="INTEGER" />
@@ -46,13 +52,15 @@
     <result column="flag_computation_extend5" property="flagComputationExtend5" jdbcType="INTEGER" />
     <result column="flag_extend6" property="flagExtend6" jdbcType="INTEGER" />
     <result column="flag_computation_extend6" property="flagComputationExtend6" jdbcType="INTEGER" />
-    <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="data_flag_message" property="dataFlagMessage" jdbcType="VARCHAR" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.FlagData" extends="BaseResultMap" >
+    <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -113,17 +121,37 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, `status`, clean_status, task_id, cust_num, user_type, applet_date, 
-    local_id, cell_md5, cell_sha256, cell_log, dt_whitelist, flag_new_cust, flag_new_cust_computation, 
-    flag_riskgroup, flag_interest, flag_customer_base_computation, flag_age, flag_province, 
-    flag_special_small, flag_specialrisklevel_rule, flag_indexcs, flag_applyloan, flag_high_risk_computation, 
-    flag_intellaudio_blacklist, flag_without_willingness, flag_blacklist_computation, 
-    flag_score_whitelist, flag_whitelist, flag_whitelist_computation, es_sync_status, 
-    flag_extend1, flag_computation_extend1, flag_extend2, flag_computation_extend2, flag_extend3, 
-    flag_computation_extend3, flag_extend4, flag_computation_extend4, flag_extend5, flag_computation_extend5, 
-    flag_extend6, flag_computation_extend6, extend, data_message, data_flag_message, 
-    is_delete, create_time, create_date, update_time
+    id, api_code, `status`, clean_status, task_id, cust_num, user_type, applet_date,
+    local_id, cell_md5, cell_sha256, cell_log, flag_cell_decode_computation, dt_whitelist,
+    flag_new_cust, flag_new_cust_computation, flag_riskgroup, flag_interest, flag_customer_base_computation,
+    flag_age, flag_province, flag_special_small, flag_specialrisklevel_rule, flag_indexcs,
+    flag_applyloan, flag_scoreysbase, flag_scorefxsbbaseb, flag_scorescashonregisternologin,
+    flag_scorescashonyxxy, flag_scorencashonzawswyyym, flag_high_risk_computation, flag_intellaudio_blacklist,
+    flag_without_willingness, flag_blacklist_computation, flag_score_whitelist, flag_whitelist,
+    flag_whitelist_computation, es_sync_status, flag_extend1, flag_computation_extend1,
+    flag_extend2, flag_computation_extend2, flag_extend3, flag_computation_extend3, flag_extend4,
+    flag_computation_extend4, flag_extend5, flag_computation_extend5, flag_extend6, flag_computation_extend6,
+    data_message, data_flag_message, is_delete, create_time, create_date, update_time
   </sql>
+  <sql id="Blob_Column_List" >
+    extend
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.FlagDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_marketing_flag_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.FlagDataExample" >
     select
     <if test="distinct" >
@@ -138,9 +166,11 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from b_marketing_flag_data
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -158,44 +188,48 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_flag_data (api_code, `status`, clean_status, 
-      task_id, cust_num, user_type, 
-      applet_date, local_id, cell_md5, 
-      cell_sha256, cell_log, dt_whitelist, 
-      flag_new_cust, flag_new_cust_computation, flag_riskgroup, 
-      flag_interest, flag_customer_base_computation, 
-      flag_age, flag_province, flag_special_small, 
-      flag_specialrisklevel_rule, flag_indexcs, 
-      flag_applyloan, flag_high_risk_computation, 
-      flag_intellaudio_blacklist, flag_without_willingness, 
-      flag_blacklist_computation, flag_score_whitelist, 
-      flag_whitelist, flag_whitelist_computation, 
-      es_sync_status, flag_extend1, flag_computation_extend1, 
-      flag_extend2, flag_computation_extend2, flag_extend3, 
-      flag_computation_extend3, flag_extend4, flag_computation_extend4, 
-      flag_extend5, flag_computation_extend5, flag_extend6, 
-      flag_computation_extend6, extend, data_message, 
-      data_flag_message, is_delete, create_time, 
-      create_date, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{cleanStatus,jdbcType=INTEGER}, 
-      #{taskId,jdbcType=BIGINT}, #{custNum,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
-      #{appletDate,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{cellMd5,jdbcType=VARCHAR}, 
-      #{cellSha256,jdbcType=VARCHAR}, #{cellLog,jdbcType=VARCHAR}, #{dtWhitelist,jdbcType=DATE}, 
-      #{flagNewCust,jdbcType=INTEGER}, #{flagNewCustComputation,jdbcType=INTEGER}, #{flagRiskgroup,jdbcType=VARCHAR}, 
-      #{flagInterest,jdbcType=INTEGER}, #{flagCustomerBaseComputation,jdbcType=INTEGER}, 
-      #{flagAge,jdbcType=INTEGER}, #{flagProvince,jdbcType=INTEGER}, #{flagSpecialSmall,jdbcType=INTEGER}, 
-      #{flagSpecialrisklevelRule,jdbcType=INTEGER}, #{flagIndexcs,jdbcType=INTEGER}, 
-      #{flagApplyloan,jdbcType=INTEGER}, #{flagHighRiskComputation,jdbcType=INTEGER}, 
-      #{flagIntellaudioBlacklist,jdbcType=INTEGER}, #{flagWithoutWillingness,jdbcType=INTEGER}, 
-      #{flagBlacklistComputation,jdbcType=INTEGER}, #{flagScoreWhitelist,jdbcType=INTEGER}, 
-      #{flagWhitelist,jdbcType=INTEGER}, #{flagWhitelistComputation,jdbcType=INTEGER}, 
-      #{esSyncStatus,jdbcType=INTEGER}, #{flagExtend1,jdbcType=INTEGER}, #{flagComputationExtend1,jdbcType=INTEGER}, 
-      #{flagExtend2,jdbcType=INTEGER}, #{flagComputationExtend2,jdbcType=INTEGER}, #{flagExtend3,jdbcType=INTEGER}, 
-      #{flagComputationExtend3,jdbcType=INTEGER}, #{flagExtend4,jdbcType=INTEGER}, #{flagComputationExtend4,jdbcType=INTEGER}, 
-      #{flagExtend5,jdbcType=INTEGER}, #{flagComputationExtend5,jdbcType=INTEGER}, #{flagExtend6,jdbcType=INTEGER}, 
-      #{flagComputationExtend6,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{dataMessage,jdbcType=VARCHAR}, 
-      #{dataFlagMessage,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{createDate,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_marketing_flag_data (api_code, `status`, clean_status,
+    task_id, cust_num, user_type,
+    applet_date, local_id, cell_md5,
+    cell_sha256, cell_log, flag_cell_decode_computation,
+    dt_whitelist, flag_new_cust, flag_new_cust_computation,
+    flag_riskgroup, flag_interest, flag_customer_base_computation,
+    flag_age, flag_province, flag_special_small,
+    flag_specialrisklevel_rule, flag_indexcs,
+    flag_applyloan, flag_scoreysbase, flag_scorefxsbbaseb,
+    flag_scorescashonregisternologin, flag_scorescashonyxxy,
+    flag_scorencashonzawswyyym, flag_high_risk_computation,
+    flag_intellaudio_blacklist, flag_without_willingness,
+    flag_blacklist_computation, flag_score_whitelist,
+    flag_whitelist, flag_whitelist_computation,
+    es_sync_status, flag_extend1, flag_computation_extend1,
+    flag_extend2, flag_computation_extend2, flag_extend3,
+    flag_computation_extend3, flag_extend4, flag_computation_extend4,
+    flag_extend5, flag_computation_extend5, flag_extend6,
+    flag_computation_extend6, data_message, data_flag_message,
+    is_delete, create_time, create_date,
+    update_time, extend)
+    values (#{apiCode,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{cleanStatus,jdbcType=INTEGER},
+    #{taskId,jdbcType=BIGINT}, #{custNum,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
+    #{appletDate,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{cellMd5,jdbcType=VARCHAR},
+    #{cellSha256,jdbcType=VARCHAR}, #{cellLog,jdbcType=VARCHAR}, #{flagCellDecodeComputation,jdbcType=INTEGER},
+    #{dtWhitelist,jdbcType=DATE}, #{flagNewCust,jdbcType=INTEGER}, #{flagNewCustComputation,jdbcType=INTEGER},
+    #{flagRiskgroup,jdbcType=VARCHAR}, #{flagInterest,jdbcType=INTEGER}, #{flagCustomerBaseComputation,jdbcType=INTEGER},
+    #{flagAge,jdbcType=INTEGER}, #{flagProvince,jdbcType=INTEGER}, #{flagSpecialSmall,jdbcType=INTEGER},
+    #{flagSpecialrisklevelRule,jdbcType=INTEGER}, #{flagIndexcs,jdbcType=INTEGER},
+    #{flagApplyloan,jdbcType=INTEGER}, #{flagScoreysbase,jdbcType=INTEGER}, #{flagScorefxsbbaseb,jdbcType=INTEGER},
+    #{flagScorescashonregisternologin,jdbcType=INTEGER}, #{flagScorescashonyxxy,jdbcType=INTEGER},
+    #{flagScorencashonzawswyyym,jdbcType=INTEGER}, #{flagHighRiskComputation,jdbcType=INTEGER},
+    #{flagIntellaudioBlacklist,jdbcType=INTEGER}, #{flagWithoutWillingness,jdbcType=INTEGER},
+    #{flagBlacklistComputation,jdbcType=INTEGER}, #{flagScoreWhitelist,jdbcType=INTEGER},
+    #{flagWhitelist,jdbcType=INTEGER}, #{flagWhitelistComputation,jdbcType=INTEGER},
+    #{esSyncStatus,jdbcType=INTEGER}, #{flagExtend1,jdbcType=INTEGER}, #{flagComputationExtend1,jdbcType=INTEGER},
+    #{flagExtend2,jdbcType=INTEGER}, #{flagComputationExtend2,jdbcType=INTEGER}, #{flagExtend3,jdbcType=INTEGER},
+    #{flagComputationExtend3,jdbcType=INTEGER}, #{flagExtend4,jdbcType=INTEGER}, #{flagComputationExtend4,jdbcType=INTEGER},
+    #{flagExtend5,jdbcType=INTEGER}, #{flagComputationExtend5,jdbcType=INTEGER}, #{flagExtend6,jdbcType=INTEGER},
+    #{flagComputationExtend6,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{dataFlagMessage,jdbcType=VARCHAR},
+    #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=INTEGER},
+    #{updateTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.FlagData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -236,6 +270,9 @@
       <if test="cellLog != null" >
         cell_log,
       </if>
+      <if test="flagCellDecodeComputation != null" >
+        flag_cell_decode_computation,
+      </if>
       <if test="dtWhitelist != null" >
         dt_whitelist,
       </if>
@@ -271,6 +308,21 @@
       </if>
       <if test="flagApplyloan != null" >
         flag_applyloan,
+      </if>
+      <if test="flagScoreysbase != null" >
+        flag_scoreysbase,
+      </if>
+      <if test="flagScorefxsbbaseb != null" >
+        flag_scorefxsbbaseb,
+      </if>
+      <if test="flagScorescashonregisternologin != null" >
+        flag_scorescashonregisternologin,
+      </if>
+      <if test="flagScorescashonyxxy != null" >
+        flag_scorescashonyxxy,
+      </if>
+      <if test="flagScorencashonzawswyyym != null" >
+        flag_scorencashonzawswyyym,
       </if>
       <if test="flagHighRiskComputation != null" >
         flag_high_risk_computation,
@@ -332,9 +384,6 @@
       <if test="flagComputationExtend6 != null" >
         flag_computation_extend6,
       </if>
-      <if test="extend != null" >
-        extend,
-      </if>
       <if test="dataMessage != null" >
         data_message,
       </if>
@@ -352,6 +401,9 @@
       </if>
       <if test="updateTime != null" >
         update_time,
+      </if>
+      <if test="extend != null" >
+        extend,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -388,6 +440,9 @@
       <if test="cellLog != null" >
         #{cellLog,jdbcType=VARCHAR},
       </if>
+      <if test="flagCellDecodeComputation != null" >
+        #{flagCellDecodeComputation,jdbcType=INTEGER},
+      </if>
       <if test="dtWhitelist != null" >
         #{dtWhitelist,jdbcType=DATE},
       </if>
@@ -423,6 +478,21 @@
       </if>
       <if test="flagApplyloan != null" >
         #{flagApplyloan,jdbcType=INTEGER},
+      </if>
+      <if test="flagScoreysbase != null" >
+        #{flagScoreysbase,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorefxsbbaseb != null" >
+        #{flagScorefxsbbaseb,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorescashonregisternologin != null" >
+        #{flagScorescashonregisternologin,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorescashonyxxy != null" >
+        #{flagScorescashonyxxy,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorencashonzawswyyym != null" >
+        #{flagScorencashonzawswyyym,jdbcType=INTEGER},
       </if>
       <if test="flagHighRiskComputation != null" >
         #{flagHighRiskComputation,jdbcType=INTEGER},
@@ -484,9 +554,6 @@
       <if test="flagComputationExtend6 != null" >
         #{flagComputationExtend6,jdbcType=INTEGER},
       </if>
-      <if test="extend != null" >
-        #{extend,jdbcType=VARCHAR},
-      </if>
       <if test="dataMessage != null" >
         #{dataMessage,jdbcType=VARCHAR},
       </if>
@@ -504,6 +571,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -552,6 +622,9 @@
       <if test="record.cellLog != null" >
         cell_log = #{record.cellLog,jdbcType=VARCHAR},
       </if>
+      <if test="record.flagCellDecodeComputation != null" >
+        flag_cell_decode_computation = #{record.flagCellDecodeComputation,jdbcType=INTEGER},
+      </if>
       <if test="record.dtWhitelist != null" >
         dt_whitelist = #{record.dtWhitelist,jdbcType=DATE},
       </if>
@@ -587,6 +660,21 @@
       </if>
       <if test="record.flagApplyloan != null" >
         flag_applyloan = #{record.flagApplyloan,jdbcType=INTEGER},
+      </if>
+      <if test="record.flagScoreysbase != null" >
+        flag_scoreysbase = #{record.flagScoreysbase,jdbcType=INTEGER},
+      </if>
+      <if test="record.flagScorefxsbbaseb != null" >
+        flag_scorefxsbbaseb = #{record.flagScorefxsbbaseb,jdbcType=INTEGER},
+      </if>
+      <if test="record.flagScorescashonregisternologin != null" >
+        flag_scorescashonregisternologin = #{record.flagScorescashonregisternologin,jdbcType=INTEGER},
+      </if>
+      <if test="record.flagScorescashonyxxy != null" >
+        flag_scorescashonyxxy = #{record.flagScorescashonyxxy,jdbcType=INTEGER},
+      </if>
+      <if test="record.flagScorencashonzawswyyym != null" >
+        flag_scorencashonzawswyyym = #{record.flagScorencashonzawswyyym,jdbcType=INTEGER},
       </if>
       <if test="record.flagHighRiskComputation != null" >
         flag_high_risk_computation = #{record.flagHighRiskComputation,jdbcType=INTEGER},
@@ -648,9 +736,6 @@
       <if test="record.flagComputationExtend6 != null" >
         flag_computation_extend6 = #{record.flagComputationExtend6,jdbcType=INTEGER},
       </if>
-      <if test="record.extend != null" >
-        extend = #{record.extend,jdbcType=VARCHAR},
-      </if>
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
@@ -669,7 +754,73 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update b_marketing_flag_data
+    set id = #{record.id,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
+    clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+    task_id = #{record.taskId,jdbcType=BIGINT},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    user_type = #{record.userType,jdbcType=VARCHAR},
+    applet_date = #{record.appletDate,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    cell_md5 = #{record.cellMd5,jdbcType=VARCHAR},
+    cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
+    cell_log = #{record.cellLog,jdbcType=VARCHAR},
+    flag_cell_decode_computation = #{record.flagCellDecodeComputation,jdbcType=INTEGER},
+    dt_whitelist = #{record.dtWhitelist,jdbcType=DATE},
+    flag_new_cust = #{record.flagNewCust,jdbcType=INTEGER},
+    flag_new_cust_computation = #{record.flagNewCustComputation,jdbcType=INTEGER},
+    flag_riskgroup = #{record.flagRiskgroup,jdbcType=VARCHAR},
+    flag_interest = #{record.flagInterest,jdbcType=INTEGER},
+    flag_customer_base_computation = #{record.flagCustomerBaseComputation,jdbcType=INTEGER},
+    flag_age = #{record.flagAge,jdbcType=INTEGER},
+    flag_province = #{record.flagProvince,jdbcType=INTEGER},
+    flag_special_small = #{record.flagSpecialSmall,jdbcType=INTEGER},
+    flag_specialrisklevel_rule = #{record.flagSpecialrisklevelRule,jdbcType=INTEGER},
+    flag_indexcs = #{record.flagIndexcs,jdbcType=INTEGER},
+    flag_applyloan = #{record.flagApplyloan,jdbcType=INTEGER},
+    flag_scoreysbase = #{record.flagScoreysbase,jdbcType=INTEGER},
+    flag_scorefxsbbaseb = #{record.flagScorefxsbbaseb,jdbcType=INTEGER},
+    flag_scorescashonregisternologin = #{record.flagScorescashonregisternologin,jdbcType=INTEGER},
+    flag_scorescashonyxxy = #{record.flagScorescashonyxxy,jdbcType=INTEGER},
+    flag_scorencashonzawswyyym = #{record.flagScorencashonzawswyyym,jdbcType=INTEGER},
+    flag_high_risk_computation = #{record.flagHighRiskComputation,jdbcType=INTEGER},
+    flag_intellaudio_blacklist = #{record.flagIntellaudioBlacklist,jdbcType=INTEGER},
+    flag_without_willingness = #{record.flagWithoutWillingness,jdbcType=INTEGER},
+    flag_blacklist_computation = #{record.flagBlacklistComputation,jdbcType=INTEGER},
+    flag_score_whitelist = #{record.flagScoreWhitelist,jdbcType=INTEGER},
+    flag_whitelist = #{record.flagWhitelist,jdbcType=INTEGER},
+    flag_whitelist_computation = #{record.flagWhitelistComputation,jdbcType=INTEGER},
+    es_sync_status = #{record.esSyncStatus,jdbcType=INTEGER},
+    flag_extend1 = #{record.flagExtend1,jdbcType=INTEGER},
+    flag_computation_extend1 = #{record.flagComputationExtend1,jdbcType=INTEGER},
+    flag_extend2 = #{record.flagExtend2,jdbcType=INTEGER},
+    flag_computation_extend2 = #{record.flagComputationExtend2,jdbcType=INTEGER},
+    flag_extend3 = #{record.flagExtend3,jdbcType=INTEGER},
+    flag_computation_extend3 = #{record.flagComputationExtend3,jdbcType=INTEGER},
+    flag_extend4 = #{record.flagExtend4,jdbcType=INTEGER},
+    flag_computation_extend4 = #{record.flagComputationExtend4,jdbcType=INTEGER},
+    flag_extend5 = #{record.flagExtend5,jdbcType=INTEGER},
+    flag_computation_extend5 = #{record.flagComputationExtend5,jdbcType=INTEGER},
+    flag_extend6 = #{record.flagExtend6,jdbcType=INTEGER},
+    flag_computation_extend6 = #{record.flagComputationExtend6,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    data_flag_message = #{record.dataFlagMessage,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -677,56 +828,61 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_flag_data
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=INTEGER},
-      clean_status = #{record.cleanStatus,jdbcType=INTEGER},
-      task_id = #{record.taskId,jdbcType=BIGINT},
-      cust_num = #{record.custNum,jdbcType=VARCHAR},
-      user_type = #{record.userType,jdbcType=VARCHAR},
-      applet_date = #{record.appletDate,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      cell_md5 = #{record.cellMd5,jdbcType=VARCHAR},
-      cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
-      cell_log = #{record.cellLog,jdbcType=VARCHAR},
-      dt_whitelist = #{record.dtWhitelist,jdbcType=DATE},
-      flag_new_cust = #{record.flagNewCust,jdbcType=INTEGER},
-      flag_new_cust_computation = #{record.flagNewCustComputation,jdbcType=INTEGER},
-      flag_riskgroup = #{record.flagRiskgroup,jdbcType=VARCHAR},
-      flag_interest = #{record.flagInterest,jdbcType=INTEGER},
-      flag_customer_base_computation = #{record.flagCustomerBaseComputation,jdbcType=INTEGER},
-      flag_age = #{record.flagAge,jdbcType=INTEGER},
-      flag_province = #{record.flagProvince,jdbcType=INTEGER},
-      flag_special_small = #{record.flagSpecialSmall,jdbcType=INTEGER},
-      flag_specialrisklevel_rule = #{record.flagSpecialrisklevelRule,jdbcType=INTEGER},
-      flag_indexcs = #{record.flagIndexcs,jdbcType=INTEGER},
-      flag_applyloan = #{record.flagApplyloan,jdbcType=INTEGER},
-      flag_high_risk_computation = #{record.flagHighRiskComputation,jdbcType=INTEGER},
-      flag_intellaudio_blacklist = #{record.flagIntellaudioBlacklist,jdbcType=INTEGER},
-      flag_without_willingness = #{record.flagWithoutWillingness,jdbcType=INTEGER},
-      flag_blacklist_computation = #{record.flagBlacklistComputation,jdbcType=INTEGER},
-      flag_score_whitelist = #{record.flagScoreWhitelist,jdbcType=INTEGER},
-      flag_whitelist = #{record.flagWhitelist,jdbcType=INTEGER},
-      flag_whitelist_computation = #{record.flagWhitelistComputation,jdbcType=INTEGER},
-      es_sync_status = #{record.esSyncStatus,jdbcType=INTEGER},
-      flag_extend1 = #{record.flagExtend1,jdbcType=INTEGER},
-      flag_computation_extend1 = #{record.flagComputationExtend1,jdbcType=INTEGER},
-      flag_extend2 = #{record.flagExtend2,jdbcType=INTEGER},
-      flag_computation_extend2 = #{record.flagComputationExtend2,jdbcType=INTEGER},
-      flag_extend3 = #{record.flagExtend3,jdbcType=INTEGER},
-      flag_computation_extend3 = #{record.flagComputationExtend3,jdbcType=INTEGER},
-      flag_extend4 = #{record.flagExtend4,jdbcType=INTEGER},
-      flag_computation_extend4 = #{record.flagComputationExtend4,jdbcType=INTEGER},
-      flag_extend5 = #{record.flagExtend5,jdbcType=INTEGER},
-      flag_computation_extend5 = #{record.flagComputationExtend5,jdbcType=INTEGER},
-      flag_extend6 = #{record.flagExtend6,jdbcType=INTEGER},
-      flag_computation_extend6 = #{record.flagComputationExtend6,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      data_flag_message = #{record.dataFlagMessage,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      create_date = #{record.createDate,jdbcType=INTEGER},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
+    clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+    task_id = #{record.taskId,jdbcType=BIGINT},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    user_type = #{record.userType,jdbcType=VARCHAR},
+    applet_date = #{record.appletDate,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    cell_md5 = #{record.cellMd5,jdbcType=VARCHAR},
+    cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
+    cell_log = #{record.cellLog,jdbcType=VARCHAR},
+    flag_cell_decode_computation = #{record.flagCellDecodeComputation,jdbcType=INTEGER},
+    dt_whitelist = #{record.dtWhitelist,jdbcType=DATE},
+    flag_new_cust = #{record.flagNewCust,jdbcType=INTEGER},
+    flag_new_cust_computation = #{record.flagNewCustComputation,jdbcType=INTEGER},
+    flag_riskgroup = #{record.flagRiskgroup,jdbcType=VARCHAR},
+    flag_interest = #{record.flagInterest,jdbcType=INTEGER},
+    flag_customer_base_computation = #{record.flagCustomerBaseComputation,jdbcType=INTEGER},
+    flag_age = #{record.flagAge,jdbcType=INTEGER},
+    flag_province = #{record.flagProvince,jdbcType=INTEGER},
+    flag_special_small = #{record.flagSpecialSmall,jdbcType=INTEGER},
+    flag_specialrisklevel_rule = #{record.flagSpecialrisklevelRule,jdbcType=INTEGER},
+    flag_indexcs = #{record.flagIndexcs,jdbcType=INTEGER},
+    flag_applyloan = #{record.flagApplyloan,jdbcType=INTEGER},
+    flag_scoreysbase = #{record.flagScoreysbase,jdbcType=INTEGER},
+    flag_scorefxsbbaseb = #{record.flagScorefxsbbaseb,jdbcType=INTEGER},
+    flag_scorescashonregisternologin = #{record.flagScorescashonregisternologin,jdbcType=INTEGER},
+    flag_scorescashonyxxy = #{record.flagScorescashonyxxy,jdbcType=INTEGER},
+    flag_scorencashonzawswyyym = #{record.flagScorencashonzawswyyym,jdbcType=INTEGER},
+    flag_high_risk_computation = #{record.flagHighRiskComputation,jdbcType=INTEGER},
+    flag_intellaudio_blacklist = #{record.flagIntellaudioBlacklist,jdbcType=INTEGER},
+    flag_without_willingness = #{record.flagWithoutWillingness,jdbcType=INTEGER},
+    flag_blacklist_computation = #{record.flagBlacklistComputation,jdbcType=INTEGER},
+    flag_score_whitelist = #{record.flagScoreWhitelist,jdbcType=INTEGER},
+    flag_whitelist = #{record.flagWhitelist,jdbcType=INTEGER},
+    flag_whitelist_computation = #{record.flagWhitelistComputation,jdbcType=INTEGER},
+    es_sync_status = #{record.esSyncStatus,jdbcType=INTEGER},
+    flag_extend1 = #{record.flagExtend1,jdbcType=INTEGER},
+    flag_computation_extend1 = #{record.flagComputationExtend1,jdbcType=INTEGER},
+    flag_extend2 = #{record.flagExtend2,jdbcType=INTEGER},
+    flag_computation_extend2 = #{record.flagComputationExtend2,jdbcType=INTEGER},
+    flag_extend3 = #{record.flagExtend3,jdbcType=INTEGER},
+    flag_computation_extend3 = #{record.flagComputationExtend3,jdbcType=INTEGER},
+    flag_extend4 = #{record.flagExtend4,jdbcType=INTEGER},
+    flag_computation_extend4 = #{record.flagComputationExtend4,jdbcType=INTEGER},
+    flag_extend5 = #{record.flagExtend5,jdbcType=INTEGER},
+    flag_computation_extend5 = #{record.flagComputationExtend5,jdbcType=INTEGER},
+    flag_extend6 = #{record.flagExtend6,jdbcType=INTEGER},
+    flag_computation_extend6 = #{record.flagComputationExtend6,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    data_flag_message = #{record.dataFlagMessage,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -767,6 +923,9 @@
       <if test="cellLog != null" >
         cell_log = #{cellLog,jdbcType=VARCHAR},
       </if>
+      <if test="flagCellDecodeComputation != null" >
+        flag_cell_decode_computation = #{flagCellDecodeComputation,jdbcType=INTEGER},
+      </if>
       <if test="dtWhitelist != null" >
         dt_whitelist = #{dtWhitelist,jdbcType=DATE},
       </if>
@@ -802,6 +961,21 @@
       </if>
       <if test="flagApplyloan != null" >
         flag_applyloan = #{flagApplyloan,jdbcType=INTEGER},
+      </if>
+      <if test="flagScoreysbase != null" >
+        flag_scoreysbase = #{flagScoreysbase,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorefxsbbaseb != null" >
+        flag_scorefxsbbaseb = #{flagScorefxsbbaseb,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorescashonregisternologin != null" >
+        flag_scorescashonregisternologin = #{flagScorescashonregisternologin,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorescashonyxxy != null" >
+        flag_scorescashonyxxy = #{flagScorescashonyxxy,jdbcType=INTEGER},
+      </if>
+      <if test="flagScorencashonzawswyyym != null" >
+        flag_scorencashonzawswyyym = #{flagScorencashonzawswyyym,jdbcType=INTEGER},
       </if>
       <if test="flagHighRiskComputation != null" >
         flag_high_risk_computation = #{flagHighRiskComputation,jdbcType=INTEGER},
@@ -863,9 +1037,6 @@
       <if test="flagComputationExtend6 != null" >
         flag_computation_extend6 = #{flagComputationExtend6,jdbcType=INTEGER},
       </if>
-      <if test="extend != null" >
-        extend = #{extend,jdbcType=VARCHAR},
-      </if>
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
       </if>
@@ -884,61 +1055,129 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.FlagData" >
+    update b_marketing_flag_data
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=INTEGER},
+        clean_status = #{cleanStatus,jdbcType=INTEGER},
+        task_id = #{taskId,jdbcType=BIGINT},
+        cust_num = #{custNum,jdbcType=VARCHAR},
+        user_type = #{userType,jdbcType=VARCHAR},
+        applet_date = #{appletDate,jdbcType=VARCHAR},
+        local_id = #{localId,jdbcType=BIGINT},
+        cell_md5 = #{cellMd5,jdbcType=VARCHAR},
+        cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
+        cell_log = #{cellLog,jdbcType=VARCHAR},
+        flag_cell_decode_computation = #{flagCellDecodeComputation,jdbcType=INTEGER},
+        dt_whitelist = #{dtWhitelist,jdbcType=DATE},
+        flag_new_cust = #{flagNewCust,jdbcType=INTEGER},
+        flag_new_cust_computation = #{flagNewCustComputation,jdbcType=INTEGER},
+        flag_riskgroup = #{flagRiskgroup,jdbcType=VARCHAR},
+        flag_interest = #{flagInterest,jdbcType=INTEGER},
+        flag_customer_base_computation = #{flagCustomerBaseComputation,jdbcType=INTEGER},
+        flag_age = #{flagAge,jdbcType=INTEGER},
+        flag_province = #{flagProvince,jdbcType=INTEGER},
+        flag_special_small = #{flagSpecialSmall,jdbcType=INTEGER},
+        flag_specialrisklevel_rule = #{flagSpecialrisklevelRule,jdbcType=INTEGER},
+        flag_indexcs = #{flagIndexcs,jdbcType=INTEGER},
+        flag_applyloan = #{flagApplyloan,jdbcType=INTEGER},
+        flag_scoreysbase = #{flagScoreysbase,jdbcType=INTEGER},
+        flag_scorefxsbbaseb = #{flagScorefxsbbaseb,jdbcType=INTEGER},
+        flag_scorescashonregisternologin = #{flagScorescashonregisternologin,jdbcType=INTEGER},
+        flag_scorescashonyxxy = #{flagScorescashonyxxy,jdbcType=INTEGER},
+        flag_scorencashonzawswyyym = #{flagScorencashonzawswyyym,jdbcType=INTEGER},
+        flag_high_risk_computation = #{flagHighRiskComputation,jdbcType=INTEGER},
+        flag_intellaudio_blacklist = #{flagIntellaudioBlacklist,jdbcType=INTEGER},
+        flag_without_willingness = #{flagWithoutWillingness,jdbcType=INTEGER},
+        flag_blacklist_computation = #{flagBlacklistComputation,jdbcType=INTEGER},
+        flag_score_whitelist = #{flagScoreWhitelist,jdbcType=INTEGER},
+        flag_whitelist = #{flagWhitelist,jdbcType=INTEGER},
+        flag_whitelist_computation = #{flagWhitelistComputation,jdbcType=INTEGER},
+        es_sync_status = #{esSyncStatus,jdbcType=INTEGER},
+        flag_extend1 = #{flagExtend1,jdbcType=INTEGER},
+        flag_computation_extend1 = #{flagComputationExtend1,jdbcType=INTEGER},
+        flag_extend2 = #{flagExtend2,jdbcType=INTEGER},
+        flag_computation_extend2 = #{flagComputationExtend2,jdbcType=INTEGER},
+        flag_extend3 = #{flagExtend3,jdbcType=INTEGER},
+        flag_computation_extend3 = #{flagComputationExtend3,jdbcType=INTEGER},
+        flag_extend4 = #{flagExtend4,jdbcType=INTEGER},
+        flag_computation_extend4 = #{flagComputationExtend4,jdbcType=INTEGER},
+        flag_extend5 = #{flagExtend5,jdbcType=INTEGER},
+        flag_computation_extend5 = #{flagComputationExtend5,jdbcType=INTEGER},
+        flag_extend6 = #{flagExtend6,jdbcType=INTEGER},
+        flag_computation_extend6 = #{flagComputationExtend6,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        data_flag_message = #{dataFlagMessage,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        create_date = #{createDate,jdbcType=INTEGER},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.FlagData" >
     update b_marketing_flag_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=INTEGER},
-      clean_status = #{cleanStatus,jdbcType=INTEGER},
-      task_id = #{taskId,jdbcType=BIGINT},
-      cust_num = #{custNum,jdbcType=VARCHAR},
-      user_type = #{userType,jdbcType=VARCHAR},
-      applet_date = #{appletDate,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      cell_md5 = #{cellMd5,jdbcType=VARCHAR},
-      cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
-      cell_log = #{cellLog,jdbcType=VARCHAR},
-      dt_whitelist = #{dtWhitelist,jdbcType=DATE},
-      flag_new_cust = #{flagNewCust,jdbcType=INTEGER},
-      flag_new_cust_computation = #{flagNewCustComputation,jdbcType=INTEGER},
-      flag_riskgroup = #{flagRiskgroup,jdbcType=VARCHAR},
-      flag_interest = #{flagInterest,jdbcType=INTEGER},
-      flag_customer_base_computation = #{flagCustomerBaseComputation,jdbcType=INTEGER},
-      flag_age = #{flagAge,jdbcType=INTEGER},
-      flag_province = #{flagProvince,jdbcType=INTEGER},
-      flag_special_small = #{flagSpecialSmall,jdbcType=INTEGER},
-      flag_specialrisklevel_rule = #{flagSpecialrisklevelRule,jdbcType=INTEGER},
-      flag_indexcs = #{flagIndexcs,jdbcType=INTEGER},
-      flag_applyloan = #{flagApplyloan,jdbcType=INTEGER},
-      flag_high_risk_computation = #{flagHighRiskComputation,jdbcType=INTEGER},
-      flag_intellaudio_blacklist = #{flagIntellaudioBlacklist,jdbcType=INTEGER},
-      flag_without_willingness = #{flagWithoutWillingness,jdbcType=INTEGER},
-      flag_blacklist_computation = #{flagBlacklistComputation,jdbcType=INTEGER},
-      flag_score_whitelist = #{flagScoreWhitelist,jdbcType=INTEGER},
-      flag_whitelist = #{flagWhitelist,jdbcType=INTEGER},
-      flag_whitelist_computation = #{flagWhitelistComputation,jdbcType=INTEGER},
-      es_sync_status = #{esSyncStatus,jdbcType=INTEGER},
-      flag_extend1 = #{flagExtend1,jdbcType=INTEGER},
-      flag_computation_extend1 = #{flagComputationExtend1,jdbcType=INTEGER},
-      flag_extend2 = #{flagExtend2,jdbcType=INTEGER},
-      flag_computation_extend2 = #{flagComputationExtend2,jdbcType=INTEGER},
-      flag_extend3 = #{flagExtend3,jdbcType=INTEGER},
-      flag_computation_extend3 = #{flagComputationExtend3,jdbcType=INTEGER},
-      flag_extend4 = #{flagExtend4,jdbcType=INTEGER},
-      flag_computation_extend4 = #{flagComputationExtend4,jdbcType=INTEGER},
-      flag_extend5 = #{flagExtend5,jdbcType=INTEGER},
-      flag_computation_extend5 = #{flagComputationExtend5,jdbcType=INTEGER},
-      flag_extend6 = #{flagExtend6,jdbcType=INTEGER},
-      flag_computation_extend6 = #{flagComputationExtend6,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      data_message = #{dataMessage,jdbcType=VARCHAR},
-      data_flag_message = #{dataFlagMessage,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      create_date = #{createDate,jdbcType=INTEGER},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        `status` = #{status,jdbcType=INTEGER},
+        clean_status = #{cleanStatus,jdbcType=INTEGER},
+        task_id = #{taskId,jdbcType=BIGINT},
+        cust_num = #{custNum,jdbcType=VARCHAR},
+        user_type = #{userType,jdbcType=VARCHAR},
+        applet_date = #{appletDate,jdbcType=VARCHAR},
+        local_id = #{localId,jdbcType=BIGINT},
+        cell_md5 = #{cellMd5,jdbcType=VARCHAR},
+        cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
+        cell_log = #{cellLog,jdbcType=VARCHAR},
+        flag_cell_decode_computation = #{flagCellDecodeComputation,jdbcType=INTEGER},
+        dt_whitelist = #{dtWhitelist,jdbcType=DATE},
+        flag_new_cust = #{flagNewCust,jdbcType=INTEGER},
+        flag_new_cust_computation = #{flagNewCustComputation,jdbcType=INTEGER},
+        flag_riskgroup = #{flagRiskgroup,jdbcType=VARCHAR},
+        flag_interest = #{flagInterest,jdbcType=INTEGER},
+        flag_customer_base_computation = #{flagCustomerBaseComputation,jdbcType=INTEGER},
+        flag_age = #{flagAge,jdbcType=INTEGER},
+        flag_province = #{flagProvince,jdbcType=INTEGER},
+        flag_special_small = #{flagSpecialSmall,jdbcType=INTEGER},
+        flag_specialrisklevel_rule = #{flagSpecialrisklevelRule,jdbcType=INTEGER},
+        flag_indexcs = #{flagIndexcs,jdbcType=INTEGER},
+        flag_applyloan = #{flagApplyloan,jdbcType=INTEGER},
+        flag_scoreysbase = #{flagScoreysbase,jdbcType=INTEGER},
+        flag_scorefxsbbaseb = #{flagScorefxsbbaseb,jdbcType=INTEGER},
+        flag_scorescashonregisternologin = #{flagScorescashonregisternologin,jdbcType=INTEGER},
+        flag_scorescashonyxxy = #{flagScorescashonyxxy,jdbcType=INTEGER},
+        flag_scorencashonzawswyyym = #{flagScorencashonzawswyyym,jdbcType=INTEGER},
+        flag_high_risk_computation = #{flagHighRiskComputation,jdbcType=INTEGER},
+        flag_intellaudio_blacklist = #{flagIntellaudioBlacklist,jdbcType=INTEGER},
+        flag_without_willingness = #{flagWithoutWillingness,jdbcType=INTEGER},
+        flag_blacklist_computation = #{flagBlacklistComputation,jdbcType=INTEGER},
+        flag_score_whitelist = #{flagScoreWhitelist,jdbcType=INTEGER},
+        flag_whitelist = #{flagWhitelist,jdbcType=INTEGER},
+        flag_whitelist_computation = #{flagWhitelistComputation,jdbcType=INTEGER},
+        es_sync_status = #{esSyncStatus,jdbcType=INTEGER},
+        flag_extend1 = #{flagExtend1,jdbcType=INTEGER},
+        flag_computation_extend1 = #{flagComputationExtend1,jdbcType=INTEGER},
+        flag_extend2 = #{flagExtend2,jdbcType=INTEGER},
+        flag_computation_extend2 = #{flagComputationExtend2,jdbcType=INTEGER},
+        flag_extend3 = #{flagExtend3,jdbcType=INTEGER},
+        flag_computation_extend3 = #{flagComputationExtend3,jdbcType=INTEGER},
+        flag_extend4 = #{flagExtend4,jdbcType=INTEGER},
+        flag_computation_extend4 = #{flagComputationExtend4,jdbcType=INTEGER},
+        flag_extend5 = #{flagExtend5,jdbcType=INTEGER},
+        flag_computation_extend5 = #{flagComputationExtend5,jdbcType=INTEGER},
+        flag_extend6 = #{flagExtend6,jdbcType=INTEGER},
+        flag_computation_extend6 = #{flagComputationExtend6,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        data_flag_message = #{dataFlagMessage,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        create_date = #{createDate,jdbcType=INTEGER},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

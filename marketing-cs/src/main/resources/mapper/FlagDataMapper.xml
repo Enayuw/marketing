@@ -145,15 +145,22 @@
         </foreach>
     </select>
 
-    <update id="batchUpdateRiskGroupAndInterestFlagById">
+    <update id="batchUpdateRiskGroupFlagById">
         update b_marketing_flag_data
-        set flag_riskgroup = #{flagRiskGroup}, flag_customer_base_computation = #{flagStatus}
+        set flag_riskgroup = #{flagRiskGroup}
         where id in
         <foreach collection="data" item="item" separator="," open="(" close=")">
             #{item.id}
         </foreach>
     </update>
-
+    <update id="batchUpdateInterestFlagById">
+        update b_marketing_flag_data
+        set flag_riskgroup = #{flagRiskGroup},flag_customer_base_computation = #{flagStatus}
+        where id in
+        <foreach collection="data" item="item" separator="," open="(" close=")">
+            #{item.id}
+        </foreach>
+    </update>
     <update id="batchUpdateHighRiskStatusById">
         update b_marketing_flag_data set flag_high_risk_computation = #{flagHighRiskComputation}
         where id in
@@ -162,6 +169,14 @@
         </foreach>
     </update>
 
+    <select id="queryCellListComputation"  resultType="com.br.marketing.entity.FlagData">
+        select id,cell_md5,cell_log,cell_sha256
+        from b_marketing_flag_data
+        where cell_log is null
+          and cell_sha256 is  null
+          and status = 1 and api_code = #{apiCode}
+        limit #{pageSize}
+    </select>
     <select id="queryFlagWhiteListComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,flag_score_whitelist,flag_riskgroup
         from b_marketing_flag_data
@@ -190,4 +205,13 @@
             #{id}
         </foreach>
     </update>
+    <update id="batchUpdateCellDecodeListComputationByIds">
+        update b_marketing_flag_data
+        set flag_cell_decode_computation = #{flagWhitelistComputation}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

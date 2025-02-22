@@ -95,10 +95,10 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
         //doris求交查询(榕树7000w)
         List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
         if (CollectionUtil.isNotEmpty(intersectionCells)) {
-            flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 1, 1);
+            flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 0, 1);
             originalCells.removeAll(intersectionCells);
         }
-        flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, 0, 1);
+        flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, 1, 1);
 
     }
 

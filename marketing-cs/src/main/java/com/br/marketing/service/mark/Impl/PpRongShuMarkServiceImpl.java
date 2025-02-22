@@ -132,7 +132,7 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
             if (CollectionUtils.isEmpty(flagDataByApiCode)) {
                 continue;
             }
-            flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByApiCode, 1, markOutValue);
+            flagDataMapper.batchUpdateInterestFlagById(flagDataByApiCode, 1, markOutValue);
         }
 
         // 未匹配到利率标签的基底表数据
@@ -143,7 +143,7 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         if (CollectionUtils.isEmpty(flagDataOther)) {
             return;
         }
-        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataOther, 1, otherInterestConfig);
+        flagDataMapper.batchUpdateInterestFlagById(flagDataOther, 1, otherInterestConfig);
     }
 
     private Boolean isMatch(FlagData t, String condition) {
@@ -171,7 +171,7 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
             if (CollectionUtils.isEmpty(flagDataByUserType)) {
                 continue;
             }
-            flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataByUserType, 1, userType);
+            flagDataMapper.batchUpdateRiskGroupFlagById(flagDataByUserType,  userType);
         }
 
         // 未匹配到客群标签的基底表数据
@@ -182,6 +182,6 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
         if (CollectionUtils.isEmpty(flagDataUnMatch)) {
             return;
         }
-        flagDataMapper.batchUpdateRiskGroupAndInterestFlagById(flagDataUnMatch, 1, configMap.get(1).get(0).getMarkOutValue());
+        flagDataMapper.batchUpdateRiskGroupFlagById(flagDataUnMatch, configMap.get(1).get(0).getMarkOutValue());
     }
 }

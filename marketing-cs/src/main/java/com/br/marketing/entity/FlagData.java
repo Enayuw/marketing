@@ -64,6 +64,11 @@ public class FlagData {
     private String cellLog;
 
     /**
+     * cell 加解密计算
+     */
+    private Integer flagCellDecodeComputation;
+
+    /**
      * 打标日期日期
      */
     private Date dtWhitelist;
@@ -104,24 +109,49 @@ public class FlagData {
     private Integer flagProvince;
 
     /**
-     * 
+     * 特殊名单标签
      */
     private Integer flagSpecialSmall;
 
     /**
-     * 
+     * 特别风险等级标签  
      */
     private Integer flagSpecialrisklevelRule;
 
     /**
-     * 
+     * 客群敏感度标签  
      */
     private Integer flagIndexcs;
 
     /**
-     * 
+     * 多头标签
      */
     private Integer flagApplyloan;
+
+    /**
+     * scoreysbase>820
+     */
+    private Integer flagScoreysbase;
+
+    /**
+     * scorefxsbbaseb < 48 并且 scorefxsbbaseb > 0时
+     */
+    private Integer flagScorefxsbbaseb;
+
+    /**
+     * scorescashonregisternologin  >= 460时，
+     */
+    private Integer flagScorescashonregisternologin;
+
+    /**
+     * scorescashonyxxy  >= 60
+     */
+    private Integer flagScorescashonyxxy;
+
+    /**
+     * scorencashonzawswyyym  > 45
+     */
+    private Integer flagScorencashonzawswyyym;
 
     /**
      * 状态 0-高风险标记计算中；1-高风险标记计算完成；null 初始状态
@@ -224,11 +254,6 @@ public class FlagData {
     private Integer flagComputationExtend6;
 
     /**
-     * 扩展字段
-     */
-    private String extend;
-
-    /**
      * 文件落库数据描述
      */
     private String dataMessage;
@@ -257,6 +282,11 @@ public class FlagData {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 
     public Long getId() {
         return id;
@@ -354,6 +384,14 @@ public class FlagData {
         this.cellLog = cellLog == null ? null : cellLog.trim();
     }
 
+    public Integer getFlagCellDecodeComputation() {
+        return flagCellDecodeComputation;
+    }
+
+    public void setFlagCellDecodeComputation(Integer flagCellDecodeComputation) {
+        this.flagCellDecodeComputation = flagCellDecodeComputation;
+    }
+
     public Date getDtWhitelist() {
         return dtWhitelist;
     }
@@ -448,6 +486,46 @@ public class FlagData {
 
     public void setFlagApplyloan(Integer flagApplyloan) {
         this.flagApplyloan = flagApplyloan;
+    }
+
+    public Integer getFlagScoreysbase() {
+        return flagScoreysbase;
+    }
+
+    public void setFlagScoreysbase(Integer flagScoreysbase) {
+        this.flagScoreysbase = flagScoreysbase;
+    }
+
+    public Integer getFlagScorefxsbbaseb() {
+        return flagScorefxsbbaseb;
+    }
+
+    public void setFlagScorefxsbbaseb(Integer flagScorefxsbbaseb) {
+        this.flagScorefxsbbaseb = flagScorefxsbbaseb;
+    }
+
+    public Integer getFlagScorescashonregisternologin() {
+        return flagScorescashonregisternologin;
+    }
+
+    public void setFlagScorescashonregisternologin(Integer flagScorescashonregisternologin) {
+        this.flagScorescashonregisternologin = flagScorescashonregisternologin;
+    }
+
+    public Integer getFlagScorescashonyxxy() {
+        return flagScorescashonyxxy;
+    }
+
+    public void setFlagScorescashonyxxy(Integer flagScorescashonyxxy) {
+        this.flagScorescashonyxxy = flagScorescashonyxxy;
+    }
+
+    public Integer getFlagScorencashonzawswyyym() {
+        return flagScorencashonzawswyyym;
+    }
+
+    public void setFlagScorencashonzawswyyym(Integer flagScorencashonzawswyyym) {
+        this.flagScorencashonzawswyyym = flagScorencashonzawswyyym;
     }
 
     public Integer getFlagHighRiskComputation() {
@@ -610,14 +688,6 @@ public class FlagData {
         this.flagComputationExtend6 = flagComputationExtend6;
     }
 
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
-    }
-
     public String getDataMessage() {
         return dataMessage;
     }
@@ -664,5 +734,13 @@ public class FlagData {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 }

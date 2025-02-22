@@ -922,6 +922,66 @@ public class FlagDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andFlagCellDecodeComputationIsNull() {
+            addCriterion("flag_cell_decode_computation is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationIsNotNull() {
+            addCriterion("flag_cell_decode_computation is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationEqualTo(Integer value) {
+            addCriterion("flag_cell_decode_computation =", value, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationNotEqualTo(Integer value) {
+            addCriterion("flag_cell_decode_computation <>", value, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationGreaterThan(Integer value) {
+            addCriterion("flag_cell_decode_computation >", value, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationGreaterThanOrEqualTo(Integer value) {
+            addCriterion("flag_cell_decode_computation >=", value, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationLessThan(Integer value) {
+            addCriterion("flag_cell_decode_computation <", value, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationLessThanOrEqualTo(Integer value) {
+            addCriterion("flag_cell_decode_computation <=", value, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationIn(List<Integer> values) {
+            addCriterion("flag_cell_decode_computation in", values, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationNotIn(List<Integer> values) {
+            addCriterion("flag_cell_decode_computation not in", values, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationBetween(Integer value1, Integer value2) {
+            addCriterion("flag_cell_decode_computation between", value1, value2, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagCellDecodeComputationNotBetween(Integer value1, Integer value2) {
+            addCriterion("flag_cell_decode_computation not between", value1, value2, "flagCellDecodeComputation");
+            return (Criteria) this;
+        }
+
         public Criteria andDtWhitelistIsNull() {
             addCriterion("dt_whitelist is null");
             return (Criteria) this;
@@ -1649,6 +1709,306 @@ public class FlagDataExample {
 
         public Criteria andFlagApplyloanNotBetween(Integer value1, Integer value2) {
             addCriterion("flag_applyloan not between", value1, value2, "flagApplyloan");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseIsNull() {
+            addCriterion("flag_scoreysbase is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseIsNotNull() {
+            addCriterion("flag_scoreysbase is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseEqualTo(Integer value) {
+            addCriterion("flag_scoreysbase =", value, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseNotEqualTo(Integer value) {
+            addCriterion("flag_scoreysbase <>", value, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseGreaterThan(Integer value) {
+            addCriterion("flag_scoreysbase >", value, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseGreaterThanOrEqualTo(Integer value) {
+            addCriterion("flag_scoreysbase >=", value, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseLessThan(Integer value) {
+            addCriterion("flag_scoreysbase <", value, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseLessThanOrEqualTo(Integer value) {
+            addCriterion("flag_scoreysbase <=", value, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseIn(List<Integer> values) {
+            addCriterion("flag_scoreysbase in", values, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseNotIn(List<Integer> values) {
+            addCriterion("flag_scoreysbase not in", values, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scoreysbase between", value1, value2, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScoreysbaseNotBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scoreysbase not between", value1, value2, "flagScoreysbase");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebIsNull() {
+            addCriterion("flag_scorefxsbbaseb is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebIsNotNull() {
+            addCriterion("flag_scorefxsbbaseb is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebEqualTo(Integer value) {
+            addCriterion("flag_scorefxsbbaseb =", value, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebNotEqualTo(Integer value) {
+            addCriterion("flag_scorefxsbbaseb <>", value, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebGreaterThan(Integer value) {
+            addCriterion("flag_scorefxsbbaseb >", value, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebGreaterThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorefxsbbaseb >=", value, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebLessThan(Integer value) {
+            addCriterion("flag_scorefxsbbaseb <", value, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebLessThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorefxsbbaseb <=", value, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebIn(List<Integer> values) {
+            addCriterion("flag_scorefxsbbaseb in", values, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebNotIn(List<Integer> values) {
+            addCriterion("flag_scorefxsbbaseb not in", values, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorefxsbbaseb between", value1, value2, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorefxsbbasebNotBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorefxsbbaseb not between", value1, value2, "flagScorefxsbbaseb");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinIsNull() {
+            addCriterion("flag_scorescashonregisternologin is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinIsNotNull() {
+            addCriterion("flag_scorescashonregisternologin is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinEqualTo(Integer value) {
+            addCriterion("flag_scorescashonregisternologin =", value, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinNotEqualTo(Integer value) {
+            addCriterion("flag_scorescashonregisternologin <>", value, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinGreaterThan(Integer value) {
+            addCriterion("flag_scorescashonregisternologin >", value, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinGreaterThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorescashonregisternologin >=", value, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinLessThan(Integer value) {
+            addCriterion("flag_scorescashonregisternologin <", value, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinLessThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorescashonregisternologin <=", value, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinIn(List<Integer> values) {
+            addCriterion("flag_scorescashonregisternologin in", values, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinNotIn(List<Integer> values) {
+            addCriterion("flag_scorescashonregisternologin not in", values, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorescashonregisternologin between", value1, value2, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonregisternologinNotBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorescashonregisternologin not between", value1, value2, "flagScorescashonregisternologin");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyIsNull() {
+            addCriterion("flag_scorescashonyxxy is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyIsNotNull() {
+            addCriterion("flag_scorescashonyxxy is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyEqualTo(Integer value) {
+            addCriterion("flag_scorescashonyxxy =", value, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyNotEqualTo(Integer value) {
+            addCriterion("flag_scorescashonyxxy <>", value, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyGreaterThan(Integer value) {
+            addCriterion("flag_scorescashonyxxy >", value, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyGreaterThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorescashonyxxy >=", value, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyLessThan(Integer value) {
+            addCriterion("flag_scorescashonyxxy <", value, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyLessThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorescashonyxxy <=", value, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyIn(List<Integer> values) {
+            addCriterion("flag_scorescashonyxxy in", values, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyNotIn(List<Integer> values) {
+            addCriterion("flag_scorescashonyxxy not in", values, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorescashonyxxy between", value1, value2, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorescashonyxxyNotBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorescashonyxxy not between", value1, value2, "flagScorescashonyxxy");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymIsNull() {
+            addCriterion("flag_scorencashonzawswyyym is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymIsNotNull() {
+            addCriterion("flag_scorencashonzawswyyym is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymEqualTo(Integer value) {
+            addCriterion("flag_scorencashonzawswyyym =", value, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymNotEqualTo(Integer value) {
+            addCriterion("flag_scorencashonzawswyyym <>", value, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymGreaterThan(Integer value) {
+            addCriterion("flag_scorencashonzawswyyym >", value, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymGreaterThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorencashonzawswyyym >=", value, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymLessThan(Integer value) {
+            addCriterion("flag_scorencashonzawswyyym <", value, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymLessThanOrEqualTo(Integer value) {
+            addCriterion("flag_scorencashonzawswyyym <=", value, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymIn(List<Integer> values) {
+            addCriterion("flag_scorencashonzawswyyym in", values, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymNotIn(List<Integer> values) {
+            addCriterion("flag_scorencashonzawswyyym not in", values, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorencashonzawswyyym between", value1, value2, "flagScorencashonzawswyyym");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagScorencashonzawswyyymNotBetween(Integer value1, Integer value2) {
+            addCriterion("flag_scorencashonzawswyyym not between", value1, value2, "flagScorencashonzawswyyym");
             return (Criteria) this;
         }
 
@@ -2849,76 +3209,6 @@ public class FlagDataExample {
 
         public Criteria andFlagComputationExtend6NotBetween(Integer value1, Integer value2) {
             addCriterion("flag_computation_extend6 not between", value1, value2, "flagComputationExtend6");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIsNull() {
-            addCriterion("extend is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIsNotNull() {
-            addCriterion("extend is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendEqualTo(String value) {
-            addCriterion("extend =", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotEqualTo(String value) {
-            addCriterion("extend <>", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendGreaterThan(String value) {
-            addCriterion("extend >", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendGreaterThanOrEqualTo(String value) {
-            addCriterion("extend >=", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLessThan(String value) {
-            addCriterion("extend <", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLessThanOrEqualTo(String value) {
-            addCriterion("extend <=", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLike(String value) {
-            addCriterion("extend like", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotLike(String value) {
-            addCriterion("extend not like", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIn(List<String> values) {
-            addCriterion("extend in", values, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotIn(List<String> values) {
-            addCriterion("extend not in", values, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendBetween(String value1, String value2) {
-            addCriterion("extend between", value1, value2, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotBetween(String value1, String value2) {
-            addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
 
