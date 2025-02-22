@@ -185,5 +185,6 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
                 .filter(f -> !cellBiSet.contains(f.getCellMd5())) // 过滤掉 list2 中包含的元素
                 .collect(Collectors.toList());
         flagDataUnMatch.addAll(differenceFlagData);
+        flagDataMapper.batchUpdateRiskGroupFlagById(flagDataUnMatch, configMap.get(1).get(0).getMarkOutValue());
     }
 }
