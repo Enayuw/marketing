@@ -83,7 +83,7 @@ public class DataCellDecodeMarkServiceImpl implements DataCellDecodeMarkService 
                     threadPoolShutDown(threadPool);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                            "pp停车白名单打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                            "pp停车加解密抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                     break;
@@ -113,12 +113,12 @@ public class DataCellDecodeMarkServiceImpl implements DataCellDecodeMarkService 
             }catch (Exception e) {
 
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                        "pp停车更新白名单异常" + "errorMessage=" + e.getMessage()), e);
+                        "pp停车加解密异常" + "errorMessage=" + e.getMessage()), e);
                 flagDataMapper.batchUpdateCellDecodeListByIds(list, null);
             }
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    "pp停车-更新白名单异常" + "errorMessage=" + e.getMessage()), e);
+                    "pp停车加解密异常" + "errorMessage=" + e.getMessage()), e);
         }
 
     }
