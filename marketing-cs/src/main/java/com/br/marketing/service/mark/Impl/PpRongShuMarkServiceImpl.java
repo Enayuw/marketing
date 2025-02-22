@@ -179,9 +179,13 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
                 !userTypeConfig.contains(t.getUserType())
         ).map(FlagData::getCellMd5).collect(Collectors.toList());
         List<FlagData> flagDataUnMatch = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(flagDataUnMatch)) {
-            return;
-        }
+//        if (CollectionUtils.isEmpty(flagDataUnMatch)) {
+//            return;
+//        }
+        List<FlagData> differenceFlagData = flagData.stream()
+                .filter(f -> !orgDataByCellbI.contains(f)) // 过滤掉 list2 中包含的元素
+                .collect(Collectors.toList());
+        flagDataUnMatch.addAll(differenceFlagData);
         flagDataMapper.batchUpdateRiskGroupFlagById(flagDataUnMatch, configMap.get(1).get(0).getMarkOutValue());
     }
 }

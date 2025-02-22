@@ -1,6 +1,8 @@
 package com.br.marketing.service.mark.Impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.br.common.encryption.Md5Utils;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -8,6 +10,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.mapper.FlagDataMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.mark.DataCellDecodeMarkService;
 import com.br.marketing.service.mark.DataWhiteListMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -97,27 +100,21 @@ public class DataCellDecodeMarkServiceImpl implements DataCellDecodeMarkService 
     }
 
     void markAndUpdateCellDecodeList(List<FlagData> list) {
+
         try {
-            List<Long> whiteListIds = Lists.newArrayList();
-            List<Long> notWhiteListIds = Lists.newArrayList();
             for (FlagData flagData : list) {
-                if (flagData.getFlagRiskgroup().equals("复贷")
-                        || flagData.getFlagRiskgroup().equals("授信未提现")
-                        || (flagData.getFlagRiskgroup().equals("拒件") && flagData.getFlagScoreWhitelist() == 1)
-                        || (flagData.getFlagRiskgroup().equals("注册未进件") && flagData.getFlagScoreWhitelist() == 1)) {
-                    whiteListIds.add(flagData.getId());
-                } else {
-                    notWhiteListIds.add(flagData.getId());
-                }
+                String cellLog = RpcClientProxy.decode(flagData.getCellMd5(), "cell", "md5", "");
+                String cellSha256 = RpcClientProxy.decode(flagData.getCellMd5(), "cell", "sha", "");
+                flagData.setCellLog(cellLog);
+                flagData.setCellSha256(cellSha256);
             }
             try {
-                flagDataMapper.batchUpdateFlagWhiteListByIds(whiteListIds, 1, 1);
-                flagDataMapper.batchUpdateFlagWhiteListByIds(notWhiteListIds, 1, 0);
+                flagDataMapper.batchUpdateCellDecodeListByIds(list,1);
             }catch (Exception e) {
-                log.warn("pp停车更新白名单异常信息id：{}",whiteListIds.get(0));
+
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                         "pp停车更新白名单异常" + "errorMessage=" + e.getMessage()), e);
-                flagDataMapper.batchUpdateFlagWhiteListComputationByIds(whiteListIds, null);
+                flagDataMapper.batchUpdateCellDecodeListByIds(list, null);
             }
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
