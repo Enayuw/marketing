@@ -66,7 +66,7 @@ public interface FlagDataMapper extends FlagDataMapperBase {
 
     List<FlagData> queryCellListComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
-    void batchUpdateCellDecodeListByIds(@Param("list") List<FlagData> list,  @Param("flagCellDecodeComputation") Integer flagCellDecodeComputation);
+    void batchUpdateCellDecodeListByIds(@Param("flagData") FlagData flagData);
 
     void batchUpdateFlagWhiteListByIds(@Param("ids") List<Long> ids,
                                                   @Param("flagWhitelistComputation") Integer flagWhitelistComputation,

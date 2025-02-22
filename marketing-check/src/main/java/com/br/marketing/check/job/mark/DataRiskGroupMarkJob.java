@@ -56,7 +56,7 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                 String lockValue = UUID.fastUUID().toString();
                 List<FlagData> flagData;
                 try {
-//                    redisChgService.lock(lockKey, lockValue);
+                    redisChgService.lock(lockKey, lockValue);
                     // 查询数据
                     flagData = flagDataMapper.queryRiskGroupAndInterestData(apiCode, marketingCommonConfig.getDataMarkPageSize());
                     if (CollectionUtils.isEmpty(flagData)) {
@@ -73,7 +73,7 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                 } finally {
                     // 释放锁
                     try {
-//                        redisChgService.unlock(lockKey, lockValue);
+                        redisChgService.unlock(lockKey, lockValue);
                     } catch (Exception e) {
                         String subject = "pp榕树客群、利率标签打标，释放锁异常";
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()

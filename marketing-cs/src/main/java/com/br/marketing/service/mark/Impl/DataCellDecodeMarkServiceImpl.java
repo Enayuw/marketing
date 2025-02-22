@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -103,18 +104,11 @@ public class DataCellDecodeMarkServiceImpl implements DataCellDecodeMarkService 
 
         try {
             for (FlagData flagData : list) {
-                String cellLog = RpcClientProxy.decode(flagData.getCellMd5(), "cell", "md5", "");
-                String cellSha256 = RpcClientProxy.decode(flagData.getCellMd5(), "cell", "sha", "");
-                flagData.setCellLog(cellLog);
-                flagData.setCellSha256(cellSha256);
-            }
-            try {
-                flagDataMapper.batchUpdateCellDecodeListByIds(list,1);
-            }catch (Exception e) {
-
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                        "pp停车加解密异常" + "errorMessage=" + e.getMessage()), e);
-                flagDataMapper.batchUpdateCellDecodeListByIds(list, null);
+                String decodeCell = RpcClientProxy.decode(flagData.getCellMd5(), "cell", "md5", "");
+                flagData.setCellLog(BrCipherMaker.getInstance().encode(decodeCell));
+                flagData.setCellSha256(Sha256Util.getSHA256Encrypt(decodeCell));
+                flagData.setFlagCellDecodeComputation(1);
+                flagDataMapper.batchUpdateCellDecodeListByIds(flagData);
             }
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),

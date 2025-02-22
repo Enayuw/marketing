@@ -196,19 +196,17 @@
             #{id}
         </foreach>
     </update>
-    <update id="batchUpdateCellDecodeListByIds" parameterType="java.util.List">
-        <foreach collection="list" item="user" separator=";">
+    <update id="batchUpdateCellDecodeListByIds" >
             UPDATE b_marketing_flag_data
             SET
-            <if test="user.cell_log!=null || user.cell_log!=''">
-                cell_log = #{user.cell_log},
+            <if test="flagData.cellLog!=null and flagData.cellLog!=''">
+                cell_log = #{flagData.cellLog},
             </if>
-            <if test="user.cell_sha256!=null || user.cell_sha256!=''">
-                cell_sha256 = #{user.cellSha256},
+            <if test="flagData.cellSha256!=null and flagData.cellSha256!=''">
+                cell_sha256 = #{flagData.cellSha256},
             </if>
-            flag_cell_decode_computation=#{flagCellDecodeComputation}
-            WHERE id = #{user.id}
-        </foreach>
+            flag_cell_decode_computation=#{flagData.flagCellDecodeComputation}
+            WHERE id = #{flagData.id}
     </update>
 
     <update id="batchUpdateFlagWhiteListComputationByIds">
