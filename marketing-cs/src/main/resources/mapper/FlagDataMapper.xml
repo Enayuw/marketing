@@ -155,7 +155,7 @@
     </update>
     <update id="batchUpdateInterestFlagById">
         update b_marketing_flag_data
-        set flag_riskgroup = #{flagRiskGroup},flag_customer_base_computation = #{flagStatus}
+        set flag_interest = #{flagInterest},flag_customer_base_computation = #{flagStatus}
         where id in
         <foreach collection="data" item="item" separator="," open="(" close=")">
             #{item.id}

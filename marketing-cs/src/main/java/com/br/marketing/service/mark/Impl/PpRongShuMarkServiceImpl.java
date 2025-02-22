@@ -136,10 +136,18 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
                 orgDataByCellbI.stream().map(FlagData::getCellMd5).filter(cellMd5 -> !matchedCellList.contains(cellMd5)).collect(Collectors.toList());
         // 未匹配到利率标签的打标表数据
         List<FlagData> flagDataOther = flagData.stream().filter(t -> unMatchedOrgCell.contains(t.getCellMd5())).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(flagDataOther)) {
-            return;
-        }
+//        if (CollectionUtils.isEmpty(flagDataOther)) {
+//            return;
+//        }
         flagDataMapper.batchUpdateInterestFlagById(flagDataOther, 1, otherInterestConfig);
+        Set<String> cellBiSet = orgDataByCellbI.stream()
+                .map(FlagData::getCellMd5)
+                .collect(Collectors.toSet());
+        List<FlagData> differenceFlagData = flagData.stream()
+                .filter(f -> !cellBiSet.contains(f.getCellMd5())) // 过滤掉 list2 中包含的元素
+                .collect(Collectors.toList());
+        flagDataMapper.batchUpdateInterestFlagById(differenceFlagData, 1, null);
+
     }
 
     private Boolean isMatch(FlagData t, String condition) {
