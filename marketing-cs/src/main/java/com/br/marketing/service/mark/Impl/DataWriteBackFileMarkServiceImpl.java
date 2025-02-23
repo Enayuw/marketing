@@ -26,15 +26,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -212,27 +206,35 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     }
 
     private void writeDataToFile(List<Map<String, Object>> dataList,String apiCode) {
-        try {
-            String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-            String descPath = syncConfigService.getPath().concat("ppToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
-            String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
-            String fileAllPath = descPath.concat(fileName);
-            File writeDic = new File(fileAllPath);
-            if (!writeDic.exists()) {
-                writeDic.mkdirs();
-            }
-            Writer writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(writeDic.toPath()), StandardCharsets.UTF_8));
+        if(CollectionUtil.isEmpty(dataList)){
+            return;
+        }
+        String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String descPath = syncConfigService.getPath().concat("ppToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
+        String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
+        String fileAllPath = descPath.concat(fileName);
+        File file = new File(fileAllPath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true),  StandardCharsets.UTF_8))) { // 修改为追加模式
             // 判断是否添加文件头
             checkHeaderExists(fileAllPath, dataList, writer);
             // 写入每行数据
             for (Map<String, Object> resultMap : dataList) {
-                String row = resultMap.values().stream()
-                        .map(Object::toString)
-                        .collect(Collectors.joining(","));
+                StringBuilder row = new StringBuilder();
+                Collection<Object> values = resultMap.values();
+                for (Object v : values){
+                    if(v == null){
+                        row.append(",");
+                    }else {
+                        row.append(v).append(",");
+                    }
+                }
                 // 写入数据行
-                writer.append(row).append(System.lineSeparator());
+                writer.append(row.toString()).append(System.lineSeparator());
             }
-        } catch (IOException e) {
+        }catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "写入文件时发生异常"), e);
         }
@@ -240,15 +242,13 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     private void checkHeaderExists(String filePath, List<Map<String, Object>> dataList,
                                    Writer writer) throws IOException {
-        Path path = Paths.get(filePath);
-        // 读取文件的第一行
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
-            String firstLine = reader.readLine();
-            if (firstLine == null) {
-                List<String> columnNames = new ArrayList<>(dataList.get(0).keySet());
-                String fileHeader = String.join(",", columnNames);
-                writer.append(fileHeader).append(System.lineSeparator());
-            }
+        FileReader read = new FileReader(filePath);
+        BufferedReader br = new BufferedReader(read);
+        String firstLine = br.readLine();
+        if (firstLine == null) {
+            List<String> columnNames = new ArrayList<>(dataList.get(0).keySet());
+            String fileHeader = String.join(",", columnNames);
+            writer.append(fileHeader).append(System.lineSeparator());
         }
     }
 
@@ -262,7 +262,8 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
         String fileAllPath = descPath.concat(fileName);
         try {
-            sftpClient.uploadFile("/UploadFiles/marketing/transfer/" + apiCode + "/" + syncDate, fileName, fileAllPath);
+            sftpClient.connect();
+            sftpClient.uploadFile("/UploadFiles/marketing/" + apiCode + "/" + syncDate, fileName, fileAllPath);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
                     TITLE + "文件推送SFTP异常，apiCode：" + apiCode), e);
