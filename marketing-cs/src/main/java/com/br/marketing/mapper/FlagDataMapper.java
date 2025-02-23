@@ -45,7 +45,7 @@ public interface FlagDataMapper extends FlagDataMapperBase {
     List<String> intersectionWithBlackList(@Param("cells") List<String> cells,@Param("type") Integer type);
 
     List<FlagDataCarryLogCell> queryLogCellByDate(@Param("apiCode") String apiCode,
-                                                     @Param("date") String date,
+                                                     @Param("appletDate") String appletDate,
                                                      @Param("pageSize") Integer pageSize);
 
     List<FlagData> queryRiskGroupAndInterestData(@Param("apiCode") String apiCode, @Param("pageSize") Integer pageSize);
@@ -60,7 +60,7 @@ public interface FlagDataMapper extends FlagDataMapperBase {
     int batchUpdateInterestFlagById(@Param("data") List<FlagData> data, @Param("flagStatus") Integer flagStatus,
                                                 @Param("flagInterest") String flagInterest);
 
-    int batchUpdateHighRiskStatusById(@Param("ids") List<Long> ids,
+    int batchUpdateHighRiskStatusByIds(@Param("ids") List<Long> ids,
                                       @Param("flagHighRiskComputation") Integer flagHighRiskComputation,
                                       @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
 

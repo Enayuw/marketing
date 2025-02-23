@@ -116,7 +116,7 @@
     <select id="queryLogCellByDate" resultType="com.br.marketing.dto.mark.FlagDataCarryLogCell">
         select id,cell_log,flag_riskgroup
         from b_marketing_flag_data
-        where api_code = #{apiCode} and create_time > #{date}
+        where api_code = #{apiCode} and applet_date = #{appletDate}
         and status = 1 and cell_log is not null
         and flag_high_risk_computation is null
         and flag_riskgroup is not null and is_delete = 0
@@ -162,9 +162,10 @@
             #{item.id}
         </foreach>
     </update>
-    <update id="batchUpdateHighRiskStatusById">
+    <update id="batchUpdateHighRiskStatusByIds">
         update b_marketing_flag_data
-        set flag_high_risk_computation = #{flagHighRiskComputation}, flag_whitelist_computation = #{flagWhitelistComputation}
+        set flag_high_risk_computation = #{flagHighRiskComputation},
+            flag_whitelist_computation = #{flagWhitelistComputation}
         where id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
