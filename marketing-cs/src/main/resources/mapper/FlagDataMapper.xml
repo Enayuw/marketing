@@ -190,6 +190,39 @@
         limit #{pageSize}
     </select>
 
+    <select id="queryEsMarkByDate" resultType="com.br.marketing.dto.mark.FlagDataEsMark">
+        select id,
+               cell_log,
+               flag_new_cust,
+               flag_riskgroup,
+               flag_interest,
+               flag_age,
+               flag_province,
+               flag_special_small,
+               flag_specialrisklevel_rule,
+               flag_applyloan,
+               flag_scoreysbase,
+               flag_scorefxsbbaseb,
+               flag_scorescashonregisternologin,
+               flag_scorescashonyxxy,
+               flag_scorencashonzawswyyym,
+               flag_intellaudio_blacklist,
+               flag_without_willingness,
+               flag_whitelist
+        from b_marketing_flag_data
+        where api_code = #{apiCode}
+          and applet_date = #{date}
+          and flag_new_cust_computation = 1
+          and flag_customer_base_computation = 1
+          and flag_high_risk_computation = 1
+          and flag_blacklist_computation = 1
+          and flag_whitelist_computation = 1
+          and es_sync_status is null
+          and is_delete = 0
+            limit #{pageSize}
+    </select>
+
+
     <update id="batchUpdateFlagWhiteListByIds">
         update b_marketing_flag_data
         set flag_whitelist_computation = #{flagWhitelistComputation},

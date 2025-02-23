@@ -11,9 +11,11 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.FlagDataExample;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.enums.EsSyncStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.service.mark.DataWriteBackFileMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +62,8 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     @Autowired
     RedisChgService redisChgService;
     @Resource
+    DataMarkCommonService dataMarkCommonService;
+    @Resource
     MarketingCommonConfig marketingCommonConfig;
     @Resource
     FlagDataMapper flagDataMapper;
@@ -103,6 +107,11 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
      */
     private void syncData(String apiCode) {
 
+        StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
+        if (null == straHisFile) {
+            return;
+        }
+        String batchNumber = straHisFile.getBatchNumber();
         Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
         int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataMarkPageSize();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
@@ -127,7 +136,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     continue;
                 }
                 minId = flagDataList.get(flagDataList.size() - 1).getId();
-                threadPool.submit(() -> writeBackFileMark(flagDataList,apiCode));
+                threadPool.submit(() -> writeBackFileMark(flagDataList,apiCode,batchNumber));
             }
             threadPool.shutdown();
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -142,14 +151,14 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    private void writeBackFileMark(List<FlagData> flagDataList, String apiCode) {
+    private void writeBackFileMark(List<FlagData> flagDataList, String apiCode,String batchNumber) {
         // 写入doris
-        List<Map<String, Object>> dataList = insertMarkData(flagDataList);
+        List<Map<String, Object>> dataList = insertMarkData(flagDataList,batchNumber);
         // 写入文件
         writeDataToFile(dataList, apiCode);
     }
 
-    private List<Map<String, Object>> insertMarkData(List<FlagData> flagDataList) {
+    private List<Map<String, Object>> insertMarkData(List<FlagData> flagDataList,String batchNumber) {
         List<Map<String, Object>> flagDataResult = new ArrayList<>();
         try {
             List<String> cellMd5List = flagDataList.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
@@ -161,11 +170,11 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             String cell = cellMd5List.stream()
                     .map(md5 -> "'" + md5 + "'")
                     .collect(Collectors.joining(","));
-            String scoreSql = "select * from b_score_".concat("batchNumber ").concat("where md5_phone in(").concat(cell).concat(")");
+            String scoreSql = "select * from b_score_".concat(batchNumber).concat(" where cell in(").concat(cell).concat(")");
             flagDataResult = flagDataMapper.queryDataByCellbI_(scoreSql);
 
             flagDataResult.forEach((Map<String, Object> resultMap) -> {
-                FlagData flagData = groupByCellMd5.get(resultMap.get("md5_phone"));
+                FlagData flagData = groupByCellMd5.get(resultMap.get("cell"));
                 resultMap.put("flag_new_cust", flagData.getFlagNewCust());
                 resultMap.put("flag_riskgroup", flagData.getFlagRiskgroup());
                 resultMap.put("flag_interest", flagData.getFlagInterest());
@@ -173,11 +182,14 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                 resultMap.put("flag_province", flagData.getFlagProvince());
                 resultMap.put("flag_special_small", flagData.getFlagSpecialSmall());
                 resultMap.put("flag_specialrisklevel_rule", flagData.getFlagSpecialrisklevelRule());
-                resultMap.put("flag_indexcs", flagData.getFlagIndexcs());
                 resultMap.put("flag_applyloan", flagData.getFlagApplyloan());
+                resultMap.put("flag_scoreysbase", flagData.getFlagScoreysbase());
+                resultMap.put("flag_scorefxsbbaseb", flagData.getFlagScorefxsbbaseb());
+                resultMap.put("flag_scorescashonregisternologin", flagData.getFlagScorescashonregisternologin());
+                resultMap.put("flag_scorescashonyxxy", flagData.getFlagScorescashonyxxy());
+                resultMap.put("flag_scorencashonzawswyyym", flagData.getFlagScorencashonzawswyyym());
                 resultMap.put("flag_intellaudio_blacklist", flagData.getFlagIntellaudioBlacklist());
                 resultMap.put("flag_without_willingness", flagData.getFlagWithoutWillingness());
-                resultMap.put("flag_score_whitelist", flagData.getFlagScoreWhitelist());
                 resultMap.put("flag_whitelist", flagData.getFlagWhitelist());
             });
             List<String> columnNames = new ArrayList<>(flagDataResult.get(0).keySet());
@@ -189,7 +201,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     .collect(Collectors.toList());
 
             String tableName = marketingCommonConfig.getDataMarkTableName();
-            String batchInsertSql = "INSERT INTO " + tableName + " (" + String.join(", ", columnNames) + ") VALUES " + String.join(", ", valueClauses);
+            String batchInsertSql = "INSERT INTO " + tableName.replace("\"","") + " (" + String.join(", ", columnNames) + ") VALUES " + String.join(", ", valueClauses);
             // 写入doris
             flagDataMapper.insertbI_(batchInsertSql);
         } catch (Exception e) {
@@ -250,16 +262,16 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
         String fileAllPath = descPath.concat(fileName);
         try {
-            sftpClient.uploadFile("/UploadFiles/marketing/7410717/output/20250221/", fileName, fileAllPath);
+            sftpClient.uploadFile("/UploadFiles/marketing/transfer/" + apiCode + "/" + syncDate, fileName, fileAllPath);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
-                    TITLE + "文件推送SFTP异常，apiCode："), e);
+                    TITLE + "文件推送SFTP异常，apiCode：" + apiCode), e);
         } finally {
             try {
                 sftpClient.disconnect();
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
-                        TITLE + "文件推送SFTP异常，apiCode："), e);
+                        TITLE + "文件推送SFTP关闭连接异常，apiCode："+ apiCode), e);
             }
         }
     }

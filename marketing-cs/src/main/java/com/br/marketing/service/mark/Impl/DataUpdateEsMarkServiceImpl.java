@@ -12,7 +12,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.FlagData;
+import com.br.marketing.dto.mark.FlagDataEsMark;
 import com.br.marketing.entity.FlagDataExample;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.enums.EsSyncStatusEnum;
@@ -91,19 +91,20 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                             .andFlagWhitelistComputationEqualTo(1)
                             .andEsSyncStatusIsNull();
                     //打标表数据查询
-                    List<FlagData> flagDataList = flagDataMapper.selectByExample(flagDataExample);
-                    if (CollectionUtil.isEmpty(flagDataList)) {
+                    //List<FlagData> flagDataList = flagDataMapper.selectByExample(flagDataExample);
+                    List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, LocalDate.now().toString(), dataMarkPageSize);
+                    if (CollectionUtil.isEmpty(flagDataEsMarkList)) {
                         redisChgService.unlock(key, lockValue);
                         break;
                     }
                     //更新打标表状态
-                    List<Long> ids = flagDataList.stream().map(FlagData::getId).collect(Collectors.toList());
+                    List<Long> ids = flagDataEsMarkList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
                     flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.SYNCING.getValue());
                     //释放锁
                     redisChgService.unlock(key, lockValue);
 
-                    List<List<FlagData>> partitions = Lists.partition(flagDataList, PARTITION_SIZE);
-                    for (List<FlagData> list : partitions) {
+                    List<List<FlagDataEsMark>> partitions = Lists.partition(flagDataEsMarkList, PARTITION_SIZE);
+                    for (List<FlagDataEsMark> list : partitions) {
                         threadPool.submit(() -> updateEsMarkData(list,straHisFile));
                     }
                 } catch (Exception e) {
@@ -120,13 +121,13 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    private void updateEsMarkData(List<FlagData> flagDataList, StraHisFile straHisFile) {
+    private void updateEsMarkData(List<FlagDataEsMark> flagDataList, StraHisFile straHisFile) {
         try {
             String index = EsHandleUtil.getDateFromBatchNumber(straHisFile.getBatchNumber());
 
-            List<String> cellLogList = flagDataList.stream().map(FlagData::getCellLog).collect(Collectors.toList());
-            Map<String, FlagData> groupedByCellLog = flagDataList.stream()
-                    .collect(Collectors.toMap(FlagData::getCellLog, data -> data, (oldValue, newValue) -> newValue));
+            List<String> cellLogList = flagDataList.stream().map(FlagDataEsMark::getCellLog).collect(Collectors.toList());
+            Map<String, FlagDataEsMark> groupedByCellLog = flagDataList.stream()
+                    .collect(Collectors.toMap(FlagDataEsMark::getCellLog, data -> data, (oldValue, newValue) -> newValue));
 
             // 查询es数据
             JSONObject jsonData = new JSONObject();
@@ -158,7 +159,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
                     MarketingHistory marketingHistory = entry.getValue();
                     List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
-                    FlagData flagData = groupedByCellLog.get(marketingHistory.getCell());
+                    FlagDataEsMark flagData = groupedByCellLog.get(marketingHistory.getCell());
                     buildParams(marketingConditions, flagData);
                     JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
                     params.put("_id", entry.getKey());
@@ -167,7 +168,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 }
             }
             //更新打标表状态
-            List<Long> ids = flagDataList.stream().map(FlagData::getId).collect(Collectors.toList());
+            List<Long> ids = flagDataList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
             if (!CollectionUtil.isEmpty(ids)) {
                 flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.COMPLETE.getValue());
             }
@@ -177,7 +178,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
         }
     }
 
-    private void buildParams(List<MarketingCondition> conditions, FlagData flagData) {
+    private void buildParams(List<MarketingCondition> conditions, FlagDataEsMark flagData) {
         List<String> fieldKeys = marketingCommonConfig.getDataMarkField();
         for (String fieldKey : fieldKeys) {
             MarketingCondition condition = new MarketingCondition();
@@ -203,10 +204,25 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     value = String.valueOf(flagData.getFlagSpecialSmall());
                     break;
                 case "flag_specialrisklevel_rule":
-                    value = String.valueOf(flagData.getFlagSpecialrisklevelRule());
+                    value = String.valueOf(flagData.getFlagSpecialrisklevel());
                     break;
                 case "flag_applyloan":
                     value = String.valueOf(flagData.getFlagApplyloan());
+                    break;
+                case "flag_scoreysbase":
+                    value = String.valueOf(flagData.getFlagScorefxsbbaseb());
+                    break;
+                case "flag_scorefxsbbaseb":
+                    value = String.valueOf(flagData.getFlagScorefxsbbaseb());
+                    break;
+                case "flag_scorescashonregisternologin":
+                    value = String.valueOf(flagData.getFlagScorescashonregisternologin());
+                    break;
+                case "flag_scorescashonyxxy":
+                    value = String.valueOf(flagData.getFlagScorescashonyxxy());
+                    break;
+                case "flag_scorencashonzawswyyym":
+                    value = String.valueOf(flagData.getFlagScorencashonzawswyyym());
                     break;
                 case "flag_intellaudio_blacklist":
                     value = String.valueOf(flagData.getFlagIntellaudioBlacklist());

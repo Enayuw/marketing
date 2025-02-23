@@ -2,7 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.br.marketing.dto.mark.FlagDataCarryLogCell;
-import com.br.marketing.dto.mark.FlagDataDTO;
+import com.br.marketing.dto.mark.FlagDataEsMark;
 import com.br.marketing.entity.FlagData;
 import org.apache.ibatis.annotations.Param;
 
@@ -78,4 +78,8 @@ public interface FlagDataMapper extends FlagDataMapperBase {
                                                   @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
     void batchUpdateCellDecodeListComputationByIds(@Param("ids") List<Long> ids,
                                                   @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
+
+    List<FlagDataEsMark> queryEsMarkByDate(@Param("apiCode") String apiCode,
+                                              @Param("date") String date,
+                                              @Param("pageSize") Integer pageSize);
 }
