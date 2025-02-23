@@ -1,8 +1,9 @@
 package com.br.marketing.service.mark.Impl;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.mark.FlagDataCarryLogCell;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DataMarkEnum;
@@ -61,8 +62,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 return;
             }
             //2.创建线程池
-            Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+            ThreadPoolExecutor threadPool = dataMarkCommonService.getThreadPoolExecutor();
             //3.打标主流程
             markProcess(apiCode, straHisFile, threadPool);
         });
@@ -77,29 +77,38 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
     private void markProcess(String apiCode, StraHisFile straHisFile, ThreadPoolExecutor threadPool) {
         //获取打标配置[b_data_mark_config]
         List<DataMarkConfig> markConfigs = getMarkConfigs(apiCode);
+        //按mark_out_value_type排序，按mark_out_field分组
         Map<String, List<DataMarkConfig>> markCOnfigsGroupMap =
                 markConfigs.stream().sorted(Comparator.comparing(DataMarkConfig::getMarkOutValueType)).collect(Collectors.toList())
                         .stream().collect(Collectors.groupingBy(DataMarkConfig::getMarkOutField));
         String key = RedisKeyConstant.prefix.concat(DataMarkEnum.MARK_HIGHRISK.getMarkRedisKey()).concat(":").concat(apiCode);
+        List<Long> ids = new ArrayList<>();
         for (; ; ) {
             String lockValue = UUID.randomUUID().toString();
             try{
                 //1.抢锁
                 redisChgService.lock(key, lockValue);
                 //2.查数据
-                List<FlagDataCarryLogCell> flagDataList = getFlagData(apiCode, straHisFile);
+                List<FlagDataCarryLogCell> flagDataList = getFlagData(apiCode);
                 if (CollectionUtils.isEmpty(flagDataList)) {
                     redisChgService.unlock(key, lockValue);
+                    dataMarkCommonService.threadPoolShutDown(threadPool, "pp停车高风险&白名单打标");
                     break;
                 }
+                ids = flagDataList.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
                 //3.更新数据
-                updateFlagData(flagDataList);
+                flagDataMapper.batchUpdateHighRiskStatusByIds(ids, 0, 0);
                 //4.释放锁
                 redisChgService.unlock(key, lockValue);
                 //5.数据拆分，打标
                 markWithThread(apiCode, straHisFile, flagDataList, markCOnfigsGroupMap, threadPool);
             } catch (Exception e) {
-
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                        "pp停车高风险&白名单打标流程出现异常，" + "errorMessage=" + e.getMessage()), e);
+                flagDataMapper.batchUpdateHighRiskStatusByIds(ids, null, null);
+                redisChgService.unlock(key, lockValue);
+                dataMarkCommonService.threadPoolShutDown(threadPool, "pp停车高风险&白名单打标");
+                break;
             }
 
         }
@@ -118,15 +127,16 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      **/
     private void markWithThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataList,
                                 Map<String, List<DataMarkConfig>> markCOnfigsGroupMap, ThreadPoolExecutor threadPool) {
-        List<List<FlagDataCarryLogCell>> partition = Lists.partition(flagDataList, splitNum);
-        partition.forEach((List <FlagDataCarryLogCell> flagDataCarryLogCells) -> {
+        List<List<FlagDataCarryLogCell>> partitions = Lists.partition(flagDataList, splitNum);
+        partitions.forEach((List <FlagDataCarryLogCell> flagDataCarryLogCells) -> {
             threadPool.submit(() -> {
+                List<Long> ids = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
                 try {
                     markForThread(apiCode, straHisFile, flagDataCarryLogCells, markCOnfigsGroupMap);
-                } catch (NoSuchFieldException e) {
-                    throw new RuntimeException(e);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                            "pp停车高风险&白名单打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    flagDataMapper.batchUpdateHighRiskStatusByIds(ids, null, null);
                 }
             });
         });
@@ -144,15 +154,16 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @date 2025/2/21 16:00
      **/
     private void markForThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataCarryLogCells,
-                               Map<String, List<DataMarkConfig>> markCOnfigsGroupMap) throws NoSuchFieldException, IllegalAccessException {
-        //1.查询es
+                               Map<String, List<DataMarkConfig>> markCOnfigsGroupMap) throws Exception {
         List<String> cellLogs = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getCellLog).collect(Collectors.toList())
                 .stream().distinct().collect(Collectors.toList());
+        //1.查询es
         List<MarketingHistory> marketingHistories =
                 dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize);
         //把数据处理成Map<cell, List<MarketingCondition>>
         Map<String, List<MarketingCondition>> conditionMapOri =
                 marketingHistories.stream().collect(Collectors.toMap(MarketingHistory::getCell, MarketingHistory::getCondition));
+        //把List<MarketingCondition>处理成Map格式，方便spel表达式使用
         Map<String, Map<String, String>> conditionMap = new HashMap<>();
         for (String cell : conditionMapOri.keySet()) {
             List<MarketingCondition> marketingConditions = conditionMapOri.get(cell);
@@ -164,8 +175,8 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         //遍历每一条待打标数据
         for (FlagDataCarryLogCell flagDataCarryLogCell : flagDataCarryLogCells) {
             FlagData flagData = new FlagData();
-            Class<FlagData> flagDataClass = FlagData.class;
             flagData.setId(flagDataCarryLogCell.getId());
+            Class<FlagData> flagDataClass = FlagData.class;
             //对于一条打标数据，es返回的跑分分值
             Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
             //将客群标志加到condition中
@@ -184,6 +195,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 }
                 Field declaredField = flagDataClass.getDeclaredField(markOutField);
                 declaredField.setAccessible(true);
+                //给flagData的属性declaredField赋值markOutValue
                 declaredField.set(flagData, markOutValue);
             }
             flagData.setFlagHighRiskComputation(1);
@@ -209,26 +221,13 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
     }
 
     /**
-     * @description 将数据状态更新
-     * @param flagDataList
-     * @return void
-     * @author hedongshuo
-     * @date 2025/2/20 20:59
-     **/
-    private void updateFlagData(List<FlagDataCarryLogCell> flagDataList) {
-        List<Long> ids = flagDataList.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
-        flagDataMapper.batchUpdateHighRiskStatusById(ids, 0, 0);
-    }
-
-    /**
      * @description 查询当天未打标的数据
      * @param apiCode
-     * @param straHisFile
      * @return java.util.List<com.br.marketing.entity.FlagData>
      * @author hedongshuo
      * @date 2025/2/20 17:36
      **/
-    private List<FlagDataCarryLogCell> getFlagData(String apiCode, StraHisFile straHisFile) {
+    private List<FlagDataCarryLogCell> getFlagData(String apiCode) {
         Integer dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize();
         return flagDataMapper.queryLogCellByDate(
                 apiCode,

@@ -2,6 +2,9 @@ package com.br.marketing.service.mark.Impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.DataMarkConfig;
 import com.br.marketing.entity.DataMarkConfigExample;
 import com.br.marketing.entity.StraHisFile;
@@ -13,6 +16,7 @@ import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.mark.DataMarkCommonService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -24,6 +28,8 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -37,6 +43,9 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
 
     @Resource
     DataMarkConfigMapper markConfigMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     @Override
@@ -84,6 +93,27 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
                 .andApiCodeEqualTo(apiCode)
                 .andMarkTypeEqualTo(markType);
         return markConfigMapper.selectByExample(markConfigExample);
+    }
+
+    @Override
+    public ThreadPoolExecutor getThreadPoolExecutor() {
+        Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
+        return BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+    }
+
+    @Override
+    public void threadPoolShutDown(ThreadPoolExecutor threadPool, String logPrefix) {
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info(logPrefix + "-线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                    logPrefix + "线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override

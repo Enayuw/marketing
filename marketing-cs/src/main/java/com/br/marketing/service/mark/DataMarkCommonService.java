@@ -6,6 +6,7 @@ import com.br.marketing.es.bean.MarketingHistory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @description 数据打标公共接口
@@ -47,4 +48,8 @@ public interface DataMarkCommonService {
     public List<DataMarkConfig> getMarkConfigs(String apiCode, Integer markType);
 
     public Boolean isMatch(Map<String, Object> scoreMap, String condition);
+
+    public ThreadPoolExecutor getThreadPoolExecutor();
+
+    public void threadPoolShutDown(ThreadPoolExecutor threadPool, String logPrefix);
 }
