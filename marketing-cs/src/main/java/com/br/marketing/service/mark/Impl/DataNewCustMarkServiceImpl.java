@@ -58,10 +58,9 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     }
                     //更新状态:flag_new_cust_computation
                     List<Long> ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
-                    updateFlagNewCustComputation(threadPool, ids);
+                    flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids);
                     //释放锁
                     redisChgService.unlock(key, lockValue);
-
                     //打标更新:flag_new_cust
                     updateFlagNewCust(threadPool, list);
                 } catch (Exception e) {
@@ -80,13 +79,6 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
         List<List<FlagData>> partitions = Lists.partition(ids, PARTATION_SIZE);
         for (List<FlagData> partition : partitions) {
             threadPool.submit(() -> markAndUpdateFlagNewCust(partition));
-        }
-    }
-
-    void updateFlagNewCustComputation(ThreadPoolExecutor threadPool, List<Long> ids) {
-        List<List<Long>> partitions = Lists.partition(ids, PARTATION_SIZE);
-        for (List<Long> partition : partitions) {
-            threadPool.submit(() -> flagDataMapper.batchUpdateFlagNewCustComputationByIds(partition));
         }
     }
 

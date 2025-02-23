@@ -60,7 +60,7 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
                     }
                     //更新状态:flag_blacklist_computation
                     List<Long> ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
-                    updateFlagBlackListComputation(threadPool, ids);
+                    flagDataMapper.batchUpdateFlagBlackListComputationByIds(ids);
                     //释放锁
                     redisChgService.unlock(key, lockValue);
 
@@ -82,13 +82,6 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
         List<List<FlagData>> partitions = Lists.partition(ids, PARTATION_SIZE);
         for (List<FlagData> partition : partitions) {
             threadPool.submit(() -> markAndUpdateBlacklist(partition, blackListOutput));
-        }
-    }
-
-    void updateFlagBlackListComputation(ThreadPoolExecutor threadPool, List<Long> ids) {
-        List<List<Long>> partitions = Lists.partition(ids, PARTATION_SIZE);
-        for (List<Long> partition : partitions) {
-            threadPool.submit(() -> flagDataMapper.batchUpdateFlagBlackListComputationByIds(partition));
         }
     }
 
