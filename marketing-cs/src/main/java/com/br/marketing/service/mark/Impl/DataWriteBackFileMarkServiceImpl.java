@@ -213,11 +213,12 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         String descPath = syncConfigService.getPath().concat("ppToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
         String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
         String fileAllPath = descPath.concat(fileName);
-        File file = new File(fileAllPath);
+        File file = new File(descPath);
         if (!file.exists()) {
             file.mkdirs();
         }
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true),  StandardCharsets.UTF_8))) { // 修改为追加模式
+        File decodeFile = new File(descPath.concat(fileName));
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile, true),  StandardCharsets.UTF_8))) { // 修改为追加模式
             // 判断是否添加文件头
             checkHeaderExists(fileAllPath, dataList, writer);
             // 写入每行数据
