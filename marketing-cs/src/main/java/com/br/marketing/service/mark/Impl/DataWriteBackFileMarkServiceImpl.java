@@ -261,6 +261,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         String descPath = syncConfigService.getPath().concat("ppToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
         String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
         String fileAllPath = descPath.concat(fileName);
+        log.warn(TITLE + "推送文件路径：" + fileAllPath);
         try {
             sftpClient.connect();
             sftpClient.uploadFile("/UploadFiles/marketing/" + apiCode + "/" + syncDate, fileName, fileAllPath);
