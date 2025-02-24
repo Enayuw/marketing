@@ -209,6 +209,8 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         return flagDataResult;
     }
 
+    private final Object fileLock = new Object();
+
     private void writeDataToFile(List<Map<String, Object>> dataList, String descPath,String fileName) {
         if(CollectionUtil.isEmpty(dataList)){
             return;
@@ -219,22 +221,24 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             file.mkdirs();
         }
         File decodeFile = new File(descPath.concat(fileName));
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile, true),  StandardCharsets.UTF_8))) { // 修改为追加模式
-            // 判断是否添加文件头
-            checkHeaderExists(fileAllPath, dataList, writer);
-            // 写入每行数据
-            for (Map<String, Object> resultMap : dataList) {
-                StringBuilder row = new StringBuilder();
-                Collection<Object> values = resultMap.values();
-                for (Object v : values){
-                    if(v == null){
-                        row.append(",");
-                    }else {
-                        row.append(v).append(",");
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile, true),  StandardCharsets.UTF_8))) {
+            synchronized (fileLock) {
+                // 判断是否添加文件头
+                checkHeaderExists(fileAllPath, dataList, writer);
+                // 写入每行数据
+                for (Map<String, Object> resultMap : dataList) {
+                    StringBuilder row = new StringBuilder();
+                    Collection<Object> values = resultMap.values();
+                    for (Object v : values){
+                        if(v == null){
+                            row.append(",");
+                        }else {
+                            row.append(v).append(",");
+                        }
                     }
+                    // 写入数据行
+                    writer.append(row.toString()).append(System.lineSeparator());
                 }
-                // 写入数据行
-                writer.append(row.toString()).append(System.lineSeparator());
             }
         }catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
