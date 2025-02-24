@@ -299,6 +299,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
 
     @Override
     public Result<Boolean> buildEliminateAndPushToRobot(String batchIdStr) {
+        log.warn("58老客-查询撞库结果作业 status-1接收mq，batchNoId:{}", batchIdStr);
         Long batchId = Long.valueOf(batchIdStr);
         WubaOldCollidingDataLogExample example = new WubaOldCollidingDataLogExample();
         example.createCriteria().andBatchNoEqualTo(batchIdStr).andStatusEqualTo("-1").andIsDeletedEqualTo(0);
