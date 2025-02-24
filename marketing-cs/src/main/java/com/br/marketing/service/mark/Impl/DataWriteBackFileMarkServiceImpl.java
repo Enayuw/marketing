@@ -259,13 +259,13 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     private void pushFileSftp(String apiCode) {
         SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
         String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        String descPath = syncConfigService.getPath().concat("ppToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
+        String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
         String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
         String fileAllPath = descPath.concat(fileName);
         log.warn(TITLE + "推送文件路径：" + fileAllPath);
         try {
             sftpClient.connect();
-            sftpClient.uploadFile("/UploadFiles/marketing/" + apiCode + "/" + syncDate, fileName, fileAllPath);
+            sftpClient.uploadFile("/UploadFiles/marketing/" + apiCode + "/output/" + syncDate, fileName, fileAllPath);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
                     TITLE + "文件推送SFTP异常，apiCode：" + apiCode), e);
