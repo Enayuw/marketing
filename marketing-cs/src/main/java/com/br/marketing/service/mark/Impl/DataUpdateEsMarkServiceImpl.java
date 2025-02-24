@@ -77,21 +77,6 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 String lockValue = UUID.randomUUID().toString();
                 try {
                     redisChgService.lock(key, lockValue);
-
-                    FlagDataExample flagDataExample = new FlagDataExample();
-                    flagDataExample.setOrderByClause("id limit " + dataMarkPageSize);
-
-                    flagDataExample.createCriteria()
-                            .andApiCodeEqualTo(apiCode)
-                            .andAppletDateEqualTo(LocalDate.now().toString())
-                            .andFlagNewCustComputationEqualTo(1)
-                            .andFlagCustomerBaseComputationEqualTo(1)
-                            .andFlagHighRiskComputationEqualTo(1)
-                            .andFlagBlacklistComputationEqualTo(1)
-                            .andFlagWhitelistComputationEqualTo(1)
-                            .andEsSyncStatusIsNull();
-                    //打标表数据查询
-                    //List<FlagData> flagDataList = flagDataMapper.selectByExample(flagDataExample);
                     List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, LocalDate.now().toString(), dataMarkPageSize);
                     if (CollectionUtil.isEmpty(flagDataEsMarkList)) {
                         redisChgService.unlock(key, lockValue);
