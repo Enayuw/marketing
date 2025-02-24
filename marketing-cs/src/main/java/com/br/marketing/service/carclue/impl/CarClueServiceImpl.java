@@ -54,11 +54,12 @@ public class CarClueServiceImpl implements CarClueService {
 
     @Override
     public void carClueCleanHandler(CarClueInfo carClueInfo, List<CarClueProvincesInformation> carClueProvincesInfoList,
-                                    List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList, List<CarChannelConfig> channelConfigList) throws Exception {
+                                    List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList,
+                                    List<CarChannelConfig> channelConfigList) throws Exception {
         List<Result<CarClueInfo>> resultList = new ArrayList<>();
         Iterator<CarChannelConfig> iterator = channelConfigList.iterator();
-        StringBuffer filterError = new StringBuffer();
-        StringBuffer matchError = new StringBuffer();
+        StringBuilder filterError = new StringBuilder();
+        StringBuilder matchError = new StringBuilder();
         while (iterator.hasNext()) {
             CarChannelConfig config = iterator.next();
             String configApicode = config.getApiCode();
@@ -93,7 +94,7 @@ public class CarClueServiceImpl implements CarClueService {
                     carClueSeriesInfo.getApiCode().equals(configApicode)).collect(Collectors.toList());
             List<CarClueRelationalMapping> relationalMappingConfig = carClueRelationalMappingList.stream().filter(carClueRelationalMapping ->
                     carClueRelationalMapping.getApiCode().equals(configApicode)).collect(Collectors.toList());
-            Result<CarClueInfo> matchResult = channelMatch.action(filterClueInfo, provincesInfoConfig, seriesInfoConfig, relationalMappingConfig);
+            Result<CarClueInfo> matchResult = channelMatch.action(config,filterClueInfo, provincesInfoConfig, seriesInfoConfig, relationalMappingConfig);
             resultList.add(matchResult);
 
         }
@@ -120,9 +121,16 @@ public class CarClueServiceImpl implements CarClueService {
             return;
         }
         //异常线索
+        //全部渠道线索均为 有效线索(外采缺失)，则线索状态为 有效线索(外采缺失)
+        Result<CarClueInfo> abnormalResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
+                (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue())).findFirst().orElse(null);
+        if (!Objects.isNull(abnormalResult)) {
+            carClueInfo.setClueDataStatus(CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
+        } else {
+            carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
+        }
         resultList.forEach(result -> matchError.append(result.getData().getClueErrorReason()).append("|"));
-        carClueInfo.setClueErrorReason(matchError.toString());
-        carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
+        carClueInfo.setClueErrorReason(matchError.toString().substring(0, matchError.length() - 1));
         carClueInfo.setCleanTime(new Date());
         carClueInfo.setUpdateTime(new Date());
         carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
