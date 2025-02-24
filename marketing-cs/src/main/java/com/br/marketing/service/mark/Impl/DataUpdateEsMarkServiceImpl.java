@@ -62,10 +62,6 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
     MarketingCommonConfig marketingCommonConfig;
     private static final String TITLE = "【pp停车数据更新es】";
 
-    public static void main(String[] args) {
-        long timestamp = System.currentTimeMillis();
-        System.out.println("当前时间的时间戳（毫秒）：" + timestamp);
-    }
     @Override
     public void process() {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
