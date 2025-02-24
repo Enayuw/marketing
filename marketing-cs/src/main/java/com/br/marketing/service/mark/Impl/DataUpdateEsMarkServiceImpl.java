@@ -165,10 +165,10 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
 
     private void buildParams(List<MarketingCondition> conditions, FlagDataEsMark flagData) {
         List<String> fieldKeys = marketingCommonConfig.getDataMarkField();
+        Map<String, MarketingCondition> map = conditions.stream()
+                .collect(Collectors.toMap(MarketingCondition::getFieldKey, data -> data, (oldValue, newValue) -> newValue));
         for (String fieldKey : fieldKeys) {
-            MarketingCondition condition = new MarketingCondition();
-            condition.setFieldKey(fieldKey);
-            String value;
+            String value = "";
             switch (fieldKey) {
                 case "flag_new_cust":
                     value = String.valueOf(flagData.getFlagNewCust());
@@ -218,11 +218,16 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 case "flag_whitelist":
                     value = String.valueOf(flagData.getFlagWhitelist());
                     break;
-                default:
-                    value = fieldKey;
             }
-            condition.setStrValue(value);
-            conditions.add(condition);
+            MarketingCondition marketingCondition = map.get(fieldKey);
+            if(null != marketingCondition){
+                marketingCondition.setStrValue(value);
+            }else {
+                MarketingCondition condition = new MarketingCondition();
+                condition.setFieldKey(fieldKey);
+                condition.setStrValue(value);
+                conditions.add(condition);
+            }
         }
     }
 
