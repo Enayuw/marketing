@@ -301,14 +301,26 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
     public Result<Boolean> buildEliminateAndPushToRobot(String batchIdStr) {
         log.warn("58老客-查询撞库结果作业 status-1接收mq，batchNoId:{}", batchIdStr);
         Long batchId = Long.valueOf(batchIdStr);
+
+        WubaOldCollidingDataBatchNoExample wubaOldCollidingDataBatchNoExample = new WubaOldCollidingDataBatchNoExample();
+        wubaOldCollidingDataBatchNoExample.createCriteria().andIdEqualTo(batchId);
+        List<WubaOldCollidingDataBatchNo> wubaOldCollidingDataBatchNoList = wubaOldCollidingBatchNoMapper.selectByExample(wubaOldCollidingDataBatchNoExample);
+        if (CollectionUtils.isEmpty(wubaOldCollidingDataBatchNoList)) {
+            String title = "58老客撞库status=-1数据消费端，查询异常";
+            String msg = "根据batchId查询数据为空";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg, title));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+        String batchNo = wubaOldCollidingDataBatchNoList.get(0).getBatchNo();
+        log.warn("58老客-查询撞库结果作业 status-1接收mq，batchNo:{}", batchNo);
+
         WubaOldCollidingDataLogExample example = new WubaOldCollidingDataLogExample();
-        example.createCriteria().andBatchNoEqualTo(batchIdStr).andStatusEqualTo("-1").andIsDeletedEqualTo(0);
+        example.createCriteria().andBatchNoEqualTo(batchNo).andStatusEqualTo("-1").andIsDeletedEqualTo(0);
         List<WubaOldCollidingDataLog> eliminateList = wubaOldCollidingDataLogMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(eliminateList)) {
             String title = "58老客撞库status=-1数据消费端，查询异常";
             String msg = "根据batchNo查询数据为空";
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
-                    , title));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg, title));
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
 
