@@ -2647,5 +2647,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, Integer> ppCarBlackList;
 
+    /**
+     * 数据打标esmock配置
+     */
+    private Map<String, Object> dataMarkEsMockConfig;
+
 }
 

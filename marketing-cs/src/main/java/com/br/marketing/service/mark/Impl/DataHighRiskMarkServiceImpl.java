@@ -1,5 +1,6 @@
 package com.br.marketing.service.mark.Impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -14,6 +15,7 @@ import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.mark.DataHighRiskMarkService;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -158,8 +160,25 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         List<String> cellLogs = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getCellLog).collect(Collectors.toList())
                 .stream().distinct().collect(Collectors.toList());
         //1.查询es
-        List<MarketingHistory> marketingHistories =
-                dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize);
+        List<MarketingHistory> marketingHistories;
+        Map<String, Object> markEsMockConfig = marketingCommonConfig.getDataMarkEsMockConfig();
+        if ((Boolean) markEsMockConfig.get("isMock")) {
+            List<JSONObject> jsonList = (List<JSONObject>) markEsMockConfig.get("marketingHistories");
+            marketingHistories = jsonList.stream().map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingHistory.class))
+                    .collect(Collectors.toList());
+        } else {
+            marketingHistories =
+                    dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize);
+        }
+        if(CollectionUtils.isEmpty(marketingHistories)){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                    "pp停车高风险&白名单打标子线程es未返回数据！"));
+            return;
+        }
+        if(marketingHistories.size() != cellLogs.size()){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                    "pp停车高风险&白名单打标子线程es返回数据条数不足！"));
+        }
         //把数据处理成Map<cell, List<MarketingCondition>>
         Map<String, List<MarketingCondition>> conditionMapOri =
                 marketingHistories.stream().collect(Collectors.toMap(MarketingHistory::getCell, MarketingHistory::getCondition));
@@ -191,6 +210,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                     if (dataMarkConfig.getMarkOutValueType() == 1
                             || dataMarkCommonService.isMatch(scoreMap, dataMarkConfig.getMarkCondition())) {
                         markOutValue = Integer.parseInt(dataMarkConfig.getMarkOutValue());
+                        break;
                     }
                 }
                 Field declaredField = flagDataClass.getDeclaredField(markOutField);

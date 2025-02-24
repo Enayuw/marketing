@@ -1,7 +1,10 @@
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.validators.user.UserValidator;
+import com.br.marketing.es.bean.MarketingCondition;
+import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.util.GeneScriptUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.swagger.models.auth.In;
@@ -254,8 +257,8 @@ public class MyTest {
     public void test10() {
         StandardEvaluationContext context = new StandardEvaluationContext();
         Map map = new HashMap<String, String>();
-        map.put("ka_id_province", "港澳台");
-        map.put("ka_id_province1", "北京");
+        map.put("ka_id_province2", "港澳台");
+        map.put("ka_id_province3", "北京");
         context.setVariables(map);
         String condition = "(#ka_id_province == '港澳台') || (#ka_id_province == '北京')";
         ExpressionParser parser = new SpelExpressionParser();
@@ -269,6 +272,32 @@ public class MyTest {
         System.out.println(format);
         Date from = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         System.out.println(from);
+    }
+
+    @Test
+    public void test02() {
+        MarketingHistory marketingHistory1 = new MarketingHistory();
+        marketingHistory1.setCell("AgsDU1lSVΒ7g8BVQc");
+        MarketingCondition marketingCondition11 = new MarketingCondition();
+        marketingCondition11.setFieldKey("pd_id_apply_age");
+        marketingCondition11.setStrValue("18");
+        MarketingCondition marketingCondition12 = new MarketingCondition();
+        marketingCondition12.setFieldKey("ka_id_province");
+        marketingCondition12.setStrValue("青海");
+        marketingHistory1.setCondition(Arrays.asList(marketingCondition11, marketingCondition12));
+
+        MarketingHistory marketingHistory2 = new MarketingHistory();
+        marketingHistory2.setCell("UwsNΒ6AQ8JAFNcVFw");
+        MarketingCondition marketingCondition21 = new MarketingCondition();
+        marketingCondition21.setFieldKey("pd_id_apply_age");
+        marketingCondition21.setStrValue("23");
+        MarketingCondition marketingCondition22 = new MarketingCondition();
+        marketingCondition22.setFieldKey("ka_id_province");
+        marketingCondition22.setStrValue("北京");
+        marketingHistory2.setCondition(Arrays.asList(marketingCondition21, marketingCondition22));
+
+        List<MarketingHistory> marketingHistories = Arrays.asList(marketingHistory1, marketingHistory2);
+        System.out.println(JSON.toJSONString(marketingHistories));
     }
 
 
