@@ -10,9 +10,9 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.dto.wuba.WuBaQueryConversionZipResultDto;
 import com.br.marketing.entity.MarketingCleanDataTask;
-import com.br.marketing.entity.WubaSubmitConversionDataTransferClean;
+import com.br.marketing.entity.WubaOldSubmitConversionDataTransferClean;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
-import com.br.marketing.mapper.WubaSubmitConversionDataTransferCleanMapper;
+import com.br.marketing.mapper.WubaOldSubmitConversionDataTransferCleanMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -58,7 +58,7 @@ public class WuBaOldQueryConversionZipResultService {
     private MarketingCleanDataTaskMapper cleanDataTaskMapper;
 
     @Resource
-    private WubaSubmitConversionDataTransferCleanMapper dataTransferCleanMapper;
+    private WubaOldSubmitConversionDataTransferCleanMapper dataTransferCleanMapper;
 
     public Result action(Page2Condition<WuBaQueryConversionZipResultDto> condition) {
         Result result = new Result<>().failure();
@@ -105,7 +105,7 @@ public class WuBaOldQueryConversionZipResultService {
                     return result.failure();
                 }
                 // 生成清洗任务
-                Long taskId = cleaningAutoService.saveCleanTask(apiCode, 1, "58新客_转化清洗规则勿动");
+                Long taskId = cleaningAutoService.saveCleanTask(apiCode, 1, "58老客_转化清洗规则勿动");
                 Map<String, String> headerMapping = marketingCommonConfig.getWuBaQueryConversionZipResultHeaderMapping();
 
                 // 文件解析入库
@@ -217,7 +217,7 @@ public class WuBaOldQueryConversionZipResultService {
             if (processResult == null || !processResult.isSuccess() || processResult.getData() == null) {
                 return result.failure();
             }
-            List<WubaSubmitConversionDataTransferClean> dataList = (List<WubaSubmitConversionDataTransferClean>) processResult.getData();
+            List<WubaOldSubmitConversionDataTransferClean> dataList = (List<WubaOldSubmitConversionDataTransferClean>) processResult.getData();
             if (CollectionUtils.isEmpty(dataList)) {
                 return result.failure();
             }
@@ -237,7 +237,7 @@ public class WuBaOldQueryConversionZipResultService {
             return result.success();
         }
 
-        List<WubaSubmitConversionDataTransferClean> dataList = new ArrayList<>();
+        List<WubaOldSubmitConversionDataTransferClean> dataList = new ArrayList<>();
 
         for (String line : lineList) {
             Map<String, Object> dataMap = new HashMap<>();
@@ -252,7 +252,7 @@ public class WuBaOldQueryConversionZipResultService {
                 }
                 extendJo.put(header, value);
             }
-            WubaSubmitConversionDataTransferClean data = BeanUtil.toBean(dataMap, WubaSubmitConversionDataTransferClean.class);
+            WubaOldSubmitConversionDataTransferClean data = BeanUtil.toBean(dataMap, WubaOldSubmitConversionDataTransferClean.class);
             //
             boolean a = (StringUtils.isEmpty(data.getLastLoginTime()) && StringUtils.isEmpty(data.getFinanceApplyTime()));
             boolean b = (StringUtils.isEmpty(data.getFinanceCreditStatus()) && StringUtils.isEmpty(data.getFinanceCreditFinishTime()));
@@ -273,7 +273,7 @@ public class WuBaOldQueryConversionZipResultService {
         return result.success().setDate(dataList);
     }
 
-    private void batAddDataTransferClean(List<WubaSubmitConversionDataTransferClean> batList) {
+    private void batAddDataTransferClean(List<WubaOldSubmitConversionDataTransferClean> batList) {
         dataTransferCleanMapper.batchAdd(batList);
         log.warn(TITLE + "保存转化结果成功");
     }
