@@ -1,6 +1,7 @@
 package com.br.marketing.service.mark.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -187,8 +188,8 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         for (String cell : conditionMapOri.keySet()) {
             List<MarketingCondition> marketingConditions = conditionMapOri.get(cell);
             Map<String, String> condition =
-                    marketingConditions.stream().collect(Collectors.toMap(MarketingCondition::getFieldKey, MarketingCondition::getStrValue));
-            conditionMap.put(cell, condition);
+                    marketingConditions.stream().collect(Collectors.toMap(MarketingCondition::getFieldKey, MarketingCondition::getStrValue, (o1, o2) -> o2));
+            conditionMap.put(Sha256Util.getSHA256Encrypt(cell), condition);
         }
         //2.打标
         //遍历每一条待打标数据
@@ -197,7 +198,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             flagData.setId(flagDataCarryLogCell.getId());
             Class<FlagData> flagDataClass = FlagData.class;
             //对于一条打标数据，es返回的跑分分值
-            Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
+            Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellSha256());
             //将客群标志加到condition中
             scoreMap.put("flag_riskgroup", flagDataCarryLogCell.getFlagRiskgroup());
             //遍历Map<data属性名, 配置list>

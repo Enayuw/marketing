@@ -257,10 +257,10 @@ public class MyTest {
     public void test10() {
         StandardEvaluationContext context = new StandardEvaluationContext();
         Map map = new HashMap<String, String>();
-        map.put("ka_id_province2", "港澳台");
-        map.put("ka_id_province3", "北京");
+        map.put("flag_riskgroup", "拒件");
+        map.put("scoreysbase1", "821");
         context.setVariables(map);
-        String condition = "(#ka_id_province == '港澳台') || (#ka_id_province == '北京')";
+        String condition = "(#flag_riskgroup == '拒件')&&!(#scoreysbase >= '820')";
         ExpressionParser parser = new SpelExpressionParser();
         Boolean value = parser.parseExpression(condition).getValue(context, Boolean.class);
         System.out.println(value);
