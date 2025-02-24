@@ -19,12 +19,13 @@ import javax.annotation.Resource;
 public class DataUpdateEsMarkJob extends AbstractSimpleElasticJob {
     @Resource
     private DataUpdateEsMarkService dataUpdateEsMarkService;
+    private static final String TITLE = "【pp停车数据更新es】";
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
         dataUpdateEsMarkService.process();
-        log.warn("pp停车文件数据更新es数据，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+        log.warn(TITLE + "运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
 }

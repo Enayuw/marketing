@@ -67,10 +67,13 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     public void process() {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
             if (checkEsStatus(apiCode)) {
+                String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+                String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
+                String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
                 // 同步数据写入doris
-                syncData(apiCode);
+                syncData(apiCode,descPath,fileName);
                 // 推送文件至SFTP
-                pushFileSftp(apiCode);
+                pushFileSftp(apiCode,descPath,fileName);
             }
         });
 
@@ -99,7 +102,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     /**
      * 同步数据写入doris
      */
-    private void syncData(String apiCode) {
+    private void syncData(String apiCode,String descPath,String fileName) {
 
         StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
         if (null == straHisFile) {
@@ -130,7 +133,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     continue;
                 }
                 minId = flagDataList.get(flagDataList.size() - 1).getId();
-                threadPool.submit(() -> writeBackFileMark(flagDataList,apiCode,batchNumber));
+                threadPool.submit(() -> writeBackFileMark(flagDataList,batchNumber,descPath,fileName));
             }
             threadPool.shutdown();
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -145,11 +148,12 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    private void writeBackFileMark(List<FlagData> flagDataList, String apiCode,String batchNumber) {
+    private void writeBackFileMark(List<FlagData> flagDataList,String batchNumber,
+                                   String descPath,String fileName) {
         // 写入doris
         List<Map<String, Object>> dataList = insertMarkData(flagDataList,batchNumber);
         // 写入文件
-        writeDataToFile(dataList, apiCode);
+        writeDataToFile(dataList,descPath,fileName);
     }
 
     private List<Map<String, Object>> insertMarkData(List<FlagData> flagDataList,String batchNumber) {
@@ -205,13 +209,10 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         return flagDataResult;
     }
 
-    private void writeDataToFile(List<Map<String, Object>> dataList,String apiCode) {
+    private void writeDataToFile(List<Map<String, Object>> dataList, String descPath,String fileName) {
         if(CollectionUtil.isEmpty(dataList)){
             return;
         }
-        String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
-        String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
         String fileAllPath = descPath.concat(fileName);
         File file = new File(descPath);
         if (!file.exists()) {
@@ -256,16 +257,15 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     /**
      * 推送文件至SFTP
      */
-    private void pushFileSftp(String apiCode) {
+    private void pushFileSftp(String apiCode,String descPath,String fileName) {
         SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
         String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
-        String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
-        String fileAllPath = descPath.concat(fileName);
-        log.warn(TITLE + "推送文件路径：" + fileAllPath);
+        String remotePath = "/UploadFiles/marketing/" + apiCode + "/output/" + syncDate;
+        String localFileName = descPath.concat(fileName);
+        log.warn(TITLE + "原文件路径：" + localFileName + " | 推送文件路径:" + remotePath);
         try {
             sftpClient.connect();
-            sftpClient.uploadFile("/UploadFiles/marketing/" + apiCode + "/output/" + syncDate, fileName, fileAllPath);
+            sftpClient.uploadFile(remotePath, fileName, localFileName);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
                     TITLE + "文件推送SFTP异常，apiCode：" + apiCode), e);

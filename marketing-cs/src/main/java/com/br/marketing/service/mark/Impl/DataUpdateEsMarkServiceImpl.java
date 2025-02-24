@@ -134,11 +134,11 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             queryBaseBean.setPageSize(2000);
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
-
             if(CollectionUtil.isEmpty(marketingHistoryMapList)){
                 log.warn(TITLE+"查询ES数据为空");
                 return;
             }
+            log.warn(TITLE+"查询ES数据，batchNumber："+straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size());
             // 更新es数据
             for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
                 for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {

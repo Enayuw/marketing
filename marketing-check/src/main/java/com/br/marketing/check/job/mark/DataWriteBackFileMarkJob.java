@@ -21,12 +21,13 @@ public class DataWriteBackFileMarkJob extends AbstractSimpleElasticJob {
 
     @Resource
     private DataWriteBackFileMarkService dataWriteBackFileMarkService;
+    private static final String TITLE = "【pp停车文件数据回写】";
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
         dataWriteBackFileMarkService.process();
-        log.warn("pp停车文件数据回写，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+        log.warn(TITLE + "运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
 }
