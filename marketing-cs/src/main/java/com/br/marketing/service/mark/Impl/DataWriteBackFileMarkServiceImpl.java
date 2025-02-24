@@ -210,7 +210,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             return;
         }
         String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        String descPath = syncConfigService.getPath().concat("ppToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
+        String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
         String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
         String fileAllPath = descPath.concat(fileName);
         File file = new File(descPath);
