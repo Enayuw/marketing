@@ -171,18 +171,18 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             marketingHistories =
                     dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize);
         }
-        if(CollectionUtils.isEmpty(marketingHistories)){
+        if (CollectionUtils.isEmpty(marketingHistories)){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     "pp停车高风险&白名单打标子线程es未返回数据！"));
             return;
         }
-        if(marketingHistories.size() != cellLogs.size()){
+        if (marketingHistories.size() != cellLogs.size()) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    "pp停车高风险&白名单打标子线程es返回数据条数不足！"));
+                    "pp停车高风险&白名单打标子线程es返回数据条数与待打标数据条数不符！"));
         }
         //把数据处理成Map<cell, List<MarketingCondition>>
         Map<String, List<MarketingCondition>> conditionMapOri =
-                marketingHistories.stream().collect(Collectors.toMap(MarketingHistory::getCell, MarketingHistory::getCondition));
+                marketingHistories.stream().collect(Collectors.toMap(MarketingHistory::getCell, MarketingHistory::getCondition, (o1, o2) -> o2));
         //把List<MarketingCondition>处理成Map格式，方便spel表达式使用
         Map<String, Map<String, String>> conditionMap = new HashMap<>();
         for (String cell : conditionMapOri.keySet()) {
