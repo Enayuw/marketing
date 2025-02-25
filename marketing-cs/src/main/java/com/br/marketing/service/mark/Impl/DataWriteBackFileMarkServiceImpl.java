@@ -69,11 +69,11 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             if (checkEsStatus(apiCode)) {
                 String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
                 String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
-                String fileName = "pp_"+apiCode+"_"+syncDate+".txt";
+                String fileName = "pp_" + apiCode + "_" + syncDate + ".txt";
                 // 同步数据写入doris
-                syncData(apiCode,descPath,fileName);
+                syncData(apiCode, descPath, fileName);
                 // 推送文件至SFTP
-                pushFileSftp(apiCode,descPath,fileName);
+                pushFileSftp(apiCode, descPath, fileName);
             }
         });
 
@@ -102,7 +102,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     /**
      * 同步数据写入doris
      */
-    private void syncData(String apiCode,String descPath,String fileName) {
+    private void syncData(String apiCode, String descPath, String fileName) {
 
         StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
         if (null == straHisFile) {
@@ -133,7 +133,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     continue;
                 }
                 minId = flagDataList.get(flagDataList.size() - 1).getId();
-                threadPool.submit(() -> writeBackFileMark(flagDataList,batchNumber,descPath,fileName));
+                threadPool.submit(() -> writeBackFileMark(flagDataList, batchNumber, descPath, fileName));
             }
             threadPool.shutdown();
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -148,15 +148,15 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    private void writeBackFileMark(List<FlagData> flagDataList,String batchNumber,
-                                   String descPath,String fileName) {
+    private void writeBackFileMark(List<FlagData> flagDataList, String batchNumber,
+                                   String descPath, String fileName) {
         // 写入doris
-        List<Map<String, Object>> dataList = insertMarkData(flagDataList,batchNumber);
+        List<Map<String, Object>> dataList = insertMarkData(flagDataList, batchNumber);
         // 写入文件
-        writeDataToFile(dataList,descPath,fileName);
+        writeDataToFile(dataList, descPath, fileName);
     }
 
-    private List<Map<String, Object>> insertMarkData(List<FlagData> flagDataList,String batchNumber) {
+    private List<Map<String, Object>> insertMarkData(List<FlagData> flagDataList, String batchNumber) {
         List<Map<String, Object>> flagDataResult = new ArrayList<>();
         try {
             List<String> cellMd5List = flagDataList.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
@@ -199,7 +199,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     .collect(Collectors.toList());
 
             String tableName = marketingCommonConfig.getDataMarkTableName();
-            String batchInsertSql = "INSERT INTO " + tableName.replace("\"","") + " (" + String.join(", ", columnNames) + ") VALUES " + String.join(", ", valueClauses);
+            String batchInsertSql = "INSERT INTO " + tableName.replace("\"", "") + " (" + String.join(", ", columnNames) + ") VALUES " + String.join(", ", valueClauses);
             // 写入doris
             flagDataMapper.insertbI_(batchInsertSql);
         } catch (Exception e) {
@@ -211,8 +211,8 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     private final Object fileLock = new Object();
 
-    private void writeDataToFile(List<Map<String, Object>> dataList, String descPath,String fileName) {
-        if(CollectionUtil.isEmpty(dataList)){
+    private void writeDataToFile(List<Map<String, Object>> dataList, String descPath, String fileName) {
+        if (CollectionUtil.isEmpty(dataList)) {
             return;
         }
         String fileAllPath = descPath.concat(fileName);
@@ -221,18 +221,18 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             file.mkdirs();
         }
         File decodeFile = new File(descPath.concat(fileName));
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile, true),  StandardCharsets.UTF_8))) {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile, true), StandardCharsets.UTF_8))) {
+            // 判断是否添加文件头
+            checkHeaderExists(fileAllPath, dataList, writer);
+            // 写入每行数据
             synchronized (fileLock) {
-                // 判断是否添加文件头
-                checkHeaderExists(fileAllPath, dataList, writer);
-                // 写入每行数据
                 for (Map<String, Object> resultMap : dataList) {
                     StringBuilder row = new StringBuilder();
                     Collection<Object> values = resultMap.values();
-                    for (Object v : values){
-                        if(v == null){
+                    for (Object v : values) {
+                        if (v == null) {
                             row.append(",");
-                        }else {
+                        } else {
                             row.append(v).append(",");
                         }
                     }
@@ -240,18 +240,15 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     writer.append(row.toString()).append(System.lineSeparator());
                 }
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "写入文件时发生异常"), e);
         }
     }
 
-    private void checkHeaderExists(String filePath, List<Map<String, Object>> dataList,
-                                   Writer writer) throws IOException {
-        FileReader read = new FileReader(filePath);
-        BufferedReader br = new BufferedReader(read);
-        String firstLine = br.readLine();
-        if (firstLine == null) {
+    private void checkHeaderExists(String filePath, List<Map<String, Object>> dataList, Writer writer) throws IOException {
+        File file = new File(filePath);
+        if (file.length() == 0) {
             List<String> columnNames = new ArrayList<>(dataList.get(0).keySet());
             String fileHeader = String.join(",", columnNames);
             writer.append(fileHeader).append(System.lineSeparator());
@@ -261,7 +258,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     /**
      * 推送文件至SFTP
      */
-    private void pushFileSftp(String apiCode,String descPath,String fileName) {
+    private void pushFileSftp(String apiCode, String descPath, String fileName) {
         SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
         String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
         String remotePath = "/UploadFiles/marketing/" + apiCode + "/output/" + syncDate;
@@ -278,7 +275,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                 sftpClient.disconnect();
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
-                        TITLE + "文件推送SFTP关闭连接异常，apiCode："+ apiCode), e);
+                        TITLE + "文件推送SFTP关闭连接异常，apiCode：" + apiCode), e);
             }
         }
     }
