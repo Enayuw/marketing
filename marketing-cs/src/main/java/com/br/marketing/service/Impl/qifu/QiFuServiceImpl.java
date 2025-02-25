@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -23,19 +22,20 @@ import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.springframework.beans.BeanUtils;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -140,8 +140,8 @@ public class QiFuServiceImpl implements IQiFuService {
         StringBuilder warnMsg = new StringBuilder();
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         ArrayList<MarketingPreUserDetailDTO> list = new ArrayList<>();
-        marketingPreUserDTO.setDataItems(list);
         String requestJsonData = drsCustomizeUploadData.getRequestJsonData();
+        String extend = drsCustomizeUploadData.getExtend();
         JSONObject jsonObject = JSONObject.parseObject(requestJsonData);
         String taskId = "";
         String requestId = "";
@@ -236,6 +236,13 @@ public class QiFuServiceImpl implements IQiFuService {
                 }
             }
             //endregion
+            buildNewListDto(list, extend, warnMsg);
+            if (StringUtils.isNotBlank(warnMsg.toString())) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                        , "奇富360ai清洗数据异常字段告警[" + drsCustomizeUploadData.getId() + "]" + warnMsg.toString()));
+            }
+            marketingPreUserDTO.setDataItems(list);
+
 
             return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO).setMessage(warnMsg.toString());
         } catch (Exception ex) {
@@ -276,6 +283,85 @@ public class QiFuServiceImpl implements IQiFuService {
         return marketingPreUserDetailDTO;
     }
 
+    private void buildNewListDto(ArrayList<MarketingPreUserDetailDTO> list, String extend, StringBuilder warnMsg) {
+        if (list == null || list.isEmpty() || extend == null || extend.isEmpty()) {
+            warnMsg.append("输入数据为空，请检查！");
+            return;
+        }
+
+        JSONArray extendArray;
+        try {
+            extendArray = JSONArray.parseArray(extend);
+        } catch (Exception e) {
+            warnMsg.append("extend 解析失败，请检查格式！");
+            return;
+        }
+
+        for (MarketingPreUserDetailDTO user : list) {
+            boolean isMatched = false;
+            String custNum = user.getCustNum();
+            String originalReserveField1 = user.getReserveField1();
+            JSONObject mergedObject = new JSONObject();
+
+            if (originalReserveField1 != null && !originalReserveField1.isEmpty()) {
+                try {
+                    mergedObject = JSONObject.parseObject(originalReserveField1);
+                } catch (Exception e) {
+                    warnMsg.append("reserveField1 解析失败: ").append(originalReserveField1).append(";");
+                }
+            }
+
+            for (int i = 0; i < extendArray.size(); i++) {
+                JSONObject extendObj = extendArray.getJSONObject(i);
+                String serialNo = extendObj.getString("serialNo");
+
+                if (custNum != null && custNum.equals(serialNo)) {
+                    for (String s : extendObj.keySet()) {
+                        switch (s) {
+                            case "increaseCustomer":
+                                mergedObject.put("increaseCustomer", mapYesNo(extendObj.getString(s)));
+                                break;
+                            case "temporaryIncrease":
+                                mergedObject.put("temporaryIncrease", mapYesNo(extendObj.getString(s)));
+                                break;
+                            case "rTotalAvailableAmt":
+                                mergedObject.put("rTotalAvailableAmt", mapNumberToRange(extendObj.getString(s)));
+                                break;
+                            case "rTaLastAdjustmentAmount":
+                                mergedObject.put("rTaLastAdjustmentAmount", mapNumberToRange(extendObj.getString(s)));
+                                break;
+                            case "rTaTemporaryAmountExpireDate":
+                                mergedObject.put("rTaTemporaryAmountExpireDate", mapDateString(extendObj.getString(s)));
+                                break;
+                            default:
+                                break;
+                        }
+                        String highAmountys = mergedObject.getString("highAmountys");
+                        String lowAmountys = mergedObject.getString("lowAmountys");
+                        String rTotalAvailableAmt = mergedObject.getString("rTotalAvailableAmt");
+                        String rTaTemporaryAmountExpireDate = mergedObject.getString("rTaTemporaryAmountExpireDate");
+                        String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
+                        String newLowAmountys = getAmount(null, lowAmountys, rTotalAvailableAmt);
+                        String changeAmountys = calculateDifference(newHighAmountys, newLowAmountys);
+                        String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
+                        mergedObject.put("highAmountys", newHighAmountys);
+                        mergedObject.put("highAmountys", newLowAmountys);
+                        mergedObject.put("changeAmountys", changeAmountys);
+                        mergedObject.put("remainDayys", remainDayys);
+                    }
+                    isMatched = true;
+                }
+            }
+
+            if (isMatched) {
+                user.setReserveField1(mergedObject.toJSONString());
+            } else {
+                warnMsg.append("未找到匹配项: custNum=").append(custNum).append(";");
+            }
+        }
+    }
+
+
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
         if (jo == null || ObjectUtils.isEmpty(jo.getString(key))) {
             return defaultValue;
@@ -293,7 +379,7 @@ public class QiFuServiceImpl implements IQiFuService {
                 try {
                     Thread.sleep(3000L);
                 } catch (InterruptedException e) {
-                    log.error(e.getMessage(),e);
+                    log.error(e.getMessage(), e);
                     Thread.currentThread().interrupt();
                 }
             }
@@ -314,5 +400,116 @@ public class QiFuServiceImpl implements IQiFuService {
             }
         }
         return Boolean.FALSE;
+    }
+
+    public String mapYesNo(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        switch (input.toUpperCase()) {
+            case "Y":
+                return "是";
+            case "N":
+                return "否";
+            default:
+                return input;
+        }
+    }
+
+    public String mapNumberToRange(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        try {
+            int num = Integer.parseInt(input);
+            if (num < 1 || num > 1001) {
+                return "额度枚举超出范围";
+            }
+
+            int lowerBound = (num - 1) * 1000;
+            int upperBound = num * 1000;
+            return num == 1001 ? lowerBound + "+" : "[" + lowerBound + " - " + upperBound + ")";
+
+        } catch (NumberFormatException e) {
+            return "最新可用/调整前 额度无效输入, input:" + input;
+        }
+    }
+
+    public String mapDateString(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        if ("noLimit".equalsIgnoreCase(input)) {
+            return "长期有效";
+        }
+
+        Pattern pattern = Pattern.compile("^(\\d{1,2})月(\\d{1,2})日$");
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.matches()) {
+            return input;
+        }
+
+        return "额度到期日期转化发现无效输入, input: " + input;
+    }
+
+    public String getAmount(String highAmountys, String lowAmountys, String rTotalAvailableAmt) {
+        if (rTotalAvailableAmt == null || rTotalAvailableAmt.isEmpty()) {
+            return "";
+        }
+
+        rTotalAvailableAmt = rTotalAvailableAmt.replace("[", "").replace(")", "").replace(" ", "");
+        String[] rangeParts = rTotalAvailableAmt.split("-");
+
+        if (rangeParts.length != 2) {
+            return "额度无效区间格式";
+        }
+
+        String leftValue = rangeParts[0];
+        String rightValue = rangeParts[1];
+
+        if (highAmountys != null) {
+            return rightValue;
+        } else if (lowAmountys != null) {
+            return leftValue;
+        }
+
+        return "最高额度或者原始额度计算发现无效输入, highAmountys： " + highAmountys + ", lowAmountys: " + lowAmountys
+                + ", rTotalAvailableAmt: " + rTotalAvailableAmt;
+    }
+
+
+    public String calculateDifference(String highAmountys, String lowAmountys) {
+        try {
+            if (highAmountys == null || highAmountys.isEmpty() || lowAmountys == null || lowAmountys.isEmpty()) {
+                return "";
+            }
+            int high = Integer.parseInt(highAmountys);
+            int low = Integer.parseInt(lowAmountys);
+            int result = high - low;
+
+            return result > 0 ? String.valueOf(result) : "0";
+        } catch (NumberFormatException e) {
+            return "提升额度计算发现无效输入，highAmountys： " + highAmountys + ", lowAmountys: " + lowAmountys;
+        }
+    }
+
+    public String calculateDaysDifference(String rTaTemporaryAmountExpireDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM月dd日");
+
+        try {
+            LocalDate today = LocalDate.now();
+            LocalDate expireDate = LocalDate.parse(rTaTemporaryAmountExpireDate, formatter).withYear(today.getYear());
+
+            if (expireDate.isBefore(today)) {
+                expireDate = expireDate.plusYears(1);
+            }
+
+            return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
+        } catch (Exception e) {
+            return "额度剩余天数计算发生错误，rTaTemporaryAmountExpireDate：" + rTaTemporaryAmountExpireDate;
+        }
     }
 }

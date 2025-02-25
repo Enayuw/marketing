@@ -125,7 +125,7 @@
             #{apiCode}
         </foreach>
         and a.status = 1
-        and a.sync_status = 0
+        and a.sync_status = 1
         and b.id is null
         order by a.id
         limit #{pageSize}
