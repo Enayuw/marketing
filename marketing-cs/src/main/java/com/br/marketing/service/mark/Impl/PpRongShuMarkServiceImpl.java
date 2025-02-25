@@ -89,9 +89,9 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
             List<String> flagDataCells = flagData.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
             // 基底表数据
             List<FlagData> orgDataByCellbI = flagDataMapper.queryOdsOrgDataByCellbI_(flagDataCells);
-            if (CollectionUtils.isEmpty(orgDataByCellbI)) {
-                return;
-            }
+//            if (CollectionUtils.isEmpty(orgDataByCellbI)) {
+//                return;
+//            }
 
             List<DataMarkConfig> dataMarkConfigByRiskGroup =
                     dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_RISKGROUP.getMarkType())).collect(Collectors.toList());

@@ -67,7 +67,7 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                     flagDataMapper.batchUpdateFlagStatusById(ids, 0);
                 } catch (Exception e) {
                     String subject = "pp榕树客群、利率标签打标异常";
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
                             , subject), e);
                     break;
                 } finally {
@@ -76,7 +76,7 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                         redisChgService.unlock(lockKey, lockValue);
                     } catch (Exception e) {
                         String subject = "pp榕树客群、利率标签打标，释放锁异常";
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
                                 , subject), e);
                     }
                 }
