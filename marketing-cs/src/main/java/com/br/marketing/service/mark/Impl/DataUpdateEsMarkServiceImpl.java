@@ -174,52 +174,52 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             String value = "";
             switch (fieldKey.trim()) {
                 case "flag_new_cust":
-                    value = String.valueOf(flagData.getFlagNewCust());
+                    value = flagData.getFlagNewCust()== null?"":String.valueOf(flagData.getFlagNewCust());
                     break;
                 case "flag_riskgroup":
-                    value = String.valueOf(flagData.getFlagRiskgroup());
+                    value = flagData.getFlagRiskgroup()== null?"": flagData.getFlagRiskgroup();
                     break;
                 case "flag_interest":
-                    value = String.valueOf(flagData.getFlagInterest());
+                    value = flagData.getFlagInterest()== null?"":String.valueOf(flagData.getFlagInterest());
                     break;
                 case "flag_age":
-                    value = String.valueOf(flagData.getFlagAge());
+                    value = flagData.getFlagAge()== null?"":String.valueOf(flagData.getFlagAge());
                     break;
                 case "flag_province":
-                    value = String.valueOf(flagData.getFlagProvince());
+                    value = flagData.getFlagProvince()== null?"":String.valueOf(flagData.getFlagProvince());
                     break;
                 case "flag_special_small":
-                    value = String.valueOf(flagData.getFlagSpecialSmall());
+                    value = flagData.getFlagSpecialSmall()== null?"":String.valueOf(flagData.getFlagSpecialSmall());
                     break;
                 case "flag_specialrisklevel_rule":
-                    value = String.valueOf(flagData.getFlagSpecialrisklevel());
+                    value = flagData.getFlagSpecialrisklevel()== null?"":String.valueOf(flagData.getFlagSpecialrisklevel());
                     break;
                 case "flag_applyloan":
-                    value = String.valueOf(flagData.getFlagApplyloan());
+                    value = flagData.getFlagApplyloan()== null?"":String.valueOf(flagData.getFlagApplyloan());
                     break;
                 case "flag_scoreysbase":
-                    value = String.valueOf(flagData.getFlagScorefxsbbaseb());
+                    value = flagData.getFlagScoreysbase()== null?"":String.valueOf(flagData.getFlagScoreysbase());
                     break;
                 case "flag_scorefxsbbaseb":
-                    value = String.valueOf(flagData.getFlagScorefxsbbaseb());
+                    value = flagData.getFlagScorefxsbbaseb()== null?"":String.valueOf(flagData.getFlagScorefxsbbaseb());
                     break;
                 case "flag_scorescashonregisternologin":
-                    value = String.valueOf(flagData.getFlagScorescashonregisternologin());
+                    value = flagData.getFlagScorescashonregisternologin()== null?"":String.valueOf(flagData.getFlagScorescashonregisternologin());
                     break;
                 case "flag_scorescashonyxxy":
-                    value = String.valueOf(flagData.getFlagScorescashonyxxy());
+                    value = flagData.getFlagScorescashonyxxy()== null?"":String.valueOf(flagData.getFlagScorescashonyxxy());
                     break;
                 case "flag_scorencashonzawswyyym":
-                    value = String.valueOf(flagData.getFlagScorencashonzawswyyym());
+                    value = flagData.getFlagScorencashonzawswyyym()== null?"":String.valueOf(flagData.getFlagScorencashonzawswyyym());
                     break;
                 case "flag_intellaudio_blacklist":
-                    value = String.valueOf(flagData.getFlagIntellaudioBlacklist());
+                    value = flagData.getFlagIntellaudioBlacklist()== null?"":String.valueOf(flagData.getFlagIntellaudioBlacklist());
                     break;
                 case "flag_without_willingness":
-                    value = String.valueOf(flagData.getFlagWithoutWillingness());
+                    value = flagData.getFlagWithoutWillingness()== null?"":String.valueOf(flagData.getFlagWithoutWillingness());
                     break;
                 case "flag_whitelist":
-                    value = String.valueOf(flagData.getFlagWhitelist());
+                    value = flagData.getFlagWhitelist()== null?"":String.valueOf(flagData.getFlagWhitelist());
                     break;
             }
             MarketingCondition marketingCondition = map.get(fieldKey);
