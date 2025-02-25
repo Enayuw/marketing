@@ -147,7 +147,6 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
                     MarketingHistory marketingHistory = entry.getValue();
                     List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
-                    // todo marketingHistory.getCell() 是否加密
                     FlagDataEsMark flagData = groupedByCellLog.get(marketingHistory.getCell());
                     buildParams(marketingConditions, flagData);
                     JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
