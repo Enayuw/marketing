@@ -45,7 +45,7 @@ public class QiFuClients {
     @Value("${api.qifu.qryUserRealMessageUrl:}")
     private String qryUserRealMessageUrl;
 
-    @Value("${api.qifu.qryCallRealTimeUrl:}")
+    @Value("${api.qifu.qryCallRealTimeUrl:00}")
     private String qryCallRealTimeUrl;
 
     /**
