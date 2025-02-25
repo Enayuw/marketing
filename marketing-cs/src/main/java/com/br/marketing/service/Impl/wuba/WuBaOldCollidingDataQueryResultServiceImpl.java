@@ -343,7 +343,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
             }
             conversionData.setPhone(phone);
             conversionData.setDataId(String.valueOf(t.getId()));
-            conversionData.setCid(tCid);
+            conversionData.setCid("-"+tCid);
             conversionData.setPartnerProcessDate(DateUtil.now());
             conversionData.setInversionStatus("2");
             conversionData.setInversionInfo(JSON.toJSONString(new JSONObject()));
