@@ -6,6 +6,8 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
+import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeResp;
 import com.br.marketing.client.qifu.enums.CodeEnum;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
@@ -43,6 +45,9 @@ public class QiFuClients {
     @Value("${api.qifu.qryUserRealMessageUrl:}")
     private String qryUserRealMessageUrl;
 
+    @Value("${api.qifu.qryCallRealTimeUrl:}")
+    private String qryCallRealTimeUrl;
+
     /**
      * 客户公钥
      */
@@ -63,6 +68,25 @@ public class QiFuClients {
 
     @Value("${api.qifu.isProxy:true}")
     private boolean isProxy;
+
+    /**
+     * appIdAI
+     */
+    @Value("${api.qifu.appIdAI:bairongAI}")
+    private String appIdAI;
+
+
+    /**
+     * 客户公钥
+     */
+    @Value("${api.qifu.qifuAIPublicKey:}")
+    private String qifuAIPublicKey;
+
+    /**
+     * 私钥
+     */
+    @Value("${api.qifu.brAIPrivateKey:}")
+    private String brAIPrivateKey;
 
     @Resource
     private HttpProxyClient httpProxyClient;
@@ -465,4 +489,103 @@ public class QiFuClients {
         }
         return resultResp;
     }
+
+    /**
+     * 奇富促完件实时批量查询接口
+     *
+     * @return
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result<ResponseData<QryCallRealTimeResp>> qryCallRealTimeUrl(QryCallRealTimeReq bizData) {
+        Result<ResponseData<QryCallRealTimeResp>> resultResp = new Result<>();
+        // 奇富侧公钥
+        String qiFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
+        // 百融侧私钥
+        String brPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
+        try {
+            // 调用奇富查询用户接口
+            Result<String> result = queryCallRealTime(bizData);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                if (result.getData().isEmpty()) {
+                    resultResp.setDate(new ResponseData<>());
+                    resultResp.setCode(ResultCode.SUCCESS.getValue());
+                    return resultResp;
+                }
+                ResponseData<QryCallRealTimeResp> responseData = JSON.parseObject(result.getData()
+                        , new TypeReference<ResponseData<QryCallRealTimeResp>>() {
+                        });
+                resultResp.setDate(responseData);
+                switch (CodeEnum.valueof(responseData.getCode())) {
+                    // 成功
+                    case GWS100:
+                        // 解密业务数据
+                        responseData.decryptData(qiFuPublicKey, brPrivateKey
+                                , new TypeReference<QryCallRealTimeResp>() {
+                                });
+                        resultResp.setCode(ResultCode.SUCCESS.getValue());
+                        return resultResp;
+                    // 重试
+                    case GWS805:
+                        resultResp.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                        return resultResp;
+                    default:
+                }
+                resultResp.setCode(ResultCode.FAIL.getValue());
+                return resultResp;
+            }
+            resultResp.setCode(result.getCode());
+            resultResp.setMessage(result.getMessage());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            resultResp.setCode(ResultCode.FAIL.getValue());
+            resultResp.setMessage(e.getMessage());
+        }
+        return resultResp;
+    }
+
+    private Result<String> queryCallRealTime(QryCallRealTimeReq bizData) {
+        Result<String> result = new Result<>();
+        // 奇富侧公钥
+        String qiFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
+        // 百融侧私钥
+        String brPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
+        // appId配置
+        String appId = marketingCommonConfig.getQiFuAIServerConfig().getString("appId");
+        RequestParam requestParam = new RequestParam(appId, bizData, qiFuPublicKey, brPrivateKey);
+        try {
+            long start = System.currentTimeMillis();
+            Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, qryCallRealTimeUrl, isProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
+                    JSON.toJSONString(requestParam), true, true);
+
+            long end = System.currentTimeMillis();
+
+            if (String.valueOf(HttpStatus.SC_OK).equals(httpResponseMap.get(CODE_KEY))) {
+                result.setDate(httpResponseMap.get(CONTENT_KEY));
+                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setMessage("");
+                return result;
+            }
+
+            if (httpResponseMap.get(CONTENT_KEY) != null) {
+                String content = httpResponseMap.get(CONTENT_KEY);
+                JSONObject resultJson = JSONObject.parseObject(content);
+                String code = resultJson.getString("code");
+                if (!"200".equals(code)) {
+                    result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                    return result;
+                }
+            }
+
+        } catch (Exception e) {
+            String eMsg = "奇富调用外呼信息查询接口异常:" + e.getMessage();
+            log.error(eMsg, e);
+            result.setMessage(eMsg);
+        }
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
+
+    }
+
+
 }

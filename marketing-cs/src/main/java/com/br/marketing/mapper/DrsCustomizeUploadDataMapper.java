@@ -21,4 +21,10 @@ public interface DrsCustomizeUploadDataMapper {
             , @Param("apiCodes") List<String> apiCodes
             , @Param("receiveDates") List<String> receiveDates
             , @Param("pageSize") Integer pageSize);
+
+    List<DrsCustomizeUploadData> getDataOfToBeSync(@Param("tCid") String tcId, @Param("apiCodes") List<String> apiCodes, @Param("receiveDates")
+            List<String> receiveDates, @Param("pageSize") Integer pageSize, @Param("indexId") Long indexId);
+
+
+    void updateExtendAndStatusById(@Param("tCid") String tCid, @Param("id") Long id,@Param("syncStatus") int syncStatus, @Param("extend") String extend);
 }

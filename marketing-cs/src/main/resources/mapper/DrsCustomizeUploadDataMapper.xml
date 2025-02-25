@@ -143,4 +143,29 @@
             #{sourceId}
         </foreach>
     </update>
+
+    <select id="getDataOfToBeSync" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
+        select *
+        from b_drs_customize_upload_data${tCid}
+        where receive_date in
+        <foreach collection="receiveDates" item="receiveDate" open="(" separator="," close=")">
+            #{receiveDate}
+        </foreach>
+        and api_code in
+        <foreach collection="apiCodes" item="apiCode" open="(" separator="," close=")">
+            #{apiCode}
+        </foreach>
+        and status = 1
+        and sync_status = 0
+        <if test="indexId != null and indexId!=''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit #{pageSize};
+    </select>
+
+
+    <update id="updateExtendAndStatusById">
+        update b_drs_customize_upload_data${tCid} set extend = #{extend},sync_status = #{syncStatus}  where id = #{id}
+    </update>
+
 </mapper>
