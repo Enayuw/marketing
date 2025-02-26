@@ -16,13 +16,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 public interface DataMarkCommonService {
 
     /**
-     * @description 获取当天最新的跑分文件记录
      * @param apiCode
+     * @param scoreDate yyyy-MM-dd
      * @return com.br.marketing.entity.StraHisFile
+     * @description 获取当天最新的跑分文件记录
      * @author hedongshuo
      * @date 2025/2/21 12:59
      **/
-    public StraHisFile getStraHisFile(String apiCode);
+    public StraHisFile getStraHisFile(String apiCode, String scoreDate);
 
     /**
      * @param apiCode

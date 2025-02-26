@@ -7,6 +7,6 @@ package com.br.marketing.service.mark;
  */
 public interface DataUpdateEsMarkService {
 
-    void process();
+    void process(String scoreDate);
 
 }

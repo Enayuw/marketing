@@ -1,15 +1,11 @@
 package com.br.marketing.service.mark.Impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.br.cloud.web.MethodType;
-import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.file.ZipUtil;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.FlagDataExample;
@@ -34,8 +30,6 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /**
  * @ClassName DataWriteBackFileMarkServiceImpl
@@ -68,14 +62,14 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     private static final String TITLE = "【pp停车文件数据回写】";
 
     @Override
-    public void process() {
+    public void process(String scoreDate) {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
             if (checkEsStatus(apiCode)) {
                 String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
                 String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
                 String fileName = "pp_" + apiCode + "_" + syncDate + ".txt";
                 // 同步数据写入doris
-                syncData(apiCode, descPath, fileName);
+                syncData(apiCode, descPath, fileName, scoreDate);
                 // 推送文件至SFTP
                 pushFileSftp(apiCode, descPath, fileName);
             }
@@ -107,9 +101,9 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     /**
      * 同步数据写入doris
      */
-    private void syncData(String apiCode, String descPath, String fileName) {
+    private void syncData(String apiCode, String descPath, String fileName, String scoreDate) {
 
-        StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
+        StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode, scoreDate);;
         if (null == straHisFile) {
             return;
         }

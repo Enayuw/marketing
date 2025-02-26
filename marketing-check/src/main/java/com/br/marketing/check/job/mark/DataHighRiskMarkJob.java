@@ -22,7 +22,7 @@ public class DataHighRiskMarkJob extends AbstractSimpleElasticJob {
     DataHighRiskMarkService dataHighRiskMarkService;
 
     @Override
-    public void process(JobExecutionMultipleShardingContext shardingContext) {
-        dataHighRiskMarkService.process();
+    public void process(JobExecutionMultipleShardingContext context) {
+        dataHighRiskMarkService.process(context.getJobParameter());
     }
 }

@@ -64,9 +64,9 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
 
 
     @Override
-    public void process() {
+    public void process(String scoreDate) {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
-            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
+            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode, scoreDate);
             if (null == straHisFile) {
                 return;
             }

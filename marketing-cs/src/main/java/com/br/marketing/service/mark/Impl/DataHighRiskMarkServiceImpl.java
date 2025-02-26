@@ -8,6 +8,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.mark.FlagDataCarryLogCell;
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.mark.MarketingConditionVariant;
 import com.br.marketing.enums.DataMarkEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -57,10 +58,10 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
     private final static Integer esPageSize = 2000;
 
     @Override
-    public void process() {
+    public void process(String scoreDate) {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
             //1.查询跑分任务表
-            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
+            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode, scoreDate);
             if (null == straHisFile) {
                 return;
             }
@@ -184,11 +185,15 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         Map<String, List<MarketingCondition>> conditionMapOri =
                 marketingHistories.stream().collect(Collectors.toMap(MarketingHistory::getCell, MarketingHistory::getCondition, (o1, o2) -> o2));
         //把List<MarketingCondition>处理成Map格式，方便spel表达式使用
-        Map<String, Map<String, String>> conditionMap = new HashMap<>();
+        Map<String, Map<String, Object>> conditionMap = new HashMap<>();
         for (String cell : conditionMapOri.keySet()) {
             List<MarketingCondition> marketingConditions = conditionMapOri.get(cell);
-            Map<String, String> condition =
-                    marketingConditions.stream().collect(Collectors.toMap(MarketingCondition::getFieldKey, MarketingCondition::getStrValue, (o1, o2) -> o2));
+            List<JSONObject> jsonList = marketingConditions.stream().map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, JSONObject.class))
+                    .collect(Collectors.toList());
+            List<MarketingConditionVariant> marketingConditionVariants = jsonList.stream().map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingConditionVariant.class))
+                    .collect(Collectors.toList());
+            Map<String, Object> condition =
+                    marketingConditionVariants.stream().collect(Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
             conditionMap.put(Sha256Util.getSHA256Encrypt(cell), condition);
         }
         //2.打标

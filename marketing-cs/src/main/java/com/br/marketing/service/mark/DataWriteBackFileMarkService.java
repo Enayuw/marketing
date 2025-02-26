@@ -6,5 +6,5 @@ package com.br.marketing.service.mark;
  * @Date 2025/2/19 19:11
  */
 public interface DataWriteBackFileMarkService {
-    void process();
+    void process(String scoreDate);
 }
