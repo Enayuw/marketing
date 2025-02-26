@@ -75,7 +75,7 @@
     </select>
 
     <select id="getLatestRecord" resultType="com.br.marketing.entity.StraHisFile">
-        select shf.id, shf.batch_number
+        select shf.id, shf.api_code, shf.batch_number
         from stra_his_file shf inner join b_marketing_task bmt on shf.batch_number = bmt.batch_number
         where
             shf.api_code = #{apiCode} and shf.status = 2 and shf.type = 2
