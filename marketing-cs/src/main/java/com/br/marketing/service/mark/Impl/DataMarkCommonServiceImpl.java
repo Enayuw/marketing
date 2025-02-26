@@ -5,11 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.DataMarkConfig;
 import com.br.marketing.entity.DataMarkConfigExample;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
-import com.br.marketing.enums.DataMarkEnum;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
@@ -49,16 +49,11 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
 
 
     @Override
-    public StraHisFile getStraHisFile(String apiCode) {
-        Date beginTimeOfDay = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andStatusEqualTo(2)
-                .andTypeEqualTo(2)
-                .andCreateTimeGreaterThanOrEqualTo(beginTimeOfDay);
-        straHisFileExample.setOrderByClause("create_time desc limit 1");
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+    public StraHisFile getStraHisFile(String apiCode, String scoreDate) {
+        if (StringUtils.isEmpty(scoreDate)) {
+            scoreDate = LocalDate.now().toString();
+        }
+        List<StraHisFile> straHisFiles = straHisFileMapper.getLatestRecord(apiCode, scoreDate);
         if (CollectionUtils.isEmpty(straHisFiles)) {
             return null;
         }
@@ -89,7 +84,7 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
     public List<DataMarkConfig> getMarkConfigs(String apiCode, Integer markType) {
         DataMarkConfigExample markConfigExample = new DataMarkConfigExample();
         markConfigExample.createCriteria()
-                .andIsDelEqualTo(1)
+                .andIsDelEqualTo(0)
                 .andApiCodeEqualTo(apiCode)
                 .andMarkTypeEqualTo(markType);
         return markConfigMapper.selectByExample(markConfigExample);

@@ -39,7 +39,7 @@ public class DataMarkConfig {
     private String markOutValue;
 
     /**
-     * 是否有效 1-有效；9-失效
+     * 状态 0-正常1-删除
      */
     private Integer isDel;
 

@@ -19,7 +19,7 @@ public interface FlagDataMapper extends FlagDataMapperBase {
 
     int updateByDynamicEncCell(@Param("cellMd5") String cellMd5, @Param("cellSha256") String cellSha256, @Param("cellLog") String cellLog, @Param(
             "apiCode") String apiCode, @Param("encType") String encType, @Param("appletDate") String appletDate,
-                               @Param("userType") String userType);
+                               @Param("userType") String userType, @Param("extend") String extend);
 
     int batchUpdateEsStatusById(@Param("ids") List<Long> ids, @Param("status") Integer status);
 

@@ -2631,16 +2631,15 @@ public class MarketingCommonConfig {
      * 数据打标线程
      */
     private Integer dataMarkThreadNum;
-
     /**
-     * 数据打标字段
-     */private List<String> dataMarkField;
+     * 数据打标查询ES线程
+     */
+    private Integer dataMarkESThreadNum;
 
     /**
      * pp停车同步文件表
      */
     private String dataMarkTableName;
-
 
     /**
      * pp停车黑名单输出配置

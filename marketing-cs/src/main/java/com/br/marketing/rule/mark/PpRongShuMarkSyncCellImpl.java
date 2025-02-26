@@ -41,8 +41,9 @@ public class PpRongShuMarkSyncCellImpl implements AssembleData<PushMarketingUser
             String cellLog = syncUser.getCell();
             String apiCode = syncUser.getApiCode();
             String appletDate = syncUser.getAppletDate();
+            String extend = syncUser.getStatus() == 2 ? "上传明细的status为2" : null;
             try {
-                flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType, appletDate, userType);
+                flagDataMapper.updateByDynamicEncCell(cellMd5, cellSha256, cellLog, apiCode, encType, appletDate, userType, extend);
             } catch (Exception e) {
                 String subject = "pp榕树打标更新sha256和log手机号异常,cellMd5:" + cellMd5;
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()

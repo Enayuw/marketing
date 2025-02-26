@@ -26,7 +26,7 @@ public class DataWriteBackFileMarkJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
-        dataWriteBackFileMarkService.process();
+        dataWriteBackFileMarkService.process(shardingContext.getJobParameter());
         log.warn(TITLE + "运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 

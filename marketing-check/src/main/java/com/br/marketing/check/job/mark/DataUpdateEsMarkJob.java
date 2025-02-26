@@ -24,7 +24,7 @@ public class DataUpdateEsMarkJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
-        dataUpdateEsMarkService.process();
+        dataUpdateEsMarkService.process(shardingContext.getJobParameter());
         log.warn(TITLE + "运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 

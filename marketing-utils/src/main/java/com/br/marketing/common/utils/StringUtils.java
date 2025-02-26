@@ -208,4 +208,8 @@ public class StringUtils {
         }
         return false;
     }
+
+    public static boolean isNumeric(String str) {
+        return str != null && str.matches("[+-]?(?:\\d+\\.\\d*|\\.\\d+|\\d+)(?:[eE][+-]?\\d+)?");
+    }
 }

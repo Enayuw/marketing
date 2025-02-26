@@ -7,5 +7,5 @@ package com.br.marketing.service.mark;
  **/
 public interface DataHighRiskMarkService {
 
-    void process();
+    void process(String jobParameter);
 }

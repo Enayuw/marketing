@@ -23,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -80,7 +81,6 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                                 , subject), e);
                     }
                 }
-
                 // 更新数据标签
                 markData(flagData, apiCode);
             }
@@ -89,7 +89,9 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
 
     private void markData(List<FlagData> flagData, String apiCode) {
         DataMarkConfigExample markConfigExample = new DataMarkConfigExample();
-        markConfigExample.createCriteria().andIsDelEqualTo(1)
+        markConfigExample.createCriteria()
+                .andMarkTypeIn(Arrays.asList(DataMarkEnum.MARK_RISKGROUP.getMarkType(), DataMarkEnum.MARK_INTEREST.getMarkType()))
+                .andIsDelEqualTo(0)
                 .andApiCodeEqualTo(apiCode);
         List<DataMarkConfig> dataMarkConfigs = dataMarkConfigMapper.selectByExample(markConfigExample);
 
@@ -98,7 +100,13 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
         Lists.partition(flagData, 2000).forEach(partition -> {
             pool.submit(() -> {
                 List<FlagData> list = new ArrayList<>(partition);
-                ppRonShuMarkService.markAndUpdateFlagStatus(list, apiCode, dataMarkConfigs);
+                try {
+                    ppRonShuMarkService.markAndUpdateFlagStatus(list, apiCode, dataMarkConfigs);
+                } catch (Exception e) {
+                    String subject = "pp榕树更新客群和利率标签，子线程处理异常";
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
+                            , subject), e);
+                }
             });
         });
     }

@@ -4,16 +4,12 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.cloud.web.MethodType;
-import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.mark.FlagDataEsMark;
-import com.br.marketing.entity.FlagDataExample;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.enums.EsSyncStatusEnum;
 import com.br.marketing.es.bean.MarketingCondition;
@@ -61,18 +57,24 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
     @Resource
     MarketingCommonConfig marketingCommonConfig;
     private static final String TITLE = "【pp停车数据更新es】";
+    private static final String fieldKeys = "flag_new_cust,flag_riskgroup,flag_interest,flag_age,flag_province," +
+            "flag_special_small,flag_specialrisklevel_rule,flag_applyloan,flag_scoreysbase,flag_scorefxsbbaseb," +
+            "flag_scorescashonregisternologin,flag_scorescashonyxxy,flag_scorencashonzawswyyym," +
+            "flag_intellaudio_blacklist,flag_without_willingness,flag_whitelist";
+
 
     @Override
-    public void process() {
+    public void process(String scoreDate) {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
-            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode);
+            StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode, scoreDate);
             if (null == straHisFile) {
                 return;
             }
-            Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
+            Integer threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
             int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             String key = RedisKeyConstant.DATA_UPDATE_ES_MARK.concat(":").concat(apiCode);
+            List<Long> ids = new ArrayList<>();
             while (true) {
                 String lockValue = UUID.randomUUID().toString();
                 try {
@@ -80,10 +82,11 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, LocalDate.now().toString(), dataMarkPageSize);
                     if (CollectionUtil.isEmpty(flagDataEsMarkList)) {
                         redisChgService.unlock(key, lockValue);
+                        threadPoolShutDown(threadPool);
                         break;
                     }
                     //更新打标表状态
-                    List<Long> ids = flagDataEsMarkList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
+                    ids = flagDataEsMarkList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
                     flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.SYNCING.getValue());
                     //释放锁
                     redisChgService.unlock(key, lockValue);
@@ -95,6 +98,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             TITLE + "抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                     break;
@@ -104,9 +108,8 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
         });
     }
 
-    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
-    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     private void updateEsMarkData(List<FlagDataEsMark> flagDataList, StraHisFile straHisFile) {
+        List<Long> ids = flagDataList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
         try {
             String index = EsHandleUtil.getDateFromBatchNumber(straHisFile.getBatchNumber());
 
@@ -153,70 +156,70 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 }
             }
             //更新打标表状态
-            List<Long> ids = flagDataList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
             if (!CollectionUtil.isEmpty(ids)) {
                 flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.COMPLETE.getValue());
             }
         } catch (Exception e) {
+            flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "出现异常，" + "errorMessage=" + e.getMessage()), e);
         }
     }
 
     private void buildParams(List<MarketingCondition> conditions, FlagDataEsMark flagData) {
-        List<String> fieldKeys = marketingCommonConfig.getDataMarkField();
+        String[] split = fieldKeys.split(",");
         Map<String, MarketingCondition> map = conditions.stream()
                 .collect(Collectors.toMap(MarketingCondition::getFieldKey, data -> data, (oldValue, newValue) -> newValue));
-        for (String fieldKey : fieldKeys) {
+        for (String fieldKey : split) {
             String value = "";
-            switch (fieldKey) {
+            switch (fieldKey.trim()) {
                 case "flag_new_cust":
-                    value = String.valueOf(flagData.getFlagNewCust());
+                    value = flagData.getFlagNewCust()== null?"":String.valueOf(flagData.getFlagNewCust());
                     break;
                 case "flag_riskgroup":
-                    value = String.valueOf(flagData.getFlagRiskgroup());
+                    value = flagData.getFlagRiskgroup()== null?"": flagData.getFlagRiskgroup();
                     break;
                 case "flag_interest":
-                    value = String.valueOf(flagData.getFlagInterest());
+                    value = flagData.getFlagInterest()== null?"":String.valueOf(flagData.getFlagInterest());
                     break;
                 case "flag_age":
-                    value = String.valueOf(flagData.getFlagAge());
+                    value = flagData.getFlagAge()== null?"":String.valueOf(flagData.getFlagAge());
                     break;
                 case "flag_province":
-                    value = String.valueOf(flagData.getFlagProvince());
+                    value = flagData.getFlagProvince()== null?"":String.valueOf(flagData.getFlagProvince());
                     break;
                 case "flag_special_small":
-                    value = String.valueOf(flagData.getFlagSpecialSmall());
+                    value = flagData.getFlagSpecialSmall()== null?"":String.valueOf(flagData.getFlagSpecialSmall());
                     break;
                 case "flag_specialrisklevel_rule":
-                    value = String.valueOf(flagData.getFlagSpecialrisklevel());
+                    value = flagData.getFlagSpecialrisklevel()== null?"":String.valueOf(flagData.getFlagSpecialrisklevel());
                     break;
                 case "flag_applyloan":
-                    value = String.valueOf(flagData.getFlagApplyloan());
+                    value = flagData.getFlagApplyloan()== null?"":String.valueOf(flagData.getFlagApplyloan());
                     break;
                 case "flag_scoreysbase":
-                    value = String.valueOf(flagData.getFlagScorefxsbbaseb());
+                    value = flagData.getFlagScoreysbase()== null?"":String.valueOf(flagData.getFlagScoreysbase());
                     break;
                 case "flag_scorefxsbbaseb":
-                    value = String.valueOf(flagData.getFlagScorefxsbbaseb());
+                    value = flagData.getFlagScorefxsbbaseb()== null?"":String.valueOf(flagData.getFlagScorefxsbbaseb());
                     break;
                 case "flag_scorescashonregisternologin":
-                    value = String.valueOf(flagData.getFlagScorescashonregisternologin());
+                    value = flagData.getFlagScorescashonregisternologin()== null?"":String.valueOf(flagData.getFlagScorescashonregisternologin());
                     break;
                 case "flag_scorescashonyxxy":
-                    value = String.valueOf(flagData.getFlagScorescashonyxxy());
+                    value = flagData.getFlagScorescashonyxxy()== null?"":String.valueOf(flagData.getFlagScorescashonyxxy());
                     break;
                 case "flag_scorencashonzawswyyym":
-                    value = String.valueOf(flagData.getFlagScorencashonzawswyyym());
+                    value = flagData.getFlagScorencashonzawswyyym()== null?"":String.valueOf(flagData.getFlagScorencashonzawswyyym());
                     break;
                 case "flag_intellaudio_blacklist":
-                    value = String.valueOf(flagData.getFlagIntellaudioBlacklist());
+                    value = flagData.getFlagIntellaudioBlacklist()== null?"":String.valueOf(flagData.getFlagIntellaudioBlacklist());
                     break;
                 case "flag_without_willingness":
-                    value = String.valueOf(flagData.getFlagWithoutWillingness());
+                    value = flagData.getFlagWithoutWillingness()== null?"":String.valueOf(flagData.getFlagWithoutWillingness());
                     break;
                 case "flag_whitelist":
-                    value = String.valueOf(flagData.getFlagWhitelist());
+                    value = flagData.getFlagWhitelist()== null?"":String.valueOf(flagData.getFlagWhitelist());
                     break;
             }
             MarketingCondition marketingCondition = map.get(fieldKey);

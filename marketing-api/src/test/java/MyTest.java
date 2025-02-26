@@ -257,10 +257,16 @@ public class MyTest {
     public void test10() {
         StandardEvaluationContext context = new StandardEvaluationContext();
         Map map = new HashMap<String, String>();
-        map.put("flag_riskgroup", "拒件");
-        map.put("scoreysbase1", "821");
+        map.put("als_m1_id_nbank_orgnum", 0.0);
+//        map.put("als_m1_cell_nbank_orgnum", "");
+//        map.put("als_m3_id_nbank_orgnum", 3.33);
+//        map.put("als_m3_cell_nbank_orgnum", "1");
         context.setVariables(map);
-        String condition = "(#flag_riskgroup == '拒件')&&!(#scoreysbase >= '820')";
+//        String condition = "((#pd_id_apply_age != '')&&((#pd_id_apply_age < '22')||(#pd_id_apply_age > '55')))||((#pd_cell_apply_age != '')&&((#pd_cell_apply_age < '22')||(#pd_cell_apply_age > '55')))";
+//        String condition = "((#pd_id_apply_age != '')&&((#pd_id_apply_age < '22')||(#pd_id_apply_age > '55')))";
+//        String condition = "(#sl_id_nbank_bad_allnum >= '1')";
+//        String condition = "(#als_m1_id_nbank_orgnum >= '13')||(#als_m3_id_nbank_orgnum >= '28')||(#als_m3_id_nbank_orgnum <= '0')||(#als_m1_cell_nbank_orgnum >= '13')||(#als_m3_cell_nbank_orgnum >= '28')||(#als_m3_cell_nbank_orgnum <= '0')";
+        String condition = "(#als_m1_id_nbank_orgnum == 0)";
         ExpressionParser parser = new SpelExpressionParser();
         Boolean value = parser.parseExpression(condition).getValue(context, Boolean.class);
         System.out.println(value);
@@ -298,6 +304,19 @@ public class MyTest {
 
         List<MarketingHistory> marketingHistories = Arrays.asList(marketingHistory1, marketingHistory2);
         System.out.println(JSON.toJSONString(marketingHistories));
+    }
+
+    @Test
+    public void test03() {
+        String str = "";
+        System.out.println(isNumeric(str));
+
+        String s = LocalDate.now().toString();
+        System.out.println(s);
+    }
+
+    private boolean isNumeric(String str) {
+        return str != null && str.matches("[+-]?(?:\\d+\\.\\d*|\\.\\d+|\\d+)(?:[eE][+-]?\\d+)?");
     }
 
 
