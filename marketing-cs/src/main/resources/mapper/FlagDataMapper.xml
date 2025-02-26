@@ -213,6 +213,7 @@
     <select id="queryEsMarkByDate" resultType="com.br.marketing.dto.mark.FlagDataEsMark">
         select id,
                cell_log,
+               dt_whitelist,
                flag_new_cust,
                flag_riskgroup,
                flag_interest,

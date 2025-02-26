@@ -57,7 +57,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
     @Resource
     MarketingCommonConfig marketingCommonConfig;
     private static final String TITLE = "【pp停车数据更新es】";
-    private static final String fieldKeys = "flag_new_cust,flag_riskgroup,flag_interest,flag_age,flag_province," +
+    private static final String fieldKeys = "dt_whitelist,flag_new_cust,flag_riskgroup,flag_interest,flag_age,flag_province," +
             "flag_special_small,flag_specialrisklevel_rule,flag_applyloan,flag_scoreysbase,flag_scorefxsbbaseb," +
             "flag_scorescashonregisternologin,flag_scorescashonyxxy,flag_scorencashonzawswyyym," +
             "flag_intellaudio_blacklist,flag_without_willingness,flag_whitelist";
@@ -174,6 +174,9 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
         for (String fieldKey : split) {
             String value = "";
             switch (fieldKey.trim()) {
+                case "dt_whitelist":
+                    value = flagData.getDtWhitelist()== null?"":String.valueOf(flagData.getDtWhitelist());
+                    break;
                 case "flag_new_cust":
                     value = flagData.getFlagNewCust()== null?"":String.valueOf(flagData.getFlagNewCust());
                     break;

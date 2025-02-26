@@ -170,6 +170,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
             flagDataResult.forEach((Map<String, Object> resultMap) -> {
                 FlagData flagData = groupByCellMd5.get(resultMap.get("cell"));
+                resultMap.put("dt_whitelist", flagData.getDtWhitelist());
                 resultMap.put("flag_new_cust", flagData.getFlagNewCust());
                 resultMap.put("flag_riskgroup", flagData.getFlagRiskgroup());
                 resultMap.put("flag_interest", flagData.getFlagInterest());
