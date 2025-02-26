@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -45,6 +46,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
             Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             String key = RedisKeyConstant.DATA_RONGSHU_MARK.concat(":").concat(apiCode);
+            List<Long> ids = new ArrayList<>();
             while (true) {
                 String lockValue = UUID.randomUUID().toString();
                 try {
@@ -57,8 +59,8 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                         break;
                     }
                     //更新状态:flag_new_cust_computation
-                    List<Long> ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
-                    flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids);
+                    ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
+                    flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids, 0);
                     //释放锁
                     redisChgService.unlock(key, lockValue);
                     //打标更新:flag_new_cust
@@ -66,6 +68,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids, null);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                     break;
@@ -84,13 +87,23 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
 
     void markAndUpdateFlagNewCust(List<FlagData> list) {
         List<String> originalCells = list.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
-        //doris求交查询(榕树7000w)
-        List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
-        if (CollectionUtil.isNotEmpty(intersectionCells)) {
-            flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 0, 1);
-            originalCells.removeAll(intersectionCells);
+        List<String> unIntersectionCells;
+        try {
+            //doris求交查询(榕树7000w)
+            List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
+            if (CollectionUtil.isNotEmpty(intersectionCells)) {
+                flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 0, 1);
+                unIntersectionCells = originalCells.stream().filter(a -> !intersectionCells.contains(a)).collect(Collectors.toList());
+            } else {
+                unIntersectionCells = originalCells;
+            }
+            flagDataMapper.batchUpdateFlagNewCustComputationByCells(unIntersectionCells, 1, 1);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                    "pp停车&榕树求交打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
+            flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, null, null);
         }
-        flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, 1, 1);
+
 
     }
 

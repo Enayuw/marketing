@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,6 +48,7 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
             Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             String key = RedisKeyConstant.DATA_BLACKLIST_MARK.concat(":").concat(apiCode);
+            List<Long> ids = new ArrayList<>();
             while (true) {
                 String lockValue = UUID.randomUUID().toString();
                 try {
@@ -59,8 +61,8 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
                         break;
                     }
                     //更新状态:flag_blacklist_computation
-                    List<Long> ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
-                    flagDataMapper.batchUpdateFlagBlackListComputationByIds(ids);
+                    ids = list.stream().map(FlagData::getId).collect(Collectors.toList());
+                    flagDataMapper.batchUpdateFlagBlackListComputationByIds(ids, 0);
                     //释放锁
                     redisChgService.unlock(key, lockValue);
 
@@ -69,6 +71,7 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             "pp停车与黑名单打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    flagDataMapper.batchUpdateFlagBlackListComputationByIds(ids, null);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                     break;
@@ -87,13 +90,23 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
 
     void markAndUpdateBlacklist(List<FlagData> list, Map<String, Integer> blackListOutput) {
         List<String> originalCells = list.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
-        //求交查询(外呼黑名单)
-        List<String> intersectionCells = flagDataMapper.intersectionWithBlackList(originalCells, blackListOutput.get("type"));
-        if (CollectionUtil.isNotEmpty(intersectionCells)) {
-            flagDataMapper.batchUpdateFlagBlackListComputationByCells(intersectionCells, blackListOutput.get("flagIntellaudioBlacklist"), 1);
-            originalCells.removeAll(intersectionCells);
+        List<String> unIntersectionCells;
+        try {
+            //求交查询(外呼黑名单)
+            List<String> intersectionCells = flagDataMapper.intersectionWithBlackList(originalCells, blackListOutput.get("type"));
+            if (CollectionUtil.isNotEmpty(intersectionCells)) {
+                flagDataMapper.batchUpdateFlagBlackListComputationByCells(intersectionCells, blackListOutput.get("flagIntellaudioBlacklist"), 1);
+                unIntersectionCells = originalCells.stream().filter(a -> !intersectionCells.contains(a)).collect(Collectors.toList());
+            } else {
+                unIntersectionCells = originalCells;
+            }
+            flagDataMapper.batchUpdateFlagBlackListComputationByCells(unIntersectionCells, 0, 1);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                    "pp停车&黑名单打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
+            flagDataMapper.batchUpdateFlagBlackListComputationByCells(originalCells, null, null);
         }
-        flagDataMapper.batchUpdateFlagBlackListComputationByCells(originalCells, 0, 1);
+
 
     }
 
@@ -106,7 +119,7 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    "pp停车与外呼黑名单打标线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+                    "pp停车与黑名单打标线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }
     }
