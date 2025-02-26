@@ -240,7 +240,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
     private List<DataMarkConfig> getMarkConfigs(String apiCode) {
         DataMarkConfigExample markConfigExample = new DataMarkConfigExample();
         markConfigExample.createCriteria()
-                .andIsDelEqualTo(1)
+                .andIsDelEqualTo(0)
                 .andApiCodeEqualTo(apiCode)
                 .andMarkTypeIn(Arrays.asList(DataMarkEnum.MARK_HIGHRISK.getMarkType(), DataMarkEnum.MARK_WHITELIST.getMarkType()));
         return markConfigMapper.selectByExample(markConfigExample);

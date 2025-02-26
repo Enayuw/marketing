@@ -84,7 +84,7 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
     public List<DataMarkConfig> getMarkConfigs(String apiCode, Integer markType) {
         DataMarkConfigExample markConfigExample = new DataMarkConfigExample();
         markConfigExample.createCriteria()
-                .andIsDelEqualTo(1)
+                .andIsDelEqualTo(0)
                 .andApiCodeEqualTo(apiCode)
                 .andMarkTypeEqualTo(markType);
         return markConfigMapper.selectByExample(markConfigExample);
