@@ -1,7 +1,6 @@
 package com.br.marketing.check.job.mark;
 
 import com.br.marketing.service.mark.DataCellDecodeMarkService;
-import com.br.marketing.service.mark.DataWhiteListMarkService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;

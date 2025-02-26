@@ -19,7 +19,7 @@ public interface FlagDataMapper extends FlagDataMapperBase {
 
     int updateByDynamicEncCell(@Param("cellMd5") String cellMd5, @Param("cellSha256") String cellSha256, @Param("cellLog") String cellLog, @Param(
             "apiCode") String apiCode, @Param("encType") String encType, @Param("appletDate") String appletDate,
-                               @Param("userType") String userType, @Param("isDelete") Integer isDelete);
+                               @Param("userType") String userType, @Param("extend") String extend);
 
     int batchUpdateEsStatusById(@Param("ids") List<Long> ids, @Param("status") Integer status);
 
@@ -27,26 +27,26 @@ public interface FlagDataMapper extends FlagDataMapperBase {
 
     List<FlagData> queryFlagBlackListComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
-    void batchUpdateFlagNewCustComputationByIds(@Param("ids") List<Long> ids);
+    void batchUpdateFlagNewCustComputationByIds(@Param("ids") List<Long> ids, @Param("tag") Integer tag);
 
-    void batchUpdateFlagBlackListComputationByIds(@Param("ids") List<Long> ids);
+    void batchUpdateFlagBlackListComputationByIds(@Param("ids") List<Long> ids, @Param("tag") Integer tag);
 
     void batchUpdateFlagNewCustComputationByCells(@Param("cells") List<String> cells,
                                                   @Param("flagNewCust") Integer flagNewCust,
                                                   @Param("flagNewCustComputation") Integer flagNewCustComputation);
 
     void batchUpdateFlagBlackListComputationByCells(@Param("cells") List<String> cells,
-                                                  @Param("flagBlacklist") Integer flagBlacklist,
-                                                  @Param("flagBlacklistComputation") Integer flagBlacklistComputation);
+                                                    @Param("flagBlacklist") Integer flagBlacklist,
+                                                    @Param("flagBlacklistComputation") Integer flagBlacklistComputation);
 
 
     List<String> intersectionWithRongshubI_(@Param("cells") List<String> cells);
 
-    List<String> intersectionWithBlackList(@Param("cells") List<String> cells,@Param("type") Integer type);
+    List<String> intersectionWithBlackList(@Param("cells") List<String> cells, @Param("type") Integer type);
 
     List<FlagDataCarryLogCell> queryLogCellByDate(@Param("apiCode") String apiCode,
-                                                     @Param("appletDate") String appletDate,
-                                                     @Param("pageSize") Integer pageSize);
+                                                  @Param("appletDate") String appletDate,
+                                                  @Param("pageSize") Integer pageSize);
 
     List<FlagData> queryRiskGroupAndInterestData(@Param("apiCode") String apiCode, @Param("pageSize") Integer pageSize);
 
@@ -55,14 +55,14 @@ public interface FlagDataMapper extends FlagDataMapperBase {
     List<FlagData> queryOdsOrgDataByCellbI_(@Param("cells") List<String> cells);
 
     int batchUpdateRiskGroupFlagById(@Param("data") List<FlagData> data,
-                                                @Param("flagRiskGroup") String flagRiskGroup);
+                                     @Param("flagRiskGroup") String flagRiskGroup);
 
     int batchUpdateInterestFlagById(@Param("data") List<FlagData> data, @Param("flagStatus") Integer flagStatus,
-                                                @Param("flagInterest") String flagInterest);
+                                    @Param("flagInterest") String flagInterest);
 
     int batchUpdateHighRiskStatusByIds(@Param("ids") List<Long> ids,
-                                      @Param("flagHighRiskComputation") Integer flagHighRiskComputation,
-                                      @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
+                                       @Param("flagHighRiskComputation") Integer flagHighRiskComputation,
+                                       @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
 
     List<FlagData> queryFlagWhiteListComputation(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
@@ -71,15 +71,16 @@ public interface FlagDataMapper extends FlagDataMapperBase {
     void batchUpdateCellDecodeListByIds(@Param("flagData") FlagData flagData);
 
     void batchUpdateFlagWhiteListByIds(@Param("ids") List<Long> ids,
-                                                  @Param("flagWhitelistComputation") Integer flagWhitelistComputation,
-                                                  @Param("flagWhitelist") Integer flagWhitelist);
+                                       @Param("flagWhitelistComputation") Integer flagWhitelistComputation,
+                                       @Param("flagWhitelist") Integer flagWhitelist);
 
     void batchUpdateFlagWhiteListComputationByIds(@Param("ids") List<Long> ids,
                                                   @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
+
     void batchUpdateCellDecodeListComputationByIds(@Param("ids") List<Long> ids,
-                                                  @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
+                                                   @Param("flagWhitelistComputation") Integer flagWhitelistComputation);
 
     List<FlagDataEsMark> queryEsMarkByDate(@Param("apiCode") String apiCode,
-                                              @Param("date") String date,
-                                              @Param("pageSize") Integer pageSize);
+                                           @Param("date") String date,
+                                           @Param("pageSize") Integer pageSize);
 }

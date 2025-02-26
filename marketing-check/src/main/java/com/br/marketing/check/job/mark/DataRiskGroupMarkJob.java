@@ -100,7 +100,13 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
         Lists.partition(flagData, 2000).forEach(partition -> {
             pool.submit(() -> {
                 List<FlagData> list = new ArrayList<>(partition);
-                ppRonShuMarkService.markAndUpdateFlagStatus(list, apiCode, dataMarkConfigs);
+                try {
+                    ppRonShuMarkService.markAndUpdateFlagStatus(list, apiCode, dataMarkConfigs);
+                } catch (Exception e) {
+                    String subject = "pp榕树更新客群和利率标签，子线程处理异常";
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
+                            , subject), e);
+                }
             });
         });
     }

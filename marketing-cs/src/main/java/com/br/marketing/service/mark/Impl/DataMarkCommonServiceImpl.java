@@ -91,8 +91,13 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
     }
 
     @Override
-    public ThreadPoolExecutor getThreadPoolExecutor() {
-        Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
+    public ThreadPoolExecutor getThreadPoolExecutor(Boolean isUsedByEs) {
+        Integer threadPoolSize;
+        if (isUsedByEs) {
+            threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
+        } else {
+            threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
+        }
         return BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
     }
 

@@ -66,7 +66,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 return;
             }
             //2.创建线程池
-            ThreadPoolExecutor threadPool = dataMarkCommonService.getThreadPoolExecutor();
+            ThreadPoolExecutor threadPool = dataMarkCommonService.getThreadPoolExecutor(true);
             //3.打标主流程
             markProcess(apiCode, straHisFile, threadPool);
         });

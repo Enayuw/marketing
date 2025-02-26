@@ -50,7 +50,7 @@ public interface DataMarkCommonService {
 
     public Boolean isMatch(Map<String, Object> scoreMap, String condition);
 
-    public ThreadPoolExecutor getThreadPoolExecutor();
+    public ThreadPoolExecutor getThreadPoolExecutor(Boolean isUsedByEs);
 
     public void threadPoolShutDown(ThreadPoolExecutor threadPool, String logPrefix);
 }

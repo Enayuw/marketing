@@ -21,15 +21,24 @@
         UPDATE b_marketing_flag_data
         <choose>
             <when test="encType == 'cell_md5'">
-                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog},applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                <if test="extend != null" >
+                    ,is_delete = 1, extend = #{extend}
+                </if>
                 WHERE cell_md5 = #{cellMd5}
             </when>
             <when test="encType == 'cell_sha256'">
-                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog},applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                <if test="extend != null" >
+                    ,is_delete = 1, extend = #{extend}
+                </if>
                 WHERE cell_sha256 = #{cellSha256}
             </when>
             <when test="encType == 'cell_log'">
-                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256},applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                <if test="extend != null" >
+                    ,is_delete = 1, extend = #{extend}
+                </if>
                 WHERE cell_log = #{cellLog}
             </when>
         </choose>
@@ -61,7 +70,7 @@
 
     <update id="batchUpdateFlagNewCustComputationByIds">
         update b_marketing_flag_data
-        set flag_new_cust_computation = 0
+        set flag_new_cust_computation = #{tag}
         where id in
         <foreach collection="ids" item="id" separator="," open="(" close=")">
             #{id}
@@ -70,7 +79,7 @@
 
     <update id="batchUpdateFlagBlackListComputationByIds">
         update b_marketing_flag_data
-        set flag_blacklist_computation = 0
+        set flag_blacklist_computation = #{tag}
         where id in
         <foreach collection="ids" item="id" separator="," open="(" close=")">
             #{id}
@@ -97,17 +106,26 @@
         update b_marketing_flag_data
         set flag_new_cust_computation = #{flagNewCustComputation},
             flag_new_cust = #{flagNewCust}
-        where cell_md5 in
+        where
+        applet_date = date(now())
+        and is_delete = 0
+        and status = 1
+        and cell_md5 in
         <foreach collection="cells" item="cell" separator="," open="(" close=")">
             #{cell}
         </foreach>
+
     </update>
 
     <update id="batchUpdateFlagBlackListComputationByCells">
         update b_marketing_flag_data
         set flag_blacklist_computation = #{flagBlacklistComputation},
         flag_intellaudio_blacklist = #{flagBlacklist}
-        where cell_md5 in
+        where
+        applet_date = date(now())
+        and is_delete = 0
+        and status = 1
+        and cell_md5 in
         <foreach collection="cells" item="cell" separator="," open="(" close=")">
             #{cell}
         </foreach>
