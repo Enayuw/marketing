@@ -41,7 +41,7 @@ public class CarClueServiceImpl implements CarClueService {
     @Override
     public void pushCarClueHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelPush channelPushImpl) {
         for (CarClueInfo carClueInfo : carClueInfoList) {
-            channelPushImpl.push(carClueInfo);
+            channelPushImpl.push(carClueInfo,0);
         }
     }
 
