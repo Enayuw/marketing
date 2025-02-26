@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -344,10 +345,12 @@ public class QiFuServiceImpl implements IQiFuService {
                         String newLowAmountys = getAmount(null, lowAmountys, rTotalAvailableAmt);
                         String changeAmountys = calculateDifference(newHighAmountys, newLowAmountys);
                         String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
+                        String changeIncrease = calculateIncreaseRate(highAmountys, lowAmountys);
                         mergedObject.put("highAmountys", newHighAmountys);
                         mergedObject.put("highAmountys", newLowAmountys);
                         mergedObject.put("changeAmountys", changeAmountys);
                         mergedObject.put("remainDayys", remainDayys);
+                        mergedObject.put("changeIncrease", changeIncrease);
                     }
                     isMatched = true;
                 }
@@ -424,7 +427,7 @@ public class QiFuServiceImpl implements IQiFuService {
         try {
             int num = Integer.parseInt(input);
             if (num < 1 || num > 1001) {
-                return "额度枚举超出范围";
+                return "";
             }
 
             int lowerBound = (num - 1) * 1000;
@@ -432,7 +435,7 @@ public class QiFuServiceImpl implements IQiFuService {
             return num == 1001 ? lowerBound + "+" : "[" + lowerBound + " - " + upperBound + ")";
 
         } catch (NumberFormatException e) {
-            return "最新可用/调整前 额度无效输入, input:" + input;
+            return "";
         }
     }
 
@@ -442,7 +445,7 @@ public class QiFuServiceImpl implements IQiFuService {
         }
 
         if ("noLimit".equalsIgnoreCase(input)) {
-            return "长期有效";
+            return "noLimit";
         }
 
         Pattern pattern = Pattern.compile("^(\\d{1,2})月(\\d{1,2})日$");
@@ -452,7 +455,7 @@ public class QiFuServiceImpl implements IQiFuService {
             return input;
         }
 
-        return "额度到期日期转化发现无效输入, input: " + input;
+        return "";
     }
 
     public String getAmount(String highAmountys, String lowAmountys, String rTotalAvailableAmt) {
@@ -464,7 +467,7 @@ public class QiFuServiceImpl implements IQiFuService {
         String[] rangeParts = rTotalAvailableAmt.split("-");
 
         if (rangeParts.length != 2) {
-            return "额度无效区间格式";
+            return "";
         }
 
         String leftValue = rangeParts[0];
@@ -476,8 +479,7 @@ public class QiFuServiceImpl implements IQiFuService {
             return leftValue;
         }
 
-        return "最高额度或者原始额度计算发现无效输入, highAmountys： " + highAmountys + ", lowAmountys: " + lowAmountys
-                + ", rTotalAvailableAmt: " + rTotalAvailableAmt;
+        return "";
     }
 
 
@@ -492,11 +494,16 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return result > 0 ? String.valueOf(result) : "0";
         } catch (NumberFormatException e) {
-            return "提升额度计算发现无效输入，highAmountys： " + highAmountys + ", lowAmountys: " + lowAmountys;
+            return "";
         }
     }
 
     public String calculateDaysDifference(String rTaTemporaryAmountExpireDate) {
+
+        if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate)) {
+            return "noLimit";
+        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM月dd日");
 
         try {
@@ -509,7 +516,28 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
         } catch (Exception e) {
-            return "额度剩余天数计算发生错误，rTaTemporaryAmountExpireDate：" + rTaTemporaryAmountExpireDate;
+            return "";
         }
     }
+
+    public String calculateIncreaseRate(String highAmountys, String lowAmountys) {
+        if (highAmountys == null || lowAmountys == null || lowAmountys.equals("0")) {
+            return "";
+        }
+
+        try {
+            BigDecimal high = new BigDecimal(highAmountys);
+            BigDecimal low = new BigDecimal(lowAmountys);
+
+            BigDecimal difference = high.subtract(low);
+            BigDecimal rate = difference.divide(low, 10, BigDecimal.ROUND_HALF_UP);
+
+            int result = (int) Math.ceil(rate.doubleValue());
+
+            return String.valueOf(result);
+        } catch (NumberFormatException e) {
+            return "";
+        }
+    }
+
 }
