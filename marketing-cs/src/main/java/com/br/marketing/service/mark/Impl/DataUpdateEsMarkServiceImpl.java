@@ -139,6 +139,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
             if(CollectionUtil.isEmpty(marketingHistoryMapList)){
                 log.warn(TITLE+"查询ES数据为空");
+                flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
                 return;
             }
             log.warn(TITLE+"查询ES数据，batchNumber："+straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size());
