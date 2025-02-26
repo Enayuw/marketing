@@ -84,29 +84,22 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
 
     @Override
     public void markAndUpdateFlagStatus(List<FlagData> flagData, String apiCode, List<DataMarkConfig> dataMarkConfigs) {
-        try {
-            // 打标表cell
-            List<String> flagDataCells = flagData.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
-            // 基底表数据
-            List<FlagData> orgDataByCellbI = flagDataMapper.queryOdsOrgDataByCellbI_(flagDataCells);
-//            if (CollectionUtils.isEmpty(orgDataByCellbI)) {
-//                return;
-//            }
+        // 打标表cell
+        List<String> flagDataCells = flagData.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
+        // 基底表数据
+        List<FlagData> orgDataByCellbI = flagDataMapper.queryOdsOrgDataByCellbI_(flagDataCells);
+//        if (CollectionUtils.isEmpty(orgDataByCellbI)) {
+//            return;
+//        }
+        List<DataMarkConfig> dataMarkConfigByRiskGroup =
+                dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_RISKGROUP.getMarkType())).collect(Collectors.toList());
+        // 更新客群标签
+        handleRiskGroup(flagData, orgDataByCellbI, dataMarkConfigByRiskGroup);
 
-            List<DataMarkConfig> dataMarkConfigByRiskGroup =
-                    dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_RISKGROUP.getMarkType())).collect(Collectors.toList());
-            // 更新客群标签
-            handleRiskGroup(flagData, orgDataByCellbI, dataMarkConfigByRiskGroup);
-
-            List<DataMarkConfig> dataMarkConfigByInterest =
-                    dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_INTEREST.getMarkType())).collect(Collectors.toList());
-            // 更新利率标签
-            handleInterest(flagData, orgDataByCellbI, dataMarkConfigByInterest);
-        } catch (Exception e) {
-            String subject = "pp榕树更新客群和利率标签，子线程处理异常";
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), e.getMessage()
-                    , subject), e);
-        }
+        List<DataMarkConfig> dataMarkConfigByInterest =
+                dataMarkConfigs.stream().filter(t -> t.getMarkType().equals(DataMarkEnum.MARK_INTEREST.getMarkType())).collect(Collectors.toList());
+        // 更新利率标签
+        handleInterest(flagData, orgDataByCellbI, dataMarkConfigByInterest);
     }
 
     private void handleInterest(List<FlagData> flagData, List<FlagData> orgDataByCellbI, List<DataMarkConfig> dataMarkConfigByInterest) {

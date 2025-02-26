@@ -1,7 +1,6 @@
 package com.br.marketing.service.mark.Impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
@@ -13,7 +12,6 @@ import com.br.marketing.entity.FlagData;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.mark.DataCellDecodeMarkService;
-import com.br.marketing.service.mark.DataWhiteListMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
