@@ -109,6 +109,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
     }
 
     private void updateEsMarkData(List<FlagDataEsMark> flagDataList, StraHisFile straHisFile) {
+
         List<Long> ids = flagDataList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
         try {
             String index = EsHandleUtil.getDateFromBatchNumber(straHisFile.getBatchNumber());
@@ -144,6 +145,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             }
             log.warn(TITLE+"查询ES数据，batchNumber："+straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size());
             // 更新es数据
+            long start = System.currentTimeMillis();
             for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
                 for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
                     MarketingHistory marketingHistory = entry.getValue();
@@ -160,6 +162,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             if (!CollectionUtil.isEmpty(ids)) {
                 flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.COMPLETE.getValue());
             }
+            log.warn(TITLE + "一批次更新ES耗时：{}s", (System.currentTimeMillis() - start) / 1000);
         } catch (Exception e) {
             flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
