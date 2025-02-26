@@ -178,7 +178,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             String value = "";
             switch (fieldKey.trim()) {
                 case "dt_whitelist":
-                    value = flagData.getDtWhitelist()== null?"":String.valueOf(flagData.getDtWhitelist());
+                    value = flagData.getDtWhitelist()== null?"": flagData.getDtWhitelist();
                     break;
                 case "flag_new_cust":
                     value = flagData.getFlagNewCust()== null?"":String.valueOf(flagData.getFlagNewCust());

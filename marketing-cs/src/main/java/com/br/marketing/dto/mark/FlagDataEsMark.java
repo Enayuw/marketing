@@ -13,7 +13,7 @@ public class FlagDataEsMark {
     private Long id;
     private String cellLog;
 
-    private Integer dtWhitelist;
+    private String dtWhitelist;
     private Integer flagNewCust;
 
     private String flagRiskgroup;
