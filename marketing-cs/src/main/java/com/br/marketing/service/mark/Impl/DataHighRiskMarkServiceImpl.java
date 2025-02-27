@@ -57,6 +57,8 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
     private final static Integer splitNum = 1500;
     private final static Integer esPageSize = 2000;
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public void process(String scoreDate) {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
@@ -202,12 +204,15 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
 //            Map<String, Object> condition =
 //                    marketingConditionVariants.stream().collect(
 //                            Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
-            List<MarketingConditionVariant> marketingConditionVariants = marketingConditions.stream()
-                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, MarketingConditionVariant.class))
-                    .collect(Collectors.toList());
-            Map<String, Object> condition =
-                    marketingConditionVariants.stream().collect(
-                            Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
+//            List<MarketingConditionVariant> marketingConditionVariants = marketingConditions.stream()
+//                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, MarketingConditionVariant.class))
+//                    .collect(Collectors.toList());
+//            Map<String, Object> condition =
+//                    marketingConditionVariants.stream().collect(
+//                            Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
+            Map<String, Object> condition = marketingConditions.parallelStream()
+                    .map(marketingCondition -> objectMapper.convertValue(marketingCondition, MarketingConditionVariant.class))
+                    .collect(Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
             conditionMap.put(cell, condition);
         }
         long afterProcessData = System.currentTimeMillis();
