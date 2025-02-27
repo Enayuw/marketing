@@ -132,13 +132,14 @@ public class PpRongShuMarkServiceImpl implements PpRonShuMarkService {
 //        if (CollectionUtils.isEmpty(flagDataOther)) {
 //            return;
 //        }
-        flagDataMapper.batchUpdateInterestFlagById(flagDataOther, 1, otherInterestConfig);
+//        flagDataMapper.batchUpdateInterestFlagById(flagDataOther, 1, otherInterestConfig);
         Set<String> cellBiSet = orgDataByCellbI.stream()
                 .map(FlagData::getCellMd5)
                 .collect(Collectors.toSet());
         List<FlagData> differenceFlagData = flagData.stream()
                 .filter(f -> !cellBiSet.contains(f.getCellMd5())) // 过滤掉 list2 中包含的元素
                 .collect(Collectors.toList());
+        flagDataOther.addAll(differenceFlagData);
         flagDataMapper.batchUpdateInterestFlagById(differenceFlagData, 1, null);
 
     }
