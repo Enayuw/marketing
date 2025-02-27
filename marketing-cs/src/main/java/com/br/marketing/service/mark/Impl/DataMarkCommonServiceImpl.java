@@ -9,7 +9,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.DataMarkConfig;
 import com.br.marketing.entity.DataMarkConfigExample;
 import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
@@ -26,10 +25,10 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -61,7 +60,7 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
     }
 
     @Override
-    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id, List<String> cellLogs, Integer esPageSize) {
+    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id, List<String> cellLogs, Integer esPageSize, Boolean isPlainText) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
@@ -79,7 +78,16 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
         jsonObject.put("logic", "and");
         queryBaseBean.setJsonData(jsonObject.toString());
         queryBaseBean.setPageSize(esPageSize);
-        return marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+        if (isPlainText) {
+            return marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+        } else {
+            List<Map<String, MarketingHistory>> marketingWithIdList =
+                    marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
+            if(CollectionUtils.isEmpty(marketingWithIdList)){
+                return null;
+            }
+            return marketingWithIdList.stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -101,6 +109,17 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
             threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
         }
         return BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+    }
+
+    public void modifyCorePoolSize(ThreadPoolExecutor poolExecutor, Boolean isUsedByEs) {
+        Integer threadPoolSize;
+        if (isUsedByEs) {
+            threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
+        } else {
+            threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
+        }
+        poolExecutor.setCorePoolSize(threadPoolSize);
+        poolExecutor.setMaximumPoolSize(threadPoolSize);
     }
 
     @Override

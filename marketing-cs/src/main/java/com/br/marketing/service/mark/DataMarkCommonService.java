@@ -31,12 +31,13 @@ public interface DataMarkCommonService {
      * @param id
      * @param cellLogs
      * @param esPageSize
+     * @param isPlainText
      * @return List<MarketingHistory>
      * @description 查询es，获取跑分分值
      * @author hedongshuo
      * @date 2025/2/21 16:03
      **/
-    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id, List<String> cellLogs, Integer esPageSize);
+    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id, List<String> cellLogs, Integer esPageSize, Boolean isPlainText);
 
     /**
      * @description 根据标记类型
@@ -51,6 +52,8 @@ public interface DataMarkCommonService {
     public Boolean isMatch(Map<String, Object> scoreMap, String condition);
 
     public ThreadPoolExecutor getThreadPoolExecutor(Boolean isUsedByEs);
+
+    public void modifyCorePoolSize(ThreadPoolExecutor poolExecutor, Boolean isUsedByEs);
 
     public void threadPoolShutDown(ThreadPoolExecutor threadPool, String logPrefix);
 }

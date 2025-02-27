@@ -131,6 +131,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      **/
     private void markWithThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataList,
                                 Map<String, List<DataMarkConfig>> markCOnfigsGroupMap, ThreadPoolExecutor threadPool) {
+        dataMarkCommonService.modifyCorePoolSize(threadPool, true);
         List<List<FlagDataCarryLogCell>> partitions = Lists.partition(flagDataList, splitNum);
         partitions.forEach((List <FlagDataCarryLogCell> flagDataCarryLogCells) -> {
             threadPool.submit(() -> {
@@ -164,14 +165,17 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         //1.查询es
         List<MarketingHistory> marketingHistories;
         Map<String, Object> markEsMockConfig = marketingCommonConfig.getDataMarkEsMockConfig();
+        long start = System.currentTimeMillis();
         if ((Boolean) markEsMockConfig.get("isMock")) {
             List<JSONObject> jsonList = (List<JSONObject>) markEsMockConfig.get("marketingHistories");
             marketingHistories = jsonList.stream().map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingHistory.class))
                     .collect(Collectors.toList());
         } else {
             marketingHistories =
-                    dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize);
+                    dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize, false);
         }
+        long afterEs = System.currentTimeMillis();
+        log.warn("pp高风险打标job-查询es，耗时：{}s", (afterEs - start) / 1000);
         if (CollectionUtils.isEmpty(marketingHistories)){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     "pp停车高风险&白名单打标子线程es未返回数据！"));
@@ -198,8 +202,10 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             Map<String, Object> condition =
                     marketingConditionVariants.stream().collect(
                             Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
-            conditionMap.put(Sha256Util.getSHA256Encrypt(cell), condition);
+            conditionMap.put(cell, condition);
         }
+        long afterProcessData = System.currentTimeMillis();
+        log.warn("pp高风险打标job-es数据处理，耗时：{}s", (afterProcessData - afterEs) / 1000);
         //2.打标
         //遍历每一条待打标数据
         for (FlagDataCarryLogCell flagDataCarryLogCell : flagDataCarryLogCells) {
@@ -207,7 +213,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             flagData.setId(flagDataCarryLogCell.getId());
             Class<FlagData> flagDataClass = FlagData.class;
             //对于一条打标数据，es返回的跑分分值
-            Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellSha256());
+            Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
             //将客群标志加到condition中
             scoreMap.put("flag_riskgroup", flagDataCarryLogCell.getFlagRiskgroup());
             //遍历Map<data属性名, 配置list>
@@ -232,6 +238,8 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             flagData.setFlagWhitelistComputation(1);
             flagDataMapper.updateByPrimaryKeySelective(flagData);
         }
+        long afterMark = System.currentTimeMillis();
+        log.warn("pp高风险打标job-数据打标，耗时：{}s", (afterMark - afterProcessData) / 1000);
     }
 
     /**
