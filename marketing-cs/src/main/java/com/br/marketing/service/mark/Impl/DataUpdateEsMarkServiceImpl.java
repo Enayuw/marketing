@@ -142,6 +142,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             queryBaseBean.setPageSize(2000);
 
             // 查询 Elasticsearch 数据
+            long queryStart = System.currentTimeMillis();
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
             if (CollectionUtil.isEmpty(marketingHistoryMapList)) {
@@ -149,12 +150,12 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
                 return;
             }
-            log.warn(TITLE + "查询ES数据，batchNumber：" + straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size());
+            log.warn(TITLE + "查询ES数据，batchNumber：" + straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size()+"耗时：{}s", (System.currentTimeMillis() - queryStart) / 1000);
 
-            long start = System.currentTimeMillis();
             // 提交任务到线程池
             threadUpdatePool.submit(() -> {
                 try {
+                    long start = System.currentTimeMillis();
                     for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
                         for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
                             MarketingHistory marketingHistory = entry.getValue();
@@ -166,6 +167,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                             RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
                                     EsIceType.MARKETING.getCode());
                         }
+                        log.warn(TITLE + "更新一条ES耗时：{}s", (System.currentTimeMillis() - start) / 1000);
                     }
                     // 更新状态为 COMPLETE
                     updateEsStatus(ids, EsSyncStatusEnum.COMPLETE);
