@@ -193,11 +193,17 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         Map<String, Map<String, Object>> conditionMap = new HashMap<>();
         for (String cell : conditionMapOri.keySet()) {
             List<MarketingCondition> marketingConditions = conditionMapOri.get(cell);
-            List<JSONObject> jsonList = marketingConditions.stream()
-                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, JSONObject.class))
-                    .collect(Collectors.toList());
-            List<MarketingConditionVariant> marketingConditionVariants = jsonList.stream()
-                    .map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingConditionVariant.class))
+//            List<JSONObject> jsonList = marketingConditions.stream()
+//                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, JSONObject.class))
+//                    .collect(Collectors.toList());
+//            List<MarketingConditionVariant> marketingConditionVariants = jsonList.stream()
+//                    .map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingConditionVariant.class))
+//                    .collect(Collectors.toList());
+//            Map<String, Object> condition =
+//                    marketingConditionVariants.stream().collect(
+//                            Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
+            List<MarketingConditionVariant> marketingConditionVariants = marketingConditions.stream()
+                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, MarketingConditionVariant.class))
                     .collect(Collectors.toList());
             Map<String, Object> condition =
                     marketingConditionVariants.stream().collect(
