@@ -28,7 +28,7 @@ public class ICarClueServiceImpl implements ICarClueService {
     public Result callBackClue(@Validated HxClueCallBackReqDTO reqDTO) {
         String clueId = reqDTO.getClueId();
         if(StringUtils.isBlank(clueId)){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clueId不存在");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clueId不能为空");
         }
         CarClueInfoExample infoExample = new CarClueInfoExample();
         infoExample.createCriteria().andClueIdEqualTo(clueId);

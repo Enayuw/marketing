@@ -17,15 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 public class HxCarClueController {
 
-    @ExceptionHandler(value = Exception.class)
-    public String defaultErrorHandler(HttpServletRequest req, Exception e) {
-        log.error("---BaseException Handler---Host {} invokes url {} ERROR: ", req.getRemoteHost(), req.getRequestURL(), e);
-        CarClueResponse res = new CarClueResponse()
-                .setCode(CarClueRepEnum.FAIL.getCode())
-                .setMessage("内部错误");
-        return JSON.toJSONString(res);
-    }
-
     @Resource
     ICarClueService iCarClueService;
 
