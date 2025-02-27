@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.qifu;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,10 +18,12 @@ import com.br.marketing.entity.Log360aiExample;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.mapper.Log360aiMapper;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
+import com.br.marketing.service.Impl.qifu.valobj.QiFuSyncStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -31,9 +32,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,12 +99,12 @@ public class QiFuServiceImpl implements IQiFuService {
             }
             String insertLog = insertLogSql.toString().substring(0, insertLogSql.toString().length() - 1);
             log360aiMapper.batchSaveLog(insertLog);
-            drsCustomizeUploadDataMapper.updateSyncStatusByIds(tcId, ids, 1);
+            drsCustomizeUploadDataMapper.updateSyncStatusByIds(tcId, ids, QiFuSyncStatusEnum.SUCCESS.getValue());
             threadPool.submit(() -> {
                 try {
                     pushProcess(dataOfNeedClean);
                 } catch (Exception ex) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode(), ex.getMessage()), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), ex.getMessage()), ex);
                 }
             });
 
@@ -213,14 +212,14 @@ public class QiFuServiceImpl implements IQiFuService {
             //endregion
 
             if (StringUtils.isNotBlank(errorMsg.toString())) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
                         , "奇富360ai清洗数据异常[" + drsCustomizeUploadData.getId() + "]" + errorMsg.toString()));
                 return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
             }
 
             marketingPreUserDTO.setTaskId(taskId);
             marketingPreUserDTO.setRequestId(requestId);
-
+            Map<String, Map<String, String>> extendToMap = parseExtendToMap(extend);
             //region 遍历二级字段
             JSONArray dataList = jsonObject.getJSONArray("dataList");
             if (!ObjectUtils.isEmpty(dataList)) {
@@ -228,19 +227,13 @@ public class QiFuServiceImpl implements IQiFuService {
                     JSONObject reserField1 = new JSONObject();
                     extendKey.keySet().forEach(t -> reserField1.put(t, extendKey.get(t)));
                     JSONObject o1 = (JSONObject) o;
-                    MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg);
+                    MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg, extendToMap);
                     list.add(marketingPreUserDetailDTO);
                 }
                 if (StringUtils.isNotBlank(warnMsg.toString())) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
                             , "奇富360ai清洗数据异常字段告警[" + drsCustomizeUploadData.getId() + "]" + warnMsg.toString()));
                 }
-            }
-            //endregion
-            buildNewListDto(list, extend, warnMsg);
-            if (StringUtils.isNotBlank(warnMsg.toString())) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
-                        , "奇富360ai清洗数据异常字段告警[" + drsCustomizeUploadData.getId() + "]" + warnMsg.toString()));
             }
             marketingPreUserDTO.setDataItems(list);
 
@@ -252,7 +245,30 @@ public class QiFuServiceImpl implements IQiFuService {
     }
 
 
-    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg) {
+    public static Map<String, Map<String, String>> parseExtendToMap(String extend) {
+        if (extend == null || extend.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            List<Map<String, String>> list = objectMapper.readValue(extend, new TypeReference<List<Map<String, String>>>() {});
+
+            Map<String, Map<String, String>> resultMap = new HashMap<>();
+            for (Map<String, String> item : list) {
+                String serialNo = item.get("serialNo");
+                if (serialNo != null) {
+                    resultMap.put(serialNo, item);
+                }
+            }
+            return resultMap;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "extend解析错误"));
+            return Collections.emptyMap();
+        }
+    }
+
+    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg, Map<String, Map<String, String>> extendToMap) {
         MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
         for (String s : o1.keySet()) {
             switch (s) {
@@ -280,90 +296,75 @@ public class QiFuServiceImpl implements IQiFuService {
                     break;
             }
         }
+        buildNewListDto(marketingPreUserDetailDTO.getCustNum(), extendToMap, reserField1, warnMsg);
         marketingPreUserDetailDTO.setReserveField1(JSONArray.toJSONString(reserField1));
         return marketingPreUserDetailDTO;
     }
 
-    private void buildNewListDto(ArrayList<MarketingPreUserDetailDTO> list, String extend, StringBuilder warnMsg) {
-        if (list == null || list.isEmpty() || extend == null || extend.isEmpty()) {
-            warnMsg.append("输入数据为空，请检查！");
+    public void buildNewListDto(String custNum, Map<String, Map<String, String>> extendToMap, JSONObject reserField1,
+                                StringBuilder warnMsg) {
+        if (custNum == null || custNum.isEmpty()) {
+            warnMsg.append("custNum 为空，请检查！\n");
             return;
         }
 
-        JSONArray extendArray;
-        try {
-            extendArray = JSONArray.parseArray(extend);
-        } catch (Exception e) {
-            warnMsg.append("extend 解析失败，请检查格式！");
+        if (extendToMap == null || extendToMap.isEmpty()) {
+            warnMsg.append("extendToMap 为空，请检查！\n");
             return;
         }
 
-        for (MarketingPreUserDetailDTO user : list) {
-            boolean isMatched = false;
-            String custNum = user.getCustNum();
-            String originalReserveField1 = user.getReserveField1();
-            JSONObject mergedObject = new JSONObject();
+        if (reserField1 == null) {
+            reserField1 = new JSONObject();
+        }
 
-            if (originalReserveField1 != null && !originalReserveField1.isEmpty()) {
-                try {
-                    mergedObject = JSONObject.parseObject(originalReserveField1);
-                } catch (Exception e) {
-                    warnMsg.append("reserveField1 解析失败: ").append(originalReserveField1).append(";");
-                }
-            }
+        Map<String, String> extendData = extendToMap.get(custNum);
 
-            for (int i = 0; i < extendArray.size(); i++) {
-                JSONObject extendObj = extendArray.getJSONObject(i);
-                String serialNo = extendObj.getString("serialNo");
+        if (extendData == null) {
+            warnMsg.append("未找到匹配项: custNum=").append(custNum).append(";\n");
+            return;
+        }
 
-                if (custNum != null && custNum.equals(serialNo)) {
-                    for (String s : extendObj.keySet()) {
-                        switch (s) {
-                            case "increaseCustomer":
-                                mergedObject.put("increaseCustomer", mapYesNo(extendObj.getString(s)));
-                                break;
-                            case "temporaryIncrease":
-                                mergedObject.put("temporaryIncrease", mapYesNo(extendObj.getString(s)));
-                                break;
-                            case "rTotalAvailableAmt":
-                                mergedObject.put("rTotalAvailableAmt", mapNumberToRange(extendObj.getString(s)));
-                                break;
-                            case "rTaLastAdjustmentAmount":
-                                mergedObject.put("rTaLastAdjustmentAmount", mapNumberToRange(extendObj.getString(s)));
-                                break;
-                            case "rTaTemporaryAmountExpireDate":
-                                mergedObject.put("rTaTemporaryAmountExpireDate", mapDateString(extendObj.getString(s)));
-                                break;
-                            default:
-                                break;
-                        }
-                        String highAmountys = mergedObject.getString("highAmountys");
-                        String lowAmountys = mergedObject.getString("lowAmountys");
-                        String rTotalAvailableAmt = mergedObject.getString("rTotalAvailableAmt");
-                        String rTaTemporaryAmountExpireDate = mergedObject.getString("rTaTemporaryAmountExpireDate");
-                        String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
-                        String newLowAmountys = getAmount(null, lowAmountys, rTotalAvailableAmt);
-                        String changeAmountys = calculateDifference(newHighAmountys, newLowAmountys);
-                        String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
-                        String changeIncrease = calculateIncreaseRate(highAmountys, lowAmountys);
-                        mergedObject.put("highAmountys", newHighAmountys);
-                        mergedObject.put("highAmountys", newLowAmountys);
-                        mergedObject.put("changeAmountys", changeAmountys);
-                        mergedObject.put("remainDayys", remainDayys);
-                        mergedObject.put("changeIncrease", changeIncrease);
-                    }
-                    isMatched = true;
-                }
-            }
-
-            if (isMatched) {
-                user.setReserveField1(mergedObject.toJSONString());
-            } else {
-                warnMsg.append("未找到匹配项: custNum=").append(custNum).append(";");
+        for (String key : extendData.keySet()) {
+            String value = extendData.get(key);
+            switch (key) {
+                case "increaseCustomer":
+                    reserField1.put("increaseCustomer", mapYesNo(value));
+                    break;
+                case "temporaryIncrease":
+                    reserField1.put("temporaryIncrease", mapYesNo(value));
+                    break;
+                case "rTotalAvailableAmt":
+                    reserField1.put("rTotalAvailableAmt", mapNumberToRange(value));
+                    break;
+                case "rTaLastAdjustmentAmount":
+                    reserField1.put("rTaLastAdjustmentAmount", mapNumberToRange(value));
+                    break;
+                case "rTaTemporaryAmountExpireDate":
+                    reserField1.put("rTaTemporaryAmountExpireDate", mapDateString(value));
+                    break;
+                default:
+                    break;
             }
         }
+
+        String highAmountys = "highAmountys";
+        String lowAmountys = "lowAmountys";
+        String rTotalAvailableAmt = reserField1.getString("rTotalAvailableAmt");
+        String rTaTemporaryAmountExpireDate = reserField1.getString("rTaTemporaryAmountExpireDate");
+
+        // 计算新的字段值
+        String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
+        String newLowAmountys = getAmount(null, lowAmountys, rTotalAvailableAmt);
+        String changeAmountys = calculateDifference(newHighAmountys, newLowAmountys);
+        String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
+        String changeIncrease = calculateIncreaseRate(highAmountys, lowAmountys);
+
+        reserField1.put("highAmount_derived", newHighAmountys);
+        reserField1.put("lowAmount_derived", newLowAmountys);
+        reserField1.put("changeAmount_derived", changeAmountys);
+        reserField1.put("remainDayys_derived", remainDayys);
+        reserField1.put("changeIncrease_derived", changeIncrease);
     }
-
 
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
         if (jo == null || ObjectUtils.isEmpty(jo.getString(key))) {
@@ -382,7 +383,8 @@ public class QiFuServiceImpl implements IQiFuService {
                 try {
                     Thread.sleep(3000L);
                 } catch (InterruptedException e) {
-                    log.error(e.getMessage(), e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                            e.getMessage()), e);
                     Thread.currentThread().interrupt();
                 }
             }
@@ -511,6 +513,7 @@ public class QiFuServiceImpl implements IQiFuService {
             LocalDate expireDate = LocalDate.parse(rTaTemporaryAmountExpireDate, formatter).withYear(today.getYear());
 
             if (expireDate.isBefore(today)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度到期日期小于今天！"));
                 expireDate = expireDate.plusYears(1);
             }
 
