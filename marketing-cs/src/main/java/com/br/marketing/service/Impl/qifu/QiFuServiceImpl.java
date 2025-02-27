@@ -444,7 +444,7 @@ public class QiFuServiceImpl implements IQiFuService {
         }
     }
 
-    private static final Pattern DATE_PATTERN = Pattern.compile("^(\\d{1,2})月(\\d{1,2})日$");
+    private static final Pattern DATE_PATTERN = Pattern.compile("^(\\d{2})-(\\d{2})$");
 
     public String mapDateString(String input) {
         if (input == null || input.isEmpty()) {
@@ -504,16 +504,16 @@ public class QiFuServiceImpl implements IQiFuService {
     }
 
     public String calculateDaysDifference(String rTaTemporaryAmountExpireDate) {
-
         if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate)) {
-            return "noLimit";
+            return rTaTemporaryAmountExpireDate;
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM月dd日");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
 
         try {
             LocalDate today = LocalDate.now();
-            LocalDate expireDate = LocalDate.parse(rTaTemporaryAmountExpireDate, formatter).withYear(today.getYear());
+            LocalDate expireDate = LocalDate.parse(rTaTemporaryAmountExpireDate, formatter)
+                    .withYear(today.getYear());
 
             if (expireDate.isBefore(today)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度到期日期小于今天！"));
