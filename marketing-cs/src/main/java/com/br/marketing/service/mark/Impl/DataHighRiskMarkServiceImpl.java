@@ -204,10 +204,47 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         log.warn("pp高风险打标job-es数据处理，耗时：{}s", (afterProcessData - afterEs) / 1000);
         //2.打标
         //遍历每一条待打标数据
-        for (FlagDataCarryLogCell flagDataCarryLogCell : flagDataCarryLogCells) {
+//        for (FlagDataCarryLogCell flagDataCarryLogCell : flagDataCarryLogCells) {
+//            FlagData flagData = new FlagData();
+//            flagData.setId(flagDataCarryLogCell.getId());
+//            Class<FlagData> flagDataClass = FlagData.class;
+//            //对于一条打标数据，es返回的跑分分值
+//            Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
+//            //将客群标志加到condition中
+//            scoreMap.put("flag_riskgroup", flagDataCarryLogCell.getFlagRiskgroup());
+//            //遍历Map<data属性名, 配置list>
+//            for (String markOutField : markCOnfigsGroupMap.keySet()) {
+//                List<DataMarkConfig> dataMarkConfigs = markCOnfigsGroupMap.get(markOutField);
+//                //目前标记字段类型都是整形，后续有其他类型标记，代码需要修改
+//                Integer markOutValue = null;
+//                //遍历配置List，理论上最后一条是默认值
+//                for (DataMarkConfig dataMarkConfig : dataMarkConfigs) {
+//                    if (dataMarkConfig.getMarkOutValueType() == 1
+//                            || dataMarkCommonService.isMatch(scoreMap, dataMarkConfig.getMarkCondition())) {
+//                        markOutValue = Integer.parseInt(dataMarkConfig.getMarkOutValue());
+//                        break;
+//                    }
+//                }
+//                Field declaredField = flagDataClass.getDeclaredField(markOutField);
+//                declaredField.setAccessible(true);
+//                //给flagData的属性declaredField赋值markOutValue
+//                declaredField.set(flagData, markOutValue);
+//            }
+//            flagData.setFlagHighRiskComputation(1);
+//            flagData.setFlagWhitelistComputation(1);
+//            flagDataMapper.updateByPrimaryKeySelective(flagData);
+//        }
+        Map<String, Field> fieldCache = new HashMap<>();
+        for (String markOutField : markCOnfigsGroupMap.keySet()) {
+            Field declaredField = FlagData.class.getDeclaredField(markOutField);
+            declaredField.setAccessible(true);
+            fieldCache.put(markOutField, declaredField);
+        }
+        //2.打标
+        //遍历每一条待打标数据
+        flagDataCarryLogCells.parallelStream().forEach(flagDataCarryLogCell -> {
             FlagData flagData = new FlagData();
             flagData.setId(flagDataCarryLogCell.getId());
-            Class<FlagData> flagDataClass = FlagData.class;
             //对于一条打标数据，es返回的跑分分值
             Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
             //将客群标志加到condition中
@@ -215,7 +252,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             //遍历Map<data属性名, 配置list>
             for (String markOutField : markCOnfigsGroupMap.keySet()) {
                 List<DataMarkConfig> dataMarkConfigs = markCOnfigsGroupMap.get(markOutField);
-                //todo 目前标记字段类型都是整形，后续有其他类型标记，代码需要修改
+                //目前标记字段类型都是整形，后续有其他类型标记，代码需要修改
                 Integer markOutValue = null;
                 //遍历配置List，理论上最后一条是默认值
                 for (DataMarkConfig dataMarkConfig : dataMarkConfigs) {
@@ -225,15 +262,21 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                         break;
                     }
                 }
-                Field declaredField = flagDataClass.getDeclaredField(markOutField);
+                // 从缓存中获取 Field 对象
+                Field declaredField = fieldCache.get(markOutField);
                 declaredField.setAccessible(true);
                 //给flagData的属性declaredField赋值markOutValue
-                declaredField.set(flagData, markOutValue);
+                try {
+                    declaredField.set(flagData, markOutValue);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
             }
             flagData.setFlagHighRiskComputation(1);
             flagData.setFlagWhitelistComputation(1);
             flagDataMapper.updateByPrimaryKeySelective(flagData);
-        }
+
+        });
         long afterMark = System.currentTimeMillis();
         log.warn("pp高风险打标job-数据打标，耗时：{}s", (afterMark - afterProcessData) / 1000);
     }
