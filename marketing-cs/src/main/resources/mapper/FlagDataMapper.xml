@@ -85,27 +85,24 @@
         <choose>
             <when test="encType == 'cell_md5'">
                 SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
-                <if test="extend != null" >
-                    ,is_delete = 1, extend = #{extend}
-                </if>
                 WHERE cell_md5 = #{cellMd5}
             </when>
             <when test="encType == 'cell_sha256'">
                 SET cell_md5 = #{cellMd5}, cell_log = #{cellLog}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
-                <if test="extend != null" >
-                    ,is_delete = 1, extend = #{extend}
-                </if>
                 WHERE cell_sha256 = #{cellSha256}
             </when>
             <when test="encType == 'cell_log'">
                 SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
-                <if test="extend != null" >
-                    ,is_delete = 1, extend = #{extend}
-                </if>
                 WHERE cell_log = #{cellLog}
             </when>
         </choose>
         and api_code = #{apiCode} and date(create_time) = date(now()) and applet_date  is null
+    </update>
+
+    <update id="updateWhenDecodeFail">
+        UPDATE b_marketing_flag_data
+        set is_delete = 1, extend = #{extend}
+        where api_code = #{apiCode} and cust_num = #{custNum} and date(create_time) = date(now()) and applet_date is null
     </update>
 
     <update id="batchUpdateEsStatusById">
@@ -253,6 +250,7 @@
             #{id}
         </foreach>
     </update>
+
 
     <select id="queryCellListComputation"  resultType="com.br.marketing.entity.FlagData">
         select id,cell_md5,cell_log,cell_sha256
