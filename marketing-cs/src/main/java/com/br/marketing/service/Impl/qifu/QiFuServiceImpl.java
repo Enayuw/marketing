@@ -268,7 +268,8 @@ public class QiFuServiceImpl implements IQiFuService {
         }
     }
 
-    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg, Map<String, Map<String, String>> extendToMap) {
+    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg,
+                                                   Map<String, Map<String, String>> extendToMap) {
         MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
         for (String s : o1.keySet()) {
             switch (s) {
@@ -324,8 +325,10 @@ public class QiFuServiceImpl implements IQiFuService {
             return;
         }
 
-        for (String key : extendData.keySet()) {
-            String value = extendData.get(key);
+        for (Map.Entry<String, String> entry : extendData.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue() != null ? entry.getValue() : "";
+
             switch (key) {
                 case "increaseCustomer":
                     reserField1.put("increaseCustomer", mapYesNo(value));
@@ -434,12 +437,14 @@ public class QiFuServiceImpl implements IQiFuService {
 
             int lowerBound = (num - 1) * 1000;
             int upperBound = num * 1000;
-            return num == 1001 ? lowerBound + "+" : "[" + lowerBound + " - " + upperBound + ")";
+            return (num == 1001) ? (lowerBound + "+") : ("[" + lowerBound + " - " + upperBound + ")");
 
         } catch (NumberFormatException e) {
             return "";
         }
     }
+
+    private static final Pattern DATE_PATTERN = Pattern.compile("^(\\d{1,2})月(\\d{1,2})日$");
 
     public String mapDateString(String input) {
         if (input == null || input.isEmpty()) {
@@ -450,9 +455,7 @@ public class QiFuServiceImpl implements IQiFuService {
             return "noLimit";
         }
 
-        Pattern pattern = Pattern.compile("^(\\d{1,2})月(\\d{1,2})日$");
-        Matcher matcher = pattern.matcher(input);
-
+        Matcher matcher = DATE_PATTERN.matcher(input);
         if (matcher.matches()) {
             return input;
         }
