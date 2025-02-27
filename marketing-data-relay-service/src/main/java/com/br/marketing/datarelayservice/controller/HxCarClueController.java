@@ -21,7 +21,7 @@ public class HxCarClueController {
     public String defaultErrorHandler(HttpServletRequest req, Exception e) {
         log.error("---BaseException Handler---Host {} invokes url {} ERROR: ", req.getRemoteHost(), req.getRequestURL(), e);
         CarClueResponse res = new CarClueResponse()
-                .setResultCode(CarClueRepEnum.FAIL.getCode())
+                .setCode(CarClueRepEnum.FAIL.getCode())
                 .setMessage("内部错误");
         return JSON.toJSONString(res);
     }
@@ -36,7 +36,7 @@ public class HxCarClueController {
             return CarClueResponse.fromResult(result);
         } catch (Exception ex) {
             log.error(String.format("请求信息：%s;异常信息：%s", JSON.toJSONString(reqDTO), ex.getMessage()), ex);
-            return new CarClueResponse().setResultCode(0).setMessage("内部异常请稍后在试");
+            return new CarClueResponse().setCode(0).setMessage("内部异常请稍后在试");
         }
     }
 }
