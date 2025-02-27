@@ -1,6 +1,5 @@
 package com.br.marketing.service.mark.Impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -126,7 +125,6 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 dataMarkCommonService.threadPoolShutDown(threadPool, "pp停车高风险&白名单打标");
                 break;
             }
-
         }
     }
 
@@ -173,21 +171,14 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @date 2025/2/21 16:00
      **/
     private void markForThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataCarryLogCells,
-                               Map<String, List<DataMarkConfig>> markCOnfigsGroupMap, Map<String, Field> fieldCache) throws Exception {
+                               Map<String, List<DataMarkConfig>> markCOnfigsGroupMap, Map<String, Field> fieldCache){
         List<String> cellLogs = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getCellLog).collect(Collectors.toList())
                 .stream().distinct().collect(Collectors.toList());
         //1.查询es
-        List<MarketingHistory> marketingHistories;
-        Map<String, Object> markEsMockConfig = marketingCommonConfig.getDataMarkEsMockConfig();
         long start = System.currentTimeMillis();
-        if ((Boolean) markEsMockConfig.get("isMock")) {
-            List<JSONObject> jsonList = (List<JSONObject>) markEsMockConfig.get("marketingHistories");
-            marketingHistories = jsonList.stream().map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingHistory.class))
-                    .collect(Collectors.toList());
-        } else {
-            marketingHistories =
-                    dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(), straHisFile.getId(), cellLogs, esPageSize, false);
-        }
+        List<MarketingHistory> marketingHistories =
+                    dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(),
+                            straHisFile.getId(), cellLogs, esPageSize, false);
         long afterEs = System.currentTimeMillis();
         log.warn("pp高风险打标job-查询es，耗时：{}s", (afterEs - start) / 1000);
         if (CollectionUtils.isEmpty(marketingHistories)){
@@ -196,9 +187,6 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             List<Long> ids = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
             flagDataMapper.batchUpdateHighRiskStatusByIds(ids, null, null);
             return;
-        }
-        if (marketingHistories.size() != cellLogs.size()) {
-            log.warn("pp停车高风险&白名单打标子线程es返回数据条数与待打标数据条数不符！");
         }
         //把数据处理成Map<cell, List<MarketingCondition>>
         Map<String, List<MarketingCondition>> conditionMapOri =
@@ -237,7 +225,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                         break;
                     }
                 }
-                // 从缓存中获取 Field 对象
+                // 从缓存中获取Field 对象
                 Field declaredField = fieldCache.get(markOutField);
                 declaredField.setAccessible(true);
                 //给flagData的属性declaredField赋值markOutValue
@@ -250,7 +238,6 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             flagData.setFlagHighRiskComputation(1);
             flagData.setFlagWhitelistComputation(1);
             flagDataMapper.updateByPrimaryKeySelective(flagData);
-
         });
         long afterMark = System.currentTimeMillis();
         log.warn("pp高风险打标job-数据打标，耗时：{}s", (afterMark - afterProcessData) / 1000);
