@@ -2,6 +2,8 @@ package com.br.marketing.dto.mark;
 
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * @ClassName FlagDataEsMark
  * @Author kongbx
@@ -13,7 +15,7 @@ public class FlagDataEsMark {
     private Long id;
     private String cellLog;
 
-    private String dtWhitelist;
+    private Date dtWhitelist;
     private Integer flagNewCust;
 
     private String flagRiskgroup;

@@ -7,6 +7,7 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.file.ZipUtil;
+import com.br.marketing.dto.mark.FlagDataWriteBackFileMark;
 import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.FlagDataExample;
 import com.br.marketing.entity.StraHisFile;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -60,16 +62,22 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     @Resource
     FlagDataMapper flagDataMapper;
     private static final String TITLE = "【pp停车文件数据回写】";
-
     @Override
     public void process(String scoreDate) {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
             if (checkEsStatus(apiCode)) {
+                StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode, scoreDate);;
+                if (null == straHisFile) {
+                    log.warn(TITLE + "查询跑分文件未空，apiCode:"+apiCode,"日期："+scoreDate);
+                    return;
+                }
+                String batchNumber = straHisFile.getBatchNumber();
                 String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
                 String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
                 String fileName = "pp_" + apiCode + "_" + syncDate + ".txt";
+
                 // 同步数据写入doris
-                syncData(apiCode, descPath, fileName, scoreDate);
+                syncData(apiCode, descPath, fileName, batchNumber);
                 // 推送文件至SFTP
                 pushFileSftp(apiCode, descPath, fileName);
             }
@@ -101,13 +109,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     /**
      * 同步数据写入doris
      */
-    private void syncData(String apiCode, String descPath, String fileName, String scoreDate) {
-
-        StraHisFile straHisFile = dataMarkCommonService.getStraHisFile(apiCode, scoreDate);;
-        if (null == straHisFile) {
-            return;
-        }
-        String batchNumber = straHisFile.getBatchNumber();
+    private void syncData(String apiCode, String descPath, String fileName, String batchNumber) {
         Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
         int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataMarkPageSize();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
@@ -148,13 +150,13 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     private void writeBackFileMark(List<FlagData> flagDataList, String batchNumber,
                                    String descPath, String fileName) {
         // 写入doris
-        List<Map<String, Object>> dataList = insertMarkData(flagDataList, batchNumber);
+        List<FlagDataWriteBackFileMark> dataList = insertMarkData(flagDataList, batchNumber);
         // 写入文件
         writeDataToFile(dataList, descPath, fileName);
     }
 
-    private List<Map<String, Object>> insertMarkData(List<FlagData> flagDataList, String batchNumber) {
-        List<Map<String, Object>> flagDataResult = new ArrayList<>();
+    private List<FlagDataWriteBackFileMark> insertMarkData(List<FlagData> flagDataList, String batchNumber) {
+        List<FlagDataWriteBackFileMark> flagDataResult = new ArrayList<>();
         try {
             List<String> cellMd5List = flagDataList.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
 
@@ -168,38 +170,33 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             String scoreSql = "select * from b_score_".concat(batchNumber).concat(" where cell in(").concat(cell).concat(")");
             flagDataResult = flagDataMapper.queryDataByCellbI_(scoreSql);
 
-            flagDataResult.forEach((Map<String, Object> resultMap) -> {
-                FlagData flagData = groupByCellMd5.get(resultMap.get("cell"));
-                resultMap.put("dt_whitelist", flagData.getDtWhitelist());
-                resultMap.put("flag_new_cust", flagData.getFlagNewCust());
-                resultMap.put("flag_riskgroup", flagData.getFlagRiskgroup());
-                resultMap.put("flag_interest", flagData.getFlagInterest());
-                resultMap.put("flag_age", flagData.getFlagAge());
-                resultMap.put("flag_province", flagData.getFlagProvince());
-                resultMap.put("flag_special_small", flagData.getFlagSpecialSmall());
-                resultMap.put("flag_specialrisklevel_rule", flagData.getFlagSpecialrisklevelRule());
-                resultMap.put("flag_applyloan", flagData.getFlagApplyloan());
-                resultMap.put("flag_scoreysbase", flagData.getFlagScoreysbase());
-                resultMap.put("flag_scorefxsbbaseb", flagData.getFlagScorefxsbbaseb());
-                resultMap.put("flag_scorescashonregisternologin", flagData.getFlagScorescashonregisternologin());
-                resultMap.put("flag_scorescashonyxxy", flagData.getFlagScorescashonyxxy());
-                resultMap.put("flag_scorencashonzawswyyym", flagData.getFlagScorencashonzawswyyym());
-                resultMap.put("flag_intellaudio_blacklist", flagData.getFlagIntellaudioBlacklist());
-                resultMap.put("flag_without_willingness", flagData.getFlagWithoutWillingness());
-                resultMap.put("flag_whitelist", flagData.getFlagWhitelist());
-            });
-            List<String> columnNames = new ArrayList<>(flagDataResult.get(0).keySet());
-            // 构建批量插入语句
-            List<String> valueClauses = flagDataResult.stream()
-                    .map(resultMap -> "(" + columnNames.stream()
-                            .map(columnName -> resultMap.get(columnName) != null ? "'" + resultMap.get(columnName).toString().replace("'", "''") + "'" : "NULL")
-                            .collect(Collectors.joining(", ")) + ")")
-                    .collect(Collectors.toList());
+            flagDataResult.forEach((FlagDataWriteBackFileMark fileMark) -> {
+                FlagData flagData = groupByCellMd5.get(fileMark.getCell());
+                if(flagData.getFlagNewCust() != null){
+                    String format = new SimpleDateFormat("yyyy-MM-dd").format(flagData.getDtWhitelist());
+                    fileMark.setDtWhitelist(format);
+                }else {
+                    fileMark.setDtWhitelist(null);
+                }
+                fileMark.setFlagNewCust(flagData.getFlagNewCust());
+                fileMark.setFlagRiskgroup(flagData.getFlagRiskgroup());
+                fileMark.setFlagInterest(flagData.getFlagInterest());
+                fileMark.setFlagAge(flagData.getFlagAge());
+                fileMark.setFlagProvince(flagData.getFlagProvince());
+                fileMark.setFlagSpecialSmall(flagData.getFlagSpecialSmall());
+                fileMark.setFlagSpecialrisklevelRule(flagData.getFlagSpecialrisklevelRule());
+                fileMark.setFlagApplyloan(flagData.getFlagApplyloan());
+                fileMark.setFlagScoreysbase(flagData.getFlagScoreysbase());
+                fileMark.setFlagScorefxsbbaseb(flagData.getFlagScorefxsbbaseb());
+                fileMark.setFlagScorescashonregisternologin(flagData.getFlagScorescashonregisternologin());
+                fileMark.setFlagScorescashonyxxy(flagData.getFlagScorescashonyxxy());
+                fileMark.setFlagScorencashonzawswyyym(flagData.getFlagScorencashonzawswyyym());
+                fileMark.setFlagIntellaudioBlacklist(flagData.getFlagIntellaudioBlacklist());
+                fileMark.setFlagWithoutWillingness(flagData.getFlagWithoutWillingness());
+                fileMark.setFlagWhitelist(flagData.getFlagWhitelist());
 
-            String tableName = marketingCommonConfig.getDataMarkTableName();
-            String batchInsertSql = "INSERT INTO " + tableName.replace("\"", "") + " (" + String.join(", ", columnNames) + ") VALUES " + String.join(", ", valueClauses);
-            // 写入doris
-            flagDataMapper.insertbI_(batchInsertSql);
+            });
+            flagDataMapper.batchInsertFlagDatabI_(flagDataResult);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                     TITLE + "出现异常，" + "errorMessage=" + e.getMessage()), e);
@@ -207,41 +204,80 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         return flagDataResult;
     }
 
-    private void writeDataToFile(List<Map<String, Object>> dataList, String descPath, String fileName) {
+
+
+    private void writeDataToFile(List<FlagDataWriteBackFileMark> dataList, String descPath, String fileName) {
         if (CollectionUtil.isEmpty(dataList)) {
             return;
         }
+
         String fileAllPath = descPath.concat(fileName);
         File file = new File(descPath);
         if (!file.exists()) {
             file.mkdirs();
         }
+
         File decodeFile = new File(fileAllPath);
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(decodeFile, true), StandardCharsets.UTF_8))) {
-            // 判断是否添加文件头
-            checkHeaderExists(fileAllPath, dataList, writer);
-            // 写入每行数据
-            for (Map<String, Object> resultMap : dataList) {
-                // 将Map的值转换为一个List<String>，同时处理null值
-                List<String> values = resultMap.values().stream()
-                        .map(v -> v != null ? v.toString() : "")
-                        .collect(Collectors.toList());
+            // 动态生成表头
+            String fileHeader = generateHeader();
+            // 检查文件是否为空，如果为空则写入表头
+            checkHeaderExists(fileAllPath, writer, fileHeader);
 
+            // 写入数据行
+            for (FlagDataWriteBackFileMark data : dataList) {
+                List<String> values = new ArrayList<>();
+                for (Field field : getOrderedFields()) {
+                    try {
+                        // 获取字段值
+                        field.setAccessible(true); // 确保可以访问私有字段
+                        Object value = field.get(data);
+                        values.add(value != null ? value.toString() : "");
+                    } catch (Exception e) {
+                        values.add("");
+                    }
+                }
                 String row = String.join(",", values);
-                // 写入数据行
                 writer.append(row).append(System.lineSeparator());
             }
+
         } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "写入文件时发生异常"), e);
         }
     }
 
-    private void checkHeaderExists(String filePath, List<Map<String, Object>> dataList, Writer writer) throws IOException {
+    /**
+     * 根据 FlagDataWriteBackFileMark 类的字段顺序动态生成表头。
+     */
+    private String generateHeader() {
+        List<String> headers = new ArrayList<>();
+        for (Field field : getOrderedFields()) {
+            // 将字段名转换为下划线命名（如 requestTime -> request_time）
+            String fieldName = field.getName();
+            fieldName = fieldName.replaceAll("([A-Z])", "_$1").toLowerCase();
+            headers.add(fieldName);
+        }
+        return String.join(",", headers);
+    }
+
+    /**
+     * 获取 FlagDataWriteBackFileMark 类中所有字段，并按定义顺序返回。
+     */
+    private List<Field> getOrderedFields() {
+        // 获取类中的所有字段
+        Field[] fields = FlagDataWriteBackFileMark.class.getDeclaredFields();
+        // 按字段定义顺序返回
+        return Arrays.asList(fields);
+    }
+
+    /**
+     * 检查文件是否为空，如果为空则写入表头。
+     */
+    private void checkHeaderExists(String filePath, Writer writer, String fileHeader) throws IOException {
         File file = new File(filePath);
         if (file.length() == 0) {
-            List<String> columnNames = new ArrayList<>(dataList.get(0).keySet());
-            String fileHeader = String.join(",", columnNames);
+            log.warn(TITLE + "表头行数：" + fileHeader.split(",").length);
             writer.append(fileHeader).append(System.lineSeparator());
         }
     }

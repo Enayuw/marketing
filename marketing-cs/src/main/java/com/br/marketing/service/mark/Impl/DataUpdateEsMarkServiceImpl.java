@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -178,7 +179,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             String value = "";
             switch (fieldKey.trim()) {
                 case "dt_whitelist":
-                    value = flagData.getDtWhitelist()== null?"": flagData.getDtWhitelist();
+                    value = flagData.getDtWhitelist()== null?"": new SimpleDateFormat("yyyy-MM-dd").format(flagData.getDtWhitelist());
                     break;
                 case "flag_new_cust":
                     value = flagData.getFlagNewCust()== null?"":String.valueOf(flagData.getFlagNewCust());

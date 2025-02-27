@@ -3,17 +3,16 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.mark.FlagDataCarryLogCell;
 import com.br.marketing.dto.mark.FlagDataEsMark;
+import com.br.marketing.dto.mark.FlagDataWriteBackFileMark;
 import com.br.marketing.entity.FlagData;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Map;
+
 
 public interface FlagDataMapper extends FlagDataMapperBase {
 
-    List<Map<String, Object>> queryDataByCellbI_(@Param("querySql") String querySql);
-
-    void insertbI_(@Param("querySql") String querySql);
+    List<FlagDataWriteBackFileMark> queryDataByCellbI_(@Param("querySql") String querySql);
 
     int updateTaskIdByLocalId(@Param("localId") Long localId, @Param("taskId") Long taskId);
 
@@ -83,4 +82,6 @@ public interface FlagDataMapper extends FlagDataMapperBase {
     List<FlagDataEsMark> queryEsMarkByDate(@Param("apiCode") String apiCode,
                                            @Param("date") String date,
                                            @Param("pageSize") Integer pageSize);
+
+    void batchInsertFlagDatabI_(@Param("list") List<FlagDataWriteBackFileMark> list);
 }
