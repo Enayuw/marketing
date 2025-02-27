@@ -499,9 +499,9 @@ public class QiFuClients {
     public Result<ResponseData<QryCallRealTimeResp>> qryCallRealTimeUrl(QryCallRealTimeReq bizData) {
         Result<ResponseData<QryCallRealTimeResp>> resultResp = new Result<>();
         // 奇富侧公钥
-        String qiFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
+        String qiAIFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
         // 百融侧私钥
-        String brPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
+        String brAIPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
         try {
             // 调用奇富查询用户接口
             Result<String> result = queryCallRealTime(bizData);
@@ -519,7 +519,7 @@ public class QiFuClients {
                     // 成功
                     case GWS100:
                         // 解密业务数据
-                        responseData.decryptData(qiFuPublicKey, brPrivateKey
+                        responseData.decryptData(qiAIFuPublicKey, brAIPrivateKey
                                 , new TypeReference<QryCallRealTimeResp>() {
                                 });
                         resultResp.setCode(ResultCode.SUCCESS.getValue());
@@ -546,12 +546,12 @@ public class QiFuClients {
     private Result<String> queryCallRealTime(QryCallRealTimeReq bizData) {
         Result<String> result = new Result<>();
         // 奇富侧公钥
-        String qiFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
+        String qiAIFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
         // 百融侧私钥
-        String brPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
+        String brAIPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
         // appId配置
-        String appId = marketingCommonConfig.getQiFuAIServerConfig().getString("appId");
-        RequestParam requestParam = new RequestParam(appId, bizData, qiFuPublicKey, brPrivateKey);
+        String appAIId = marketingCommonConfig.getQiFuAIServerConfig().getString("appId");
+        RequestParam requestParam = new RequestParam(appAIId, bizData, qiAIFuPublicKey, brAIPrivateKey);
         try {
             long start = System.currentTimeMillis();
             Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, qryCallRealTimeUrl, isProxy,

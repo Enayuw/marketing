@@ -26,5 +26,6 @@ public interface DrsCustomizeUploadDataMapper {
             List<String> receiveDates, @Param("pageSize") Integer pageSize, @Param("indexId") Long indexId);
 
 
-    void updateExtendAndStatusById(@Param("tCid") String tCid, @Param("id") Long id,@Param("syncStatus") int syncStatus, @Param("extend") String extend);
+    void updateExtendAndStatusById(@Param("tCid") String tCid, @Param("id") Long id,@Param("syncStatus") int syncStatus, @Param("extend") String
+            extend);
 }

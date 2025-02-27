@@ -16,6 +16,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
+import com.br.marketing.service.Impl.qifu.valobj.QiFuSyncStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +70,7 @@ public class QiFuAIServiceImpl implements QiFuAIService {
         } else {
             receiveDates.add(dataTimeMark);
         }
-        Integer pageSize = Integer.valueOf(getValueOfJson(qifuAiCleanConfig, "pageSize", "10"));
+        Integer pageSize = Integer.valueOf(getValueOfJson(qifuAiCleanConfig, "queryCallPageSize", "10"));
         Integer threadNum = Integer.valueOf(getValueOfJson(qifuAiCleanConfig, "queryCallThreadNum", "1"));
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum, "qiAiQueryCallMsg", 200);
         Boolean actionMark = Boolean.TRUE;
@@ -81,7 +82,8 @@ public class QiFuAIServiceImpl implements QiFuAIService {
                 actionMark = Boolean.FALSE;
                 continue;
             }
-            List<DrsCustomizeUploadData> syncDataList = drsCustomizeUploadDataMapper.getDataOfToBeSync(tcId, apiCodes, receiveDates, pageSize, indexId);
+            List<DrsCustomizeUploadData> syncDataList = drsCustomizeUploadDataMapper.getDataOfToBeSync(tcId, apiCodes, receiveDates, pageSize,
+                    indexId);
             if (syncDataList.size() <= 0) {
                 actionMark = Boolean.FALSE;
                 continue;
@@ -129,7 +131,8 @@ public class QiFuAIServiceImpl implements QiFuAIService {
             detailList.addAll(callRealTimeDTOList);
         });
 
-        drsCustomizeUploadDataMapper.updateExtendAndStatusById(tcId, uploadData.getId(),1, JSON.toJSONString(detailList));
+        drsCustomizeUploadDataMapper.updateExtendAndStatusById(tcId, uploadData.getId(), QiFuSyncStatusEnum.QUERY_COMPLETE.getValue(),
+                JSON.toJSONString(detailList));
 
     }
 
@@ -148,14 +151,15 @@ public class QiFuAIServiceImpl implements QiFuAIService {
                 log.warn("360AI查询外呼信息 等待线程池结束");
             }
         } catch (InterruptedException e) {
-            threadPool.shutdownNow();
             log.error("360AI查询外呼信息 线程池关闭异常,直接关闭线程池", e);
+            threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 
     private Boolean dynamicAction(ThreadPoolExecutor executor) {
         JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
-        Boolean isPause = qifuAiCleanConfig.getBoolean("isPause");
+        Boolean isPause = qifuAiCleanConfig.getBoolean("queryCallisPause");
         if (isPause == null || isPause) {
             return Boolean.TRUE;
         }
