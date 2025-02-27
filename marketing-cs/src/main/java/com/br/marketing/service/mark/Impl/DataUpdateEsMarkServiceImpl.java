@@ -157,6 +157,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 try {
                     long start = System.currentTimeMillis();
                     for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
+                        long start1 = System.currentTimeMillis();
                         for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
                             MarketingHistory marketingHistory = entry.getValue();
                             List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
@@ -167,11 +168,11 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                             RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
                                     EsIceType.MARKETING.getCode());
                         }
-                        log.warn(TITLE + "更新一条ES耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+                        log.warn(TITLE + "更新一条ES耗时：{}s", (System.currentTimeMillis() - start1) / 1000);
                     }
+                    log.warn(TITLE + "一批次更新ES耗时：{}s", (System.currentTimeMillis() - start) / 1000+"，条数："+marketingHistoryMapList.size());
                     // 更新状态为 COMPLETE
                     updateEsStatus(ids, EsSyncStatusEnum.COMPLETE);
-                    log.warn(TITLE + "一批次更新ES耗时：{}s", (System.currentTimeMillis() - start) / 1000);
                 } catch (Exception e) {
                     log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             TITLE + "更新ES数据异常，errorMessage=" + e.getMessage()), e);
