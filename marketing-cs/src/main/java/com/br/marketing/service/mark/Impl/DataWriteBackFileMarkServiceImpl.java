@@ -95,7 +95,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         FlagDataExample flagDataExample = new FlagDataExample();
         flagDataExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andAppletDateEqualTo("2025-02-25")
+                .andAppletDateEqualTo(LocalDate.now().toString())
                 .andEsSyncStatusNotEqualTo(EsSyncStatusEnum.COMPLETE.getValue())
                 .andIsDeleteEqualTo(0);
         int i = flagDataMapper.countByExample(flagDataExample);
@@ -123,8 +123,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
                 FlagDataExample.Criteria criteria = flagDataExample.createCriteria()
                         .andApiCodeEqualTo(apiCode)
-                        //.andAppletDateEqualTo(LocalDate.now().toString())
-                        .andAppletDateEqualTo("2025-02-25")
+                        .andAppletDateEqualTo(LocalDate.now().toString())
                         .andEsSyncStatusEqualTo(EsSyncStatusEnum.COMPLETE.getValue());
                 if (minId != null) {
                     criteria.andIdGreaterThan(minId);

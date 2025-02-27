@@ -80,8 +80,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 String lockValue = UUID.randomUUID().toString();
                 try {
                     redisChgService.lock(key, lockValue);
-                    //List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, LocalDate.now().toString(), dataMarkPageSize);
-                    List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, "2025-02-25", dataMarkPageSize);
+                    List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, LocalDate.now().toString(), dataMarkPageSize);
                     if (CollectionUtil.isEmpty(flagDataEsMarkList)) {
                         redisChgService.unlock(key, lockValue);
                         threadPoolShutDown(threadPool);
