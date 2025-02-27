@@ -2628,6 +2628,11 @@ public class MarketingCommonConfig {
     private Integer dataMarkPageSize;
 
     /**
+     * 数据打标分页大小es专用
+     */
+    private Integer dataMarkForEsPageSize;
+
+    /**
      * 数据打标线程
      */
     private Integer dataMarkThreadNum;

@@ -1,7 +1,6 @@
 package com.br.marketing.service.mark.Impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -181,11 +180,12 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         if (CollectionUtils.isEmpty(marketingHistories)){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     "pp停车高风险&白名单打标子线程es未返回数据！"));
+            List<Long> ids = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
+            flagDataMapper.batchUpdateHighRiskStatusByIds(ids, null, null);
             return;
         }
         if (marketingHistories.size() != cellLogs.size()) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    "pp停车高风险&白名单打标子线程es返回数据条数与待打标数据条数不符！"));
+            log.warn("pp停车高风险&白名单打标子线程es返回数据条数与待打标数据条数不符！");
         }
         //把数据处理成Map<cell, List<MarketingCondition>>
         Map<String, List<MarketingCondition>> conditionMapOri =
@@ -195,21 +195,6 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         Map<String, Map<String, Object>> conditionMap = new HashMap<>();
         for (String cell : conditionMapOri.keySet()) {
             List<MarketingCondition> marketingConditions = conditionMapOri.get(cell);
-//            List<JSONObject> jsonList = marketingConditions.stream()
-//                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, JSONObject.class))
-//                    .collect(Collectors.toList());
-//            List<MarketingConditionVariant> marketingConditionVariants = jsonList.stream()
-//                    .map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingConditionVariant.class))
-//                    .collect(Collectors.toList());
-//            Map<String, Object> condition =
-//                    marketingConditionVariants.stream().collect(
-//                            Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
-//            List<MarketingConditionVariant> marketingConditionVariants = marketingConditions.stream()
-//                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, MarketingConditionVariant.class))
-//                    .collect(Collectors.toList());
-//            Map<String, Object> condition =
-//                    marketingConditionVariants.stream().collect(
-//                            Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
             Map<String, Object> condition = marketingConditions.parallelStream()
                     .map(marketingCondition -> objectMapper.convertValue(marketingCondition, MarketingConditionVariant.class))
                     .collect(Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
@@ -277,7 +262,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @date 2025/2/20 17:36
      **/
     private List<FlagDataCarryLogCell> getFlagData(String apiCode) {
-        Integer dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize();
+        Integer dataMarkPageSize = marketingCommonConfig.getDataMarkForEsPageSize();
         return flagDataMapper.queryLogCellByDate(
                 apiCode,
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
