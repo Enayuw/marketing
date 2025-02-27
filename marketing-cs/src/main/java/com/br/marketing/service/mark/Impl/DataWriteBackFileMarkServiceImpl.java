@@ -205,8 +205,6 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
         return flagDataResult;
     }
 
-
-
     private void writeDataToFile(List<FlagDataWriteBackFileMark> dataList, String descPath, String fileName) {
         if (CollectionUtil.isEmpty(dataList)) {
             return;
@@ -250,6 +248,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     /**
      * 根据 FlagDataWriteBackFileMark 类的字段顺序动态生成表头。
+     * 过滤掉 Jacoco 注入的字段。
      */
     private String generateHeader() {
         List<String> headers = new ArrayList<>();
@@ -264,12 +263,15 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
 
     /**
      * 获取 FlagDataWriteBackFileMark 类中所有字段，并按定义顺序返回。
+     * 过滤掉 Jacoco 注入的字段。
      */
     private List<Field> getOrderedFields() {
         // 获取类中的所有字段
         Field[] fields = FlagDataWriteBackFileMark.class.getDeclaredFields();
-        // 按字段定义顺序返回
-        return Arrays.asList(fields);
+        // 过滤掉 Jacoco 注入的字段
+        return Arrays.stream(fields)
+                .filter(field -> !field.getName().startsWith("$")) // 过滤掉以 $ 开头的字段
+                .collect(Collectors.toList());
     }
 
     /**
