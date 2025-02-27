@@ -75,6 +75,8 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
         jsonArray.add(cellCondition);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("data", jsonArray);
+        jsonObject.put("type", "logic");
+        jsonObject.put("logic", "and");
         queryBaseBean.setJsonData(jsonObject.toString());
         queryBaseBean.setPageSize(esPageSize);
         return marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
