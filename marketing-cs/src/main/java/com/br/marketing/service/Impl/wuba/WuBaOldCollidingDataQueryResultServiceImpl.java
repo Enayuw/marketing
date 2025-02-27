@@ -304,7 +304,8 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
 
         WubaOldCollidingDataBatchNoExample wubaOldCollidingDataBatchNoExample = new WubaOldCollidingDataBatchNoExample();
         wubaOldCollidingDataBatchNoExample.createCriteria().andIdEqualTo(batchId);
-        List<WubaOldCollidingDataBatchNo> wubaOldCollidingDataBatchNoList = wubaOldCollidingBatchNoMapper.selectByExample(wubaOldCollidingDataBatchNoExample);
+        List<WubaOldCollidingDataBatchNo> wubaOldCollidingDataBatchNoList =
+                wubaOldCollidingBatchNoMapper.selectByExample(wubaOldCollidingDataBatchNoExample);
         if (CollectionUtils.isEmpty(wubaOldCollidingDataBatchNoList)) {
             String title = "58老客撞库status=-1数据消费端，查询异常";
             String msg = "根据batchId查询数据为空";
