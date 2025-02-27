@@ -183,17 +183,21 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         }
         //把数据处理成Map<cell, List<MarketingCondition>>
         Map<String, List<MarketingCondition>> conditionMapOri =
-                marketingHistories.stream().collect(Collectors.toMap(MarketingHistory::getCell, MarketingHistory::getCondition, (o1, o2) -> o2));
+                marketingHistories.stream()
+                        .collect(Collectors.toMap(MarketingHistory::getCell, MarketingHistory::getCondition, (o1, o2) -> o2));
         //把List<MarketingCondition>处理成Map格式，方便spel表达式使用
         Map<String, Map<String, Object>> conditionMap = new HashMap<>();
         for (String cell : conditionMapOri.keySet()) {
             List<MarketingCondition> marketingConditions = conditionMapOri.get(cell);
-            List<JSONObject> jsonList = marketingConditions.stream().map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, JSONObject.class))
+            List<JSONObject> jsonList = marketingConditions.stream()
+                    .map(marketingCondition -> new ObjectMapper().convertValue(marketingCondition, JSONObject.class))
                     .collect(Collectors.toList());
-            List<MarketingConditionVariant> marketingConditionVariants = jsonList.stream().map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingConditionVariant.class))
+            List<MarketingConditionVariant> marketingConditionVariants = jsonList.stream()
+                    .map(jsonObject -> new ObjectMapper().convertValue(jsonObject, MarketingConditionVariant.class))
                     .collect(Collectors.toList());
             Map<String, Object> condition =
-                    marketingConditionVariants.stream().collect(Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
+                    marketingConditionVariants.stream().collect(
+                            Collectors.toMap(MarketingConditionVariant::getFieldKey, MarketingConditionVariant::doubleConvert, (o1, o2) -> o2));
             conditionMap.put(Sha256Util.getSHA256Encrypt(cell), condition);
         }
         //2.打标
