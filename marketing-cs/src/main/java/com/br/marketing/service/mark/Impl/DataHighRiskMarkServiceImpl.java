@@ -69,7 +69,12 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             //2.创建线程池
             ThreadPoolExecutor threadPool = dataMarkCommonService.getThreadPoolExecutor(true);
             //3.打标主流程
-            markProcess(apiCode, straHisFile, threadPool);
+            try {
+                markProcess(apiCode, straHisFile, threadPool);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                        "pp停车高风险&白名单打标流程出现异常，" + "errorMessage=" + e.getMessage()), e);
+            }
         });
     }
 
@@ -79,13 +84,19 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @param straHisFile
      * @param threadPool
      */
-    private void markProcess(String apiCode, StraHisFile straHisFile, ThreadPoolExecutor threadPool) {
+    private void markProcess(String apiCode, StraHisFile straHisFile, ThreadPoolExecutor threadPool) throws Exception {
         //获取打标配置[b_data_mark_config]
         List<DataMarkConfig> markConfigs = getMarkConfigs(apiCode);
         //按mark_out_value_type排序，按mark_out_field分组
         Map<String, List<DataMarkConfig>> markCOnfigsGroupMap =
                 markConfigs.stream().sorted(Comparator.comparing(DataMarkConfig::getMarkOutValueType)).collect(Collectors.toList())
                         .stream().collect(Collectors.groupingBy(DataMarkConfig::getMarkOutField));
+        Map<String, Field> fieldCache = new HashMap<>();
+        for (String markOutField : markCOnfigsGroupMap.keySet()) {
+            Field declaredField = FlagData.class.getDeclaredField(markOutField);
+            declaredField.setAccessible(true);
+            fieldCache.put(markOutField, declaredField);
+        }
         String key = RedisKeyConstant.prefix.concat(DataMarkEnum.MARK_HIGHRISK.getMarkRedisKey()).concat(":").concat(apiCode);
         List<Long> ids = new ArrayList<>();
         for (; ; ) {
@@ -106,7 +117,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
                 //4.释放锁
                 redisChgService.unlock(key, lockValue);
                 //5.数据拆分，打标
-                markWithThread(apiCode, straHisFile, flagDataList, markCOnfigsGroupMap, threadPool);
+                markWithThread(apiCode, straHisFile, flagDataList, markCOnfigsGroupMap, fieldCache, threadPool);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                         "pp停车高风险&白名单打标流程出现异常，" + "errorMessage=" + e.getMessage()), e);
@@ -124,6 +135,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @param straHisFile
      * @param flagDataList
      * @param markCOnfigsGroupMap
+     * @param fieldCache
      * @param threadPool
      * @return void
      * @description 通过线程拆分数据，打标
@@ -131,14 +143,14 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @date 2025/2/21 15:48
      **/
     private void markWithThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataList,
-                                Map<String, List<DataMarkConfig>> markCOnfigsGroupMap, ThreadPoolExecutor threadPool) {
+                                Map<String, List<DataMarkConfig>> markCOnfigsGroupMap, Map<String, Field> fieldCache, ThreadPoolExecutor threadPool) {
         dataMarkCommonService.modifyCorePoolSize(threadPool, true);
         List<List<FlagDataCarryLogCell>> partitions = Lists.partition(flagDataList, splitNum);
         partitions.forEach((List <FlagDataCarryLogCell> flagDataCarryLogCells) -> {
             threadPool.submit(() -> {
                 List<Long> ids = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getId).collect(Collectors.toList());
                 try {
-                    markForThread(apiCode, straHisFile, flagDataCarryLogCells, markCOnfigsGroupMap);
+                    markForThread(apiCode, straHisFile, flagDataCarryLogCells, markCOnfigsGroupMap, fieldCache);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             "pp停车高风险&白名单打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
@@ -154,13 +166,14 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
      * @param straHisFile
      * @param flagDataCarryLogCells
      * @param markCOnfigsGroupMap
+     * @param fieldCache
      * @return void
      * @description 在线程中对数据打标
      * @author hedongshuo
      * @date 2025/2/21 16:00
      **/
     private void markForThread(String apiCode, StraHisFile straHisFile, List<FlagDataCarryLogCell> flagDataCarryLogCells,
-                               Map<String, List<DataMarkConfig>> markCOnfigsGroupMap) throws Exception {
+                               Map<String, List<DataMarkConfig>> markCOnfigsGroupMap, Map<String, Field> fieldCache) throws Exception {
         List<String> cellLogs = flagDataCarryLogCells.stream().map(FlagDataCarryLogCell::getCellLog).collect(Collectors.toList())
                 .stream().distinct().collect(Collectors.toList());
         //1.查询es
@@ -202,44 +215,6 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         }
         long afterProcessData = System.currentTimeMillis();
         log.warn("pp高风险打标job-es数据处理，耗时：{}s", (afterProcessData - afterEs) / 1000);
-        //2.打标
-        //遍历每一条待打标数据
-//        for (FlagDataCarryLogCell flagDataCarryLogCell : flagDataCarryLogCells) {
-//            FlagData flagData = new FlagData();
-//            flagData.setId(flagDataCarryLogCell.getId());
-//            Class<FlagData> flagDataClass = FlagData.class;
-//            //对于一条打标数据，es返回的跑分分值
-//            Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
-//            //将客群标志加到condition中
-//            scoreMap.put("flag_riskgroup", flagDataCarryLogCell.getFlagRiskgroup());
-//            //遍历Map<data属性名, 配置list>
-//            for (String markOutField : markCOnfigsGroupMap.keySet()) {
-//                List<DataMarkConfig> dataMarkConfigs = markCOnfigsGroupMap.get(markOutField);
-//                //目前标记字段类型都是整形，后续有其他类型标记，代码需要修改
-//                Integer markOutValue = null;
-//                //遍历配置List，理论上最后一条是默认值
-//                for (DataMarkConfig dataMarkConfig : dataMarkConfigs) {
-//                    if (dataMarkConfig.getMarkOutValueType() == 1
-//                            || dataMarkCommonService.isMatch(scoreMap, dataMarkConfig.getMarkCondition())) {
-//                        markOutValue = Integer.parseInt(dataMarkConfig.getMarkOutValue());
-//                        break;
-//                    }
-//                }
-//                Field declaredField = flagDataClass.getDeclaredField(markOutField);
-//                declaredField.setAccessible(true);
-//                //给flagData的属性declaredField赋值markOutValue
-//                declaredField.set(flagData, markOutValue);
-//            }
-//            flagData.setFlagHighRiskComputation(1);
-//            flagData.setFlagWhitelistComputation(1);
-//            flagDataMapper.updateByPrimaryKeySelective(flagData);
-//        }
-        Map<String, Field> fieldCache = new HashMap<>();
-        for (String markOutField : markCOnfigsGroupMap.keySet()) {
-            Field declaredField = FlagData.class.getDeclaredField(markOutField);
-            declaredField.setAccessible(true);
-            fieldCache.put(markOutField, declaredField);
-        }
         //2.打标
         //遍历每一条待打标数据
         flagDataCarryLogCells.parallelStream().forEach(flagDataCarryLogCell -> {
