@@ -22,12 +22,7 @@ public class HxCarClueController {
 
     @PostMapping("/callback")
     public CarClueResponse callBack(@RequestBody HxClueCallBackReqDTO reqDTO) {
-        try {
-            Result result = iCarClueService.callBackClue(reqDTO);
-            return CarClueResponse.fromResult(result);
-        } catch (Exception ex) {
-            log.error(String.format("请求信息：%s;异常信息：%s", JSON.toJSONString(reqDTO), ex.getMessage()), ex);
-            return new CarClueResponse().setCode(0).setMessage("内部异常请稍后在试");
-        }
+        Result result = iCarClueService.callBackClue(reqDTO);
+        return CarClueResponse.fromResult(result);
     }
 }
