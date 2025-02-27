@@ -2637,6 +2637,11 @@ public class MarketingCommonConfig {
     private Integer dataMarkESThreadNum;
 
     /**
+     * 数据打标更新ES线程
+     */
+    private Integer dataUpdateMarkESThreadNum;
+
+    /**
      * pp停车同步文件表
      */
     private String dataMarkTableName;

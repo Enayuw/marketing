@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
-    private final static int PARTITION_SIZE = 2000;
+    private final static int PARTITION_SIZE = 1500;
 
     @Autowired
     RedisChgService redisChgService;
@@ -72,8 +72,10 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 return;
             }
             Integer threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
+            Integer threadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
             int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+            ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize);
             String key = RedisKeyConstant.DATA_UPDATE_ES_MARK.concat(":").concat(apiCode);
             List<Long> ids = new ArrayList<>();
             while (true) {
@@ -94,7 +96,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
 
                     List<List<FlagDataEsMark>> partitions = Lists.partition(flagDataEsMarkList, PARTITION_SIZE);
                     for (List<FlagDataEsMark> list : partitions) {
-                        threadPool.submit(() -> updateEsMarkData(list,straHisFile));
+                        threadPool.submit(() -> updateEsMarkData(list,straHisFile,threadUpdatePool));
                     }
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
@@ -106,11 +108,11 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 }
             }
             threadPoolShutDown(threadPool);
+            threadPoolShutDown(threadUpdatePool);
         });
     }
 
-    private void updateEsMarkData(List<FlagDataEsMark> flagDataList, StraHisFile straHisFile) {
-
+    private void updateEsMarkData(List<FlagDataEsMark> flagDataList, StraHisFile straHisFile, ThreadPoolExecutor threadUpdatePool) {
         List<Long> ids = flagDataList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
         try {
             String index = EsHandleUtil.getDateFromBatchNumber(straHisFile.getBatchNumber());
@@ -119,7 +121,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             Map<String, FlagDataEsMark> groupedByCellLog = flagDataList.stream()
                     .collect(Collectors.toMap(FlagDataEsMark::getCellLog, data -> data, (oldValue, newValue) -> newValue));
 
-            // 查询es数据
+            // 构造查询条件
             JSONObject jsonData = new JSONObject();
             jsonData.put("type", "logic");
             jsonData.put("logic", "and");
@@ -131,43 +133,60 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             cellCondition.put("value", cellLogList);
             data.add(cellCondition);
             jsonData.put("data", data);
+
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(straHisFile.getApiCode());
             queryBaseBean.setBatchNumbers(straHisFile.getBatchNumber());
             queryBaseBean.setFileIds(String.valueOf(straHisFile.getId()));
             queryBaseBean.setJsonData(jsonData.toJSONString());
             queryBaseBean.setPageSize(2000);
+
+            // 查询 Elasticsearch 数据
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
-            if(CollectionUtil.isEmpty(marketingHistoryMapList)){
-                log.warn(TITLE+"查询ES数据为空");
-                flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
+            if (CollectionUtil.isEmpty(marketingHistoryMapList)) {
+                log.warn(TITLE + "查询ES数据为空");
+                updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
                 return;
             }
-            log.warn(TITLE+"查询ES数据，batchNumber："+straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size());
-            // 更新es数据
+            log.warn(TITLE + "查询ES数据，batchNumber：" + straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size());
+
             long start = System.currentTimeMillis();
-            for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
-                for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
-                    MarketingHistory marketingHistory = entry.getValue();
-                    List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
-                    FlagDataEsMark flagData = groupedByCellLog.get(marketingHistory.getCell());
-                    buildParams(marketingConditions, flagData);
-                    JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
-                    params.put("_id", entry.getKey());
-                    RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
-                            EsIceType.MARKETING.getCode());
+            // 提交任务到线程池
+            threadUpdatePool.submit(() -> {
+                try {
+                    for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
+                        for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
+                            MarketingHistory marketingHistory = entry.getValue();
+                            List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
+                            FlagDataEsMark flagData = groupedByCellLog.get(marketingHistory.getCell());
+                            buildParams(marketingConditions, flagData);
+                            JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
+                            params.put("_id", entry.getKey());
+                            RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
+                                    EsIceType.MARKETING.getCode());
+                        }
+                    }
+                    // 更新状态为 COMPLETE
+                    updateEsStatus(ids, EsSyncStatusEnum.COMPLETE);
+                    log.warn(TITLE + "一批次更新ES耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+                } catch (Exception e) {
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                            TITLE + "更新ES数据异常，errorMessage=" + e.getMessage()), e);
+                    updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
                 }
-            }
-            //更新打标表状态
-            if (!CollectionUtil.isEmpty(ids)) {
-                flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.COMPLETE.getValue());
-            }
-            log.warn(TITLE + "一批次更新ES耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+            });
         } catch (Exception e) {
-            flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    TITLE + "出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    TITLE + "处理异常，errorMessage=" + e.getMessage()), e);
+            updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
+        }
+    }
+
+    // 提取状态更新方法
+    private void updateEsStatus(List<Long> ids, EsSyncStatusEnum status) {
+        if (!CollectionUtil.isEmpty(ids)) {
+            flagDataMapper.batchUpdateEsStatusById(ids, status.getValue());
         }
     }
 
