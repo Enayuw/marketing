@@ -345,6 +345,9 @@ public class QiFuServiceImpl implements IQiFuService {
                 case "rTaTemporaryAmountExpireDate":
                     reserField1.put("rTaTemporaryAmountExpireDate", mapDateString(value));
                     break;
+                case "rCouponInfo":
+                    reserField1.put("rCouponInfo", value);
+                    break;
                 default:
                     break;
             }
@@ -354,7 +357,6 @@ public class QiFuServiceImpl implements IQiFuService {
         String lowAmountys = "lowAmountys";
         String rTotalAvailableAmt = reserField1.getString("rTotalAvailableAmt");
         String rTaTemporaryAmountExpireDate = reserField1.getString("rTaTemporaryAmountExpireDate");
-
         // 计算新的字段值
         String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
         String newLowAmountys = getAmount(null, lowAmountys, rTotalAvailableAmt);
