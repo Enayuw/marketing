@@ -434,14 +434,15 @@ public class QiFuServiceImpl implements IQiFuService {
         try {
             int num = Integer.parseInt(input);
             if (num < 1 || num > 1001) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度枚举输入非法！"));
                 return "";
             }
 
             int lowerBound = (num - 1) * 1000;
             int upperBound = num * 1000;
-            return (num == 1001) ? (lowerBound + "+") : ("[" + lowerBound + " - " + upperBound + ")");
-
+            return "[" + lowerBound + " - " + upperBound + ")";
         } catch (NumberFormatException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), e.getMessage()),e);
             return "";
         }
     }
