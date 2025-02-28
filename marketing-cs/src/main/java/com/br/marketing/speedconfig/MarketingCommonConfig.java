@@ -2616,5 +2616,55 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, Integer> toPolicyParamSize;
 
+    /**
+     * 异业打标手机号自动化同步配置
+     * eg:{"7410717":"cell_md5","7410718":"cell_sha256","7410720":"cell_log"}
+     */
+    private Map<String, String> autoSyncCellToFlagDataEncTypeConfig;
+
+    /**
+     * 数据打标api_code
+     */
+    private List<String> dataMarkApiCodes;
+
+    /**
+     * 数据打标分页大小
+     */
+    private Integer dataMarkPageSize;
+
+    /**
+     * 数据打标写入doris分页大小
+     */
+    private Integer dataDorisMarkPageSize;
+
+    /**
+     * 数据打标分页大小es专用
+     */
+    private Integer dataMarkForEsPageSize;
+
+    /**
+     * 数据打标线程
+     */
+    private Integer dataMarkThreadNum;
+    /**
+     * 数据打标查询ES线程
+     */
+    private Integer dataMarkESThreadNum;
+
+    /**
+     * 数据打标更新ES线程
+     */
+    private Integer dataUpdateMarkESThreadNum;
+
+    /**
+     * pp停车同步文件表
+     */
+    private String dataMarkTableName;
+
+    /**
+     * pp停车黑名单输出配置
+     */
+    private Map<String, Integer> ppCarBlackList;
+
 }
 

@@ -20,4 +20,6 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
     List<String> getFileById(@Param("ids") List<String> ids);
 
     List<TaskTemplateVO> getFileByruleNameShorts(@Param("ruleNameShorts") List<String> ruleNameShorts, @Param("apiCode") String apiCode);
+
+    List<StraHisFile> getLatestRecord(@Param("apiCode") String apiCode, @Param("scoreDate") String scoreDate);
 }

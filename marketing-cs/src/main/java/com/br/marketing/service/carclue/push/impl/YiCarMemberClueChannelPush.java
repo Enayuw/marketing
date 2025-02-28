@@ -45,7 +45,7 @@ public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
     @Override
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public Result push(CarClueInfo carClueInfo) {
+    public Result push(CarClueInfo carClueInfo, Integer retry) {
         try {
             JSONObject jo = marketingCommonConfig.getHxClientConfig();
             String task = jo.getString("ycMemberTask");
