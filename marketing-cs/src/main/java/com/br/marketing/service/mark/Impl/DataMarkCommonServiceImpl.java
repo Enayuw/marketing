@@ -60,7 +60,8 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
     }
 
     @Override
-    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id, List<String> cellLogs, Integer esPageSize, Boolean isPlainText) {
+    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id,
+                                                 List<String> cellLogs, Integer esPageSize, Boolean isPlainText) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
