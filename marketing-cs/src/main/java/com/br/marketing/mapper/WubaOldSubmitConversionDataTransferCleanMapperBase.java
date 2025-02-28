@@ -22,9 +22,11 @@ public interface WubaOldSubmitConversionDataTransferCleanMapperBase {
 
     WubaOldSubmitConversionDataTransferClean selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") WubaOldSubmitConversionDataTransferClean record, @Param("example") WubaOldSubmitConversionDataTransferCleanExample example);
+    int updateByExampleSelective(@Param("record") WubaOldSubmitConversionDataTransferClean record,
+                                 @Param("example") WubaOldSubmitConversionDataTransferCleanExample example);
 
-    int updateByExample(@Param("record") WubaOldSubmitConversionDataTransferClean record, @Param("example") WubaOldSubmitConversionDataTransferCleanExample example);
+    int updateByExample(@Param("record") WubaOldSubmitConversionDataTransferClean record,
+                        @Param("example") WubaOldSubmitConversionDataTransferCleanExample example);
 
     int updateByPrimaryKeySelective(WubaOldSubmitConversionDataTransferClean record);
 
