@@ -2628,6 +2628,11 @@ public class MarketingCommonConfig {
     private Integer dataMarkPageSize;
 
     /**
+     * 数据打标写入doris分页大小
+     */
+    private Integer dataDorisMarkPageSize;
+
+    /**
      * 数据打标分页大小es专用
      */
     private Integer dataMarkForEsPageSize;

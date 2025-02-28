@@ -111,7 +111,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
      */
     private void syncData(String apiCode, String descPath, String fileName, String batchNumber) {
         Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
-        int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataMarkPageSize();
+        int dataDorisMarkPageSize = marketingCommonConfig.getDataDorisMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataMarkPageSize();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
         try {
             Long minId = null;
@@ -119,7 +119,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             while (isContiue) {
                 // 分页查询打标数据
                 FlagDataExample flagDataExample = new FlagDataExample();
-                flagDataExample.setOrderByClause("id limit " + dataMarkPageSize);
+                flagDataExample.setOrderByClause("id limit " + dataDorisMarkPageSize);
 
                 FlagDataExample.Criteria criteria = flagDataExample.createCriteria()
                         .andApiCodeEqualTo(apiCode)

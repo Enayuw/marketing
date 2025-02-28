@@ -72,22 +72,24 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 return;
             }
             Integer threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
-            Integer threadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
+            //Integer threadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
             int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-            ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize);
+            //ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize);
             String key = RedisKeyConstant.DATA_UPDATE_ES_MARK.concat(":").concat(apiCode);
             List<Long> ids = new ArrayList<>();
             while (true) {
                 String lockValue = UUID.randomUUID().toString();
                 try {
                     redisChgService.lock(key, lockValue);
+                    long start = System.currentTimeMillis();
                     List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, LocalDate.now().toString(), dataMarkPageSize);
                     if (CollectionUtil.isEmpty(flagDataEsMarkList)) {
                         redisChgService.unlock(key, lockValue);
                         threadPoolShutDown(threadPool);
                         break;
                     }
+                    log.warn(TITLE + "查询打标表耗时：{}ms， 条数：{}", (System.currentTimeMillis() - start), flagDataEsMarkList.size());
                     //更新打标表状态
                     ids = flagDataEsMarkList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
                     flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.SYNCING.getValue());
@@ -96,7 +98,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
 
                     List<List<FlagDataEsMark>> partitions = Lists.partition(flagDataEsMarkList, PARTITION_SIZE);
                     for (List<FlagDataEsMark> list : partitions) {
-                        threadPool.submit(() -> updateEsMarkData(list,straHisFile,threadUpdatePool));
+                        threadPool.submit(() -> updateEsMarkData(list,straHisFile,null));
                     }
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
@@ -108,7 +110,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 }
             }
             threadPoolShutDown(threadPool);
-            threadPoolShutDown(threadUpdatePool);
+            //threadPoolShutDown(threadUpdatePool);
         });
     }
 
@@ -152,39 +154,40 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             }
             log.warn(TITLE + "查询ES数据，batchNumber：" + straHisFile.getBatchNumber() + ", 量级：" + marketingHistoryMapList.size()+"耗时：{}s", (System.currentTimeMillis() - queryStart) / 1000);
 
-            // 提交任务到线程池
-            threadUpdatePool.submit(() -> {
-                try {
-                    long start = System.currentTimeMillis();
-                    for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
-                        long start1 = System.currentTimeMillis();
-                        for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
-                            MarketingHistory marketingHistory = entry.getValue();
-                            List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
-                            FlagDataEsMark flagData = groupedByCellLog.get(marketingHistory.getCell());
-                            buildParams(marketingConditions, flagData);
-                            JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
-                            params.put("_id", entry.getKey());
-                            RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
-                                    EsIceType.MARKETING.getCode());
-                        }
-                        log.warn(TITLE + "更新一条ES耗时：{}s", (System.currentTimeMillis() - start1) / 1000);
+            try {
+                long start = System.currentTimeMillis();
+                for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
+                    long start1 = System.currentTimeMillis();
+                    for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
+                        MarketingHistory marketingHistory = entry.getValue();
+                        List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
+                        FlagDataEsMark flagData = groupedByCellLog.get(marketingHistory.getCell());
+                        buildParams(marketingConditions, flagData);
+                        JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
+                        params.put("_id", entry.getKey());
+                        RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
+                                EsIceType.MARKETING.getCode());
                     }
-                    log.warn(TITLE + "一批次更新ES耗时：{}s", (System.currentTimeMillis() - start) / 1000+"，条数："+marketingHistoryMapList.size());
-                    // 更新状态为 COMPLETE
-                    updateEsStatus(ids, EsSyncStatusEnum.COMPLETE);
-                } catch (Exception e) {
-                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                            TITLE + "更新ES数据异常，errorMessage=" + e.getMessage()), e);
-                    updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
+                    log.warn(TITLE + "更新一条ES耗时：{}ms", (System.currentTimeMillis() - start1));
                 }
-            });
-            // 打印线程池状态信息
-            log.warn("线程池活跃线程数: " + threadUpdatePool.getActiveCount());
-            log.warn("线程池当前线程数: " + threadUpdatePool.getPoolSize());
-            log.warn("线程池核心线程数: " + threadUpdatePool.getCorePoolSize());
-            log.warn("线程池最大线程数: " + threadUpdatePool.getMaximumPoolSize());
-            log.warn("线程池等待执行的任务数: " + threadUpdatePool.getQueue().size());
+                log.warn(TITLE + "一批次更新ES耗时：{}s  条数:{}", (System.currentTimeMillis() - start) / 1000, marketingHistoryMapList.size());
+                // 更新状态为 COMPLETE
+                updateEsStatus(ids, EsSyncStatusEnum.COMPLETE);
+            } catch (Exception e) {
+                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
+                        TITLE + "更新ES数据异常，errorMessage=" + e.getMessage()), e);
+                updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
+            }
+            //// 提交任务到线程池
+            //threadUpdatePool.submit(() -> {
+            //
+            //});
+            //// 打印线程池状态信息
+            //log.warn("线程池活跃线程数: " + threadUpdatePool.getActiveCount());
+            //log.warn("线程池当前线程数: " + threadUpdatePool.getPoolSize());
+            //log.warn("线程池核心线程数: " + threadUpdatePool.getCorePoolSize());
+            //log.warn("线程池最大线程数: " + threadUpdatePool.getMaximumPoolSize());
+            //log.warn("线程池等待执行的任务数: " + threadUpdatePool.getQueue().size());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "处理异常，errorMessage=" + e.getMessage()), e);
