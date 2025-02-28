@@ -37,7 +37,8 @@ public interface DataMarkCommonService {
      * @author hedongshuo
      * @date 2025/2/21 16:03
      **/
-    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id, List<String> cellLogs, Integer esPageSize, Boolean isPlainText);
+    public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id,
+                                                 List<String> cellLogs, Integer esPageSize, Boolean isPlainText);
 
     /**
      * @description 根据标记类型
