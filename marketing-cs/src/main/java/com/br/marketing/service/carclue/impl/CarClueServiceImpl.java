@@ -94,7 +94,8 @@ public class CarClueServiceImpl implements CarClueService {
                     carClueSeriesInfo.getApiCode().equals(configApicode)).collect(Collectors.toList());
             List<CarClueRelationalMapping> relationalMappingConfig = carClueRelationalMappingList.stream().filter(carClueRelationalMapping ->
                     carClueRelationalMapping.getApiCode().equals(configApicode)).collect(Collectors.toList());
-            Result<CarClueInfo> matchResult = channelMatch.action(config,filterClueInfo, provincesInfoConfig, seriesInfoConfig, relationalMappingConfig);
+            Result<CarClueInfo> matchResult = channelMatch.action(config,filterClueInfo, provincesInfoConfig, seriesInfoConfig,
+                    relationalMappingConfig);
             resultList.add(matchResult);
 
         }

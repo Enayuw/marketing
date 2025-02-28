@@ -7,22 +7,13 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.PushRuleService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 @Service
 public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUserDetailByRuleDTO> {
-
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    PushRuleService pushRuleService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {

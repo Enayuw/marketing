@@ -8,6 +8,7 @@ import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.wuba.WuBaCollidingDataQueryResultService;
+import com.br.marketing.service.Impl.wuba.WuBaOldCollidingDataQueryResultService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.br.marketing.service.clean.guomei.GuoMeiDataCleanService;
 import com.br.marketing.service.clean.hengchang.HengChangDataCleanService;
@@ -74,6 +75,8 @@ public class ConsumerApp {
     private WuBaCollidingDataQueryResultService wuBaCollidingDataQueryResultService;
     @Resource
     private PpRonShuMarkService ppRonShuMarkService;
+    @Resource
+    private WuBaOldCollidingDataQueryResultService wuBaOldCollidingDataQueryResultService;
 
 
     /**
@@ -396,5 +399,18 @@ public class ConsumerApp {
         Long localId = Long.valueOf(localIdStr);
         /*消费逻辑*/
         consumerService.consumerRun(channel, message, ppRonShuMarkService::createCleanTask, localId, null);
+    }
+
+    /**
+     * 消费 58撞库status=-1数据消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_WUBA_OLD_COLLIDING_ELIMINATE_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE)}, containerFactory = "concurrentContainerFactory")
+    public void consumerWuBaOldCollidingEliminate(Channel channel, Message message) {
+        String batchIdStr = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, wuBaOldCollidingDataQueryResultService::buildEliminateAndPushToRobot, batchIdStr, null);
     }
 }

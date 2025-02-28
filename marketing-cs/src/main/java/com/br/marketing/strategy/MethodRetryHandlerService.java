@@ -43,6 +43,8 @@ import com.br.marketing.client.qifu.QiFuClients;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
+import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
+import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeResp;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
@@ -195,6 +197,7 @@ public class MethodRetryHandlerService {
 
     @Resource
     private SmyClient smyClient;
+
 
     /**
      * 渠道唯一标识（由众邦银行提供）
@@ -1436,5 +1439,9 @@ public class MethodRetryHandlerService {
         return smyClient.sendSmyBlackList(commReqDto);
     }
 
+    @RetryMethod(retryNowNum = 3)
+    public Result<ResponseData<QryCallRealTimeResp>> qryCallRealTime(QryCallRealTimeReq qryCallRealTimeReq, Integer retry) {
+        return qiFuClients.qryCallRealTimeUrl(qryCallRealTimeReq);
+    }
 
 }

@@ -61,7 +61,7 @@ public class DrsCustomizeUploadData implements Serializable {
     private Integer status;
 
     /**
-     * 同步状态 0-未同步、1-已同步
+     * 同步状态 0-未同步、1-已查询(外呼信息)、2-已同步
      */
     private Integer syncStatus;
 
