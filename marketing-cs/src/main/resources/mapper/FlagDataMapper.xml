@@ -2,74 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.FlagDataMapper" >
 
-    <insert id="batchInsertFlagDatabI_" parameterType="java.util.List">
-        INSERT INTO ods_flag_data (
-        request_time,batch_number,cus_num,strategy_id,version,taskId,
-        userType,cell,createTime,flag_new_cust,flag_riskgroup,flag_interest,
-        dt_whitelist,flag_age,flag_province,flag_special_small,flag_specialrisklevel_rule,
-        flag_applyloan,flag_intellaudio_blacklist,flag_without_willingness,flag_whitelist,
-        flag_scoreysbase,flag_scorefxsbbaseb,flag_scorescashonregisternologin,flag_scorescashonyxxy,
-        flag_scorencashonzawswyyym,pd_id_apply_age,pd_cell_apply_age,ka_id_province,ka_cell_province,
-        flag_specialrisklevel,sl_id_nbank_bad_allnum,sl_cell_nbank_bad_allnum,sl_cell_nbank_overdue_time,
-        sl_cell_nbank_bad,sl_id_nbank_bad,sl_id_nbank_bad_time,sl_id_nbank_nsloan_overdue_time,als_m1_id_nbank_orgnum,
-        als_m3_id_nbank_orgnum,als_m1_cell_nbank_orgnum,als_m3_cell_nbank_orgnum,scorencashonxctx,
-        scoreysbase,scorefxsbbaseb,scorescashonregisternologin,scorescashonyxxy,scorencashonzawswyyym
-        ) VALUES
-        <foreach collection="list" item="item" separator=",">
-            (
-            #{item.requestTime},
-            #{item.batchNumber},
-            #{item.cusNum},
-            #{item.strategyId},
-            #{item.version},
-            #{item.taskId},
-            #{item.userType},
-            #{item.cell},
-            #{item.createTime},
-            #{item.flagNewCust, jdbcType=INTEGER},
-            #{item.flagRiskgroup, jdbcType=INTEGER},
-            #{item.flagInterest, jdbcType=INTEGER},
-            #{item.dtWhitelist, jdbcType=VARCHAR},
-            #{item.flagAge, jdbcType=INTEGER},
-            #{item.flagProvince, jdbcType=INTEGER},
-            #{item.flagSpecialSmall, jdbcType=INTEGER},
-            #{item.flagSpecialrisklevelRule, jdbcType=INTEGER},
-            #{item.flagApplyloan, jdbcType=INTEGER},
-            #{item.flagIntellaudioBlacklist, jdbcType=INTEGER},
-            #{item.flagWithoutWillingness, jdbcType=INTEGER},
-            #{item.flagWhitelist, jdbcType=INTEGER},
-            #{item.flagScoreysbase, jdbcType=INTEGER},
-            #{item.flagScorefxsbbaseb, jdbcType=INTEGER},
-            #{item.flagScorescashonregisternologin, jdbcType=INTEGER},
-            #{item.flagScorescashonyxxy, jdbcType=INTEGER},
-            #{item.flagScorencashonzawswyyym, jdbcType=INTEGER},
-            #{item.pdIdApplyAge, jdbcType=VARCHAR},
-            #{item.pdCellApplyAge, jdbcType=VARCHAR},
-            #{item.kaIdProvince, jdbcType=VARCHAR},
-            #{item.kaCellProvince, jdbcType=VARCHAR},
-            #{item.flagSpecialrisklevel, jdbcType=INTEGER},
-            #{item.slIdNbankBadAllnum, jdbcType=VARCHAR},
-            #{item.slCellNbankBadAllnum, jdbcType=VARCHAR},
-            #{item.slCellNbankOverdueTime, jdbcType=VARCHAR},
-            #{item.slCellNbankBad, jdbcType=VARCHAR},
-            #{item.slIdNbankBad, jdbcType=VARCHAR},
-            #{item.slIdNbankBadTime, jdbcType=VARCHAR},
-            #{item.slIdNbankNsloanOverdueTime, jdbcType=VARCHAR},
-            #{item.alsM1IdNbankOrgnum, jdbcType=VARCHAR},
-            #{item.alsM3IdNbankOrgnum, jdbcType=VARCHAR},
-            #{item.alsM1CellNbankOrgnum, jdbcType=VARCHAR},
-            #{item.alsM3CellNbankOrgnum, jdbcType=VARCHAR},
-            #{item.scorencashonxctx, jdbcType=VARCHAR},
-            #{item.scoreysbase, jdbcType=VARCHAR},
-            #{item.scorefxsbbaseb, jdbcType=VARCHAR},
-            #{item.scorescashonregisternologin, jdbcType=VARCHAR},
-            #{item.scorescashonyxxy, jdbcType=VARCHAR},
-            #{item.scorencashonzawswyyym, jdbcType=VARCHAR}
-            )
-        </foreach>
+    <insert id="insertbI_">
+        ${querySql}
     </insert>
 
-    <select id="queryDataByCellbI_"  resultType="com.br.marketing.dto.mark.FlagDataWriteBackFileMark">
+    <select id="queryDataByCellbI_" resultType="java.util.Map">
         ${querySql}
     </select>
 
@@ -304,6 +241,11 @@
             limit #{pageSize}
     </select>
 
+    <select id="queryColumnNamebI_" resultType="java.lang.String">
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = #{tableName}
+    </select>
 
     <update id="batchUpdateFlagWhiteListByIds">
         update b_marketing_flag_data
