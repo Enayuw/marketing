@@ -2228,6 +2228,11 @@ public class MarketingCommonConfig {
     private Map<String,String> rongShuCleanUploadExtendFieldMap = new HashMap<>();
 
     /**
+     * 榕树上传数据清洗-扩展字段映射
+     */
+    private Map<String, Map<String, String>> rongShuCleanUploadCipherMap = new HashMap<>();
+
+    /**
      * 奇富360数据提取custNum对应上传字段
      */
     private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;

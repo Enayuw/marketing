@@ -33,7 +33,8 @@
         DATE_FORMAT(bcci.call_back_time, '%Y-%m-%d %H:%i:%s') as callBackTime,
         bcci.clue_callback_final_state as clueCallbackFinalState,
         bcci.recording_path as recordingPath,
-        bcci.resource_type as resourceType
+        bcci.resource_type as resourceType,
+        bcci.clue_error_reason as clueErrorReason
         from b_car_clue_info bcci
         <where>
             <if test="createTimeStart != null and createTimeStart != ''">

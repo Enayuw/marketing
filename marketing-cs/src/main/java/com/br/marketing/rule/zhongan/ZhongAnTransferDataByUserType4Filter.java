@@ -24,14 +24,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @ClassName ZhongAnTransferDataByUserType7Filter
- * @Description 众安转化数据自动化过滤 userType=7
- * @Author kongbx
- * @Date 2024/8/27 16:30
+ * @ClassName ZhongAnTransferDataByUserType4Filter
+ * @Description 众安转化数据自动化过滤 userType=4
+ * @Author hedongshuo
+ * @Date 2025/2/18 15:16
  */
 @Service
 @Slf4j
-public class ZhongAnTransferDataByUserType7Filter implements AssembleData<ConversionDataSoleDTO> {
+public class ZhongAnTransferDataByUserType4Filter implements AssembleData<ConversionDataSoleDTO> {
     @Override
     public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
@@ -45,7 +45,7 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
         conversionData.setInversionStatus("0");
         Map<String, Map<String, SyncUserValidityPeriodsBO>> customerUserTypeMap = ruleNecessaryData.getCustomerUserTypeMap();
         Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = customerUserTypeMap.get(marketingTransferSyncUser.getCustNum());
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get("7");
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get("4");
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
         conversionData.setGroupType(syncUsers.get(0).getUserType());
@@ -59,7 +59,7 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
         dataSoleDTO.setConversionData(conversionData);
-        dataSoleDTO.setStatus("7");
+        dataSoleDTO.setStatus("4");
         return dataSoleDTO;
     }
 
@@ -76,8 +76,8 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
                 return false;
             }
 
-            if (!userValidityPeriodsBOMap.containsKey("7")) {
-                log.warn("众安转化数据推客服过滤数据userType不包含7：{}", userValidityPeriodsBOMap.keySet());
+            if (!userValidityPeriodsBOMap.containsKey("4")) {
+                log.warn("众安转化数据推客服过滤数据userType不包含4：{}", userValidityPeriodsBOMap.keySet());
                 return false;
             }
             String reserveField1 = transfer.getReserveField1();
@@ -87,7 +87,7 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
             }
             JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
             String eventType = jsonObjectReserveField1.getString("eventType");
-            if ("FINISH".equals(eventType) || "CREDIT_SUCCESS".equals(eventType)) {
+            if ("LOAN_APPLY".equals(eventType) || "WITHDRAW_SUCCESS".equals(eventType)) {
                 return true;
             }
             log.warn("众安转化数据推客服过滤数据eventType不符合推送要求：{}", transfer.getCustNum());
@@ -97,7 +97,7 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
 
     @Override
     public String label() {
-        return "ZhongAn_TransferData_To_CustomerFilter7";
+        return "ZhongAn_TransferData_To_CustomerFilter4";
     }
 
     @Override
