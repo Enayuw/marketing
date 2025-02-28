@@ -179,6 +179,12 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
                 }
             });
+            // 打印线程池状态信息
+            log.warn("线程池活跃线程数: " + threadUpdatePool.getActiveCount());
+            log.warn("线程池当前线程数: " + threadUpdatePool.getPoolSize());
+            log.warn("线程池核心线程数: " + threadUpdatePool.getCorePoolSize());
+            log.warn("线程池最大线程数: " + threadUpdatePool.getMaximumPoolSize());
+            log.warn("线程池等待执行的任务数: " + threadUpdatePool.getQueue().size());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     TITLE + "处理异常，errorMessage=" + e.getMessage()), e);
