@@ -428,12 +428,12 @@ public class QiFuServiceImpl implements IQiFuService {
     }
 
     public String mapNumberToRange(String input) {
-        if (input == null || input.isEmpty()) {
+        if (input == null || input.isEmpty() || "0".equals(input)) {
             return "";
         }
         try {
             int num = Integer.parseInt(input);
-            if (num < 1 || num > 1001) {
+            if (num < 0 || num > 1001) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度枚举输入非法！"));
                 return "";
             }
