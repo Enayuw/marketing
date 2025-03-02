@@ -93,12 +93,12 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     }
                     // 同步数据写入doris
                     syncData(apiCode, descPath, batchNumber, columnNameList, writer);
-                    // 推送文件至SFTP
-                    pushFileSftp(apiCode, descPath, fileName);
+
                 } catch (IOException e) {
                     log.warn(TITLE + "文件写入异常", e);
                 }
-
+                // 推送文件至SFTP
+                pushFileSftp(apiCode, descPath, fileName);
             }
         });
 
