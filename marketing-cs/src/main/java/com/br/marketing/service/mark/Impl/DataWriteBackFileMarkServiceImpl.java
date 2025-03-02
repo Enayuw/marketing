@@ -254,9 +254,13 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                         continue;
                     }
                     if("dt_whitelist".equals(column)){
-                        Date date = (Date) o;
-                        String format = new SimpleDateFormat("yyyy-MM-dd").format(date);
-                        values.add(format);
+                        if (o instanceof Date) {
+                            Date date = (Date) o;
+                            String format = new SimpleDateFormat("yyyy-MM-dd").format(date);
+                            values.add(format);
+                        }else {
+                            values.add((String) o);
+                        }
                     }else {
                         values.add(o.toString().replace(".000000",""));
                     }
