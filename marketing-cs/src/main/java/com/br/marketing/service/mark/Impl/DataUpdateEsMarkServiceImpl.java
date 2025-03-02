@@ -101,7 +101,9 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             TITLE + "抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
-                    flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
+                    if(!CollectionUtil.isEmpty(ids)){
+                        flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
+                    }
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                     break;
@@ -145,8 +147,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
             if (CollectionUtil.isEmpty(marketingHistoryMapList)) {
-                log.warn(TITLE + "查询ES数据为空");
-                updateEsStatus(ids, EsSyncStatusEnum.INITIAL);
+                log.warn(TITLE + "查询ES数据为空,batchNumber："+straHisFile.getBatchNumber());
                 return;
             }
 
