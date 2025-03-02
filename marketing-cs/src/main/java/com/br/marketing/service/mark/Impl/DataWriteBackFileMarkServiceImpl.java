@@ -88,8 +88,8 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                 try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile, true), StandardCharsets.UTF_8))) {
                     if (!outputFile.exists() || outputFile.length() == 0) {
                         // 写入表头
-                        String header = String.join(",", columnNameList);
-                        writer.append(header).append(System.lineSeparator());
+                        String header = String.join(",", columnNameList) + System.lineSeparator();
+                        writer.append(header);
                     }
                     // 同步数据写入doris
                     syncData(apiCode, descPath, batchNumber, columnNameList, writer);
@@ -265,8 +265,8 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                         values.add(o.toString().replace(".000000",""));
                     }
                 }
-                String row = String.join(",", values);
-                writer.append(row).append(System.lineSeparator());
+                String row = String.join(",", values) + System.lineSeparator();
+                writer.append(row);
             }
         } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
