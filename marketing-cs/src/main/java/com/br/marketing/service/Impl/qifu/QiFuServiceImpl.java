@@ -435,7 +435,8 @@ public class QiFuServiceImpl implements IQiFuService {
         try {
             int num = Integer.parseInt(input);
             if (num < 0 || num > 1001) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度枚举输入非法！"));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富AI 额度枚举输入非法！"));
                 return "";
             }
 
@@ -443,7 +444,7 @@ public class QiFuServiceImpl implements IQiFuService {
             int upperBound = num * 1000;
             return "[" + lowerBound + " - " + upperBound + ")";
         } catch (NumberFormatException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), e.getMessage()),e);
+            log.warn("奇富AI 额度计算发生错误！");
             return "";
         }
     }
@@ -503,7 +504,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return result > 0 ? String.valueOf(result) : "0";
         } catch (NumberFormatException e) {
-            log.warn("提升额度计算发生错误！" );
+            log.warn("奇富AI提升额度计算发生错误！" );
             return "";
         }
     }
@@ -521,13 +522,14 @@ public class QiFuServiceImpl implements IQiFuService {
             LocalDate expireDate = LocalDate.parse(dateWithYear, formatter);
 
             if (expireDate.isBefore(today)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度到期日期小于今天！"));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富AI 额度到期日期小于今天！"));
                 expireDate = expireDate.plusYears(1);
             }
 
             return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
         } catch (Exception e) {
-            log.warn("额度到期日期计算发生错误！");
+            log.warn("奇富AI额度到期日期计算发生错误！");
             return "";
         }
     }
@@ -549,7 +551,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return String.valueOf(result);
         } catch (NumberFormatException e) {
-            log.warn("提额幅度计算发生错误！");
+            log.warn("奇富AI提额幅度计算发生错误！");
             return "";
         }
     }
