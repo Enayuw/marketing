@@ -53,8 +53,8 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     continue;
                 }
                 try {
-                    threadPool.setCorePoolSize(threadPoolSize);
-                    threadPool.setMaximumPoolSize(threadPoolSize);
+                    threadPool.setCorePoolSize(marketingCommonConfig.getDataMarkThreadNum());
+                    threadPool.setMaximumPoolSize(marketingCommonConfig.getDataMarkThreadNum());
                     Integer pageSize = marketingCommonConfig.getDataMarkPageSize();
                     //打标表数据查询
                     List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(pageSize, apiCode);
