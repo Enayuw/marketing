@@ -41,7 +41,6 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
     @Override
     public void process() {
         marketingCommonConfig.getDataMarkApiCodes().forEach((String apiCode) -> {
-            Integer pageSize = marketingCommonConfig.getDataMarkPageSize();
             Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             String key = RedisKeyConstant.DATA_RONGSHU_MARK.concat(":").concat(apiCode);
@@ -54,6 +53,9 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     continue;
                 }
                 try {
+                    threadPool.setCorePoolSize(threadPoolSize);
+                    threadPool.setMaximumPoolSize(threadPoolSize);
+                    Integer pageSize = marketingCommonConfig.getDataMarkPageSize();
                     //打标表数据查询
                     List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(pageSize, apiCode);
                     if (CollectionUtil.isEmpty(list)) {
