@@ -100,7 +100,9 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
             } else {
                 unIntersectionCells = originalCells;
             }
-            flagDataMapper.batchUpdateFlagNewCustComputationByCells(unIntersectionCells, 1, 1);
+            if (CollectionUtil.isNotEmpty(unIntersectionCells)) {
+                flagDataMapper.batchUpdateFlagNewCustComputationByCells(unIntersectionCells, 1, 1);
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     "pp停车&榕树求交打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
