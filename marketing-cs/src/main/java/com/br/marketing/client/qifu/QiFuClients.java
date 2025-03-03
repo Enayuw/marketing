@@ -550,8 +550,8 @@ public class QiFuClients {
         // 百融侧私钥
         String brPrivateKeyAI = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
         // appId配置
-        String appAIId = marketingCommonConfig.getQiFuAIServerConfig().getString("appId");
-        RequestParam requestParam = new RequestParam(appAIId, bizData, qiFuPublicKeyAI, brPrivateKeyAI);
+        String queryQiFuAiAppId = marketingCommonConfig.getQiFuAIServerConfig().getString("queryQiFuAiAppId");
+        RequestParam requestParam = new RequestParam(queryQiFuAiAppId, bizData, qiFuPublicKeyAI, brPrivateKeyAI);
         try {
             long start = System.currentTimeMillis();
             Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, qryCallRealTimeUrl, isProxy,
