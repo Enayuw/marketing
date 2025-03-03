@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
  */
 public class StringUtils {
 
+    private static final String NumberRegex = "[+-]?(?:\\d+\\.\\d*|\\.\\d+|\\d+)(?:[eE][+-]?\\d+)?";
+
     public static boolean isEmpty(Object obj) {
         return (obj == null || obj.toString().length() == 0);
     }
@@ -207,5 +209,9 @@ public class StringUtils {
             }
         }
         return false;
+    }
+
+    public static boolean isNumeric(String str) {
+        return str != null && str.matches(NumberRegex);
     }
 }

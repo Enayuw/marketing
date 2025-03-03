@@ -32,6 +32,8 @@ public class ZhongAnRuleCollectCustomerTransferImpl extends CommonMethodHandlerS
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Set<String> userTypeSet = new HashSet<>();
             userTypeSet.add("1");
+            userTypeSet.add("2");
+            userTypeSet.add("4");
             userTypeSet.add("7");
             userTypeSet.add("8");
             Map<String, Map<String, SyncUserValidityPeriodsBO>> validityPeriodsByCustNum =

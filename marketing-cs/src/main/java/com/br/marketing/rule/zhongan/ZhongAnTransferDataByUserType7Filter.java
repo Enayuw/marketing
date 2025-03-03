@@ -77,7 +77,7 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
             }
 
             if (!userValidityPeriodsBOMap.containsKey("7")) {
-                log.warn("众安转化数据推客服过滤数据userType不包含1：{}", userValidityPeriodsBOMap.keySet());
+                log.warn("众安转化数据推客服过滤数据userType不包含7：{}", userValidityPeriodsBOMap.keySet());
                 return false;
             }
             String reserveField1 = transfer.getReserveField1();
@@ -87,7 +87,7 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
             }
             JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
             String eventType = jsonObjectReserveField1.getString("eventType");
-            if ("LOAN_APPLY".equals(eventType) || "WITHDRAW_SUCCESS".equals(eventType)) {
+            if ("FINISH".equals(eventType) || "CREDIT_SUCCESS".equals(eventType)) {
                 return true;
             }
             log.warn("众安转化数据推客服过滤数据eventType不符合推送要求：{}", transfer.getCustNum());

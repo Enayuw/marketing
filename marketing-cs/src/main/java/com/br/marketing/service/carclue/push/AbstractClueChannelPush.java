@@ -12,7 +12,7 @@ public abstract class AbstractClueChannelPush {
      * @param carClueInfo
      * @return
      */
-    public abstract Result push(CarClueInfo carClueInfo);
+    public abstract Result push(CarClueInfo carClueInfo, Integer retry);
 
     /**
      * 过滤规则的名称

@@ -15,10 +15,10 @@
         VALUES
         <foreach collection="callRecords" item="item" separator=",">
             (
-            <if test="item.id != null and item.id != ''">#{item.id, jdbcType=VARCHAR},</if>
-            <if test="item.apiCode != null and item.apiCode != ''">#{item.apiCode, jdbcType=VARCHAR},</if>
-            <if test="item.caseNum != null and item.caseNum != ''">#{item.caseNum, jdbcType=VARCHAR},</if>
-            <if test="item.intentionGrade != null and item.intentionGrade != ''">#{item.intentionGrade, jdbcType=VARCHAR},</if>
+            #{item.id, jdbcType=VARCHAR},
+            #{item.apiCode, jdbcType=VARCHAR},
+            #{item.caseNum, jdbcType=VARCHAR},
+             #{item.intentionGrade, jdbcType=VARCHAR},
             1,
             DATE_FORMAT(NOW(), '%Y-%m-%d'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
