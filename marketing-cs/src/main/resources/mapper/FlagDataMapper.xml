@@ -64,7 +64,6 @@
         where flag_blacklist_computation is null and status = 1 and is_delete = 0 and  applet_date = date(now())
         and api_code = #{apiCode} limit #{pageSize}
     </select>
-
     <update id="batchUpdateFlagNewCustComputationByIds">
         update b_marketing_flag_data
         set flag_new_cust_computation = #{tag}
