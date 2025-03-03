@@ -52,7 +52,7 @@
     </update>
 
     <select id="queryFlagNewCustComputation"  resultType="com.br.marketing.entity.FlagData">
-        select id,cell_md5
+        select id,cell_log
         from b_marketing_flag_data
         where flag_new_cust_computation is null and status = 1 and is_delete = 0 and  applet_date = date(now())
         and api_code = #{apiCode} limit #{pageSize}

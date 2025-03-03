@@ -51,6 +51,10 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                 String lockValue = UUID.randomUUID().toString();
                 try {
                     redisChgService.lock(key, lockValue);
+                } catch (Exception e) {
+                    continue;
+                }
+                try {
                     //打标表数据查询
                     List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(pageSize, apiCode);
                     if (CollectionUtil.isEmpty(list)) {
@@ -71,7 +75,6 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids, null);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
-                    break;
                 }
             }
             threadPoolShutDown(threadPool);
@@ -86,7 +89,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
     }
 
     void markAndUpdateFlagNewCust(List<FlagData> list) {
-        List<String> originalCells = list.stream().map(FlagData::getCellMd5).collect(Collectors.toList());
+        List<String> originalCells = list.stream().map(FlagData::getCellLog).collect(Collectors.toList());
         List<String> unIntersectionCells;
         try {
             //doris求交查询(榕树7000w)
