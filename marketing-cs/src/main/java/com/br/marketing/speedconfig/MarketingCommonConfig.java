@@ -1984,6 +1984,12 @@ public class MarketingCommonConfig {
     private HashMap<String, Integer> wuBaCollidingCycleDayConfig;
 
     /**
+     * 58撞库优先级配置
+     * ["T","S","H","F","J","Q","K"]
+     */
+    private String[] wuBaCollidingOrderConfig;
+
+    /**
      * 58提交撞库数据分页条数
      */
     private Integer wuBaCollidingDataSubmitPageSize;
