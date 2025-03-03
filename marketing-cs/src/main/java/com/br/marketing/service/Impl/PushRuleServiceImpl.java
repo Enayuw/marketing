@@ -1025,6 +1025,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         return cycleAndscoreSql.toString();
     }
 
+    private String cycleDataDeleteQueryForOpt(JSONObject jsonObject, String batchNumber, String cleanDate) {
+        String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        Date cleanTime = DateHelper.parseDate(cleanDate);
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
+        return String.format ("select count(0) from b_xiecheng_colliding_data_loop_cycle cycle " +
+                "join b_xiecheng_colliding_%s score on cycle.cell_sha256_code_list = score.cell and score.is_delete = 0 " +
+                "left join (select id, cell, is_delete from b_xiecheng_colliding_%s where %s) scoreCd " +
+                "on score.cell = scoreCd.cell and scoreCd.is_delete = 0 " +
+                "where cycle.is_delete = 0 and scoreCd.id is null " +
+                "and (cycle.release_time < '%s' or (cycle.release_time >= '%s' and cycle.release_time < '%s'))"
+                , batchNumber, batchNumber, conditions, cleanDateTime, cleanEndTime, endDateTime);
+    }
+
     /**
      * 组装跑分筛选SQL
      *
@@ -1321,8 +1338,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isEmpty(batchNumber)) {
                 continue;
             }
-            List<String> batchNumbers = Arrays.asList(batchNumber);
-            querySqls.add(cycleDataDeleteQuery(jsonObject, batchNumbers, cleanTime));
+            querySqls.add(cycleDataDeleteQueryForOpt(jsonObject, batchNumber, cleanTime));
         }
     }
 
