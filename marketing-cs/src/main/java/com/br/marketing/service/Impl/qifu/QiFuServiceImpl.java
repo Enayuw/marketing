@@ -503,8 +503,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return result > 0 ? String.valueOf(result) : "0";
         } catch (NumberFormatException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "提升额度计算发生错误！" +
-                    "报错信息：" + e.getMessage()), e);
+            log.warn("提升额度计算发生错误！" );
             return "";
         }
     }
@@ -528,8 +527,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度到期日期计算发生错误！" +
-                    "报错信息：" + e.getMessage()), e);
+            log.warn("额度到期日期计算发生错误！");
             return "";
         }
     }
@@ -551,8 +549,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return String.valueOf(result);
         } catch (NumberFormatException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "提额幅度计算发生错误！" +
-                    "报错信息：" + e.getMessage()), e);
+            log.warn("提额幅度计算发生错误！");
             return "";
         }
     }
