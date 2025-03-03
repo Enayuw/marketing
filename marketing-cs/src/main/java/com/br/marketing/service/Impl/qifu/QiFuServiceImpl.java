@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.qifu;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -356,16 +357,17 @@ public class QiFuServiceImpl implements IQiFuService {
         String highAmountys = "highAmountys";
         String lowAmountys = "lowAmountys";
         String rTotalAvailableAmt = reserField1.getString("rTotalAvailableAmt");
+        String rTaLastAdjustmentAmount = reserField1.getString("rTaLastAdjustmentAmount");
         String rTaTemporaryAmountExpireDate = reserField1.getString("rTaTemporaryAmountExpireDate");
         // 计算新的字段值
+        String oldLowAmountys = getAmount(null, lowAmountys, rTaLastAdjustmentAmount);
         String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
-        String newLowAmountys = getAmount(null, lowAmountys, rTotalAvailableAmt);
-        String changeAmountys = calculateDifference(newHighAmountys, newLowAmountys);
+        String changeAmountys = calculateDifference(newHighAmountys, oldLowAmountys);
         String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
-        String changeIncrease = calculateIncreaseRate(highAmountys, lowAmountys);
+        String changeIncrease = calculateIncreaseRate(newHighAmountys, oldLowAmountys);
 
         reserField1.put("highAmount_derived", newHighAmountys);
-        reserField1.put("lowAmount_derived", newLowAmountys);
+        reserField1.put("lowAmount_derived", oldLowAmountys);
         reserField1.put("changeAmount_derived", changeAmountys);
         reserField1.put("remainDayys_derived", remainDayys);
         reserField1.put("changeIncrease_derived", changeIncrease);
@@ -434,7 +436,8 @@ public class QiFuServiceImpl implements IQiFuService {
         try {
             int num = Integer.parseInt(input);
             if (num < 0 || num > 1001) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度枚举输入非法！"));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富AI 额度枚举输入非法！"));
                 return "";
             }
 
@@ -442,7 +445,7 @@ public class QiFuServiceImpl implements IQiFuService {
             int upperBound = num * 1000;
             return "[" + lowerBound + " - " + upperBound + ")";
         } catch (NumberFormatException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), e.getMessage()),e);
+            log.warn("奇富AI 额度计算发生错误！");
             return "";
         }
     }
@@ -502,35 +505,38 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return result > 0 ? String.valueOf(result) : "0";
         } catch (NumberFormatException e) {
+            log.warn("奇富AI提升额度计算发生错误！" );
             return "";
         }
     }
 
     public String calculateDaysDifference(String rTaTemporaryAmountExpireDate) {
-        if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate)) {
+        if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate) || ObjectUtil.isEmpty(rTaTemporaryAmountExpireDate)) {
             return rTaTemporaryAmountExpireDate;
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate today = LocalDate.now();
 
         try {
-            LocalDate today = LocalDate.now();
-            LocalDate expireDate = LocalDate.parse(rTaTemporaryAmountExpireDate, formatter)
-                    .withYear(today.getYear());
+            String dateWithYear = today.getYear() + "-" + rTaTemporaryAmountExpireDate;
+            LocalDate expireDate = LocalDate.parse(dateWithYear, formatter);
 
             if (expireDate.isBefore(today)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度到期日期小于今天！"));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富AI 额度到期日期小于今天！"));
                 expireDate = expireDate.plusYears(1);
             }
 
             return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
         } catch (Exception e) {
+            log.warn("奇富AI额度到期日期计算发生错误！");
             return "";
         }
     }
 
     public String calculateIncreaseRate(String highAmountys, String lowAmountys) {
-        if (highAmountys == null || lowAmountys == null || lowAmountys.equals("0")) {
+        if (ObjectUtil.isEmpty(highAmountys) || ObjectUtil.isEmpty(lowAmountys) || lowAmountys.equals("0")) {
             return "";
         }
 
@@ -538,13 +544,15 @@ public class QiFuServiceImpl implements IQiFuService {
             BigDecimal high = new BigDecimal(highAmountys);
             BigDecimal low = new BigDecimal(lowAmountys);
 
-            BigDecimal difference = high.subtract(low);
-            BigDecimal rate = difference.divide(low, 10, BigDecimal.ROUND_HALF_UP);
+            BigDecimal rate = high.divide(low, 10, BigDecimal.ROUND_HALF_UP)
+                    .subtract(BigDecimal.ONE)
+                    .multiply(BigDecimal.valueOf(100));
 
             int result = (int) Math.ceil(rate.doubleValue());
 
             return String.valueOf(result);
         } catch (NumberFormatException e) {
+            log.warn("奇富AI提额幅度计算发生错误！");
             return "";
         }
     }

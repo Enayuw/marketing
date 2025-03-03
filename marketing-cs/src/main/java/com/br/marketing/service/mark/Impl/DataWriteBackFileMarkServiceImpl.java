@@ -1,6 +1,7 @@
 package com.br.marketing.service.mark.Impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.excel.util.CollectionUtils;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -74,8 +76,27 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                 String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
                 String descPath = syncConfigService.getPath().concat("ppMarkToFile/").concat(apiCode).concat("/").concat(syncDate).concat("/");
                 String fileName = "pp_" + apiCode + "_" + syncDate + ".txt";
-                // 同步数据写入doris
-                syncData(apiCode, descPath, fileName, batchNumber);
+                List<String> columnNameList = flagDataMapper.queryColumnNamebI_("b_score_".concat(batchNumber));
+
+                // 确保目标目录存在
+                File dir = new File(descPath);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                String fileAllPath = Paths.get(descPath, fileName).toString();
+                File outputFile = new File(fileAllPath);
+                try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile, true), StandardCharsets.UTF_8))) {
+                    if (!outputFile.exists() || outputFile.length() == 0) {
+                        // 写入表头
+                        String header = String.join(",", columnNameList) + System.lineSeparator();
+                        writer.append(header);
+                    }
+                    // 同步数据写入doris
+                    syncData(apiCode, descPath, batchNumber, columnNameList, writer);
+
+                } catch (IOException e) {
+                    log.warn(TITLE + "文件写入异常", e);
+                }
                 // 推送文件至SFTP
                 pushFileSftp(apiCode, descPath, fileName);
             }
@@ -107,11 +128,11 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     /**
      * 同步数据写入doris
      */
-    private void syncData(String apiCode, String descPath, String fileName, String batchNumber) {
-        Integer threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
-        int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataMarkPageSize();
+    private void syncData(String apiCode, String descPath, String batchNumber,
+                          List<String> columnNameList, Writer writer) {
+        Integer threadPoolSize = marketingCommonConfig.getDataWriterMarkThreadNum();
+        int dataMarkPageSize = marketingCommonConfig.getDataDorisMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataMarkPageSize();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-        List<String> columnNameList = flagDataMapper.queryColumnNamebI_("b_score_".concat(batchNumber));
         try {
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
@@ -133,7 +154,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                     continue;
                 }
                 minId = flagDataList.get(flagDataList.size() - 1).getId();
-                threadPool.submit(() -> writeBackFileMark(flagDataList, batchNumber, descPath, fileName,columnNameList));
+                threadPool.submit(() -> writeBackFileMark(flagDataList, batchNumber, descPath, columnNameList, writer));
             }
             threadPool.shutdown();
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -147,11 +168,11 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     }
 
     private void writeBackFileMark(List<FlagData> flagDataList, String batchNumber,
-                                   String descPath, String fileName, List<String> columnNameList) {
+                                   String descPath, List<String> columnNameList, Writer writer) {
         // 写入doris
         List<Map<String, Object>> dataList = insertMarkData(flagDataList, batchNumber,columnNameList);
         // 写入文件
-        writeDataToFile(dataList, descPath, fileName,columnNameList);
+        writeDataToFile(dataList, descPath,columnNameList, writer);
     }
 
     private List<Map<String, Object>> insertMarkData(List<FlagData> flagDataList, String batchNumber,List<String> columnNameList) {
@@ -169,9 +190,13 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
             String scoreSql = "select * from b_score_".concat(batchNumber).concat(" where cell in(").concat(cell).concat(")");
             flagDataResult = flagDataMapper.queryDataByCellbI_(scoreSql);
 
+            if(CollectionUtil.isEmpty(flagDataResult)){
+                return flagDataResult;
+            }
+
             flagDataResult.forEach((Map<String, Object> resultMap) -> {
                 FlagData flagData = groupByCellMd5.get(resultMap.get("cell"));
-                resultMap.put("dt_whitelist", flagData.getDtWhitelist());
+                resultMap.put("dt_whitelist", flagData.getDtWhitelist() != null?new SimpleDateFormat("yyyy-MM-dd").format(flagData.getDtWhitelist()):null);
                 resultMap.put("flag_new_cust", flagData.getFlagNewCust());
                 resultMap.put("flag_riskgroup", flagData.getFlagRiskgroup());
                 resultMap.put("flag_interest", flagData.getFlagInterest());
@@ -208,26 +233,18 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     }
 
     private void writeDataToFile(List<Map<String, Object>> dataList, String descPath,
-                                 String fileName, List<String> columnNameList) {
-        if (CollectionUtil.isEmpty(dataList)) {
+                                 List<String> columnNameList,  Writer writer) {
+
+        if(CollectionUtils.isEmpty(dataList)){
             return;
         }
-
         // 确保目标目录存在
         File dir = new File(descPath);
         if (!dir.exists()) {
             dir.mkdirs();
         }
 
-        String fileAllPath = descPath.concat(fileName);
-        File outputFile = new File(fileAllPath);
-
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile, true), StandardCharsets.UTF_8))) {
-            // 检查并写入文件头
-            if (!outputFile.exists() || outputFile.length() == 0) {
-                String header = String.join(",", columnNameList);
-                writer.append(header).append(System.lineSeparator());
-            }
+        try {
             for (Map<String, Object> resultMap : dataList) {
                 List<String> values = new ArrayList<>();
                 for (String column : columnNameList){
@@ -237,15 +254,19 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                         continue;
                     }
                     if("dt_whitelist".equals(column)){
-                        Date date = (Date) o;
-                        String format = new SimpleDateFormat("yyyy-MM-dd").format(date);
-                        values.add(format);
+                        if (o instanceof Date) {
+                            Date date = (Date) o;
+                            String format = new SimpleDateFormat("yyyy-MM-dd").format(date);
+                            values.add(format);
+                        }else {
+                            values.add((String) o);
+                        }
                     }else {
                         values.add(o.toString().replace(".000000",""));
                     }
                 }
-                String row = String.join(",", values);
-                writer.append(row).append(System.lineSeparator());
+                String row = String.join(",", values) + System.lineSeparator();
+                writer.append(row);
             }
         } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),

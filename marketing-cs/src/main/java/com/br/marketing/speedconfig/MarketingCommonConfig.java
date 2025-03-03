@@ -2646,6 +2646,12 @@ public class MarketingCommonConfig {
      * 数据打标线程
      */
     private Integer dataMarkThreadNum;
+
+    /**
+     * 数据打标写入文件线程
+     */
+    private Integer dataWriterMarkThreadNum;
+
     /**
      * 数据打标查询ES线程
      */
