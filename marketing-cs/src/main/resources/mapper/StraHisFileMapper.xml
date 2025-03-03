@@ -74,4 +74,14 @@
         order by shf.create_time desc
     </select>
 
+    <select id="getLatestRecord" resultType="com.br.marketing.entity.StraHisFile">
+        select shf.id, shf.api_code, shf.batch_number
+        from stra_his_file shf inner join b_marketing_task bmt on shf.batch_number = bmt.batch_number
+        where
+            shf.api_code = #{apiCode} and shf.status = 2 and shf.type = 2
+            and date(shf.create_time) = #{scoreDate}
+            and bmt.monitor_type = 1
+        order by shf.create_time desc limit 1
+    </select>
+
 </mapper>

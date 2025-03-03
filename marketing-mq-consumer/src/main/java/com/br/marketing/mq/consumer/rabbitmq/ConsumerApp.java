@@ -8,10 +8,12 @@ import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.wuba.WuBaCollidingDataQueryResultService;
+import com.br.marketing.service.Impl.wuba.WuBaOldCollidingDataQueryResultService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.br.marketing.service.clean.guomei.GuoMeiDataCleanService;
 import com.br.marketing.service.clean.hengchang.HengChangDataCleanService;
 import com.br.marketing.service.clean.weiju.WeiJuDataCleanService;
+import com.br.marketing.service.mark.PpRonShuMarkService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +73,10 @@ public class ConsumerApp {
     XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
     @Resource
     private WuBaCollidingDataQueryResultService wuBaCollidingDataQueryResultService;
+    @Resource
+    private PpRonShuMarkService ppRonShuMarkService;
+    @Resource
+    private WuBaOldCollidingDataQueryResultService wuBaOldCollidingDataQueryResultService;
 
 
     /**
@@ -378,5 +384,33 @@ public class ConsumerApp {
     public void consumerWuBaCollidingEliminate(Channel channel, Message message) {
         String batchIdStr = new String(message.getBody(), StandardCharsets.UTF_8);
         consumerService.consumerRun(channel, message, wuBaCollidingDataQueryResultService::buildEliminateAndPushToRobot, batchIdStr, null);
+    }
+
+    /**
+     * 消费 pp榕树打标生成清洗任务消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PP_RONGSHU_MARK_CREATE_CLEAN_TASK_QUEUE, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_PP_RONGSHU_MARK_CREATE_CLEAN_TASK)}, containerFactory = "concurrentContainerFactory")
+    public void consumerpPRongShuMark(Channel channel, Message message) {
+        String localIdStr = new String(message.getBody(), StandardCharsets.UTF_8);
+        Long localId = Long.valueOf(localIdStr);
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, ppRonShuMarkService::createCleanTask, localId, null);
+    }
+
+    /**
+     * 消费 58撞库status=-1数据消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_WUBA_OLD_COLLIDING_ELIMINATE_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE)}, containerFactory = "concurrentContainerFactory")
+    public void consumerWuBaOldCollidingEliminate(Channel channel, Message message) {
+        String batchIdStr = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, wuBaOldCollidingDataQueryResultService::buildEliminateAndPushToRobot, batchIdStr, null);
     }
 }

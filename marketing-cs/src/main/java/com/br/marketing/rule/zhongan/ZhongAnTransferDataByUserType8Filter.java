@@ -77,7 +77,7 @@ public class ZhongAnTransferDataByUserType8Filter implements AssembleData<Conver
             }
 
             if (!userValidityPeriodsBOMap.containsKey("8")) {
-                log.warn("众安转化数据推客服过滤数据userType不包含1：{}", userValidityPeriodsBOMap.keySet());
+                log.warn("众安转化数据推客服过滤数据userType不包含8：{}", userValidityPeriodsBOMap.keySet());
                 return false;
             }
             String reserveField1 = transfer.getReserveField1();

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaOldSubmitConversionDataTransferCleanMapper" >
+    <insert id="batchAdd">
+        INSERT INTO marketing.b_wuba_old_submit_conversion_data_transfer_clean
+        (api_code, cell, batch_no, push_time, clean_status, task_id, user_type, last_login_time, finance_apply_time, finance_credit_status,
+         finance_credit_finish_time, debt_time, debt_pass_time, loan_amt, extend)
+        VALUES
+        <foreach collection ="list" item="item" separator =",">
+            (#{item.apiCode}, #{item.cell}, #{item.batchNo}, #{item.pushTime}, #{item.cleanStatus}, #{item.taskId}, #{item.userType}, #{item.lastLoginTime},
+             #{item.financeApplyTime}, #{item.financeCreditStatus}, #{item.financeCreditFinishTime}, #{item.debtTime},
+             #{item.debtPassTime}, #{item.loanAmt}, #{item.extend}
+            )
+        </foreach>
+    </insert>
+</mapper>

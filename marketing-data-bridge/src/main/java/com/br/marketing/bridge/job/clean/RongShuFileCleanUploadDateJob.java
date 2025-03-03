@@ -2,10 +2,14 @@ package com.br.marketing.bridge.job.clean;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Md5Utils;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.file.ZipUtils;
+import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -18,6 +22,8 @@ import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.clean.MarketingCleanCreateTaskRuleMapper;
 import com.br.marketing.mapper.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.IMarketingDataValidService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -490,6 +496,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             , MarketingCleanDataFile dataFileNew) {
         Map<String, String> commonFieldMap = marketingCommonConfig.getRongShuCleanUploadCommonFieldMap();
         Map<String, String> extendFieldMap = marketingCommonConfig.getRongShuCleanUploadExtendFieldMap();
+        Map<String, Map<String, String>> cipherMap = marketingCommonConfig.getRongShuCleanUploadCipherMap();
 
         List<MarketingSyncUser> list = marketingSyncUserMapper
                 .getReserveFieldByCustNumAndAppletDateList(apiCode, fileDataMap.keySet(), appletDateSet);
@@ -517,11 +524,20 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             if (!CollectionUtils.isEmpty(commonFieldMap)) {
                 commonFieldMap.forEach((String key, String value) -> {
                     Map<String, String> fieldItemMap = new HashMap<>();
-                    fieldItemMap.put(value, fileDataJo.getString(key));
-                    fieldItemList.add(fieldItemMap);
-                    //
-                    oldDataJson.put(value, syncUserMap.get(value));
-                    newDataJson.put(value, fileDataJo.getString(key));
+                    if(cipherMap.containsKey(key)){
+                        fieldItemMap = cipherField(key, fileDataJo.getString(key), cipherMap.get(key));
+                    } else {
+                        fieldItemMap.put(value, fileDataJo.getString(key));
+                    }
+                    if(!CollectionUtils.isEmpty(fieldItemMap)){
+                        fieldItemMap.forEach((String fieldItemKey, String fieldItemValue) -> {
+                            Map<String, String> fieldMap = new HashMap<>();
+                            fieldMap.put(fieldItemKey, fieldItemValue);
+                            fieldItemList.add(fieldMap);
+                        });
+                        oldDataJson.put(value, syncUserMap.get(value));
+                        newDataJson.putAll(fieldItemMap);
+                    }
                 });
             }
 
@@ -566,6 +582,58 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 rongshuPaofenFileUpdateSyncCleanLogMapper.insertSelective(cleanLog);
             }
         }
+    }
+
+    private Map<String, String> cipherField(String fileDataKey, String fileDataValue, Map<String, String> cipherConfig) {
+        Map<String, String> resMap= new HashMap<>();
+
+        String content = StringUtils.isBlank(fileDataValue) ? "" : fileDataValue;
+        String decryptType = cipherConfig.get("decryptType");
+
+        switch (decryptType){
+            case "md5":
+                if(!DecodeGrpcClient.isMd5(content)){
+                    return resMap;
+                }
+                content = RpcClientProxy.decode(content, fileDataKey, "md5", "");
+                break;
+            case "sha256":
+                if(content.length() != 64){
+                    return resMap;
+                }
+                content = RpcClientProxy.decode(content, fileDataKey, "sha", "");
+                break;
+        }
+
+        if (StringUtils.isBlank(content)) {
+            return resMap;
+        }
+
+        UserValidator userValidator = new UserValidator(0);
+
+        switch (fileDataKey){
+            case "cell":
+                if (!userValidator.validatePhone(content)) {
+                    return resMap;
+                }
+                resMap.put("cell_md5", Md5Utils.cell32(content));
+                resMap.put("cell_sha256", Sha256Util.getSHA256Encrypt(content));
+                resMap.put("cell", BrCipherMaker.getInstance().encode(content));
+                return resMap;
+            case "id":
+                if (!userValidator.validateId(content)) {
+                    return resMap;
+                }
+                resMap.put("id_card", BrCipherMaker.getInstance().encode(content));
+                return resMap;
+            case "name":
+                if (!userValidator.validateName(content)) {
+                    return resMap;
+                }
+                resMap.put("name", BrCipherMaker.getInstance().encode(content));
+                return resMap;
+        }
+        return resMap;
     }
 
 }

@@ -1,7 +1,6 @@
 package com.br.marketing.check.job.qifu;
 
 import com.br.marketing.service.Impl.qifu.IQiFuService;
-import com.br.marketing.service.QiFuBreakPointDataToJueCeService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;

@@ -29,7 +29,7 @@ public class ThirdPartnerUploadDataClean {
     private String custNum;
 
     /**
-     * 手机号log加密
+     * 手机号
      */
     private String cell;
 
