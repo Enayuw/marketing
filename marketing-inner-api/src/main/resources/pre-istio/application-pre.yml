@@ -142,6 +142,8 @@ spring:
       publisher-confirms: true
       publisher-returns: true
       virtual-host: marketing-flow-default-yz
+    sim:
+      virtual-host: marketing-flow
     secondary:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
