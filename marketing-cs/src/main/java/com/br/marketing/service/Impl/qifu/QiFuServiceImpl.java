@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.qifu;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -510,7 +511,7 @@ public class QiFuServiceImpl implements IQiFuService {
     }
 
     public String calculateDaysDifference(String rTaTemporaryAmountExpireDate) {
-        if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate)) {
+        if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate) || ObjectUtil.isEmpty(rTaTemporaryAmountExpireDate)) {
             return rTaTemporaryAmountExpireDate;
         }
 
@@ -535,7 +536,7 @@ public class QiFuServiceImpl implements IQiFuService {
     }
 
     public String calculateIncreaseRate(String highAmountys, String lowAmountys) {
-        if (highAmountys == null || lowAmountys == null || lowAmountys.equals("0")) {
+        if (ObjectUtil.isEmpty(highAmountys) || ObjectUtil.isEmpty(lowAmountys) || lowAmountys.equals("0")) {
             return "";
         }
 
