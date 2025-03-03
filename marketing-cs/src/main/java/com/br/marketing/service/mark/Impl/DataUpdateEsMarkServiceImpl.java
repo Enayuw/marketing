@@ -74,7 +74,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             Integer threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
             Integer threadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
             int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize, 50);
             ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize);
             String key = RedisKeyConstant.DATA_UPDATE_ES_MARK.concat(":").concat(apiCode);
             List<Long> ids = new ArrayList<>();
@@ -86,6 +86,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     if (CollectionUtil.isEmpty(flagDataEsMarkList)) {
                         redisChgService.unlock(key, lockValue);
                         threadPoolShutDown(threadPool);
+                        threadPoolShutDown(threadUpdatePool);
                         break;
                     }
                     //更新打标表状态
@@ -106,6 +107,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     }
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
+                    threadPoolShutDown(threadUpdatePool);
                     break;
                 }
             }
