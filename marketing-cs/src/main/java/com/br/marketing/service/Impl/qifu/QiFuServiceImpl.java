@@ -356,13 +356,16 @@ public class QiFuServiceImpl implements IQiFuService {
         String highAmountys = "highAmountys";
         String lowAmountys = "lowAmountys";
         String rTotalAvailableAmt = reserField1.getString("rTotalAvailableAmt");
+        String rTaLastAdjustmentAmount = reserField1.getString("rTaLastAdjustmentAmount");
         String rTaTemporaryAmountExpireDate = reserField1.getString("rTaTemporaryAmountExpireDate");
         // 计算新的字段值
+        String oldLowAmountys = getAmount(null, lowAmountys, rTaLastAdjustmentAmount);
+        String oldHighAmountys = getAmount(highAmountys, null, rTaLastAdjustmentAmount);
         String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
         String newLowAmountys = getAmount(null, lowAmountys, rTotalAvailableAmt);
-        String changeAmountys = calculateDifference(newHighAmountys, newLowAmountys);
+        String changeAmountys = calculateDifference(newHighAmountys, oldHighAmountys);
         String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
-        String changeIncrease = calculateIncreaseRate(highAmountys, lowAmountys);
+        String changeIncrease = calculateIncreaseRate(newHighAmountys, oldLowAmountys);
 
         reserField1.put("highAmount_derived", newHighAmountys);
         reserField1.put("lowAmount_derived", newLowAmountys);
@@ -502,6 +505,8 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return result > 0 ? String.valueOf(result) : "0";
         } catch (NumberFormatException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "提升额度计算发生错误！" +
+                    "报错信息：" + e.getMessage()), e);
             return "";
         }
     }
@@ -511,12 +516,12 @@ public class QiFuServiceImpl implements IQiFuService {
             return rTaTemporaryAmountExpireDate;
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate today = LocalDate.now();
 
         try {
-            LocalDate today = LocalDate.now();
-            LocalDate expireDate = LocalDate.parse(rTaTemporaryAmountExpireDate, formatter)
-                    .withYear(today.getYear());
+            String dateWithYear = today.getYear() + "-" + rTaTemporaryAmountExpireDate;
+            LocalDate expireDate = LocalDate.parse(dateWithYear, formatter);
 
             if (expireDate.isBefore(today)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度到期日期小于今天！"));
@@ -525,6 +530,8 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
         } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "额度到期日期计算发生错误！" +
+                    "报错信息：" + e.getMessage()), e);
             return "";
         }
     }
@@ -538,13 +545,16 @@ public class QiFuServiceImpl implements IQiFuService {
             BigDecimal high = new BigDecimal(highAmountys);
             BigDecimal low = new BigDecimal(lowAmountys);
 
-            BigDecimal difference = high.subtract(low);
-            BigDecimal rate = difference.divide(low, 10, BigDecimal.ROUND_HALF_UP);
+            BigDecimal rate = high.divide(low, 10, BigDecimal.ROUND_HALF_UP)
+                    .subtract(BigDecimal.ONE)
+                    .multiply(BigDecimal.valueOf(100));
 
             int result = (int) Math.ceil(rate.doubleValue());
 
             return String.valueOf(result);
         } catch (NumberFormatException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "提额幅度计算发生错误！" +
+                    "报错信息：" + e.getMessage()), e);
             return "";
         }
     }
