@@ -70,8 +70,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     //打标更新:flag_new_cust
                     updateFlagNewCust(threadPool, list);
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                            "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
                     flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids, null);
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
@@ -96,16 +95,13 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
             List<String> intersectionCells = flagDataMapper.intersectionWithRongshubI_(originalCells);
             if (CollectionUtil.isNotEmpty(intersectionCells)) {
                 flagDataMapper.batchUpdateFlagNewCustComputationByCells(intersectionCells, 0, 1);
-                unIntersectionCells = originalCells.stream().filter(a -> !intersectionCells.contains(a)).collect(Collectors.toList());
-            } else {
-                unIntersectionCells = originalCells;
             }
+            unIntersectionCells = originalCells.stream().filter(a -> !intersectionCells.contains(a)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(unIntersectionCells)) {
                 flagDataMapper.batchUpdateFlagNewCustComputationByCells(unIntersectionCells, 1, 1);
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    "pp停车&榕树求交打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), "pp停车&榕树求交打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
             flagDataMapper.batchUpdateFlagNewCustComputationByCells(originalCells, null, null);
         }
 
@@ -120,8 +116,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                    "pp停车与榕树求交线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), "pp停车与榕树求交线程作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }
     }
