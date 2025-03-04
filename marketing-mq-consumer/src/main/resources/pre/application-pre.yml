@@ -91,7 +91,7 @@ spring:
       publisher-returns: true
       virtual-host: marketing-flow-yz
     sim:
-      virtual-host: marketing-flow-default
+      virtual-host: marketing-hb
     listener:
       retry:
         enabled: true
