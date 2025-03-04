@@ -108,7 +108,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     }
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                            TITLE + "抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                            TITLE + "更新打标表状态出现异常，" + "errorMessage=" + e.getMessage()), e);
                     if(!CollectionUtil.isEmpty(ids)){
                         flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
                     }
