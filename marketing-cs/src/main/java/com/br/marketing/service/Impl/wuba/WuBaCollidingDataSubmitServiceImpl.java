@@ -251,7 +251,6 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             }
         }
 
-
         // 金融周期数据 周期场景2的数据
         if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
             Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
@@ -264,7 +263,6 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             }
         }
 
-
         // 高价值数据
         List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
         if (!CollectionUtils.isEmpty(highValueFiles)) {
@@ -273,13 +271,12 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 return new Pair<>(H, robs);
             }
         }
+
         // 手动补包数据
         List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectCollidingData(limit, apiCode);
         if (!CollectionUtils.isEmpty(robs)) {
             return new Pair<>(F, robs);
         }
-
-
 
         //  非金融周期-2数据 非高价值周期非金融TRUE的-2
         Long nonFinancialReavedFileId = getReavedFileIdByType(T);
