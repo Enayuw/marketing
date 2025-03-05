@@ -100,9 +100,13 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         List<Long> ids = new ArrayList<>();
         for (; ; ) {
             String lockValue = UUID.randomUUID().toString();
-            try{
+            try {
                 //1.抢锁
                 redisChgService.lock(key, lockValue);
+            } catch (Exception e) {
+                continue;
+            }
+            try{
                 //2.查数据
                 List<FlagDataCarryLogCell> flagDataList = getFlagData(apiCode);
                 if (CollectionUtils.isEmpty(flagDataList)) {
@@ -120,7 +124,9 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                         "pp停车高风险&白名单打标流程出现异常，" + "errorMessage=" + e.getMessage()), e);
-                flagDataMapper.batchUpdateHighRiskStatusByIds(ids, null, null);
+                if (!CollectionUtils.isEmpty(ids)) {
+                    flagDataMapper.batchUpdateHighRiskStatusByIds(ids, null, null);
+                }
                 redisChgService.unlock(key, lockValue);
                 dataMarkCommonService.threadPoolShutDown(threadPool, "pp停车高风险&白名单打标");
                 break;
@@ -210,6 +216,10 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             flagData.setId(flagDataCarryLogCell.getId());
             //对于一条打标数据，es返回的跑分分值
             Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
+            if (null == scoreMap) {
+                log.warn("pp高风险打标job-打标数据未查询到es数据，id:{}", flagDataCarryLogCell.getId());
+                return;
+            }
             //将客群标志加到condition中
             scoreMap.put("flag_riskgroup", flagDataCarryLogCell.getFlagRiskgroup());
             //遍历Map<data属性名, 配置list>
