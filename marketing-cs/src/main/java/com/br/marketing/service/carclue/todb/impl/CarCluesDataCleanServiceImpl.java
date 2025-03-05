@@ -132,9 +132,9 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 String carSeries = getPhoneFromJsonObject(jsonObject, "seriesName");
                                 String province = getPhoneFromJsonObject(jsonObject, "province");
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
-                                // todo 需要结合姓氏及性别，在推送姓名字段时，进行补全，根据性别男女对应称呼为先生女士；推送姓名字段逻辑修改为：姓氏＋对应的性别称谓
                                 String member = getPhoneFromJsonObject(jsonObject, "cusName");
                                 String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
+                                String fullCall = getFullCall(jsonObject, resourceType);
                                 String intentionGrade = ObjectUtil.isNotEmpty(callRecord.getIntentionGrade()) ?
                                         callRecord.getIntentionGrade() : "";
                                 if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
@@ -145,7 +145,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setCell(phone);
                                     carClueInfo.setIntention(intentionGrade);
                                     carClueInfo.setBrand(carBrand);
-                                    carClueInfo.setMember(member);
+                                    carClueInfo.setMember(member + fullCall);
                                     carClueInfo.setSeries(carSeries);
                                     carClueInfo.setProvince(province);
                                     carClueInfo.setCity(city);
@@ -169,7 +169,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 reserveField1.put("series", carSeries);
                                 reserveField1.put("province", province);
                                 reserveField1.put("city", city);
-                                reserveField1.put("member", member);
+                                reserveField1.put("member", (member + fullCall));
                                 reserveField1.put("resourceType", resourceType);
                                 marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
                                 dataItems.add(marketingPreUserDetailDTO);
@@ -288,6 +288,48 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "车线索数据入库机器人告警异常！"), e);
+        }
+    }
+
+    public String getFullCall(JSONObject jsonObject, String resourceType) {
+        if (ObjectUtil.isEmpty(jsonObject) || ObjectUtil.isEmpty(resourceType)) {
+            return "";
+        }
+
+        String fullCall = "";
+
+        switch (resourceType) {
+            case "10":
+                String bxGender = jsonObject.getString("bxgender");
+                fullCall = getGenderTitle(bxGender);
+                break;
+
+            case "5":
+                String gender = jsonObject.getString("gender");
+                fullCall = getGenderTitle(gender);
+                break;
+
+            default:
+                fullCall = "";
+                break;
+        }
+
+        return fullCall;
+    }
+
+    private static String getGenderTitle(String gender) {
+        if (gender == null) {
+            return "";
+        }
+        switch (gender) {
+            case "男":
+            case "先生":
+                return "先生";
+            case "女":
+            case "女士":
+                return "女士";
+            default:
+                return "";
         }
     }
 
