@@ -2672,5 +2672,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, Integer> ppCarBlackList;
 
+    /**
+     * 通用上传推送决策特殊客户
+     */
+    private List<String> apiCodeOfpushPolicy;
+
 }
 

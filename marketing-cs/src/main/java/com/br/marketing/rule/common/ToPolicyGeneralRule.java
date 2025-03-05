@@ -1,7 +1,6 @@
 package com.br.marketing.rule.common;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
@@ -9,29 +8,29 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import javax.annotation.Resource;
+import java.util.List;
 
 
 @Service
 public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
-    @Autowired
+    @Resource
     MarketingCommonConfig marketingCommonConfig;
 
-    @Autowired
-    PushRuleService pushRuleService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CustomerTagsVO customerTagsVO = context.getCustomerTagsVO();
+        List<String> apiCodeOfpushPolicy = marketingCommonConfig.getApiCodeOfpushPolicy();
         PushMarketingUserDetailByRuleDTO pushData = new PushMarketingUserDetailByRuleDTO();
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
@@ -43,12 +42,21 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
-            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
-                    ? jsonObject.getString("batchNumber")
-                    : (appletDate + "_" + apiCode);
-            String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
-                    ? jsonObject.getString("strategyCode")
-                    : "";
+            String batchNumber = "";
+            String strategyCode = "";
+            if (ObjectUtil.isNotEmpty(apiCodeOfpushPolicy) && apiCodeOfpushPolicy.contains(batchNumber)) {
+                batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
+                        ? jsonObject.getString("batchNumber")
+                        : "";
+                strategyCode = ObjectUtil.isNotEmpty(batchNumber) ? (appletDate + batchNumber) : "";
+            } else {
+                batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
+                        ? jsonObject.getString("batchNumber")
+                        : (appletDate + "_" + apiCode);
+                strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
+                        ? jsonObject.getString("strategyCode")
+                        : "";
+            }
             String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
                     ? jsonObject.getString("batchName")
                     : (appletDate + "_" + apiCode);
