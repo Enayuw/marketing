@@ -46,7 +46,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
 
             if (ObjectUtil.isNotEmpty(apiCodeOfpushPolicy) && apiCodeOfpushPolicy.contains(apiCode)) {
                 batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
-                        ? appletDate + jsonObject.getString("batchNumber")
+                        ? (appletDate + jsonObject.getString("batchNumber"))
                         : (appletDate + "_" + apiCode);
             } else {
                 batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
