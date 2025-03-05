@@ -47,9 +47,11 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         Integer current = request.getCurrent();
         Integer size = request.getSize();
 
+        // todo 在线索管理页面增加新列，线索来源：展示一知/自研；根据该线索是来源自研还是一知
         Map params = new HashMap();
         params.put("createTimeStart", request.getCreateTimeStart());
         params.put("createTimeEnd", request.getCreateTimeEnd());
+        params.put("resourceType", request.getResourceType());
         params.put("intention", request.getIntention());
         params.put("clueDataStatusList", request.getClueDataStatus());
         params.put("clueCompleteStatusList", request.getClueCompleteStatus());
@@ -128,10 +130,12 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         for (CarClueInfo vo : voList) {
             CarClueInfo clueInfo = new CarClueInfo();
             try {
+                //todo   城市字段支持编辑，非有效线索的线索都支持编辑城市
                 CarClueInfo carClueInfo = carClueInfoMapper.selectByPrimaryKey(vo.getId());
                 clueInfo.setId(vo.getId());
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
+                clueInfo.setCity(vo.getCity());
                 clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                 Integer clueCompleteStatus = carClueInfo.getClueCompleteStatus();
                 if (carClueDataStatusList.contains(vo.getClueDataStatus()) && !carClueCompleteStatusList.contains(clueCompleteStatus)) {

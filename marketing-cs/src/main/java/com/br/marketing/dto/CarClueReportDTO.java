@@ -22,6 +22,8 @@ public class CarClueReportDTO {
     private String createTimeEnd;
     @ApiModelProperty(value = "外呼意向")
     private String intention;
+    @ApiModelProperty(value = "线索来源")
+    private String resourceType;
     @ApiModelProperty(value = "线索状态")
     private List<Integer> clueDataStatus;
     @ApiModelProperty(value = "线索补全状态")

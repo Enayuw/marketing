@@ -8,6 +8,7 @@
         bcci.api_code,
         bcci.cust_num as custNum,
         DATE_FORMAT(bcci.create_time, '%Y-%m-%d') as appletDate,
+        bcci.resource_type as resourceType,
         bcci.clue_id as clueId,
         bcci.clue_data_status as clueDataStatus,
         bcci.clue_complete_status as clueCompleteStatus,
@@ -42,6 +43,9 @@
             </if>
             <if test="createTimeEnd != null and createTimeEnd != ''">
                 <![CDATA[ and bcci.create_time < #{createTimeEnd} ]]>
+            </if>
+            <if test="resourceType != null and resourceType != ''">
+                and bcci.resource_type = #{resourceType}
             </if>
             <if test="intention != null and intention != ''">
                 and bcci.intention = #{intention}

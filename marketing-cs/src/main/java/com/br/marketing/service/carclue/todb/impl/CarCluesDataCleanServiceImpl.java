@@ -132,6 +132,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 String carSeries = getPhoneFromJsonObject(jsonObject, "seriesName");
                                 String province = getPhoneFromJsonObject(jsonObject, "province");
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
+                                // todo 需要结合姓氏及性别，在推送姓名字段时，进行补全，根据性别男女对应称呼为先生女士；推送姓名字段逻辑修改为：姓氏＋对应的性别称谓
                                 String member = getPhoneFromJsonObject(jsonObject, "cusName");
                                 String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
                                 String intentionGrade = ObjectUtil.isNotEmpty(callRecord.getIntentionGrade()) ?
