@@ -73,8 +73,9 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             }
             Integer threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
             Integer threadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize, 50);
-            ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize);
+            Integer dataMarkEsQueueNum = marketingCommonConfig.getDataMarkEsQueueNum();
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize, dataMarkEsQueueNum);
+            ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize, dataMarkEsQueueNum);
             List<Long> ids = new ArrayList<>();
             while (true) {
                 try {
