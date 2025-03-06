@@ -296,31 +296,32 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
             JSONObject config = marketingCommonConfig.getCarClueDataMemberConfig();
             JSONObject genderKeys = config.getJSONObject("genderKeys");
 
-            String genderKey = genderKeys.getString(resourceType);
-            if (ObjectUtil.isEmpty(genderKey)) {
-                return "";
-            }
-
-            String genderValue = jsonObject.getString(genderKey);
-            if (ObjectUtil.isEmpty(genderValue)) {
+            JSONArray genderKeyArray = genderKeys.getJSONArray(resourceType);
+            if (ObjectUtil.isEmpty(genderKeyArray)) {
                 return "";
             }
 
             JSONArray maleTitles = config.getJSONArray("先生");
             JSONArray femaleTitles = config.getJSONArray("女士");
 
-            if (maleTitles.contains(genderValue)) {
-                return "先生";
-            } else if (femaleTitles.contains(genderValue)) {
-                return "女士";
-            } else {
-                return "";
+            for (int i = 0; i < genderKeyArray.size(); i++) {
+                String genderKey = genderKeyArray.getString(i);
+                String genderValue = jsonObject.getString(genderKey);
+
+                if (ObjectUtil.isNotEmpty(genderValue)) {
+                    if (maleTitles.contains(genderValue)) {
+                        return "先生";
+                    } else if (femaleTitles.contains(genderValue)) {
+                        return "女士";
+                    }
+                }
             }
+
+            return "";
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "车线索数据姓名转化入库异常！异常信息：" + e.getMessage()), e);
             return "";
         }
     }
-
 }
