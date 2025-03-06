@@ -134,7 +134,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
                                 String member = getPhoneFromJsonObject(jsonObject, "cusName");
                                 String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
-                                String fullCall = getFullCall(jsonObject, resourceType);
+                                String fullCall = getGenderTitle(jsonObject, resourceType);
                                 String intentionGrade = ObjectUtil.isNotEmpty(callRecord.getIntentionGrade()) ?
                                         callRecord.getIntentionGrade() : "";
                                 if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
@@ -291,45 +291,35 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
         }
     }
 
-    public String getFullCall(JSONObject jsonObject, String resourceType) {
-        if (ObjectUtil.isEmpty(jsonObject) || ObjectUtil.isEmpty(resourceType)) {
-            return "";
-        }
+    public String getGenderTitle(JSONObject jsonObject, String resourceType) {
+        try {
+            JSONObject config = marketingCommonConfig.getCarClueDataMemberConfig();
+            JSONObject genderKeys = config.getJSONObject("genderKeys");
 
-        String fullCall = "";
-
-        switch (resourceType) {
-            case "10":
-                String bxGender = jsonObject.getString("bxgender");
-                fullCall = getGenderTitle(bxGender);
-                break;
-
-            case "5":
-                String gender = jsonObject.getString("gender");
-                fullCall = getGenderTitle(gender);
-                break;
-
-            default:
-                fullCall = "";
-                break;
-        }
-
-        return fullCall;
-    }
-
-    private static String getGenderTitle(String gender) {
-        if (gender == null) {
-            return "";
-        }
-        switch (gender) {
-            case "男":
-            case "先生":
-                return "先生";
-            case "女":
-            case "女士":
-                return "女士";
-            default:
+            String genderKey = genderKeys.getString(resourceType);
+            if (ObjectUtil.isEmpty(genderKey)) {
                 return "";
+            }
+
+            String genderValue = jsonObject.getString(genderKey);
+            if (ObjectUtil.isEmpty(genderValue)) {
+                return "";
+            }
+
+            JSONArray maleTitles = config.getJSONArray("先生");
+            JSONArray femaleTitles = config.getJSONArray("女士");
+
+            if (maleTitles.contains(genderValue)) {
+                return "先生";
+            } else if (femaleTitles.contains(genderValue)) {
+                return "女士";
+            } else {
+                return "";
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据姓名转化入库异常！异常信息：" + e.getMessage()), e);
+            return "";
         }
     }
 
