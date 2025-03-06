@@ -61,9 +61,7 @@ public class SftpClient extends BaseFtpClient{
             session.setPassword(password);
             session.setConfig(this.getSshConfig());
 
-            // 设置Socket超时时间
-            session.setTimeout(DEFAULT_TIMEOUT);
-            session.connect();
+            session.connect(DEFAULT_TIMEOUT);
 
             channel = session.openChannel("sftp");
             channel.connect();
