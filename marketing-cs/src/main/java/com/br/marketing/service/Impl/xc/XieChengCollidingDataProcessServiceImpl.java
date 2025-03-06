@@ -203,11 +203,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      * @date 2024/8/8 17:20
      **/
     private void updateTaskToCleaning(String apiCode) {
-        Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(getStartOfDate(), xcFalsePackageCleanHour))
+                .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(0)
                 .andIsDeleteEqualTo(0);
@@ -225,11 +224,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      * @date 2024/8/8 17:20
      **/
     private boolean queryUnCleanedTaskCount(String apiCode) {
-        Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(getStartOfDate(), xcFalsePackageCleanHour))
+                .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(0)
                 .andIsDeleteEqualTo(0);
