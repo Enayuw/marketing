@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcProcessTaskEnum;
@@ -202,10 +203,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      * @date 2024/8/8 17:20
      **/
     private void updateTaskToCleaning(String apiCode) {
+        Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(getStartOfDate(), xcFalsePackageCleanHour))
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(0)
                 .andIsDeleteEqualTo(0);
@@ -223,10 +225,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      * @date 2024/8/8 17:20
      **/
     private boolean queryUnCleanedTaskCount(String apiCode) {
+        Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(getStartOfDate(), xcFalsePackageCleanHour))
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(0)
                 .andIsDeleteEqualTo(0);

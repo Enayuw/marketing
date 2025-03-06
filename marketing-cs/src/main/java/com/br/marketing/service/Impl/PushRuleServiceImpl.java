@@ -827,10 +827,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         //清洗时间在撞库区间内去重，业务应规避此条件
         String packageIds = "";
         if (StringUtils.isNotEmpty(cleanTime)) {
-            Integer xcFalseFalsePackageCleanHour = marketingCommonConfig.getXcFalseFalsePackageCleanHour();
+            Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
             XiechengCollidingDataPackageRuleExample packageRuleExample = new XiechengCollidingDataPackageRuleExample();
             packageRuleExample.createCriteria()
-                    .andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(DateHelper.parseDate(cleanTime),xcFalseFalsePackageCleanHour))
+                    .andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(DateHelper.parseDate(cleanTime),xcFalsePackageCleanHour))
                     .andIsDeleteEqualTo(0);
             List<XiechengCollidingDataPackageRule> packageRules = xiechengCollidingDataPackageRuleMapper.selectByExample(packageRuleExample);
             packageIds = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId()
@@ -1235,11 +1235,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPrePlanNum());
-        Integer xcFalseFalsePackageCleanHour = marketingCommonConfig.getXcFalseFalsePackageCleanHour();
+        Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
         try {
             xiechengCollidingDataProcessTask
                     .setTaskStartTime(DateHelper.getDateByHour(
-                            DateHelper.parseDate(collidingFilterDTO.getCleanTime()),xcFalseFalsePackageCleanHour));
+                            DateHelper.parseDate(collidingFilterDTO.getCleanTime()),xcFalsePackageCleanHour));
         } catch (Exception e) {
             log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");

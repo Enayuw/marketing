@@ -2624,7 +2624,7 @@ public class MarketingCommonConfig {
     /**
      * 携程false包补充小时值
      */
-    private Integer xcFalseFalsePackageCleanHour;
+    private Integer xcFalsePackageCleanHour;
 
     /**
      * 异业打标手机号自动化同步配置
