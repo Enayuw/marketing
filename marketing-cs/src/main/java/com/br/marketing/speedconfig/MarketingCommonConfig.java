@@ -2672,5 +2672,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, Integer> ppCarBlackList;
 
+    /**
+     *
+     */
+    private JSONObject carClueDataMemberConfig;
+
 }
 
