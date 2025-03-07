@@ -150,6 +150,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setProvince(province);
                                     carClueInfo.setCity(city);
                                     carClueInfo.setRecordingPath(callRecord.getRecordingPath());
+                                    carClueInfo.setCallDialog(callRecord.getCallDialog());
                                     carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                                     carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
                                     carClueInfo.setResourceType(resourceType);

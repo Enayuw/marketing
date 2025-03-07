@@ -42,6 +42,9 @@
     <result column="call_back_time" property="callBackTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.CarClueInfo" extends="BaseResultMap" >
+    <result column="call_dialog" property="callDialog" jdbcType="LONGVARCHAR" />
+  </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
       <foreach collection="oredCriteria" item="criteria" separator="or" >
@@ -109,6 +112,25 @@
     clue_callback_result, clue_callback_push_state, clue_callback_final_state, resource_type,
     extend_info, create_time, clean_time, push_time, call_back_time, update_time
   </sql>
+  <sql id="Blob_Column_List" >
+    call_dialog
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.CarClueInfoExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_car_clue_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInfoExample" >
     select
     <if test="distinct" >
@@ -123,9 +145,11 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
     select
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from b_car_clue_info
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -155,7 +179,8 @@
     clue_error_reason, clue_callback_result, clue_callback_push_state,
     clue_callback_final_state, resource_type, extend_info,
     create_time, clean_time, push_time,
-    call_back_time, update_time)
+    call_back_time, update_time, call_dialog
+    )
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
     #{cell,jdbcType=VARCHAR}, #{intention,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR},
     #{member,jdbcType=VARCHAR}, #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR},
@@ -168,7 +193,8 @@
     #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR}, #{clueCallbackPushState,jdbcType=INTEGER},
     #{clueCallbackFinalState,jdbcType=INTEGER}, #{resourceType,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP}, #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP},
-    #{callBackTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    #{callBackTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{callDialog,jdbcType=LONGVARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -290,6 +316,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="callDialog != null" >
+        call_dialog,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cid != null" >
@@ -405,6 +434,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="callDialog != null" >
+        #{callDialog,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -534,7 +566,56 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.callDialog != null" >
+        call_dialog = #{record.callDialog,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update b_car_clue_info
+    set id = #{record.id,jdbcType=BIGINT},
+    cid = #{record.cid,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    intention = #{record.intention,jdbcType=VARCHAR},
+    brand = #{record.brand,jdbcType=VARCHAR},
+    `member` = #{record.member,jdbcType=VARCHAR},
+    series = #{record.series,jdbcType=VARCHAR},
+    clue_match_brand_id = #{record.clueMatchBrandId,jdbcType=VARCHAR},
+    clue_match_brand = #{record.clueMatchBrand,jdbcType=VARCHAR},
+    clue_match_series_id = #{record.clueMatchSeriesId,jdbcType=VARCHAR},
+    clue_match_series = #{record.clueMatchSeries,jdbcType=VARCHAR},
+    match_brand_series_type = #{record.matchBrandSeriesType,jdbcType=INTEGER},
+    province = #{record.province,jdbcType=VARCHAR},
+    clue_match_province_id = #{record.clueMatchProvinceId,jdbcType=VARCHAR},
+    clue_match_province = #{record.clueMatchProvince,jdbcType=VARCHAR},
+    city = #{record.city,jdbcType=VARCHAR},
+    clue_match_city_id = #{record.clueMatchCityId,jdbcType=VARCHAR},
+    clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
+    recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+    clue_id = #{record.clueId,jdbcType=VARCHAR},
+    clue_push_channel = #{record.cluePushChannel,jdbcType=VARCHAR},
+    clue_data_status = #{record.clueDataStatus,jdbcType=INTEGER},
+    clue_complete_status = #{record.clueCompleteStatus,jdbcType=INTEGER},
+    clue_push_status = #{record.cluePushStatus,jdbcType=INTEGER},
+    clue_callback_status = #{record.clueCallbackStatus,jdbcType=INTEGER},
+    clue_push_error_reason = #{record.cluePushErrorReason,jdbcType=VARCHAR},
+    clue_error_reason = #{record.clueErrorReason,jdbcType=VARCHAR},
+    clue_callback_result = #{record.clueCallbackResult,jdbcType=VARCHAR},
+    clue_callback_push_state = #{record.clueCallbackPushState,jdbcType=INTEGER},
+    clue_callback_final_state = #{record.clueCallbackFinalState,jdbcType=INTEGER},
+    resource_type = #{record.resourceType,jdbcType=VARCHAR},
+    extend_info = #{record.extendInfo,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    clean_time = #{record.cleanTime,jdbcType=TIMESTAMP},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    call_back_time = #{record.callBackTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    call_dialog = #{record.callDialog,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -701,7 +782,53 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="callDialog != null" >
+        call_dialog = #{callDialog,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.CarClueInfo" >
+    update b_car_clue_info
+    set cid = #{cid,jdbcType=VARCHAR},
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        cust_num = #{custNum,jdbcType=VARCHAR},
+        cell = #{cell,jdbcType=VARCHAR},
+        intention = #{intention,jdbcType=VARCHAR},
+        brand = #{brand,jdbcType=VARCHAR},
+        `member` = #{member,jdbcType=VARCHAR},
+        series = #{series,jdbcType=VARCHAR},
+        clue_match_brand_id = #{clueMatchBrandId,jdbcType=VARCHAR},
+        clue_match_brand = #{clueMatchBrand,jdbcType=VARCHAR},
+        clue_match_series_id = #{clueMatchSeriesId,jdbcType=VARCHAR},
+        clue_match_series = #{clueMatchSeries,jdbcType=VARCHAR},
+        match_brand_series_type = #{matchBrandSeriesType,jdbcType=INTEGER},
+        province = #{province,jdbcType=VARCHAR},
+        clue_match_province_id = #{clueMatchProvinceId,jdbcType=VARCHAR},
+        clue_match_province = #{clueMatchProvince,jdbcType=VARCHAR},
+        city = #{city,jdbcType=VARCHAR},
+        clue_match_city_id = #{clueMatchCityId,jdbcType=VARCHAR},
+        clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
+        recording_path = #{recordingPath,jdbcType=VARCHAR},
+        clue_id = #{clueId,jdbcType=VARCHAR},
+        clue_push_channel = #{cluePushChannel,jdbcType=VARCHAR},
+        clue_data_status = #{clueDataStatus,jdbcType=INTEGER},
+        clue_complete_status = #{clueCompleteStatus,jdbcType=INTEGER},
+        clue_push_status = #{cluePushStatus,jdbcType=INTEGER},
+        clue_callback_status = #{clueCallbackStatus,jdbcType=INTEGER},
+        clue_push_error_reason = #{cluePushErrorReason,jdbcType=VARCHAR},
+        clue_error_reason = #{clueErrorReason,jdbcType=VARCHAR},
+        clue_callback_result = #{clueCallbackResult,jdbcType=VARCHAR},
+        clue_callback_push_state = #{clueCallbackPushState,jdbcType=INTEGER},
+        clue_callback_final_state = #{clueCallbackFinalState,jdbcType=INTEGER},
+        resource_type = #{resourceType,jdbcType=VARCHAR},
+        extend_info = #{extendInfo,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        clean_time = #{cleanTime,jdbcType=TIMESTAMP},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        call_back_time = #{callBackTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        call_dialog = #{callDialog,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CarClueInfo" >
