@@ -44,10 +44,6 @@ public class MarketingDataMonkeyApplication {
                 MarketingDataMonkeyApplication.stop();
             }
         });
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
-            bean.rocketmqDestroy();
-        }));
         log.warn("marketing-data-monkey启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
     /**

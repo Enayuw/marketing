@@ -50,10 +50,6 @@ public class Scheduler {
                 Scheduler.stop();
             }
         });
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
-            bean.rocketmqDestroy();
-        }));
         Long end =System.currentTimeMillis();
         log.warn("Scheduler启动结束，耗时{}",end-start);
     }

@@ -36,10 +36,6 @@ public class RuleSchedulerApplication {
         Long start = System.currentTimeMillis();
         ac = new SpringApplicationBuilder().sources(RuleSchedulerApplication.class).run(args);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
-            bean.rocketmqDestroy();
-        }));
         Long end = System.currentTimeMillis();
         log.warn("marketing-rule-scheduler启动结束，耗时{}s", (end - start) / 1000);
     }

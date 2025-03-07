@@ -36,10 +36,6 @@ public class DataBridgeApplication {
         Long start = System.currentTimeMillis();
         ac = new SpringApplicationBuilder().sources(DataBridgeApplication.class).run(args);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
-            bean.rocketmqDestroy();
-        }));
         Long end = System.currentTimeMillis();
         log.warn("marketing-data-bridge启动结束，耗时{}s", (end - start) / 1000);
     }
