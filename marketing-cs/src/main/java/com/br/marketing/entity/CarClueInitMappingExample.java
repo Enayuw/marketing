@@ -974,6 +974,66 @@ public class CarClueInitMappingExample {
             addCriterion("is_del not between", value1, value2, "isDel");
             return (Criteria) this;
         }
+
+        public Criteria andDailyLimitedIsNull() {
+            addCriterion("daily_limited is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedIsNotNull() {
+            addCriterion("daily_limited is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedEqualTo(Integer value) {
+            addCriterion("daily_limited =", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedNotEqualTo(Integer value) {
+            addCriterion("daily_limited <>", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedGreaterThan(Integer value) {
+            addCriterion("daily_limited >", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedGreaterThanOrEqualTo(Integer value) {
+            addCriterion("daily_limited >=", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedLessThan(Integer value) {
+            addCriterion("daily_limited <", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedLessThanOrEqualTo(Integer value) {
+            addCriterion("daily_limited <=", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedIn(List<Integer> values) {
+            addCriterion("daily_limited in", values, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedNotIn(List<Integer> values) {
+            addCriterion("daily_limited not in", values, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedBetween(Integer value1, Integer value2) {
+            addCriterion("daily_limited between", value1, value2, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedNotBetween(Integer value1, Integer value2) {
+            addCriterion("daily_limited not between", value1, value2, "dailyLimited");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

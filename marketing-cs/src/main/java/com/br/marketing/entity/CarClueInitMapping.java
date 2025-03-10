@@ -68,6 +68,11 @@ public class CarClueInitMapping {
      */
     private Integer isDel;
 
+    /**
+     * 日限量
+     */
+    private Integer dailyLimited;
+
     public Long getId() {
         return id;
     }
@@ -170,5 +175,13 @@ public class CarClueInitMapping {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public Integer getDailyLimited() {
+        return dailyLimited;
+    }
+
+    public void setDailyLimited(Integer dailyLimited) {
+        this.dailyLimited = dailyLimited;
     }
 }
