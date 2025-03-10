@@ -187,6 +187,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
+                .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(1)
                 .andIsDeleteEqualTo(0);
@@ -206,6 +207,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(0)
@@ -227,6 +229,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(0)
