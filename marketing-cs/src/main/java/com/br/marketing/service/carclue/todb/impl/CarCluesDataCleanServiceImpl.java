@@ -143,7 +143,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setApiCode(apiCode);
                                     carClueInfo.setCustNum(callRecord.getCaseNum());
                                     carClueInfo.setCell(phone);
-                                    carClueInfo.setIntention(intentionGrade);
+                                    carClueInfo.setIntention(intentionGrade.toUpperCase());
                                     carClueInfo.setBrand(carBrand);
                                     carClueInfo.setMember(member + fullCall);
                                     carClueInfo.setSeries(carSeries);
@@ -165,7 +165,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 JSONObject reserveField1 = new JSONObject();
                                 reserveField1.put("userType", "新车");
                                 reserveField1.put("recordingPath", callRecord.getRecordingPath());
-                                reserveField1.put("intentionGrade", intentionGrade);
+                                reserveField1.put("intentionGrade", intentionGrade.toUpperCase());
                                 reserveField1.put("brand", carBrand);
                                 reserveField1.put("series", carSeries);
                                 reserveField1.put("province", province);
