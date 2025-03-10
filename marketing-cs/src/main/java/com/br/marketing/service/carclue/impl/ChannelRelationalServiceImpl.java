@@ -60,6 +60,11 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private static final String TITL = "【车线索外采数据相关-】";
 
     @Override
+    public void getInitMapping() {
+
+    }
+
+    @Override
     public void getProvinceAndCity() {
 
         CarClueProvincesInformationExample carClueProvincesInformationExample = new CarClueProvincesInformationExample();

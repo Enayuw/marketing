@@ -25,6 +25,8 @@ public class ChannelRelationalJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         log.warn(TITLE + "start");
         long start = System.currentTimeMillis();
+        //获取当天的 易车KA 外采初始配置
+        channelRelationalService.getInitMapping();
         //获取省市/车辆信息
         channelRelationalService.getProvinceAndCity();
         //维护外采渠道商信息
