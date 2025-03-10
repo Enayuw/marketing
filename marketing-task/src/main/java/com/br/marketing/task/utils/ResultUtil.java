@@ -533,7 +533,7 @@ public class ResultUtil {
         String decryptValue = "";
         String decryptDataType = "";
         if(dataKey.equals("idcard") || dataKey.equals("id")) {
-            decryptDataType = "idcard";
+            decryptDataType = "id";
         } else if(dataKey.equals("cell")) {
             decryptDataType = "cell";
         } else if(dataKey.equals("name")) {
@@ -544,9 +544,9 @@ public class ResultUtil {
         if(sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.init.getValue())) {
             decryptValue = value;
         } else if(sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.md5.getValue())) {
-            decryptValue = RpcClientProxy.decode(value, "md5", decryptDataType, "");
+            decryptValue = RpcClientProxy.decode(value, decryptDataType, "md5", "");
         } else if(sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.sha256.getValue())) {
-            decryptValue = RpcClientProxy.decode(value, "sha256", decryptDataType, "");
+            decryptValue = RpcClientProxy.decode(value, decryptDataType, "sha", "");
         }
         logValue = BrCipherMaker.getInstance().encode(decryptValue);
         // 如果值的加密类型与目标加密类型相同，则直接返回
