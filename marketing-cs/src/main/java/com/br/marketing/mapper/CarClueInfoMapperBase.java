@@ -17,21 +17,15 @@ public interface CarClueInfoMapperBase {
 
     int insertSelective(CarClueInfo record);
 
-    List<CarClueInfo> selectByExampleWithBLOBs(CarClueInfoExample example);
-
     List<CarClueInfo> selectByExample(CarClueInfoExample example);
 
     CarClueInfo selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") CarClueInfo record, @Param("example") CarClueInfoExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") CarClueInfo record, @Param("example") CarClueInfoExample example);
-
     int updateByExample(@Param("record") CarClueInfo record, @Param("example") CarClueInfoExample example);
 
     int updateByPrimaryKeySelective(CarClueInfo record);
-
-    int updateByPrimaryKeyWithBLOBs(CarClueInfo record);
 
     int updateByPrimaryKey(CarClueInfo record);
 }

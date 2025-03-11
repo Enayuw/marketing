@@ -109,6 +109,11 @@ public class CarClueInfo {
     private String recordingPath;
 
     /**
+     * 交互文本
+     */
+    private String callDialog;
+
+    /**
      * 线索id
      */
     private String clueId;
@@ -197,11 +202,6 @@ public class CarClueInfo {
      * 修改时间
      */
     private Date updateTime;
-
-    /**
-     * 交互文本
-     */
-    private String callDialog;
 
     public Long getId() {
         return id;
@@ -371,6 +371,14 @@ public class CarClueInfo {
         this.recordingPath = recordingPath == null ? null : recordingPath.trim();
     }
 
+    public String getCallDialog() {
+        return callDialog;
+    }
+
+    public void setCallDialog(String callDialog) {
+        this.callDialog = callDialog == null ? null : callDialog.trim();
+    }
+
     public String getClueId() {
         return clueId;
     }
@@ -513,13 +521,5 @@ public class CarClueInfo {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getCallDialog() {
-        return callDialog;
-    }
-
-    public void setCallDialog(String callDialog) {
-        this.callDialog = callDialog == null ? null : callDialog.trim();
     }
 }
