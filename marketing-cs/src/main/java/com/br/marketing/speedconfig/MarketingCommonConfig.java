@@ -2673,6 +2673,11 @@ public class MarketingCommonConfig {
     private Integer dataUpdateMarkESThreadNum;
 
     /**
+     * 数据打标队列大小
+     */
+    private Integer dataMarkEsQueueNum;
+
+    /**
      * pp停车同步文件表
      */
     private String dataMarkTableName;
@@ -2681,6 +2686,11 @@ public class MarketingCommonConfig {
      * pp停车黑名单输出配置
      */
     private Map<String, Integer> ppCarBlackList;
+
+    /**
+     * 通用上传推送决策特殊客户
+     */
+    private List<String> apiCodeOfpushPolicy;
 
 }
 

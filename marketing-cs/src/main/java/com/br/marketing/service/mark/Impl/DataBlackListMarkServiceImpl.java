@@ -96,11 +96,11 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
             List<String> intersectionCells = flagDataMapper.intersectionWithBlackList(originalCells, blackListOutput.get("type"));
             if (CollectionUtil.isNotEmpty(intersectionCells)) {
                 flagDataMapper.batchUpdateFlagBlackListComputationByCells(intersectionCells, blackListOutput.get("flagIntellaudioBlacklist"), 1);
-                unIntersectionCells = originalCells.stream().filter(a -> !intersectionCells.contains(a)).collect(Collectors.toList());
-            } else {
-                unIntersectionCells = originalCells;
             }
-            flagDataMapper.batchUpdateFlagBlackListComputationByCells(unIntersectionCells, 0, 1);
+            unIntersectionCells = originalCells.stream().filter(a -> !intersectionCells.contains(a)).collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(unIntersectionCells)) {
+                flagDataMapper.batchUpdateFlagBlackListComputationByCells(unIntersectionCells, 0, 1);
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                     "pp停车&黑名单打标子线程流程中出现异常，" + "errorMessage=" + e.getMessage()), e);
