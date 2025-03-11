@@ -134,6 +134,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
                                 String member = getPhoneFromJsonObject(jsonObject, "cusName");
                                 String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
+                                String fullCall = getGenderTitle(jsonObject, resourceType);
                                 String intentionGrade = ObjectUtil.isNotEmpty(callRecord.getIntentionGrade()) ?
                                         callRecord.getIntentionGrade() : "";
                                 if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
@@ -142,13 +143,14 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setApiCode(apiCode);
                                     carClueInfo.setCustNum(callRecord.getCaseNum());
                                     carClueInfo.setCell(phone);
-                                    carClueInfo.setIntention(intentionGrade);
+                                    carClueInfo.setIntention(intentionGrade.toUpperCase());
                                     carClueInfo.setBrand(carBrand);
-                                    carClueInfo.setMember(member);
+                                    carClueInfo.setMember(member + fullCall);
                                     carClueInfo.setSeries(carSeries);
                                     carClueInfo.setProvince(province);
                                     carClueInfo.setCity(city);
                                     carClueInfo.setRecordingPath(callRecord.getRecordingPath());
+                                    carClueInfo.setCallDialog(callRecord.getCallDialog());
                                     carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                                     carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
                                     carClueInfo.setResourceType(resourceType);
@@ -163,12 +165,12 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 JSONObject reserveField1 = new JSONObject();
                                 reserveField1.put("userType", "新车");
                                 reserveField1.put("recordingPath", callRecord.getRecordingPath());
-                                reserveField1.put("intentionGrade", intentionGrade);
+                                reserveField1.put("intentionGrade", intentionGrade.toUpperCase());
                                 reserveField1.put("brand", carBrand);
                                 reserveField1.put("series", carSeries);
                                 reserveField1.put("province", province);
                                 reserveField1.put("city", city);
-                                reserveField1.put("member", member);
+                                reserveField1.put("member", (member + fullCall));
                                 reserveField1.put("resourceType", resourceType);
                                 marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
                                 dataItems.add(marketingPreUserDetailDTO);
@@ -290,4 +292,37 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
         }
     }
 
+    public String getGenderTitle(JSONObject jsonObject, String resourceType) {
+        try {
+            JSONObject config = marketingCommonConfig.getCarClueDataMemberConfig();
+            JSONObject genderKeys = config.getJSONObject("genderKeys");
+
+            JSONArray genderKeyArray = genderKeys.getJSONArray(resourceType);
+            if (ObjectUtil.isEmpty(genderKeyArray)) {
+                return "";
+            }
+
+            JSONArray maleTitles = config.getJSONArray("先生");
+            JSONArray femaleTitles = config.getJSONArray("女士");
+
+            for (int i = 0; i < genderKeyArray.size(); i++) {
+                String genderKey = genderKeyArray.getString(i);
+                String genderValue = jsonObject.getString(genderKey);
+
+                if (ObjectUtil.isNotEmpty(genderValue)) {
+                    if (maleTitles.contains(genderValue)) {
+                        return "先生";
+                    } else if (femaleTitles.contains(genderValue)) {
+                        return "女士";
+                    }
+                }
+            }
+
+            return "";
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据姓名转化入库异常！异常信息：" + e.getMessage()), e);
+            return "";
+        }
+    }
 }

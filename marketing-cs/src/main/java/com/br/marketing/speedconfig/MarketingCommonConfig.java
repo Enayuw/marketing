@@ -2692,5 +2692,10 @@ public class MarketingCommonConfig {
      */
     private List<String> apiCodeOfpushPolicy;
 
+    /**
+     * 车线索姓名匹配配置
+     */
+    private JSONObject carClueDataMemberConfig;
+
 }
 
