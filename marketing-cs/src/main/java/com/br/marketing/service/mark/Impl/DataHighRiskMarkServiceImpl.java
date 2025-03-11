@@ -218,35 +218,36 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
             Map scoreMap = conditionMap.get(flagDataCarryLogCell.getCellLog());
             if (null == scoreMap) {
                 log.warn("pp高风险打标job-打标数据未查询到es数据，id:{}", flagDataCarryLogCell.getId());
-                return;
-            }
-            //将客群标志加到condition中
-            scoreMap.put("flag_riskgroup", flagDataCarryLogCell.getFlagRiskgroup());
-            //遍历Map<data属性名, 配置list>
-            for (String markOutField : markCOnfigsGroupMap.keySet()) {
-                List<DataMarkConfig> dataMarkConfigs = markCOnfigsGroupMap.get(markOutField);
-                //目前标记字段类型都是整形，后续有其他类型标记，代码需要修改
-                Integer markOutValue = null;
-                //遍历配置List，理论上最后一条是默认值
-                for (DataMarkConfig dataMarkConfig : dataMarkConfigs) {
-                    if (dataMarkConfig.getMarkOutValueType() == 1
-                            || dataMarkCommonService.isMatch(scoreMap, dataMarkConfig.getMarkCondition())) {
-                        markOutValue = Integer.parseInt(dataMarkConfig.getMarkOutValue());
-                        break;
+                flagData.setIsDelete(1);
+            } else {
+                //将客群标志加到condition中
+                scoreMap.put("flag_riskgroup", flagDataCarryLogCell.getFlagRiskgroup());
+                //遍历Map<data属性名, 配置list>
+                for (String markOutField : markCOnfigsGroupMap.keySet()) {
+                    List<DataMarkConfig> dataMarkConfigs = markCOnfigsGroupMap.get(markOutField);
+                    //目前标记字段类型都是整形，后续有其他类型标记，代码需要修改
+                    Integer markOutValue = null;
+                    //遍历配置List，理论上最后一条是默认值
+                    for (DataMarkConfig dataMarkConfig : dataMarkConfigs) {
+                        if (dataMarkConfig.getMarkOutValueType() == 1
+                                || dataMarkCommonService.isMatch(scoreMap, dataMarkConfig.getMarkCondition())) {
+                            markOutValue = Integer.parseInt(dataMarkConfig.getMarkOutValue());
+                            break;
+                        }
+                    }
+                    // 从缓存中获取Field 对象
+                    Field declaredField = fieldCache.get(markOutField);
+                    declaredField.setAccessible(true);
+                    //给flagData的属性declaredField赋值markOutValue
+                    try {
+                        declaredField.set(flagData, markOutValue);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
                     }
                 }
-                // 从缓存中获取Field 对象
-                Field declaredField = fieldCache.get(markOutField);
-                declaredField.setAccessible(true);
-                //给flagData的属性declaredField赋值markOutValue
-                try {
-                    declaredField.set(flagData, markOutValue);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
+                flagData.setFlagHighRiskComputation(1);
+                flagData.setFlagWhitelistComputation(1);
             }
-            flagData.setFlagHighRiskComputation(1);
-            flagData.setFlagWhitelistComputation(1);
             flagDataMapper.updateByPrimaryKeySelective(flagData);
         });
         long afterMark = System.currentTimeMillis();
