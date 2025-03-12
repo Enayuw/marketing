@@ -9,6 +9,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
+import com.br.marketing.mapper.ClueRelationshipMapper;
 import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
@@ -47,6 +48,8 @@ public class CarClueServiceImpl implements CarClueService {
     RedisChgService redisChgService;
     @Resource
     private CarClueRelationalMappingMapper carClueRelationalMappingMapper;
+    @Resource
+    private ClueRelationshipMapper clueRelationshipMapper;
     private static final String TITLE = "【车线索匹配】";
 
     @Override
@@ -167,15 +170,24 @@ public class CarClueServiceImpl implements CarClueService {
         carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
     }
 
-    private Boolean checkDailyLimited(CarClueInfo data) {
+    private Boolean checkDailyLimited(CarClueInfo carClueInfo) {
         Boolean isLimited = Boolean.FALSE;
-        AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(data.getApiCode());
+        AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(carClueInfo.getApiCode());
         if(ChannelRule.MatchChannelRuleEnum.DAILY_LIMITED.getLabel().equals(channelMatch.label())){
-            String key = RedisKeyConstant.UPDATE_DAILY_LIMITED.concat(":").concat(String.valueOf(data.getId()));
+
+            ClueRelationshipExample clueRelationshipExample = new ClueRelationshipExample();
+            clueRelationshipExample.createCriteria().andClueInfoIdEqualTo(carClueInfo.getId());
+            List<ClueRelationship> clueRelationships = clueRelationshipMapper.selectByExample(clueRelationshipExample);
+            if(CollectionUtils.isEmpty(clueRelationships)){
+                log.warn("未匹配到线索-外采映射关系");
+                return Boolean.TRUE;
+            }
+            ClueRelationship clueRelationship = clueRelationships.get(0);
+            String key = RedisKeyConstant.UPDATE_DAILY_LIMITED.concat(":").concat(String.valueOf(clueRelationship.getMappingId()));
             String lockValue = UUID.randomUUID().toString();
             try {
                 redisChgService.lock(key, lockValue);
-                CarClueRelationalMapping carClueRelationalMapping = carClueRelationalMappingMapper.selectByPrimaryKey(data.getRelationalMappingId());
+                CarClueRelationalMapping carClueRelationalMapping = carClueRelationalMappingMapper.selectByPrimaryKey(clueRelationship.getMappingId());
                 Integer dailyLimited = carClueRelationalMapping.getDailyLimited();
                 Integer matchDailyLimited = carClueRelationalMapping.getMatchDailyLimited();
                 //已限量
@@ -195,10 +207,12 @@ public class CarClueServiceImpl implements CarClueService {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             TITLE + "释放锁出现异常，" + "errorMessage=" + e.getMessage()), e);
                     //回滚推送次数
-                    CarClueRelationalMapping carClueRelational = new CarClueRelationalMapping();
-                    carClueRelational.setId(carClueRelationalMapping.getId());
-                    carClueRelational.setMatchDailyLimited(carClueRelationalMapping.getMatchDailyLimited() - 1);
-                    carClueRelationalMappingMapper.updateByPrimaryKeySelective(carClueRelational);
+                    if(!isLimited){
+                        CarClueRelationalMapping carClueRelational = new CarClueRelationalMapping();
+                        carClueRelational.setId(carClueRelationalMapping.getId());
+                        carClueRelational.setMatchDailyLimited(carClueRelationalMapping.getMatchDailyLimited() - 1);
+                        carClueRelationalMappingMapper.updateByPrimaryKeySelective(carClueRelational);
+                    }
                     redisChgService.unlock(key, lockValue);
                 }
 

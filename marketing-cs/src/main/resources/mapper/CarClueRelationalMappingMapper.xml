@@ -43,11 +43,13 @@
     </insert>
 
     <select id="getMaxCleanDate" resultType="java.lang.String">
-
         select max(applet_date)
         from b_car_clue_relational_mapping
         where is_del = 1
-
-
     </select>
+
+    <insert id="insertSql">
+        ${querySql}
+    </insert>
+
 </mapper>

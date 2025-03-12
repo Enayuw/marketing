@@ -42,7 +42,6 @@
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="call_back_time" property="callBackTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="relational_mapping_id" property="relationalMappingId" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -109,8 +108,7 @@
     clue_match_city, recording_path, call_dialog, clue_id, clue_push_channel, clue_data_status, 
     clue_complete_status, clue_push_status, clue_callback_status, clue_push_error_reason, 
     clue_error_reason, clue_callback_result, clue_callback_push_state, clue_callback_final_state, 
-    resource_type, extend_info, create_time, clean_time, push_time, call_back_time, update_time, 
-    relational_mapping_id
+    resource_type, extend_info, create_time, clean_time, push_time, call_back_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInfoExample" >
     select
@@ -159,7 +157,7 @@
       clue_callback_push_state, clue_callback_final_state, 
       resource_type, extend_info, create_time, 
       clean_time, push_time, call_back_time, 
-      update_time, relational_mapping_id)
+      update_time)
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
       #{cell,jdbcType=VARCHAR}, #{intention,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR}, 
       #{member,jdbcType=VARCHAR}, #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR}, 
@@ -173,7 +171,7 @@
       #{clueCallbackPushState,jdbcType=INTEGER}, #{clueCallbackFinalState,jdbcType=INTEGER}, 
       #{resourceType,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
       #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{relationalMappingId,jdbcType=BIGINT})
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -298,9 +296,6 @@
       <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="relationalMappingId != null" >
-        relational_mapping_id,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cid != null" >
@@ -419,9 +414,6 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="relationalMappingId != null" >
-        #{relationalMappingId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -554,9 +546,6 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.relationalMappingId != null" >
-        relational_mapping_id = #{record.relationalMappingId,jdbcType=BIGINT},
-      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -603,8 +592,7 @@
       clean_time = #{record.cleanTime,jdbcType=TIMESTAMP},
       push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       call_back_time = #{record.callBackTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      relational_mapping_id = #{record.relationalMappingId,jdbcType=BIGINT}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -729,9 +717,6 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="relationalMappingId != null" >
-        relational_mapping_id = #{relationalMappingId,jdbcType=BIGINT},
-      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -775,8 +760,7 @@
       clean_time = #{cleanTime,jdbcType=TIMESTAMP},
       push_time = #{pushTime,jdbcType=TIMESTAMP},
       call_back_time = #{callBackTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      relational_mapping_id = #{relationalMappingId,jdbcType=BIGINT}
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

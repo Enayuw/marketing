@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.ClueRelationshipMapper;
 import com.br.marketing.service.carclue.clueenums.*;
 import com.br.marketing.service.carclue.common.MatchPatternCommon;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
@@ -15,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +31,8 @@ public class DailyLimitedChannelMatch extends AbstractClueChannelMatch {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private ClueRelationshipMapper clueRelationshipMapper;
 
     public static final String ALL_SERVIES = "全系";
 
@@ -156,9 +156,17 @@ public class DailyLimitedChannelMatch extends AbstractClueChannelMatch {
         carClueInfo.setCluePushStatus(CarCluePushStatusEnum.READY.getValue());
         carClueInfo.setCluePushChannel(configApiCode);
         carClueInfo.setClueMatchBrandId(clueRelationalMapping.getBrandId().toString());
-        carClueInfo.setRelationalMappingId(clueRelationalMapping.getId());
         carClueInfo.setClueMatchSeriesId(seriesInfoConfig.stream().filter(carClueSeriesInfo -> carClueSeriesInfo.getSeriesName()
                 .equals(carClueInfo.getClueMatchSeries())).collect(Collectors.toList()).get(0).getSeriesId().toString());
+
+        //增加线索-外采对应关系
+        ClueRelationship clueRelationship = new ClueRelationship();
+        clueRelationship.setClueInfoId(clueRelationalMapping.getId());
+        clueRelationship.setApiCode(carClueInfo.getApiCode());
+        clueRelationship.setMappingId(clueRelationalMapping.getId());
+        clueRelationship.setCreateTime(new Date());
+        clueRelationship.setUpdateTime(new Date());
+        clueRelationshipMapper.insertSelective(clueRelationship);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(carClueInfo);
     }
 

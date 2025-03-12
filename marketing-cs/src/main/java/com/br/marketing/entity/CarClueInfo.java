@@ -203,11 +203,6 @@ public class CarClueInfo {
      */
     private Date updateTime;
 
-    /**
-     * 外采关系表id
-     */
-    private Long relationalMappingId;
-
     public Long getId() {
         return id;
     }
@@ -526,13 +521,5 @@ public class CarClueInfo {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Long getRelationalMappingId() {
-        return relationalMappingId;
-    }
-
-    public void setRelationalMappingId(Long relationalMappingId) {
-        this.relationalMappingId = relationalMappingId;
     }
 }

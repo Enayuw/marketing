@@ -2774,66 +2774,6 @@ public class CarClueInfoExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
-
-        public Criteria andRelationalMappingIdIsNull() {
-            addCriterion("relational_mapping_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdIsNotNull() {
-            addCriterion("relational_mapping_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdEqualTo(Long value) {
-            addCriterion("relational_mapping_id =", value, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdNotEqualTo(Long value) {
-            addCriterion("relational_mapping_id <>", value, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdGreaterThan(Long value) {
-            addCriterion("relational_mapping_id >", value, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("relational_mapping_id >=", value, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdLessThan(Long value) {
-            addCriterion("relational_mapping_id <", value, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdLessThanOrEqualTo(Long value) {
-            addCriterion("relational_mapping_id <=", value, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdIn(List<Long> values) {
-            addCriterion("relational_mapping_id in", values, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdNotIn(List<Long> values) {
-            addCriterion("relational_mapping_id not in", values, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdBetween(Long value1, Long value2) {
-            addCriterion("relational_mapping_id between", value1, value2, "relationalMappingId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRelationalMappingIdNotBetween(Long value1, Long value2) {
-            addCriterion("relational_mapping_id not between", value1, value2, "relationalMappingId");
-            return (Criteria) this;
-        }
     }
 
     public static class Criteria extends GeneratedCriteria {
