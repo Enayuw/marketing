@@ -26,7 +26,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
-import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;

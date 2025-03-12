@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.entity.InterfaceLog;
-import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
