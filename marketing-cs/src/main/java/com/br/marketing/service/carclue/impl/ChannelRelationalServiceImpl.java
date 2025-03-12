@@ -78,7 +78,6 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private static final String YCMEMBERTASK = "6+";
     public static final String ALL_SERVIES = "全系";
     public static final String FILE_URL = "https://car.s.zonrn.cn/api/yiPlanDown";
-    public static final String filePath = "C:\\Users\\bingxu.kong\\Desktop\\test\\易车KA3.xls";
     private static final int CONNECT_TIMEOUT = 50*1000;
     private static final int SOCKET_TIMEOUT = 50*1000;
     private static final String TITL = "【车线索外采数据相关-】";
@@ -87,9 +86,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     public void getInitMapping() {
         //拉取线上易车KA文档
         String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        //String descPath = syncConfigService.getPath().concat("channel/").concat(syncDate).concat("/");
-        //String fileName = "易车KA" + "_" + syncDate + ".xls";
-        //String filePath = descPath.concat(fileName);
+        String descPath = syncConfigService.getPath().concat("channel/").concat(syncDate).concat("/");
+        String fileName = "易车KA" + "_" + syncDate + ".xls";
+        String filePath = descPath.concat(fileName);
         try {
             //每日文档下载
             downloadFile(FILE_URL, filePath);
@@ -170,7 +169,6 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     }
 
     public static void downloadFile(String fileUrl, String filePath) throws IOException {
-        //CloseableHttpClient httpClient1 = HttpClients.createDefault();
         HttpClient httpClient = new HttpProxyClient().getHttpClient(false, null);
 
         HttpGet httpGet = new HttpGet(fileUrl);
