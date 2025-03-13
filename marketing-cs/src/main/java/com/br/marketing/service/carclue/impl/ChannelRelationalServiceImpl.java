@@ -23,10 +23,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CarClueInitMappingMapper;
-import com.br.marketing.mapper.CarClueProvincesInformationMapper;
-import com.br.marketing.mapper.CarClueRelationalMappingMapper;
-import com.br.marketing.mapper.CarClueSeriesInformationMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.carclue.ChannelRelationalService;
 import com.br.marketing.service.carclue.clueenums.ChannelRule;
@@ -45,7 +42,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -71,6 +67,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     @Resource
     CarClueRelationalMappingMapper carClueRelationalMappingMapper;
     @Resource
+    CarChannelConfigMapper carChannelConfigMapper;
+    @Resource
     CarClueReportServiceImpl carClueReportServiceImpl;
     @Autowired
     SyncConfigService syncConfigService;
@@ -91,88 +89,20 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         String filePath = descPath.concat(fileName);
         try {
             //每日文档下载
-            downloadFile(FILE_URL, filePath);
-            //解析文档
-            parseFile(filePath);
-        } catch (Exception e) {
-            System.err.println("文件下载失败: " + e.getMessage());
-        }
-    }
-
-    public void parseFile(String filePath) throws IOException {
-        FileInputStream file = new FileInputStream(filePath);
-        Workbook workbook = new XSSFWorkbook(file);
-        Sheet sheet = workbook.getSheetAt(0); // 根据需求列表的索引
-        List<String> valueStatements = new ArrayList<>();
-        // 遍历每一行（跳过标题行）
-        for (Row row : sheet) {
-            if (row.getRowNum() == 0) continue; // 跳过标题行
-            // 提取所需列的值（列索引从0开始）
-            String brand = getCellValue(row, 0);      // A列：品牌
-            String series = getCellValue(row, 1);     // B列：车型
-            String cities = getCellValue(row, 2);     // C列：城市
-            String dailyLimit = getCellValue(row, 8); // I列：日限量
-            // 构建VALUES部分
-            String valueStatement = String.format(
-                    "('%s', '%s', '%s', null, null, '%s', null, null, curdate(), now(), now(), 1, %s)",
-                    "7410734", // api_code
-                    escapeSql(brand),
-                    escapeSql(series),
-                    escapeSql(cities),
-                    dailyLimit.isEmpty() ? "0" : dailyLimit // 处理空值
-            );
-            valueStatements.add(valueStatement);
-        }
-        workbook.close();
-        file.close();
-        // 构建完整的批量插入SQL
-        String sql = "INSERT INTO marketing.b_car_clue_init_mapping " +
-                "(api_code, brand_name, series_name, nation, satisfy_province_name, " +
-                "satisfy_city_name, exclude_province_name, exclude_city_name, applet_date, " +
-                "create_time, update_time, is_del, daily_limited) " +
-                "VALUES " + String.join(", ", valueStatements) + ";";
-        //生成外采配置
-        generateConfig(sql);
-    }
-    public void generateConfig(String sql) {
-        try {
-            // 批量插入数据
-            carClueRelationalMappingMapper.insertSql(sql);
-            // 更新其他渠道日期
-            updateAppletDate("7410735");
-            updateAppletDate("7410736");
+            if(downloadFile(FILE_URL, filePath)){
+                //解析文档
+                parseFile(filePath);
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    TITL + "批量插入外采数据异常，数据列表：" + sql, e.getMessage()));
-            throw e; // 抛出异常以触发事务回滚
+                    TITL + "文件下载失败：" + e.getMessage()));
         }
     }
-    private void updateAppletDate(String apiCode) {
-        CarClueRelationalMappingExample carClueRelationalMappingExample = new CarClueRelationalMappingExample();
-        carClueRelationalMappingExample.createCriteria().andApiCodeEqualTo(apiCode);
-        CarClueRelationalMapping mapping = new CarClueRelationalMapping();
-        mapping.setAppletDate(LocalDate.now().toString());
-        carClueRelationalMappingMapper.updateByExampleSelective(mapping,carClueRelationalMappingExample);
-    }
 
-    // 获取单元格值并处理空值
-    private static String getCellValue(Row row, int cellIndex) {
-        Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-        if (cell.getCellType() == CellType.NUMERIC) {
-            return String.valueOf((int) cell.getNumericCellValue());
-        }
-        return cell.getStringCellValue().trim();
-    }
-    // 转义SQL中的特殊字符（如单引号）
-    private static String escapeSql(String input) {
-        return input.replace("'", "''");
-    }
+    public boolean downloadFile(String fileUrl, String filePath) throws IOException {
 
-    public static void downloadFile(String fileUrl, String filePath) throws IOException {
-        HttpClient httpClient = new HttpProxyClient().getHttpClient(false, null);
-
+        HttpClient httpClient = new HttpProxyClient().getHttpClient(true, null);
         HttpGet httpGet = new HttpGet(fileUrl);
-
         // 设置请求配置（超时时间等）
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(CONNECT_TIMEOUT)
@@ -198,7 +128,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         // 检查响应码
         if (response.getStatusLine().getStatusCode() != 200) {
-            throw new IOException("服务器返回非 200 响应: " + response.getStatusLine().getStatusCode());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "线上文档拉取异常，返回响应：" +  response.getStatusLine().getStatusCode()));
+            return Boolean.FALSE;
         }
 
         // 获取文件大小
@@ -220,6 +152,93 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         }
         // 释放连接
         EntityUtils.consume(entity);
+        return Boolean.TRUE;
+    }
+
+    public void parseFile(String filePath) throws IOException {
+
+        String apiCode = "";
+        List<String> list = new ArrayList<>();
+        CarChannelConfigExample example = new CarChannelConfigExample();
+        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarChannelConfig> carChannelConfigs = carChannelConfigMapper.selectByExample(example);
+
+        for (CarChannelConfig config : carChannelConfigs) {
+            if(ChannelRule.MatchChannelRuleEnum.DAILY_LIMITED.getLabel().equals(config.getStrategyMatch())){
+                apiCode = config.getApiCode();
+            }else {
+                list.add(config.getApiCode());
+            }
+        }
+        FileInputStream file = new FileInputStream(filePath);
+        Workbook workbook = new XSSFWorkbook(file);
+        Sheet sheet = workbook.getSheetAt(0);
+        List<String> valueStatements = new ArrayList<>();
+        // 遍历每一行（跳过标题行）
+        for (Row row : sheet) {
+            if (row.getRowNum() == 0) continue; // 跳过标题行
+            // 提取所需列的值（列索引从0开始）
+            // A列：品牌
+            String brand = getCellValue(row, 0);
+            // B列：车型
+            String series = getCellValue(row, 1);
+            // C列：城市
+            String cities = getCellValue(row, 2);
+            // I列：日限量
+            String dailyLimit = getCellValue(row, 8);
+            // 构建VALUES部分
+            String valueStatement = String.format(
+                    "('%s', '%s', '%s', null, null, '%s', null, null, curdate(), now(), now(), 1, %s)", apiCode,
+                    escapeSql(brand),
+                    escapeSql(series),
+                    escapeSql(cities),
+                    dailyLimit.isEmpty() ? "0" : dailyLimit
+            );
+            valueStatements.add(valueStatement);
+        }
+        workbook.close();
+        file.close();
+        // 构建完整的批量插入SQL
+        String sql = "INSERT INTO marketing.b_car_clue_init_mapping " +
+                "(api_code, brand_name, series_name, nation, satisfy_province_name, " +
+                "satisfy_city_name, exclude_province_name, exclude_city_name, applet_date, " +
+                "create_time, update_time, is_del, daily_limited) " +
+                "VALUES " + String.join(", ", valueStatements) + ";";
+        //生成外采配置
+        generateConfig(sql,list);
+    }
+    public void generateConfig(String sql,List<String> list) {
+        try {
+            // 批量插入数据
+            carClueRelationalMappingMapper.insertSql(sql);
+            // 更新其他渠道日期
+            for (String apiCode : list) {
+                updateAppletDate(apiCode);
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "批量插入外采数据异常，数据列表：" + sql, e.getMessage()));
+        }
+    }
+    private void updateAppletDate(String apiCode) {
+        CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
+        carClueInitMappingExample.createCriteria().andApiCodeEqualTo(apiCode);
+        CarClueInitMapping carClueInitMapping = new CarClueInitMapping();
+        carClueInitMapping.setAppletDate(LocalDate.now().toString());
+        carClueInitMappingMapper.updateByExampleSelective(carClueInitMapping,carClueInitMappingExample);
+    }
+
+    // 获取单元格值并处理空值
+    private static String getCellValue(Row row, int cellIndex) {
+        Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return String.valueOf((int) cell.getNumericCellValue());
+        }
+        return cell.getStringCellValue().trim();
+    }
+    // 转义SQL中的特殊字符（如单引号）
+    private static String escapeSql(String input) {
+        return input.replace("'", "''");
     }
 
     @Override

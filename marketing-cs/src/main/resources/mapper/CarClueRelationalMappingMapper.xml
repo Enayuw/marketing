@@ -16,6 +16,8 @@
         province_type,
         matching_type,
         matching_cause,
+        daily_limited,
+        match_daily_limited,
         applet_date,
         create_time,
         update_time
@@ -35,6 +37,8 @@
             #{item.provinceType, jdbcType=INTEGER},
             #{item.matchingType, jdbcType=INTEGER},
             #{item.matchingCause, jdbcType=VARCHAR},
+            #{item.dailyLimited, jdbcType=INTEGER},
+            #{item.matchDailyLimited, jdbcType=INTEGER},
             DATE_FORMAT(NOW(), '%Y-%m-%d'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
