@@ -161,7 +161,7 @@ public class DailyLimitedChannelMatch extends AbstractClueChannelMatch {
 
         //增加线索-外采对应关系
         ClueRelationship clueRelationship = new ClueRelationship();
-        clueRelationship.setClueInfoId(clueRelationalMapping.getId());
+        clueRelationship.setClueInfoId(carClueInfo.getId());
         clueRelationship.setApiCode(carClueInfo.getApiCode());
         clueRelationship.setMappingId(clueRelationalMapping.getId());
         clueRelationship.setCreateTime(new Date());

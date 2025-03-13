@@ -200,8 +200,12 @@ public class HttpProxyClient {
                 String redirectUrl = response.getFirstHeader("Location").getValue();
                 redirectUrl = redirectUrl.replaceAll("[^\\x00-\\x7F]+", "需求");
                 // 重新发送请求到重定向 URL
-                httpGet = new HttpGet(redirectUrl);
-                response = httpClient.execute(httpGet);
+                HttpGet get = new HttpGet(redirectUrl);
+                get.setConfig(getRequestConfig(isPorxy, 50000, null));
+                // 设置请求头 模拟浏览器请求
+                get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+                response = httpClient.execute(get);
             }
         }catch (Exception e){
             log.error("车线索每日文档下载失败："+e.getMessage());
@@ -520,16 +524,16 @@ public class HttpProxyClient {
         if (isProxy) {
             return RequestConfig.custom()
                     .setSocketTimeout(sockTimeout)
-                    .setConnectTimeout(5000)
+                    .setConnectTimeout(sockTimeout)
                     .setProxy(new HttpHost(new Integer(1).equals(proxyType) ? proxyHostZW : proxyHost, proxyPort))
-                    .setConnectionRequestTimeout(5000)
+                    .setConnectionRequestTimeout(sockTimeout)
                     .setRedirectsEnabled(false)
                     .build();
         } else {
             return RequestConfig.custom()
                     .setSocketTimeout(sockTimeout)
-                    .setConnectTimeout(1000)
-                    .setConnectionRequestTimeout(1000)
+                    .setConnectTimeout(sockTimeout)
+                    .setConnectionRequestTimeout(sockTimeout)
                     .setRedirectsEnabled(false)
                     .build();
         }

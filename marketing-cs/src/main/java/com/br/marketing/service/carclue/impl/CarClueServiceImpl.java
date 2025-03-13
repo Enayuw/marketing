@@ -148,12 +148,10 @@ public class CarClueServiceImpl implements CarClueService {
         }
         //异常线索
         //判断线索状态是否存在 已限量状态
-        Result<CarClueInfo> carClueInfoResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
-                (CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue())).findFirst().orElse(null);
+        //Result<CarClueInfo> carClueInfoResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
+        //        (CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue())).findFirst().orElse(null);
 
-        if (!Objects.isNull(carClueInfoResult)) {
-            carClueInfo.setClueDataStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
-        } else {
+        if(!CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue().equals(carClueInfo.getClueDataStatus())){
             //全部渠道线索均为 有效线索(外采缺失)，则线索状态为 有效线索(外采缺失)
             Result<CarClueInfo> abnormalResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
                     (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue())).findFirst().orElse(null);
@@ -163,6 +161,18 @@ public class CarClueServiceImpl implements CarClueService {
                 carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
             }
         }
+        //if (!Objects.isNull(carClueInfoResult)) {
+        //    carClueInfo.setClueDataStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
+        //} else {
+        //    //全部渠道线索均为 有效线索(外采缺失)，则线索状态为 有效线索(外采缺失)
+        //    Result<CarClueInfo> abnormalResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
+        //            (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue())).findFirst().orElse(null);
+        //    if (!Objects.isNull(abnormalResult)) {
+        //        carClueInfo.setClueDataStatus(CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
+        //    } else {
+        //        carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
+        //    }
+        //}
         resultList.forEach(result -> matchError.append(result.getData().getClueErrorReason()).append("|"));
         carClueInfo.setClueErrorReason(matchError.toString().substring(0, matchError.length() - 1));
         carClueInfo.setCleanTime(new Date());
@@ -176,7 +186,7 @@ public class CarClueServiceImpl implements CarClueService {
         if(ChannelRule.MatchChannelRuleEnum.DAILY_LIMITED.getLabel().equals(channelMatch.label())){
 
             ClueRelationshipExample clueRelationshipExample = new ClueRelationshipExample();
-            clueRelationshipExample.createCriteria().andClueInfoIdEqualTo(carClueInfo.getId());
+            clueRelationshipExample.createCriteria().andClueInfoIdEqualTo(carClueInfo.getId()).andApiCodeEqualTo(carClueInfo.getApiCode());
             List<ClueRelationship> clueRelationships = clueRelationshipMapper.selectByExample(clueRelationshipExample);
             if(CollectionUtils.isEmpty(clueRelationships)){
                 log.warn("未匹配到线索-外采映射关系");
@@ -192,6 +202,7 @@ public class CarClueServiceImpl implements CarClueService {
                 Integer matchDailyLimited = carClueRelationalMapping.getMatchDailyLimited();
                 //已限量
                 if(0 == dailyLimited || matchDailyLimited >= dailyLimited){
+                    carClueInfo.setCluePushStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
                     isLimited = Boolean.TRUE;
                 }else {
                     //增加推送次数
