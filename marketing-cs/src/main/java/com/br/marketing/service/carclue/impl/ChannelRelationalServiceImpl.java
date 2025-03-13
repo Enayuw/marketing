@@ -122,6 +122,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             parentDir.mkdirs();
         }
         // 下载文件
+        log.warn(TITL + "下载文件目录："+filePath);
         try (InputStream in = entity.getContent();
              FileOutputStream out = new FileOutputStream(filePath)) {
             byte[] buffer = new byte[1024];

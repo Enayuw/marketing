@@ -115,10 +115,12 @@ public class CarClueServiceImpl implements CarClueService {
 
         }
         //线索匹配结果处理
-        //精确匹配
-        Result<CarClueInfo> completeResult = resultList.stream().filter(result -> result.isSuccess() && result.getData().getMatchBrandSeriesType()
-                .equals(CarClueMatchTypeEnum.COMPLETE_MATCH.getValue())).findFirst().orElse(null);
-        if (!Objects.isNull(completeResult)) {
+        List<Result<CarClueInfo>> completeResults = resultList.stream()
+                .filter(result -> result.isSuccess() && result.getData().getMatchBrandSeriesType()
+                        .equals(CarClueMatchTypeEnum.COMPLETE_MATCH.getValue()))
+                .collect(Collectors.toList());
+
+        for (Result<CarClueInfo> completeResult : completeResults){
             //线索匹配实现
             CarClueInfo data = completeResult.getData();
             //是否限量：true-限量
@@ -132,9 +134,12 @@ public class CarClueServiceImpl implements CarClueService {
         }
 
         //模糊匹配
-        Result<CarClueInfo> fuzzyResult = resultList.stream().filter(result -> result.isSuccess() && result.getData().getMatchBrandSeriesType()
-                .equals(CarClueMatchTypeEnum.FUZZY_MATCH.getValue())).findFirst().orElse(null);
-        if (!Objects.isNull(fuzzyResult)) {
+        List<Result<CarClueInfo>> fuzzyResults = resultList.stream()
+                .filter(result -> result.isSuccess() && result.getData().getMatchBrandSeriesType()
+                        .equals(CarClueMatchTypeEnum.FUZZY_MATCH.getValue()))
+                .collect(Collectors.toList());
+
+        for (Result<CarClueInfo> fuzzyResult : fuzzyResults){
             //线索匹配实现
             CarClueInfo data = fuzzyResult.getData();
             //是否限量：true-限量
@@ -147,10 +152,7 @@ public class CarClueServiceImpl implements CarClueService {
             }
         }
         //异常线索
-        //判断线索状态是否存在 已限量状态
-        //Result<CarClueInfo> carClueInfoResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
-        //        (CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue())).findFirst().orElse(null);
-
+        //判断线索状态是 已限量状态
         if(!CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue().equals(carClueInfo.getClueDataStatus())){
             //全部渠道线索均为 有效线索(外采缺失)，则线索状态为 有效线索(外采缺失)
             Result<CarClueInfo> abnormalResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
@@ -161,18 +163,6 @@ public class CarClueServiceImpl implements CarClueService {
                 carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
             }
         }
-        //if (!Objects.isNull(carClueInfoResult)) {
-        //    carClueInfo.setClueDataStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
-        //} else {
-        //    //全部渠道线索均为 有效线索(外采缺失)，则线索状态为 有效线索(外采缺失)
-        //    Result<CarClueInfo> abnormalResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
-        //            (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue())).findFirst().orElse(null);
-        //    if (!Objects.isNull(abnormalResult)) {
-        //        carClueInfo.setClueDataStatus(CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
-        //    } else {
-        //        carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
-        //    }
-        //}
         resultList.forEach(result -> matchError.append(result.getData().getClueErrorReason()).append("|"));
         carClueInfo.setClueErrorReason(matchError.toString().substring(0, matchError.length() - 1));
         carClueInfo.setCleanTime(new Date());
