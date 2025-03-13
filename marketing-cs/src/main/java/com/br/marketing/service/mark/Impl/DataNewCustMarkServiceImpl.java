@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -72,7 +71,9 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     updateFlagNewCust(threadPool, list);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(), "pp停车与榕树打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
-                    flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids, null);
+                    if (!CollectionUtils.isEmpty(ids)) {
+                        flagDataMapper.batchUpdateFlagNewCustComputationByIds(ids, null);
+                    }
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                 }
