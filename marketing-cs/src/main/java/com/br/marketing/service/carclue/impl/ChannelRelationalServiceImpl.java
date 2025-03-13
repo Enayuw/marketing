@@ -78,8 +78,6 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private static final String YCMEMBERTASK = "6+";
     public static final String ALL_SERVIES = "全系";
     public static final String FILE_URL = "https://car.s.zonrn.cn/api/yiPlanDown";
-    private static final int CONNECT_TIMEOUT = 50*1000;
-    private static final int SOCKET_TIMEOUT = 50*1000;
     private static final String TITL = "【车线索外采数据相关-】";
 
     @Override
@@ -461,6 +459,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     carClueRelationalMapping.setApiCode(carClueInitMapping.getApiCode());
                     carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
                     carClueRelationalMapping.setDailyLimited(carClueInitMapping.getDailyLimited());
+                    carClueRelationalMapping.setMatchDailyLimited(0);
 
                     //校验初始外采信息是否能匹配
                     StringBuilder stringBuilder = new StringBuilder();

@@ -184,13 +184,10 @@ public class HttpProxyClient {
         try {
             HttpClient httpClient = getHttpClient(isPorxy, null);
             HttpGet httpGet = new HttpGet(fileUrl);
-            // 设置请求配置（超时时间等）
-            RequestConfig requestConfig = RequestConfig.custom()
-                    .setConnectTimeout(50*1000)
-                    .setSocketTimeout(50*1000)
-                    .setRedirectsEnabled(false) // 禁用自动重定向
-                    .build();
+
+            RequestConfig requestConfig = getRequestRedirectsConfig(isPorxy, 50000, null);
             httpGet.setConfig(requestConfig);
+
             // 设置请求头 模拟浏览器请求
             httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
@@ -207,7 +204,7 @@ public class HttpProxyClient {
                 response = httpClient.execute(httpGet);
             }
         }catch (Exception e){
-            log.error("每日文档下载失败："+e.getMessage());
+            log.error("车线索每日文档下载失败："+e.getMessage());
         }
         return response;
     }
@@ -519,6 +516,24 @@ public class HttpProxyClient {
         }
     }
 
+    public RequestConfig getRequestRedirectsConfig(Boolean isProxy, Integer sockTimeout, Integer proxyType) {
+        if (isProxy) {
+            return RequestConfig.custom()
+                    .setSocketTimeout(sockTimeout)
+                    .setConnectTimeout(5000)
+                    .setProxy(new HttpHost(new Integer(1).equals(proxyType) ? proxyHostZW : proxyHost, proxyPort))
+                    .setConnectionRequestTimeout(5000)
+                    .setRedirectsEnabled(false)
+                    .build();
+        } else {
+            return RequestConfig.custom()
+                    .setSocketTimeout(sockTimeout)
+                    .setConnectTimeout(1000)
+                    .setConnectionRequestTimeout(1000)
+                    .setRedirectsEnabled(false)
+                    .build();
+        }
+    }
 
     /**
      * 日志存储配置

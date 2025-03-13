@@ -172,7 +172,7 @@ public class CarClueServiceImpl implements CarClueService {
 
     private Boolean checkDailyLimited(CarClueInfo carClueInfo) {
         Boolean isLimited = Boolean.FALSE;
-        AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(carClueInfo.getApiCode());
+        AbstractClueChannelMatch channelMatch = clueChannelConfigService.getChannelMatchImpl(carClueInfo.getCluePushChannel());
         if(ChannelRule.MatchChannelRuleEnum.DAILY_LIMITED.getLabel().equals(channelMatch.label())){
 
             ClueRelationshipExample clueRelationshipExample = new ClueRelationshipExample();
