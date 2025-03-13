@@ -306,6 +306,11 @@ public class MarketingCommonConfig {
     private Boolean checkJobOnlineSwitch;
 
     /**
+     * 跑批服务job的上线开关
+     */
+    private Boolean scoreTaskJobOnlineSwitch;
+
+    /**
      * check服务job的上线开关
      */
     private Boolean dataBridgeJobOnlineSwitch;
