@@ -179,6 +179,39 @@ public class HttpProxyClient {
         return res;
     }
 
+    public HttpResponse downloadFile(String fileUrl, Boolean isPorxy) {
+        HttpResponse response = null;
+        try {
+            HttpClient httpClient = getHttpClient(isPorxy, null);
+            HttpGet httpGet = new HttpGet(fileUrl);
+            // 设置请求配置（超时时间等）
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setConnectTimeout(50*1000)
+                    .setSocketTimeout(50*1000)
+                    .setRedirectsEnabled(false) // 禁用自动重定向
+                    .build();
+            httpGet.setConfig(requestConfig);
+            // 设置请求头 模拟浏览器请求
+            httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+            // 发送请求
+            response = httpClient.execute(httpGet);
+
+            // 处理重定向
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 301 || statusCode == 302) {
+                String redirectUrl = response.getFirstHeader("Location").getValue();
+                redirectUrl = redirectUrl.replaceAll("[^\\x00-\\x7F]+", "需求");
+                // 重新发送请求到重定向 URL
+                httpGet = new HttpGet(redirectUrl);
+                response = httpClient.execute(httpGet);
+            }
+        }catch (Exception e){
+            log.error("每日文档下载失败："+e.getMessage());
+        }
+        return response;
+    }
+
     @Autowired
     InterfaceLogMapper interfaceLogMapper;
 

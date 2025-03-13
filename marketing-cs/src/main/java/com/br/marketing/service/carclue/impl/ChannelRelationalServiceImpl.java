@@ -72,6 +72,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     CarClueReportServiceImpl carClueReportServiceImpl;
     @Autowired
     SyncConfigService syncConfigService;
+    @Autowired
+    HttpProxyClient httpProxyClient;
     private static final String YCKATASK = "7-1";
     private static final String YCMEMBERTASK = "6+";
     public static final String ALL_SERVIES = "全系";
@@ -101,31 +103,11 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     public boolean downloadFile(String fileUrl, String filePath) throws IOException {
 
-        HttpClient httpClient = new HttpProxyClient().getHttpClient(true, null);
-        HttpGet httpGet = new HttpGet(fileUrl);
-        // 设置请求配置（超时时间等）
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(CONNECT_TIMEOUT)
-                .setSocketTimeout(SOCKET_TIMEOUT)
-                .setRedirectsEnabled(false) // 禁用自动重定向
-                .build();
-        httpGet.setConfig(requestConfig);
-        // 设置请求头 模拟浏览器请求
-        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        HttpResponse response = httpProxyClient.downloadFile(fileUrl, true);
 
-        // 发送请求
-        HttpResponse response = httpClient.execute(httpGet);
-
-        // 处理重定向
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode == 301 || statusCode == 302) {
-            String redirectUrl = response.getFirstHeader("Location").getValue();
-            redirectUrl = redirectUrl.replaceAll("[^\\x00-\\x7F]+", "需求");
-            // 重新发送请求到重定向 URL
-            httpGet = new HttpGet(redirectUrl);
-            response = httpClient.execute(httpGet);
+        if(response == null){
+            return Boolean.FALSE;
         }
-
         // 检查响应码
         if (response.getStatusLine().getStatusCode() != 200) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
