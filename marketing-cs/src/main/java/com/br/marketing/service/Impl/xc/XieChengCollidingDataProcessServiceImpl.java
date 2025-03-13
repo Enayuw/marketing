@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcProcessTaskEnum;
@@ -185,9 +186,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
+                .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
-                .andTaskStatusEqualTo(1);
+                .andTaskStatusEqualTo(1)
+                .andIsDeleteEqualTo(0);
         processTaskExample.setOrderByClause("create_time asc");
         List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(processTaskExample);
         return taskList;
@@ -204,9 +207,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
+                .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
-                .andTaskStatusEqualTo(0);
+                .andTaskStatusEqualTo(0)
+                .andIsDeleteEqualTo(0);
         XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
         processTask.setTaskStatus(1);
         processTask.setUpdateTime(new Date());
@@ -224,9 +229,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
+                .andTaskStartTimeLessThanOrEqualTo(new Date())
                 .andTaskTypeEqualTo(0)
-                .andTaskStatusEqualTo(0);
+                .andTaskStatusEqualTo(0)
+                .andIsDeleteEqualTo(0);
         int unCleanedTaskCount = taskMapper.countByExample(processTaskExample);
         if (unCleanedTaskCount > 0) {
             return true;
