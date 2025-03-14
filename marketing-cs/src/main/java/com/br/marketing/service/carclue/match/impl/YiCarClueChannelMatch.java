@@ -45,6 +45,14 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
                     CarClueDataStatusEnum.LACK_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
         }
+        //校验特殊字符
+        String carClueVerifyStr = marketingCommonConfig.getCarClueVerifyStr();
+        if (containsAnyChar(brand, carClueVerifyStr) || containsAnyChar(series, carClueVerifyStr)
+                || containsAnyChar(city, carClueVerifyStr)) {
+            carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("该线索存在多条（特殊字符分隔）"),
+                    CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
+        }
         //精确匹配
         Boolean completeMatch = culeCompleteMatch(brand, series, brandConfig, seriesInfoConfig);
         if (completeMatch) {
@@ -239,5 +247,9 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
     public String label() {
         return ChannelRule.MatchChannelRuleEnum.YC_KA.getLabel();
 
+    }
+
+    public static boolean containsAnyChar(String str, String chars) {
+        return chars.chars().anyMatch(ch -> str.indexOf(ch) != -1);
     }
 }

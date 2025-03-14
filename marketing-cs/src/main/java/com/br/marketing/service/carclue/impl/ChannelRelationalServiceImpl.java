@@ -99,7 +99,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         }
     }
 
-    public boolean downloadFile(String fileUrl, String filePath) throws IOException {
+    public boolean downloadFile(String fileUrl, String filePath) {
 
         HttpResponse response = httpProxyClient.downloadFile(fileUrl, true);
 
@@ -130,9 +130,19 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             while ((bytesRead = in.read(buffer)) != -1) {
                 out.write(buffer, 0, bytesRead);
             }
+        }catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "下载文件异常，返回响应：" +  response.getStatusLine().getStatusCode()));
+            return Boolean.FALSE;
+        } finally {
+            // 释放连接
+            try {
+                EntityUtils.consume(entity);
+            } catch (IOException e) {
+                log.warn(TITL + "释放连接异常");
+                return Boolean.FALSE;
+            }
         }
-        // 释放连接
-        EntityUtils.consume(entity);
         return Boolean.TRUE;
     }
 
@@ -157,7 +167,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         List<String> valueStatements = new ArrayList<>();
         // 遍历每一行（跳过标题行）
         for (Row row : sheet) {
-            if (row.getRowNum() == 0) continue; // 跳过标题行
+            // 跳过标题行
+            if (row.getRowNum() == 0) continue;
             // 提取所需列的值（列索引从0开始）
             // A列：品牌
             String brand = getCellValue(row, 0);

@@ -153,7 +153,11 @@ public class CarClueServiceImpl implements CarClueService {
         }
         //异常线索
         //判断线索状态是 已限量状态
-        if(!CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue().equals(carClueInfo.getClueDataStatus())){
+        Result<CarClueInfo> carClueInfoResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
+                (CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue())).findFirst().orElse(null);
+
+        //不存在 限量状态
+        if(Objects.isNull(carClueInfoResult)){
             //全部渠道线索均为 有效线索(外采缺失)，则线索状态为 有效线索(外采缺失)
             Result<CarClueInfo> abnormalResult = resultList.stream().filter(result -> result.getData().getClueDataStatus().equals
                     (CarClueDataStatusEnum.ABNORMAL_CLUE.getValue())).findFirst().orElse(null);
@@ -162,6 +166,8 @@ public class CarClueServiceImpl implements CarClueService {
             } else {
                 carClueInfo.setClueDataStatus(resultList.get(0).getData().getClueDataStatus());
             }
+        }else {
+            carClueInfo.setClueDataStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
         }
         resultList.forEach(result -> matchError.append(result.getData().getClueErrorReason()).append("|"));
         carClueInfo.setClueErrorReason(matchError.toString().substring(0, matchError.length() - 1));
@@ -176,7 +182,9 @@ public class CarClueServiceImpl implements CarClueService {
         if(ChannelRule.MatchChannelRuleEnum.DAILY_LIMITED.getLabel().equals(channelMatch.label())){
 
             ClueRelationshipExample clueRelationshipExample = new ClueRelationshipExample();
-            clueRelationshipExample.createCriteria().andClueInfoIdEqualTo(carClueInfo.getId()).andApiCodeEqualTo(carClueInfo.getApiCode());
+            clueRelationshipExample.createCriteria().andClueInfoIdEqualTo(carClueInfo.getId())
+                    .andStatusEqualTo(0)
+                    .andApiCodeEqualTo(carClueInfo.getApiCode());
             List<ClueRelationship> clueRelationships = clueRelationshipMapper.selectByExample(clueRelationshipExample);
             if(CollectionUtils.isEmpty(clueRelationships)){
                 log.warn("未匹配到线索-外采映射关系");
@@ -193,6 +201,11 @@ public class CarClueServiceImpl implements CarClueService {
                 //已限量
                 if(0 == dailyLimited || matchDailyLimited >= dailyLimited){
                     carClueInfo.setCluePushStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
+                    carClueInfo.setClueErrorReason("config.getName().concat(\"[\").concat(configApiCode).concat(\"]\").concat(\"今日已限量\")");
+                    ClueRelationship clueRelationship1 = new ClueRelationship();
+                    clueRelationship1.setId(clueRelationship.getId());
+                    clueRelationship1.setStatus(1);
+                    clueRelationshipMapper.updateByPrimaryKeySelective(clueRelationship1);
                     isLimited = Boolean.TRUE;
                 }else {
                     //增加推送次数
@@ -207,16 +220,7 @@ public class CarClueServiceImpl implements CarClueService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             TITLE + "释放锁出现异常，" + "errorMessage=" + e.getMessage()), e);
-                    //回滚推送次数
-                    if(!isLimited){
-                        CarClueRelationalMapping carClueRelational = new CarClueRelationalMapping();
-                        carClueRelational.setId(carClueRelationalMapping.getId());
-                        carClueRelational.setMatchDailyLimited(carClueRelationalMapping.getMatchDailyLimited() - 1);
-                        carClueRelationalMappingMapper.updateByPrimaryKeySelective(carClueRelational);
-                    }
-                    redisChgService.unlock(key, lockValue);
                 }
-
             }catch (Exception e){
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                         TITLE + "抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);

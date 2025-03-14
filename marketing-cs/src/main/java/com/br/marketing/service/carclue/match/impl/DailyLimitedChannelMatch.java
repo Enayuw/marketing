@@ -164,6 +164,7 @@ public class DailyLimitedChannelMatch extends AbstractClueChannelMatch {
         clueRelationship.setClueInfoId(carClueInfo.getId());
         clueRelationship.setApiCode(carClueInfo.getApiCode());
         clueRelationship.setMappingId(clueRelationalMapping.getId());
+        clueRelationship.setStatus(0);
         clueRelationship.setCreateTime(new Date());
         clueRelationship.setUpdateTime(new Date());
         clueRelationshipMapper.insertSelective(clueRelationship);

@@ -524,16 +524,16 @@ public class HttpProxyClient {
         if (isProxy) {
             return RequestConfig.custom()
                     .setSocketTimeout(sockTimeout)
-                    .setConnectTimeout(sockTimeout)
+                    .setConnectTimeout(5000)
                     .setProxy(new HttpHost(new Integer(1).equals(proxyType) ? proxyHostZW : proxyHost, proxyPort))
-                    .setConnectionRequestTimeout(sockTimeout)
+                    .setConnectionRequestTimeout(5000)
                     .setRedirectsEnabled(false)
                     .build();
         } else {
             return RequestConfig.custom()
                     .setSocketTimeout(sockTimeout)
-                    .setConnectTimeout(sockTimeout)
-                    .setConnectionRequestTimeout(sockTimeout)
+                    .setConnectTimeout(5000)
+                    .setConnectionRequestTimeout(5000)
                     .setRedirectsEnabled(false)
                     .build();
         }

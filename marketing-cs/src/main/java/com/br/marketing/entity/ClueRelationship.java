@@ -33,6 +33,11 @@ public class ClueRelationship {
      */
     private Date updateTime;
 
+    /**
+     * 状态 0-有效 1-失效
+     */
+    private Integer status;
+
     public Long getId() {
         return id;
     }
@@ -79,5 +84,13 @@ public class ClueRelationship {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
