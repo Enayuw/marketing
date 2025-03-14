@@ -69,9 +69,9 @@ public class AiYiZhiFuToPolicyPatLoanRule implements AssembleData<PushMarketingU
             Optional.ofNullable(jsonObject.get("sex"))
                     .ifPresent(sex -> {
                         if ("0".equals(sex)) {
-                            jsonObject.put("sex", 1);
+                            jsonObject.put("gender", "男");
                         } else if ("1".equals(sex)) {
-                            jsonObject.put("sex", 0);
+                            jsonObject.put("gender", "女");
                         }
                     });
         }
