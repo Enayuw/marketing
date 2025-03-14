@@ -132,26 +132,4 @@ public class AiToPolicyPatLoanRule implements AssembleData<PushMarketingUserDeta
         return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
     }
 
-    private String get3keyValue(String content, String contentType, Integer encryptionType) {
-
-        if (StringUtils.isBlank(content)) {
-            return content;
-        }
-
-        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
-            return content;
-        }
-
-        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
-            String decode = BrCipherMaker.getInstance().decode(content);
-            return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
-        }
-
-        if (CustomerTagsValue.PushJc3keyTypeEnum.SHA256_ALL.getValue().equals(encryptionType)) {
-            String decode = BrCipherMaker.getInstance().decode(content);
-            return StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
-        }
-        return null;
-    }
-
 }
