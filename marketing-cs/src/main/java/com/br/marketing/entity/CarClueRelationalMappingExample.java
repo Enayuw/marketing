@@ -1334,6 +1334,76 @@ public class CarClueRelationalMappingExample {
             addCriterion("match_daily_limited not between", value1, value2, "matchDailyLimited");
             return (Criteria) this;
         }
+
+        public Criteria andDemandIdIsNull() {
+            addCriterion("demand_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIsNotNull() {
+            addCriterion("demand_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdEqualTo(String value) {
+            addCriterion("demand_id =", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotEqualTo(String value) {
+            addCriterion("demand_id <>", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdGreaterThan(String value) {
+            addCriterion("demand_id >", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdGreaterThanOrEqualTo(String value) {
+            addCriterion("demand_id >=", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLessThan(String value) {
+            addCriterion("demand_id <", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLessThanOrEqualTo(String value) {
+            addCriterion("demand_id <=", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLike(String value) {
+            addCriterion("demand_id like", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotLike(String value) {
+            addCriterion("demand_id not like", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIn(List<String> values) {
+            addCriterion("demand_id in", values, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotIn(List<String> values) {
+            addCriterion("demand_id not in", values, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdBetween(String value1, String value2) {
+            addCriterion("demand_id between", value1, value2, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotBetween(String value1, String value2) {
+            addCriterion("demand_id not between", value1, value2, "demandId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

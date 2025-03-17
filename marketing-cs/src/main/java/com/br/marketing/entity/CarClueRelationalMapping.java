@@ -98,6 +98,11 @@ public class CarClueRelationalMapping {
      */
     private Integer matchDailyLimited;
 
+    /**
+     * 需求ID
+     */
+    private String demandId;
+
     public Long getId() {
         return id;
     }
@@ -248,5 +253,13 @@ public class CarClueRelationalMapping {
 
     public void setMatchDailyLimited(Integer matchDailyLimited) {
         this.matchDailyLimited = matchDailyLimited;
+    }
+
+    public String getDemandId() {
+        return demandId;
+    }
+
+    public void setDemandId(String demandId) {
+        this.demandId = demandId == null ? null : demandId.trim();
     }
 }

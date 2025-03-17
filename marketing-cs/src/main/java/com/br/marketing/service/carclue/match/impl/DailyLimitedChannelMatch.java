@@ -158,6 +158,7 @@ public class DailyLimitedChannelMatch extends AbstractClueChannelMatch {
         carClueInfo.setClueMatchBrandId(clueRelationalMapping.getBrandId().toString());
         carClueInfo.setClueMatchSeriesId(seriesInfoConfig.stream().filter(carClueSeriesInfo -> carClueSeriesInfo.getSeriesName()
                 .equals(carClueInfo.getClueMatchSeries())).collect(Collectors.toList()).get(0).getSeriesId().toString());
+        carClueInfo.setDemandId(clueRelationalMapping.getDemandId());
 
         //增加线索-外采对应关系
         ClueRelationship clueRelationship = new ClueRelationship();

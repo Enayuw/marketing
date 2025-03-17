@@ -16,6 +16,7 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="daily_limited" property="dailyLimited" jdbcType="INTEGER" />
+    <result column="demand_id" property="demandId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -78,7 +79,7 @@
   <sql id="Base_Column_List" >
     id, api_code, brand_name, series_name, nation, satisfy_province_name, satisfy_city_name, 
     exclude_province_name, exclude_city_name, applet_date, create_time, update_time, 
-    is_del, daily_limited
+    is_del, daily_limited, demand_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInitMappingExample" >
     select
@@ -118,12 +119,12 @@
       nation, satisfy_province_name, satisfy_city_name, 
       exclude_province_name, exclude_city_name, applet_date, 
       create_time, update_time, is_del, 
-      daily_limited)
+      daily_limited, demand_id)
     values (#{apiCode,jdbcType=VARCHAR}, #{brandName,jdbcType=VARCHAR}, #{seriesName,jdbcType=VARCHAR}, 
       #{nation,jdbcType=VARCHAR}, #{satisfyProvinceName,jdbcType=VARCHAR}, #{satisfyCityName,jdbcType=VARCHAR}, 
       #{excludeProvinceName,jdbcType=VARCHAR}, #{excludeCityName,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, 
-      #{dailyLimited,jdbcType=INTEGER})
+      #{dailyLimited,jdbcType=INTEGER}, #{demandId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueInitMapping" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -170,6 +171,9 @@
       <if test="dailyLimited != null" >
         daily_limited,
       </if>
+      <if test="demandId != null" >
+        demand_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -210,6 +214,9 @@
       </if>
       <if test="dailyLimited != null" >
         #{dailyLimited,jdbcType=INTEGER},
+      </if>
+      <if test="demandId != null" >
+        #{demandId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -264,6 +271,9 @@
       <if test="record.dailyLimited != null" >
         daily_limited = #{record.dailyLimited,jdbcType=INTEGER},
       </if>
+      <if test="record.demandId != null" >
+        demand_id = #{record.demandId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -284,7 +294,8 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_del = #{record.isDel,jdbcType=INTEGER},
-      daily_limited = #{record.dailyLimited,jdbcType=INTEGER}
+      daily_limited = #{record.dailyLimited,jdbcType=INTEGER},
+      demand_id = #{record.demandId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -331,6 +342,9 @@
       <if test="dailyLimited != null" >
         daily_limited = #{dailyLimited,jdbcType=INTEGER},
       </if>
+      <if test="demandId != null" >
+        demand_id = #{demandId,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -348,7 +362,8 @@
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_del = #{isDel,jdbcType=INTEGER},
-      daily_limited = #{dailyLimited,jdbcType=INTEGER}
+      daily_limited = #{dailyLimited,jdbcType=INTEGER},
+      demand_id = #{demandId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

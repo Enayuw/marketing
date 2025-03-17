@@ -18,6 +18,7 @@
         matching_cause,
         daily_limited,
         match_daily_limited,
+        demand_id,
         applet_date,
         create_time,
         update_time
@@ -39,6 +40,7 @@
             #{item.matchingCause, jdbcType=VARCHAR},
             #{item.dailyLimited, jdbcType=INTEGER},
             #{item.matchDailyLimited, jdbcType=INTEGER},
+            #{item.demandId, jdbcType=INTEGER},
             DATE_FORMAT(NOW(), '%Y-%m-%d'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')

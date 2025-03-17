@@ -41,6 +41,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -55,6 +56,12 @@ import javax.annotation.Resource;
 @Service
 @Slf4j
 public class ChannelRelationalServiceImpl implements ChannelRelationalService {
+
+    @Value(value = "${api.ycKA.carList:'https://car.s.zonrn.cn/api/yiPlanDown'}")
+    private String ycKaUrl;
+
+    @Value("${api.ycKA.isProxy:true}")
+    private Boolean isProxy;
 
     @Resource
     CarClueClient carClueClient;
@@ -77,7 +84,6 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private static final String YCKATASK = "7-1";
     private static final String YCMEMBERTASK = "6+";
     public static final String ALL_SERVIES = "全系";
-    public static final String FILE_URL = "https://car.s.zonrn.cn/api/yiPlanDown";
     private static final String TITL = "【车线索外采数据相关-】";
 
     @Override
@@ -89,7 +95,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         String filePath = descPath.concat(fileName);
         try {
             //每日文档下载
-            if(downloadFile(FILE_URL, filePath)){
+            if(downloadFile(ycKaUrl, filePath)){
                 //解析文档
                 parseFile(filePath);
             }
@@ -101,7 +107,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     public boolean downloadFile(String fileUrl, String filePath) {
 
-        HttpResponse response = httpProxyClient.downloadFile(fileUrl, true);
+        HttpResponse response = httpProxyClient.downloadFile(fileUrl, isProxy);
 
         if(response == null){
             return Boolean.FALSE;
@@ -178,13 +184,18 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             String cities = getCellValue(row, 2);
             // I列：日限量
             String dailyLimit = getCellValue(row, 8);
+            // E列：需求ID
+            String demandId = getCellValue(row, 4);
+
             // 构建VALUES部分
             String valueStatement = String.format(
-                    "('%s', '%s', '%s', null, null, '%s', null, null, curdate(), now(), now(), 1, %s)", apiCode,
+                    "('%s', '%s', '%s', null, null, '%s', null, null, curdate(), now(), now(), 1, %s, '%s')",
+                    apiCode,
                     escapeSql(brand),
                     escapeSql(series),
                     escapeSql(cities),
-                    dailyLimit.isEmpty() ? "0" : dailyLimit
+                    dailyLimit.isEmpty() ? "0" : dailyLimit,
+                    escapeSql(demandId)
             );
             valueStatements.add(valueStatement);
         }
@@ -194,13 +205,14 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         String sql = "INSERT INTO marketing.b_car_clue_init_mapping " +
                 "(api_code, brand_name, series_name, nation, satisfy_province_name, " +
                 "satisfy_city_name, exclude_province_name, exclude_city_name, applet_date, " +
-                "create_time, update_time, is_del, daily_limited) " +
+                "create_time, update_time, is_del, daily_limited, demand_id) " +
                 "VALUES " + String.join(", ", valueStatements) + ";";
         //生成外采配置
         generateConfig(sql,list);
     }
     public void generateConfig(String sql,List<String> list) {
         try {
+            log.warn(TITL + "批量插入sql："+sql);
             // 批量插入数据
             carClueRelationalMappingMapper.insertSql(sql);
             // 更新其他渠道日期
@@ -472,6 +484,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
                     carClueRelationalMapping.setDailyLimited(carClueInitMapping.getDailyLimited());
                     carClueRelationalMapping.setMatchDailyLimited(0);
+                    carClueRelationalMapping.setDemandId(carClueInitMapping.getDemandId());
 
                     //校验初始外采信息是否能匹配
                     StringBuilder stringBuilder = new StringBuilder();

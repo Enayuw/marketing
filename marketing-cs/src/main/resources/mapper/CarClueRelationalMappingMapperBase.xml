@@ -21,6 +21,7 @@
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="daily_limited" property="dailyLimited" jdbcType="INTEGER" />
     <result column="match_daily_limited" property="matchDailyLimited" jdbcType="INTEGER" />
+    <result column="demand_id" property="demandId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -83,7 +84,8 @@
   <sql id="Base_Column_List" >
     id, api_code, brand_id, brand_name, series_id, series_name, satisfy_province_name, 
     satisfy_city_name, exclude_province_name, exclude_city_name, province_type, matching_type, 
-    matching_cause, applet_date, create_time, update_time, is_del, daily_limited, match_daily_limited
+    matching_cause, applet_date, create_time, update_time, is_del, daily_limited, match_daily_limited, 
+    demand_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueRelationalMappingExample" >
     select
@@ -124,15 +126,15 @@
       satisfy_city_name, exclude_province_name, exclude_city_name, 
       province_type, matching_type, matching_cause, 
       applet_date, create_time, update_time, 
-      is_del, daily_limited, match_daily_limited
-      )
+      is_del, daily_limited, match_daily_limited, 
+      demand_id)
     values (#{apiCode,jdbcType=VARCHAR}, #{brandId,jdbcType=INTEGER}, #{brandName,jdbcType=VARCHAR}, 
       #{seriesId,jdbcType=INTEGER}, #{seriesName,jdbcType=VARCHAR}, #{satisfyProvinceName,jdbcType=VARCHAR}, 
       #{satisfyCityName,jdbcType=VARCHAR}, #{excludeProvinceName,jdbcType=VARCHAR}, #{excludeCityName,jdbcType=VARCHAR}, 
       #{provinceType,jdbcType=INTEGER}, #{matchingType,jdbcType=INTEGER}, #{matchingCause,jdbcType=VARCHAR}, 
       #{appletDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{isDel,jdbcType=INTEGER}, #{dailyLimited,jdbcType=INTEGER}, #{matchDailyLimited,jdbcType=INTEGER}
-      )
+      #{isDel,jdbcType=INTEGER}, #{dailyLimited,jdbcType=INTEGER}, #{matchDailyLimited,jdbcType=INTEGER}, 
+      #{demandId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueRelationalMapping" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -194,6 +196,9 @@
       <if test="matchDailyLimited != null" >
         match_daily_limited,
       </if>
+      <if test="demandId != null" >
+        demand_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -249,6 +254,9 @@
       </if>
       <if test="matchDailyLimited != null" >
         #{matchDailyLimited,jdbcType=INTEGER},
+      </if>
+      <if test="demandId != null" >
+        #{demandId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -318,6 +326,9 @@
       <if test="record.matchDailyLimited != null" >
         match_daily_limited = #{record.matchDailyLimited,jdbcType=INTEGER},
       </if>
+      <if test="record.demandId != null" >
+        demand_id = #{record.demandId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -343,7 +354,8 @@
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_del = #{record.isDel,jdbcType=INTEGER},
       daily_limited = #{record.dailyLimited,jdbcType=INTEGER},
-      match_daily_limited = #{record.matchDailyLimited,jdbcType=INTEGER}
+      match_daily_limited = #{record.matchDailyLimited,jdbcType=INTEGER},
+      demand_id = #{record.demandId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -405,6 +417,9 @@
       <if test="matchDailyLimited != null" >
         match_daily_limited = #{matchDailyLimited,jdbcType=INTEGER},
       </if>
+      <if test="demandId != null" >
+        demand_id = #{demandId,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -427,7 +442,8 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_del = #{isDel,jdbcType=INTEGER},
       daily_limited = #{dailyLimited,jdbcType=INTEGER},
-      match_daily_limited = #{matchDailyLimited,jdbcType=INTEGER}
+      match_daily_limited = #{matchDailyLimited,jdbcType=INTEGER},
+      demand_id = #{demandId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

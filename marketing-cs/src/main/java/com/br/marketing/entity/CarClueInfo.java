@@ -203,6 +203,11 @@ public class CarClueInfo {
      */
     private Date updateTime;
 
+    /**
+     * 需求ID
+     */
+    private String demandId;
+
     public Long getId() {
         return id;
     }
@@ -521,5 +526,13 @@ public class CarClueInfo {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getDemandId() {
+        return demandId;
+    }
+
+    public void setDemandId(String demandId) {
+        this.demandId = demandId == null ? null : demandId.trim();
     }
 }
