@@ -1804,11 +1804,17 @@ public class PushDataServiceImpl implements PushDataService {
             }
             //endregion
             Boolean isPush;
+            Boolean isDelete = false;
             if (offRepeatByPeriod) {
                 List<Integer> reportCountInPeriod = xieChengDataMapper.getReportPushStatusInPeriod(sha256Tel, apiCode);
-                Integer pushCount = reportCountInPeriod.stream().filter(pushStatus -> pushStatus == 2)
-                        .collect(Collectors.toList()).size();
-                isPush = pushCount < offRepeatCount;
+                if (CollectionUtils.isEmpty(reportCountInPeriod)) {
+                    isPush = false;
+                    isDelete = true;
+                } else {
+                    Integer pushCount = reportCountInPeriod.stream().filter(pushStatus -> pushStatus == 2)
+                            .collect(Collectors.toList()).size();
+                    isPush = pushCount < offRepeatCount;
+                }
             } else {
                 List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
                 isPush = CollectionUtils.isEmpty(xieChengRepeatDatalist);
@@ -1830,11 +1836,17 @@ public class PushDataServiceImpl implements PushDataService {
             } else {
                 resultData.setId(xieChengData.getId());
                 resultData.setStatus(2);
+                String dataMessage = "";
                 if (offRepeatByPeriod) {
-                    resultData.setDataMessage("数据在锁定期内已推送过" + offRepeatCount + "次");
+                    if (isDelete) {
+                        dataMessage = "数据不在锁定期内，不可推送";
+                    } else {
+                        dataMessage = "数据在锁定期内已推送过" + offRepeatCount + "次";
+                    }
                 } else {
-                    resultData.setDataMessage("数据重复未推送");
+                    dataMessage = "数据重复未推送";
                 }
+                resultData.setDataMessage(dataMessage);
             }
             //endregion
             xieChengDataMapper.updateByPrimaryKeySelective(resultData);
