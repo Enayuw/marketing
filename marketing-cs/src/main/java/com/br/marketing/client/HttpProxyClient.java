@@ -353,7 +353,7 @@ public class HttpProxyClient {
             post.setEntity(requestEntity);
             post.setHeader("content-type", mediaType);
             interfaceLog.setHeader(post.getAllHeaders().toString());
-            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 20000, null);
             post.setConfig(requestConfig);
             HttpResponse response = null;
             start = System.currentTimeMillis();
