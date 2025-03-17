@@ -1685,7 +1685,8 @@ public class PushDataServiceImpl implements PushDataService {
             countDownLatch.countDown();
             AdReqDTO adReqDTO = new AdReqDTO();
             BeanUtils.copyProperties(xieChengData,adReqDTO);
-
+            XieChengData resultData = new XieChengData();
+            resultData.setId(adReqDTO.getId());
             //region 获取配置信息
             String apiCode = adReqDTO.getApiCode();
             HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
@@ -1697,22 +1698,21 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
             }
             JSONObject condition = xieChengCallPushCondition.get(apiCode);
-            String conditionKey = condition.getString("condition");
-            JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
-            JSONArray isBlackApiCodes = condition.getJSONArray("isBlackApiCodes");
-            JSONArray convTypeApiCodes = condition.getJSONArray("convTypeApiCodes");
-            String mainApiCode = condition.getString("mainApiCode");
-            //endregion
-
-            XieChengData resultData = new XieChengData();
-            resultData.setId(adReqDTO.getId());
-
             if(condition==null){
                 resultData.setStatus(2);
                 resultData.setDataMessage("该apiCode未配置规则数据");
                 xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                 return;
             }
+            String conditionKey = condition.getString("condition");
+            JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
+            JSONArray isBlackApiCodes = condition.getJSONArray("isBlackApiCodes");
+            JSONArray convTypeApiCodes = condition.getJSONArray("convTypeApiCodes");
+            String mainApiCode = condition.getString("mainApiCode");
+            //按撞库锁定周期上报去重，目前只对于3710058
+            Boolean offRepeatByPeriod = condition.getBoolean("offRepeatByPeriod") == null
+                    ? false : condition.getBoolean("offRepeatByPeriod");
+            Integer offRepeatCount = offRepeatByPeriod ? condition.getInteger("offRepeatCount") : null;
 
             adReqDTO.setConditionKey(conditionKey);
             String tcId = tableCreateService.getTcId(apiCode);
@@ -1803,10 +1803,17 @@ public class PushDataServiceImpl implements PushDataService {
                 adReqDTO.setMktProductNo("CASH");
             }
             //endregion
-
-            //region 查询到当前电话数据是否推送过 有不推，反之就推。
-            List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
-            if (xieChengRepeatDatalist.isEmpty()) {
+            Boolean isPush;
+            if (offRepeatByPeriod) {
+                List<Integer> reportCountInPeriod = xieChengDataMapper.getReportPushStatusInPeriod(sha256Tel, apiCode);
+                Integer pushCount = reportCountInPeriod.stream().filter(pushStatus -> pushStatus == 2)
+                        .collect(Collectors.toList()).size();
+                isPush = pushCount < offRepeatCount;
+            } else {
+                List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
+                isPush = CollectionUtils.isEmpty(xieChengRepeatDatalist);
+            }
+            if (isPush) {
                 // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
                 String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
                 adReqDTO.setClickId(clickId);
@@ -1823,7 +1830,11 @@ public class PushDataServiceImpl implements PushDataService {
             } else {
                 resultData.setId(xieChengData.getId());
                 resultData.setStatus(2);
-                resultData.setDataMessage("数据重复未推送");
+                if (offRepeatByPeriod) {
+                    resultData.setDataMessage("数据在锁定期内已推送过" + offRepeatCount + "次");
+                } else {
+                    resultData.setDataMessage("数据重复未推送");
+                }
             }
             //endregion
             xieChengDataMapper.updateByPrimaryKeySelective(resultData);
