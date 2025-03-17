@@ -6,7 +6,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.CarChannelConfigMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.ClueRelationshipMapper;
@@ -48,6 +50,8 @@ public class CarClueServiceImpl implements CarClueService {
     RedisChgService redisChgService;
     @Resource
     private CarClueRelationalMappingMapper carClueRelationalMappingMapper;
+    @Resource
+    CarChannelConfigMapper carChannelConfigMapper;
     @Resource
     private ClueRelationshipMapper clueRelationshipMapper;
     private static final String TITLE = "【车线索匹配】";
@@ -195,13 +199,21 @@ public class CarClueServiceImpl implements CarClueService {
             String lockValue = UUID.randomUUID().toString();
             try {
                 redisChgService.lock(key, lockValue);
+                String name = "";
+                //获取对应apiCode渠道商
+                CarChannelConfigExample example = new CarChannelConfigExample();
+                example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(carClueInfo.getCluePushChannel());
+                List<CarChannelConfig> carChannelConfigs = carChannelConfigMapper.selectByExample(example);
+                if (carChannelConfigs.size() > 0) {
+                    name = carChannelConfigs.get(0).getName();
+                }
                 CarClueRelationalMapping carClueRelationalMapping = carClueRelationalMappingMapper.selectByPrimaryKey(clueRelationship.getMappingId());
                 Integer dailyLimited = carClueRelationalMapping.getDailyLimited();
                 Integer matchDailyLimited = carClueRelationalMapping.getMatchDailyLimited();
                 //已限量
                 if(0 == dailyLimited || matchDailyLimited >= dailyLimited){
-                    carClueInfo.setCluePushStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
-                    carClueInfo.setClueErrorReason("config.getName().concat(\"[\").concat(configApiCode).concat(\"]\").concat(\"今日已限量\")");
+                    carClueInfo.setClueDataStatus(CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
+                    carClueInfo.setClueErrorReason(name.concat("[").concat(carClueInfo.getCluePushChannel()).concat("]").concat("今日已限量"));
                     ClueRelationship clueRelationship1 = new ClueRelationship();
                     clueRelationship1.setId(clueRelationship.getId());
                     clueRelationship1.setStatus(1);
