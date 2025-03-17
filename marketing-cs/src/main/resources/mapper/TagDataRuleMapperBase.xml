@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.tag.TTagDataRuleMapperBase">
+<mapper namespace="com.br.marketing.mapper.tag.TagDataRuleMapperBase">
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.tag.TagDataRule">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="tag_code" jdbcType="VARCHAR" property="tagCode" />
@@ -12,7 +12,7 @@
     <result column="time_unit" jdbcType="VARCHAR" property="timeUnit" />
     <result column="api_code_scope" jdbcType="VARCHAR" property="apiCodeScope" />
     <result column="api_code_license" jdbcType="VARCHAR" property="apiCodeLicense" />
-    <result column="status" jdbcType="BOOLEAN" property="status" />
+    <result column="status" jdbcType="INTEGER" property="status" />
     <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
     <result column="opt_user_name" jdbcType="BIGINT" property="optUserName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
@@ -119,7 +119,7 @@
     values (#{tagCode,jdbcType=VARCHAR}, #{tagName,jdbcType=VARCHAR}, #{tagNumber,jdbcType=INTEGER}, 
       #{content,jdbcType=VARCHAR}, #{summary,jdbcType=VARCHAR}, #{timeNumber,jdbcType=INTEGER}, 
       #{timeUnit,jdbcType=VARCHAR}, #{apiCodeScope,jdbcType=VARCHAR}, #{apiCodeLicense,jdbcType=VARCHAR}, 
-      #{status,jdbcType=BOOLEAN}, #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=BIGINT}, 
+      #{status,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=BIGINT}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataRule" useGeneratedKeys="true">
@@ -197,7 +197,7 @@
         #{apiCodeLicense,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
-        #{status,jdbcType=BOOLEAN},
+        #{status,jdbcType=INTEGER},
       </if>
       <if test="optUserId != null">
         #{optUserId,jdbcType=BIGINT},
@@ -253,7 +253,7 @@
         api_code_license = #{record.apiCodeLicense,jdbcType=VARCHAR},
       </if>
       <if test="record.status != null">
-        `status` = #{record.status,jdbcType=BOOLEAN},
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.optUserId != null">
         opt_user_id = #{record.optUserId,jdbcType=BIGINT},
@@ -284,7 +284,7 @@
       time_unit = #{record.timeUnit,jdbcType=VARCHAR},
       api_code_scope = #{record.apiCodeScope,jdbcType=VARCHAR},
       api_code_license = #{record.apiCodeLicense,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=BOOLEAN},
+      `status` = #{record.status,jdbcType=INTEGER},
       opt_user_id = #{record.optUserId,jdbcType=BIGINT},
       opt_user_name = #{record.optUserName,jdbcType=BIGINT},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -324,7 +324,7 @@
         api_code_license = #{apiCodeLicense,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
-        `status` = #{status,jdbcType=BOOLEAN},
+        `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="optUserId != null">
         opt_user_id = #{optUserId,jdbcType=BIGINT},
@@ -352,7 +352,7 @@
       time_unit = #{timeUnit,jdbcType=VARCHAR},
       api_code_scope = #{apiCodeScope,jdbcType=VARCHAR},
       api_code_license = #{apiCodeLicense,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=BOOLEAN},
+      `status` = #{status,jdbcType=INTEGER},
       opt_user_id = #{optUserId,jdbcType=BIGINT},
       opt_user_name = #{optUserName,jdbcType=BIGINT},
       create_time = #{createTime,jdbcType=TIMESTAMP},

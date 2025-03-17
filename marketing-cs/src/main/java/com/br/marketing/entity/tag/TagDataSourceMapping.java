@@ -38,7 +38,7 @@ public class TagDataSourceMapping implements Serializable {
     /**
      * 状态：1-启用 0-禁用
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 创建时间

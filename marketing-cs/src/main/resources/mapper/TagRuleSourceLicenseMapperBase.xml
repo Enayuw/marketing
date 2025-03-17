@@ -5,7 +5,7 @@
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="tag_code" jdbcType="VARCHAR" property="tagCode" />
     <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="status" jdbcType="BOOLEAN" property="status" />
+    <result column="status" jdbcType="INTEGER" property="status" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
@@ -103,7 +103,7 @@
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagRuleSourceLicense" useGeneratedKeys="true">
     insert into t_tag_rule_source_license (tag_code, api_code, `status`, 
       create_time, update_time)
-    values (#{tagCode,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{status,jdbcType=BOOLEAN}, 
+    values (#{tagCode,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagRuleSourceLicense" useGeneratedKeys="true">
@@ -133,7 +133,7 @@
         #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
-        #{status,jdbcType=BOOLEAN},
+        #{status,jdbcType=INTEGER},
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
@@ -162,7 +162,7 @@
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
       <if test="record.status != null">
-        `status` = #{record.status,jdbcType=BOOLEAN},
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -180,7 +180,7 @@
     set id = #{record.id,jdbcType=BIGINT},
       tag_code = #{record.tagCode,jdbcType=VARCHAR},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=BOOLEAN},
+      `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
@@ -197,7 +197,7 @@
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
-        `status` = #{status,jdbcType=BOOLEAN},
+        `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -212,7 +212,7 @@
     update t_tag_rule_source_license
     set tag_code = #{tagCode,jdbcType=VARCHAR},
       api_code = #{apiCode,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=BOOLEAN},
+      `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}

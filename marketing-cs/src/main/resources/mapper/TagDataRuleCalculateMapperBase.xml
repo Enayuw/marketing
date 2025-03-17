@@ -6,7 +6,7 @@
     <result column="tag_code" jdbcType="VARCHAR" property="tagCode" />
     <result column="calculate_date" jdbcType="VARCHAR" property="calculateDate" />
     <result column="tag_number" jdbcType="INTEGER" property="tagNumber" />
-    <result column="status" jdbcType="BOOLEAN" property="status" />
+    <result column="status" jdbcType="INTEGER" property="status" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
@@ -106,7 +106,7 @@
       `status`, create_time, update_time
       )
     values (#{tagCode,jdbcType=VARCHAR}, #{calculateDate,jdbcType=VARCHAR}, #{tagNumber,jdbcType=INTEGER}, 
-      #{status,jdbcType=BOOLEAN}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
       )
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataRuleCalculate" useGeneratedKeys="true">
@@ -142,7 +142,7 @@
         #{tagNumber,jdbcType=INTEGER},
       </if>
       <if test="status != null">
-        #{status,jdbcType=BOOLEAN},
+        #{status,jdbcType=INTEGER},
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
@@ -174,7 +174,7 @@
         tag_number = #{record.tagNumber,jdbcType=INTEGER},
       </if>
       <if test="record.status != null">
-        `status` = #{record.status,jdbcType=BOOLEAN},
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -193,7 +193,7 @@
       tag_code = #{record.tagCode,jdbcType=VARCHAR},
       calculate_date = #{record.calculateDate,jdbcType=VARCHAR},
       tag_number = #{record.tagNumber,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=BOOLEAN},
+      `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null">
@@ -213,7 +213,7 @@
         tag_number = #{tagNumber,jdbcType=INTEGER},
       </if>
       <if test="status != null">
-        `status` = #{status,jdbcType=BOOLEAN},
+        `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -229,7 +229,7 @@
     set tag_code = #{tagCode,jdbcType=VARCHAR},
       calculate_date = #{calculateDate,jdbcType=VARCHAR},
       tag_number = #{tagNumber,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=BOOLEAN},
+      `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}

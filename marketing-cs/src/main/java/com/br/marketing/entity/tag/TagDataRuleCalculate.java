@@ -33,7 +33,7 @@ public class TagDataRuleCalculate implements Serializable {
     /**
      * 状态：0-待执行；1-执行中；2-执行结束
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 创建时间

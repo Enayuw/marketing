@@ -38,7 +38,7 @@ public class TagDataDetail implements Serializable {
     /**
      * 1-有效；0-时效
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 创建时间
