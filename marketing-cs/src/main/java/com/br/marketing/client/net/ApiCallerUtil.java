@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.net.CallUtils;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.InterfaceLog;
-import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
