@@ -73,18 +73,28 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             }
             Integer threadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
             Integer threadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
-            int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize, 50);
-            ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize);
-            String key = RedisKeyConstant.DATA_UPDATE_ES_MARK.concat(":").concat(apiCode);
+            Integer dataMarkEsQueueNum = marketingCommonConfig.getDataMarkEsQueueNum();
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize, dataMarkEsQueueNum);
+            ThreadPoolExecutor threadUpdatePool = BrExecutors.getThreadPool(threadUpdatePoolSize, threadUpdatePoolSize, dataMarkEsQueueNum);
             List<Long> ids = new ArrayList<>();
             while (true) {
-                String lockValue = UUID.randomUUID().toString();
                 try {
-                    redisChgService.lock(key, lockValue);
+                    Integer newThreadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
+                    if (!newThreadPoolSize.equals(threadPoolSize)) {
+                        threadPool.setCorePoolSize(newThreadPoolSize);
+                        threadPool.setMaximumPoolSize(newThreadPoolSize);
+                        log.warn(TITLE + "查询线程池大小已动态调整为: {}", newThreadPoolSize);
+                    }
+                    Integer newThreadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
+                    if (!newThreadUpdatePoolSize.equals(threadUpdatePoolSize)) {
+                        threadUpdatePool.setCorePoolSize(newThreadUpdatePoolSize);
+                        threadUpdatePool.setMaximumPoolSize(newThreadUpdatePoolSize);
+                        log.warn(TITLE + "写入线程池大小已动态调整为: {}", newThreadUpdatePoolSize);
+                    }
+
+                    int dataMarkPageSize = marketingCommonConfig.getDataMarkPageSize() == null?2000:marketingCommonConfig.getDataMarkPageSize();
                     List<FlagDataEsMark> flagDataEsMarkList = flagDataMapper.queryEsMarkByDate(apiCode, LocalDate.now().toString(), dataMarkPageSize);
                     if (CollectionUtil.isEmpty(flagDataEsMarkList)) {
-                        redisChgService.unlock(key, lockValue);
                         threadPoolShutDown(threadPool);
                         threadPoolShutDown(threadUpdatePool);
                         break;
@@ -92,8 +102,6 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     //更新打标表状态
                     ids = flagDataEsMarkList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
                     flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.SYNCING.getValue());
-                    //释放锁
-                    redisChgService.unlock(key, lockValue);
 
                     List<List<FlagDataEsMark>> partitions = Lists.partition(flagDataEsMarkList, PARTITION_SIZE);
                     for (List<FlagDataEsMark> list : partitions) {
@@ -101,11 +109,10 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     }
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
-                            TITLE + "抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+                            TITLE + "更新打标表状态出现异常，" + "errorMessage=" + e.getMessage()), e);
                     if(!CollectionUtil.isEmpty(ids)){
                         flagDataMapper.batchUpdateEsStatusById(ids, EsSyncStatusEnum.INITIAL.getValue());
                     }
-                    redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
                     threadPoolShutDown(threadUpdatePool);
                     break;
@@ -219,7 +226,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                     value = flagData.getFlagSpecialSmall()== null?"":String.valueOf(flagData.getFlagSpecialSmall());
                     break;
                 case "flag_specialrisklevel_rule":
-                    value = flagData.getFlagSpecialrisklevel()== null?"":String.valueOf(flagData.getFlagSpecialrisklevel());
+                    value = flagData.getFlagSpecialrisklevelRule()== null?"":String.valueOf(flagData.getFlagSpecialrisklevelRule());
                     break;
                 case "flag_applyloan":
                     value = flagData.getFlagApplyloan()== null?"":String.valueOf(flagData.getFlagApplyloan());

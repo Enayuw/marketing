@@ -50,6 +50,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         Map params = new HashMap();
         params.put("createTimeStart", request.getCreateTimeStart());
         params.put("createTimeEnd", request.getCreateTimeEnd());
+        params.put("resourceType", request.getResourceType());
         params.put("intention", request.getIntention());
         params.put("clueDataStatusList", request.getClueDataStatus());
         params.put("clueCompleteStatusList", request.getClueCompleteStatus());
@@ -132,6 +133,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                 clueInfo.setId(vo.getId());
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
+                clueInfo.setCity(vo.getCity());
                 clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                 Integer clueCompleteStatus = carClueInfo.getClueCompleteStatus();
                 if (carClueDataStatusList.contains(vo.getClueDataStatus()) && !carClueCompleteStatusList.contains(clueCompleteStatus)) {

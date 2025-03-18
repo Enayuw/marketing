@@ -81,29 +81,29 @@ logging:
     root: INFO
 otherConfig:
   huaXiangInterface:
-        getReport: http://batch-hxapi/batch-hxapi/v1/get_report
+    getReport: http://batch-hxapi/batch-hxapi/v1/get_report
   sanxiangzhiliInterface:
-        sanxiang_url: http://k8s.brapp.com/openapi2/api/zh-service/v1/getData
-        haina_url: http://HAINA-SERVICE/query
+    sanxiang_url: http://k8s.brapp.com/openapi2/api/zh-service/v1/getData
+    haina_url: http://HAINA-SERVICE/query
   alarm:
-        secretKey: b58783d4b67f942166f2ffad298080e4
-        appName: marketing
-        outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
-        outsideAppName: marketing-out
+    secretKey: b58783d4b67f942166f2ffad298080e4
+    appName: marketing
+    outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+    outsideAppName: marketing-out
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: loan-strategy
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
   warning:
-        pageSize: 5000
-        apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
-        onlineUrl: http://k8s.brapp.com/compass-api/api/loan-strategy-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/marketing/
-        ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
+    pageSize: 5000
+    apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
+    onlineUrl: http://k8s.brapp.com/compass-api/api/loan-strategy-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
   encodeMapping:
-        appName: loan-warning
-        appSecretKey: a938d0e974746651a11ddcdbcea31404
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
   mom:
-      appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
   proxy:
     proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
