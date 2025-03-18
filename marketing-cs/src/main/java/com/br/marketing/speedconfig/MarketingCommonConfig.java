@@ -1989,10 +1989,27 @@ public class MarketingCommonConfig {
     private HashMap<String, Integer> wuBaCollidingCycleDayConfig;
 
     /**
-     * 58撞库优先级配置
+     * 58撞库跑分优先级配置
+     * ["top","medium","down","low"]
+     */
+    private String[] wuBaCollidingScoreOrderConfig;
+
+    /**
+     * 58撞库数据来源优先级配置
      * ["T","S","H","F","J","Q","K"]
      */
-    private String[] wuBaCollidingOrderConfig;
+    private String[] wuBaCollidingSourceTypeOrderConfig;
+
+    /**
+     * 58撞库关联跑分数据条件配置
+     * {
+     *   "top": "inner join b_wuba_score_data_top score on a.cell = score.cell and score.is_deleted = 0",
+     *   "medium": "inner join b_wuba_score_data_medium score on a.cell = score.cell and score.is_deleted = 0",
+     *   "down": "inner join b_wuba_score_data_down score on a.cell = score.cell and score.is_deleted = 0",
+     *   "low": "inner join b_wuba_score_data_low score on a.cell = score.cell and score.is_deleted = 0"
+     * }
+     */
+    private JSONObject wuBaCollidingScoreConditionConfig;
 
     /**
      * 58提交撞库数据分页条数

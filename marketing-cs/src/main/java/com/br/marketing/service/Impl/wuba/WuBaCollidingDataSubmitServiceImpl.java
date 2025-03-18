@@ -238,92 +238,96 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
      */
     private Pair<String, List<WubaCollidingData>> getCollidingDatas(String apiCode, Integer limit) {
         DateTime nowDate = DateUtil.parse(LocalDate.now().toString(), DatePattern.NORM_DATE_PATTERN);
-        for (String sourceType : marketingCommonConfig.getWuBaCollidingOrderConfig()) {
-            switch (sourceType) {
-                case T:
-                    // 周期场景1的数据
-                    if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(T)) {
-                        Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
-                        DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
-                        DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
-                        List<WubaCollidingData> loopCycles = wubaCollidingDataLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
-                                limit);
-                        if (!CollectionUtils.isEmpty(loopCycles)) {
-                            return new Pair<>(T, loopCycles);
+        JSONObject scoreConditionConfig = marketingCommonConfig.getWuBaCollidingScoreConditionConfig();
+        for (String score : marketingCommonConfig.getWuBaCollidingScoreOrderConfig()) {
+            String condition = scoreConditionConfig.getString(score);
+            for (String sourceType : marketingCommonConfig.getWuBaCollidingSourceTypeOrderConfig()) {
+                switch (sourceType) {
+                    case T:
+                        // 周期场景1的数据
+                        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(T)) {
+                            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
+                            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
+                            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
+                            List<WubaCollidingData> loopCycles = wubaCollidingDataLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
+                                    limit);
+                            if (!CollectionUtils.isEmpty(loopCycles)) {
+                                return new Pair<>(T, loopCycles);
+                            }
                         }
-                    }
-                    break;
-                case S:
-                    // 周期场景2的数据
-                    if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
-                        Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
-                        DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
-                        DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
-                        List<WubaCollidingData> loopCycles = wubaCollidingDataSecondLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd,
-                                apiCode,
-                                limit);
-                        if (!CollectionUtils.isEmpty(loopCycles)) {
-                            return new Pair<>(S, loopCycles);
+                        break;
+                    case S:
+                        // 周期场景2的数据
+                        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
+                            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
+                            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
+                            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
+                            List<WubaCollidingData> loopCycles = wubaCollidingDataSecondLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd,
+                                    apiCode,
+                                    limit);
+                            if (!CollectionUtils.isEmpty(loopCycles)) {
+                                return new Pair<>(S, loopCycles);
+                            }
                         }
-                    }
-                    break;
-                case H:
-                    // 高价值数据
-                    List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
-                    if (!CollectionUtils.isEmpty(highValueFiles)) {
-                        List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectHighValueCollidingData(limit, apiCode, nowDate,
-                                highValueFiles);
+                        break;
+                    case H:
+                        // 高价值数据
+                        List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
+                        if (!CollectionUtils.isEmpty(highValueFiles)) {
+                            List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectHighValueCollidingData(limit, apiCode, nowDate,
+                                    highValueFiles);
+                            if (!CollectionUtils.isEmpty(robs)) {
+                                return new Pair<>(H, robs);
+                            }
+                        }
+                        break;
+                    case F:
+                        // 手动上传数据
+                        List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectCollidingData(limit, apiCode);
                         if (!CollectionUtils.isEmpty(robs)) {
-                            return new Pair<>(H, robs);
+                            return new Pair<>(F, robs);
                         }
-                    }
-                    break;
-                case F:
-                    // 手动上传数据
-                    List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectCollidingData(limit, apiCode);
-                    if (!CollectionUtils.isEmpty(robs)) {
-                        return new Pair<>(F, robs);
-                    }
-                    break;
-                case J:
-                    // 非高价值周期非金融TRUE的-2
-                    Long nonFinancialReavedFileId = getReavedFileIdByType(T);
-                    if (Objects.nonNull(nonFinancialReavedFileId)) {
-                        Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
-                        DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
-                        List<WubaCollidingData> nonFinancialReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, pushTimeEnd,
-                                nonFinancialReavedFileId);
-                        if (!CollectionUtils.isEmpty(nonFinancialReaveds)) {
-                            return new Pair<>(J, nonFinancialReaveds);
+                        break;
+                    case J:
+                        // 非高价值周期非金融TRUE的-2
+                        Long nonFinancialReavedFileId = getReavedFileIdByType(T);
+                        if (Objects.nonNull(nonFinancialReavedFileId)) {
+                            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
+                            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
+                            List<WubaCollidingData> nonFinancialReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, pushTimeEnd,
+                                    nonFinancialReavedFileId);
+                            if (!CollectionUtils.isEmpty(nonFinancialReaveds)) {
+                                return new Pair<>(J, nonFinancialReaveds);
+                            }
                         }
-                    }
-                    break;
-                case Q:
-                    // 非高价值周期金融TRUE的-2
-                    Long financialReavedFileId = getReavedFileIdByType(S);
-                    if (Objects.nonNull(financialReavedFileId)) {
-                        Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
-                        DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
-                        List<WubaCollidingData> financialReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, pushTimeEnd,
-                                financialReavedFileId);
-                        if (!CollectionUtils.isEmpty(financialReaveds)) {
-                            return new Pair<>(Q, financialReaveds);
+                        break;
+                    case Q:
+                        // 非高价值周期金融TRUE的-2
+                        Long financialReavedFileId = getReavedFileIdByType(S);
+                        if (Objects.nonNull(financialReavedFileId)) {
+                            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
+                            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
+                            List<WubaCollidingData> financialReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, pushTimeEnd,
+                                    financialReavedFileId);
+                            if (!CollectionUtils.isEmpty(financialReaveds)) {
+                                return new Pair<>(Q, financialReaveds);
+                            }
                         }
-                    }
-                    break;
-                case K:
-                    // 补包的-2
-                    Long supplyReavedFileId = getReavedFileIdByType(F);
-                    if (Objects.nonNull(supplyReavedFileId)) {
-                        List<WubaCollidingData> supplyReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, nowDate,
-                                supplyReavedFileId);
-                        if (!CollectionUtils.isEmpty(supplyReaveds)) {
-                            return new Pair<>(K, supplyReaveds);
+                        break;
+                    case K:
+                        // 补包的-2
+                        Long supplyReavedFileId = getReavedFileIdByType(F);
+                        if (Objects.nonNull(supplyReavedFileId)) {
+                            List<WubaCollidingData> supplyReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, nowDate,
+                                    supplyReavedFileId);
+                            if (!CollectionUtils.isEmpty(supplyReaveds)) {
+                                return new Pair<>(K, supplyReaveds);
+                            }
                         }
-                    }
-                    break;
-                default:
-                    break;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
