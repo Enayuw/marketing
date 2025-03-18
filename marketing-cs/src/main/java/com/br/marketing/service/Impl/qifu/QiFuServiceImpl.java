@@ -512,7 +512,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
     public String calculateDaysDifference(String rTaTemporaryAmountExpireDate) {
         if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate) || ObjectUtil.isEmpty(rTaTemporaryAmountExpireDate)) {
-            return rTaTemporaryAmountExpireDate;
+            return "9999";
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

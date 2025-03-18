@@ -45,7 +45,7 @@ public class YiCarKAClueChannelPush extends AbstractClueChannelPush {
     MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
+    @RetryMethod(isOrNoDbRetry = true)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result push(CarClueInfo carClueInfo, Integer retry) {
         try {
@@ -68,6 +68,7 @@ public class YiCarKAClueChannelPush extends AbstractClueChannelPush {
                 hxClueCommitDTO.setSeriesId(Integer.parseInt(carClueInfo.getClueMatchSeriesId()));
             }
             hxClueCommitDTO.setPushTask(task);
+            hxClueCommitDTO.setAssignId(carClueInfo.getDemandId());
             hxClueCommitDTO.setBuyTime(LocalDate.now().plusDays(90).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
             if (ResultCode.SUCCESS.getValue().equals(clueRes.getCode())) {

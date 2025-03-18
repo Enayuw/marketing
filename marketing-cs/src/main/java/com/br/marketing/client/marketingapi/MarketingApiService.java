@@ -17,7 +17,7 @@ import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.entity.TwosevenFile;
 import com.br.marketing.entity.TwosevenFileExample;
-import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.mapper.TwosevenFileMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

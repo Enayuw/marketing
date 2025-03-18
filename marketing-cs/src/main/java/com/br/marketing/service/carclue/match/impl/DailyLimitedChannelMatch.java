@@ -6,11 +6,11 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.ClueRelationshipMapper;
 import com.br.marketing.service.carclue.clueenums.*;
 import com.br.marketing.service.carclue.common.MatchPatternCommon;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -19,17 +19,32 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+/**
+ * @ClassName DailyLimitedChannelMatch
+ * @Description 日限量命中规则
+ * @Author kongbx
+ * @Date 2025/3/10 16:22
+ */
 @Service
 @Slf4j
-public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
+public class DailyLimitedChannelMatch extends AbstractClueChannelMatch {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private ClueRelationshipMapper clueRelationshipMapper;
 
     public static final String ALL_SERVIES = "全系";
 
-
+    /**
+     *
+     * @param config 渠道商配置
+     * @param carClueInfo 车线索
+     * @param provincesInfoConfig 省市配置
+     * @param seriesInfoConfig 品牌车系配置
+     * @param relationalMappingConfig 映射表配置
+     * @return 车线索匹配结果
+     */
     @Override
     public Result<CarClueInfo> action(CarChannelConfig config, CarClueInfo carClueInfo, List<CarClueProvincesInformation> provincesInfoConfig,
                                       List<CarClueSeriesInformation> seriesInfoConfig, List<CarClueRelationalMapping> relationalMappingConfig) {
@@ -126,6 +141,14 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
             }
         }
+        //判断 外采配置是否限量
+        Integer dailyLimited = clueRelationalMapping.getDailyLimited();
+        Integer matchDailyLimited = clueRelationalMapping.getMatchDailyLimited();
+        if(0 == dailyLimited || matchDailyLimited >= dailyLimited){
+            carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("今日已限量"),
+                    CarClueDataStatusEnum.LIMITED_LACK_CLUE.getValue());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
+        }
         //全国不用判断
         carClueInfo.setClueMatchProvince(provinceName);
         carClueInfo.setClueMatchCity(cityMatch);
@@ -135,9 +158,19 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         carClueInfo.setClueMatchBrandId(clueRelationalMapping.getBrandId().toString());
         carClueInfo.setClueMatchSeriesId(seriesInfoConfig.stream().filter(carClueSeriesInfo -> carClueSeriesInfo.getSeriesName()
                 .equals(carClueInfo.getClueMatchSeries())).collect(Collectors.toList()).get(0).getSeriesId().toString());
+        carClueInfo.setDemandId(clueRelationalMapping.getDemandId());
+
+        //增加线索-外采对应关系
+        ClueRelationship clueRelationship = new ClueRelationship();
+        clueRelationship.setClueInfoId(carClueInfo.getId());
+        clueRelationship.setApiCode(carClueInfo.getApiCode());
+        clueRelationship.setMappingId(clueRelationalMapping.getId());
+        clueRelationship.setStatus(0);
+        clueRelationship.setCreateTime(new Date());
+        clueRelationship.setUpdateTime(new Date());
+        clueRelationshipMapper.insertSelective(clueRelationship);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(carClueInfo);
     }
-
 
     private void carClueErrorReasonSet(CarClueInfo carClueInfo, String errorMsg, Integer status) {
         carClueInfo.setClueErrorReason(errorMsg);
@@ -235,7 +268,6 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
 
     }
 
-
     private List<String> getBrandBySeries(String series, List<CarClueSeriesInformation> seriesInfoConfig) {
         return seriesInfoConfig.stream().filter(clueSeriesInfo -> clueSeriesInfo.getSeriesName().equals(series))
                 .map(CarClueSeriesInformation::getBrandName).collect(Collectors.toList());
@@ -243,13 +275,12 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
 
     }
 
-    @Override
-    public String label() {
-        return ChannelRule.MatchChannelRuleEnum.YC_KA.getLabel();
-
-    }
-
     public static boolean containsAnyChar(String str, String chars) {
         return chars.chars().anyMatch(ch -> str.indexOf(ch) != -1);
+    }
+
+    @Override
+    public String label() {
+        return ChannelRule.MatchChannelRuleEnum.DAILY_LIMITED.getLabel();
     }
 }

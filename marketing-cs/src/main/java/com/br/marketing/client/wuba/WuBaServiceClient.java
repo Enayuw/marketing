@@ -18,7 +18,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.enums.MockInterfaceCodeEnum;
-import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mock.MockService;
 import com.br.marketing.mock.custom.wuba.WuBaMockService;

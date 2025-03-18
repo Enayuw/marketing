@@ -1214,6 +1214,196 @@ public class CarClueRelationalMappingExample {
             addCriterion("is_del not between", value1, value2, "isDel");
             return (Criteria) this;
         }
+
+        public Criteria andDailyLimitedIsNull() {
+            addCriterion("daily_limited is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedIsNotNull() {
+            addCriterion("daily_limited is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedEqualTo(Integer value) {
+            addCriterion("daily_limited =", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedNotEqualTo(Integer value) {
+            addCriterion("daily_limited <>", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedGreaterThan(Integer value) {
+            addCriterion("daily_limited >", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedGreaterThanOrEqualTo(Integer value) {
+            addCriterion("daily_limited >=", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedLessThan(Integer value) {
+            addCriterion("daily_limited <", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedLessThanOrEqualTo(Integer value) {
+            addCriterion("daily_limited <=", value, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedIn(List<Integer> values) {
+            addCriterion("daily_limited in", values, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedNotIn(List<Integer> values) {
+            addCriterion("daily_limited not in", values, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedBetween(Integer value1, Integer value2) {
+            addCriterion("daily_limited between", value1, value2, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDailyLimitedNotBetween(Integer value1, Integer value2) {
+            addCriterion("daily_limited not between", value1, value2, "dailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedIsNull() {
+            addCriterion("match_daily_limited is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedIsNotNull() {
+            addCriterion("match_daily_limited is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedEqualTo(Integer value) {
+            addCriterion("match_daily_limited =", value, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedNotEqualTo(Integer value) {
+            addCriterion("match_daily_limited <>", value, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedGreaterThan(Integer value) {
+            addCriterion("match_daily_limited >", value, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedGreaterThanOrEqualTo(Integer value) {
+            addCriterion("match_daily_limited >=", value, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedLessThan(Integer value) {
+            addCriterion("match_daily_limited <", value, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedLessThanOrEqualTo(Integer value) {
+            addCriterion("match_daily_limited <=", value, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedIn(List<Integer> values) {
+            addCriterion("match_daily_limited in", values, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedNotIn(List<Integer> values) {
+            addCriterion("match_daily_limited not in", values, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedBetween(Integer value1, Integer value2) {
+            addCriterion("match_daily_limited between", value1, value2, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andMatchDailyLimitedNotBetween(Integer value1, Integer value2) {
+            addCriterion("match_daily_limited not between", value1, value2, "matchDailyLimited");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIsNull() {
+            addCriterion("demand_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIsNotNull() {
+            addCriterion("demand_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdEqualTo(String value) {
+            addCriterion("demand_id =", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotEqualTo(String value) {
+            addCriterion("demand_id <>", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdGreaterThan(String value) {
+            addCriterion("demand_id >", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdGreaterThanOrEqualTo(String value) {
+            addCriterion("demand_id >=", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLessThan(String value) {
+            addCriterion("demand_id <", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLessThanOrEqualTo(String value) {
+            addCriterion("demand_id <=", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLike(String value) {
+            addCriterion("demand_id like", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotLike(String value) {
+            addCriterion("demand_id not like", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIn(List<String> values) {
+            addCriterion("demand_id in", values, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotIn(List<String> values) {
+            addCriterion("demand_id not in", values, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdBetween(String value1, String value2) {
+            addCriterion("demand_id between", value1, value2, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotBetween(String value1, String value2) {
+            addCriterion("demand_id not between", value1, value2, "demandId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
