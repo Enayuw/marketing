@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.CarClueInfoMapperBase" >
+<mapper namespace="com.br.marketing.mapper.CarClueInfoMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.CarClueInfo" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="cid" property="cid" jdbcType="VARCHAR" />
@@ -42,6 +42,7 @@
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="call_back_time" property="callBackTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="demand_id" property="demandId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -108,7 +109,8 @@
     clue_match_city, recording_path, call_dialog, clue_id, clue_push_channel, clue_data_status,
     clue_complete_status, clue_push_status, clue_callback_status, clue_push_error_reason,
     clue_error_reason, clue_callback_result, clue_callback_push_state, clue_callback_final_state,
-    resource_type, extend_info, create_time, clean_time, push_time, call_back_time, update_time
+    resource_type, extend_info, create_time, clean_time, push_time, call_back_time, update_time,
+    demand_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInfoExample" >
     select
@@ -145,33 +147,33 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_car_clue_info (cid, api_code, cust_num,
-    cell, intention, brand,
-    `member`, series, clue_match_brand_id,
-    clue_match_brand, clue_match_series_id, clue_match_series,
-    match_brand_series_type, province, clue_match_province_id,
-    clue_match_province, city, clue_match_city_id,
-    clue_match_city, recording_path, call_dialog,
-    clue_id, clue_push_channel, clue_data_status,
-    clue_complete_status, clue_push_status, clue_callback_status,
-    clue_push_error_reason, clue_error_reason, clue_callback_result,
-    clue_callback_push_state, clue_callback_final_state,
-    resource_type, extend_info, create_time,
-    clean_time, push_time, call_back_time,
-    update_time)
+      cell, intention, brand,
+      `member`, series, clue_match_brand_id,
+      clue_match_brand, clue_match_series_id, clue_match_series,
+      match_brand_series_type, province, clue_match_province_id,
+      clue_match_province, city, clue_match_city_id,
+      clue_match_city, recording_path, call_dialog,
+      clue_id, clue_push_channel, clue_data_status,
+      clue_complete_status, clue_push_status, clue_callback_status,
+      clue_push_error_reason, clue_error_reason, clue_callback_result,
+      clue_callback_push_state, clue_callback_final_state,
+      resource_type, extend_info, create_time,
+      clean_time, push_time, call_back_time,
+      update_time, demand_id)
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
-    #{cell,jdbcType=VARCHAR}, #{intention,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR},
-    #{member,jdbcType=VARCHAR}, #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR},
-    #{clueMatchBrand,jdbcType=VARCHAR}, #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR},
-    #{matchBrandSeriesType,jdbcType=INTEGER}, #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR},
-    #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR},
-    #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{callDialog,jdbcType=VARCHAR},
-    #{clueId,jdbcType=VARCHAR}, #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER},
-    #{clueCompleteStatus,jdbcType=INTEGER}, #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER},
-    #{cluePushErrorReason,jdbcType=VARCHAR}, #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR},
-    #{clueCallbackPushState,jdbcType=INTEGER}, #{clueCallbackFinalState,jdbcType=INTEGER},
-    #{resourceType,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
-    #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP},
-    #{updateTime,jdbcType=TIMESTAMP})
+      #{cell,jdbcType=VARCHAR}, #{intention,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR},
+      #{member,jdbcType=VARCHAR}, #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR},
+      #{clueMatchBrand,jdbcType=VARCHAR}, #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR},
+      #{matchBrandSeriesType,jdbcType=INTEGER}, #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR},
+      #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR},
+      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{callDialog,jdbcType=VARCHAR},
+      #{clueId,jdbcType=VARCHAR}, #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER},
+      #{clueCompleteStatus,jdbcType=INTEGER}, #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER},
+      #{cluePushErrorReason,jdbcType=VARCHAR}, #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR},
+      #{clueCallbackPushState,jdbcType=INTEGER}, #{clueCallbackFinalState,jdbcType=INTEGER},
+      #{resourceType,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+      #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP},
+      #{updateTime,jdbcType=TIMESTAMP}, #{demandId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -296,6 +298,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="demandId != null" >
+        demand_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cid != null" >
@@ -414,6 +419,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="demandId != null" >
+        #{demandId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -546,6 +554,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.demandId != null" >
+        demand_id = #{record.demandId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -554,45 +565,46 @@
   <update id="updateByExample" parameterType="map" >
     update b_car_clue_info
     set id = #{record.id,jdbcType=BIGINT},
-    cid = #{record.cid,jdbcType=VARCHAR},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    cust_num = #{record.custNum,jdbcType=VARCHAR},
-    cell = #{record.cell,jdbcType=VARCHAR},
-    intention = #{record.intention,jdbcType=VARCHAR},
-    brand = #{record.brand,jdbcType=VARCHAR},
-    `member` = #{record.member,jdbcType=VARCHAR},
-    series = #{record.series,jdbcType=VARCHAR},
-    clue_match_brand_id = #{record.clueMatchBrandId,jdbcType=VARCHAR},
-    clue_match_brand = #{record.clueMatchBrand,jdbcType=VARCHAR},
-    clue_match_series_id = #{record.clueMatchSeriesId,jdbcType=VARCHAR},
-    clue_match_series = #{record.clueMatchSeries,jdbcType=VARCHAR},
-    match_brand_series_type = #{record.matchBrandSeriesType,jdbcType=INTEGER},
-    province = #{record.province,jdbcType=VARCHAR},
-    clue_match_province_id = #{record.clueMatchProvinceId,jdbcType=VARCHAR},
-    clue_match_province = #{record.clueMatchProvince,jdbcType=VARCHAR},
-    city = #{record.city,jdbcType=VARCHAR},
-    clue_match_city_id = #{record.clueMatchCityId,jdbcType=VARCHAR},
-    clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
-    recording_path = #{record.recordingPath,jdbcType=VARCHAR},
-    call_dialog = #{record.callDialog,jdbcType=VARCHAR},
-    clue_id = #{record.clueId,jdbcType=VARCHAR},
-    clue_push_channel = #{record.cluePushChannel,jdbcType=VARCHAR},
-    clue_data_status = #{record.clueDataStatus,jdbcType=INTEGER},
-    clue_complete_status = #{record.clueCompleteStatus,jdbcType=INTEGER},
-    clue_push_status = #{record.cluePushStatus,jdbcType=INTEGER},
-    clue_callback_status = #{record.clueCallbackStatus,jdbcType=INTEGER},
-    clue_push_error_reason = #{record.cluePushErrorReason,jdbcType=VARCHAR},
-    clue_error_reason = #{record.clueErrorReason,jdbcType=VARCHAR},
-    clue_callback_result = #{record.clueCallbackResult,jdbcType=VARCHAR},
-    clue_callback_push_state = #{record.clueCallbackPushState,jdbcType=INTEGER},
-    clue_callback_final_state = #{record.clueCallbackFinalState,jdbcType=INTEGER},
-    resource_type = #{record.resourceType,jdbcType=VARCHAR},
-    extend_info = #{record.extendInfo,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    clean_time = #{record.cleanTime,jdbcType=TIMESTAMP},
-    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
-    call_back_time = #{record.callBackTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      intention = #{record.intention,jdbcType=VARCHAR},
+      brand = #{record.brand,jdbcType=VARCHAR},
+      `member` = #{record.member,jdbcType=VARCHAR},
+      series = #{record.series,jdbcType=VARCHAR},
+      clue_match_brand_id = #{record.clueMatchBrandId,jdbcType=VARCHAR},
+      clue_match_brand = #{record.clueMatchBrand,jdbcType=VARCHAR},
+      clue_match_series_id = #{record.clueMatchSeriesId,jdbcType=VARCHAR},
+      clue_match_series = #{record.clueMatchSeries,jdbcType=VARCHAR},
+      match_brand_series_type = #{record.matchBrandSeriesType,jdbcType=INTEGER},
+      province = #{record.province,jdbcType=VARCHAR},
+      clue_match_province_id = #{record.clueMatchProvinceId,jdbcType=VARCHAR},
+      clue_match_province = #{record.clueMatchProvince,jdbcType=VARCHAR},
+      city = #{record.city,jdbcType=VARCHAR},
+      clue_match_city_id = #{record.clueMatchCityId,jdbcType=VARCHAR},
+      clue_match_city = #{record.clueMatchCity,jdbcType=VARCHAR},
+      recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+      call_dialog = #{record.callDialog,jdbcType=VARCHAR},
+      clue_id = #{record.clueId,jdbcType=VARCHAR},
+      clue_push_channel = #{record.cluePushChannel,jdbcType=VARCHAR},
+      clue_data_status = #{record.clueDataStatus,jdbcType=INTEGER},
+      clue_complete_status = #{record.clueCompleteStatus,jdbcType=INTEGER},
+      clue_push_status = #{record.cluePushStatus,jdbcType=INTEGER},
+      clue_callback_status = #{record.clueCallbackStatus,jdbcType=INTEGER},
+      clue_push_error_reason = #{record.cluePushErrorReason,jdbcType=VARCHAR},
+      clue_error_reason = #{record.clueErrorReason,jdbcType=VARCHAR},
+      clue_callback_result = #{record.clueCallbackResult,jdbcType=VARCHAR},
+      clue_callback_push_state = #{record.clueCallbackPushState,jdbcType=INTEGER},
+      clue_callback_final_state = #{record.clueCallbackFinalState,jdbcType=INTEGER},
+      resource_type = #{record.resourceType,jdbcType=VARCHAR},
+      extend_info = #{record.extendInfo,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      clean_time = #{record.cleanTime,jdbcType=TIMESTAMP},
+      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      call_back_time = #{record.callBackTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      demand_id = #{record.demandId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -717,50 +729,54 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="demandId != null" >
+        demand_id = #{demandId,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CarClueInfo" >
     update b_car_clue_info
     set cid = #{cid,jdbcType=VARCHAR},
-        api_code = #{apiCode,jdbcType=VARCHAR},
-        cust_num = #{custNum,jdbcType=VARCHAR},
-        cell = #{cell,jdbcType=VARCHAR},
-        intention = #{intention,jdbcType=VARCHAR},
-        brand = #{brand,jdbcType=VARCHAR},
-        `member` = #{member,jdbcType=VARCHAR},
-        series = #{series,jdbcType=VARCHAR},
-        clue_match_brand_id = #{clueMatchBrandId,jdbcType=VARCHAR},
-        clue_match_brand = #{clueMatchBrand,jdbcType=VARCHAR},
-        clue_match_series_id = #{clueMatchSeriesId,jdbcType=VARCHAR},
-        clue_match_series = #{clueMatchSeries,jdbcType=VARCHAR},
-        match_brand_series_type = #{matchBrandSeriesType,jdbcType=INTEGER},
-        province = #{province,jdbcType=VARCHAR},
-        clue_match_province_id = #{clueMatchProvinceId,jdbcType=VARCHAR},
-        clue_match_province = #{clueMatchProvince,jdbcType=VARCHAR},
-        city = #{city,jdbcType=VARCHAR},
-        clue_match_city_id = #{clueMatchCityId,jdbcType=VARCHAR},
-        clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
-        recording_path = #{recordingPath,jdbcType=VARCHAR},
-        call_dialog = #{callDialog,jdbcType=VARCHAR},
-        clue_id = #{clueId,jdbcType=VARCHAR},
-        clue_push_channel = #{cluePushChannel,jdbcType=VARCHAR},
-        clue_data_status = #{clueDataStatus,jdbcType=INTEGER},
-        clue_complete_status = #{clueCompleteStatus,jdbcType=INTEGER},
-        clue_push_status = #{cluePushStatus,jdbcType=INTEGER},
-        clue_callback_status = #{clueCallbackStatus,jdbcType=INTEGER},
-        clue_push_error_reason = #{cluePushErrorReason,jdbcType=VARCHAR},
-        clue_error_reason = #{clueErrorReason,jdbcType=VARCHAR},
-        clue_callback_result = #{clueCallbackResult,jdbcType=VARCHAR},
-        clue_callback_push_state = #{clueCallbackPushState,jdbcType=INTEGER},
-        clue_callback_final_state = #{clueCallbackFinalState,jdbcType=INTEGER},
-        resource_type = #{resourceType,jdbcType=VARCHAR},
-        extend_info = #{extendInfo,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        clean_time = #{cleanTime,jdbcType=TIMESTAMP},
-        push_time = #{pushTime,jdbcType=TIMESTAMP},
-        call_back_time = #{callBackTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP}
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      intention = #{intention,jdbcType=VARCHAR},
+      brand = #{brand,jdbcType=VARCHAR},
+      `member` = #{member,jdbcType=VARCHAR},
+      series = #{series,jdbcType=VARCHAR},
+      clue_match_brand_id = #{clueMatchBrandId,jdbcType=VARCHAR},
+      clue_match_brand = #{clueMatchBrand,jdbcType=VARCHAR},
+      clue_match_series_id = #{clueMatchSeriesId,jdbcType=VARCHAR},
+      clue_match_series = #{clueMatchSeries,jdbcType=VARCHAR},
+      match_brand_series_type = #{matchBrandSeriesType,jdbcType=INTEGER},
+      province = #{province,jdbcType=VARCHAR},
+      clue_match_province_id = #{clueMatchProvinceId,jdbcType=VARCHAR},
+      clue_match_province = #{clueMatchProvince,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      clue_match_city_id = #{clueMatchCityId,jdbcType=VARCHAR},
+      clue_match_city = #{clueMatchCity,jdbcType=VARCHAR},
+      recording_path = #{recordingPath,jdbcType=VARCHAR},
+      call_dialog = #{callDialog,jdbcType=VARCHAR},
+      clue_id = #{clueId,jdbcType=VARCHAR},
+      clue_push_channel = #{cluePushChannel,jdbcType=VARCHAR},
+      clue_data_status = #{clueDataStatus,jdbcType=INTEGER},
+      clue_complete_status = #{clueCompleteStatus,jdbcType=INTEGER},
+      clue_push_status = #{cluePushStatus,jdbcType=INTEGER},
+      clue_callback_status = #{clueCallbackStatus,jdbcType=INTEGER},
+      clue_push_error_reason = #{cluePushErrorReason,jdbcType=VARCHAR},
+      clue_error_reason = #{clueErrorReason,jdbcType=VARCHAR},
+      clue_callback_result = #{clueCallbackResult,jdbcType=VARCHAR},
+      clue_callback_push_state = #{clueCallbackPushState,jdbcType=INTEGER},
+      clue_callback_final_state = #{clueCallbackFinalState,jdbcType=INTEGER},
+      resource_type = #{resourceType,jdbcType=VARCHAR},
+      extend_info = #{extendInfo,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      clean_time = #{cleanTime,jdbcType=TIMESTAMP},
+      push_time = #{pushTime,jdbcType=TIMESTAMP},
+      call_back_time = #{callBackTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      demand_id = #{demandId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

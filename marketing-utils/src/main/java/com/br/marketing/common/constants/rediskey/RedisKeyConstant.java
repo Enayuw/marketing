@@ -319,4 +319,10 @@ public class RedisKeyConstant {
      * 打标pp停车黑名单注册锁
      */
     public static final String DATA_BLACKLIST_MARK = prefix.concat("datablacklistmark");
+
+    /**
+     * 车线索更新日限量锁
+     */
+    public static final String UPDATE_DAILY_LIMITED = prefix.concat("updatedailylimited");
+
 }

@@ -10,7 +10,8 @@ public class ChannelRule {
     public enum MatchChannelRuleEnum {
         YC_KA("yc-ka"),
         YC_MEMBER("yc-member"),
-        ZJ("zj");
+        ZJ("zj"),
+        DAILY_LIMITED("daily_limited");
         private String label;
     }
 

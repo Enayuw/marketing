@@ -68,6 +68,16 @@ public class CarClueInitMapping {
      */
     private Integer isDel;
 
+    /**
+     * 日限量
+     */
+    private Integer dailyLimited;
+
+    /**
+     * 需求ID
+     */
+    private String demandId;
+
     public Long getId() {
         return id;
     }
@@ -170,5 +180,21 @@ public class CarClueInitMapping {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public Integer getDailyLimited() {
+        return dailyLimited;
+    }
+
+    public void setDailyLimited(Integer dailyLimited) {
+        this.dailyLimited = dailyLimited;
+    }
+
+    public String getDemandId() {
+        return demandId;
+    }
+
+    public void setDemandId(String demandId) {
+        this.demandId = demandId == null ? null : demandId.trim();
     }
 }

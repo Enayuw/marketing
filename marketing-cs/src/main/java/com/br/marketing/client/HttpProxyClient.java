@@ -178,6 +178,40 @@ public class HttpProxyClient {
         return res;
     }
 
+    public HttpResponse downloadFile(String fileUrl, Boolean isPorxy) {
+        HttpResponse response = null;
+        try {
+            HttpClient httpClient = getHttpClient(isPorxy, null);
+            HttpGet httpGet = new HttpGet(fileUrl);
+
+            RequestConfig requestConfig = getRequestRedirectsConfig(isPorxy, 50000, null);
+            httpGet.setConfig(requestConfig);
+
+            // 设置请求头 模拟浏览器请求
+            httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+            // 发送请求
+            response = httpClient.execute(httpGet);
+
+            // 处理重定向
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 301 || statusCode == 302) {
+                String redirectUrl = response.getFirstHeader("Location").getValue();
+                redirectUrl = redirectUrl.replaceAll("[^\\x00-\\x7F]+", "需求");
+                // 重新发送请求到重定向 URL
+                HttpGet get = new HttpGet(redirectUrl);
+                get.setConfig(getRequestConfig(isPorxy, 50000, null));
+                // 设置请求头 模拟浏览器请求
+                get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+                response = httpClient.execute(get);
+            }
+        }catch (Exception e){
+            log.error("车线索每日文档下载失败："+e.getMessage());
+        }
+        return response;
+    }
+
     @Autowired
     InterfaceLogMapper interfaceLogMapper;
 
@@ -318,7 +352,7 @@ public class HttpProxyClient {
             post.setEntity(requestEntity);
             post.setHeader("content-type", mediaType);
             interfaceLog.setHeader(post.getAllHeaders().toString());
-            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 20000, null);
             post.setConfig(requestConfig);
             HttpResponse response = null;
             start = System.currentTimeMillis();
@@ -485,6 +519,24 @@ public class HttpProxyClient {
         }
     }
 
+    public RequestConfig getRequestRedirectsConfig(Boolean isProxy, Integer sockTimeout, Integer proxyType) {
+        if (isProxy) {
+            return RequestConfig.custom()
+                    .setSocketTimeout(sockTimeout)
+                    .setConnectTimeout(5000)
+                    .setProxy(new HttpHost(new Integer(1).equals(proxyType) ? proxyHostZW : proxyHost, proxyPort))
+                    .setConnectionRequestTimeout(5000)
+                    .setRedirectsEnabled(false)
+                    .build();
+        } else {
+            return RequestConfig.custom()
+                    .setSocketTimeout(sockTimeout)
+                    .setConnectTimeout(5000)
+                    .setConnectionRequestTimeout(5000)
+                    .setRedirectsEnabled(false)
+                    .build();
+        }
+    }
 
     /**
      * 日志存储配置
