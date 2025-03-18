@@ -109,6 +109,11 @@ public class CarClueInfo {
     private String recordingPath;
 
     /**
+     * 交互文本
+     */
+    private String callDialog;
+
+    /**
      * 线索id
      */
     private String clueId;
@@ -364,6 +369,14 @@ public class CarClueInfo {
 
     public void setRecordingPath(String recordingPath) {
         this.recordingPath = recordingPath == null ? null : recordingPath.trim();
+    }
+
+    public String getCallDialog() {
+        return callDialog;
+    }
+
+    public void setCallDialog(String callDialog) {
+        this.callDialog = callDialog == null ? null : callDialog.trim();
     }
 
     public String getClueId() {

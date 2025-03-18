@@ -14,6 +14,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -53,6 +54,10 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
                 String lockValue = UUID.randomUUID().toString();
                 try {
                     redisChgService.lock(key, lockValue);
+                } catch (Exception e) {
+                    continue;
+                }
+                try {
                     //打标表数据查询
                     List<FlagData> list = flagDataMapper.queryFlagBlackListComputation(pageSize, apiCode);
                     if (CollectionUtil.isEmpty(list)) {
@@ -71,10 +76,11 @@ public class DataBlackListMarkServiceImpl implements DataBlackListMarkService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PP_MARKING_SERVICEERROR.getCode(),
                             "pp停车与黑名单打标抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
-                    flagDataMapper.batchUpdateFlagBlackListComputationByIds(ids, null);
+                    if (!CollectionUtils.isEmpty(ids)) {
+                        flagDataMapper.batchUpdateFlagBlackListComputationByIds(ids, null);
+                    }
                     redisChgService.unlock(key, lockValue);
                     threadPoolShutDown(threadPool);
-                    break;
                 }
             }
             threadPoolShutDown(threadPool);
