@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +57,10 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                 List<FlagData> flagData;
                 try {
                     redisChgService.lock(lockKey, lockValue);
+                } catch (Exception e) {
+                    continue;
+                }
+                try {
                     // 查询数据
                     flagData = flagDataMapper.queryRiskGroupAndInterestData(apiCode, marketingCommonConfig.getDataMarkPageSize());
                     if (CollectionUtils.isEmpty(flagData)) {

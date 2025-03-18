@@ -310,6 +310,5 @@
         <module>marketing-xc-general</module>
         <module>marketing-xc-loop-cycle</module>
         <module>marketing-data-relay-service</module>
-        <!--        <module>marketing-fast-task</module>-->
     </modules>
 </project>

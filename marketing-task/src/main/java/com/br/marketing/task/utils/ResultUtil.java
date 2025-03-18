@@ -1,4 +1,5 @@
 package com.br.marketing.task.utils;
+
 import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
@@ -18,11 +19,14 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.MarketingRetryEsMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
+
+import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.DigestUtils;
 
@@ -179,8 +183,8 @@ public class ResultUtil {
      * @throws IOException
      */
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
-                                                MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
-                                                BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
+                                    MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
+                                    BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
             , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig, MarketingRetryEsMapper marketingRetryEsMapper) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
@@ -277,15 +281,15 @@ public class ResultUtil {
             boolean o = Boolean.FALSE;
             HashMap<String, JSONObject> esRetryToDataSwitch = marketingCommonConfig.getEsRetryToDataSwitch();
             JSONObject jsonObject = esRetryToDataSwitch.get(mh.getApiCode());
-            if(jsonObject != null){
+            if (jsonObject != null) {
                 o = (boolean) jsonObject.get("scoreStart");
             }
-            if(o){
+            if (o) {
                 buildRetryEs(fileId, marketingRetryEsMapper, mh, id);
-            }else {
+            } else {
                 //endregion
                 boolean insert = service.insert(mh, id);
-                if(!insert){
+                if (!insert) {
                     log.warn("写入ES重试3次失败,batchNumber:{}", mh.getBatchNumber());
                     buildRetryEs(fileId, marketingRetryEsMapper, mh, id);
                 }
@@ -380,6 +384,7 @@ public class ResultUtil {
                 String strCell = "";
                 String strId = "";
                 String strNm = "";
+                Pair<String, String> extend3KeyPair = null;
 
                 //region 遍历配置
                 if (ia.equals(head.getType())) {
@@ -441,7 +446,15 @@ public class ResultUtil {
                     }
                 } else if (ic.equals(head.getType())) {
                     if (icData != null) {
-                        str = icData.getString(head.getName());
+                        if ("id".equals(title)
+                                || "idcard".equals(title)
+                                || "cell".equals(title)
+                                || "name".equals(title)) {
+                            extend3KeyPair = decryptAndEncrypt(icData.getString(head.getName()), head.getThreekEncryptType(), title);
+                            str = extend3KeyPair.getKey();
+                        } else {
+                            str = icData.getString(head.getName());
+                        }
                     }
                 } else {
                     str = "";
@@ -467,26 +480,26 @@ public class ResultUtil {
                     } else if ("idcard".equals(title)) {
                         if (ib.equals(head.getType())) {
                             mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
-                        } else if (ic.equals(head.getType())) {
-                            mh.setIdCard(StringUtils.isBlank(str) ? "" : str);
+                        } else if (ic.equals(head.getType()) && extend3KeyPair != null) {
+                            mh.setIdCard(extend3KeyPair.getValue());
                         }
                     } else if ("id".equals(title)) {
                         if (ib.equals(head.getType())) {
                             mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
-                        } else if (ic.equals(head.getType())) {
-                            mh.setIdCard(StringUtils.isBlank(str) ? "" : str);
+                        } else if (ic.equals(head.getType()) && extend3KeyPair != null) {
+                            mh.setIdCard(extend3KeyPair.getValue());
                         }
                     } else if ("name".equals(title)) {
                         if (ib.equals(head.getType())) {
                             mh.setName(StringUtils.isBlank(strNm) ? "" : strNm);
-                        } else if (ic.equals(head.getType())) {
-                            mh.setName(StringUtils.isBlank(str) ? "" : str);
+                        } else if (ic.equals(head.getType()) && extend3KeyPair != null) {
+                            mh.setName(extend3KeyPair.getValue());
                         }
                     } else if ("cell".equals(title)) {
                         if (ib.equals(head.getType())) {
                             mh.setCell(StringUtils.isBlank(strCell) ? "" : strCell);
-                        } else if (ic.equals(head.getType())) {
-                            mh.setCell(StringUtils.isBlank(str) ? "" : str);
+                        } else if (ic.equals(head.getType()) && extend3KeyPair != null) {
+                            mh.setCell(extend3KeyPair.getValue());
                         }
                     } else {
                         conditionObj.put(head.getName(), StringUtils.isBlank(str) ? "" : str);
@@ -497,5 +510,52 @@ public class ResultUtil {
 
             //endregion
         }
+    }
+
+    // 返回两个字符串 一个是加密后的值 一个是解密后的值 
+    private static Pair<String, String> decryptAndEncrypt(String value, int encryptType, String dataKey) {
+        String toValue = "";
+        String logValue = "";
+        if (StringUtils.isBlank(value)) {
+            return new Pair<String, String>(toValue, logValue);
+        }
+
+        // 判断值的加密类型
+        Integer sourceEncryptType = ScoreThreeKeyEncryptEnum.init.getValue();
+        if (value.length() == 32) {
+            sourceEncryptType = ScoreThreeKeyEncryptEnum.md5.getValue();
+        } else if (value.length() == 64) {
+            sourceEncryptType = ScoreThreeKeyEncryptEnum.sha256.getValue();
+        }
+
+
+        // 解密的值 和 判断解密数据类型
+        String decryptValue = "";
+        String decryptDataType = "";
+        if (dataKey.equals("idcard") || dataKey.equals("id")) {
+            decryptDataType = "id";
+        } else if (dataKey.equals("cell")) {
+            decryptDataType = "cell";
+        } else if (dataKey.equals("name")) {
+            decryptDataType = "name";
+        }
+
+        // 如果值的加密类型与目标加密类型不同，则先解密再加密  
+        if (sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.init.getValue())) {
+            decryptValue = value;
+        } else if (sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.md5.getValue())) {
+            decryptValue = RpcClientProxy.decode(value, decryptDataType, "md5", "");
+        } else if (sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.sha256.getValue())) {
+            decryptValue = RpcClientProxy.decode(value, decryptDataType, "sha", "");
+        }
+        logValue = BrCipherMaker.getInstance().encode(decryptValue);
+        // 如果值的加密类型与目标加密类型相同，则直接返回
+        if (sourceEncryptType.equals(encryptType)) {
+            toValue = value;
+            return new Pair<String, String>(toValue, logValue);
+        }
+
+        toValue = encrypt3k(encryptType, decryptValue);
+        return new Pair<String, String>(toValue, logValue);
     }
 }

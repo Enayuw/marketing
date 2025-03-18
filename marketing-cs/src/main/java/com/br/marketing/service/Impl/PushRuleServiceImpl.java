@@ -598,6 +598,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //blacklist_delete有值时，前端控制不会做量级预览
         int total = 0;
         String querySql = "";
+        String opeLabel = "";
         List<String> querySqls = new ArrayList<>();
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
@@ -606,6 +607,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if ("true".equals(collidingFilterDTO.getResult())) {
             if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
                 //推决策
+                opeLabel = "推送决策";
                 Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
                 if (xcTruePushCustomerPushPreviewOptFlag) {
                     cycleDataQueryOpt(jsonObject, batchNumberList, collidingFilterDTO, querySqls);
@@ -614,21 +616,29 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             } else {
                 //true包剔除
-                querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+                opeLabel = "true包剔除";
+                Boolean xcTrueDeletePushPreviewOptFlag = marketingCommonConfig.getXcTrueDeletePushPreviewOptFlag();
+                if (xcTrueDeletePushPreviewOptFlag) {
+                    cycleDataQueryForDeleteOpt(jsonObject, batchNumberList, collidingFilterDTO, querySqls);
+                } else {
+                    querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+                }
             }
         } else if ("false".equals(collidingFilterDTO.getResult())) {
             String info = collidingFilterDTO.getInfo();
             if (Objects.isNull(info)) {
                 //false包补充
+                opeLabel = "false包补充";
                 Boolean xcFalsePackagePushPreviewOptFlag = marketingCommonConfig.getXcFalsePackagePushPreviewOptFlag();
                 if (xcFalsePackagePushPreviewOptFlag) {
-                    falseDataQueryOpt(jsonObject, batchNumberList, querySqls, true);
+                    falseDataQueryOpt(jsonObject, batchNumberList, querySqls, collidingFilterDTO.getCleanTime(), true);
                 } else {
                     querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
                 }
             } else {
                 if (info.equals("") || info.equalsIgnoreCase("NULL")) {
                     //false动态包剔除
+                    opeLabel = "false动态包剔除";
                     Boolean xcFalsePackageDynaPushPreviewOptFlag = marketingCommonConfig.getXcFalsePackageDynaPushPreviewOptFlag();
                     if (xcFalsePackageDynaPushPreviewOptFlag) {
                         dynaPackageDeleteConditionOpt(
@@ -643,10 +653,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 查询Doris
         try {
             if (CollectionUtils.isEmpty(querySqls)) {
-                log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
+                log.warn("规则中心携程={} 的试算量级sql={}", opeLabel, querySql);
                 total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
             } else {
-                log.warn("规则中心携程={} 的试算量级样例sql={}", collidingFilterDTO.getResult(), querySqls.get(0));
+                log.warn("规则中心携程={} 的试算量级样例sql={}", opeLabel, querySqls.get(0));
                 total = getTotalOpt(querySqls, marketingCommonConfig.getXcFalsePackageOptSoleNum());
             }
         } catch (Exception e) {
@@ -659,6 +669,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         return total;
     }
 
+    private void cycleDataQueryForDeleteOpt(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+        for (String batchNumber : batchNumberList) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+            List<String> batchNumbers = Arrays.asList(batchNumber);
+            querySqls.add(cycleDataQueryForDelete(jsonObject, batchNumbers, collidingFilterDTO));
+        }
+    }
 
 
     /**
@@ -750,11 +769,12 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param jsonObject
      * @param batchNumberList
      * @param querySqls
+     * @param cleanTime
      * @description false包预估量级sql优化
      * @author hedongshuo
      * @date 2025/1/2 15:32
      **/
-    private void falseDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, List<String> querySqls, Boolean isPreviewForOpt) {
+    private void falseDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, List<String> querySqls, String cleanTime, Boolean isPreviewForOpt) {
         String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
         for (String batchNumber : batchNumberList) {
             if (StringUtils.isEmpty(batchNumber)) {
@@ -766,12 +786,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 //                    sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, i);
 //                }
 //            }
-            sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, null);
+            sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, cleanTime, null);
         }
     }
 
-    private void sqlCollect(List<String> querySqls, Boolean isPreviewForOpt, String conditions, String batchNumber, Integer pageIndex) {
-        String querySql = falseQuerySqlOpt(conditions, batchNumber, pageIndex);
+    private void sqlCollect(List<String> querySqls, Boolean isPreviewForOpt, String conditions, String batchNumber, String cleanTime, Integer pageIndex) {
+        String querySql = falseQuerySqlOpt(conditions, batchNumber, cleanTime, pageIndex);
         if (isPreviewForOpt) {
             String queryCountSql = "select count(0) from (" + querySql + ") countSql;";
             querySqls.add(queryCountSql);
@@ -780,7 +800,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private String falseQuerySqlOpt(String conditions, String batchNumber, Integer pageIndex) {
+    private String falseQuerySqlOpt(String conditions, String batchNumber, String cleanTime, Integer pageIndex) {
+        //将已生成还未清洗的补充包的cell剔除
+        XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
+        taskExample.createCriteria()
+                .andTaskTypeEqualTo(0)
+                .andTaskStatusEqualTo(0)
+                .andBatchNumberLike("%" + batchNumber + "%")
+                .andIsDeleteEqualTo(0);
+        List<XiechengCollidingDataProcessTask> taskList = xiechengCollidingDataProcessTaskMapper.selectByExample(taskExample);
+        if (!CollectionUtils.isEmpty(taskList)) {
+            StringBuilder conditionsBuilder = new StringBuilder(conditions);
+            for (XiechengCollidingDataProcessTask processTask : taskList) {
+                conditionsBuilder
+                        .append("and !(")
+                        .append(processTask.getTaskExecutionConditions())
+                        .append(")");
+            }
+            conditions = conditionsBuilder.toString();
+        }
+        //组装左表sql
         StringBuilder queryRuleScoreDataSql = new StringBuilder();
         queryRuleScoreDataSql
                 .append("select id, cell, is_delete from b_xiecheng_colliding_")
@@ -790,20 +829,36 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (pageIndex != null) {
             queryRuleScoreDataSql.append(" order by id limit ").append(pageIndex * 30000000).append(", 30000000");
         }
-        List<String> xcDynaFalsePackageIds = marketingCommonConfig.getXcDynaFalsePackageIds();
-        if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
-            xcDynaFalsePackageIds = Arrays.asList("120007");
+        //清洗时间在撞库区间内去重，业务应规避此条件
+        String packageIds = "";
+        if (StringUtils.isNotEmpty(cleanTime)) {
+            Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
+            XiechengCollidingDataPackageRuleExample packageRuleExample = new XiechengCollidingDataPackageRuleExample();
+            packageRuleExample.createCriteria()
+                    .andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(DateHelper.parseDate(cleanTime),xcFalsePackageCleanHour))
+                    .andIsDeleteEqualTo(0);
+            List<XiechengCollidingDataPackageRule> packageRules = xiechengCollidingDataPackageRuleMapper.selectByExample(packageRuleExample);
+            packageIds = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId()
+                    .toString()).collect(Collectors.toSet()).stream().collect(Collectors.joining(","));
         }
-        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream()
-                .collect(Collectors.joining(",", "(", ")"));
-        String querySql =
-                "SELECT a.id, a.cell FROM " +
-                        "(" + queryRuleScoreDataSql + ") AS a " +
-                        "LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0 " +
-                        "LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.package_id in "
-                        + xcDynaFalsePackageIdString + " and c.is_delete = 0 " +
-                        "WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0";
-        return querySql;
+        //组装全sql
+        StringBuilder querySqlBuilder = new StringBuilder();
+        querySqlBuilder
+                .append("SELECT a.id, a.cell FROM ")
+                .append("(")
+                .append(queryRuleScoreDataSql.toString())
+                .append(") AS a ")
+                .append("LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0 ");
+        if (StringUtils.isNotEmpty(packageIds)) {
+            querySqlBuilder.append("LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.package_id in (")
+                    .append(packageIds)
+                    .append(") and c.is_delete = 0 ");
+        }
+        querySqlBuilder.append("WHERE b.id IS NULL AND a.is_delete = 0");
+        if (StringUtils.isNotEmpty(packageIds)) {
+            querySqlBuilder.append(" AND c.id IS NULL ");
+        }
+        return querySqlBuilder.toString();
     }
 
     /**
@@ -975,6 +1030,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         return cycleAndscoreSql.toString();
     }
 
+    private String cycleDataDeleteQueryForOpt(JSONObject jsonObject, String batchNumber, String cleanDate) {
+        String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        Date cleanTime = DateHelper.parseDate(cleanDate);
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
+        return String.format ("select count(0) from b_xiecheng_colliding_data_loop_cycle cycle " +
+                "join b_xiecheng_colliding_%s score on cycle.cell_sha256_code_list = score.cell and score.is_delete = 0 " +
+                "left join (select id, cell, is_delete from b_xiecheng_colliding_%s where %s) scoreCd " +
+                "on score.cell = scoreCd.cell and scoreCd.is_delete = 0 " +
+                "where cycle.is_delete = 0 and scoreCd.id is null " +
+                "and (cycle.release_time < '%s' or (cycle.release_time >= '%s' and cycle.release_time < '%s'))"
+                , batchNumber, batchNumber, conditions, cleanDateTime, cleanEndTime, endDateTime);
+    }
+
     /**
      * 组装跑分筛选SQL
      *
@@ -1114,7 +1186,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String getExecutionSql(JSONObject jsonObject, List<String> batchNumberList,
                                    String cleanTime, XcProcessTaskEnum xcProcessTaskEnum) {
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DELETE) {
-            return cycleDataDeleteQuery(jsonObject, batchNumberList, cleanTime);
+            Boolean xcTrueDeletePushPreviewOptFlag = marketingCommonConfig.getXcTrueDeletePushPreviewOptFlag();
+            if (xcTrueDeletePushPreviewOptFlag) {
+                List<String> querySqls = new ArrayList<>();
+                cycleDataDeleteQueryOpt(jsonObject, batchNumberList, cleanTime, querySqls);
+                return String.join(";", querySqls);
+            } else {
+                return cycleDataDeleteQuery(jsonObject, batchNumberList, cleanTime);
+            }
         }
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
             Boolean xcFalsePackageDynaPushPreviewOptFlag = marketingCommonConfig.getXcFalsePackageDynaPushPreviewOptFlag();
@@ -1161,8 +1240,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPrePlanNum());
+        Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
         try {
-            xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+            xiechengCollidingDataProcessTask
+                    .setTaskStartTime(DateHelper.getDateByHour(
+                            DateHelper.parseDate(collidingFilterDTO.getCleanTime()),xcFalsePackageCleanHour));
         } catch (Exception e) {
             log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
@@ -1175,7 +1257,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     collidingFilterDTO.getCleanTime()));
         } else {
             List<String> querySqls = new ArrayList<>();
-            falseDataQueryOpt(jsonObject, dto.getBatchNumberList(), querySqls, false);
+            falseDataQueryOpt(jsonObject, dto.getBatchNumberList(), querySqls, collidingFilterDTO.getCleanTime(), false);
             xiechengCollidingDataProcessTask.setTaskExecutionSql(String.join(";", querySqls));
         }
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
@@ -1215,7 +1297,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         //result = true
         if (StringUtils.isNotEmpty(result)) {
             if ("true".equals(result)) {
-                deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
+                Boolean xcTrueDeletePushPreviewOptFlag = marketingCommonConfig.getXcTrueDeletePushPreviewOptFlag();
+                if (xcTrueDeletePushPreviewOptFlag) {
+                    cycleDataDeleteQueryOpt(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime(), querySqls);
+                } else {
+                    deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
+                }
             }
             if ("false".equals(result)) {
                 if (Objects.isNull(info)) {
@@ -1249,6 +1336,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
+    }
+
+    private void cycleDataDeleteQueryOpt(JSONObject jsonObject, List<String> batchNumberList, String cleanTime, List<String> querySqls) {
+        for (String batchNumber : batchNumberList) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+            querySqls.add(cycleDataDeleteQueryForOpt(jsonObject, batchNumber, cleanTime));
+        }
     }
 
     public String encrypt3k(Integer type, String content) {

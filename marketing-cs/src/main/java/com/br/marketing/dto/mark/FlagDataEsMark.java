@@ -24,7 +24,7 @@ public class FlagDataEsMark {
     private Integer flagAge;
     private Integer flagProvince;
     private Integer flagSpecialSmall;
-    private Integer flagSpecialrisklevel;
+    private Integer flagSpecialrisklevelRule;
     private Integer flagIndexcs;
     private Integer flagApplyloan;
 

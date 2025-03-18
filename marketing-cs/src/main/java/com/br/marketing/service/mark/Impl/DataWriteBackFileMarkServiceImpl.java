@@ -131,13 +131,21 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
     private void syncData(String apiCode, String descPath, String batchNumber,
                           List<String> columnNameList, Writer writer) {
         Integer threadPoolSize = marketingCommonConfig.getDataWriterMarkThreadNum();
-        int dataMarkPageSize = marketingCommonConfig.getDataDorisMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataMarkPageSize();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
         try {
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
             while (isContiue) {
                 // 分页查询打标数据
+                int dataMarkPageSize = marketingCommonConfig.getDataDorisMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataDorisMarkPageSize();
+                Integer newThreadPoolSize = marketingCommonConfig.getDataWriterMarkThreadNum();
+                if (!newThreadPoolSize.equals(threadPoolSize)) {
+                    threadPool.setCorePoolSize(newThreadPoolSize);
+                    threadPool.setMaximumPoolSize(newThreadPoolSize);
+                    threadPoolSize = newThreadPoolSize;
+                    log.warn(TITLE + "线程池大小已动态调整为: {}", threadPoolSize);
+                }
+
                 FlagDataExample flagDataExample = new FlagDataExample();
                 flagDataExample.setOrderByClause("id limit " + dataMarkPageSize);
 
