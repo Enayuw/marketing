@@ -7,7 +7,6 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.prometheus.counter.EnableMarketingCounter;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;

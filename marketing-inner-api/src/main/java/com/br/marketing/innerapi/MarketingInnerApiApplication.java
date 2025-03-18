@@ -7,7 +7,6 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.service.Impl.ConsumerService;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
@@ -19,7 +18,6 @@ import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-
 
 /**
  * 程序主类
@@ -46,6 +44,7 @@ public class MarketingInnerApiApplication {
 
 
     public static ConfigurableApplicationContext ac;
+
     /**
      * 启动入口
      *
@@ -56,7 +55,7 @@ public class MarketingInnerApiApplication {
         Long start = System.currentTimeMillis();
 
         log.warn("marketing-inner-api开始启动！");
-        ac =SpringApplication.run(MarketingInnerApiApplication.class, args);
+        ac = SpringApplication.run(MarketingInnerApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
