@@ -435,6 +435,76 @@ public class TagDataRuleExample {
             return (Criteria) this;
         }
 
+        public Criteria andSourceCodeIsNull() {
+            addCriterion("source_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeIsNotNull() {
+            addCriterion("source_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeEqualTo(String value) {
+            addCriterion("source_code =", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeNotEqualTo(String value) {
+            addCriterion("source_code <>", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeGreaterThan(String value) {
+            addCriterion("source_code >", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("source_code >=", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeLessThan(String value) {
+            addCriterion("source_code <", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeLessThanOrEqualTo(String value) {
+            addCriterion("source_code <=", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeLike(String value) {
+            addCriterion("source_code like", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeNotLike(String value) {
+            addCriterion("source_code not like", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeIn(List<String> values) {
+            addCriterion("source_code in", values, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeNotIn(List<String> values) {
+            addCriterion("source_code not in", values, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeBetween(String value1, String value2) {
+            addCriterion("source_code between", value1, value2, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeNotBetween(String value1, String value2) {
+            addCriterion("source_code not between", value1, value2, "sourceCode");
+            return (Criteria) this;
+        }
+
         public Criteria andSummaryIsNull() {
             addCriterion("summary is null");
             return (Criteria) this;

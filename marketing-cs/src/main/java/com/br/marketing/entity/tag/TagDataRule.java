@@ -36,6 +36,11 @@ public class TagDataRule implements Serializable {
     private String content;
 
     /**
+     * 数据源编码,多个用,分割
+     */
+    private String sourceCode;
+
+    /**
      * 标签内容总结
      */
     private String summary;
