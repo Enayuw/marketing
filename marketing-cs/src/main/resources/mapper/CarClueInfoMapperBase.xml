@@ -103,13 +103,13 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cid, api_code, cust_num, cell, intention, brand, `member`, series, clue_match_brand_id, 
-    clue_match_brand, clue_match_series_id, clue_match_series, match_brand_series_type, 
-    province, clue_match_province_id, clue_match_province, city, clue_match_city_id, 
-    clue_match_city, recording_path, call_dialog, clue_id, clue_push_channel, clue_data_status, 
-    clue_complete_status, clue_push_status, clue_callback_status, clue_push_error_reason, 
-    clue_error_reason, clue_callback_result, clue_callback_push_state, clue_callback_final_state, 
-    resource_type, extend_info, create_time, clean_time, push_time, call_back_time, update_time, 
+    id, cid, api_code, cust_num, cell, intention, brand, `member`, series, clue_match_brand_id,
+    clue_match_brand, clue_match_series_id, clue_match_series, match_brand_series_type,
+    province, clue_match_province_id, clue_match_province, city, clue_match_city_id,
+    clue_match_city, recording_path, call_dialog, clue_id, clue_push_channel, clue_data_status,
+    clue_complete_status, clue_push_status, clue_callback_status, clue_push_error_reason,
+    clue_error_reason, clue_callback_result, clue_callback_push_state, clue_callback_final_state,
+    resource_type, extend_info, create_time, clean_time, push_time, call_back_time, update_time,
     demand_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueInfoExample" >
@@ -127,7 +127,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_car_clue_info
     where id = #{id,jdbcType=BIGINT}
@@ -146,33 +146,33 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_car_clue_info (cid, api_code, cust_num, 
-      cell, intention, brand, 
-      `member`, series, clue_match_brand_id, 
-      clue_match_brand, clue_match_series_id, clue_match_series, 
-      match_brand_series_type, province, clue_match_province_id, 
-      clue_match_province, city, clue_match_city_id, 
-      clue_match_city, recording_path, call_dialog, 
-      clue_id, clue_push_channel, clue_data_status, 
-      clue_complete_status, clue_push_status, clue_callback_status, 
-      clue_push_error_reason, clue_error_reason, clue_callback_result, 
-      clue_callback_push_state, clue_callback_final_state, 
-      resource_type, extend_info, create_time, 
-      clean_time, push_time, call_back_time, 
+    insert into b_car_clue_info (cid, api_code, cust_num,
+      cell, intention, brand,
+      `member`, series, clue_match_brand_id,
+      clue_match_brand, clue_match_series_id, clue_match_series,
+      match_brand_series_type, province, clue_match_province_id,
+      clue_match_province, city, clue_match_city_id,
+      clue_match_city, recording_path, call_dialog,
+      clue_id, clue_push_channel, clue_data_status,
+      clue_complete_status, clue_push_status, clue_callback_status,
+      clue_push_error_reason, clue_error_reason, clue_callback_result,
+      clue_callback_push_state, clue_callback_final_state,
+      resource_type, extend_info, create_time,
+      clean_time, push_time, call_back_time,
       update_time, demand_id)
-    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
-      #{cell,jdbcType=VARCHAR}, #{intention,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR}, 
-      #{member,jdbcType=VARCHAR}, #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR}, 
-      #{clueMatchBrand,jdbcType=VARCHAR}, #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR}, 
-      #{matchBrandSeriesType,jdbcType=INTEGER}, #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR}, 
-      #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR}, 
-      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{callDialog,jdbcType=VARCHAR}, 
-      #{clueId,jdbcType=VARCHAR}, #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER}, 
-      #{clueCompleteStatus,jdbcType=INTEGER}, #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER}, 
-      #{cluePushErrorReason,jdbcType=VARCHAR}, #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR}, 
-      #{clueCallbackPushState,jdbcType=INTEGER}, #{clueCallbackFinalState,jdbcType=INTEGER}, 
-      #{resourceType,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP}, 
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
+      #{cell,jdbcType=VARCHAR}, #{intention,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR},
+      #{member,jdbcType=VARCHAR}, #{series,jdbcType=VARCHAR}, #{clueMatchBrandId,jdbcType=VARCHAR},
+      #{clueMatchBrand,jdbcType=VARCHAR}, #{clueMatchSeriesId,jdbcType=VARCHAR}, #{clueMatchSeries,jdbcType=VARCHAR},
+      #{matchBrandSeriesType,jdbcType=INTEGER}, #{province,jdbcType=VARCHAR}, #{clueMatchProvinceId,jdbcType=VARCHAR},
+      #{clueMatchProvince,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{clueMatchCityId,jdbcType=VARCHAR},
+      #{clueMatchCity,jdbcType=VARCHAR}, #{recordingPath,jdbcType=VARCHAR}, #{callDialog,jdbcType=VARCHAR},
+      #{clueId,jdbcType=VARCHAR}, #{cluePushChannel,jdbcType=VARCHAR}, #{clueDataStatus,jdbcType=INTEGER},
+      #{clueCompleteStatus,jdbcType=INTEGER}, #{cluePushStatus,jdbcType=INTEGER}, #{clueCallbackStatus,jdbcType=INTEGER},
+      #{cluePushErrorReason,jdbcType=VARCHAR}, #{clueErrorReason,jdbcType=VARCHAR}, #{clueCallbackResult,jdbcType=VARCHAR},
+      #{clueCallbackPushState,jdbcType=INTEGER}, #{clueCallbackFinalState,jdbcType=INTEGER},
+      #{resourceType,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+      #{cleanTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{callBackTime,jdbcType=TIMESTAMP},
       #{updateTime,jdbcType=TIMESTAMP}, #{demandId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueInfo" >

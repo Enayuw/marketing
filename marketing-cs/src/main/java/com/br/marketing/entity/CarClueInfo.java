@@ -4,17 +4,17 @@ import java.util.Date;
 
 public class CarClueInfo {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String cid;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -109,7 +109,7 @@ public class CarClueInfo {
     private String recordingPath;
 
     /**
-     * 
+     * 交互文本
      */
     private String callDialog;
 

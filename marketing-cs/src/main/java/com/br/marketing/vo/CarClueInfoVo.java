@@ -62,9 +62,10 @@ public class CarClueInfoVo {
     private Date callBackTime;
     @ApiModelProperty("录音地址")
     private String recordingPath;
+    @ApiModelProperty("交互文本")
+    private String callDiaLog;
     @ApiModelProperty("资源标识")
     private String resourceType;
-
     @ApiModelProperty("错误原因")
     private String clueErrorReason;
 
