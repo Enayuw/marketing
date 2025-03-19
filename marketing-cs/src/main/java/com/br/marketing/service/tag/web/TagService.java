@@ -19,9 +19,6 @@ public interface TagService {
      * 获取标签列表
      * @param request: 查询条件
      * @return PageResultReturn
-     * @author your.name
-     * @date 2024/1/x
-     * {@link PageResultReturn}
      * @description 分页查询标签列表
      */
     PageResultReturn getTagList(TagQueryDTO request);
@@ -30,8 +27,6 @@ public interface TagService {
      * 创建标签
      * @param request: 标签创建参数
      * @return String 返回标签编码
-     * @author your.name
-     * @date 2024/1/x
      * @description 创建新的标签配置
      */
     String createTag(TagCreateDTO request);
@@ -40,8 +35,6 @@ public interface TagService {
      * 更新标签
      * @param request: 标签更新参数
      * @return ApiResult<Boolean>
-     * @author your.name
-     * @date 2024/1/x
      * @description 更新标签配置信息
      */
     ApiResult<Boolean> updateTag(TagUpdateDTO request);
@@ -51,8 +44,6 @@ public interface TagService {
      * @param tagCode: 标签编码
      * @param status: 状态值
      * @return ApiResult<Boolean>
-     * @author your.name
-     * @date 2024/1/x
      * @description 更新标签启用/禁用状态
      */
     ApiResult<Boolean> updateTagStatus(String tagCode, Boolean status);
@@ -61,20 +52,10 @@ public interface TagService {
      * 获取标签字段配置
      * @param apiCode: API编码
      * @return List<TagFieldConfigDTO>
-     * @author your.name
-     * @date 2024/1/x
      * @description 获取指定API编码下的字段配置列表
      */
     List<TagFieldConfigDTO> getFieldConfigs(String apiCode);
 
-    /**
-     * 获取APICode列表
-     * @return List<String>
-     * @author your.name
-     * @date 2024/1/x
-     * @description 获取系统中可用的APICode列表
-     */
-    List<String> getApiCodes();
 
     /**
      * 同步标签库

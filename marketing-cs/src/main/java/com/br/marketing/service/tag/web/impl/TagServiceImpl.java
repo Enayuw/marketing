@@ -208,17 +208,6 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    @Override
-    public List<String> getApiCodes() {
-        try {
-            return tagDataRuleMapper.selectDistinctApiCodes();
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取APICode列表失败！"), e);
-            return new ArrayList<>();
-        }
-    }
 
     @Override
     public List<String> getTagLibrary() {

@@ -117,22 +117,6 @@ public class TagController {
         }
     }
 
-    @PostMapping("/getApiCodes")
-    @ApiOperation(value = "获取API编码列表", notes = "获取API编码列表")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = String.class)})
-    public ApiResult<List<String>> getApiCodes() {
-        try {
-            List<String> apiCodes = tagService.getApiCodes();
-            if (apiCodes != null) {
-                return new ApiResult<List<String>>().success(apiCodes);
-            }
-            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取API编码列表接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
-        }
-    }
 
     @PostMapping("/getTagLibrary")
     @ApiOperation(value = "同步标签库", notes = "同步标签库")
