@@ -24,4 +24,9 @@ public interface TagRuleSourceRelationMapper extends TagRuleSourceRelationMapper
      * 根据标签编码删除数据源关系
      */
     int deleteByTagCode(@Param("tagCode") String tagCode);
+
+    /**
+     * 批量删除数据源关系
+     */
+    int batchDeleteByTagCodes(@Param("tagCodes") List<String> tagCodes);
 }

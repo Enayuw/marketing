@@ -6,6 +6,8 @@ import com.br.marketing.dto.tag.TagCreateDTO;
 import com.br.marketing.dto.tag.TagQueryDTO;
 import com.br.marketing.dto.tag.TagUpdateDTO;
 import com.br.marketing.dto.tag.TagFieldConfigDTO;
+import com.br.marketing.dto.tag.TagBatchDeleteDTO;
+import com.br.marketing.dto.tag.TagCreatorDTO;
 
 import java.util.List;
 
@@ -83,4 +85,14 @@ public interface TagService {
      * @return List<String>
      */
     List<String> getTagLibrary();
+
+    /**
+     * 批量删除标签
+     */
+    ApiResult<Boolean> batchDelete(TagBatchDeleteDTO request);
+
+    /**
+     * 获取创建人列表
+     */
+    List<TagCreatorDTO> getCreators();
 }

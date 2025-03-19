@@ -293,12 +293,19 @@ public class TagServiceImpl implements TagService {
         dto.setTagName(tag.getTagName());
         dto.setSummary(tag.getSummary());
         dto.setTagNumber(tag.getTagNumber());
-        dto.setApiCodeScope(tag.getApiCodeScope());
-        dto.setApiCodeLicense(tag.getApiCodeLicense());
+        dto.setSourceCode(tag.getSourceCode());
+        dto.setApiCodeScope(tag.getApiCodeScope().replace(",", ";"));
+        dto.setApiCodeLicense(tag.getApiCodeLicense() != null ? tag.getApiCodeLicense().replace(",", ";") : null);
         dto.setStatus(tag.getStatus());
         dto.setCreator(tag.getOptUserName().toString());
+        dto.setCreatorId(tag.getOptUserId());
         dto.setCreateTime(tag.getCreateTime());
         dto.setUpdateTime(tag.getUpdateTime());
+
+        // 设置权限
+        Long currentUserId = getCurrentUserId();
+        dto.setCanEdit(tag.getOptUserId().equals(currentUserId));
+        dto.setCanDelete(tag.getOptUserId().equals(currentUserId));
 
         return dto;
     }
@@ -363,6 +370,46 @@ public class TagServiceImpl implements TagService {
         saveTagSourceRelation(tagCode, request.getApiCodeScope());
         if (ObjectUtil.isNotEmpty(request.getApiCodeLicense())) {
             saveTagSourceLicense(tagCode, request.getApiCodeLicense());
+        }
+    }
+
+    @Override
+    public ApiResult<Boolean> batchDelete(TagBatchDeleteDTO request) {
+        try {
+            List<TagDataRule> tags = tagDataRuleMapper.selectByTagCodes(request.getTagCodes());
+            
+            // 检查权限
+            for (TagDataRule tag : tags) {
+                if (!tag.getOptUserId().equals(request.getCurrentUserId())) {
+                    return new ApiResult<Boolean>().fail(false, "无权删除其他人创建的标签");
+                }
+            }
+            
+            // 执行删除
+            tagDataRuleMapper.batchDelete(request.getTagCodes());
+            
+            // 删除关联关系
+            tagRuleSourceRelationMapper.batchDeleteByTagCodes(request.getTagCodes());
+            tagRuleSourceLicenseMapper.batchDeleteByTagCodes(request.getTagCodes());
+            
+            return new ApiResult<Boolean>().success(true);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "批量删除标签失败！"), e);
+            return new ApiResult<Boolean>().fail(false, "删除失败");
+        }
+    }
+
+    @Override
+    public List<TagCreatorDTO> getCreators() {
+        try {
+            return tagDataRuleMapper.selectDistinctCreators();
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取创建人列表失败！"), e);
+            return new ArrayList<>();
         }
     }
 }

@@ -19,6 +19,12 @@
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
+
+  <resultMap id="CreatorMap" type="com.br.marketing.dto.tag.TagCreatorDTO">
+    <result column="opt_user_id" jdbcType="BIGINT" property="userId"/>
+    <result column="opt_user_name" jdbcType="BIGINT" property="userName"/>
+  </resultMap>
+
   <sql id="Example_Where_Clause">
     <where>
       <foreach collection="oredCriteria" item="criteria" separator="or">
@@ -67,8 +73,8 @@
           #{apiCode}
         </foreach>
       </if>
-      <if test="params.creator != null and params.creator != ''">
-        AND opt_user_name = #{params.creator}
+      <if test="params.creator != null">
+        AND opt_user_id = #{params.creator}
       </if>
     </where>
     ORDER BY
@@ -78,7 +84,7 @@
   <select id="existsByTagName" resultType="boolean">
     SELECT COUNT(1) > 0
     FROM t_tag_data_rule
-    WHERE tag_name = #{tagName,jdbcType=VARCHAR}
+    WHERE tag_name = #{tagName}
   </select>
 
   <select id="selectByTagCode" resultMap="BaseResultMap">
@@ -88,10 +94,27 @@
     WHERE tag_code = #{tagCode}
   </select>
 
+  <select id="selectByTagCodes" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM t_tag_data_rule
+    WHERE tag_code IN
+    <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
+      #{tagCode}
+    </foreach>
+  </select>
+
   <select id="selectDistinctApiCodes" resultType="string">
     SELECT DISTINCT api_code_scope
     FROM t_tag_data_rule
-    WHERE status = true
+    WHERE status = 1
+  </select>
+
+  <select id="selectDistinctCreators" resultMap="CreatorMap">
+    SELECT DISTINCT opt_user_id, opt_user_name
+    FROM t_tag_data_rule
+    WHERE status = 1
+    ORDER BY opt_user_id
   </select>
 
   <update id="updateByTagCode" parameterType="com.br.marketing.entity.tag.TagDataRule">
@@ -111,4 +134,12 @@
     </set>
     WHERE tag_code = #{tagCode}
   </update>
+
+  <delete id="batchDelete">
+    DELETE FROM t_tag_data_rule
+    WHERE tag_code IN
+    <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
+      #{tagCode}
+    </foreach>
+  </delete>
 </mapper>

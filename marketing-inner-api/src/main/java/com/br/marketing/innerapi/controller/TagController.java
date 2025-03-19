@@ -36,15 +36,14 @@ public class TagController {
     private static final Logger log = LoggerFactory.getLogger(TagController.class);
 
     @PostMapping("/getTagList")
-    @ApiOperation(value = "获取标签列表", notes = "获取标签列表")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagListResponseDTO.class)})
+    @ApiOperation(value = "获取标签列表", notes = "分页获取标签列表信息")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "TagQueryDTO")
+    })
     public ApiResult<PageResultReturn> getTagList(@RequestBody @Valid TagQueryDTO request) {
         try {
             PageResultReturn result = tagService.getTagList(request);
-            if (result != null) {
-                return new ApiResult<PageResultReturn>().success(result);
-            }
-            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<PageResultReturn>().success(result);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "获取标签列表接口错误！错误信息：" + ex.getMessage()), ex);
@@ -83,17 +82,20 @@ public class TagController {
     }
 
     @PostMapping("/updateTagStatus")
-    @ApiOperation(value = "更新标签状态", notes = "更新标签状态")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
+    @ApiOperation(value = "更新标签状态", notes = "更新标签启用/禁用状态")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "tagCode", value = "标签编码", required = true, dataType = "String"),
+        @ApiImplicitParam(name = "status", value = "状态（true-启用，false-禁用）", required = true, dataType = "Boolean")
+    })
     public ApiResult<Boolean> updateTagStatus(
-            @ApiParam("标签编码") @RequestParam String tagCode,
-            @ApiParam("状态") @RequestParam Boolean status) {
+            @RequestParam String tagCode,
+            @RequestParam Boolean status) {
         try {
             return tagService.updateTagStatus(tagCode, status);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "更新标签状态接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 
@@ -146,6 +148,34 @@ public class TagController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "同步标签接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/batchDelete")
+    @ApiOperation(value = "批量删除标签", notes = "批量删除标签")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "request", value = "删除参数", required = true, dataType = "TagBatchDeleteDTO")
+    })
+    public ApiResult<Boolean> batchDelete(@RequestBody @Valid TagBatchDeleteDTO request) {
+        try {
+            return tagService.batchDelete(request);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "批量删除标签接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getCreators")
+    @ApiOperation(value = "获取创建人列表", notes = "获取标签创建人列表")
+    public ApiResult<List<TagCreatorDTO>> getCreators() {
+        try {
+            List<TagCreatorDTO> creators = tagService.getCreators();
+            return new ApiResult<List<TagCreatorDTO>>().success(creators);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取创建人列表接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<TagCreatorDTO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 
