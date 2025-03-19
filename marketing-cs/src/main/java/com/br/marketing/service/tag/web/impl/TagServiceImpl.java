@@ -283,7 +283,7 @@ public class TagServiceImpl implements TagService {
                 appendConditionNodeSummary(summary, node);
             } else {
                 // 处理叶子条件节点
-                summary.append(node.getField())
+                summary.append(node.getFieldName())
                       .append(convertOperator(node.getOperation()))
                       .append(node.getValue());
             }
@@ -309,7 +309,7 @@ public class TagServiceImpl implements TagService {
             if ("GROUP".equals(child.getType())) {
                 appendConditionNodeSummary(summary, child);
             } else {
-                summary.append(child.getField())
+                summary.append(child.getFieldName())
                       .append(convertOperator(child.getOperation()))
                       .append(child.getValue());
             }
@@ -425,6 +425,35 @@ public class TagServiceImpl implements TagService {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "获取创建人列表失败！"), e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<TagFieldCategoryDTO> getFieldCategories(String apiCode) {
+        try {
+            // 获取所有字段配置
+            List<TagFieldConfigDTO> allFields = tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
+            
+            // 按分类分组
+            Map<String, TagFieldCategoryDTO> categoryMap = new HashMap<>();
+            for (TagFieldConfigDTO field : allFields) {
+                String categoryCode = field.getCategoryCode();
+                TagFieldCategoryDTO category = categoryMap.computeIfAbsent(categoryCode, k -> {
+                    TagFieldCategoryDTO newCategory = new TagFieldCategoryDTO();
+                    newCategory.setCategoryCode(categoryCode);
+                    newCategory.setCategoryName(field.getCategoryName());
+                    newCategory.setFields(new ArrayList<>());
+                    return newCategory;
+                });
+                category.getFields().add(field);
+            }
+            
+            return new ArrayList<>(categoryMap.values());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取字段分类列表失败！apiCode: " + apiCode), e);
             return new ArrayList<>();
         }
     }

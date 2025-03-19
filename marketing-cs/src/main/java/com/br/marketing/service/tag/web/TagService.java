@@ -8,6 +8,7 @@ import com.br.marketing.dto.tag.TagUpdateDTO;
 import com.br.marketing.dto.tag.TagFieldConfigDTO;
 import com.br.marketing.dto.tag.TagBatchDeleteDTO;
 import com.br.marketing.dto.tag.TagCreatorDTO;
+import com.br.marketing.dto.tag.TagFieldCategoryDTO;
 
 import java.util.List;
 
@@ -100,4 +101,9 @@ public interface TagService {
      * 校验标签名称是否重复
      */
     boolean checkTagNameExists(String tagName);
+
+    /**
+     * 获取字段分类列表
+     */
+    List<TagFieldCategoryDTO> getFieldCategories(String apiCode);
 }

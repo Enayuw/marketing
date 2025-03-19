@@ -178,4 +178,20 @@ public class TagController {
         }
     }
 
+    @PostMapping("/getFieldCategories")
+    @ApiOperation(value = "获取字段分类", notes = "获取指定APICode下的字段分类列表")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "apiCode", value = "API编码", required = true, dataType = "String")
+    })
+    public ApiResult<List<TagFieldCategoryDTO>> getFieldCategories(@RequestParam String apiCode) {
+        try {
+            List<TagFieldCategoryDTO> categories = tagService.getFieldCategories(apiCode);
+            return new ApiResult<List<TagFieldCategoryDTO>>().success(categories);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取字段分类列表接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<TagFieldCategoryDTO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
 }
