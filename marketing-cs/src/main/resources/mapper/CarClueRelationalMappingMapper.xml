@@ -16,6 +16,9 @@
         province_type,
         matching_type,
         matching_cause,
+        daily_limited,
+        match_daily_limited,
+        demand_id,
         applet_date,
         create_time,
         update_time
@@ -35,6 +38,9 @@
             #{item.provinceType, jdbcType=INTEGER},
             #{item.matchingType, jdbcType=INTEGER},
             #{item.matchingCause, jdbcType=VARCHAR},
+            #{item.dailyLimited, jdbcType=INTEGER},
+            #{item.matchDailyLimited, jdbcType=INTEGER},
+            #{item.demandId, jdbcType=INTEGER},
             DATE_FORMAT(NOW(), '%Y-%m-%d'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'),
             DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
@@ -43,11 +49,13 @@
     </insert>
 
     <select id="getMaxCleanDate" resultType="java.lang.String">
-
         select max(applet_date)
         from b_car_clue_relational_mapping
         where is_del = 1
-
-
     </select>
+
+    <insert id="insertSql">
+        ${querySql}
+    </insert>
+
 </mapper>

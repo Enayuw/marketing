@@ -66,7 +66,7 @@ public class CarClueClient {
         //获取挡板开关
         Map<String, Object> mock = marketingCommonConfig.getCommitClueMock();
         if (mock.get("switch") == Boolean.TRUE) {
-            log.warn("线索上报进入挡板");
+            log.warn("线索上报进入挡板,入参：{}",JSONObject.toJSONString(dto));
             long start = System.currentTimeMillis();
             Result<String> stringResult = commitClueMock(mock);
             long end = System.currentTimeMillis();

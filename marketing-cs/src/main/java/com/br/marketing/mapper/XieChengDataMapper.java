@@ -43,4 +43,6 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
     Integer getUploadCounttikv_(@Param("cid")Long cid, @Param("apiCode")String apiCode,
                                 @Param("requestData") String requestData, @Param("endData") String endData,
                                 @Param("convType") String convType);
+
+    List<Integer> getReportPushStatusInPeriod(@Param("cell") String cell, @Param("apiCode") String apiCode);
 }
