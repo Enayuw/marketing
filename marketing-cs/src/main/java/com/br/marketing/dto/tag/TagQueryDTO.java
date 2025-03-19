@@ -25,18 +25,21 @@ public class TagQueryDTO {
     @ApiModelProperty("标签名称")
     private String tagName;
 
-    @ApiModelProperty("API编码列表")
+    @ApiModelProperty("授权APICode列表")
     private List<String> apiCodes;
 
-    @ApiModelProperty("创建人")
-    private String creator;
-
-//    @ApiModelProperty("状态")
-//    private Boolean status;
+    @ApiModelProperty("创建人ID")
+    private Long creator;
 
     @ApiModelProperty("排序字段")
-    private String orderByField;
+    private String orderByField = "update_time";
 
     @ApiModelProperty("排序方式")
-    private String orderByType;
+    private String orderByType = "DESC";
+
+    @ApiModelProperty("当前用户ID")
+    private Long currentUserId;
+
+//    @ApiModelProperty("状态")
+//    private Integer status;
 }

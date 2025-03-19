@@ -78,17 +78,20 @@ public class XiechengTransferMonthlySwitchOnConverter extends AbstractBiReportCo
         yAxis.add(buildWrapDataVO("累计接通量级（未去重）", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCallNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("累计接通量级（去重）", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getDistinctCallNum,
                 FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("登录量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getLoginNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("身份认证量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("授信量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请提现量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getApplyWithdrawNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("提现成功量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getWithdrawSucNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("日均授信量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCreditAvgNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("登录率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getLoginRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("身份认证率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCertifyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("申请率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getApplyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("授信率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCreditRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("申请提现率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getApplyWithdrawRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("提现率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getWithdrawRatio, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("申请身份认证率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getApplyCertifyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("身份认证完成率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCertifyCompleteRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("过件率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getOverPieceRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("授信后提现发起率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCreditWithdrawLaunchRatio, FormatType.PERCENT_SIGN));

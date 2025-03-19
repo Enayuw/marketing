@@ -64,7 +64,7 @@ public class CarClueRelationalMapping {
     private Integer matchingType;
 
     /**
-     * 匹配失败原因
+     * 
      */
     private String matchingCause;
 
@@ -87,6 +87,21 @@ public class CarClueRelationalMapping {
      * 1-有效；9-无效
      */
     private Integer isDel;
+
+    /**
+     * 日限量
+     */
+    private Integer dailyLimited;
+
+    /**
+     * 已推送次数
+     */
+    private Integer matchDailyLimited;
+
+    /**
+     * 需求ID
+     */
+    private String demandId;
 
     public Long getId() {
         return id;
@@ -222,5 +237,29 @@ public class CarClueRelationalMapping {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public Integer getDailyLimited() {
+        return dailyLimited;
+    }
+
+    public void setDailyLimited(Integer dailyLimited) {
+        this.dailyLimited = dailyLimited;
+    }
+
+    public Integer getMatchDailyLimited() {
+        return matchDailyLimited;
+    }
+
+    public void setMatchDailyLimited(Integer matchDailyLimited) {
+        this.matchDailyLimited = matchDailyLimited;
+    }
+
+    public String getDemandId() {
+        return demandId;
+    }
+
+    public void setDemandId(String demandId) {
+        this.demandId = demandId == null ? null : demandId.trim();
     }
 }

@@ -6,8 +6,8 @@ import java.util.List;
 
 /**
  * 标签规则数据源授权Mapper
- * @author your.name
- * @date 2024/1/x
+ * @author guangxiu.li
+ * @date 2025/03/18
  */
 public interface TagRuleSourceLicenseMapper extends TagRuleSourceLicenseMapperBase {
     /**
@@ -24,4 +24,6 @@ public interface TagRuleSourceLicenseMapper extends TagRuleSourceLicenseMapperBa
      * 根据标签编码删除授权关系
      */
     int deleteByTagCode(@Param("tagCode") String tagCode);
+
+    int batchDeleteByTagCodes(@Param("tagCodes") List<String> tagCodes);
 }

@@ -9,6 +9,8 @@ public interface CarClueRelationalMappingMapper extends CarClueRelationalMapping
 
     String getMaxCleanDate();
 
-
     int batchInsert(@Param("list") List<CarClueRelationalMapping> list);
+
+    void insertSql(@Param("querySql") String querySql);
+
 }

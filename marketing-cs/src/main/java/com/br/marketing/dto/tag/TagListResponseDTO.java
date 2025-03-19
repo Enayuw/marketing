@@ -22,27 +22,39 @@ public class TagListResponseDTO {
     @ApiModelProperty("标签名称")
     private String tagName;
 
-    @ApiModelProperty("规则摘要")
+    @ApiModelProperty("标签规则总结")
     private String summary;
 
-    @ApiModelProperty("标签人数")
+    @ApiModelProperty("预估人数")
     private Integer tagNumber;
 
-    @ApiModelProperty("数据源范围")
+    @ApiModelProperty("数据源编码")
+    private String sourceCode;
+
+    @ApiModelProperty("API范围，分号分隔")
     private String apiCodeScope;
 
-    @ApiModelProperty("数据源授权")
+    @ApiModelProperty("API授权，分号分隔")
     private String apiCodeLicense;
 
-    @ApiModelProperty("状态")
+    @ApiModelProperty("状态：1-启用 0-禁用")
     private Integer status;
 
     @ApiModelProperty("创建人")
     private String creator;
+
+    @ApiModelProperty("创建人ID")
+    private Long creatorId;
 
     @ApiModelProperty("创建时间")
     private Date createTime;
 
     @ApiModelProperty("更新时间")
     private Date updateTime;
+
+    @ApiModelProperty("是否可编辑")
+    private Boolean canEdit;
+
+    @ApiModelProperty("是否可删除")
+    private Boolean canDelete;
 }
