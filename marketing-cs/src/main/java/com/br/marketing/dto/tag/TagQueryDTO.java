@@ -41,5 +41,5 @@ public class TagQueryDTO {
     private Long currentUserId;
 
 //    @ApiModelProperty("状态")
-//    private Boolean status;
+//    private Integer status;
 }
