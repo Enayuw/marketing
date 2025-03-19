@@ -123,7 +123,7 @@ public class TagServiceImpl implements TagService {
             tagRule.setUpdateTime(new Date());
 
             // 生成规则总结
-            tagRule.setSummary(generateRuleSummary(timeRange, request.getConditionTree()));
+            tagRule.setSummary(request.getSummary());
 
             // 5. 保存标签规则
             tagDataRuleMapper.insert(tagRule);
@@ -137,7 +137,7 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    @Override
+
     public boolean checkTagNameExists(String tagName) {
         if (StringUtils.isBlank(tagName)) {
             return false;
@@ -174,7 +174,7 @@ public class TagServiceImpl implements TagService {
             updateTag.setOptUserName(getCurrentUserName());
 
             // 生成规则总结
-            updateTag.setSummary(generateRuleSummary(timeRange, request.getConditionTree()));
+            updateTag.setSummary(request.getSummary());
 
             tagDataRuleMapper.updateByTagCode(updateTag);
 
@@ -184,24 +184,6 @@ public class TagServiceImpl implements TagService {
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "更新标签失败！tagCode: " + request.getTagCode()), e);
             return new ApiResult<Boolean>().fail(false, "更新失败");
-        }
-    }
-
-    @Override
-    public ApiResult<Boolean> updateTagStatus(String tagCode, Boolean status) {
-        try {
-            TagDataRule updateTag = new TagDataRule();
-            updateTag.setTagCode(tagCode);
-            updateTag.setStatus(1);
-            updateTag.setUpdateTime(new Date());
-
-            tagDataRuleMapper.updateByTagCode(updateTag);
-            return new ApiResult<Boolean>().success(true);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "更新标签状态失败！tagCode: " + tagCode), e);
-            return new ApiResult<Boolean>().fail(false, "更新状态失败");
         }
     }
 
@@ -457,9 +439,17 @@ public class TagServiceImpl implements TagService {
         }
     }
 
+
+
+
     @Override
-    public List<TagFieldCategoryDTO> getFieldCategories(String apiCode) {
+    public ApiResult<Boolean> updateTagStatus(String tagCode, Integer status) {
         try {
+            // 1. 检查标签是否存在
+            TagDataRule existingTag = tagDataRuleMapper.selectByTagCode(tagCode);
+            if (existingTag == null) {
+                return new ApiResult<Boolean>().fail(false, "标签不存在");
+            }
             // 获取所有字段配置
             List<TagFieldConfigDTO> allFields = tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
 
@@ -477,21 +467,21 @@ public class TagServiceImpl implements TagService {
                 category.getFields().add(field);
             }
 
+            // 2. 更新同步状态
+            TagDataRule updateTag = new TagDataRule();
+            updateTag.setTagCode(tagCode);
+            updateTag.setStatus(status);
+            updateTag.setUpdateTime(new Date());
+
+            tagDataRuleMapper.updateByTagCode(updateTag);
+            return new ApiResult<Boolean>().success(true);
+
             return new ArrayList<>(categoryMap.values());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取字段分类列表失败！apiCode: " + apiCode), e);
-            return new ArrayList<>();
+                    "更新标签同步状态失败！tagCode: " + tagCode), e);
+            return new ApiResult<Boolean>().fail(false, "更新同步状态失败");
         }
-    }
-
-    @Override
-    public String previewRuleSummary(TagTimeRangeEnum timeRange, TagConditionTreeDTO conditionTree) {
-        if (conditionTree == null) {
-            return "";
-        }
-
-        return generateRuleSummary(timeRange, conditionTree);
     }
 }

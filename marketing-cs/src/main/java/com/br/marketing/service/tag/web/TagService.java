@@ -4,7 +4,6 @@ import com.br.marketing.client.tag.vo.AntaiosResourceDetailVO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
-import com.br.marketing.enums.TagTimeRangeEnum;
 
 import java.util.List;
 
@@ -47,7 +46,7 @@ public interface TagService {
      * @return ApiResult<Boolean>
      * @description 更新标签启用/禁用状态
      */
-    ApiResult<Boolean> updateTagStatus(String tagCode, Boolean status);
+    ApiResult<Boolean> updateTagStatus(String tagCode, Integer status);
 
     /**
      * 获取标签字段配置
@@ -85,13 +84,4 @@ public interface TagService {
      */
     boolean checkTagNameExists(String tagName);
 
-    /**
-     * 获取字段分类列表
-     */
-    List<TagFieldCategoryDTO> getFieldCategories(String apiCode);
-
-    /**
-     * 生成规则总结
-     */
-    String previewRuleSummary(TagTimeRangeEnum timeRange, TagConditionTreeDTO conditionTree);
 }
