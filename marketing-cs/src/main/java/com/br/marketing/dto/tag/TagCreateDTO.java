@@ -38,4 +38,8 @@ public class TagCreateDTO extends TagRuleBaseDTO {
 
     @ApiModelProperty(value = "标签授权APICode列表")
     private List<String> apiCodeLicense;
+
+    @NotBlank(message = "数据源编码不能为空")
+    @ApiModelProperty(value = "数据源编码", required = true)
+    private String sourceCode;
 }

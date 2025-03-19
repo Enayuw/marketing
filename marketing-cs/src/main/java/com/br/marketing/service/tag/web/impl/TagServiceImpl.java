@@ -104,6 +104,7 @@ public class TagServiceImpl implements TagService {
             tagRule.setApiCodeScope(String.join(",", request.getApiCodeScope()));
             tagRule.setApiCodeLicense(ObjectUtil.isEmpty(request.getApiCodeLicense()) ? null :
                     String.join(",", request.getApiCodeLicense()));
+            tagRule.setSourceCode(request.getSourceCode());
             tagRule.setStatus(1);
             tagRule.setOptUserId(getCurrentUserId());
             tagRule.setOptUserName(getCurrentUserName());
@@ -146,6 +147,7 @@ public class TagServiceImpl implements TagService {
             updateTag.setTimeUnit(request.getTimeUnit());
             updateTag.setContent(buildRuleContent(request.getConditions()));
             updateTag.setSummary(generateRuleSummary(request));
+            updateTag.setSourceCode(request.getSourceCode());
             updateTag.setUpdateTime(new Date());
 
             tagDataRuleMapper.updateByTagCode(updateTag);

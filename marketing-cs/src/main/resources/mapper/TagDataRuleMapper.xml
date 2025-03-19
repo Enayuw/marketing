@@ -7,6 +7,7 @@
     <result column="tag_name" jdbcType="VARCHAR" property="tagName" />
     <result column="tag_number" jdbcType="INTEGER" property="tagNumber" />
     <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
     <result column="summary" jdbcType="VARCHAR" property="summary" />
     <result column="time_number" jdbcType="INTEGER" property="timeNumber" />
     <result column="time_unit" jdbcType="VARCHAR" property="timeUnit" />
@@ -48,8 +49,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, tag_code, tag_name, tag_number, content, summary, time_number, time_unit, api_code_scope,
-    api_code_license, `status`, opt_user_id, opt_user_name, create_time, update_time
+    id, tag_code, tag_name, tag_number, content, source_code, summary, time_number, time_unit,
+    api_code_scope, api_code_license, `status`, opt_user_id, opt_user_name, create_time,
+    update_time
   </sql>
   <select id="selectList" resultMap="BaseResultMap">
     SELECT
@@ -60,13 +62,13 @@
         AND tag_name LIKE CONCAT('%', #{params.tagName}, '%')
       </if>
       <if test="params.apiCodes != null and params.apiCodes.size() > 0">
-        AND FIND_IN_SET(api_code_scope, #{params.apiCodes})
+        AND api_code_scope IN
+        <foreach collection="params.apiCodes" item="apiCode" open="(" separator="," close=")">
+          #{apiCode}
+        </foreach>
       </if>
       <if test="params.creator != null and params.creator != ''">
         AND opt_user_name = #{params.creator}
-      </if>
-      <if test="params.status != null">
-        AND status = #{params.status}
       </if>
     </where>
     ORDER BY
@@ -83,7 +85,7 @@
     SELECT
     <include refid="Base_Column_List" />
     FROM t_tag_data_rule
-    WHERE tag_code = #{tagCode,jdbcType=VARCHAR}
+    WHERE tag_code = #{tagCode}
   </select>
 
   <select id="selectDistinctApiCodes" resultType="string">
@@ -95,14 +97,18 @@
   <update id="updateByTagCode" parameterType="com.br.marketing.entity.tag.TagDataRule">
     UPDATE t_tag_data_rule
     <set>
-      <if test="tagName != null">tag_name = #{tagName,jdbcType=VARCHAR},</if>
-      <if test="timeNumber != null">time_number = #{timeNumber,jdbcType=INTEGER},</if>
-      <if test="timeUnit != null">time_unit = #{timeUnit,jdbcType=VARCHAR},</if>
-      <if test="content != null">content = #{content,jdbcType=VARCHAR},</if>
-      <if test="summary != null">summary = #{summary,jdbcType=VARCHAR},</if>
-      <if test="status != null">status = #{status,jdbcType=BOOLEAN},</if>
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      <if test="tagName != null">tag_name = #{tagName},</if>
+      <if test="tagNumber != null">tag_number = #{tagNumber},</if>
+      <if test="content != null">content = #{content},</if>
+      <if test="sourceCode != null">source_code = #{sourceCode},</if>
+      <if test="summary != null">summary = #{summary},</if>
+      <if test="timeNumber != null">time_number = #{timeNumber},</if>
+      <if test="timeUnit != null">time_unit = #{timeUnit},</if>
+      <if test="apiCodeScope != null">api_code_scope = #{apiCodeScope},</if>
+      <if test="apiCodeLicense != null">api_code_license = #{apiCodeLicense},</if>
+      <if test="status != null">status = #{status},</if>
+      update_time = NOW()
     </set>
-    WHERE tag_code = #{tagCode,jdbcType=VARCHAR}
+    WHERE tag_code = #{tagCode}
   </update>
 </mapper>

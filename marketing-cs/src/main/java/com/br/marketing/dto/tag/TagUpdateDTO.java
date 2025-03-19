@@ -14,8 +14,8 @@ import java.util.List;
 @Data
 public class TagUpdateDTO extends TagRuleBaseDTO {
 
-    @ApiModelProperty("标签编码")
-    @NotEmpty(message = "标签编码不能为空")
+    @NotBlank(message = "标签编码不能为空")
+    @ApiModelProperty(value = "标签编码", required = true)
     private String tagCode;
 
     @NotBlank(message = "标签名称不能为空")
@@ -36,5 +36,16 @@ public class TagUpdateDTO extends TagRuleBaseDTO {
 
     @ApiModelProperty(value = "条件关系（AND/OR）")
     private String operator = "AND";
+
+    @NotEmpty(message = "用户范围不能为空")
+    @ApiModelProperty(value = "用户范围APICode列表", required = true)
+    private List<String> apiCodeScope;
+
+    @ApiModelProperty(value = "标签授权APICode列表")
+    private List<String> apiCodeLicense;
+
+    @NotBlank(message = "数据源编码不能为空")
+    @ApiModelProperty(value = "数据源编码", required = true)
+    private String sourceCode;
 
 }
