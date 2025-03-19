@@ -7,6 +7,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
+import com.br.marketing.dto.tag.TagRulePreviewDTO;
 import com.br.marketing.service.tag.web.TagService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -191,6 +192,25 @@ public class TagController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "获取字段分类列表接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<TagFieldCategoryDTO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/previewRuleSummary")
+    @ApiOperation(value = "预览规则总结", notes = "根据条件实时生成规则总结")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "request", value = "预览参数", required = true, dataType = "TagRulePreviewDTO")
+    })
+    public ApiResult<Boolean> previewRuleSummary(@RequestBody @Valid TagRulePreviewDTO request) {
+        try {
+            String summary = tagService.previewRuleSummary(request.getTimeRange(), request.getConditionTree());
+            if (summary != null) {
+                return new ApiResult<Boolean>().success(true);
+            }
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "预览规则总结接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 

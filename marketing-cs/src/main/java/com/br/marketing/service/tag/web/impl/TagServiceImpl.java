@@ -457,4 +457,13 @@ public class TagServiceImpl implements TagService {
             return new ArrayList<>();
         }
     }
+
+    @Override
+    public String previewRuleSummary(TagTimeRangeEnum timeRange, TagConditionTreeDTO conditionTree) {
+        if (conditionTree == null) {
+            return "";
+        }
+
+        return generateRuleSummary(timeRange, conditionTree);
+    }
 }
