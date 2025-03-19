@@ -45,6 +45,7 @@ import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
+import com.br.marketing.es.bean.ESQueryRequest;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -574,6 +575,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                 queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
             }
             total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+
+            //页面规则查询es
+            ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+            String queryDsl = esQueryRequest.getQueryDsl();
+            List<String> indexName = esQueryRequest.getIndexName();
+            //拼接联邦查询条件
+
+
+            //查询量级
+
         }
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");

@@ -206,6 +206,13 @@ public class TagServiceImpl implements TagService {
         }
     }
 
+    @Override
+    public List<String> getTagLibrary() {
+
+
+        return null;
+    }
+
     private String generateTagCode() {
         return "TAG_" + System.currentTimeMillis();
     }

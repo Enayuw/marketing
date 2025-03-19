@@ -77,4 +77,10 @@ public interface TagService {
      * @description 获取系统中可用的APICode列表
      */
     List<String> getApiCodes();
+
+    /**
+     * 同步标签库
+     * @return List<String>
+     */
+    List<String> getTagLibrary();
 }

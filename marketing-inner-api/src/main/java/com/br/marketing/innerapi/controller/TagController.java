@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -10,6 +11,7 @@ import com.br.marketing.service.tag.web.TagService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -129,4 +131,22 @@ public class TagController {
             return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
         }
     }
+
+    @PostMapping("/getTagLibrary")
+    @ApiOperation(value = "同步标签库", notes = "同步标签库")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = String.class)})
+    public ApiResult<List<String>> getLabels() {
+        try {
+            List<String> tagList = tagService.getTagLibrary();
+            if (!CollectionUtil.isEmpty(tagList)) {
+                return new ApiResult<List<String>>().success(tagList);
+            }
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "同步标签接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
 }
