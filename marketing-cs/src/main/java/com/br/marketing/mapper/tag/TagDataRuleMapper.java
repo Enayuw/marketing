@@ -9,8 +9,8 @@ import java.util.Map;
 
 /**
  * 标签规则Mapper
- * @author your.name
- * @date 2024/1/x
+ * @author guangxiu.li
+ * @date 2025/03/18
  * @description
  */
 public interface TagDataRuleMapper extends TagDataRuleMapperBase {

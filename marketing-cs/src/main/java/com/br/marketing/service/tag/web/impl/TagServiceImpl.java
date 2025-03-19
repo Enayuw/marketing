@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 /**
  * 标签配置管理
  *
- * @author your.name
- * @date 2024/1/x
+ * @author guangxiu.li
+ * @date 2025/03/18
  * @description
  */
 @Service

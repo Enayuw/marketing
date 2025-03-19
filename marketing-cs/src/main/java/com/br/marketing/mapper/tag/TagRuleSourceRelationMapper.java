@@ -6,8 +6,8 @@ import java.util.List;
 
 /**
  * 标签规则数据源关系Mapper
- * @author your.name
- * @date 2024/1/x
+ * @author guangxiu.li
+ * @date 2025/03/18
  */
 public interface TagRuleSourceRelationMapper extends TagRuleSourceRelationMapperBase {
     /**

@@ -6,8 +6,8 @@ import java.util.List;
 
 /**
  * 标签字段配置Mapper
- * @author your.name
- * @date 2024/1/x
+ * @author guangxiu.li
+ * @date 2025/03/18
  */
 public interface TagDataFieldConfigMapper extends TagDataFieldConfigMapperBase {
     /**
