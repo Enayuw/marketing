@@ -2621,6 +2621,11 @@ public class MarketingCommonConfig {
      */
     private String carClueFilterStr;
     /**
+     * 车线索校验特殊字符:,;，；
+     */
+    private String carClueVerifyStr;
+
+    /**
      * 规则中心推决策参数大小
      * eg:{"7410950":500,"7410960":500}
      */

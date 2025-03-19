@@ -256,6 +256,10 @@ api:
     cityList: ${api.hxCar.baseUrl}/open_api/v1/city_list
     commitClue: ${api.hxCar.baseUrl}/open_api/v1/test_commit_clue
     isProxy: false
+  ycKA:
+    baseUrl: https://car.s.zonrn.cn
+    carList: ${api.ycKA.baseUrl}/api/yiPlanDown
+    isProxy: false
 spring:
   rabbitmq:
     zw:

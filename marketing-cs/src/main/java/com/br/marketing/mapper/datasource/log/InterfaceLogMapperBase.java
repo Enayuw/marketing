@@ -1,4 +1,4 @@
-package com.br.marketing.mapper;
+package com.br.marketing.mapper.datasource.log;
 
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.entity.InterfaceLogExample;
