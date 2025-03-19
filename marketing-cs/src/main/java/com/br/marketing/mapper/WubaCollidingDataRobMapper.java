@@ -10,21 +10,21 @@ import java.util.List;
 public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBase {
     void batchSaveData(@Param("robs") List<WubaCollidingDataFront> robs, @Param("apiCode") String apiCode);
 
-    List<WubaCollidingData> selectCollidingData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
+    List<WubaCollidingData> selectCollidingData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode, @Param("relationCondition") String relationCondition);
 
     void batchUpdatePushTimeById(@Param("robs") List<WubaCollidingData> robs, @Param("sourceType") String sourceType);
 
     void batchDeleteByCell(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);
 
     List<WubaCollidingData> selectHighValueCollidingData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode,
-                                                         @Param("nowDate") Date nowDate, @Param("fileNames") List<String> fileNames);
+                                                         @Param("nowDate") Date nowDate, @Param("fileNames") List<String> fileNames, @Param("relationCondition") String relationCondition);
 
     void batchSaveTrueToFalseData(@Param("cells") List<String> cells, @Param("apiCode") String apiCode,
                                   @Param("dataSourceType") String dataSourceType);
 
     List<WubaCollidingData> selectReavedData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode,
                                              @Param("pushTimeEnd") Date pushTimeEnd,
-                                             @Param("loopCycleReavedFileId") Long loopCycleReavedFileId);
+                                             @Param("loopCycleReavedFileId") Long loopCycleReavedFileId, @Param("relationCondition") String relationCondition);
 
     void batchSaveReavedDataInToRob(@Param("cells") List<String> cells, @Param("apiCode") String apiCode,
                                     @Param("dataSourceType") String dataSourceType, @Param("packageId") Long packageId);

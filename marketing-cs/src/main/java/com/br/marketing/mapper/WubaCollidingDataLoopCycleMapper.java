@@ -11,7 +11,7 @@ public interface WubaCollidingDataLoopCycleMapper extends WubaCollidingDataLoopC
 
     List<WubaCollidingData> selectCollidingData(@Param("pushTimeStart") Date pushTimeStart, @Param("pushTimeEnd") Date pushTimeEnd,
                                                 @Param("apiCode") String apiCode,
-                                                @Param("pageSize") Integer pageSize);
+                                                @Param("pageSize") Integer pageSize, @Param("relationCondition") String relationCondition);
 
     void batchUpdatePushTimeById(@Param("datas") List<WubaCollidingData> data);
     void batchDeleteByCell(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);

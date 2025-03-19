@@ -9,7 +9,7 @@ import java.util.List;
 public interface WubaCollidingDataSecondLoopCycleMapper extends WubaCollidingDataSecondLoopCycleMapperBase{
     List<WubaCollidingData> selectCollidingData(@Param("pushTimeStart") Date pushTimeStart, @Param("pushTimeEnd") Date pushTimeEnd,
                                                 @Param("apiCode") String apiCode,
-                                                @Param("pageSize") Integer pageSize);
+                                                @Param("pageSize") Integer pageSize, @Param("relationCondition") String relationCondition);
 
     void batchUpdatePushTimeById(@Param("datas") List<WubaCollidingData> data);
     void batchSaveData(@Param("list") List<String> list, @Param("apiCode") String apiCode, @Param("dataSourceType") String dataSourceType);

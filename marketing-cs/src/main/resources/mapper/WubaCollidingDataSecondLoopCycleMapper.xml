@@ -2,12 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper" >
     <select id="selectCollidingData" resultType="com.br.marketing.entity.WubaCollidingData">
-        select id, cell
-        from b_wuba_colliding_data_second_loop_cycle
-        where is_deleted = 0
-          and api_code = #{apiCode}
-          <![CDATA[ and push_time >= #{pushTimeStart} and push_time < #{pushTimeEnd} ]]>
-        order by push_time
+        select a.id, a.cell
+        from b_wuba_colliding_data_second_loop_cycle a ${relationCondition}
+        where a.is_deleted = 0
+          and a.api_code = #{apiCode}
+          <![CDATA[ and a.push_time >= #{pushTimeStart} and a.push_time < #{pushTimeEnd} ]]>
+        order by a.push_time
             limit #{pageSize}
     </select>
 
