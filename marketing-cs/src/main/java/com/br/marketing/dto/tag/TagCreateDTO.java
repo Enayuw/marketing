@@ -1,5 +1,6 @@
 package com.br.marketing.dto.tag;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
@@ -12,34 +13,25 @@ import java.util.List;
  * 标签创建DTO
  */
 @Data
-public class TagCreateDTO extends TagRuleBaseDTO {
+@ApiModel(description = "标签创建请求DTO")
+public class TagCreateDTO {
     @NotBlank(message = "标签名称不能为空")
     @ApiModelProperty(value = "标签名称", required = true)
     private String tagName;
 
-    @NotNull(message = "时间范围不能为空")
-    @ApiModelProperty(value = "时间范围数值", required = true)
-    private Integer timeNumber;
+    @NotNull(message = "条件树不能为空")
+    @ApiModelProperty(value = "条件树配置", required = true)
+    private TagConditionTreeDTO conditionTree;
 
-    @NotBlank(message = "时间单位不能为空")
-    @ApiModelProperty(value = "时间单位（d-天，m-月）", required = true)
-    private String timeUnit;
+    @NotBlank(message = "时间范围不能为空")
+    @ApiModelProperty(value = "时间范围(YESTERDAY-昨天,LAST_THREE_DAYS-最近三天,LAST_WEEK-最近一周,LAST_MONTH-最近一月,LAST_THREE_MONTHS-最近三月)", required = true)
+    private String timeRange;
 
-    @NotEmpty(message = "标签条件不能为空")
-    @ApiModelProperty(value = "标签条件列表", required = true)
-    private List<TagConditionDTO> conditions;
+    @NotEmpty(message = "标签范围不能为空")
+    @ApiModelProperty(value = "标签统计范围APICode列表", required = true)
+    private List<String> scopeApiCodes;
 
-    @ApiModelProperty(value = "条件关系（AND/OR）")
-    private String operator = "AND";
-
-    @NotEmpty(message = "用户范围不能为空")
-    @ApiModelProperty(value = "用户范围APICode列表", required = true)
-    private List<String> apiCodeScope;
-
-    @ApiModelProperty(value = "标签授权APICode列表")
-    private List<String> apiCodeLicense;
-
-    @NotBlank(message = "数据源编码不能为空")
-    @ApiModelProperty(value = "数据源编码", required = true)
-    private String sourceCode;
+    @NotEmpty(message = "授权APICode不能为空")
+    @ApiModelProperty(value = "标签授权APICode列表", required = true)
+    private List<String> authorizedApiCodes;
 }

@@ -1,6 +1,5 @@
 package com.br.marketing.service.tag.web.impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
@@ -8,8 +7,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
 import com.br.marketing.entity.tag.TagDataRule;
-import com.br.marketing.entity.tag.TagRuleSourceLicense;
-import com.br.marketing.entity.tag.TagRuleSourceRelation;
+import com.br.marketing.enums.TagTimeRangeEnum;
 import com.br.marketing.mapper.tag.TagDataFieldConfigMapper;
 import com.br.marketing.mapper.tag.TagDataRuleMapper;
 import com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper;
@@ -17,6 +15,7 @@ import com.br.marketing.mapper.tag.TagRuleSourceRelationMapper;
 import com.br.marketing.service.tag.web.TagService;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,41 +84,40 @@ public class TagServiceImpl implements TagService {
     @Transactional(rollbackFor = Exception.class)
     public String createTag(TagCreateDTO request) {
         try {
-            // 1. 参数校验
-            if (tagDataRuleMapper.existsByTagName(request.getTagName())) {
-                return new ApiResult<String>().fail("标签名称已存在").getData();
+            // 1. 校验标签名称是否重复
+            if (checkTagNameExists(request.getTagName())) {
+                throw new RuntimeException("标签名称已存在");
             }
 
-            // 2. 生成标签编码
+            // 2. 校验时间范围是否合法
+            TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
+            if (timeRange == null) {
+                throw new RuntimeException("无效的时间范围");
+            }
+
+            // 3. 生成标签编码
             String tagCode = generateTagCode();
 
-            // 3. 构建并保存标签规则
+            // 4. 构建标签规则实体
             TagDataRule tagRule = new TagDataRule();
             tagRule.setTagCode(tagCode);
             tagRule.setTagName(request.getTagName());
-            tagRule.setTimeNumber(request.getTimeNumber());
-            tagRule.setTimeUnit(request.getTimeUnit());
-            tagRule.setContent(buildRuleContent(request.getConditions()));
-            tagRule.setSummary(generateRuleSummary(request));
-            tagRule.setApiCodeScope(String.join(",", request.getApiCodeScope()));
-            tagRule.setApiCodeLicense(ObjectUtil.isEmpty(request.getApiCodeLicense()) ? null :
-                    String.join(",", request.getApiCodeLicense()));
-            tagRule.setSourceCode(request.getSourceCode());
+            tagRule.setTimeNumber(timeRange.getTimeNumber());
+            tagRule.setTimeUnit(timeRange.getTimeUnit());
+            tagRule.setContent(JSON.toJSONString(request.getConditionTree()));
+            tagRule.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
+            tagRule.setApiCodeLicense(String.join(",", request.getAuthorizedApiCodes()));
             tagRule.setStatus(1);
             tagRule.setOptUserId(getCurrentUserId());
             tagRule.setOptUserName(getCurrentUserName());
             tagRule.setCreateTime(new Date());
             tagRule.setUpdateTime(new Date());
+            
+            // 生成规则总结
+            tagRule.setSummary(generateRuleSummary(timeRange, request.getConditionTree()));
 
+            // 5. 保存标签规则
             tagDataRuleMapper.insert(tagRule);
-
-            // 4. 保存标签范围关系
-            saveTagSourceRelation(tagCode, request.getApiCodeScope());
-
-            // 5. 保存标签授权关系
-            if (ObjectUtil.isNotEmpty(request.getApiCodeLicense())) {
-                saveTagSourceLicense(tagCode, request.getApiCodeLicense());
-            }
 
             return tagCode;
         } catch (Exception e) {
@@ -131,6 +129,14 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    public boolean checkTagNameExists(String tagName) {
+        if (StringUtils.isBlank(tagName)) {
+            return false;
+        }
+        return tagDataRuleMapper.existsByTagName(tagName);
+    }
+
+    @Override
     public ApiResult<Boolean> updateTag(TagUpdateDTO request) {
         try {
             // 1. 检查标签是否存在
@@ -139,21 +145,29 @@ public class TagServiceImpl implements TagService {
                 return new ApiResult<Boolean>().fail(false, "标签不存在");
             }
 
-            // 2. 更新标签信息
+            // 2. 校验时间范围是否合法
+            TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
+            if (timeRange == null) {
+                return new ApiResult<Boolean>().fail(false, "无效的时间范围");
+            }
+
+            // 3. 更新标签信息
             TagDataRule updateTag = new TagDataRule();
             updateTag.setTagCode(request.getTagCode());
             updateTag.setTagName(request.getTagName());
-            updateTag.setTimeNumber(request.getTimeNumber());
-            updateTag.setTimeUnit(request.getTimeUnit());
-            updateTag.setContent(buildRuleContent(request.getConditions()));
-            updateTag.setSummary(generateRuleSummary(request));
-            updateTag.setSourceCode(request.getSourceCode());
+            updateTag.setTimeNumber(timeRange.getTimeNumber());
+            updateTag.setTimeUnit(timeRange.getTimeUnit());
+            updateTag.setContent(JSON.toJSONString(request.getConditionTree()));
+            updateTag.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
+            updateTag.setApiCodeLicense(String.join(",", request.getAuthorizedApiCodes()));
             updateTag.setUpdateTime(new Date());
+            updateTag.setOptUserId(getCurrentUserId());
+            updateTag.setOptUserName(getCurrentUserName());
+
+            // 生成规则总结
+            updateTag.setSummary(generateRuleSummary(timeRange, request.getConditionTree()));
 
             tagDataRuleMapper.updateByTagCode(updateTag);
-
-            // 3. 更新关联关系
-            updateTagRelations(request.getTagCode(), request);
 
             return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
@@ -217,36 +231,71 @@ public class TagServiceImpl implements TagService {
         return "TAG_" + System.currentTimeMillis();
     }
 
-    private String buildRuleContent(List<TagConditionDTO> conditions) {
-        // 构建规则内容的JSON字符串
-        return JSON.toJSONString(conditions);
+    /**
+     * 生成规则总结
+     */
+    private String generateRuleSummary(TagTimeRangeEnum timeRange, TagConditionTreeDTO conditionTree) {
+        StringBuilder summary = new StringBuilder();
+        summary.append(timeRange.getDesc()).append("的");
+        
+        // 添加条件树描述
+        appendConditionTreeSummary(summary, conditionTree);
+        
+        return summary.toString();
     }
 
     /**
-     * 修改generateRuleSummary方法
+     * 递归生成条件树描述
      */
-    private String generateRuleSummary(TagRuleBaseDTO request) {
-        StringBuilder summary = new StringBuilder();
-        summary.append(String.format("最近%d%s的",
-                Math.abs(request.getTimeNumber()),
-                "d".equals(request.getTimeUnit()) ? "天" : "期"));
-
-        // 添加规则条件描述
-        if (ObjectUtil.isNotEmpty(request.getConditions())) {
-            for (int i = 0; i < request.getConditions().size(); i++) {
-                TagConditionDTO condition = request.getConditions().get(i);
-                if (i > 0) {
-                    summary.append(request.getOperator().equals("AND") ? "且" : "或");
-                }
-                summary.append("(")
-                        .append(condition.getFieldName())
-                        .append(convertOperator(condition.getOperator()))
-                        .append(condition.getValue())
-                        .append(")");
-            }
+    private void appendConditionTreeSummary(StringBuilder summary, TagConditionTreeDTO tree) {
+        if (tree == null || tree.getChildren() == null || tree.getChildren().isEmpty()) {
+            return;
         }
 
-        return summary.toString();
+        summary.append("(");
+        for (int i = 0; i < tree.getChildren().size(); i++) {
+            TagConditionNodeDTO node = tree.getChildren().get(i);
+            if (i > 0) {
+                summary.append(tree.getOperator().equals("AND") ? "且" : "或");
+            }
+            
+            if ("GROUP".equals(node.getType())) {
+                // 递归处理条件组
+                appendConditionNodeSummary(summary, node);
+            } else {
+                // 处理叶子条件节点
+                summary.append(node.getField())
+                      .append(convertOperator(node.getOperation()))
+                      .append(node.getValue());
+            }
+        }
+        summary.append(")");
+    }
+
+    /**
+     * 递归生成条件节点描述
+     */
+    private void appendConditionNodeSummary(StringBuilder summary, TagConditionNodeDTO node) {
+        if (node == null || node.getChildren() == null || node.getChildren().isEmpty()) {
+            return;
+        }
+
+        summary.append("(");
+        for (int i = 0; i < node.getChildren().size(); i++) {
+            TagConditionNodeDTO child = node.getChildren().get(i);
+            if (i > 0) {
+                summary.append(node.getOperator().equals("AND") ? "且" : "或");
+            }
+            
+            if ("GROUP".equals(child.getType())) {
+                appendConditionNodeSummary(summary, child);
+            } else {
+                summary.append(child.getField())
+                      .append(convertOperator(child.getOperation()))
+                      .append(child.getValue());
+            }
+        }
+        summary.append(")");
     }
 
     private String convertOperator(String operator) {
@@ -310,68 +359,6 @@ public class TagServiceImpl implements TagService {
         return dto;
     }
 
-
-    /**
-     * 保存标签数据源关系
-     */
-    private void saveTagSourceRelation(String tagCode, List<String> apiCodes) {
-        if (apiCodes == null || apiCodes.isEmpty()) {
-            return;
-        }
-
-        List<TagRuleSourceRelation> relations = apiCodes.stream()
-                .map(apiCode -> {
-                    TagRuleSourceRelation relation = new TagRuleSourceRelation();
-                    relation.setTagCode(tagCode);
-                    relation.setApiCode(apiCode);
-                    relation.setSourceMappingCode(apiCode); // 这里需要设置sourceMappingCode
-                    relation.setStatus(1);
-                    relation.setCreateTime(new Date());
-                    relation.setUpdateTime(new Date());
-                    return relation;
-                })
-                .collect(Collectors.toList());
-
-        tagRuleSourceRelationMapper.batchInsert(relations);
-    }
-
-    /**
-     * 保存标签授权关系
-     */
-    private void saveTagSourceLicense(String tagCode, List<String> apiCodes) {
-        if (apiCodes == null || apiCodes.isEmpty()) {
-            return;
-        }
-
-        List<TagRuleSourceLicense> licenses = apiCodes.stream()
-                .map(apiCode -> {
-                    TagRuleSourceLicense license = new TagRuleSourceLicense();
-                    license.setTagCode(tagCode);
-                    license.setApiCode(apiCode);
-                    license.setStatus(1);
-                    license.setCreateTime(new Date());
-                    license.setUpdateTime(new Date());
-                    return license;
-                })
-                .collect(Collectors.toList());
-
-        tagRuleSourceLicenseMapper.batchInsert(licenses);
-    }
-
-    /**
-     * 更新标签关联关系
-     */
-    private void updateTagRelations(String tagCode, TagUpdateDTO request) {
-        // 删除原有关系
-        tagRuleSourceRelationMapper.deleteByTagCode(tagCode);
-        tagRuleSourceLicenseMapper.deleteByTagCode(tagCode);
-
-        // 保存新关系
-        saveTagSourceRelation(tagCode, request.getApiCodeScope());
-        if (ObjectUtil.isNotEmpty(request.getApiCodeLicense())) {
-            saveTagSourceLicense(tagCode, request.getApiCodeLicense());
-        }
-    }
 
     @Override
     public ApiResult<Boolean> batchDelete(TagBatchDeleteDTO request) {

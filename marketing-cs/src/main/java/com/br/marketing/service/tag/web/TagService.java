@@ -95,4 +95,9 @@ public interface TagService {
      * 获取创建人列表
      */
     List<TagCreatorDTO> getCreators();
+
+    /**
+     * 校验标签名称是否重复
+     */
+    boolean checkTagNameExists(String tagName);
 }
