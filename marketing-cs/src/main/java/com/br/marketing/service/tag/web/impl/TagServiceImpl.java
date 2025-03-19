@@ -227,8 +227,27 @@ public class TagServiceImpl implements TagService {
         return null;
     }
 
+    /**
+     * 生成标签编码
+     */
     private String generateTagCode() {
         return "TAG_" + System.currentTimeMillis();
+    }
+
+    /**
+     * 获取当前用户ID
+     */
+    private Long getCurrentUserId() {
+        // TODO: 从当前登录用户上下文中获取用户ID
+        return 0L;
+    }
+
+    /**
+     * 获取当前用户名
+     */
+    private Long getCurrentUserName() {
+        // TODO: 从当前登录用户上下文中获取用户名
+        return 0L;
     }
 
     /**
@@ -298,13 +317,36 @@ public class TagServiceImpl implements TagService {
         summary.append(")");
     }
 
+    /**
+     * 转换操作符为中文描述
+     */
     private String convertOperator(String operator) {
-        switch (operator) {
-            case "=": return "等于";
-            case "!=": return "不等于";
-            case ">": return "大于";
-            case "<": return "小于";
-            default: return operator;
+        if (operator == null) {
+            return "";
+        }
+        switch (operator.toUpperCase()) {
+            case "EQ":
+                return "等于";
+            case "NE":
+                return "不等于";
+            case "GT":
+                return "大于";
+            case "GE":
+                return "大于等于";
+            case "LT":
+                return "小于";
+            case "LE":
+                return "小于等于";
+            case "LIKE":
+                return "包含";
+            case "NOT_LIKE":
+                return "不包含";
+            case "IN":
+                return "在列表中";
+            case "NOT_IN":
+                return "不在列表中";
+            default:
+                return operator;
         }
     }
 
@@ -313,19 +355,6 @@ public class TagServiceImpl implements TagService {
             return null;
         }
         return str.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
-    }
-
-    private Long getCurrentUserId() {
-        // 获取当前用户ID的实现
-        return 0L;
-    }
-
-    /**
-     * 获取当前用户名
-     */
-    private Long getCurrentUserName() {
-        // 获取当前用户名的实现，返回Long类型
-        return 0L;
     }
 
     /**
