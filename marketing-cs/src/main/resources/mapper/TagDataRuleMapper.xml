@@ -105,11 +105,6 @@
     </foreach>
   </select>
 
-  <select id="selectDistinctApiCodes" resultType="string">
-    SELECT DISTINCT api_code_scope
-    FROM t_tag_data_rule
-    WHERE status = 1
-  </select>
 
   <select id="selectDistinctCreators" resultMap="CreatorMap">
     SELECT DISTINCT opt_user_id, opt_user_name

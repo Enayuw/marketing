@@ -39,10 +39,6 @@ public interface TagDataRuleMapper extends TagDataRuleMapperBase {
      */
     int updateByTagCode(TagDataRule record);
 
-    /**
-     * 获取所有可用的APICode列表
-     */
-    List<String> selectDistinctApiCodes();
 
     List<TagCreatorDTO> selectDistinctCreators();
 
