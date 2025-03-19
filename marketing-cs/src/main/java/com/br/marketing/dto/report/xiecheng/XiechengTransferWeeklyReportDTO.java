@@ -26,6 +26,9 @@ public class XiechengTransferWeeklyReportDTO implements Serializable {
     @ApiModelProperty("实际外呼量")
     private Long outboundNum;
 
+    @ApiModelProperty("登录量")
+    private Long loginNum;
+
     @ApiModelProperty("身份认证量")
     private Long certifyNum;
 
@@ -44,6 +47,10 @@ public class XiechengTransferWeeklyReportDTO implements Serializable {
     @ApiModelProperty("期均授信量")
     private Long creditAvgNum;
 
+    @ApiModelProperty("登录率")
+    @DecimalFieldConvertor
+    private BigDecimal loginRatio;
+
     @ApiModelProperty("身份认证率")
     @DecimalFieldConvertor(scale = 2)
     private BigDecimal certifyRatio;
@@ -59,6 +66,10 @@ public class XiechengTransferWeeklyReportDTO implements Serializable {
     @ApiModelProperty("提现率")
     @DecimalFieldConvertor
     private BigDecimal withdrawRatio;
+
+    @ApiModelProperty("申请身份认证率")
+    @DecimalFieldConvertor(scale = 2)
+    private BigDecimal applyCertifyRatio;
 
     @ApiModelProperty("身份认证完成率")
     @DecimalFieldConvertor(scale = 2)
