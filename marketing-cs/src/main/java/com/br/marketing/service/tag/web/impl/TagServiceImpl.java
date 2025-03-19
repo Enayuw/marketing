@@ -114,7 +114,7 @@ public class TagServiceImpl implements TagService {
             tagRule.setUpdateTime(new Date());
             
             // 生成规则总结
-            tagRule.setSummary(generateRuleSummary(timeRange, request.getConditionTree()));
+            tagRule.setSummary(request.getSummary());
 
             // 5. 保存标签规则
             tagDataRuleMapper.insert(tagRule);
@@ -128,7 +128,7 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    @Override
+
     public boolean checkTagNameExists(String tagName) {
         if (StringUtils.isBlank(tagName)) {
             return false;
@@ -165,7 +165,7 @@ public class TagServiceImpl implements TagService {
             updateTag.setOptUserName(getCurrentUserName());
 
             // 生成规则总结
-            updateTag.setSummary(generateRuleSummary(timeRange, request.getConditionTree()));
+            updateTag.setSummary(request.getSummary());
 
             tagDataRuleMapper.updateByTagCode(updateTag);
 
@@ -175,24 +175,6 @@ public class TagServiceImpl implements TagService {
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "更新标签失败！tagCode: " + request.getTagCode()), e);
             return new ApiResult<Boolean>().fail(false, "更新失败");
-        }
-    }
-
-    @Override
-    public ApiResult<Boolean> updateTagStatus(String tagCode, Boolean status) {
-        try {
-            TagDataRule updateTag = new TagDataRule();
-            updateTag.setTagCode(tagCode);
-            updateTag.setStatus(1);
-            updateTag.setUpdateTime(new Date());
-
-            tagDataRuleMapper.updateByTagCode(updateTag);
-            return new ApiResult<Boolean>().success(true);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "更新标签状态失败！tagCode: " + tagCode), e);
-            return new ApiResult<Boolean>().fail(false, "更新状态失败");
         }
     }
 
@@ -237,106 +219,6 @@ public class TagServiceImpl implements TagService {
     private Long getCurrentUserName() {
         // TODO: 从当前登录用户上下文中获取用户名
         return 0L;
-    }
-
-    /**
-     * 生成规则总结
-     */
-    private String generateRuleSummary(TagTimeRangeEnum timeRange, TagConditionTreeDTO conditionTree) {
-        StringBuilder summary = new StringBuilder();
-        summary.append(timeRange.getDesc()).append("的");
-        
-        // 添加条件树描述
-        appendConditionTreeSummary(summary, conditionTree);
-        
-        return summary.toString();
-    }
-
-    /**
-     * 递归生成条件树描述
-     */
-    private void appendConditionTreeSummary(StringBuilder summary, TagConditionTreeDTO tree) {
-        if (tree == null || tree.getChildren() == null || tree.getChildren().isEmpty()) {
-            return;
-        }
-
-        summary.append("(");
-        for (int i = 0; i < tree.getChildren().size(); i++) {
-            TagConditionNodeDTO node = tree.getChildren().get(i);
-            if (i > 0) {
-                summary.append(tree.getOperator().equals("AND") ? "且" : "或");
-            }
-            
-            if ("GROUP".equals(node.getType())) {
-                // 递归处理条件组
-                appendConditionNodeSummary(summary, node);
-            } else {
-                // 处理叶子条件节点
-                summary.append(node.getFieldName())
-                      .append(convertOperator(node.getOperation()))
-                      .append(node.getValue());
-            }
-        }
-        summary.append(")");
-    }
-
-    /**
-     * 递归生成条件节点描述
-     */
-    private void appendConditionNodeSummary(StringBuilder summary, TagConditionNodeDTO node) {
-        if (node == null || node.getChildren() == null || node.getChildren().isEmpty()) {
-            return;
-        }
-
-        summary.append("(");
-        for (int i = 0; i < node.getChildren().size(); i++) {
-            TagConditionNodeDTO child = node.getChildren().get(i);
-            if (i > 0) {
-                summary.append(node.getOperator().equals("AND") ? "且" : "或");
-            }
-            
-            if ("GROUP".equals(child.getType())) {
-                appendConditionNodeSummary(summary, child);
-            } else {
-                summary.append(child.getFieldName())
-                      .append(convertOperator(child.getOperation()))
-                      .append(child.getValue());
-            }
-        }
-        summary.append(")");
-    }
-
-    /**
-     * 转换操作符为中文描述
-     */
-    private String convertOperator(String operator) {
-        if (operator == null) {
-            return "";
-        }
-        switch (operator.toUpperCase()) {
-            case "EQ":
-                return "等于";
-            case "NE":
-                return "不等于";
-            case "GT":
-                return "大于";
-            case "GE":
-                return "大于等于";
-            case "LT":
-                return "小于";
-            case "LE":
-                return "小于等于";
-            case "LIKE":
-                return "包含";
-            case "NOT_LIKE":
-                return "不包含";
-            case "IN":
-                return "在列表中";
-            case "NOT_IN":
-                return "不在列表中";
-            default:
-                return operator;
-        }
     }
 
     private String camelToSnake(String str) {
@@ -418,41 +300,31 @@ public class TagServiceImpl implements TagService {
         }
     }
 
+
+
+
     @Override
-    public List<TagFieldCategoryDTO> getFieldCategories(String apiCode) {
+    public ApiResult<Boolean> updateTagStatus(String tagCode, Integer status) {
         try {
-            // 获取所有字段配置
-            List<TagFieldConfigDTO> allFields = tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
-            
-            // 按分类分组
-            Map<String, TagFieldCategoryDTO> categoryMap = new HashMap<>();
-            for (TagFieldConfigDTO field : allFields) {
-                String categoryCode = field.getCategoryCode();
-                TagFieldCategoryDTO category = categoryMap.computeIfAbsent(categoryCode, k -> {
-                    TagFieldCategoryDTO newCategory = new TagFieldCategoryDTO();
-                    newCategory.setCategoryCode(categoryCode);
-                    newCategory.setCategoryName(field.getCategoryName());
-                    newCategory.setFields(new ArrayList<>());
-                    return newCategory;
-                });
-                category.getFields().add(field);
+            // 1. 检查标签是否存在
+            TagDataRule existingTag = tagDataRuleMapper.selectByTagCode(tagCode);
+            if (existingTag == null) {
+                return new ApiResult<Boolean>().fail(false, "标签不存在");
             }
-            
-            return new ArrayList<>(categoryMap.values());
+
+            // 2. 更新同步状态
+            TagDataRule updateTag = new TagDataRule();
+            updateTag.setTagCode(tagCode);
+            updateTag.setStatus(status);
+            updateTag.setUpdateTime(new Date());
+
+            tagDataRuleMapper.updateByTagCode(updateTag);
+            return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取字段分类列表失败！apiCode: " + apiCode), e);
-            return new ArrayList<>();
+                    "更新标签同步状态失败！tagCode: " + tagCode), e);
+            return new ApiResult<Boolean>().fail(false, "更新同步状态失败");
         }
-    }
-
-    @Override
-    public String previewRuleSummary(TagTimeRangeEnum timeRange, TagConditionTreeDTO conditionTree) {
-        if (conditionTree == null) {
-            return "";
-        }
-
-        return generateRuleSummary(timeRange, conditionTree);
     }
 }

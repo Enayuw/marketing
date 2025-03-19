@@ -34,4 +34,8 @@ public class TagCreateDTO {
     @NotEmpty(message = "授权APICode不能为空")
     @ApiModelProperty(value = "标签授权APICode列表", required = true)
     private List<String> authorizedApiCodes;
+
+    @NotEmpty(message = "标签内容总结不能为空")
+    @ApiModelProperty(value = "标签内容总结", required = true)
+    private String summary;
 }

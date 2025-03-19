@@ -11,6 +11,9 @@ import java.util.List;
 @Data
 @ApiModel(description = "标签字段配置DTO")
 public class TagFieldConfigDTO {
+    @ApiModelProperty(value = "数据源编码")
+    private String sourceCode;
+
     @ApiModelProperty(value = "字段编码")
     private String fieldCode;
 

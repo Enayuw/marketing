@@ -7,7 +7,6 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
-import com.br.marketing.dto.tag.TagRulePreviewDTO;
 import com.br.marketing.service.tag.web.TagService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -85,11 +84,11 @@ public class TagController {
     @ApiOperation(value = "更新标签状态", notes = "更新标签启用/禁用状态")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "tagCode", value = "标签编码", required = true, dataType = "String"),
-        @ApiImplicitParam(name = "status", value = "状态（true-启用，false-禁用）", required = true, dataType = "Boolean")
+        @ApiImplicitParam(name = "status", value = "状态（true-启用，false-禁用）", required = true, dataType = "Integer")
     })
     public ApiResult<Boolean> updateTagStatus(
             @RequestParam String tagCode,
-            @RequestParam Boolean status) {
+            @RequestParam Integer status) {
         try {
             return tagService.updateTagStatus(tagCode, status);
         } catch (Exception ex) {
@@ -103,9 +102,9 @@ public class TagController {
     @ApiOperation(value = "获取字段配置", notes = "获取字段配置")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagFieldConfigDTO.class)})
     public ApiResult<List<TagFieldConfigDTO>> getFieldConfigs(
-            @ApiParam("API编码") @RequestParam String apiCode) {
+            @ApiParam("数据源编码") @RequestParam String sourceCode) {
         try {
-            List<TagFieldConfigDTO> configs = tagService.getFieldConfigs(apiCode);
+            List<TagFieldConfigDTO> configs = tagService.getFieldConfigs(sourceCode);
             if (configs != null) {
                 return new ApiResult<List<TagFieldConfigDTO>>().success(configs);
             }
@@ -163,39 +162,5 @@ public class TagController {
         }
     }
 
-    @PostMapping("/getFieldCategories")
-    @ApiOperation(value = "获取字段分类", notes = "获取指定APICode下的字段分类列表")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "apiCode", value = "API编码", required = true, dataType = "String")
-    })
-    public ApiResult<List<TagFieldCategoryDTO>> getFieldCategories(@RequestParam String apiCode) {
-        try {
-            List<TagFieldCategoryDTO> categories = tagService.getFieldCategories(apiCode);
-            return new ApiResult<List<TagFieldCategoryDTO>>().success(categories);
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取字段分类列表接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<List<TagFieldCategoryDTO>>().fail(ServiceResultEnum.FAILED);
-        }
-    }
-
-    @PostMapping("/previewRuleSummary")
-    @ApiOperation(value = "预览规则总结", notes = "根据条件实时生成规则总结")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "request", value = "预览参数", required = true, dataType = "TagRulePreviewDTO")
-    })
-    public ApiResult<Boolean> previewRuleSummary(@RequestBody @Valid TagRulePreviewDTO request) {
-        try {
-            String summary = tagService.previewRuleSummary(request.getTimeRange(), request.getConditionTree());
-            if (summary != null) {
-                return new ApiResult<Boolean>().success(true);
-            }
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "预览规则总结接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
-        }
-    }
 
 }
