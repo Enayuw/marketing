@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.io.IOException;
 import java.util.Date;
 
 import com.alibaba.fastjson.*;
@@ -51,6 +52,7 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.tag.TagDataDetailMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.origin.MqFact;
@@ -75,6 +77,8 @@ import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -218,6 +222,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     PushDecisionsMapper pushDecisionsMapper;
     @Resource
     ErrorMarkMapper errorMarkMapper;
+
+    @Resource
+    TagDataDetailMapper tagDataDetailMapper;
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
 
@@ -525,6 +532,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
+        customerInfoPushMain.setTagContent(dto.getmTagCondition());
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
         String batchName;
@@ -563,28 +571,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (isXieChengData(dto)) {
             total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
         } else {
-            QueryBaseBean queryBaseBean = new QueryBaseBean();
-            queryBaseBean.setApiCode(dto.getApiCode());
-            queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
-            queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
-            queryBaseBean.setJsonData(dto.getmRuleCondition());
-            if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+            Result<PushViewVO> pushViewVOResult = queryFederation(dto, pushViewVO);
+            if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
             }
-            if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
-                queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
-            }
-            total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
-
-            //页面规则查询es
-            ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
-            String queryDsl = esQueryRequest.getQueryDsl();
-            List<String> indexName = esQueryRequest.getIndexName();
-            //拼接联邦查询条件
-
-
-            //查询量级
-
+            total = pushViewVOResult.getData().getTotal();
         }
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
@@ -598,6 +589,123 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         pushViewVO.setTotal(total);
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+    }
+
+    private Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode(dto.getApiCode());
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
+        queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
+        queryBaseBean.setJsonData(dto.getmRuleCondition());
+        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+        }
+        if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
+            queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
+        }
+        int total;
+        if (dto.getmTagCondition() == null) {
+            total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+        } else {
+            // 页面规则查询es
+            ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+            String queryDsl = esQueryRequest.getQueryDsl();
+            List<String> indexNames = esQueryRequest.getIndexName();
+
+            if (CollectionUtils.isEmpty(indexNames)) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + dto.getBatchNumberList());
+            }
+            // 解析标签规则
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode;
+            try {
+                jsonNode = objectMapper.readTree(dto.getmTagCondition());
+            } catch (IOException e) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("解析标签规则有误：" + dto.getmTagCondition());
+            }
+            // 构建联邦查询 SQL
+            String federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, jsonNode);
+            log.warn("规则中心推送预览 SQL: " + federatedQuerySql);
+            // 查询量级
+            if(StringUtils.isEmpty(federatedQuerySql)){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("构建联邦查询sql有误");
+            }
+            total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
+        }
+        pushViewVO.setTotal(total);
+        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+    }
+    /**
+     * 构建联邦查询 SQL
+     *
+     * @param indexNames Elasticsearch 索引列表
+     * @param queryDsl   Elasticsearch 查询条件
+     * @param jsonNode   标签规则 JSON
+     * @return 联邦查询 SQL
+     */
+    private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, JsonNode jsonNode) {
+        // 提取 tag_code 和 type
+        String tagCode = jsonNode.get("tag_code").asText();
+        int type = jsonNode.get("type").asInt();
+        // 1. 构建 UNION ALL 部分
+        StringBuilder unionAllBuilder = new StringBuilder();
+        for (int i = 0; i < indexNames.size(); i++) {
+            String indexName = indexNames.get(i);
+            unionAllBuilder.append("SELECT * FROM es.default_db.request_marketing_history_").append(indexName);
+            if (i < indexNames.size() - 1) {
+                unionAllBuilder.append("\nUNION ALL\n");
+            }
+        }
+        // 2. 根据 type 构建不同的 SQL
+        String sql;
+        switch (type) {
+            case 0: // 交集
+                sql = String.format(
+                        "SELECT COUNT(1)\n" +
+                                "FROM (\n" +
+                                "    %s\n" +
+                                ") esIndex\n" +
+                                "JOIN ods_call_record_sample dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
+                                "WHERE esquery(batch_number, '%s');",
+                        unionAllBuilder,
+                        tagCode,
+                        queryDsl.replace("'", "''")
+                );
+                break;
+            case 1: // 并集
+                sql = String.format(
+                        "SELECT COUNT(1)\n" +
+                                "FROM (\n" +
+                                "    SELECT esIndex.* FROM (\n" +
+                                "        %s\n" +
+                                "    ) esIndex\n" +
+                                "FULL OUTER JOIN ods_call_record_sample dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
+                                "WHERE esquery(batch_number, '%s');",
+                        unionAllBuilder,
+                        tagCode,
+                        unionAllBuilder,
+                        tagCode,
+                        queryDsl.replace("'", "''")
+                );
+                break;
+            case 2: // 剔除
+                sql = String.format(
+                        "SELECT COUNT(1)\n" +
+                                "FROM (\n" +
+                                "    %s\n" +
+                                ") esIndex\n" +
+                                "LEFT JOIN ods_call_record_sample dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
+                                "WHERE dorisCall.cell IS NULL\n" +
+                                "AND esquery(batch_number, '%s');",
+                        unionAllBuilder.toString(),
+                        tagCode,
+                        queryDsl.replace("'", "''")
+                );
+                break;
+            default:
+                sql = "";
+        }
+        return sql;
     }
 
     private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
@@ -4190,6 +4298,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setContent(dto.getmRuleCondition());
         searchCondition.setContentShow(dto.getmRuleConditionShow());
         searchCondition.setScoreContent(dto.getmScoreCondition());
+        searchCondition.setTagContent(dto.getmTagCondition());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
         searchCondition.setSourceType(dto.getSourceType());

@@ -51,7 +51,7 @@ public class PushCustomerDTO {
     private String mScoreCondition;
 
     @ApiModelProperty(value = "标签规则")
-    private String mLabelCondition;
+    private String mTagCondition;
 
     @ApiModelProperty(value = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
@@ -212,11 +212,11 @@ public class PushCustomerDTO {
         this.mScoreCondition = mScoreCondition;
     }
 
-    public String getmLabelCondition() {
-        return mLabelCondition;
+    public String getmTagCondition() {
+        return mTagCondition;
     }
 
-    public void setmLabelCondition(String mLabelCondition) {
-        this.mLabelCondition = mLabelCondition;
+    public void setmTagCondition(String mTagCondition) {
+        this.mTagCondition = mTagCondition;
     }
 }

@@ -1,5 +1,6 @@
 package com.br.marketing.service.tag.web;
 
+import com.br.marketing.client.tag.vo.AntaiosResourceDetailVO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.TagCreateDTO;
@@ -82,5 +83,11 @@ public interface TagService {
      * 同步标签库
      * @return List<String>
      */
-    List<String> getTagLibrary();
+    List<AntaiosResourceDetailVO> getTagLibrary();
+
+    /**
+     * 获取apiCode授权的标签
+     * @return List<String>
+     */
+    List<String> getEffectiveTag(String apiCode);
 }

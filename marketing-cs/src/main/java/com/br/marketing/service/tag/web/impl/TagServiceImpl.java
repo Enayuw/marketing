@@ -2,14 +2,17 @@ package com.br.marketing.service.tag.web.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.tag.AntaiosResourceClient;
+import com.br.marketing.client.tag.dto.AntaiosResourceDTO;
+import com.br.marketing.client.tag.vo.AntaiosResourceDetailVO;
+import com.br.marketing.client.tag.vo.AntaiosResourceVo;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
-import com.br.marketing.entity.tag.TagDataRule;
-import com.br.marketing.entity.tag.TagRuleSourceLicense;
-import com.br.marketing.entity.tag.TagRuleSourceRelation;
+import com.br.marketing.entity.tag.*;
 import com.br.marketing.mapper.tag.TagDataFieldConfigMapper;
 import com.br.marketing.mapper.tag.TagDataRuleMapper;
 import com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper;
@@ -34,6 +37,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TagServiceImpl implements TagService {
+
+    @Resource
+    AntaiosResourceClient antaiosResourceClient;
 
     @Resource
     private TagDataRuleMapper tagDataRuleMapper;
@@ -207,10 +213,40 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public List<String> getTagLibrary() {
-
-
+    public List<AntaiosResourceDetailVO> getTagLibrary() {
+        AntaiosResourceDTO antaiosResourceDTO = new AntaiosResourceDTO();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("method","tagList");
+        antaiosResourceDTO.setApiCode("11098");
+        antaiosResourceDTO.setJsonData(jsonObject);
+        AntaiosResourceVo tagLibrary = antaiosResourceClient.getTagLibrary(antaiosResourceDTO);
+        if("00000".equals(tagLibrary.getCode())){
+            return tagLibrary.getData();
+        }
+        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                "同步标签库失败！"), tagLibrary.getMessage());
         return null;
+    }
+
+    @Override
+    public List<String> getEffectiveTag(String apiCode) {
+
+        TagRuleSourceLicenseExample tagRuleSourceLicenseExample = new TagRuleSourceLicenseExample();
+        tagRuleSourceLicenseExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(1);
+        List<TagRuleSourceLicense> tagRuleSourceLicenses = tagRuleSourceLicenseMapper.selectByExample(tagRuleSourceLicenseExample);
+        List<String> tagCodes = tagRuleSourceLicenses.stream()
+                .map(TagRuleSourceLicense::getTagCode)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        TagDataRuleExample tagDataRuleExample = new TagDataRuleExample();
+        tagDataRuleExample.createCriteria().andTagCodeIn(tagCodes);
+        List<TagDataRule> tagDataRules = tagDataRuleMapper.selectByExample(tagDataRuleExample);
+
+        return tagDataRules.stream()
+                .map(TagDataRule::getTagName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     private String generateTagCode() {

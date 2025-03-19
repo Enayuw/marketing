@@ -1,7 +1,6 @@
 package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 
 public class ConditionOfScoreVO {
 
@@ -25,6 +24,9 @@ public class ConditionOfScoreVO {
 
     @ApiModelProperty(value = "模板编号")
     private String conditionNumber;
+
+    @ApiModelProperty(value = "标签规则")
+    private String tagContent;
 
     public Long getId() {
         return id;
@@ -85,5 +87,13 @@ public class ConditionOfScoreVO {
 
     public void setScoreContent(String scoreContent) {
         this.scoreContent = scoreContent;
+    }
+
+    public String getTagContent() {
+        return tagContent;
+    }
+
+    public void setTagContent(String tagContent) {
+        this.tagContent = tagContent;
     }
 }
