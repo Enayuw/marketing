@@ -34,25 +34,25 @@ public class AiYiZhiFuToPolicyPatLoanRule implements AssembleData<PushMarketingU
                 .orElseGet(JSONObject::new);
 
         if (ObjectUtil.isNotEmpty(jsonObject)) {
-            String batchNumber = Optional.ofNullable(jsonObject.getString("batchNumber"))
-                    .orElse(appletDate + "_" + apiCode);
-
-            String strategyCodeOriginal = Optional.ofNullable(jsonObject.getString("strategyCode"))
-                    .orElse("");
-
+            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
+                    ? jsonObject.getString("batchNumber")
+                    : (appletDate + "_" + apiCode);
+            String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
+                    ? jsonObject.getString("strategyCode")
+                    : "";
             String strategyCode = strategyCodeOriginal.length() < 12
                     ? strategyCodeOriginal
                     : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
-
-            String userType = strategyCodeOriginal.length() <= 12
+            jsonObject.put("strategyCode", strategyCode);
+            String userType  = strategyCodeOriginal.length() <= 12
                     ? emptyDefault(syncUser.getUserType())
                     : strategyCodeOriginal.substring(0, strategyCodeOriginal.length() - 12);
-
-            String batchName = Optional.ofNullable(jsonObject.getString("batchName"))
-                    .orElse(appletDate + "_" + apiCode);
-
-            String strategyName = Optional.ofNullable(jsonObject.getString("strategyName"))
-                    .orElse("");
+            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
+                    ? jsonObject.getString("batchName")
+                    : (appletDate + "_" + apiCode);
+            String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
+                    ? jsonObject.getString("strategyName")
+                    : "";
 
             pushData.setStrategyCode(strategyCode);
             pushData.setBatchNumber(batchNumber);
