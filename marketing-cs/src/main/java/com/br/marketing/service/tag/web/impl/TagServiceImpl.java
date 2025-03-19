@@ -316,6 +316,7 @@ public class TagServiceImpl implements TagService {
 
             // 删除关联关系
             tagRuleSourceRelationMapper.batchDeleteByTagCodes(request.getTagCodes());
+            // todo 待删除
             tagRuleSourceLicenseMapper.batchDeleteByTagCodes(request.getTagCodes());
 
             return new ApiResult<Boolean>().success(true);
