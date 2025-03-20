@@ -1,7 +1,5 @@
 package com.br.marketing.push.job;
 
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.push.service.FlowService;

@@ -1,0 +1,145 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+        url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+        username: ENC(mysql-prod-ai-marketing-user)
+        password: ENC(mysql-prod-ai-marketing-password)
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 5
+        maxWait: 30000
+        minIdle: 5
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+  config:
+    sharding:
+      props:
+        sql.show: true
+spring:
+  rabbitmq:
+    zw:
+      addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: strategy-rabbitmq-yz-01.brapp.com:5672,strategy-rabbitmq-yz-02.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    sim:
+      virtual-host: marketing-flow-sim
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
+otherConfig:
+  alarm:
+    secretKey: b58783d4b67f942166f2ffad298080e4
+    appName: marketing
+    outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+    outsideAppName: marketing-out
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
+  userCenter:
+    appName: loan-strategy
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
+  mom:
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: spmarketing
+    proxy_password: t0jI8xLw
+    proxy_host_zw: 192.168.22.169
+  #mom上传日志
+  uploadMom:
+    producerKey: marketing_api_upload_producer
+    appSecretKey: efac86dac5fc53bd920c57d5fc1e7397
+    destinationName: marketing_api_upload_log
+    logIceTimeout: 2000
+api:
+  intelligentCustomerService:
+    baseUrl: http://pdai.brapp.com/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://pdai.brapp.com/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  zhongAn:
+    baseUrl: https://finance-gateway-pop.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: true
+    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCG0Brdms00ECe0Qo/Fljo1S/ZAjGe9BvhLAH9zCGpeQLI9opkvyZFSnBhdP+Nb1pFPQkls8Dpsr0J17M8uEcoglIK1ADVxnqOf9qbzwgDE44/6Bca28gid+b1aL2KpWc0B1U/Q/TFn7ez93/jGcDXN5wxErR2+sIUE1oRUuZQC9wIDAQAB
+    xdCode: 07brdyy001
+    bxCode: 3360001
+  customerService:
+    apiCode: 4000296
+  dass:
+    aesKey: MgoTm8GxuxTUc6y5
+
+rocketmq:
+  # 多个NameServer，host:port;host:port，RocketMQProperties
+  name-server: 192.168.57.11:9876;192.168.57.12:9876;192.168.57.13:9876
+  producer:
+    # 发送同一类消息的设置为同一个group，保证唯一
+    group: Marketing_Default_Group
+    # 发送消息失败重试次数，默认2
+    retryTimesWhenSendFailed: 3
+    # 异步消息重试此处，默认2
+    retryTimesWhenSendAsyncFailed: 2
+    # 发送消息超时时间，默认3000
+    sendMessageTimeout: 5000
+    # 消息最大长度，默认1024 * 1024 * 4(默认4M)
+    maxMessageSize: 4096
+    # 压缩消息阈值，默认4k(1024 * 4)
+    compressMessageBodyThreshold: 4096
+    # 是否在内部发送失败时重试另一个broker，默认false
+    retryNextServer: false
+    # access-key
+    #accessKey: xxx
+    # secret-key
+    #secretKey: xxx
+    # 是否启用消息跟踪，默认false
+    enableMsgTrace: false
+    # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
+    customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
+  consumer:
+    #    # 配置指定group是否启动监听器 group1.topic1 = false
+    #    listeners:
+    #      # key：group名称
+    #      rocketmq_source_code_group:
+    #        # value：{key: topic名称: value: true/false}
+    #        rocketmq_source_code: true
+    # 指定消费组
+    group: Marketing_Default_Group
+    # 指定topic，启动时就会注册
+    #topic: springboot_consumer_xxx
+    # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
+    pull-batch-size: 5
+    # 其他配置参考属性类

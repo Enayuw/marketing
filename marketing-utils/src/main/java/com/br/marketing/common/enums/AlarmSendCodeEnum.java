@@ -73,7 +73,8 @@ public enum AlarmSendCodeEnum {
     PUSHING_APIERROR("74000", "推送Api异常"),
     //调用有效期方法异常,立即推送
     VALIDITY_INTERFACEERROR("75000", "调用有效期方法异常"),
-
+    //RocketMQ消费异常
+    ROCKETMQ_CONSUMER_ERROR("76000", "RocketMQ消费异常"),
 
     //中台业务未知错误,立即推送
     YINGXIAO_SERVICEERROR("6000000", "中台业务未知错误"),

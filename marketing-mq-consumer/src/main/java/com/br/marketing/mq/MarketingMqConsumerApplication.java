@@ -15,7 +15,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})
@@ -32,7 +34,7 @@ public class MarketingMqConsumerApplication {
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
         log.warn("marketing-mq-consumer开始启动！");
-        SpringApplication.run(MarketingMqConsumerApplication.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(MarketingMqConsumerApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -50,7 +52,7 @@ public class MarketingMqConsumerApplication {
         try {
             ConsumerService.consumerDownStatus = Boolean.TRUE;
             log.warn("消费者下线");
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
             log.warn("GRPC服务关闭正常");
         } catch (Exception e) {

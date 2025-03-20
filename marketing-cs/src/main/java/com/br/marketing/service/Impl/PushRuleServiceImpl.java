@@ -29,6 +29,7 @@ import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.CommonException;
@@ -37,6 +38,7 @@ import com.br.marketing.common.utils.*;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
@@ -74,6 +76,7 @@ import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -163,8 +166,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     PhoneSaleMapper phoneSaleMapper;
 
-    @Resource
-    private ZhongyouFileDataMapper zhongyouFileDataMapper;
 
     @Resource
     private ZhongbangCaifuDataMapper zhongbangCaifuDataMapper;
@@ -194,6 +195,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private XiechengCollidingDataPackageRuleMapper xiechengCollidingDataPackageRuleMapper;
@@ -2128,7 +2133,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
         //region 写入上传明细MQ
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
+                        , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -2165,6 +2175,42 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception ex) {
             log.error("推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
+        }
+    }
+    @Override
+    public void sendToRocketMqByConfig(String apiCode, String topic, String tag, String infoId, CustomerQueueEnum queueEnum) {
+        try {
+            long l3 = System.currentTimeMillis();
+            // 根据apicode和bizType获取路由键
+            String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
+            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
+            if (null == routingKeyConfig) {
+                rocketMqSwitch.syncSend(topic, tag, infoId);
+            } else {
+                // RocketMQ不支持优先级
+                String tagFromDb = routingKeyConfig.getRoutingKey();
+                if(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingUploadSmallConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingUploadEmergencyConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingTransferSmallConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingTransferEmergencyConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC, tagFromDb, infoId);
+                }else{
+                    log.warn("[{}]RocketMQ的tag（RoutingKey）配置错误-tag[{}]consumerGroup[{}]-",
+                            apiCode, tagFromDb, routingKeyConfig.getQueueName());
+                }
+            }
+            if (log.isInfoEnabled()) {
+                log.info("RocketMQ推送" + queueEnum.getDesc() + "队列耗时:{}", (System.currentTimeMillis() - l3));
+            }
+        } catch (Exception ex) {
+            log.error("RocketMQ推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
         }
     }
 
@@ -2375,16 +2421,29 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
-            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-            dataInfoDTO.setApiCode(apiCode);
-            dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
-            dataInfoDTO.setArgList(collections);
-            dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
-            return dataInfoDTO.addUploadMsgSource();
-        }, MQConstants.ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
+                return dataInfoDTO.addUploadMsgSource();
+            },MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION);
+        }else{
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
+                return dataInfoDTO.addUploadMsgSource();
+            }, MQConstants.ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        }
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -2428,7 +2487,27 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(infoId);
             mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
-            producter.sendToUniversalTransferQueue(mqFact);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mqFact);
+            }
+        }
+        List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
+        if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)){
+            MrpMqFact mrpMqFact = new MrpMqFact();
+            mrpMqFact.setSourceId(infoId);
+            mrpMqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+            mrpMqFact.setApiCode(apiCode);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mrpMqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mrpMqFact);
+            }
         }
         List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
         if (apiCodeOfRecordTaskTime.contains(apiCode)) {
@@ -2452,6 +2531,28 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
+    /**
+     * （RocketMQ使用）上传数据发送场景消息到收集队列
+     * @Date 2024/8/22 17:09
+     * @param localUserTypeCache
+     * @param function
+     * @param topic
+     * @param tag
+     */
+    private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache
+            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function
+            ,String topic, String tag) {
+        String msg = "";
+        try {
+            msg = JSONObject.toJSONString(function.apply(localUserTypeCache));
+            rocketMqSwitch.syncSend(topic, tag, msg);
+        } catch (Exception e) {
+            log.error("推送场景信息到队列失败,topic[{}]tag[{}]msg[{}]异常信息:",topic, tag, msg, e);
+        } finally {
+            // 辅助gc
+            localUserTypeCache.clear();
+        }
+    }
 
     /**
      * 2024-02-29 10:12
@@ -2537,7 +2638,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
+                        , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -2654,9 +2760,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 throw new KnowException(e.getMessage());
             }
         }
-
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -2709,7 +2819,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -2726,7 +2841,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer soleNumTrans = marketingCommonConfig.getSoleNumTrans();
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
-        TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
+        String apiCode = transferInfo.getApiCode();
+        TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(apiCode);
         TransferDataDTO<TransferDataItemDTO> dto = null;
         if (transferFieldProcessFactory != null && transferFieldProcessFactory.isFormat()) {
             dto = transferFieldProcessFactory.formatTransferObj(transferInfo.getJsonData());
@@ -2735,10 +2851,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             }.getType());
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).andStatusEqualTo(customerStatus);
+        customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(customerStatus);
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         if (marketingCustomers.size() == 0) {
-            throw new RuntimeException(String.format("该apicode:%s 没有维护cid信息,消费有问题", transferInfo.getApiCode()));
+            throw new RuntimeException(String.format("该apicode:%s 没有维护cid信息,消费有问题", apiCode));
         }
         String cid = marketingCustomers.get(0).getCid();
         String tcid = cid.replaceFirst("-", "");
@@ -2774,7 +2890,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
                 BeanUtils.copyProperties(transferDataItemDTO, transferSyncUser);
                 transferSyncUser.setRequestId(transferInfo.getRequestId());
-                transferSyncUser.setApiCode(transferInfo.getApiCode());
+                transferSyncUser.setApiCode(apiCode);
                 transferSyncUser.setOrgName(transferInfo.getOrgName());
                 transferSyncUser.setRequestData(requestDate);
                 transferSyncUser.setRequestTime(requestTime);
@@ -2798,7 +2914,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     String key = transferSyncUser.getUserType();
                     Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
                     if (StringUtils.isNotBlank(key)
-                            && startsWith.stream().anyMatch(transferInfo.getApiCode()::startsWith)
+                            && startsWith.stream().anyMatch(apiCode::startsWith)
                             && transferSyncUser.getId() != null && !localUserTypeCache.containsKey(key)) {
                         // 入库成功后将userType为key，并且唯一
                         // 缓存场景数据
@@ -2869,20 +2985,50 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
         }
 
-        if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
+        if (pushCustomerApiCodes.contains(apiCode)
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             if (transferInfo.getRequestId().startsWith("black_")) {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)){
+                    rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                }else{
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                }
             } else {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)){
+                    rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                }else{
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                }
             }
         }
-        if (universalProcessApiCode.contains(transferInfo.getApiCode())) {
+        if (universalProcessApiCode.contains(apiCode)) {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-            producter.sendToUniversalTransferQueue(mqFact);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mqFact);
+            }
+        }
+        List<String> mrpApiCodes = marketingCommonConfig.getMrpTransferDataPushMqApiCodes();
+        if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)){
+            MrpMqFact mrpMqFact = new MrpMqFact();
+            mrpMqFact.setSourceId(id);
+            mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            mrpMqFact.setApiCode(apiCode);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mrpMqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mrpMqFact);
+            }
         }
 
         if (!CollectionUtils.isEmpty(mrpUniversalProcessApiCode) && mrpUniversalProcessApiCode.contains(transferInfo.getApiCode())) {
@@ -2897,17 +3043,32 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private void transferSendUserTypeCollectionMsg(String cid, MarketingTransferInfo transferInfo
             , Map<String, UserTypeCollectionDTO> localUserTypeCache) {
-        sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
-            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
-            dataInfoDTO.setArgList(collections);
-            dataInfoDTO.setCid(cid);
-            dataInfoDTO.setApiCode(transferInfo.getApiCode());
-            dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            dataInfoDTO.setRequestId(transferInfo.getRequestId());
-            return dataInfoDTO.addTransferMsgSource();
-        }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        String apiCode = transferInfo.getApiCode();
+        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION)){
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setCid(cid);
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                dataInfoDTO.setRequestId(transferInfo.getRequestId());
+                return dataInfoDTO.addTransferMsgSource();
+            }, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION);
+        }else{
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setCid(cid);
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                dataInfoDTO.setRequestId(transferInfo.getRequestId());
+                return dataInfoDTO.addTransferMsgSource();
+            }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        }
     }
 
 
