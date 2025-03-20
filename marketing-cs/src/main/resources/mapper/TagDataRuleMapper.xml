@@ -18,7 +18,6 @@
     <result column="opt_user_name" jdbcType="BIGINT" property="optUserName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="sync_status" jdbcType="INTEGER" property="syncStatus" />
   </resultMap>
 
   <resultMap id="CreatorMap" type="com.br.marketing.dto.tag.TagCreatorDTO">
@@ -58,7 +57,7 @@
   <sql id="Base_Column_List">
     id, tag_code, tag_name, tag_number, content, source_code, summary, time_number, time_unit,
     api_code_scope, api_code_license, `status`, opt_user_id, opt_user_name, create_time,
-    update_time, sync_status
+    update_time
   </sql>
   <select id="selectList" resultMap="BaseResultMap">
     SELECT
@@ -126,7 +125,6 @@
       <if test="apiCodeScope != null">api_code_scope = #{apiCodeScope},</if>
       <if test="apiCodeLicense != null">api_code_license = #{apiCodeLicense},</if>
       <if test="status != null">status = #{status},</if>
-      <if test="syncStatus != null">sync_status = #{syncStatus},</if>
       update_time = NOW()
     </set>
     WHERE tag_code = #{tagCode}
