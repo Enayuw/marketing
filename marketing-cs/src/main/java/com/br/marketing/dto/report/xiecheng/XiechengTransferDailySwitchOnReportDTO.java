@@ -27,6 +27,9 @@ public class XiechengTransferDailySwitchOnReportDTO implements Serializable {
     @ApiModelProperty("当日接通量")
     private Long callNum;
 
+    @ApiModelProperty("当日登录量")
+    private Long loginNum;
+
     @ApiModelProperty("当日身份认证量")
     private Long certifyNum;
 
@@ -41,6 +44,10 @@ public class XiechengTransferDailySwitchOnReportDTO implements Serializable {
 
     @ApiModelProperty("当日提现量")
     private Long withdrawNum;
+
+    @ApiModelProperty("当日登录率")
+    @DecimalFieldConvertor
+    private BigDecimal loginRatio;
 
     @ApiModelProperty("当日身份认证率")
     @DecimalFieldConvertor
@@ -61,6 +68,10 @@ public class XiechengTransferDailySwitchOnReportDTO implements Serializable {
     @ApiModelProperty("当日提现率")
     @DecimalFieldConvertor
     private BigDecimal withdrawRatio;
+
+    @ApiModelProperty("当日申请身份认证率")
+    @DecimalFieldConvertor(scale = 2)
+    private BigDecimal applyCertifyRatio;
 
     @ApiModelProperty("当日身份认证完成率")
     @DecimalFieldConvertor(scale = 2)

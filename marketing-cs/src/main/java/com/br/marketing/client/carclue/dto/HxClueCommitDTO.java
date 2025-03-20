@@ -41,7 +41,10 @@ public class HxClueCommitDTO {
     @JSONField(name = "buy_time")
     private String buyTime;
 
+    @JSONField(name = "assign_id")
+    private String assignId;
 
     @JSONField(name = "sign")
     private String sign;
+
 }
