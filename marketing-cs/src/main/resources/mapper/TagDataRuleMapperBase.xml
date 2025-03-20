@@ -18,6 +18,7 @@
     <result column="opt_user_name" jdbcType="BIGINT" property="optUserName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="is_repeat" jdbcType="INTEGER" property="isRepeat" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -80,7 +81,7 @@
   <sql id="Base_Column_List">
     id, tag_code, tag_name, tag_number, content, source_code, summary, time_number, time_unit, 
     api_code_scope, api_code_license, `status`, opt_user_id, opt_user_name, create_time, 
-    update_time
+    update_time, is_repeat
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.tag.TagDataRuleExample" resultMap="BaseResultMap">
     select
@@ -117,14 +118,14 @@
       content, source_code, summary, 
       time_number, time_unit, api_code_scope, 
       api_code_license, `status`, opt_user_id, 
-      opt_user_name, create_time, update_time
-      )
+      opt_user_name, create_time, update_time, 
+      is_repeat)
     values (#{tagCode,jdbcType=VARCHAR}, #{tagName,jdbcType=VARCHAR}, #{tagNumber,jdbcType=INTEGER}, 
       #{content,jdbcType=VARCHAR}, #{sourceCode,jdbcType=VARCHAR}, #{summary,jdbcType=VARCHAR}, 
       #{timeNumber,jdbcType=INTEGER}, #{timeUnit,jdbcType=VARCHAR}, #{apiCodeScope,jdbcType=VARCHAR}, 
       #{apiCodeLicense,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, 
-      #{optUserName,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{optUserName,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{isRepeat,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataRule" useGeneratedKeys="true">
     insert into t_tag_data_rule
@@ -174,6 +175,9 @@
       <if test="updateTime != null">
         update_time,
       </if>
+      <if test="isRepeat != null">
+        is_repeat,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="tagCode != null">
@@ -220,6 +224,9 @@
       </if>
       <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isRepeat != null">
+        #{isRepeat,jdbcType=INTEGER},
       </if>
     </trim>
   </insert>
@@ -280,6 +287,9 @@
       <if test="record.updateTime != null">
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.isRepeat != null">
+        is_repeat = #{record.isRepeat,jdbcType=INTEGER},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -302,7 +312,8 @@
       opt_user_id = #{record.optUserId,jdbcType=BIGINT},
       opt_user_name = #{record.optUserName,jdbcType=BIGINT},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_repeat = #{record.isRepeat,jdbcType=INTEGER}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -355,6 +366,9 @@
       <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="isRepeat != null">
+        is_repeat = #{isRepeat,jdbcType=INTEGER},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -374,7 +388,8 @@
       opt_user_id = #{optUserId,jdbcType=BIGINT},
       opt_user_name = #{optUserName,jdbcType=BIGINT},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_repeat = #{isRepeat,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

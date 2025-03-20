@@ -1144,6 +1144,66 @@ public class TagDataRuleExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andIsRepeatIsNull() {
+            addCriterion("is_repeat is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatIsNotNull() {
+            addCriterion("is_repeat is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatEqualTo(Integer value) {
+            addCriterion("is_repeat =", value, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatNotEqualTo(Integer value) {
+            addCriterion("is_repeat <>", value, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatGreaterThan(Integer value) {
+            addCriterion("is_repeat >", value, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_repeat >=", value, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatLessThan(Integer value) {
+            addCriterion("is_repeat <", value, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatLessThanOrEqualTo(Integer value) {
+            addCriterion("is_repeat <=", value, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatIn(List<Integer> values) {
+            addCriterion("is_repeat in", values, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatNotIn(List<Integer> values) {
+            addCriterion("is_repeat not in", values, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatBetween(Integer value1, Integer value2) {
+            addCriterion("is_repeat between", value1, value2, "isRepeat");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsRepeatNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_repeat not between", value1, value2, "isRepeat");
+            return (Criteria) this;
+        }
     }
 
     /**
