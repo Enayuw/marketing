@@ -78,7 +78,7 @@ public class TagDataRule implements Serializable {
     /**
      * 操作人账户名
      */
-    private Long optUserName;
+    private String optUserName;
 
     /**
      * 创建时间

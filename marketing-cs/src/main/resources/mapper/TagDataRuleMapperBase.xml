@@ -15,7 +15,7 @@
     <result column="api_code_license" jdbcType="VARCHAR" property="apiCodeLicense" />
     <result column="status" jdbcType="INTEGER" property="status" />
     <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
-    <result column="opt_user_name" jdbcType="BIGINT" property="optUserName" />
+    <result column="opt_user_name" jdbcType="VARCHAR" property="optUserName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="is_repeat" jdbcType="INTEGER" property="isRepeat" />
@@ -124,7 +124,7 @@
       #{content,jdbcType=VARCHAR}, #{sourceCode,jdbcType=VARCHAR}, #{summary,jdbcType=VARCHAR}, 
       #{timeNumber,jdbcType=INTEGER}, #{timeUnit,jdbcType=VARCHAR}, #{apiCodeScope,jdbcType=VARCHAR}, 
       #{apiCodeLicense,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, 
-      #{optUserName,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{isRepeat,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataRule" useGeneratedKeys="true">
@@ -217,7 +217,7 @@
         #{optUserId,jdbcType=BIGINT},
       </if>
       <if test="optUserName != null">
-        #{optUserName,jdbcType=BIGINT},
+        #{optUserName,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
@@ -279,7 +279,7 @@
         opt_user_id = #{record.optUserId,jdbcType=BIGINT},
       </if>
       <if test="record.optUserName != null">
-        opt_user_name = #{record.optUserName,jdbcType=BIGINT},
+        opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
       </if>
       <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -310,7 +310,7 @@
       api_code_license = #{record.apiCodeLicense,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=INTEGER},
       opt_user_id = #{record.optUserId,jdbcType=BIGINT},
-      opt_user_name = #{record.optUserName,jdbcType=BIGINT},
+      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_repeat = #{record.isRepeat,jdbcType=INTEGER}
@@ -358,7 +358,7 @@
         opt_user_id = #{optUserId,jdbcType=BIGINT},
       </if>
       <if test="optUserName != null">
-        opt_user_name = #{optUserName,jdbcType=BIGINT},
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -386,7 +386,7 @@
       api_code_license = #{apiCodeLicense,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=INTEGER},
       opt_user_id = #{optUserId,jdbcType=BIGINT},
-      opt_user_name = #{optUserName,jdbcType=BIGINT},
+      opt_user_name = #{optUserName,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_repeat = #{isRepeat,jdbcType=INTEGER}

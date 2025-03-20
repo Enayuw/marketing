@@ -46,7 +46,7 @@ public interface TagService {
      * @return ApiResult<Boolean>
      * @description 更新标签启用/禁用状态
      */
-    ApiResult<Boolean> updateTagStatus(String tagCode, Integer status);
+    ApiResult<Boolean> updateTagStatus(String tagCode, Integer status, Long optUserId);
 
     /**
      * 获取标签字段配置

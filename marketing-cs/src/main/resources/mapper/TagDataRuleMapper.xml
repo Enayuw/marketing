@@ -15,16 +15,11 @@
     <result column="api_code_license" jdbcType="VARCHAR" property="apiCodeLicense" />
     <result column="status" jdbcType="INTEGER" property="status" />
     <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
-    <result column="opt_user_name" jdbcType="BIGINT" property="optUserName" />
+    <result column="opt_user_name" jdbcType="VARCHAR" property="optUserName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="is_repeat" jdbcType="INTEGER" property="isRepeat" />
   </resultMap>
-
-  <resultMap id="CreatorMap" type="com.br.marketing.dto.tag.TagCreatorDTO">
-    <result column="opt_user_id" jdbcType="BIGINT" property="userId"/>
-    <result column="opt_user_name" jdbcType="BIGINT" property="userName"/>
-  </resultMap>
-
   <sql id="Example_Where_Clause">
     <where>
       <foreach collection="oredCriteria" item="criteria" separator="or">
@@ -54,6 +49,12 @@
       </foreach>
     </where>
   </sql>
+
+  <resultMap id="CreatorMap" type="com.br.marketing.dto.tag.TagCreatorDTO">
+    <result column="opt_user_id" jdbcType="BIGINT" property="userId"/>
+    <result column="opt_user_name" jdbcType="VARCHAR" property="userName"/>
+  </resultMap>
+
   <sql id="Base_Column_List">
     id, tag_code, tag_name, tag_number, content, source_code, summary, time_number, time_unit,
     api_code_scope, api_code_license, `status`, opt_user_id, opt_user_name, create_time,
@@ -76,6 +77,7 @@
       <if test="params.creator != null">
         AND opt_user_id = #{params.creator}
       </if>
+      AND is_repeat = 1
     </where>
     ORDER BY
     ${params.orderByField} ${params.orderByType}
@@ -85,6 +87,7 @@
     SELECT COUNT(1) > 0
     FROM t_tag_data_rule
     WHERE tag_name = #{tagName}
+      AND is_repeat = 1
   </select>
 
   <select id="selectByTagCode" resultMap="BaseResultMap">
@@ -131,7 +134,7 @@
   </update>
 
   <delete id="batchDelete">
-    DELETE FROM t_tag_data_rule
+    UPDATE FROM t_tag_data_rule set is_repeat = 1
     WHERE tag_code IN
     <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
       #{tagCode}

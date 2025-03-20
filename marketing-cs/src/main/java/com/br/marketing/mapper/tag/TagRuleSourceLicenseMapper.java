@@ -20,5 +20,4 @@ public interface TagRuleSourceLicenseMapper extends TagRuleSourceLicenseMapperBa
      */
     int deleteByTagCode(@Param("tagCode") String tagCode);
 
-    int batchDeleteByTagCodes(@Param("tagCodes") List<String> tagCodes);
 }

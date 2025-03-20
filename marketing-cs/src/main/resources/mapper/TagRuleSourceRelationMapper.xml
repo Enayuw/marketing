@@ -1,18 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.tag.TagRuleSourceRelationMapper">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.tag.TagRuleSourceRelation">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="tag_code" jdbcType="VARCHAR" property="tagCode" />
-    <result column="source_mapping_code" jdbcType="VARCHAR" property="sourceMappingCode" />
-    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="status" jdbcType="INTEGER" property="status" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-  </resultMap>
-  <sql id="Base_Column_List">
-    id, tag_code, source_mapping_code, api_code, `status`, create_time, update_time
-  </sql>
+
 
 
 </mapper>

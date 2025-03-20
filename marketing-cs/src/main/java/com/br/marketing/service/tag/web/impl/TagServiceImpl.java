@@ -116,8 +116,8 @@ public class TagServiceImpl implements TagService {
             tagRule.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
             tagRule.setApiCodeLicense(apiCodeLicense);
             tagRule.setStatus(1);
-            tagRule.setOptUserId(getCurrentUserId());
-            tagRule.setOptUserName(getCurrentUserName());
+            tagRule.setOptUserId(request.getOptUserId());
+            tagRule.setOptUserName(request.getOptUserName());
             tagRule.setCreateTime(new Date());
             tagRule.setUpdateTime(new Date());
 
@@ -178,6 +178,10 @@ public class TagServiceImpl implements TagService {
                 return new ApiResult<Boolean>().fail(false, "标签不存在");
             }
 
+            if (!existingTag.getOptUserId().equals(request.getOptUserId())) {
+                return new ApiResult<Boolean>().fail(false, "非本人创建，无法编辑");
+            }
+
             // 2. 校验时间范围是否合法
             TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
             if (timeRange == null) {
@@ -194,8 +198,8 @@ public class TagServiceImpl implements TagService {
             updateTag.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
             updateTag.setApiCodeLicense(String.join(",", request.getAuthorizedApiCodes()));
             updateTag.setUpdateTime(new Date());
-            updateTag.setOptUserId(getCurrentUserId());
-            updateTag.setOptUserName(getCurrentUserName());
+            updateTag.setOptUserId(request.getOptUserId());
+            updateTag.setOptUserName(request.getOptUserName());
 
             // 生成规则总结
             updateTag.setSummary(request.getSummary());
@@ -287,22 +291,6 @@ public class TagServiceImpl implements TagService {
         return "TAG_" + System.currentTimeMillis();
     }
 
-    /**
-     * 获取当前用户ID
-     */
-    private Long getCurrentUserId() {
-        // TODO: 从当前登录用户上下文中获取用户ID
-        return 0L;
-    }
-
-    /**
-     * 获取当前用户名
-     */
-    private Long getCurrentUserName() {
-        // TODO: 从当前登录用户上下文中获取用户名
-        return 0L;
-    }
-
     private String camelToSnake(String str) {
         if (str == null) {
             return null;
@@ -334,9 +322,14 @@ public class TagServiceImpl implements TagService {
         dto.setUpdateTime(tag.getUpdateTime());
 
         // 设置权限
-        Long currentUserId = getCurrentUserId();
-        dto.setCanEdit(tag.getOptUserId().equals(currentUserId));
-        dto.setCanDelete(tag.getOptUserId().equals(currentUserId));
+        TagDataRuleExample example = new TagDataRuleExample();
+        example.createCriteria()
+                .andTagCodeEqualTo(tag.getTagCode())
+                .andOptUserIdEqualTo(tag.getOptUserId());
+        boolean hasPermission = tagDataRuleMapper.countByExample(example) > 0;
+        
+        dto.setCanEdit(hasPermission);
+        dto.setCanDelete(hasPermission);
 
         return dto;
     }
@@ -356,9 +349,6 @@ public class TagServiceImpl implements TagService {
 
             // 执行删除
             tagDataRuleMapper.batchDelete(request.getTagCodes());
-
-            // todo 待删除
-            tagRuleSourceLicenseMapper.batchDeleteByTagCodes(request.getTagCodes());
 
             return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
@@ -385,12 +375,15 @@ public class TagServiceImpl implements TagService {
 
 
     @Override
-    public ApiResult<Boolean> updateTagStatus(String tagCode, Integer status) {
+    public ApiResult<Boolean> updateTagStatus(String tagCode, Integer status, Long optUserId) {
         try {
             // 1. 检查标签是否存在
             TagDataRule existingTag = tagDataRuleMapper.selectByTagCode(tagCode);
             if (existingTag == null) {
                 return new ApiResult<Boolean>().fail(false, "标签不存在");
+            }
+            if (!existingTag.getOptUserId().equals(optUserId)) {
+                return new ApiResult<Boolean>().fail(false, "非本人创建，无法编辑");
             }
 
             // 2. 更新同步状态

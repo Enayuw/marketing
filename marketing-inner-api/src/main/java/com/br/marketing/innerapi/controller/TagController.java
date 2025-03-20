@@ -84,13 +84,15 @@ public class TagController {
     @ApiOperation(value = "更新标签状态", notes = "更新标签启用/禁用状态")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "tagCode", value = "标签编码", required = true, dataType = "String"),
-        @ApiImplicitParam(name = "status", value = "状态（1-启用, 0-禁用）", required = true, dataType = "Integer")
+        @ApiImplicitParam(name = "status", value = "状态（1-启用, 0-禁用）", required = true, dataType = "Integer"),
+        @ApiImplicitParam(name = "optUserId", value = "创建人ID", required = true, dataType = "Long")
     })
     public ApiResult<Boolean> updateTagStatus(
             @RequestParam String tagCode,
-            @RequestParam Integer status) {
+            @RequestParam Integer status,
+            @RequestParam Long optUserId) {
         try {
-            return tagService.updateTagStatus(tagCode, status);
+            return tagService.updateTagStatus(tagCode, status, optUserId);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "更新标签状态接口错误！错误信息：" + ex.getMessage()), ex);
