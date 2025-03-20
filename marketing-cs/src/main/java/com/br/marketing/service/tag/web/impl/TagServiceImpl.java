@@ -237,12 +237,47 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagFieldConfigDTO> getFieldConfigs(String apiCode) {
         try {
-            return tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
+            List<TagFieldConfigDTO> fields = tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
+
+            // 为每个字段设置操作类型
+            for (TagFieldConfigDTO field : fields) {
+                field.setOperationType(getOperationType(field.getFieldType()));
+            }
+
+            return fields;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "获取字段配置失败！apiCode: " + apiCode), e);
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 根据字段类型获取操作类型
+     * @param fieldType 字段类型
+     * @return 操作类型
+     */
+    private String getOperationType(String fieldType) {
+        if (fieldType == null) {
+            return "input";
+        }
+
+        switch (fieldType.toLowerCase()) {
+            case "string":
+            case "number":
+            case "int":
+            case "long":
+            case "double":
+                return "input";
+            case "boolean":
+                return "select";
+            case "date":
+            case "datetime":
+            case "timestamp":
+                return "datePicker";
+            default:
+                return "input";
         }
     }
 

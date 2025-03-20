@@ -52,6 +52,9 @@ public class TagFieldConfigDTO {
 
     @ApiModelProperty(value = "最大值（数字类型时有值）")
     private String maxValue;
+
+    @ApiModelProperty(value = "操作类型：input/select/datePicker")
+    private String operationType;
 }
 
 
