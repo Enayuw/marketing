@@ -14,33 +14,5 @@
     id, tag_code, source_mapping_code, api_code, `status`, create_time, update_time
   </sql>
 
-  <insert id="batchInsert" parameterType="java.util.List">
-    insert into t_tag_rule_source_relation (
-    tag_code, source_mapping_code, api_code, status, create_time, update_time
-    ) values
-    <foreach collection="list" item="item" separator=",">
-      (
-      #{item.tagCode,jdbcType=VARCHAR},
-      #{item.sourceMappingCode,jdbcType=VARCHAR},
-      #{item.apiCode,jdbcType=VARCHAR},
-      #{item.status,jdbcType=BOOLEAN},
-      #{item.createTime,jdbcType=TIMESTAMP},
-      #{item.updateTime,jdbcType=TIMESTAMP}
-      )
-    </foreach>
-  </insert>
-
-  <select id="selectByTagCode" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM t_tag_rule_source_relation
-    WHERE tag_code = #{tagCode,jdbcType=VARCHAR}
-    AND status = true
-  </select>
-
-  <delete id="deleteByTagCode">
-    DELETE FROM t_tag_rule_source_relation
-    WHERE tag_code = #{tagCode,jdbcType=VARCHAR}
-  </delete>
 
 </mapper>

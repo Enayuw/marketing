@@ -28,13 +28,6 @@
     </foreach>
   </insert>
 
-  <select id="selectByTagCode" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM t_tag_rule_source_license
-    WHERE tag_code = #{tagCode,jdbcType=VARCHAR}
-    AND status = true
-  </select>
 
   <delete id="deleteByTagCode">
     DELETE FROM t_tag_rule_source_license

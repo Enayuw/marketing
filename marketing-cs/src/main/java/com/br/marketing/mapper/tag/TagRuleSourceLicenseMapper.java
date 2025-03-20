@@ -16,11 +16,6 @@ public interface TagRuleSourceLicenseMapper extends TagRuleSourceLicenseMapperBa
     int batchInsert(@Param("list") List<TagRuleSourceLicense> list);
 
     /**
-     * 根据标签编码查询授权关系
-     */
-    List<TagRuleSourceLicense> selectByTagCode(@Param("tagCode") String tagCode);
-
-    /**
      * 根据标签编码删除授权关系
      */
     int deleteByTagCode(@Param("tagCode") String tagCode);

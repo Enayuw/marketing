@@ -1,5 +1,6 @@
 package com.br.marketing.service.tag.web.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
@@ -17,7 +18,6 @@ import com.br.marketing.entity.tag.*;
 import com.br.marketing.mapper.tag.TagDataFieldConfigMapper;
 import com.br.marketing.mapper.tag.TagDataRuleMapper;
 import com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper;
-import com.br.marketing.mapper.tag.TagRuleSourceRelationMapper;
 import com.br.marketing.service.tag.web.TagService;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -49,8 +49,6 @@ public class TagServiceImpl implements TagService {
     @Resource
     private TagDataFieldConfigMapper tagDataFieldConfigMapper;
 
-    @Resource
-    private TagRuleSourceRelationMapper tagRuleSourceRelationMapper;
 
     @Resource
     private TagRuleSourceLicenseMapper tagRuleSourceLicenseMapper;
@@ -114,8 +112,9 @@ public class TagServiceImpl implements TagService {
             tagRule.setTimeNumber(timeRange.getTimeNumber());
             tagRule.setTimeUnit(timeRange.getTimeUnit());
             tagRule.setContent(JSON.toJSONString(request.getConditionTree()));
+            String apiCodeLicense = String.join(",", request.getAuthorizedApiCodes());
             tagRule.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
-            tagRule.setApiCodeLicense(String.join(",", request.getAuthorizedApiCodes()));
+            tagRule.setApiCodeLicense(apiCodeLicense);
             tagRule.setStatus(1);
             tagRule.setOptUserId(getCurrentUserId());
             tagRule.setOptUserName(getCurrentUserName());
@@ -128,6 +127,11 @@ public class TagServiceImpl implements TagService {
             // 5. 保存标签规则
             tagDataRuleMapper.insert(tagRule);
 
+            // 6. 保存标签授权关系
+            if (ObjectUtil.isNotEmpty(apiCodeLicense)) {
+                saveTagSourceLicense(tagCode, request.getAuthorizedApiCodes());
+            }
+
             return tagCode;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
@@ -135,6 +139,26 @@ public class TagServiceImpl implements TagService {
                     "创建标签失败！tagName: " + request.getTagName()), e);
             throw e;
         }
+    }
+
+    private void saveTagSourceLicense(String tagCode, List<String> apiCodes) {
+        if (apiCodes == null || apiCodes.isEmpty()) {
+            return;
+        }
+
+        List<TagRuleSourceLicense> licenses = apiCodes.stream()
+                .map(apiCode -> {
+                    TagRuleSourceLicense license = new TagRuleSourceLicense();
+                    license.setTagCode(tagCode);
+                    license.setApiCode(apiCode);
+                    license.setStatus(1);
+                    license.setCreateTime(new Date());
+                    license.setUpdateTime(new Date());
+                    return license;
+                })
+                .collect(Collectors.toList());
+
+        tagRuleSourceLicenseMapper.batchInsert(licenses);
     }
 
 
@@ -178,6 +202,10 @@ public class TagServiceImpl implements TagService {
 
             tagDataRuleMapper.updateByTagCode(updateTag);
 
+            // 3. 更新关联关系
+            updateTagRelations(request.getTagCode(), request);
+
+
             return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
@@ -186,6 +214,21 @@ public class TagServiceImpl implements TagService {
             return new ApiResult<Boolean>().fail(false, "更新失败");
         }
     }
+
+    /**
+     * 更新标签关联关系
+     */
+    private void updateTagRelations(String tagCode, TagUpdateDTO request) {
+        // 删除原有关系
+        tagRuleSourceLicenseMapper.deleteByTagCode(tagCode);
+
+        // 保存新关系
+        if (ObjectUtil.isNotEmpty(request.getAuthorizedApiCodes())) {
+            saveTagSourceLicense(tagCode, request.getAuthorizedApiCodes());
+        }
+    }
+
+
 
     @Override
     public List<TagFieldConfigDTO> getFieldConfigs(String apiCode) {
@@ -314,8 +357,6 @@ public class TagServiceImpl implements TagService {
             // 执行删除
             tagDataRuleMapper.batchDelete(request.getTagCodes());
 
-            // 删除关联关系
-            tagRuleSourceRelationMapper.batchDeleteByTagCodes(request.getTagCodes());
             // todo 待删除
             tagRuleSourceLicenseMapper.batchDeleteByTagCodes(request.getTagCodes());
 
