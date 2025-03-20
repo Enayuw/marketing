@@ -1,32 +1,18 @@
 package com.br.marketing.service.rulecenter.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
-import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
+import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.rulecenter.IRuleTaskService;
 import com.br.marketing.service.rulecenter.enums.RuleCenterDataSourceEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.EsConditionTransferSqlUtil;
-import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.xiecheng.PushViewVO;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
+
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -50,6 +36,8 @@ public class RuleTaskByScoreServiceImpl implements IRuleTaskService {
 
     @Resource
     ScoreXieChengServiceImpl scoreXieChengService;
+    @Resource
+    PushRuleServiceImpl pushRuleService;
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
@@ -68,6 +56,7 @@ public class RuleTaskByScoreServiceImpl implements IRuleTaskService {
         pushCustomerDTO.setFileIdList(collect);
         pushCustomerDTO.setmRuleCondition(scoreSearchCondition.getContent());
         pushCustomerDTO.setmRuleConditionShow(scoreSearchCondition.getContentShow());
+        pushCustomerDTO.setmTagCondition(scoreSearchCondition.getTagContent());
         return pushCustomerDTO;
     }
 
@@ -77,18 +66,11 @@ public class RuleTaskByScoreServiceImpl implements IRuleTaskService {
         if (isXieChengData(dto)) {
             total = scoreXieChengService.getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
         } else {
-            QueryBaseBean queryBaseBean = new QueryBaseBean();
-            queryBaseBean.setApiCode(dto.getApiCode());
-            queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
-            queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
-            queryBaseBean.setJsonData(dto.getmRuleCondition());
-            if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+            Result<PushViewVO> pushViewVOResult = pushRuleService.queryFederation(dto, pushViewVO);
+            if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
             }
-            if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
-                queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
-            }
-            total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+            total = pushViewVOResult.getData().getTotal();
         }
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");

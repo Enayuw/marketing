@@ -1,5 +1,6 @@
 package com.br.marketing.client.tag.dto;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 /**
@@ -8,10 +9,10 @@ import lombok.Data;
  * @Date 2025/3/19 15:08
  */
 @Data
-public class AntaiosResourceDTO<T> {
+public class AntaiosResourceDTO {
 
     private String apiCode;
 
-    private T jsonData;
+    private JSONObject jsonData;
 
 }

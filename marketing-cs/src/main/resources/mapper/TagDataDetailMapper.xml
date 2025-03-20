@@ -6,4 +6,16 @@
     ${querySql}
   </select>
 
+  <select id="queryCells" resultType="java.lang.String">
+    select cell
+    from t_tag_data_detail
+    where status = 1
+      and calculate_date = #{date}
+      and tag_code = #{tagCode}
+      and cell in
+      <foreach collection="cells" item="cell" separator="," open="(" close=")">
+        #{cell}
+      </foreach>
+  </select>
+
 </mapper>

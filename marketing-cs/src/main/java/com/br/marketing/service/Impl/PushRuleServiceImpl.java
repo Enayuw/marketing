@@ -591,7 +591,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
-    private Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
+    public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
@@ -604,7 +604,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
         }
         int total;
-        if (dto.getmTagCondition() == null) {
+        String mTagCondition = dto.getmTagCondition();
+        if (mTagCondition== null) {
             total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         } else {
             // 页面规则查询es
@@ -615,16 +616,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (CollectionUtils.isEmpty(indexNames)) {
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + dto.getBatchNumberList());
             }
-            // 解析标签规则
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode;
-            try {
-                jsonNode = objectMapper.readTree(dto.getmTagCondition());
-            } catch (IOException e) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("解析标签规则有误：" + dto.getmTagCondition());
-            }
+
             // 构建联邦查询 SQL
-            String federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, jsonNode);
+            String federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, mTagCondition);
             log.warn("规则中心推送预览 SQL: " + federatedQuerySql);
             // 查询量级
             if(StringUtils.isEmpty(federatedQuerySql)){
@@ -640,13 +634,15 @@ public class PushRuleServiceImpl implements PushRuleService {
      *
      * @param indexNames Elasticsearch 索引列表
      * @param queryDsl   Elasticsearch 查询条件
-     * @param jsonNode   标签规则 JSON
+     * @param mTagCondition   标签规则 JSON
      * @return 联邦查询 SQL
      */
-    private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, JsonNode jsonNode) {
-        // 提取 tag_code 和 type
-        String tagCode = jsonNode.get("tag_code").asText();
-        int type = jsonNode.get("type").asInt();
+    private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, String mTagCondition) {
+        // 解析标签规则
+        JSONObject jsonObject = JSON.parseObject(mTagCondition);
+        String tagCode = jsonObject.getString("tag_code");
+        int type = jsonObject.getIntValue("type");
+
         // 1. 构建 UNION ALL 部分
         StringBuilder unionAllBuilder = new StringBuilder();
         for (int i = 0; i < indexNames.size(); i++) {
@@ -672,23 +668,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         queryDsl.replace("'", "''")
                 );
                 break;
-            case 1: // 并集
-                sql = String.format(
-                        "SELECT COUNT(1)\n" +
-                                "FROM (\n" +
-                                "    SELECT esIndex.* FROM (\n" +
-                                "        %s\n" +
-                                "    ) esIndex\n" +
-                                "FULL OUTER JOIN ods_call_record_sample dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
-                                "WHERE esquery(batch_number, '%s');",
-                        unionAllBuilder,
-                        tagCode,
-                        unionAllBuilder,
-                        tagCode,
-                        queryDsl.replace("'", "''")
-                );
-                break;
-            case 2: // 剔除
+            case 1: // 剔除
                 sql = String.format(
                         "SELECT COUNT(1)\n" +
                                 "FROM (\n" +
@@ -1561,15 +1541,38 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!isSigle) {
             Integer nowSum = 0;
             for (Integer i = 0; i < parNum; i++) {
-                QueryBaseBean queryBaseBean = new QueryBaseBean();
-                queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
-                queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
-                queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
-                queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-                queryBaseBean.setPart(i.toString());
-                Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
-                partDataNum.put(i, nowNum);
-                nowSum += nowNum;
+                QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
+                //存在标签
+                if(customerInfoPushMain.getTagContent() != null){
+                    List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                    // 解析标签规则
+                    JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                    String tagCode = jsonObject.getString("tag_code");
+                    int type = jsonObject.getIntValue("type");
+                    // 查询es 提取跑分文件中cells
+                    List<String> esCells = marketingHistories.stream()
+                            .map(MarketingHistory::getCell)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+                    // 获取 TiDB 中存在的 cells
+                    List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
+
+                    if(type == 0){
+                        // 交集：跑分文件 与 标签数据 都存在
+                        partDataNum.put(i, tidbCells.size());
+                        nowSum += tidbCells.size();
+                    }else{
+                        // 剔除：去掉标签存在跑分文件中cell
+                        // 计算剔除数量：esCells - tidbCells
+                        esCells.removeAll(tidbCells);
+                        partDataNum.put(i, esCells.size());
+                        nowSum += esCells.size();
+                    }
+                }else {
+                    Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                    partDataNum.put(i, nowNum);
+                    nowSum += nowNum;
+                }
             }
             if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
@@ -1655,6 +1658,19 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    /**
+     * 创建 QueryBaseBean
+     */
+    private QueryBaseBean createQueryBaseBean(CustomerInfoPushMain customerInfoPushMain, List<String> numList, List<Long> fileIds, Integer part) {
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
+        queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
+        queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+        queryBaseBean.setPart(part.toString());
+        return queryBaseBean;
     }
 
     private int retryEsData(CustomerInfoPushMain customerInfoPushMain) {
@@ -1778,6 +1794,33 @@ public class PushRuleServiceImpl implements PushRuleService {
                         marketingHistories = null;
                     }else {
                         marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+
+                        if(customerInfoPushMain.getTagContent() != null){
+                            // 解析标签规则
+                            JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                            String tagCode = jsonObject.getString("tag_code");
+                            int type = jsonObject.getIntValue("type");
+                            // 查询es 提取跑分文件中cells
+                            List<String> esCells = marketingHistories.stream()
+                                    .map(MarketingHistory::getCell)
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toList());
+
+                            // 获取 TiDB 中存在的 cells
+                            List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
+
+                            if(type == 0){
+                                // 交集：跑分文件 与 标签数据 都存在
+                                marketingHistories = marketingHistories.stream()
+                                        .filter(history -> tidbCells.contains(history.getCell()))
+                                        .collect(Collectors.toList());
+                            }else{
+                                // 剔除：去掉标签存在跑分文件中cell
+                                marketingHistories = marketingHistories.stream()
+                                        .filter(history -> !tidbCells.contains(history.getCell()))
+                                        .collect(Collectors.toList());
+                            }
+                        }
                     }
                     //查询ES异常
                     if(marketingHistories == null){

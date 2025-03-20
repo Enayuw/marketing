@@ -2707,5 +2707,17 @@ public class MarketingCommonConfig {
      */
     private JSONObject carClueDataMemberConfig;
 
+    /**
+     * 外呼接口方法挡板开关 true:开启挡板。false:关闭挡板
+     * antaiosResourceMock={"switch":true,"code":"00000"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * code：
+     *      00000:请求成功
+     */
+    private HashMap<String, Object> antaiosResourceMock;
+
+
 }
 

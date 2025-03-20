@@ -7,6 +7,7 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.tag.dto.AntaiosResourceDTO;
+import com.br.marketing.client.tag.vo.AntaiosResourceDetailVO;
 import com.br.marketing.client.tag.vo.AntaiosResourceVo;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -51,6 +55,12 @@ public class AntaiosResourceClient {
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public AntaiosResourceVo getTagLibrary(AntaiosResourceDTO dto) {
+
+        HashMap<String, Object> mock = marketingCommonConfig.getAntaiosResourceMock();
+        if (mock.get("switch") == Boolean.TRUE) {
+            return mockData(mock);
+        }
+
         AntaiosResourceVo result = new AntaiosResourceVo();
         try{
             ThirdApiResultTransfer thirdApiResult = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
@@ -67,6 +77,24 @@ public class AntaiosResourceClient {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             result.setCode("9999");
             result.setMessage(ex.getMessage());
+        }
+        return result;
+    }
+
+    private AntaiosResourceVo mockData(HashMap<String, Object> mock) {
+        AntaiosResourceVo result = new AntaiosResourceVo();
+        if("00000".equals(mock.get("code").toString())){
+            AntaiosResourceDetailVO vo = new AntaiosResourceDetailVO();
+            vo.setApiCode("11098");
+            vo.setTagList("iPhone提示音挂机末句,iPhone提示音挂机首句,客户要求发短信");
+            List<AntaiosResourceDetailVO> list = new ArrayList<>();
+            list.add(vo);
+            result.setCode("00000");
+            result.setMessage("请求成功！");
+            result.setData(list);
+        }else {
+            result.setCode(mock.get("code").toString());
+            result.setMessage("请求失败！");
         }
         return result;
     }
