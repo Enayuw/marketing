@@ -99,10 +99,13 @@ public class TagController {
     }
 
     @PostMapping("/getFieldConfigs")
-    @ApiOperation(value = "获取字段配置", notes = "获取字段配置")
+    @ApiOperation(value = "获取字段配置", notes = "根据数据源编码获取对应的字段配置信息")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "sourceCode", value = "数据源编码", required = true, dataType = "String", example = "SOURCE_001")
+    })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagFieldConfigDTO.class)})
     public ApiResult<List<TagFieldConfigDTO>> getFieldConfigs(
-            @ApiParam("数据源编码") @RequestParam String sourceCode) {
+            @ApiParam(value = "数据源编码", required = true) @RequestParam String sourceCode) {
         try {
             List<TagFieldConfigDTO> configs = tagService.getFieldConfigs(sourceCode);
             if (configs != null) {
