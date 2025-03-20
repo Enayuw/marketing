@@ -84,7 +84,7 @@ public class TagController {
     @ApiOperation(value = "更新标签状态", notes = "更新标签启用/禁用状态")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "tagCode", value = "标签编码", required = true, dataType = "String"),
-        @ApiImplicitParam(name = "status", value = "状态（true-启用，false-禁用）", required = true, dataType = "Integer")
+        @ApiImplicitParam(name = "status", value = "状态（1-启用, 0-禁用）", required = true, dataType = "Integer")
     })
     public ApiResult<Boolean> updateTagStatus(
             @RequestParam String tagCode,
