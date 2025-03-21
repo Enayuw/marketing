@@ -391,7 +391,19 @@ public class QiFuServiceImpl implements IQiFuService {
             // 定义需要清洗的关键词
             String[] keywordsToClean = {"智信", "超级会员", "专属"};
 
-            // 定义优先级映射表（根据图片中的优先级，1最高）
+            // 获取所有券名
+            List<String> couponNames = new ArrayList<>();
+            for (int i = 0; i < coupons.size(); i++) {
+                String couponName = coupons.getJSONObject(i).getString("couponName");
+                couponNames.add(cleanCouponName(couponName, keywordsToClean));
+            }
+
+            // 如果只有一张券，直接返回清洗后的结果
+            if (couponNames.size() == 1) {
+                return couponNames.get(0);
+            }
+
+            // 定义优先级映射表（数字越大优先级越高）
             Map<String, Integer> priorityMap = new HashMap<>();
             priorityMap.put("6期免息券", 1);
             priorityMap.put("3期免息券", 2);
@@ -438,33 +450,21 @@ public class QiFuServiceImpl implements IQiFuService {
             priorityMap.put("最高30元免息券", 43);
             priorityMap.put("免息优惠券", 44);
 
-            // 如果只有一张券
-            if (coupons.size() == 1) {
-                String couponName = coupons.getJSONObject(0).getString("couponName");
-                return cleanCouponName(couponName, keywordsToClean);
-            }
-
             // 处理多张券的情况
             String selectedCoupon = "";
-            int highestPriority = Integer.MAX_VALUE;
+            int highestPriority = -1;
 
-            for (int i = 0; i < coupons.size(); i++) {
-                String couponName = coupons.getJSONObject(i).getString("couponName");
-                String cleanedName = cleanCouponName(couponName, keywordsToClean);
-
-                // 获取优先级，如果不在列表中则使用最大值
-                int priority = priorityMap.getOrDefault(cleanedName, Integer.MAX_VALUE);
-
-                // 更新最高优先级的券
-                if (priority < highestPriority) {
+            for (String couponName : couponNames) {
+                int priority = priorityMap.getOrDefault(couponName, -1);
+                if (priority > highestPriority) {
                     highestPriority = priority;
-                    selectedCoupon = cleanedName;
+                    selectedCoupon = couponName;
                 }
             }
 
-            // 如果没有找到优先级内的券，返回第一张券的清洗后名称
+            // 如果没有找到优先级内的券，返回第一张券
             if (StringUtils.isBlank(selectedCoupon)) {
-                return cleanCouponName(coupons.getJSONObject(0).getString("couponName"), keywordsToClean);
+                return couponNames.get(0);
             }
 
             return selectedCoupon;
@@ -483,7 +483,7 @@ public class QiFuServiceImpl implements IQiFuService {
         for (String keyword : keywordsToClean) {
             cleanedName = cleanedName.replace(keyword, "");
         }
-        return cleanedName;
+        return cleanedName.trim();
     }
 
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
