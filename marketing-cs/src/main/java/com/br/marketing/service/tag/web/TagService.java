@@ -91,4 +91,9 @@ public interface TagService {
      */
     boolean checkTagNameExists(String tagName);
 
+    /**
+     * 获取标签详情用于编辑
+     */
+    ApiResult<TagDetailDTO> getTagDetail(Long id);
+
 }

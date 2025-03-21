@@ -192,5 +192,13 @@ public class TagController {
         }
     }
 
+    @GetMapping("/getTagDetail")
+    @ApiOperation(value = "获取标签详情", notes = "根据标签编码获取标签详细信息，用于编辑前的数据反显")
+    public ApiResult<TagDetailDTO> getTagDetail(
+            @ApiParam(value = "标签编码", required = true)
+            @RequestParam Long id) {
+        return tagService.getTagDetail(id);
+    }
+
 
 }
