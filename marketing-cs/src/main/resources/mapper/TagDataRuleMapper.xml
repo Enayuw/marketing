@@ -63,22 +63,24 @@
   <select id="selectList" resultMap="BaseResultMap">
     SELECT
     <include refid="Base_Column_List" />
-    FROM t_tag_data_rule
+    FROM t_tag_data_rule tdr
     <where>
       <if test="params.tagName != null and params.tagName != ''">
-        AND tag_name LIKE CONCAT('%', #{params.tagName}, '%')
+        AND tdr.tag_name LIKE CONCAT('%', #{params.tagName}, '%')
       </if>
       <if test="params.apiCodes != null and params.apiCodes.size() > 0">
-        AND api_code_scope IN
-        <foreach collection="params.apiCodes" item="apiCode" open="(" separator="," close=")">
-          #{apiCode}
+        AND (
+        <foreach collection="params.apiCodes" item="apiCode" separator=" OR ">
+          FIND_IN_SET(#{apiCode}, tdr.api_code_license) > 0
         </foreach>
+        )
       </if>
       <if test="params.creator != null">
-        AND opt_user_id = #{params.creator}
+        AND tdr.opt_user_id = #{params.creator}
       </if>
-      AND is_repeat = 1
+      AND tdr.is_repeat = 1
     </where>
+    GROUP BY tdr.id
     ORDER BY
     ${params.orderByField} ${params.orderByType}
   </select>
@@ -109,9 +111,10 @@
 
 
   <select id="selectDistinctCreators" resultMap="CreatorMap">
-    SELECT DISTINCT opt_user_id, opt_user_name
+    SELECT opt_user_id, opt_user_name
     FROM t_tag_data_rule
     WHERE status = 1
+    GROUP BY opt_user_id, opt_user_name
     ORDER BY opt_user_id
   </select>
 
