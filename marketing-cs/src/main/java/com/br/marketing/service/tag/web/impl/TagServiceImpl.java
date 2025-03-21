@@ -116,6 +116,7 @@ public class TagServiceImpl implements TagService {
             TagDataRule tagRule = new TagDataRule();
             tagRule.setTagCode(tagCode);
             tagRule.setTagName(request.getTagName());
+            tagRule.setSourceCode(request.getSourceCode());
             tagRule.setTimeNumber(timeRange.getTimeNumber());
             tagRule.setTimeUnit(timeRange.getTimeUnit());
             tagRule.setContent(JSON.toJSONString(request.getConditionTree()));

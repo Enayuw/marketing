@@ -25,6 +25,10 @@ public class TagCreateDTO {
     @ApiModelProperty(value = "条件树配置", required = true)
     private JSONObject conditionTree;
 
+    @NotBlank(message = "数据源编码不能为空")
+    @ApiModelProperty(value = "数据源编码,多个用,分割", required = true)
+    private String sourceCode;
+
     @NotBlank(message = "时间范围不能为空")
     @ApiModelProperty(value = "时间范围(YESTERDAY-昨天,LAST_THREE_DAYS-最近三天,LAST_WEEK-最近一周,LAST_MONTH-最近一月,LAST_THREE_MONTHS-最近三月)", required = true)
     private String timeRange;
