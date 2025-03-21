@@ -348,7 +348,7 @@ public class TagServiceImpl implements TagService {
      * 生成标签编码
      */
     @Override
-    public List<String> getEffectiveTag(String apiCode) {
+    public List<TagEffectiveDTO> getEffectiveTag(String apiCode) {
         // 查询符合条件的 TagRuleSourceLicense 列表
         TagRuleSourceLicenseExample tagRuleSourceLicenseExample = new TagRuleSourceLicenseExample();
         tagRuleSourceLicenseExample.createCriteria()
@@ -366,19 +366,7 @@ public class TagServiceImpl implements TagService {
         if (tagCodes.isEmpty()) {
             return new ArrayList<>();
         }
-
-        // 查询符合条件的 TagDataRule 列表
-        TagDataRuleExample tagDataRuleExample = new TagDataRuleExample();
-        tagDataRuleExample.createCriteria()
-                .andTagCodeIn(tagCodes);
-
-        List<TagDataRule> tagDataRules = tagDataRuleMapper.selectByExample(tagDataRuleExample);
-
-        // 提取 tagName 列表，过滤掉 null 值
-        return tagDataRules.stream()
-                .map(TagDataRule::getTagName)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return tagDataRuleMapper.queryByTagCodes(tagCodes);
     }
 
 

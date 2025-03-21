@@ -4,6 +4,7 @@ import com.br.marketing.client.tag.vo.AntaiosResourceDetailVO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
+import com.br.marketing.entity.tag.TagDataRule;
 
 import java.util.List;
 
@@ -68,7 +69,7 @@ public interface TagService {
      * 获取apiCode授权的标签
      * @return List<String>
      */
-    List<String> getEffectiveTag(String apiCode);
+    List<TagEffectiveDTO> getEffectiveTag(String apiCode);
 
     /**
      * 批量删除标签

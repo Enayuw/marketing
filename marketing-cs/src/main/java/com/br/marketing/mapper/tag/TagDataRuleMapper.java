@@ -2,6 +2,7 @@ package com.br.marketing.mapper.tag;
 
 import com.br.marketing.dto.tag.TagCreatorDTO;
 import com.br.marketing.dto.tag.TagListResponseDTO;
+import com.br.marketing.dto.tag.TagEffectiveDTO;
 import com.br.marketing.entity.tag.TagDataRule;
 import org.apache.ibatis.annotations.Param;
 
@@ -46,4 +47,6 @@ public interface TagDataRuleMapper extends TagDataRuleMapperBase {
     List<TagListResponseDTO> selectDistinctTagNames();
 
     int batchDelete(@Param("tagCodes") List<String> tagCodes);
+
+    List<TagEffectiveDTO> queryByTagCodes(@Param("tagCodes") List<String> tagCodes);
 }
