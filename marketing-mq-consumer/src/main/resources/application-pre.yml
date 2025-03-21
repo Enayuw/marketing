@@ -90,8 +90,6 @@ spring:
       publisher-confirms: true
       publisher-returns: true
       virtual-host: marketing_juman_01
-    sim:
-      virtual-host: marketing-xy
     listener:
       retry:
         enabled: true

@@ -113,8 +113,6 @@ spring:
       publisher-confirms: true
       publisher-returns: true
       virtual-host: marketing-flow-default-yz
-    sim:
-      virtual-host: marketing-flow
     listener:
       retry:
         enabled: true
