@@ -359,18 +359,22 @@ public class QiFuServiceImpl implements IQiFuService {
         String rTotalAvailableAmt = reserField1.getString("rTotalAvailableAmt");
         String rTaLastAdjustmentAmount = reserField1.getString("rTaLastAdjustmentAmount");
         String rTaTemporaryAmountExpireDate = reserField1.getString("rTaTemporaryAmountExpireDate");
+        String rCouponInfo = reserField1.getString("rCouponInfo");
         // 计算新的字段值
         String oldLowAmountys = getAmount(null, lowAmountys, rTaLastAdjustmentAmount);
         String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
         String changeAmountys = calculateDifference(newHighAmountys, oldLowAmountys);
         String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
         String changeIncrease = calculateIncreaseRate(newHighAmountys, oldLowAmountys);
+//        todo 处理字段
+        String couponDerived = rCouponInfo;
 
         reserField1.put("highAmount_derived", newHighAmountys);
         reserField1.put("lowAmount_derived", oldLowAmountys);
         reserField1.put("changeAmount_derived", changeAmountys);
         reserField1.put("remainDayys_derived", remainDayys);
         reserField1.put("changeIncrease_derived", changeIncrease);
+        reserField1.put("Coupon_derived", couponDerived);
     }
 
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
