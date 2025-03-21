@@ -64,10 +64,10 @@
     SELECT
     <include refid="Base_Column_List" />
     FROM t_tag_data_rule tdr
-    <where>
-      <if test="tagNames != null and tagNames.size() > 0">
+    <where> 1=1
+      <if test="params.tagNames != null and params.tagNames.size() > 0">
         AND tag_name IN
-        <foreach collection="tagNames" item="tagName" open="(" separator="," close=")">
+        <foreach collection="params.tagNames" item="tagName" open="(" separator="," close=")">
           #{tagName}
         </foreach>
       </if>

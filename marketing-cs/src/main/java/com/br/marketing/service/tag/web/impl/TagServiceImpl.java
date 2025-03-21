@@ -96,17 +96,17 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String createTag(TagCreateDTO request) {
+    public ApiResult<Boolean> createTag(TagCreateDTO request) {
         try {
             // 1. 校验标签名称是否重复
             if (checkTagNameExists(request.getTagName())) {
-                throw new RuntimeException("标签名称已存在");
+                return new ApiResult<Boolean>().fail(false, "标签名称已存在");
             }
 
             // 2. 校验时间范围是否合法
             TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
             if (timeRange == null) {
-                throw new RuntimeException("无效的时间范围");
+                return new ApiResult<Boolean>().fail(false, "无效的时间范围");
             }
 
             // 3. 生成标签编码
@@ -141,7 +141,7 @@ public class TagServiceImpl implements TagService {
                 saveTagSourceLicense(tagCode, request.getAuthorizedApiCodes());
             }
 
-            return tagCode;
+            return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),

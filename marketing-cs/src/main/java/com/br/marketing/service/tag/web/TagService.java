@@ -30,7 +30,7 @@ public interface TagService {
      * @return String 返回标签编码
      * @description 创建新的标签配置
      */
-    String createTag(TagCreateDTO request);
+    ApiResult<Boolean> createTag(TagCreateDTO request);
 
     /**
      * 更新标签

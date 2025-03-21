@@ -54,11 +54,7 @@ public class TagController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
     public ApiResult<Boolean> createTag(@RequestBody @Validated TagCreateDTO request) {
         try {
-            String tagCode = tagService.createTag(request);
-            if (tagCode != null) {
-                return new ApiResult<Boolean>().success(true);
-            }
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+            return tagService.createTag(request);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "创建标签接口错误！错误信息：" + ex.getMessage()), ex);
