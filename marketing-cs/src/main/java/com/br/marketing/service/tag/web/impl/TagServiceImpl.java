@@ -19,6 +19,7 @@ import com.br.marketing.mapper.tag.TagDataFieldConfigMapper;
 import com.br.marketing.mapper.tag.TagDataRuleMapper;
 import com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper;
 import com.br.marketing.service.tag.web.TagService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,8 @@ public class TagServiceImpl implements TagService {
     @Resource
     private TagDataFieldConfigMapper tagDataFieldConfigMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private TagRuleSourceLicenseMapper tagRuleSourceLicenseMapper;
@@ -242,7 +245,7 @@ public class TagServiceImpl implements TagService {
     public List<TagFieldConfigDTO> getFieldConfigs(String apiCode) {
         try {
             List<TagFieldConfigDTO> fields = tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
-            List<String> tagLibrary = new ArrayList<>();
+            List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
             // 为每个字段设置操作类型
             for (TagFieldConfigDTO field : fields) {
                 field.setOperationType(getOperationType(field.getFieldType()));

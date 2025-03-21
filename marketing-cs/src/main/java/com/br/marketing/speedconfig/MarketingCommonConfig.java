@@ -2718,6 +2718,9 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, Object> antaiosResourceMock;
 
-
+    /**
+     * 标签库字段映射配置
+     */
+    private List<String> fieldCodeList;
 }
 
