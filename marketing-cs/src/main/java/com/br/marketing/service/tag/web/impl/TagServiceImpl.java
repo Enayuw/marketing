@@ -22,6 +22,7 @@ import com.br.marketing.service.tag.web.TagService;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TagServiceImpl implements TagService {
+
+    @Value("${api.antaios.apiCode:00}")
+    private String tagApiCode;
 
     @Resource
     AntaiosResourceClient antaiosResourceClient;
@@ -282,7 +286,7 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    public List<String> getTagLibrary(String apiCode) {
+    public List<String> getTagLibrary() {
         AntaiosResourceDTO antaiosResourceDTO = new AntaiosResourceDTO();
 
         // 构建 JSON 请求数据
@@ -290,7 +294,7 @@ public class TagServiceImpl implements TagService {
         jsonObject.put("method", "tagList");
         jsonObject.put("tagGroupName", "营销中台标签");
 
-        antaiosResourceDTO.setApiCode(apiCode);
+        antaiosResourceDTO.setApiCode(tagApiCode);
         antaiosResourceDTO.setJsonData(jsonObject);
 
         // 调用客户端获取标签库

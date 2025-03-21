@@ -224,6 +224,7 @@ api:
   antaios:
     baseUrl: https://antaios-process-pre.100credit.cn
     pushUserUrl: ${api.antaios.baseUrl}/api/antaios-app-api/antaios/third/process/resource
+    apiCode: test123
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job
