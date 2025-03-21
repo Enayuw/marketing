@@ -121,24 +121,6 @@ public class TagController {
         }
     }
 
-
-    @PostMapping("/getTagLibrary")
-    @ApiOperation(value = "同步标签库", notes = "同步标签库")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = String.class)})
-    public ApiResult<List<AntaiosResourceDetailVO>> getLabels() {
-        try {
-            List<AntaiosResourceDetailVO> tagList = tagService.getTagLibrary();
-            if (tagList != null) {
-                return new ApiResult<List<AntaiosResourceDetailVO>>().success(tagList);
-            }
-            return new ApiResult<List<AntaiosResourceDetailVO>>().fail(ServiceResultEnum.FAILED);
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "同步标签接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<List<AntaiosResourceDetailVO>>().fail(ServiceResultEnum.FAILED);
-        }
-    }
-
     @PostMapping("/getEffectiveTag")
     @ApiOperation(value = "获取apiCode授权标签", notes = "获取apiCode授权标签")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagListResponseDTO.class)})

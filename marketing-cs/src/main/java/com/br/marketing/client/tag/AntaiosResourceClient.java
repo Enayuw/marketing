@@ -68,7 +68,7 @@ public class AntaiosResourceClient {
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
             if(!Integer.valueOf(200).equals(thirdApiResult.getHttpCode())){
-                throw new RuntimeException("客服中心：".concat(String.valueOf(thirdApiResult.getHttpCode())));
+                throw new RuntimeException("外呼标签：".concat(String.valueOf(thirdApiResult.getHttpCode())));
             }
             result = JSON.parseObject(thirdApiResult.getResult()
                     , new TypeReference<AntaiosResourceVo>() {}.getType());

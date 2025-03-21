@@ -234,7 +234,6 @@ public class TagServiceImpl implements TagService {
     }
 
 
-
     @Override
     public List<TagFieldConfigDTO> getFieldConfigs(String apiCode) {
         try {
@@ -256,6 +255,7 @@ public class TagServiceImpl implements TagService {
 
     /**
      * 根据字段类型获取操作类型
+     *
      * @param fieldType 字段类型
      * @return 操作类型
      */
@@ -282,21 +282,42 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-
-    @Override
-    public List<AntaiosResourceDetailVO> getTagLibrary() {
+    public List<String> getTagLibrary(String apiCode) {
         AntaiosResourceDTO antaiosResourceDTO = new AntaiosResourceDTO();
+
+        // 构建 JSON 请求数据
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("method","tagList");
-        antaiosResourceDTO.setApiCode("11098");
+        jsonObject.put("method", "tagList");
+        jsonObject.put("tagGroupName", "营销中台标签");
+
+        antaiosResourceDTO.setApiCode(apiCode);
         antaiosResourceDTO.setJsonData(jsonObject);
+
+        // 调用客户端获取标签库
         AntaiosResourceVo tagLibrary = antaiosResourceClient.getTagLibrary(antaiosResourceDTO);
-        if("00000".equals(tagLibrary.getCode())){
-            return tagLibrary.getData();
+
+        // 检查返回结果的状态码
+        if (!"00000".equals(tagLibrary.getCode())) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "同步标签库失败！"), tagLibrary.getMessage());
+            return null;
         }
-        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                "同步标签库失败！"), tagLibrary.getMessage());
-        return null;
+
+        // 获取数据列表
+        List<AntaiosResourceDetailVO> data = tagLibrary.getData();
+        if (data == null || data.isEmpty()) {
+            log.warn("返回的数据列表为空！");
+            return null;
+        }
+
+        // 处理第一个元素的标签列表字符串
+        AntaiosResourceDetailVO antaiosResourceDetailVO = data.get(0);
+        String tagList = antaiosResourceDetailVO.getTagList();
+        if (tagList == null || tagList.isEmpty()) {
+            log.warn("标签列表字符串为空！");
+            return new ArrayList<>();
+        }
+        return Arrays.asList(tagList.split(","));
     }
 
     /**
@@ -304,24 +325,38 @@ public class TagServiceImpl implements TagService {
      */
     @Override
     public List<String> getEffectiveTag(String apiCode) {
-
+        // 查询符合条件的 TagRuleSourceLicense 列表
         TagRuleSourceLicenseExample tagRuleSourceLicenseExample = new TagRuleSourceLicenseExample();
-        tagRuleSourceLicenseExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(1);
+        tagRuleSourceLicenseExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andStatusEqualTo(1);
+
         List<TagRuleSourceLicense> tagRuleSourceLicenses = tagRuleSourceLicenseMapper.selectByExample(tagRuleSourceLicenseExample);
+
+        // 提取 tagCode 列表，过滤掉 null 值
         List<String> tagCodes = tagRuleSourceLicenses.stream()
                 .map(TagRuleSourceLicense::getTagCode)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
+        if (tagCodes.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 查询符合条件的 TagDataRule 列表
         TagDataRuleExample tagDataRuleExample = new TagDataRuleExample();
-        tagDataRuleExample.createCriteria().andTagCodeIn(tagCodes);
+        tagDataRuleExample.createCriteria()
+                .andTagCodeIn(tagCodes);
+
         List<TagDataRule> tagDataRules = tagDataRuleMapper.selectByExample(tagDataRuleExample);
 
+        // 提取 tagName 列表，过滤掉 null 值
         return tagDataRules.stream()
                 .map(TagDataRule::getTagName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
+
 
     private String generateTagCode() {
         return "TAG_" + System.currentTimeMillis();
@@ -363,7 +398,7 @@ public class TagServiceImpl implements TagService {
                 .andTagCodeEqualTo(tag.getTagCode())
                 .andOptUserIdEqualTo(tag.getOptUserId());
         boolean hasPermission = tagDataRuleMapper.countByExample(example) > 0;
-        
+
         dto.setCanEdit(hasPermission);
         dto.setCanDelete(hasPermission);
 
@@ -406,8 +441,6 @@ public class TagServiceImpl implements TagService {
             return new ArrayList<>();
         }
     }
-
-
 
 
     @Override

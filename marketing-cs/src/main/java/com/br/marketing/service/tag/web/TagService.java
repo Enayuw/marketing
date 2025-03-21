@@ -56,13 +56,6 @@ public interface TagService {
      */
     List<TagFieldConfigDTO> getFieldConfigs(String apiCode);
 
-
-    /**
-     * 同步标签库
-     * @return List<String>
-     */
-    List<AntaiosResourceDetailVO> getTagLibrary();
-
     /**
      * 获取apiCode授权的标签
      * @return List<String>
