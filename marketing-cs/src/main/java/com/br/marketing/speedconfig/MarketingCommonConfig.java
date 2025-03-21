@@ -1966,7 +1966,7 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingHighValueFiles;
 
     /**
-     * 58撞库status=-2文件id集合，J:非金融周期，Q:金融周期，K:非周期，true:开启撞库，false:关闭撞库 e.g.{"非周期":{"文件id":是否开启撞库}}
+     * 58撞库status=-2文件id集合，J:非金融周期，Q:金融周期，K:非周期，true:开启入库去重，false:关闭去重 e.g.{"非周期":{"文件id":是否开启撞库}}
      * {"J":{"123":true},"Q":{"456":true},"K":{"789":true}}
      */
     private HashMap<String, JSONObject> wubaCollidingReavedFileIds;

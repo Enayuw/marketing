@@ -220,7 +220,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 log.setApiCode(apiCode);
                 log.setDataSourceType(dataSourceType);
                 // todo
-                // log.setScoreDataSourceType(scoreSourceType);
+                // log.setScoreType(scoreSourceType);
 
                 // 周期数据没有packageId
                 log.setPackageId(data.getPackageId());
