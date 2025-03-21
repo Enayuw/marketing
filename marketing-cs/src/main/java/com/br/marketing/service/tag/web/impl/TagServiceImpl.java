@@ -67,7 +67,7 @@ public class TagServiceImpl implements TagService {
 
         // 构建查询参数
         Map<String, Object> params = new HashMap<>();
-        params.put("tagName", request.getTagName());
+        params.put("tagNames", request.getTagName());
         params.put("apiCodes", request.getApiCodes());
         params.put("creator", request.getCreator());
 //        params.put("status", request.getStatus());
