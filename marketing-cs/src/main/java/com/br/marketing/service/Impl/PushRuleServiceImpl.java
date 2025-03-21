@@ -661,7 +661,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 "FROM (\n" +
                                 "    %s\n" +
                                 ") esIndex\n" +
-                                "JOIN ods_call_record_sample dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
+                                "JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
                                 "WHERE esquery(batch_number, '%s');",
                         unionAllBuilder,
                         tagCode,
@@ -674,10 +674,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 "FROM (\n" +
                                 "    %s\n" +
                                 ") esIndex\n" +
-                                "LEFT JOIN ods_call_record_sample dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
+                                "LEFT JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
                                 "WHERE dorisCall.cell IS NULL\n" +
                                 "AND esquery(batch_number, '%s');",
-                        unionAllBuilder.toString(),
+                        unionAllBuilder,
                         tagCode,
                         queryDsl.replace("'", "''")
                 );
@@ -1793,46 +1793,48 @@ public class PushRuleServiceImpl implements PushRuleService {
                     if(b){
                         marketingHistories = null;
                     }else {
-                        marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-
-                        if(customerInfoPushMain.getTagContent() != null){
-                            // 解析标签规则
-                            JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                            String tagCode = jsonObject.getString("tag_code");
-                            int type = jsonObject.getIntValue("type");
-                            // 查询es 提取跑分文件中cells
-                            List<String> esCells = marketingHistories.stream()
-                                    .map(MarketingHistory::getCell)
-                                    .filter(Objects::nonNull)
-                                    .collect(Collectors.toList());
-
-                            // 获取 TiDB 中存在的 cells
-                            List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
-
-                            if(type == 0){
-                                // 交集：跑分文件 与 标签数据 都存在
-                                marketingHistories = marketingHistories.stream()
-                                        .filter(history -> tidbCells.contains(history.getCell()))
-                                        .collect(Collectors.toList());
-                            }else{
-                                // 剔除：去掉标签存在跑分文件中cell
-                                marketingHistories = marketingHistories.stream()
-                                        .filter(history -> !tidbCells.contains(history.getCell()))
-                                        .collect(Collectors.toList());
+                        try {
+                            marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                            if(marketingHistories == null){
+                                throw new Exception();
                             }
-                        }
-                    }
-                    //查询ES异常
-                    if(marketingHistories == null){
-                        if(errorMark.getId() != null){
-                            // 已存在补推记录
-                            if(errorMark.getRetryTotalAttempts() < 3){
-                                updateErrorMark(errorMark,errorMark.getRetryTotalAttempts() + 1);
+                            if(customerInfoPushMain.getTagContent() != null){
+                                // 解析标签规则
+                                JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                                String tagCode = jsonObject.getString("tag_code");
+                                int type = jsonObject.getIntValue("type");
+                                // 查询es 提取跑分文件中cells
+                                List<String> esCells = marketingHistories.stream()
+                                        .map(MarketingHistory::getCell)
+                                        .filter(Objects::nonNull)
+                                        .collect(Collectors.toList());
+
+                                // 获取 TiDB 中存在的 cells
+                                List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
+
+                                if(type == 0){
+                                    // 交集：跑分文件 与 标签数据 都存在
+                                    marketingHistories = marketingHistories.stream()
+                                            .filter(history -> tidbCells.contains(history.getCell()))
+                                            .collect(Collectors.toList());
+                                }else{
+                                    // 剔除：去掉标签存在跑分文件中cell
+                                    marketingHistories = marketingHistories.stream()
+                                            .filter(history -> !tidbCells.contains(history.getCell()))
+                                            .collect(Collectors.toList());
+                                }
                             }
-                        }else {
-                            insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
+                        }catch (Exception e){
+                            if(errorMark.getId() != null){
+                                // 已存在补推记录
+                                if(errorMark.getRetryTotalAttempts() < 3){
+                                    updateErrorMark(errorMark,errorMark.getRetryTotalAttempts() + 1);
+                                }
+                            }else {
+                                insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
+                            }
+                            return resList;
                         }
-                        return resList;
                     }
 
                     if (errorMark.getId() != null) {
