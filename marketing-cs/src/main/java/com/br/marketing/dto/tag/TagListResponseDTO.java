@@ -25,6 +25,9 @@ public class TagListResponseDTO {
     @ApiModelProperty("标签规则总结")
     private String summary;
 
+    @ApiModelProperty("标签规则内容")
+    private String content;
+
     @ApiModelProperty("预估人数")
     private Integer tagNumber;
 

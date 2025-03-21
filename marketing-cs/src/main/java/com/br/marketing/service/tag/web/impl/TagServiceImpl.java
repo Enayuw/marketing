@@ -123,6 +123,7 @@ public class TagServiceImpl implements TagService {
 
             // 生成规则总结
             tagRule.setSummary(request.getSummary());
+            tagRule.setIsRepeat(1);
 
             // 5. 保存标签规则
             tagDataRuleMapper.insert(tagRule);

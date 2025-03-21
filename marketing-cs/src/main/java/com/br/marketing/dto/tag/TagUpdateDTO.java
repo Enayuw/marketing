@@ -44,7 +44,7 @@ public class TagUpdateDTO {
     @ApiModelProperty(value = "标签内容总结", required = true)
     private String summary;
 
-    @NotEmpty(message = "操作人id不能为空")
+    @NotNull(message = "操作人id不能为空")
     @ApiModelProperty(value = "操作人id", required = true)
     private Long optUserId;
 
