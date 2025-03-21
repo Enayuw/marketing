@@ -118,6 +118,17 @@
     ORDER BY opt_user_id
   </select>
 
+  <select id="queryByTagCodes" resultType="com.br.marketing.dto.tag.TagEffectiveDTO">
+    SELECT
+    tag_code as tagCode,
+    tag_name as tagName
+    FROM t_tag_data_rule
+    WHERE tag_code IN
+    <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
+      #{tagCode}
+    </foreach>
+  </select>
+
   <update id="updateByTagCode" parameterType="com.br.marketing.entity.tag.TagDataRule">
     UPDATE t_tag_data_rule
     <set>

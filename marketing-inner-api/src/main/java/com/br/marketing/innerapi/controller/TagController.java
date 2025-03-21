@@ -7,6 +7,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
+import com.br.marketing.entity.tag.TagDataRule;
 import com.br.marketing.service.tag.web.TagService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -116,17 +117,17 @@ public class TagController {
     @PostMapping("/getEffectiveTag")
     @ApiOperation(value = "获取apiCode授权标签", notes = "获取apiCode授权标签")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagListResponseDTO.class)})
-    public ApiResult<List<String>> getEffectiveTag(@ApiParam("apiCode") @RequestParam String apiCode) {
+    public ApiResult<List<TagEffectiveDTO>> getEffectiveTag(@ApiParam("apiCode") @RequestParam String apiCode) {
         try {
-            List<String> tagList = tagService.getEffectiveTag(apiCode);
+            List<TagEffectiveDTO> tagList = tagService.getEffectiveTag(apiCode);
             if (tagList != null) {
-                return new ApiResult<List<String>>().success(tagList);
+                return new ApiResult<List<TagEffectiveDTO>>().success(tagList);
             }
-            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<List<TagEffectiveDTO>>().fail(ServiceResultEnum.FAILED);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "获取apiCode授权标签接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<List<TagEffectiveDTO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 
