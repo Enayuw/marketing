@@ -366,15 +366,124 @@ public class QiFuServiceImpl implements IQiFuService {
         String changeAmountys = calculateDifference(newHighAmountys, oldLowAmountys);
         String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
         String changeIncrease = calculateIncreaseRate(newHighAmountys, oldLowAmountys);
-//        todo 处理字段
-        String couponDerived = rCouponInfo;
+        String couponDerived = processCouponInfo(rCouponInfo);
 
         reserField1.put("highAmount_derived", newHighAmountys);
         reserField1.put("lowAmount_derived", oldLowAmountys);
         reserField1.put("changeAmount_derived", changeAmountys);
         reserField1.put("remainDayys_derived", remainDayys);
         reserField1.put("changeIncrease_derived", changeIncrease);
-        reserField1.put("Coupon_derived", couponDerived);
+        reserField1.put("coupon_derived", couponDerived);
+    }
+
+    private String processCouponInfo(String rCouponInfo) {
+        if (StringUtils.isBlank(rCouponInfo)) {
+            return "";
+        }
+
+        try {
+            // 解析JSON数组
+            JSONArray coupons = JSON.parseArray(rCouponInfo);
+            if (coupons == null || coupons.isEmpty()) {
+                return "";
+            }
+
+            // 定义需要清洗的关键词
+            String[] keywordsToClean = {"智信", "超级会员", "专属"};
+
+            // 定义优先级映射表（根据图片中的优先级，1最高）
+            Map<String, Integer> priorityMap = new HashMap<>();
+            priorityMap.put("6期免息券", 1);
+            priorityMap.put("3期免息券", 2);
+            priorityMap.put("3期600元免息券", 3);
+            priorityMap.put("最高300元6期免息券", 4);
+            priorityMap.put("3期300元免息券", 5);
+            priorityMap.put("3期最高减360", 6);
+            priorityMap.put("3期150元免息券", 7);
+            priorityMap.put("1期免息券", 8);
+            priorityMap.put("1800元免息券", 9);
+            priorityMap.put("1500元免息券", 10);
+            priorityMap.put("最高900元免息券", 11);
+            priorityMap.put("720元免息券", 12);
+            priorityMap.put("600元免息券", 13);
+            priorityMap.put("最高600元优惠券", 14);
+            priorityMap.put("最高600元智信免息", 15);
+            priorityMap.put("28天周转金", 16);
+            priorityMap.put("7天周转金", 17);
+            priorityMap.put("最高8折免息券", 18);
+            priorityMap.put("最高8.3折免息券", 19);
+            priorityMap.put("最高8.5折免息券", 20);
+            priorityMap.put("最高8.8折免息券", 21);
+            priorityMap.put("最高9折免息券", 22);
+            priorityMap.put("最高9.2折免息券", 23);
+            priorityMap.put("588元免息券", 24);
+            priorityMap.put("最高500元免息券", 25);
+            priorityMap.put("最高350元免息券", 26);
+            priorityMap.put("最高320元免息券", 27);
+            priorityMap.put("最高300元免息券", 28);
+            priorityMap.put("最高300元分期免息券", 29);
+            priorityMap.put("最高300元免息券", 30);
+            priorityMap.put("288元免息券", 31);
+            priorityMap.put("最高240元免息券", 32);
+            priorityMap.put("最高210元免息券", 33);
+            priorityMap.put("最高200元免息券", 34);
+            priorityMap.put("最高180元免息券", 35);
+            priorityMap.put("限时最高180元免息", 36);
+            priorityMap.put("最高150元免息券", 37);
+            priorityMap.put("最高150元优惠", 38);
+            priorityMap.put("最高100元免息券", 39);
+            priorityMap.put("最高100元免息券", 40);
+            priorityMap.put("88元免息券", 41);
+            priorityMap.put("最高60元免息券", 42);
+            priorityMap.put("最高30元免息券", 43);
+            priorityMap.put("免息优惠券", 44);
+
+            // 如果只有一张券
+            if (coupons.size() == 1) {
+                String couponName = coupons.getJSONObject(0).getString("couponName");
+                return cleanCouponName(couponName, keywordsToClean);
+            }
+
+            // 处理多张券的情况
+            String selectedCoupon = "";
+            int highestPriority = Integer.MAX_VALUE;
+
+            for (int i = 0; i < coupons.size(); i++) {
+                String couponName = coupons.getJSONObject(i).getString("couponName");
+                String cleanedName = cleanCouponName(couponName, keywordsToClean);
+
+                // 获取优先级，如果不在列表中则使用最大值
+                int priority = priorityMap.getOrDefault(cleanedName, Integer.MAX_VALUE);
+
+                // 更新最高优先级的券
+                if (priority < highestPriority) {
+                    highestPriority = priority;
+                    selectedCoupon = cleanedName;
+                }
+            }
+
+            // 如果没有找到优先级内的券，返回第一张券的清洗后名称
+            if (StringUtils.isBlank(selectedCoupon)) {
+                return cleanCouponName(coupons.getJSONObject(0).getString("couponName"), keywordsToClean);
+            }
+
+            return selectedCoupon;
+        } catch (Exception e) {
+            log.warn("处理优惠券信息时发生错误：", e);
+            return "";
+        }
+    }
+
+    private String cleanCouponName(String couponName, String[] keywordsToClean) {
+        if (StringUtils.isBlank(couponName)) {
+            return "";
+        }
+
+        String cleanedName = couponName;
+        for (String keyword : keywordsToClean) {
+            cleanedName = cleanedName.replace(keyword, "");
+        }
+        return cleanedName;
     }
 
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
