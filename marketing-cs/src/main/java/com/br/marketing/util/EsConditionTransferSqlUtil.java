@@ -10,12 +10,60 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
 @Slf4j
 public class EsConditionTransferSqlUtil {
 
+
+    /**
+     * 运算条件转化为SQL条件（添加key前缀）
+     *
+     * @param jsonObject  json条件
+     * @param parentLogic 上层逻辑节点
+     * @param keyMap 前缀Map
+     * @return
+     */
+    public static String jsonTransferSqlByFillKey(JSONObject jsonObject, String parentLogic, Map<String, String> keyMap) {
+        String logic = jsonObject.getString("logic");
+        JSONArray dataArray = jsonObject.getJSONArray("data");
+        StringBuilder sqlResult = new StringBuilder();
+        for (int i = 0; i < dataArray.size(); i++) {
+            JSONObject jsonNodeObject = dataArray.getJSONObject(i);
+            //数值操作运算符处理
+            if (jsonNodeObject.getString("type").equals("operation")) {
+                String key = jsonNodeObject.getString("key");
+                String filedDeal = assemblefiled(keyMap.get(key).concat("_").concat(key), jsonNodeObject.getString("operation"),
+                        jsonNodeObject.get("value"));
+                if (i < dataArray.size() - 1) {
+                    //非最后一位，需拼接逻辑运算符logic
+                    sqlResult.append(filedDeal).append(" ").append(logic).append(" ");
+                } else {
+                    sqlResult.append(filedDeal).append(" ");
+                }
+            } //逻辑运算符处理
+            else if (jsonNodeObject.getString("type").equals("logic")) {
+                //递归处理
+                sqlResult.append(jsonTransferSql(jsonNodeObject, logic));
+                if (i < dataArray.size() - 1) {
+                    //非最后一位，需拼接逻辑运算符logic
+                    sqlResult.append(logic).append(" ");
+                }
+            }
+        }
+        //内层logic运算用括号括起来
+        if (com.br.marketing.common.utils.StringUtils.isNotEmpty(parentLogic)) {
+            sqlResult.insert(0, " (").append(" ) ");
+        }
+        return sqlResult.toString();
+
+    }
+
+
     /**
      * ES运算条件转化为SQL条件
-     * @param jsonObject json条件
+     *
+     * @param jsonObject  json条件
      * @param parentLogic 上层逻辑节点
      * @return
      */
@@ -56,9 +104,10 @@ public class EsConditionTransferSqlUtil {
 
     /**
      * SQL条件运算符拼接
-     * @param key 字段名
+     *
+     * @param key       字段名
      * @param operation 运算符
-     * @param value  值
+     * @param value     值
      * @return
      */
     public static String assemblefiled(String key, String operation, Object value) {

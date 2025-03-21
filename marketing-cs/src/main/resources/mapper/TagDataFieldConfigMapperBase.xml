@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.tag.TagDataFieldConfigMapperBase">
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.tag.TagDataFieldConfig">
     <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="source_code" jdbcType="BIGINT" property="sourceCode" />
+    <result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
     <result column="field_name" jdbcType="VARCHAR" property="fieldName" />
     <result column="field_code" jdbcType="VARCHAR" property="fieldCode" />
     <result column="field_type" jdbcType="VARCHAR" property="fieldType" />
@@ -108,7 +108,7 @@
     insert into t_tag_data_field_config (source_code, field_name, field_code, 
       field_type, description, `status`, 
       create_time, update_time)
-    values (#{sourceCode,jdbcType=BIGINT}, #{fieldName,jdbcType=VARCHAR}, #{fieldCode,jdbcType=VARCHAR}, 
+    values (#{sourceCode,jdbcType=VARCHAR}, #{fieldName,jdbcType=VARCHAR}, #{fieldCode,jdbcType=VARCHAR}, 
       #{fieldType,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -142,7 +142,7 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="sourceCode != null">
-        #{sourceCode,jdbcType=BIGINT},
+        #{sourceCode,jdbcType=VARCHAR},
       </if>
       <if test="fieldName != null">
         #{fieldName,jdbcType=VARCHAR},
@@ -180,7 +180,7 @@
         id = #{record.id,jdbcType=BIGINT},
       </if>
       <if test="record.sourceCode != null">
-        source_code = #{record.sourceCode,jdbcType=BIGINT},
+        source_code = #{record.sourceCode,jdbcType=VARCHAR},
       </if>
       <if test="record.fieldName != null">
         field_name = #{record.fieldName,jdbcType=VARCHAR},
@@ -211,7 +211,7 @@
   <update id="updateByExample" parameterType="map">
     update t_tag_data_field_config
     set id = #{record.id,jdbcType=BIGINT},
-      source_code = #{record.sourceCode,jdbcType=BIGINT},
+      source_code = #{record.sourceCode,jdbcType=VARCHAR},
       field_name = #{record.fieldName,jdbcType=VARCHAR},
       field_code = #{record.fieldCode,jdbcType=VARCHAR},
       field_type = #{record.fieldType,jdbcType=VARCHAR},
@@ -227,7 +227,7 @@
     update t_tag_data_field_config
     <set>
       <if test="sourceCode != null">
-        source_code = #{sourceCode,jdbcType=BIGINT},
+        source_code = #{sourceCode,jdbcType=VARCHAR},
       </if>
       <if test="fieldName != null">
         field_name = #{fieldName,jdbcType=VARCHAR},
@@ -255,7 +255,7 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.tag.TagDataFieldConfig">
     update t_tag_data_field_config
-    set source_code = #{sourceCode,jdbcType=BIGINT},
+    set source_code = #{sourceCode,jdbcType=VARCHAR},
       field_name = #{fieldName,jdbcType=VARCHAR},
       field_code = #{fieldCode,jdbcType=VARCHAR},
       field_type = #{fieldType,jdbcType=VARCHAR},

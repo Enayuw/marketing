@@ -18,7 +18,7 @@ public class TagDataFieldConfig implements Serializable {
     /**
      * 数据源编码
      */
-    private Long sourceCode;
+    private String sourceCode;
 
     /**
      * 字段名称
