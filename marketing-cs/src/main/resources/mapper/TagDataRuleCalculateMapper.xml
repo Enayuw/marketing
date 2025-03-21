@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.TagDataRuleCalculateMapper">
+
+    <select id="getMViewInfobI_" resultType="com.br.marketing.dto.tag.MaterializedViewDTO">
+
+        SELECT *
+        FROM mv_infos('database' = 'marketing')
+        WHERE Name = #{viewName}
+    </select>
+
+    <select id="getCountbI_" resultType="java.lang.Integer">
+        ${querySql}
+    </select>
+</mapper>

@@ -175,52 +175,62 @@ public class TagDataFieldConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeEqualTo(Long value) {
+        public Criteria andSourceCodeEqualTo(String value) {
             addCriterion("source_code =", value, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeNotEqualTo(Long value) {
+        public Criteria andSourceCodeNotEqualTo(String value) {
             addCriterion("source_code <>", value, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeGreaterThan(Long value) {
+        public Criteria andSourceCodeGreaterThan(String value) {
             addCriterion("source_code >", value, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeGreaterThanOrEqualTo(Long value) {
+        public Criteria andSourceCodeGreaterThanOrEqualTo(String value) {
             addCriterion("source_code >=", value, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeLessThan(Long value) {
+        public Criteria andSourceCodeLessThan(String value) {
             addCriterion("source_code <", value, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeLessThanOrEqualTo(Long value) {
+        public Criteria andSourceCodeLessThanOrEqualTo(String value) {
             addCriterion("source_code <=", value, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeIn(List<Long> values) {
+        public Criteria andSourceCodeLike(String value) {
+            addCriterion("source_code like", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeNotLike(String value) {
+            addCriterion("source_code not like", value, "sourceCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceCodeIn(List<String> values) {
             addCriterion("source_code in", values, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeNotIn(List<Long> values) {
+        public Criteria andSourceCodeNotIn(List<String> values) {
             addCriterion("source_code not in", values, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeBetween(Long value1, Long value2) {
+        public Criteria andSourceCodeBetween(String value1, String value2) {
             addCriterion("source_code between", value1, value2, "sourceCode");
             return (Criteria) this;
         }
 
-        public Criteria andSourceCodeNotBetween(Long value1, Long value2) {
+        public Criteria andSourceCodeNotBetween(String value1, String value2) {
             addCriterion("source_code not between", value1, value2, "sourceCode");
             return (Criteria) this;
         }

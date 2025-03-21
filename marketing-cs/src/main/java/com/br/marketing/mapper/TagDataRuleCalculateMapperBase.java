@@ -1,4 +1,4 @@
-package com.br.marketing.mapper.tag;
+package com.br.marketing.mapper;
 
 import com.br.marketing.entity.tag.TagDataRuleCalculate;
 import com.br.marketing.entity.tag.TagDataRuleCalculateExample;
