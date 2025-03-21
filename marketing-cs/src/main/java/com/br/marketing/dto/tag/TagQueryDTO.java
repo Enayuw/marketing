@@ -23,7 +23,7 @@ public class TagQueryDTO {
     private Integer size = 10;
 
     @ApiModelProperty("标签名称")
-    private List<String> tagName;
+    private String tagName;
 
     @ApiModelProperty("授权APICode列表")
     private List<String> apiCodes;

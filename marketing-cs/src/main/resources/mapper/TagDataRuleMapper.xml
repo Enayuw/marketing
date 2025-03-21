@@ -65,11 +65,8 @@
     <include refid="Base_Column_List" />
     FROM t_tag_data_rule tdr
     <where> 1=1
-      <if test="params.tagNames != null and params.tagNames.size() > 0">
-        AND tag_name IN
-        <foreach collection="params.tagNames" item="tagName" open="(" separator="," close=")">
-          #{tagName}
-        </foreach>
+      <if test="params.tagName != null and params.tagName != ''">
+        AND tdr.tag_name LIKE CONCAT('%', #{params.tagName}, '%')
       </if>
       <if test="params.apiCodes != null and params.apiCodes.size() > 0">
         AND (
