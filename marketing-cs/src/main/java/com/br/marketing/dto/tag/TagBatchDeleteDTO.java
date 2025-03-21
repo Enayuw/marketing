@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
@@ -14,6 +15,7 @@ public class TagBatchDeleteDTO {
     @ApiModelProperty(value = "标签编码列表", required = true)
     private List<String> tagCodes;
 
+    @NotNull(message = "操作人账户名不能为空")
     @ApiModelProperty(value = "当前用户ID", required = true)
     private Long currentUserId;
 } 

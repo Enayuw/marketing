@@ -134,7 +134,7 @@
   </update>
 
   <delete id="batchDelete">
-    UPDATE FROM t_tag_data_rule set is_repeat = 1
+    UPDATE t_tag_data_rule set is_repeat = 1
     WHERE tag_code IN
     <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
       #{tagCode}
