@@ -382,6 +382,7 @@ public class TagServiceImpl implements TagService {
         dto.setTagCode(tag.getTagCode());
         dto.setTagName(tag.getTagName());
         dto.setSummary(tag.getSummary());
+        dto.setContent(tag.getContent());
         dto.setTagNumber(tag.getTagNumber());
         dto.setSourceCode(tag.getSourceCode());
         dto.setApiCodeScope(tag.getApiCodeScope().replace(",", ";"));
