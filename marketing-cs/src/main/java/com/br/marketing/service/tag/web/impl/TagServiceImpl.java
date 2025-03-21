@@ -242,12 +242,15 @@ public class TagServiceImpl implements TagService {
     public List<TagFieldConfigDTO> getFieldConfigs(String apiCode) {
         try {
             List<TagFieldConfigDTO> fields = tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
-
+            List<String> tagLibrary = new ArrayList<>();
             // 为每个字段设置操作类型
             for (TagFieldConfigDTO field : fields) {
                 field.setOperationType(getOperationType(field.getFieldType()));
+                if (tagLibrary.contains(field.getFieldCode())) {
+                    field.setOperationType("select");
+                    field.setValueOptions(getTagLibrary());
+                }
             }
-
             return fields;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(

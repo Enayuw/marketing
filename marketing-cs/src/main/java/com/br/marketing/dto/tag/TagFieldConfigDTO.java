@@ -33,7 +33,7 @@ public class TagFieldConfigDTO {
     private List<OperatorConfigDTO> operators;
 
     @ApiModelProperty(value = "字段可选值列表（枚举类型时有值）")
-    private List<FieldValueDTO> valueOptions;
+    private List<String> valueOptions;
 
     @ApiModelProperty(value = "是否支持子条件")
     private Boolean supportSubCondition;
