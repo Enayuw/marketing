@@ -50,11 +50,19 @@ public interface TagService {
 
     /**
      * 获取标签字段配置
-     * @param apiCode: API编码
+     * @param sourceCode: API编码
      * @return List<TagFieldConfigDTO>
      * @description 获取指定API编码下的字段配置列表
      */
-    List<TagFieldConfigDTO> getFieldConfigs(String apiCode);
+    List<TagFieldConfigDTO> getFieldConfigs(String sourceCode);
+
+    /**
+     * 获取字段值列表
+     * @param fieldCode: 字段编码
+     * @return List<String>
+     * @description 获取指定API编码下的字段配置列表
+     */
+    List<String> getValueOptions(String fieldCode);
 
     /**
      * 获取apiCode授权的标签
@@ -71,6 +79,11 @@ public interface TagService {
      * 获取创建人列表
      */
     List<TagCreatorDTO> getCreators();
+
+    /**
+     * 获取标签名称列表
+     */
+    List<TagListResponseDTO> getTagName();
 
     /**
      * 校验标签名称是否重复

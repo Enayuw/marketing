@@ -1,7 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.tag.vo.AntaiosResourceDetailVO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
@@ -113,6 +112,28 @@ public class TagController {
         }
     }
 
+    @PostMapping("/getValueOptions")
+    @ApiOperation(value = "获取字段值列表", notes = "根据数据源编码获取对应的字段配置信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "fieldCode", value = "字段编码", required = true, dataType = "String", example = "SOURCE_001")
+    })
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = String.class)})
+    public ApiResult<List<String>> getValueOptions(
+            @ApiParam(value = "字段编码", required = true) @RequestParam String fieldCode) {
+        try {
+            List<String> configs = tagService.getValueOptions(fieldCode);
+            if (configs != null) {
+                return new ApiResult<List<String>>().success(configs);
+            }
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取字段配置接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
     @PostMapping("/getEffectiveTag")
     @ApiOperation(value = "获取apiCode授权标签", notes = "获取apiCode授权标签")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagListResponseDTO.class)})
@@ -155,6 +176,19 @@ public class TagController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "获取创建人列表接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<TagCreatorDTO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getTagName")
+    @ApiOperation(value = "获取标签名称列表", notes = "获取标签名称列表")
+    public ApiResult<List<TagListResponseDTO>> getTagName() {
+        try {
+            List<TagListResponseDTO> creators = tagService.getTagName();
+            return new ApiResult<List<TagListResponseDTO>>().success(creators);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取创建人列表接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<TagListResponseDTO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 

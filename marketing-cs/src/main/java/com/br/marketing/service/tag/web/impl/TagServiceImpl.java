@@ -243,23 +243,36 @@ public class TagServiceImpl implements TagService {
 
 
     @Override
-    public List<TagFieldConfigDTO> getFieldConfigs(String apiCode) {
+    public List<TagFieldConfigDTO> getFieldConfigs(String sourceCode) {
         try {
-            List<TagFieldConfigDTO> fields = tagDataFieldConfigMapper.selectFieldsByApiCode(apiCode);
+            List<TagFieldConfigDTO> fields = tagDataFieldConfigMapper.selectFieldsByApiCode(sourceCode);
             List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
             // 为每个字段设置操作类型
             for (TagFieldConfigDTO field : fields) {
                 field.setOperationType(getOperationType(field.getFieldType()));
-                if (tagLibrary.contains(field.getFieldCode())) {
-                    field.setOperationType("select");
-                    field.setValueOptions(getTagLibrary());
-                }
             }
             return fields;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取字段配置失败！apiCode: " + apiCode), e);
+                    "获取字段配置失败！sourceCode: " + sourceCode), e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<String> getValueOptions(String fieldCode) {
+        try {
+            List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
+            if (tagLibrary.contains(fieldCode)) {
+                List<String> list = getTagLibrary();
+                return list;
+            }
+            return null;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取字段值列表！fieldCode: " + fieldCode), e);
             return new ArrayList<>();
         }
     }
@@ -283,7 +296,7 @@ public class TagServiceImpl implements TagService {
             case "double":
                 return "input";
             case "boolean":
-                return "select";
+                return "boolean";
             case "date":
             case "datetime":
             case "timestamp":
@@ -446,6 +459,18 @@ public class TagServiceImpl implements TagService {
     public List<TagCreatorDTO> getCreators() {
         try {
             return tagDataRuleMapper.selectDistinctCreators();
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取创建人列表失败！"), e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<TagListResponseDTO> getTagName() {
+        try {
+            return tagDataRuleMapper.selectDistinctTagNames();
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),

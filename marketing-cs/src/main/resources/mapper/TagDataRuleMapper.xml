@@ -118,6 +118,14 @@
     ORDER BY opt_user_id
   </select>
 
+
+  <select id="selectDistinctTagNames" resultType="com.br.marketing.dto.tag.TagListResponseDTO">
+    SELECT tag_name
+    FROM t_tag_data_rule
+    WHERE status = 1
+    GROUP BY tag_name
+  </select>
+
   <update id="updateByTagCode" parameterType="com.br.marketing.entity.tag.TagDataRule">
     UPDATE t_tag_data_rule
     <set>
