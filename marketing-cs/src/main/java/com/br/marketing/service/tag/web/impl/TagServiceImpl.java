@@ -249,7 +249,11 @@ public class TagServiceImpl implements TagService {
             List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
             // 为每个字段设置操作类型
             for (TagFieldConfigDTO field : fields) {
-                field.setOperationType(getOperationType(field.getFieldType()));
+                if (tagLibrary.contains(field.getFieldCode())) {
+                    field.setOperationType("select");
+                } else {
+                    field.setOperationType(getOperationType(field.getFieldType()));
+                }
             }
             return fields;
         } catch (Exception e) {
