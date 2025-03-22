@@ -1569,8 +1569,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     //存在标签
                     if(customerInfoPushMain.getTagContent() != null){
                         List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                        partDataNum.put(i, marketingHistories.size());
                         if(marketingHistories.isEmpty()){
-                            partDataNum.put(i, marketingHistories.size());
                             continue;
                         }
                         // 解析标签规则
@@ -1587,13 +1587,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 
                         if(type == 0){
                             // 交集：跑分文件 与 标签数据 都存在
-                            partDataNum.put(i, tidbCells.size());
                             nowSum += tidbCells.size();
                         }else{
                             // 剔除：去掉标签存在跑分文件中cell
                             // 计算剔除数量：esCells - tidbCells
                             esCells.removeAll(tidbCells);
-                            partDataNum.put(i, esCells.size());
                             nowSum += esCells.size();
                         }
                     }else {
