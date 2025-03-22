@@ -1,9 +1,13 @@
 package com.br.marketing.check.service.Impl.tag;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.tag.MaterializedViewDTO;
 import com.br.marketing.entity.tag.*;
+import com.br.marketing.enums.SourceTypeEnum;
+import com.br.marketing.enums.tag.TagData;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.mapper.tag.*;
@@ -52,6 +56,8 @@ public class TagHandlerServiceImpl implements TagHandleService {
     @Resource
     FlagDataMapper flagDataMapper;
 
+    public static final String TITLE = "[标签计算]";
+
     @Override
     public void calculateTagData() {
         TagDataRuleExample example = new TagDataRuleExample();
@@ -66,9 +72,11 @@ public class TagHandlerServiceImpl implements TagHandleService {
         List<TagDataFieldConfig> tagDataFieldConfigList = tagDataFieldConfigMapper.selectByExample(fieldConfigExample);
         String nowDay = LocalDate.now().toString();
         tagDataRuleList.forEach(tagDataRule -> {
+            String tagCode = tagDataRule.getTagCode();
+            Long start = System.currentTimeMillis();
+            log.warn(TITLE + tagCode + "调度开始");
             Integer status;
             Integer number = null;
-            String tagCode = tagDataRule.getTagCode();
             //判断标签记录表是否存在
             List<TagDataRuleCalculate> tagDataRuleCalculateList = getTagCalculateRecord(tagCode, nowDay);
             if (!CollectionUtils.isEmpty(tagDataRuleCalculateList)) {
@@ -87,6 +95,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
                 tagDataRule.setTagNumber(number);
                 tagDataRuleMapper.updateByPrimaryKeySelective(tagDataRule);
             }
+            log.warn(TITLE + tagCode + "调度结束,耗时:{}", System.currentTimeMillis() - start);
         });
     }
 
@@ -100,7 +109,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
             Collections.sort(sourceCodes);
             //圈选的ApiCode范围
             List<String> apiCodes = Arrays.asList(tagDataRule.getApiCodeScope().split(","));
-            apiCodes.forEach(apiCode -> {
+            for (String apiCode : apiCodes) {
                 Integer sourceType;
                 String sourceName;
                 if (sourceCodes.size() > 1) {
@@ -120,7 +129,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
                     if (sourceCodes.size() > 1) {
                         Boolean viewIsSuccess = createDorisView(apiCode, sourceName, sourceCodes, sourceConfigList);
                         if (!viewIsSuccess) {
-                            log.error("创建物化视图失败");
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                                    TITLE + tagCode + "创建物化视图异常,apiCode=" + apiCode + "请关注"));
+                            //物化视图创建异常，直接返回
+                            return Boolean.FALSE;
                         }
                     }
                     TagDataSourceMapping dataSourceMapping = new TagDataSourceMapping();
@@ -148,17 +160,20 @@ public class TagHandlerServiceImpl implements TagHandleService {
                     tagRuleSourceRelation.setCreateTime(new Date());
                     tagRuleSourceRelationMapper.insertSelective(tagRuleSourceRelation);
                 }
+                Long start = System.currentTimeMillis();
                 // 写入数据到doris
                 insertDataDoris(sourceName, sourceType, sourceCodes, tagDataRule, tagDataFieldConfigList);
-            });
+                log.warn(TITLE + "tagCode={},apiCode={},写入数据到Doris明细表,耗时={}ms", tagCode, apiCode, System.currentTimeMillis() - start);
+            }
+            Long start = System.currentTimeMillis();
             //同步数据到TiDB表
             String SyncTiDBSql = String.format("insert into jdbc_yf_tidb.marketing.t_tag_data_detail (tag_code,calculate_date,cell,cust_num,create_time," +
                     "update_time)  select tag_code,calculate_date,cell,cust_num,create_time,update_time from marketing.t_tag_data_detail where tag_code = '%S' and calculate_date ='%S'", tagCode, nowDay);
             flagDataMapper.insertbI_(SyncTiDBSql);
+            log.warn(TITLE + "tagCode={},同步数据到Tidb明细表,耗时={}ms", tagCode, System.currentTimeMillis() - start);
             calculateStatus = Boolean.TRUE;
         } catch (Exception e) {
-            log.error(tagCode.concat(":标签计算异常"), e);
-
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(), TITLE + tagCode + "标签计算异常请关注"), e);
         }
         return calculateStatus;
     }
@@ -174,15 +189,18 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String contiditionSql;
         String timeField;
         //基础表
-        if (1 == sourceType) {
-            cell = sourcecode.equals("CALL") ? "phone_num_encoded" : "cell";
-            custNum = sourcecode.equals("CALL") ? "case_num" : "cust_num";
-            timeField = sourcecode.equals("CALL") ? "case_log_create_time" : "create_time";
+        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
+            cell = SourceTypeEnum.CALL.getCode().equals(sourcecode) ? "phone_num_encoded" : "cell";
+            custNum = SourceTypeEnum.CALL.getCode().equals(sourcecode) ? "case_num" : "cust_num";
+            timeField = SourceTypeEnum.CALL.getCode().equals(sourcecode) ? "case_log_create_time" : "create_time";
             contiditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
         } else {
-            cell = sourcecode.equals("CALL") ? "CALL".concat("_").concat("phone_num_encoded") : "CALL".concat("_").concat("cell");
-            custNum = sourcecode.equals("CALL") ? "CALL".concat("_").concat("case_num") : "CALL".concat("_").concat("cust_num");
-            timeField = sourcecode.equals("CALL") ? "CALL".concat("_").concat("case_log_create_time") : "CALL".concat("_").concat("create_time");
+            cell = SourceTypeEnum.CALL.getCode().equals(sourcecode) ? sourcecode.concat("_").concat("phone_num_encoded")
+                    : sourcecode.concat("_").concat("cell");
+            custNum = SourceTypeEnum.CALL.getCode().equals(sourcecode) ? sourcecode.concat("_").concat("case_num")
+                    : sourcecode.concat("_").concat("cust_num");
+            timeField = SourceTypeEnum.CALL.getCode().equals(sourcecode) ? sourcecode.concat("_").concat("case_log_create_time")
+                    : sourcecode.concat("_").concat("create_time");
             contiditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent())
                     , "", filedCodeMap);
         }
@@ -190,7 +208,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
                         "SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now(), now() from ".concat(sourceName),
                 tagDataRule.getTagCode(), cell, custNum));
         insertBuilder.append(" where ");
-        //TODO 时间范围
+        //时间范围
         String beforeDate = DateHelper.getPreviousDate(tagDataRule.getTimeUnit(), tagDataRule.getTimeNumber()).toString();
         insertBuilder.append(timeField).append(">=\"").append(beforeDate).append("\" and ");
         insertBuilder.append("(").append(contiditionSql).append(")");
@@ -230,39 +248,42 @@ public class TagHandlerServiceImpl implements TagHandleService {
 
 
     private Boolean createDorisView(String apiCode, String viewName, List<String> sourceCodes, List<TagDataSourceConfig> sourceConfigList) {
+        Long start = System.currentTimeMillis();
         Boolean isSuccess = Boolean.FALSE;
         StringBuilder viewSql = new StringBuilder();
         viewSql.append("create MATERIALIZED VIEW " + viewName +
-                "BUILD IMMEDIATE\n" +
+                " BUILD IMMEDIATE\n" +
                 "REFRESH AUTO\n" +
                 "ON COMMIT\n" +
                 "DISTRIBUTED BY RANDOM BUCKETS 2\n" +
                 "PROPERTIES ('replication_num' = '2')  \n" +
                 "AS\n" +
-                "select ");
+                "select  ");
         StringBuilder tableSql = new StringBuilder();
         StringBuilder whereSql = new StringBuilder();
         String relateStr = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
             String sourceCode = sourceCodes.get(i);
             String sourceName = sourceConfigList.stream().filter(sourceConfig -> sourceConfig.getSourceCode()
-                    .equals(sourceCodes.get(0))).findFirst().get().getSourceName().replace("${apiCode}", apiCode);
+                    .equals(sourceCode)).findFirst().get().getSourceName().replace("${apiCode}", apiCode);
             List<String> fieldNameList = flagDataMapper.queryColumnNamebI_(sourceName);
             fieldNameList.forEach(field -> {
                 viewSql.append(sourceCode).append(".").append(field).append(" as ").append(sourceCode).append("_").append(field).append(",");
             });
             if (i == 0) {
                 tableSql.append(" from ").append(sourceName).append(" ").append(sourceCode);
-                relateStr = sourceCode.concat(".").concat(sourceCode.equals("CALL") ? "phone_num_encoded" : "cell");
+                relateStr = sourceCode.concat(".").concat(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell");
             } else {
-                tableSql.append("FULL JOIN ").append(sourceName).append(" ").append(sourceCode).append(" on").append(sourceCode).append(".")
-                        .append(sourceCode.equals("CALL") ? "phone_num_encoded" : "cell").append("=").append(relateStr);
+                tableSql.append(" FULL JOIN ").append(sourceName).append(" ").append(sourceCode).append(" on ").append(sourceCode).append(".")
+                        .append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell").append("=").append(relateStr);
             }
-            whereSql.append(" and ").append(sourceCode).append(".").append(sourceCode.equals("CALL") ? "case_log_create_time" : "create_time").append(">=")
-                    .append("2025-01-01 00:00:00");
+            whereSql.append(" and ").append(sourceCode).append(".").append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "case_log_create_time" : "create_time").append(">=")
+                    .append("\"").append("2025-01-01 00:00:00").append("\"");
         }
+        String createViewSql = new StringBuilder(viewSql.substring(0, viewSql.length() - 1)).append(tableSql).append(whereSql).toString();
+        log.warn(TITLE + "apiCode={},创建物化视图sql={}", apiCode, createViewSql);
         //创建物化视图
-        flagDataMapper.insertbI_(new StringBuilder(viewSql.substring(0, viewSql.length() - 1)).append(tableSql).append(whereSql).toString());
+        flagDataMapper.insertbI_(createViewSql);
 
         long begin = System.currentTimeMillis();
 
@@ -278,6 +299,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
                 log.error(e.getMessage());
             }
         }
+        log.warn(TITLE + "apiCode={},创建物化视图,耗时={}ms", apiCode, System.currentTimeMillis() - start);
         return isSuccess;
 
     }
