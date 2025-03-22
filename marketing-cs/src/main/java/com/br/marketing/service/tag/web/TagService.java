@@ -30,7 +30,7 @@ public interface TagService {
      * @return String 返回标签编码
      * @description 创建新的标签配置
      */
-    String createTag(TagCreateDTO request);
+    ApiResult<Boolean> createTag(TagCreateDTO request);
 
     /**
      * 更新标签
@@ -90,5 +90,10 @@ public interface TagService {
      * 校验标签名称是否重复
      */
     boolean checkTagNameExists(String tagName);
+
+    /**
+     * 获取标签详情用于编辑
+     */
+    ApiResult<TagDetailDTO> getTagDetail(Long id);
 
 }

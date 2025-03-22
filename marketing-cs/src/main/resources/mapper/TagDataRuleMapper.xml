@@ -64,7 +64,7 @@
     SELECT
     <include refid="Base_Column_List" />
     FROM t_tag_data_rule tdr
-    <where>
+    <where> 1=1
       <if test="params.tagName != null and params.tagName != ''">
         AND tdr.tag_name LIKE CONCAT('%', #{params.tagName}, '%')
       </if>
@@ -113,7 +113,7 @@
   <select id="selectDistinctCreators" resultMap="CreatorMap">
     SELECT opt_user_id, opt_user_name
     FROM t_tag_data_rule
-    WHERE status = 1
+    WHERE 1 = 1
     GROUP BY opt_user_id, opt_user_name
     ORDER BY opt_user_id
   </select>
@@ -122,7 +122,7 @@
   <select id="selectDistinctTagNames" resultType="com.br.marketing.dto.tag.TagListResponseDTO">
     SELECT tag_name
     FROM t_tag_data_rule
-    WHERE status = 1
+    WHERE 1 = 1
     GROUP BY tag_name
   </select>
 

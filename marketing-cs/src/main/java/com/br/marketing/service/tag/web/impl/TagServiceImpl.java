@@ -96,17 +96,17 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String createTag(TagCreateDTO request) {
+    public ApiResult<Boolean> createTag(TagCreateDTO request) {
         try {
             // 1. 校验标签名称是否重复
             if (checkTagNameExists(request.getTagName())) {
-                throw new RuntimeException("标签名称已存在");
+                return new ApiResult<Boolean>().fail(false, "标签名称已存在");
             }
 
             // 2. 校验时间范围是否合法
             TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
             if (timeRange == null) {
-                throw new RuntimeException("无效的时间范围");
+                return new ApiResult<Boolean>().fail(false, "无效的时间范围");
             }
 
             // 3. 生成标签编码
@@ -141,7 +141,7 @@ public class TagServiceImpl implements TagService {
                 saveTagSourceLicense(tagCode, request.getAuthorizedApiCodes());
             }
 
-            return tagCode;
+            return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
@@ -249,7 +249,11 @@ public class TagServiceImpl implements TagService {
             List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
             // 为每个字段设置操作类型
             for (TagFieldConfigDTO field : fields) {
-                field.setOperationType(getOperationType(field.getFieldType()));
+                if (tagLibrary.contains(field.getFieldCode())) {
+                    field.setOperationType("select");
+                } else {
+                    field.setOperationType(getOperationType(field.getFieldType()));
+                }
             }
             return fields;
         } catch (Exception e) {
@@ -494,5 +498,90 @@ public class TagServiceImpl implements TagService {
                     "更新标签同步状态失败！tagCode: " + tagCode), e);
             return new ApiResult<Boolean>().fail(false, "更新同步状态失败");
         }
+    }
+
+    @Override
+    public ApiResult<TagDetailDTO> getTagDetail(Long id) {
+        try {
+            // 1. 参数校验
+            if (ObjectUtil.isEmpty(id)) {
+                return new ApiResult<TagDetailDTO>().fail("标签编码不能为空");
+            }
+
+            // 2. 获取标签基本信息
+            TagDataRule tagRule = tagDataRuleMapper.selectByPrimaryKey(id);
+            if (tagRule == null) {
+                return new ApiResult<TagDetailDTO>().fail("标签不存在");
+            }
+
+            // 3. 构建返回对象
+            TagDetailDTO detailDTO = new TagDetailDTO();
+
+            // 基本信息
+            detailDTO.setTagName(tagRule.getTagName());
+            detailDTO.setTagCode(tagRule.getTagCode());
+            detailDTO.setSourceCode(tagRule.getSourceCode());
+
+            // 条件树转换
+            if (StringUtils.isNotBlank(tagRule.getContent())) {
+                try {
+                    detailDTO.setConditionTree(JSON.parseObject(tagRule.getContent()));
+                } catch (Exception e) {
+                    log.error("解析条件树失败", e);
+                    detailDTO.setConditionTree(new JSONObject());
+                }
+            }
+
+            // 时间范围转换
+            String timeRange = convertToTimeRange(tagRule.getTimeNumber(), tagRule.getTimeUnit());
+            detailDTO.setTimeRange(timeRange);
+
+            // 规则总结
+            detailDTO.setSummary(tagRule.getSummary());
+
+            // 用户范围
+            if (StringUtils.isNotBlank(tagRule.getApiCodeScope())) {
+                detailDTO.setScopeApiCodes(Arrays.asList(tagRule.getApiCodeScope().split(",")));
+            } else {
+                detailDTO.setScopeApiCodes(new ArrayList<>());
+            }
+
+            // 授权范围
+            if (StringUtils.isNotBlank(tagRule.getApiCodeLicense())) {
+                detailDTO.setAuthorizedApiCodes(Arrays.asList(tagRule.getApiCodeLicense().split(",")));
+            } else {
+                detailDTO.setAuthorizedApiCodes(new ArrayList<>());
+            }
+
+            // 设置权限信息
+            detailDTO.setOptUserId(tagRule.getOptUserId());
+            detailDTO.setOptUserName(tagRule.getOptUserName());
+            detailDTO.setStatus(tagRule.getStatus());
+
+            return new ApiResult<TagDetailDTO>().success(detailDTO);
+        } catch (Exception e) {
+            log.error(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取标签详情失败！id: " + id), e);
+            return new ApiResult<TagDetailDTO>().fail("获取标签详情失败");
+        }
+    }
+
+    /**
+     * 根据时间数值和单位转换为前端的时间范围枚举值
+     */
+    private String convertToTimeRange(Integer timeNumber, String timeUnit) {
+        if (timeNumber == null || StringUtils.isBlank(timeUnit)) {
+            return null;
+        }
+
+        for (TagTimeRangeEnum rangeEnum : TagTimeRangeEnum.values()) {
+            if (rangeEnum.getTimeNumber().equals(timeNumber)
+                    && rangeEnum.getTimeUnit().equalsIgnoreCase(timeUnit)) {
+                return rangeEnum.getCode();
+            }
+        }
+
+        return null;
     }
 }

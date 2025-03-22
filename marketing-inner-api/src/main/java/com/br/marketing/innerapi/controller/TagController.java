@@ -6,7 +6,6 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
-import com.br.marketing.entity.tag.TagDataRule;
 import com.br.marketing.service.tag.web.TagService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -55,11 +54,7 @@ public class TagController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
     public ApiResult<Boolean> createTag(@RequestBody @Validated TagCreateDTO request) {
         try {
-            String tagCode = tagService.createTag(request);
-            if (tagCode != null) {
-                return new ApiResult<Boolean>().success(true);
-            }
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+            return tagService.createTag(request);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "创建标签接口错误！错误信息：" + ex.getMessage()), ex);
@@ -191,6 +186,14 @@ public class TagController {
                     "获取创建人列表接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<TagListResponseDTO>>().fail(ServiceResultEnum.FAILED);
         }
+    }
+
+    @GetMapping("/getTagDetail")
+    @ApiOperation(value = "获取标签详情", notes = "根据标签编码获取标签详细信息，用于编辑前的数据反显")
+    public ApiResult<TagDetailDTO> getTagDetail(
+            @ApiParam(value = "标签编码", required = true)
+            @RequestParam Long id) {
+        return tagService.getTagDetail(id);
     }
 
 
