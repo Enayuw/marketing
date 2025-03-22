@@ -603,28 +603,31 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
             queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
         }
-        int total;
-        String mTagCondition = dto.getmTagCondition();
-        if (mTagCondition== null) {
-            total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
-        } else {
-            // 页面规则查询es
-            ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
-            String queryDsl = esQueryRequest.getQueryDsl();
-            List<String> indexNames = esQueryRequest.getIndexName();
 
-            if (CollectionUtils.isEmpty(indexNames)) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + dto.getBatchNumberList());
+        int total = 0;
+        String federatedQuerySql = "";
+        try {
+            String mTagCondition = dto.getmTagCondition();
+            if (mTagCondition== null) {
+                total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+            } else {
+                // 页面规则查询es
+                ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+                String queryDsl = esQueryRequest.getQueryDsl();
+                List<String> indexNames = esQueryRequest.getIndexName();
+
+                if (CollectionUtils.isEmpty(indexNames)) {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + dto.getBatchNumberList());
+                }
+
+                // 构建联邦查询 SQL
+                federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, mTagCondition);
+                // 查询量级
+                total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
             }
-
-            // 构建联邦查询 SQL
-            String federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, mTagCondition);
+        }catch (Exception e){
             log.warn("规则中心推送预览 SQL: " + federatedQuerySql);
-            // 查询量级
-            if(StringUtils.isEmpty(federatedQuerySql)){
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("构建联邦查询sql有误");
-            }
-            total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("构建联邦查询sql有误,sql" + federatedQuerySql);
         }
         pushViewVO.setTotal(total);
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
@@ -647,7 +650,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         StringBuilder unionAllBuilder = new StringBuilder();
         for (int i = 0; i < indexNames.size(); i++) {
             String indexName = indexNames.get(i);
-            unionAllBuilder.append("SELECT * FROM es.default_db.request_marketing_history_").append(indexName);
+            unionAllBuilder.append("SELECT * FROM es.default_db.").append(indexName);
             if (i < indexNames.size() - 1) {
                 unionAllBuilder.append("\nUNION ALL\n");
             }
@@ -661,7 +664,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 "FROM (\n" +
                                 "    %s\n" +
                                 ") esIndex\n" +
-                                "JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
+                                "JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.calculate_date = curdate() AND dorisCall.tag_code = '%s'\n" +
                                 "WHERE esquery(batch_number, '%s');",
                         unionAllBuilder,
                         tagCode,
@@ -674,7 +677,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 "FROM (\n" +
                                 "    %s\n" +
                                 ") esIndex\n" +
-                                "LEFT JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.status = 1 AND dorisCall.tag_code = '%s'\n" +
+                                "LEFT JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.calculate_date = curdate() AND dorisCall.tag_code = '%s'\n" +
                                 "WHERE dorisCall.cell IS NULL\n" +
                                 "AND esquery(batch_number, '%s');",
                         unionAllBuilder,
@@ -1542,36 +1545,45 @@ public class PushRuleServiceImpl implements PushRuleService {
             Integer nowSum = 0;
             for (Integer i = 0; i < parNum; i++) {
                 QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
-                //存在标签
-                if(customerInfoPushMain.getTagContent() != null){
-                    List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-                    // 解析标签规则
-                    JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                    String tagCode = jsonObject.getString("tag_code");
-                    int type = jsonObject.getIntValue("type");
-                    // 查询es 提取跑分文件中cells
-                    List<String> esCells = marketingHistories.stream()
-                            .map(MarketingHistory::getCell)
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
-                    // 获取 TiDB 中存在的 cells
-                    List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
+                try {
+                    //存在标签
+                    if(customerInfoPushMain.getTagContent() != null){
+                        List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                        if(marketingHistories.isEmpty()){
+                            continue;
+                        }
+                        // 解析标签规则
+                        JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                        String tagCode = jsonObject.getString("tag_code");
+                        int type = jsonObject.getIntValue("type");
+                        // 查询es 提取跑分文件中cells
+                        List<String> esCells = marketingHistories.stream()
+                                .map(MarketingHistory::getCell_log)
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+                        // 获取 TiDB 中存在的 cells
+                        List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
 
-                    if(type == 0){
-                        // 交集：跑分文件 与 标签数据 都存在
-                        partDataNum.put(i, tidbCells.size());
-                        nowSum += tidbCells.size();
-                    }else{
-                        // 剔除：去掉标签存在跑分文件中cell
-                        // 计算剔除数量：esCells - tidbCells
-                        esCells.removeAll(tidbCells);
-                        partDataNum.put(i, esCells.size());
-                        nowSum += esCells.size();
+                        if(type == 0){
+                            // 交集：跑分文件 与 标签数据 都存在
+                            partDataNum.put(i, tidbCells.size());
+                            nowSum += tidbCells.size();
+                        }else{
+                            // 剔除：去掉标签存在跑分文件中cell
+                            // 计算剔除数量：esCells - tidbCells
+                            esCells.removeAll(tidbCells);
+                            partDataNum.put(i, esCells.size());
+                            nowSum += esCells.size();
+                        }
+                    }else {
+                        Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                        partDataNum.put(i, nowNum);
+                        nowSum += nowNum;
                     }
-                }else {
-                    Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
-                    partDataNum.put(i, nowNum);
-                    nowSum += nowNum;
+                }catch (Exception e){
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                            "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"));
+                    return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
                 }
             }
             if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
@@ -1795,9 +1807,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }else {
                         try {
                             marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+
                             if(marketingHistories == null){
                                 throw new Exception();
                             }
+
+                            if(marketingHistories.isEmpty()){
+                                continue;
+                            }
+
                             if(customerInfoPushMain.getTagContent() != null){
                                 // 解析标签规则
                                 JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
@@ -1805,7 +1823,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 int type = jsonObject.getIntValue("type");
                                 // 查询es 提取跑分文件中cells
                                 List<String> esCells = marketingHistories.stream()
-                                        .map(MarketingHistory::getCell)
+                                        .map(MarketingHistory::getCell_log)
                                         .filter(Objects::nonNull)
                                         .collect(Collectors.toList());
 
