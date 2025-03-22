@@ -1570,6 +1570,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     if(customerInfoPushMain.getTagContent() != null){
                         List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
                         if(marketingHistories.isEmpty()){
+                            partDataNum.put(i, marketingHistories.size());
                             continue;
                         }
                         // 解析标签规则
@@ -1832,11 +1833,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 throw new Exception();
                             }
 
-                            if(marketingHistories.isEmpty()){
-                                continue;
-                            }
-
-                            if(customerInfoPushMain.getTagContent() != null){
+                            if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
                                 // 解析标签规则
                                 JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
                                 String tagCode = jsonObject.getString("tag_code");
@@ -1853,12 +1850,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 if(type == 0){
                                     // 交集：跑分文件 与 标签数据 都存在
                                     marketingHistories = marketingHistories.stream()
-                                            .filter(history -> tidbCells.contains(history.getCell()))
+                                            .filter(history -> tidbCells.contains(history.getCell_log()))
                                             .collect(Collectors.toList());
                                 }else{
                                     // 剔除：去掉标签存在跑分文件中cell
                                     marketingHistories = marketingHistories.stream()
-                                            .filter(history -> !tidbCells.contains(history.getCell()))
+                                            .filter(history -> !tidbCells.contains(history.getCell_log()))
                                             .collect(Collectors.toList());
                                 }
                             }
