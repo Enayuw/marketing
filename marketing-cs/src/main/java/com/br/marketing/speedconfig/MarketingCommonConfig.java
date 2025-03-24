@@ -1966,8 +1966,8 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingHighValueFiles;
 
     /**
-     * 58撞库status=-2文件id集合，J:非金融周期，Q:金融周期，K:非周期，true:开启入库去重，false:关闭去重 e.g.{"非周期":{"文件id":是否开启撞库}}
-     * {"J":{"123":true},"Q":{"456":true},"K":{"789":true}}
+     * 58撞库status=-2文件id集合，T:非金融周期，S:金融周期，F:非周期，true:开启入库去重，false:关闭去重 e.g.{"非周期":{"文件id":是否开启去重}}
+     * {"T":{"123":true},"S":{"456":true},"F":{"789":true}}
      */
     private HashMap<String, JSONObject> wubaCollidingReavedFileIds;
 
@@ -1977,39 +1977,10 @@ public class MarketingCommonConfig {
     private Integer wubaCollidingDataMaxCountLimit;
 
     /**
-     * 58提交周期撞库与去重开关(T/S控制是否开启去重和撞库，eliminate控制去重。true:开启，false关闭)
+     * 58去重开关(true:开启，false关闭)
      * {"T":true,"S":true,"eliminate":true}
      */
     private HashMap<String, Boolean> wuBaCollidingDataSwitch;
-
-    /**
-     * 58提交撞库周期天数配置
-     * {"T":8,"S":15}
-     */
-    private HashMap<String, Integer> wuBaCollidingCycleDayConfig;
-
-    /**
-     * 58撞库跑分优先级配置
-     * ["top","medium","down","low"]
-     */
-    private String[] wuBaCollidingScoreOrderConfig;
-
-    /**
-     * 58撞库数据来源优先级配置
-     * ["T","S","H","F","J","Q","K"]
-     */
-    private String[] wuBaCollidingSourceTypeOrderConfig;
-
-    /**
-     * 58撞库关联跑分数据条件配置
-     * {
-     *   "top": "inner join b_wuba_score_data_top score on a.cell = score.cell and score.is_deleted = 0",
-     *   "medium": "inner join b_wuba_score_data_medium score on a.cell = score.cell and score.is_deleted = 0",
-     *   "down": "inner join b_wuba_score_data_down score on a.cell = score.cell and score.is_deleted = 0",
-     *   "low": "inner join b_wuba_score_data_low score on a.cell = score.cell and score.is_deleted = 0"
-     * }
-     */
-    private JSONObject wuBaCollidingScoreConditionConfig;
 
     /**
      * 58提交撞库数据分页条数
