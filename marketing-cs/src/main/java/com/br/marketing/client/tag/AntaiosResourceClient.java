@@ -80,8 +80,8 @@ public class AntaiosResourceClient {
 
     private AntaiosResourceVo mockData(HashMap<String, Object> mock) {
         AntaiosResourceVo result = new AntaiosResourceVo();
-        if("00000".equals(mock.get("code").toString())){
-            result.setCode("00000");
+        if("000000".equals(mock.get("code").toString())){
+            result.setCode("000000");
             result.setMessage("请求成功！");
             result.setData("iPhone提示音挂机末句,iPhone提示音挂机首句,客户要求发短信");
         }else {

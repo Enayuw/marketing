@@ -298,7 +298,7 @@ public class RedisController {
         AntaiosResourceVo tagLibrary = antaiosResourceClient.getTagLibrary(antaiosResourceDTO);
 
         // 检查返回结果的状态码
-        if (!"00000".equals(tagLibrary.getCode())) {
+        if (!"000000".equals(tagLibrary.getCode())) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "同步标签库失败！" + JSONObject.toJSONString(tagLibrary)));
             return null;
