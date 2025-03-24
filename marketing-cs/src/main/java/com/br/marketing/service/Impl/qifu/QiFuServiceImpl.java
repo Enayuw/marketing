@@ -406,7 +406,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
             for (String couponName : couponNames) {
                 int priority = priorityMap.getOrDefault(couponName, Integer.MAX_VALUE);
-                if (priority <= highestPriority) {
+                if (priority < highestPriority) {
                     highestPriority = priority;
                     selectedCoupon = couponName;
                 }
@@ -427,8 +427,8 @@ public class QiFuServiceImpl implements IQiFuService {
         Map<String, Integer> priorityMap = new LinkedHashMap<>();
         String[] priorities = {
                 "6期免息券", "3期免息券", "3期600元免息券", "最高300元6期免息券", "3期300元免息券",
-                "3期最高减360", "3期150元免息券", "1期免息券", "1800元免息券", "1500元免息券",
-                "最高900元免息券", "720元免息券", "600元免息券", "最高600元优惠券", "最高600元智信免息",
+                "3期免息最高减360", "3期150元免息券", "1期免息券", "1800元免息券", "1500元免息券",
+                "最高900元免息券", "720元免息券", "600元免息券", "最高600元优惠券", "最高600元免息",
                 "28天周转金", "7天周转金", "最高8折免息券", "最高8.3折免息券", "最高8.5折免息券",
                 "最高8.8折免息券", "最高9折免息券", "最高9.2折免息券", "588元免息券", "最高500元免息券",
                 "最高350元免息券", "最高320元免息券", "最高300元免息券", "最高300元分期免息券",
