@@ -445,6 +445,76 @@ public class TagDataFieldConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andFieldOptionIsNull() {
+            addCriterion("field_option is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionIsNotNull() {
+            addCriterion("field_option is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionEqualTo(String value) {
+            addCriterion("field_option =", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionNotEqualTo(String value) {
+            addCriterion("field_option <>", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionGreaterThan(String value) {
+            addCriterion("field_option >", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionGreaterThanOrEqualTo(String value) {
+            addCriterion("field_option >=", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionLessThan(String value) {
+            addCriterion("field_option <", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionLessThanOrEqualTo(String value) {
+            addCriterion("field_option <=", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionLike(String value) {
+            addCriterion("field_option like", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionNotLike(String value) {
+            addCriterion("field_option not like", value, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionIn(List<String> values) {
+            addCriterion("field_option in", values, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionNotIn(List<String> values) {
+            addCriterion("field_option not in", values, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionBetween(String value1, String value2) {
+            addCriterion("field_option between", value1, value2, "fieldOption");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldOptionNotBetween(String value1, String value2) {
+            addCriterion("field_option not between", value1, value2, "fieldOption");
+            return (Criteria) this;
+        }
+
         public Criteria andDescriptionIsNull() {
             addCriterion("description is null");
             return (Criteria) this;

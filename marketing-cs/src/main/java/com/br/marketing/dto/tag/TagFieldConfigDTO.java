@@ -20,6 +20,9 @@ public class TagFieldConfigDTO {
     @ApiModelProperty(value = "字段名称")
     private String fieldName;
 
+    @ApiModelProperty(value = "字段值操作")
+    private String fieldOption;
+
     @ApiModelProperty(value = "字段类型")
     private String fieldType;
 

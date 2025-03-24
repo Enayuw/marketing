@@ -122,7 +122,7 @@
   <select id="selectDistinctTagNames" resultType="com.br.marketing.dto.tag.TagListResponseDTO">
     SELECT tag_name
     FROM t_tag_data_rule
-    WHERE 1 = 1
+    WHERE 1 = 1 and is_repeat = 1
     GROUP BY tag_name
   </select>
 
