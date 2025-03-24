@@ -382,88 +382,37 @@ public class QiFuServiceImpl implements IQiFuService {
         }
 
         try {
-            // 解析JSON数组
             JSONArray coupons = JSON.parseArray(rCouponInfo);
             if (coupons == null || coupons.isEmpty()) {
                 return "";
             }
 
-            // 定义需要清洗的关键词
             String[] keywordsToClean = {"智信", "超级会员", "专属"};
 
-            // 获取所有券名
             List<String> couponNames = new ArrayList<>();
             for (int i = 0; i < coupons.size(); i++) {
                 String couponName = coupons.getJSONObject(i).getString("couponName");
                 couponNames.add(cleanCouponName(couponName, keywordsToClean));
             }
 
-            // 如果只有一张券，直接返回清洗后的结果
             if (couponNames.size() == 1) {
                 return couponNames.get(0);
             }
 
-            // 定义优先级映射表（数字越大优先级越高）
-            Map<String, Integer> priorityMap = new HashMap<>();
-            priorityMap.put("6期免息券", 1);
-            priorityMap.put("3期免息券", 2);
-            priorityMap.put("3期600元免息券", 3);
-            priorityMap.put("最高300元6期免息券", 4);
-            priorityMap.put("3期300元免息券", 5);
-            priorityMap.put("3期最高减360", 6);
-            priorityMap.put("3期150元免息券", 7);
-            priorityMap.put("1期免息券", 8);
-            priorityMap.put("1800元免息券", 9);
-            priorityMap.put("1500元免息券", 10);
-            priorityMap.put("最高900元免息券", 11);
-            priorityMap.put("720元免息券", 12);
-            priorityMap.put("600元免息券", 13);
-            priorityMap.put("最高600元优惠券", 14);
-            priorityMap.put("最高600元智信免息", 15);
-            priorityMap.put("28天周转金", 16);
-            priorityMap.put("7天周转金", 17);
-            priorityMap.put("最高8折免息券", 18);
-            priorityMap.put("最高8.3折免息券", 19);
-            priorityMap.put("最高8.5折免息券", 20);
-            priorityMap.put("最高8.8折免息券", 21);
-            priorityMap.put("最高9折免息券", 22);
-            priorityMap.put("最高9.2折免息券", 23);
-            priorityMap.put("588元免息券", 24);
-            priorityMap.put("最高500元免息券", 25);
-            priorityMap.put("最高350元免息券", 26);
-            priorityMap.put("最高320元免息券", 27);
-            priorityMap.put("最高300元免息券", 28);
-            priorityMap.put("最高300元分期免息券", 29);
-            priorityMap.put("最高300元免息券", 30);
-            priorityMap.put("288元免息券", 31);
-            priorityMap.put("最高240元免息券", 32);
-            priorityMap.put("最高210元免息券", 33);
-            priorityMap.put("最高200元免息券", 34);
-            priorityMap.put("最高180元免息券", 35);
-            priorityMap.put("限时最高180元免息", 36);
-            priorityMap.put("最高150元免息券", 37);
-            priorityMap.put("最高150元优惠", 38);
-            priorityMap.put("最高100元免息券", 39);
-            priorityMap.put("最高100元免息券", 40);
-            priorityMap.put("88元免息券", 41);
-            priorityMap.put("最高60元免息券", 42);
-            priorityMap.put("最高30元免息券", 43);
-            priorityMap.put("免息优惠券", 44);
+            Map<String, Integer> priorityMap = getCouponPriorityMap();
 
-            // 处理多张券的情况
             String selectedCoupon = "";
-            int highestPriority = Integer.MAX_VALUE;  // 初始化为最大值
+            int highestPriority = Integer.MAX_VALUE;
 
             for (String couponName : couponNames) {
                 int priority = priorityMap.getOrDefault(couponName, Integer.MAX_VALUE);
-                if (priority < highestPriority) {  // 修改为小于号，数字越小优先级越高
+                if (priority <= highestPriority) {
                     highestPriority = priority;
                     selectedCoupon = couponName;
                 }
             }
 
-            // 如果没有找到优先级内的券，返回第一张券
-            if (highestPriority == Integer.MAX_VALUE) {  // 修改判断条件
+            if (highestPriority == Integer.MAX_VALUE) {
                 return couponNames.get(0);
             }
 
@@ -473,6 +422,27 @@ public class QiFuServiceImpl implements IQiFuService {
             return "";
         }
     }
+
+    private Map<String, Integer> getCouponPriorityMap() {
+        Map<String, Integer> priorityMap = new LinkedHashMap<>();
+        String[] priorities = {
+                "6期免息券", "3期免息券", "3期600元免息券", "最高300元6期免息券", "3期300元免息券",
+                "3期最高减360", "3期150元免息券", "1期免息券", "1800元免息券", "1500元免息券",
+                "最高900元免息券", "720元免息券", "600元免息券", "最高600元优惠券", "最高600元智信免息",
+                "28天周转金", "7天周转金", "最高8折免息券", "最高8.3折免息券", "最高8.5折免息券",
+                "最高8.8折免息券", "最高9折免息券", "最高9.2折免息券", "588元免息券", "最高500元免息券",
+                "最高350元免息券", "最高320元免息券", "最高300元免息券", "最高300元分期免息券",
+                "288元免息券", "最高240元免息券", "最高210元免息券", "最高200元免息券",
+                "最高180元免息券", "限时最高180元免息", "最高150元免息券", "最高150元优惠",
+                "最高100元免息券", "88元免息券", "最高60元免息券", "最高30元免息券", "免息优惠券"
+        };
+
+        for (int i = 0; i < priorities.length; i++) {
+            priorityMap.put(priorities[i], i + 1);
+        }
+        return priorityMap;
+    }
+
 
     private String cleanCouponName(String couponName, String[] keywordsToClean) {
         if (StringUtils.isBlank(couponName)) {
