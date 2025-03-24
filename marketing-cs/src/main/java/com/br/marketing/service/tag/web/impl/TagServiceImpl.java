@@ -245,15 +245,6 @@ public class TagServiceImpl implements TagService {
     public List<TagFieldConfigDTO> getFieldConfigs(String sourceCode) {
         try {
             List<TagFieldConfigDTO> fields = tagDataFieldConfigMapper.selectFieldsByApiCode(sourceCode);
-            List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
-            // 为每个字段设置操作类型
-            for (TagFieldConfigDTO field : fields) {
-                if (tagLibrary.contains(field.getFieldCode())) {
-                    field.setOperationType("select");
-                } else {
-                    field.setOperationType(getOperationType(field.getFieldType()));
-                }
-            }
             return fields;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
@@ -269,7 +260,23 @@ public class TagServiceImpl implements TagService {
             List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
             if (tagLibrary.contains(fieldCode)) {
                 List<String> list = getTagLibrary();
-                return list;
+                if (ObjectUtil.isNotEmpty(list)) {
+                    return list;
+                }
+                return null;
+            } else {
+                TagDataFieldConfigExample example = new TagDataFieldConfigExample();
+                example.createCriteria().andFieldCodeEqualTo(fieldCode);
+                List<TagDataFieldConfig> list = tagDataFieldConfigMapper.selectByExample(example);
+                if (ObjectUtil.isNotEmpty(list) && list.size() == 1) {
+                    TagDataFieldConfig tagDataFieldConfig = list.get(0);
+                    if ("boolean".equals(tagDataFieldConfig.getFieldType())) {
+                        return Arrays.asList("0", "1");
+                    }
+                }
+                if (list.size() > 1 || list.isEmpty()) {
+                    return null;
+                }
             }
             return null;
         } catch (Exception e) {
@@ -280,34 +287,6 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    /**
-     * 根据字段类型获取操作类型
-     *
-     * @param fieldType 字段类型
-     * @return 操作类型
-     */
-    private String getOperationType(String fieldType) {
-        if (fieldType == null) {
-            return "input";
-        }
-
-        switch (fieldType.toLowerCase()) {
-            case "string":
-            case "number":
-            case "int":
-            case "long":
-            case "double":
-                return "input";
-            case "boolean":
-                return "boolean";
-            case "date":
-            case "datetime":
-            case "timestamp":
-                return "datePicker";
-            default:
-                return "input";
-        }
-    }
 
     public List<String> getTagLibrary() {
         AntaiosResourceDTO antaiosResourceDTO = new AntaiosResourceDTO();

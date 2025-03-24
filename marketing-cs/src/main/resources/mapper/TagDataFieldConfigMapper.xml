@@ -6,6 +6,7 @@
     SELECT
       source_code as sourceCode,
       field_code as fieldCode,
+      field_option as fieldOption,
       field_name as fieldName,
       field_type as fieldType,
       description
