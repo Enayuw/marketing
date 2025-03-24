@@ -3,8 +3,10 @@
 <mapper namespace="com.br.marketing.mapper.tag.TagDataDetailMapper">
 
   <select id="queryPreviewTotalbI_" resultType="java.lang.Integer">
+  <![CDATA[
     ${querySql}
-  </select>
+    ]]>
+</select>
 
   <select id="queryCells" resultType="java.lang.String">
     select cell
