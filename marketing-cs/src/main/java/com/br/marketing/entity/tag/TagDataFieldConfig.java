@@ -36,6 +36,11 @@ public class TagDataFieldConfig implements Serializable {
     private String fieldType;
 
     /**
+     * 字段值操作（input/select/datePicker等)
+     */
+    private String fieldOption;
+
+    /**
      * 描述
      */
     private String description;

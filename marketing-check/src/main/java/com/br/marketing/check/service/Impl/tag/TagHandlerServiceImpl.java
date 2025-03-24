@@ -95,7 +95,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
                 tagDataRule.setTagNumber(number);
                 tagDataRuleMapper.updateByPrimaryKeySelective(tagDataRule);
             }
-            log.warn(TITLE + tagCode + "调度结束,耗时:{}", System.currentTimeMillis() - start);
+            log.warn(TITLE + tagCode + "调度结束,耗时:{}ms", System.currentTimeMillis() - start);
         });
     }
 
