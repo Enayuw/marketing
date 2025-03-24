@@ -452,18 +452,18 @@ public class QiFuServiceImpl implements IQiFuService {
 
             // 处理多张券的情况
             String selectedCoupon = "";
-            int highestPriority = -1;
+            int highestPriority = Integer.MAX_VALUE;  // 初始化为最大值
 
             for (String couponName : couponNames) {
-                int priority = priorityMap.getOrDefault(couponName, -1);
-                if (priority > highestPriority) {
+                int priority = priorityMap.getOrDefault(couponName, Integer.MAX_VALUE);
+                if (priority < highestPriority) {  // 修改为小于号，数字越小优先级越高
                     highestPriority = priority;
                     selectedCoupon = couponName;
                 }
             }
 
             // 如果没有找到优先级内的券，返回第一张券
-            if (StringUtils.isBlank(selectedCoupon)) {
+            if (highestPriority == Integer.MAX_VALUE) {  // 修改判断条件
                 return couponNames.get(0);
             }
 
