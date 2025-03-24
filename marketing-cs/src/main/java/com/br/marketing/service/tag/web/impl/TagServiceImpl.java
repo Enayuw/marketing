@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.tag.AntaiosResourceClient;
 import com.br.marketing.client.tag.dto.AntaiosResourceDTO;
-import com.br.marketing.client.tag.vo.AntaiosResourceDetailVO;
 import com.br.marketing.client.tag.vo.AntaiosResourceVo;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -325,27 +324,19 @@ public class TagServiceImpl implements TagService {
         AntaiosResourceVo tagLibrary = antaiosResourceClient.getTagLibrary(antaiosResourceDTO);
 
         // 检查返回结果的状态码
-        if (!"00000".equals(tagLibrary.getCode())) {
+        if (!"000000".equals(tagLibrary.getCode())) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "同步标签库失败！"), tagLibrary.getMessage());
+                    "同步标签库失败！" + JSONObject.toJSONString(tagLibrary)));
             return null;
         }
 
         // 获取数据列表
-        List<AntaiosResourceDetailVO> data = tagLibrary.getData();
+        String data = tagLibrary.getData();
         if (data == null || data.isEmpty()) {
             log.warn("返回的数据列表为空！");
             return null;
         }
-
-        // 处理第一个元素的标签列表字符串
-        AntaiosResourceDetailVO antaiosResourceDetailVO = data.get(0);
-        String tagList = antaiosResourceDetailVO.getTagList();
-        if (tagList == null || tagList.isEmpty()) {
-            log.warn("标签列表字符串为空！");
-            return new ArrayList<>();
-        }
-        return Arrays.asList(tagList.split(","));
+        return Arrays.asList(data.split(","));
     }
 
     /**

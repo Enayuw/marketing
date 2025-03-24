@@ -29,6 +29,6 @@ public class AntaiosResourceVo {
     /**
      * 返回的数据数组
      */
-    private List<AntaiosResourceDetailVO> data;
+    private String data;
 
 }
