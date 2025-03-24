@@ -112,8 +112,6 @@ spring:
       publisher-confirms: true
       publisher-returns: true
       virtual-host: marketing-flow
-    sim:
-      virtual-host: marketing-flow-sim
     listener:
       retry:
         enabled: true

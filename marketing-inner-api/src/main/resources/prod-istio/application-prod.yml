@@ -164,8 +164,6 @@ spring:
       publisher-confirms: true
       publisher-returns: true
       virtual-host: marketing-flow
-    sim:
-      virtual-host: marketing-flow-sim
     secondary:
       addresses: rabbitmq2.brapp.com:5671
       username: rabbitmq

@@ -211,23 +211,15 @@ public class RabbitMqConfig {
             @Value("${spring.rabbitmq.yz.addresses:11}") String yzAddresses,
             @Value("${spring.rabbitmq.yz.username:11}") String yzUsername,
             @Value("${spring.rabbitmq.yz.password:11}") String yzPassword,
-            @Value("${spring.rabbitmq.yz.virtual-host:11}") String yzVirtualHost,
-            @Value("${spring.rabbitmq.sim.virtual-host:11}") String simVirtualHost
-    ) {
+            @Value("${spring.rabbitmq.yz.virtual-host:11}") String yzVirtualHost) {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
         String enumName = ClusterEnum.CLUSTER_PROD_C.getName();
-        String simEnumName = ClusterEnum.CLUSTER_PROD_B.getName();
-        log.warn("clusterConfig:{},enumName:{},simEnumName:{}", clusterConfig, enumName, simEnumName);
+        log.warn("clusterConfig:{},enumName:{}", clusterConfig, enumName);
         if (StringUtils.isNotBlank(clusterConfig) && enumName.equals(clusterConfig)) {
             connectionFactory.setAddresses(yzAddresses);
             connectionFactory.setUsername(yzUsername);
             connectionFactory.setPassword(yzPassword);
             connectionFactory.setVirtualHost(yzVirtualHost);
-        } else if (StringUtils.isNotBlank(clusterConfig) && simEnumName.equals(clusterConfig)){
-            connectionFactory.setAddresses(yzAddresses);
-            connectionFactory.setUsername(yzUsername);
-            connectionFactory.setPassword(yzPassword);
-            connectionFactory.setVirtualHost(simVirtualHost);
         } else {
             connectionFactory.setAddresses(zwAddresses);
             connectionFactory.setUsername(zwUsername);
