@@ -663,7 +663,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, String mTagCondition) {
         // 解析标签规则
         JSONObject jsonObject = JSON.parseObject(mTagCondition);
-        String tagCode = jsonObject.getString("tag_code");
+        String tagCode = jsonObject.getString("tagCode");
         int type = jsonObject.getIntValue("type");
 
         // 1. 构建 UNION ALL 部分
@@ -1575,7 +1575,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }
                         // 解析标签规则
                         JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                        String tagCode = jsonObject.getString("tag_code");
+                        String tagCode = jsonObject.getString("tagCode");
                         int type = jsonObject.getIntValue("type");
                         // 查询es 提取跑分文件中cells
                         List<String> esCells = marketingHistories.stream()
@@ -1834,7 +1834,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
                                 // 解析标签规则
                                 JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                                String tagCode = jsonObject.getString("tag_code");
+                                String tagCode = jsonObject.getString("tagCode");
                                 int type = jsonObject.getIntValue("type");
                                 // 查询es 提取跑分文件中cells
                                 List<String> esCells = marketingHistories.stream()
