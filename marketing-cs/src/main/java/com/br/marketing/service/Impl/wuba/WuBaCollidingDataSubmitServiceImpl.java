@@ -255,8 +255,9 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
      */
     private Pair<WubaCollidingConfig, List<WubaCollidingData>> getCollidingDatas(String apiCode, Integer limit) {
         List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
-        // todo 测试不配置高价值文件
-        String highValueFileNames = Joiner.on(",").join(highValueFiles);
+        String highValueFileNames =
+                CollectionUtils.isEmpty(highValueFiles) ? "\"\"" :
+                        Joiner.on(",").join(highValueFiles.stream().map(file -> "\"" + file + "\"").collect(Collectors.toList()));
         List<WubaCollidingConfig> configs = wubaCollidingConfigMapper.queryWuBaCollidingConfigByPriority();
         if (CollectionUtils.isEmpty(configs)) {
             return new Pair<>(null, null);
