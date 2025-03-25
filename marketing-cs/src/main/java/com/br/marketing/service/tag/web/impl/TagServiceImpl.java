@@ -11,9 +11,11 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
+import com.br.marketing.entity.ScoreSearchConditionExample;
 import com.br.marketing.entity.tag.TagDataRule;
 import com.br.marketing.enums.TagTimeRangeEnum;
 import com.br.marketing.entity.tag.*;
+import com.br.marketing.mapper.ScoreSearchConditionMapper;
 import com.br.marketing.mapper.tag.TagDataFieldConfigMapper;
 import com.br.marketing.mapper.tag.TagDataRuleMapper;
 import com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper;
@@ -59,6 +61,9 @@ public class TagServiceImpl implements TagService {
 
     @Resource
     private TagRuleSourceLicenseMapper tagRuleSourceLicenseMapper;
+
+    @Resource
+    private ScoreSearchConditionMapper scoreSearchConditionMapper;
 
     @Override
     public PageResultReturn getTagList(TagQueryDTO request) {
@@ -381,7 +386,7 @@ public class TagServiceImpl implements TagService {
         dto.setTagNumber(tag.getTagNumber());
         dto.setSourceCode(tag.getSourceCode());
         dto.setApiCodeScope(tag.getApiCodeScope());
-        dto.setApiCodeLicense(tag.getApiCodeLicense() != null ? tag.getApiCodeLicense().replace(",", ";") : null);
+        dto.setApiCodeLicense(tag.getApiCodeLicense() != null ? tag.getApiCodeLicense() : null);
         dto.setStatus(tag.getStatus());
         dto.setCreator(tag.getOptUserName().toString());
         dto.setCreatorId(tag.getOptUserId());
@@ -412,7 +417,14 @@ public class TagServiceImpl implements TagService {
                 if (!tag.getOptUserId().equals(request.getCurrentUserId())) {
                     return new ApiResult<Boolean>().fail(false, "无权删除其他人创建的标签");
                 }
+                ScoreSearchConditionExample example = new ScoreSearchConditionExample();
+                example.createCriteria().andIsDelEqualTo(1).andStatusEqualTo(1).andTagContentLike("%" + tag.getTagCode() + "%");
+                int countByExample = scoreSearchConditionMapper.countByExample(example);
+                if (countByExample > 0) {
+                    return new ApiResult<Boolean>().fail(false, "已存在相应规则，无法删除！");
+                }
             }
+
 
             // 执行删除
             tagDataRuleMapper.batchDelete(request.getTagCodes());
@@ -461,6 +473,12 @@ public class TagServiceImpl implements TagService {
             }
             if (!existingTag.getOptUserId().equals(optUserId)) {
                 return new ApiResult<Boolean>().fail(false, "非本人创建，无法编辑");
+            }
+            ScoreSearchConditionExample example = new ScoreSearchConditionExample();
+            example.createCriteria().andIsDelEqualTo(1).andStatusEqualTo(1).andTagContentLike("%" + tagCode + "%");
+            int countByExample = scoreSearchConditionMapper.countByExample(example);
+            if (countByExample > 0) {
+                return new ApiResult<Boolean>().fail(false, "已存在相应规则，无法更改状态！");
             }
 
             // 2. 更新同步状态
