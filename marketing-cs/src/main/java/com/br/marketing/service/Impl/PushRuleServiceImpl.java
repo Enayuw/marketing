@@ -506,11 +506,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 customerInfoPushMain.setExtend(String.join(";", querySqls));
             }
         } else {
-            Result<PushViewVO> totalRes = getTotal(dto);
-            if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(totalRes.getMessage());
-            }
-            pushNum = totalRes.getData().getTotal();
+            pushNum = dto.getmPrePlanNum();
         }
         //endregion
 
