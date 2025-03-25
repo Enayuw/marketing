@@ -131,7 +131,8 @@
     tag_code as tagCode,
     tag_name as tagName
     FROM t_tag_data_rule
-    WHERE tag_code IN
+    WHERE status = 1 and
+          tag_code IN
     <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
       #{tagCode}
     </foreach>
