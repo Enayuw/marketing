@@ -1778,7 +1778,6 @@ public class PushDataServiceImpl implements PushDataService {
                     adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
                     adReqDTO.setMktProductNo("CASH");
                 }
-                System.out.println();
                 //endregion
                 Boolean isPush;
                 Boolean isDelete = false;
