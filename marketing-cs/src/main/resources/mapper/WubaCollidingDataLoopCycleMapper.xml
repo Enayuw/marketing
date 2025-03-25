@@ -10,12 +10,12 @@
     </insert>
 
     <select id="selectCollidingData" resultType="com.br.marketing.entity.WubaCollidingData">
-        select a.id, a.cell
-        from b_wuba_colliding_data_loop_cycle a ${relationCondition}
-        where a.is_deleted = 0
-          and a.api_code = #{apiCode}
-          <![CDATA[ and a.push_time >= #{pushTimeStart} and a.push_time < #{pushTimeEnd} ]]>
-        order by a.push_time
+        select id, cell
+        from b_wuba_colliding_data_loop_cycle
+        where is_deleted = 0
+          and api_code = #{apiCode}
+          <![CDATA[ and push_time >= #{pushTimeStart} and push_time < #{pushTimeEnd} ]]>
+        order by push_time
         limit #{pageSize}
     </select>
 
