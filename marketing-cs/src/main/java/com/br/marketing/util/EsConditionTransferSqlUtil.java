@@ -1,30 +1,26 @@
 package com.br.marketing.util;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.DateHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class EsConditionTransferSqlUtil {
 
 
     /**
-     * 运算条件转化为SQL条件（添加key前缀）
+     * 运算条件转化为SQL条件（添加key前缀,sourceCode_key）
      *
      * @param jsonObject  json条件
      * @param parentLogic 上层逻辑节点
-     * @param keyMap 前缀Map
      * @return
      */
-    public static String jsonTransferSqlByFillKey(JSONObject jsonObject, String parentLogic, Map<String, String> keyMap) {
+    public static String jsonTransferSqlByFillKey(JSONObject jsonObject, String parentLogic) {
         String logic = jsonObject.getString("logic");
         JSONArray dataArray = jsonObject.getJSONArray("data");
         StringBuilder sqlResult = new StringBuilder();
@@ -33,7 +29,8 @@ public class EsConditionTransferSqlUtil {
             //数值操作运算符处理
             if (jsonNodeObject.getString("type").equals("operation")) {
                 String key = jsonNodeObject.getString("key");
-                String filedDeal = assemblefiled(keyMap.get(key).concat("_").concat(key), jsonNodeObject.getString("operation"),
+                String sourceCode = jsonNodeObject.getString("sourceCode");
+                String filedDeal = assemblefiled(sourceCode.concat("_").concat(key), jsonNodeObject.getString("operation"),
                         jsonNodeObject.get("value"));
                 if (i < dataArray.size() - 1) {
                     //非最后一位，需拼接逻辑运算符logic
