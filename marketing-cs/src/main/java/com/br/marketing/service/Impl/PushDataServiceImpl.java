@@ -1284,15 +1284,10 @@ public class PushDataServiceImpl implements PushDataService {
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
             Long id = jsonObject.getLong("localId");
-            while (true) {
-                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
-                if (xieChengDatalist.size() == 0) {
-                   break;
-                }
-                for (int i = 0; i < xieChengDatalist.size(); i++) {
-                    XieChengData xieChengData = xieChengDatalist.get(i);
-                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData));
-                }
+            List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
+            for (int i = 0; i < xieChengDatalist.size(); i++) {
+                XieChengData xieChengData = xieChengDatalist.get(i);
+                xieChengThreadPool.submit(() -> pushXieChengData(xieChengData));
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
