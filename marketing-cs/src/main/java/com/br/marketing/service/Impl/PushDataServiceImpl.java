@@ -1295,7 +1295,8 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程上报异常，" + "errorMessage=" + e.getMessage()), e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
@@ -1700,133 +1701,141 @@ public class PushDataServiceImpl implements PushDataService {
                     .concat(sha256Tel);
             String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
-
-            //查询投诉退订
-            Integer xiechengSmsQuitDataSize = xiechengSmsQuitDataMapper.getCountSmsQuitDataByMobile(sha256Tel);
-            if (xiechengSmsQuitDataSize > 0) {
-                resultData.setStatus(2);
-                resultData.setDataMessage("命中投诉退订数据");
-                xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                redisChgService.unlock(key, value);
-                return;
-            }
-
-            //region 特定剔除规则
-            if("1".equals(conditionKey)){
-                //region 剔除规则1 查询黑名单和有效期内命中convType=106或107或110
-                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel, isBlackApiCodes);
-                if(xcTransferBlack!=null){
-                    resultData.setDataMessage("命中黑名单");
+            try {
+                //查询投诉退订
+                Integer xiechengSmsQuitDataSize = xiechengSmsQuitDataMapper.getCountSmsQuitDataByMobile(sha256Tel);
+                if (xiechengSmsQuitDataSize > 0) {
                     resultData.setStatus(2);
+                    resultData.setDataMessage("命中投诉退订数据");
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                     redisChgService.unlock(key, value);
                     return;
                 }
 
-                boolean hasConvType = hasConvType(mainApiCode, convTypeApiCodes, tcId, sha256Tel);
-                if (hasConvType) {
-                    resultData.setDataMessage("有效期内命中convType106或107或110");
-                    resultData.setStatus(2);
-                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                    redisChgService.unlock(key, value);
-                    return;
+                //region 特定剔除规则
+                if("1".equals(conditionKey)){
+                    //region 剔除规则1 查询黑名单和有效期内命中convType=106或107或110
+                    MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel, isBlackApiCodes);
+                    if(xcTransferBlack!=null){
+                        resultData.setDataMessage("命中黑名单");
+                        resultData.setStatus(2);
+                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                        redisChgService.unlock(key, value);
+                        return;
+                    }
+
+                    boolean hasConvType = hasConvType(mainApiCode, convTypeApiCodes, tcId, sha256Tel);
+                    if (hasConvType) {
+                        resultData.setDataMessage("有效期内命中convType106或107或110");
+                        resultData.setStatus(2);
+                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                        redisChgService.unlock(key, value);
+                        return;
+                    }
+                    //endregion
+                }else{
+                    //region 剔除规则2 查询黑名单和当日撞库结果
+                    MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel,isBlackApiCodes);
+                    if (xcTransferBlack != null) {
+                        resultData.setDataMessage("命中黑名单");
+                        resultData.setStatus(2);
+                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                        redisChgService.unlock(key, value);
+                        return;
+                    }
+
+                    Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                    XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
+                    vtExample.createCriteria()
+                            .andSha256CodeListEqualTo(sha256Tel)
+                            .andStatusEqualTo(2)
+                            .andSendDateEqualTo(day);
+                    List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
+                    if (xieChengSmsCollidingDataLogVts.size()<=0) {
+                        resultData.setDataMessage("没有获取到当日撞库结果");
+                        resultData.setStatus(2);
+                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                        redisChgService.unlock(key, value);
+                        return;
+                    }
+                    XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVts.get(0);
+                    if(!xieChengSmsCollidingDataLogVt.getResult()){
+                        resultData.setDataMessage("命中当日撞库结果为false");
+                        resultData.setStatus(2);
+                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                        redisChgService.unlock(key, value);
+                        return;
+                    }
+                    if (StringUtils.isBlank(xieChengSmsCollidingDataLogVt.getOrgChannel())) {
+                        resultData.setDataMessage("命中当日OrgChannel为空,id="+xieChengSmsCollidingDataLogVt.getSmsCollidingDataVtId());
+                        resultData.setStatus(2);
+                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                        redisChgService.unlock(key, value);
+                        return;
+                    }
+                    //endregion
+                    adReqDTO.setMktMode("CPS");
+                    adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
+                    adReqDTO.setMktProductNo("CASH");
                 }
+                System.out.println();
                 //endregion
-            }else{
-                //region 剔除规则2 查询黑名单和当日撞库结果
-                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel,isBlackApiCodes);
-                if (xcTransferBlack != null) {
-                    resultData.setDataMessage("命中黑名单");
-                    resultData.setStatus(2);
-                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                    redisChgService.unlock(key, value);
-                    return;
-                }
-
-                Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
-                vtExample.createCriteria()
-                        .andSha256CodeListEqualTo(sha256Tel)
-                        .andStatusEqualTo(2)
-                        .andSendDateEqualTo(day);
-                List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
-                if (xieChengSmsCollidingDataLogVts.size()<=0) {
-                    resultData.setDataMessage("没有获取到当日撞库结果");
-                    resultData.setStatus(2);
-                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                    redisChgService.unlock(key, value);
-                    return;
-                }
-                XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVts.get(0);
-                if(!xieChengSmsCollidingDataLogVt.getResult()){
-                    resultData.setDataMessage("命中当日撞库结果为false");
-                    resultData.setStatus(2);
-                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                    redisChgService.unlock(key, value);
-                    return;
-                }
-                if (StringUtils.isBlank(xieChengSmsCollidingDataLogVt.getOrgChannel())) {
-                    resultData.setDataMessage("命中当日OrgChannel为空,id="+xieChengSmsCollidingDataLogVt.getSmsCollidingDataVtId());
-                    resultData.setStatus(2);
-                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                    redisChgService.unlock(key, value);
-                    return;
-                }
-                //endregion
-                adReqDTO.setMktMode("CPS");
-                adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
-                adReqDTO.setMktProductNo("CASH");
-            }
-            //endregion
-            Boolean isPush;
-            Boolean isDelete = false;
-            if (offRepeatByPeriod) {
-                List<Integer> reportCountInPeriod = xieChengDataMapper.getReportPushStatusInPeriod(sha256Tel, apiCode);
-                if (CollectionUtils.isEmpty(reportCountInPeriod)) {
-                    isPush = false;
-                    isDelete = true;
-                } else {
-                    Integer pushCount = reportCountInPeriod.stream().filter(pushStatus -> pushStatus == 2)
-                            .collect(Collectors.toList()).size();
-                    isPush = pushCount < offRepeatCount;
-                }
-            } else {
-                List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
-                isPush = CollectionUtils.isEmpty(xieChengRepeatDatalist);
-            }
-            if (isPush) {
-                // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
-                String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
-                adReqDTO.setClickId(clickId);
-                // 携程推送
-                Result result = xieChengService.pushXieChengData(adReqDTO);
-                if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                    resultData.setPushStatus(2);
-                } else {
-                    resultData.setPushStatus(3);
-                }
-                resultData.setClickId(clickId);
-                resultData.setDataMessage(result.getMessage());
-            } else {
-                resultData.setId(xieChengData.getId());
-                resultData.setStatus(2);
-                String dataMessage = "";
+                Boolean isPush;
+                Boolean isDelete = false;
                 if (offRepeatByPeriod) {
-                    if (isDelete) {
-                        dataMessage = "数据不在锁定期内，不可推送";
+                    List<Integer> reportCountInPeriod = xieChengDataMapper.getReportPushStatusInPeriod(sha256Tel, apiCode);
+                    if (CollectionUtils.isEmpty(reportCountInPeriod)) {
+                        isPush = false;
+                        isDelete = true;
                     } else {
-                        dataMessage = "数据在锁定期内已推送过" + offRepeatCount + "次";
+                        Integer pushCount = reportCountInPeriod.stream().filter(pushStatus -> pushStatus == 2)
+                                .collect(Collectors.toList()).size();
+                        isPush = pushCount < offRepeatCount;
                     }
                 } else {
-                    dataMessage = "数据重复未推送";
+                    List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
+                    isPush = CollectionUtils.isEmpty(xieChengRepeatDatalist);
                 }
-                resultData.setDataMessage(dataMessage);
+                if (isPush) {
+                    // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
+                    String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
+                    adReqDTO.setClickId(clickId);
+                    // 携程推送
+                    Result result = xieChengService.pushXieChengData(adReqDTO);
+                    if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                        resultData.setPushStatus(2);
+                    } else {
+                        resultData.setPushStatus(3);
+                    }
+                    resultData.setClickId(clickId);
+                    resultData.setDataMessage(result.getMessage());
+                } else {
+                    resultData.setId(xieChengData.getId());
+                    resultData.setStatus(2);
+                    String dataMessage = "";
+                    if (offRepeatByPeriod) {
+                        if (isDelete) {
+                            dataMessage = "数据不在锁定期内，不可推送";
+                        } else {
+                            dataMessage = "数据在锁定期内已推送过" + offRepeatCount + "次";
+                        }
+                    } else {
+                        dataMessage = "数据重复未推送";
+                    }
+                    resultData.setDataMessage(dataMessage);
+                }
+                //endregion
+                xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                redisChgService.unlock(key, value);
+            }catch (Exception e){
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                        "携程上报异常，id="+xieChengData.getId()+"，localId="+ xieChengData.getLocalId()+ "errorMessage=" + e.getMessage()), e);
+                redisChgService.unlock(key, value);
             }
-            //endregion
-            xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-            redisChgService.unlock(key, value);
+
         }catch (Exception e){
-            log.error(e.getMessage(),e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程上报异常,errorMessage=" + e.getMessage()), e);
         }
     }
 
