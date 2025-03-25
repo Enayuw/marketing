@@ -380,7 +380,7 @@ public class TagServiceImpl implements TagService {
         dto.setContent(tag.getContent());
         dto.setTagNumber(tag.getTagNumber());
         dto.setSourceCode(tag.getSourceCode());
-        dto.setApiCodeScope(tag.getApiCodeScope().replace(",", ";"));
+        dto.setApiCodeScope(tag.getApiCodeScope());
         dto.setApiCodeLicense(tag.getApiCodeLicense() != null ? tag.getApiCodeLicense().replace(",", ";") : null);
         dto.setStatus(tag.getStatus());
         dto.setCreator(tag.getOptUserName().toString());
