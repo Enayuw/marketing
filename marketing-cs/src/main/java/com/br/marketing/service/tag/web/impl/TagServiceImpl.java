@@ -204,6 +204,10 @@ public class TagServiceImpl implements TagService {
                 return new ApiResult<Boolean>().fail(false, "非本人创建，无法编辑");
             }
 
+            if (checkTagNameExists(request.getTagName())) {
+                return new ApiResult<Boolean>().fail(false, "标签名称已存在");
+            }
+
             // 2. 校验时间范围是否合法
             TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
             if (timeRange == null) {
