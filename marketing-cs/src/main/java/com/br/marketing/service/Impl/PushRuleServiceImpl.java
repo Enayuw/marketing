@@ -53,7 +53,6 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.*;
-import com.br.marketing.mapper.tag.TagDataDetailMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.origin.MqFact;
