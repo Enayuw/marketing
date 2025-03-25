@@ -1282,47 +1282,18 @@ public class PushDataServiceImpl implements PushDataService {
     @Override
     public Result pushXieChengToDbData(String data) {
         try {
-            LocalFile localFile = new LocalFile();
-            Long id;
-            int xieChengCount = 1;
-            if (isJson(data)) {
-                JSONObject jsonObject = JSONObject.parseObject(data);
-                id = jsonObject.getLong("localId");
-            } else {
-                id = Long.valueOf(data);
-                localFile = localFileMapper.selectByPrimaryKey(id);
-                if (localFile != null) {
-                    xieChengCount = localFile.getActualNumber();
-                    localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
-                } else {
-                    return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
-                }
-            }
-            Boolean actionMark = true;
-            Long minId = null;
-            AtomicInteger failNum = new AtomicInteger(0);
-            CountDownLatch countDownLatch = new CountDownLatch(xieChengCount);
-            while (actionMark) {
-                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
+            JSONObject jsonObject = JSONObject.parseObject(data);
+            Long id = jsonObject.getLong("localId");
+            while (true) {
+                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
                 if (xieChengDatalist.size() == 0) {
-                    actionMark = false;
-                    continue;
+                   break;
                 }
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
-                    minId = xieChengData.getId();
-                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData, failNum, countDownLatch));
+                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData));
                 }
             }
-            try {
-                countDownLatch.await();
-            } catch (InterruptedException e) {
-                log.error("countDownLatch 线程执行异常", e);
-            }
-            if (!isJson(data)) {
-                updateLocalFile(localFile);
-            }
-            xieChengSendAlarm(failNum, "携程广告上报接口推送异常，请检查");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1671,14 +1642,6 @@ public class PushDataServiceImpl implements PushDataService {
         return endTime;
     }
 
-    private boolean isJson(String str) {
-        try {
-            JSONObject.parseObject(str);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     private void updateLocalFile(LocalFile localFile) {
         if (localFile != null) {
@@ -1693,9 +1656,8 @@ public class PushDataServiceImpl implements PushDataService {
         }
     }
 
-    private void pushXieChengData(XieChengData xieChengData, AtomicInteger failNum, CountDownLatch countDownLatch) {
+    private void pushXieChengData(XieChengData xieChengData) {
         try {
-            countDownLatch.countDown();
             AdReqDTO adReqDTO = new AdReqDTO();
             BeanUtils.copyProperties(xieChengData,adReqDTO);
             XieChengData resultData = new XieChengData();
@@ -1842,7 +1804,6 @@ public class PushDataServiceImpl implements PushDataService {
                     resultData.setPushStatus(2);
                 } else {
                     resultData.setPushStatus(3);
-                    failNum.getAndIncrement();
                 }
                 resultData.setClickId(clickId);
                 resultData.setDataMessage(result.getMessage());
