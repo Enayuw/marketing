@@ -20,6 +20,7 @@ import com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper;
 import com.br.marketing.service.tag.web.TagService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,36 +62,44 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public PageResultReturn getTagList(TagQueryDTO request) {
-        Integer current = request.getCurrent();
-        Integer size = request.getSize();
+        try {
+            Integer current = request.getCurrent();
+            Integer size = request.getSize();
 
-        // 构建查询参数
-        Map<String, Object> params = new HashMap<>();
-        params.put("tagName", request.getTagName());
-        params.put("apiCodes", request.getApiCodes());
-        params.put("creator", request.getCreator());
-//        params.put("status", request.getStatus());
+            // 构建查询参数
+            Map<String, Object> params = new HashMap<>();
+            params.put("tagName", request.getTagName());
+            params.put("apiCodes", request.getApiCodes());
+            params.put("creator", request.getCreator());
 
-        // 处理排序
-        List<String> allowedFields = Arrays.asList("create_time", "update_time", "tag_number");
-        String orderByField = camelToSnake(request.getOrderByField());
-        if (!allowedFields.contains(orderByField)) {
-            orderByField = "create_time";
+            // 处理排序
+            List<String> allowedFields = Arrays.asList("create_time", "update_time", "tag_number");
+            String orderByField = camelToSnake(request.getOrderByField());
+            if (!allowedFields.contains(orderByField)) {
+                orderByField = "create_time";
+            }
+            String orderByType = "ASC".equalsIgnoreCase(request.getOrderByType()) ? "ASC" : "DESC";
+            params.put("orderByField", orderByField);
+            params.put("orderByType", orderByType);
+
+            // 执行分页查询
+            PageHelper.startPage(current, size);
+            List<TagDataRule> list = tagDataRuleMapper.selectList(params);
+
+            PageInfo<TagDataRule> pageInfo = new PageInfo<>(list);
+            long total = pageInfo.getTotal();
+            // 转换结果
+            List<TagListResponseDTO> resultList = list.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+
+            return PageResultReturn.setPageResult(resultList, current, size, total);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取标签列表失败！tagName: " + request.getTagName()), e);
+            return null;
         }
-        String orderByType = "ASC".equalsIgnoreCase(request.getOrderByType()) ? "ASC" : "DESC";
-        params.put("orderByField", orderByField);
-        params.put("orderByType", orderByType);
-
-        // 执行分页查询
-        PageHelper.startPage(current, size);
-        List<TagDataRule> list = tagDataRuleMapper.selectList(params);
-
-        // 转换结果
-        List<TagListResponseDTO> resultList = list.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-
-        return PageResultReturn.setPageResult(resultList, current, size);
     }
 
     @Override
