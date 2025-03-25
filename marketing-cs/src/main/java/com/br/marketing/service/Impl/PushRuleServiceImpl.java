@@ -231,15 +231,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
-    @Value("${datasource.database.marketingBI.url:'jdbc:mysql://tidb-pre.brapp.com:9030/marketing'}")
-    private String url;
-
-    @Value("${datasource.database.marketingBI.username:'u_pd_marketing'}")
-    private String username;
-
-    @Value("${datasource.database.marketingBI.password:'M6teKbFVl1odfOCkC1JA'}")
-    private String password;
-
 
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
@@ -633,17 +624,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
                 // 构建联邦查询 SQL
                 federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, mTagCondition);
-                // 查询量级
-                try (Connection conn = DriverManager.getConnection(url, username, password);
-                     Statement stmt = conn.createStatement()) {
-                    ResultSet rs = stmt.executeQuery(federatedQuerySql);
-                    while (rs.next()) {
-                        total = rs.getInt(1);
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                // total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
+                total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
             }
         }catch (Exception e){
             log.warn("规则中心推送预览 SQL: " + federatedQuerySql);

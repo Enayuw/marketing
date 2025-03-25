@@ -1,4 +1,4 @@
-package com.br.marketing.mapper.tag;
+package com.br.marketing.mapper;
 
 
 import org.apache.ibatis.annotations.Param;
