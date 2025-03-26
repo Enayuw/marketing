@@ -96,6 +96,7 @@
     <include refid="Base_Column_List" />
     FROM t_tag_data_rule
     WHERE tag_code = #{tagCode}
+    AND delete_flag = 0
   </select>
 
   <select id="selectByTagCodes" resultMap="BaseResultMap">
@@ -106,13 +107,14 @@
     <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
       #{tagCode}
     </foreach>
+    AND delete_flag = 0
   </select>
 
 
   <select id="selectDistinctCreators" resultMap="CreatorMap">
     SELECT opt_user_id, opt_user_name
     FROM t_tag_data_rule
-    WHERE 1 = 1
+    WHERE 1 = 1 and delete_flag = 0
     GROUP BY opt_user_id, opt_user_name
     ORDER BY opt_user_id
   </select>

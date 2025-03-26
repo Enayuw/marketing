@@ -11,14 +11,15 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
-import com.br.marketing.entity.ScoreSearchConditionExample;
 import com.br.marketing.entity.tag.TagDataRule;
-import com.br.marketing.enums.TagTimeRangeEnum;
+import com.br.marketing.enums.tag.DeleteFlagEnum;
+import com.br.marketing.enums.tag.TagStatusEnum;
+import com.br.marketing.enums.tag.TagTimeRangeEnum;
 import com.br.marketing.entity.tag.*;
-import com.br.marketing.mapper.ScoreSearchConditionMapper;
 import com.br.marketing.mapper.tag.TagDataFieldConfigMapper;
 import com.br.marketing.mapper.tag.TagDataRuleMapper;
 import com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper;
+import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.tag.web.TagService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.PageHelper;
@@ -65,7 +66,7 @@ public class TagServiceImpl implements TagService {
     private TagRuleSourceLicenseMapper tagRuleSourceLicenseMapper;
 
     @Resource
-    private ScoreSearchConditionMapper scoreSearchConditionMapper;
+    EntityOptServiceImpl entityOptService;
 
     @Override
     public PageResultReturn getTagList(TagQueryDTO request) {
@@ -94,57 +95,50 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean createTag(TagCreateDTO request) {
-        try {
-            // 1. 校验标签名称是否重复
-            if (checkTagNameExists(request.getTagName())) {
-                throw new BusinessException("标签名称已存在");
-            }
-
-            // 2. 校验时间范围是否合法
-            TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
-            if (timeRange == null) {
-                throw new BusinessException("无效的时间范围");
-            }
-
-            // 3. 生成标签编码
-            String tagCode = generateTagCode();
-
-            // 4. 构建标签规则实体
-            TagDataRule tagRule = new TagDataRule();
-            tagRule.setTagCode(tagCode);
-            tagRule.setTagName(request.getTagName());
-            tagRule.setSourceCode(request.getSourceCode());
-            tagRule.setTimeNumber(timeRange.getTimeNumber());
-            tagRule.setTimeUnit(timeRange.getTimeUnit());
-            tagRule.setContent(JSON.toJSONString(request.getConditionTree()));
-            String apiCodeLicense = String.join(",", request.getAuthorizedApiCodes());
-            tagRule.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
-            tagRule.setApiCodeLicense(apiCodeLicense);
-            tagRule.setStatus(1);
-            tagRule.setOptUserId(request.getOptUserId());
-            tagRule.setOptUserName(request.getOptUserName());
-            tagRule.setCreateTime(new Date());
-            tagRule.setUpdateTime(new Date());
-
-            // 生成规则总结
-            tagRule.setSummary(request.getSummary());
-            tagRule.setDeleteFlag(1);
-
-            // 5. 保存标签规则
-            tagDataRuleMapper.insert(tagRule);
-
-            // 6. 保存标签授权关系
-            if (ObjectUtil.isNotEmpty(apiCodeLicense)) {
-                saveTagSourceLicense(tagCode, request.getAuthorizedApiCodes());
-            }
-
-            return true;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "创建标签失败！tagName: " + request.getTagName()), e);
-            throw new BusinessException("创建标签失败！tagName: " + request.getTagName());
+        // 1. 校验标签名称是否重复
+        if (checkTagNameExists(request.getTagName())) {
+            throw new BusinessException("标签名称已存在");
         }
+
+        // 2. 校验时间范围是否合法
+        TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
+        if (timeRange == null) {
+            throw new BusinessException("无效的时间范围");
+        }
+
+        // 3. 生成标签编码
+        String tagCode = generateTagCode();
+
+        // 4. 构建标签规则实体
+        TagDataRule tagRule = new TagDataRule();
+        tagRule.setTagCode(tagCode);
+        tagRule.setTagName(request.getTagName());
+        tagRule.setSourceCode(request.getSourceCode());
+        tagRule.setTimeNumber(timeRange.getTimeNumber());
+        tagRule.setTimeUnit(timeRange.getTimeUnit());
+        tagRule.setContent(JSON.toJSONString(request.getConditionTree()));
+        String apiCodeLicense = String.join(",", request.getAuthorizedApiCodes());
+        tagRule.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
+        tagRule.setApiCodeLicense(apiCodeLicense);
+        tagRule.setStatus(TagStatusEnum.ENABLED.getCode());
+        tagRule.setOptUserId(request.getOptUserId());
+        tagRule.setOptUserName(request.getOptUserName());
+        tagRule.setCreateTime(new Date());
+        tagRule.setUpdateTime(new Date());
+
+        // 生成规则总结
+        tagRule.setSummary(request.getSummary());
+        tagRule.setDeleteFlag(DeleteFlagEnum.NOT_DELETED.getCode());
+
+        // 5. 保存标签规则
+        tagDataRuleMapper.insert(tagRule);
+
+        // 6. 保存标签授权关系
+        if (ObjectUtil.isNotEmpty(apiCodeLicense)) {
+            saveTagSourceLicense(tagCode, request.getAuthorizedApiCodes());
+        }
+
+        return true;
     }
 
     private void saveTagSourceLicense(String tagCode, List<String> apiCodes) {
@@ -157,7 +151,8 @@ public class TagServiceImpl implements TagService {
                     TagRuleSourceLicense license = new TagRuleSourceLicense();
                     license.setTagCode(tagCode);
                     license.setApiCode(apiCode);
-                    license.setStatus(1);
+                    license.setStatus(TagStatusEnum.ENABLED.getCode());
+                    license.setDeleteFlag(DeleteFlagEnum.NOT_DELETED.getCode());
                     license.setCreateTime(new Date());
                     license.setUpdateTime(new Date());
                     return license;
@@ -178,58 +173,51 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateTag(TagUpdateDTO request) {
-        try {
-            // 1. 检查标签是否存在
-            TagDataRule existingTag = tagDataRuleMapper.selectByTagCode(request.getTagCode());
-            if (existingTag == null) {
-                throw new BusinessException("标签不存在");
-            }
-
-            if (!existingTag.getOptUserId().equals(request.getOptUserId())) {
-                throw new BusinessException("非本人创建，无法编辑");
-            }
-
-            if (!request.getTagName().equals(existingTag.getTagName())) {
-                if (checkTagNameExists(request.getTagName())) {
-                    throw new BusinessException("标签名称已存在");
-                }
-            }
-            // 2. 校验时间范围是否合法
-            TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
-            if (timeRange == null) {
-                throw new BusinessException("无效的时间范围");
-            }
-
-            // 3. 更新标签信息
-            TagDataRule updateTag = new TagDataRule();
-            updateTag.setTagCode(request.getTagCode());
-            updateTag.setTagName(request.getTagName());
-            updateTag.setTimeNumber(timeRange.getTimeNumber());
-            updateTag.setTimeUnit(timeRange.getTimeUnit());
-            updateTag.setContent(JSON.toJSONString(request.getConditionTree()));
-            updateTag.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
-            updateTag.setApiCodeLicense(String.join(",", request.getAuthorizedApiCodes()));
-            updateTag.setUpdateTime(new Date());
-            updateTag.setOptUserId(request.getOptUserId());
-            updateTag.setOptUserName(request.getOptUserName());
-
-            // 生成规则总结
-            updateTag.setSummary(request.getSummary());
-
-            tagDataRuleMapper.updateByTagCode(updateTag);
-
-            // 3. 更新关联关系
-            if (!existingTag.getApiCodeLicense().equals(String.join(",", request.getAuthorizedApiCodes()))){
-                updateTagRelations(request.getTagCode(), request);
-            }
-
-            return true;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "更新标签失败！tagCode: " + request.getTagCode()), e);
-            throw new BusinessException("更新标签失败！tagCode: " + request.getTagCode());
+        // 1. 检查标签是否存在
+        TagDataRule existingTag = tagDataRuleMapper.selectByTagCode(request.getTagCode());
+        if (existingTag == null) {
+            throw new BusinessException("标签不存在");
         }
+
+        if (!existingTag.getOptUserId().equals(request.getOptUserId())) {
+            throw new BusinessException("非本人创建，无法编辑");
+        }
+
+        if (!request.getTagName().equals(existingTag.getTagName())) {
+            if (checkTagNameExists(request.getTagName())) {
+                throw new BusinessException("标签名称已存在");
+            }
+        }
+        // 2. 校验时间范围是否合法
+        TagTimeRangeEnum timeRange = TagTimeRangeEnum.getByCode(request.getTimeRange());
+        if (timeRange == null) {
+            throw new BusinessException("无效的时间范围");
+        }
+
+        // 3. 更新标签信息
+        TagDataRule updateTag = new TagDataRule();
+        updateTag.setTagCode(request.getTagCode());
+        updateTag.setTagName(request.getTagName());
+        updateTag.setTimeNumber(timeRange.getTimeNumber());
+        updateTag.setTimeUnit(timeRange.getTimeUnit());
+        updateTag.setContent(JSON.toJSONString(request.getConditionTree()));
+        updateTag.setApiCodeScope(String.join(",", request.getScopeApiCodes()));
+        updateTag.setApiCodeLicense(String.join(",", request.getAuthorizedApiCodes()));
+        updateTag.setUpdateTime(new Date());
+        updateTag.setOptUserId(request.getOptUserId());
+        updateTag.setOptUserName(request.getOptUserName());
+
+        // 生成规则总结
+        updateTag.setSummary(request.getSummary());
+
+        tagDataRuleMapper.updateByTagCode(updateTag);
+
+        // 3. 更新关联关系
+        if (!existingTag.getApiCodeLicense().equals(String.join(",", request.getAuthorizedApiCodes()))){
+            updateTagRelations(request.getTagCode(), request);
+        }
+        entityOptService.writeOptLog(existingTag.getId(), updateTag, existingTag);
+        return true;
     }
 
     /**
@@ -248,17 +236,10 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<TagFieldConfigDTO> getFieldConfigs(String sourceCode) {
-        try {
-            if (StringUtils.isBlank(sourceCode)) {
-                throw new BusinessException("数据源编码不能为空");
-            }
-            return tagDataFieldConfigMapper.selectFieldsByApiCode(sourceCode);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取字段配置失败！sourceCode: " + sourceCode), e);
-            throw new BusinessException("获取字段配置失败！sourceCode: " + sourceCode);
+        if (StringUtils.isBlank(sourceCode)) {
+            throw new BusinessException("数据源编码不能为空");
         }
+        return tagDataFieldConfigMapper.selectFieldsByApiCode(sourceCode);
     }
 
     @Override
@@ -279,7 +260,7 @@ public class TagServiceImpl implements TagService {
             List<TagDataFieldConfig> list = tagDataFieldConfigMapper.selectByExample(example);
 
             if (list.size() == 1 && "boolean".equals(list.get(0).getFieldType())) {
-                return Arrays.asList("0", "1");
+                return Arrays.asList(TagStatusEnum.DISABLED.getCode().toString(), TagStatusEnum.ENABLED.getCode().toString());
             }
 
             return new ArrayList<>();
@@ -335,7 +316,7 @@ public class TagServiceImpl implements TagService {
         TagRuleSourceLicenseExample tagRuleSourceLicenseExample = new TagRuleSourceLicenseExample();
         tagRuleSourceLicenseExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andStatusEqualTo(1);
+                .andStatusEqualTo(TagStatusEnum.ENABLED.getCode());
 
         List<TagRuleSourceLicense> tagRuleSourceLicenses = tagRuleSourceLicenseMapper.selectByExample(tagRuleSourceLicenseExample);
 
@@ -401,25 +382,21 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public Boolean batchDelete(TagBatchDeleteDTO request) {
-        try {
-            List<TagDataRule> tags = tagDataRuleMapper.selectByTagCodes(request.getTagCodes());
+        List<TagDataRule> tags = tagDataRuleMapper.selectByTagCodes(request.getTagCodes());
 
-            // 检查权限
-            for (TagDataRule tag : tags) {
-                if (!tag.getOptUserId().equals(request.getCurrentUserId())) {
-                    throw new BusinessException("无权删除其他人创建的标签");
-                }
+        // 检查权限
+        for (TagDataRule tag : tags) {
+            if (!tag.getOptUserId().equals(request.getCurrentUserId())) {
+                throw new BusinessException("无权删除其他人创建的标签");
             }
-
-            // 执行删除
-            tagDataRuleMapper.batchDelete(request.getTagCodes());
-            return true;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "批量删除标签失败！"), e);
-            throw new BusinessException("批量删除标签失败！");
+            TagDataRule tagDataRule = new TagDataRule();
+            tagDataRule.setDeleteFlag(1);
+            entityOptService.writeOptLog(tag.getId(), tagDataRule, tag);
         }
+
+        // 执行删除
+        tagDataRuleMapper.batchDelete(request.getTagCodes());
+        return true;
     }
 
     @Override
@@ -448,99 +425,82 @@ public class TagServiceImpl implements TagService {
 
 
     @Override
-    public Boolean updateTagStatus(String tagCode, Integer status, Long optUserId) {
-        try {
-            // 1. 检查标签是否存在
-            TagDataRule existingTag = tagDataRuleMapper.selectByTagCode(tagCode);
-            if (existingTag == null) {
-                throw new BusinessException("标签不存在");
-            }
-            if (!existingTag.getOptUserId().equals(optUserId)) {
-                throw new BusinessException("非本人创建，无法编辑");
-            }
-
-            // 2. 更新同步状态
-            TagDataRule updateTag = new TagDataRule();
-            updateTag.setTagCode(tagCode);
-            updateTag.setStatus(status);
-            updateTag.setUpdateTime(new Date());
-
-            tagDataRuleMapper.updateByTagCode(updateTag);
-            return true;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "更新标签同步状态失败！tagCode: " + tagCode), e);
-            throw new BusinessException("更新标签同步状态失败！tagCode: " + tagCode);
+    public Boolean updateTagStatus(String tagCode, Integer status) {
+        // 1. 检查标签是否存在
+        TagDataRule existingTag = tagDataRuleMapper.selectByTagCode(tagCode);
+        if (existingTag == null) {
+            throw new BusinessException("标签不存在");
         }
+
+        // 2. 更新同步状态
+        TagDataRule updateTag = new TagDataRule();
+        updateTag.setTagCode(tagCode);
+        updateTag.setStatus(status);
+
+        tagDataRuleMapper.updateByTagCode(updateTag);
+        entityOptService.writeOptLog(existingTag.getId(), updateTag, existingTag);
+        return true;
     }
 
     @Override
     public TagDetailDTO getTagDetail(Long id) {
-        try {
-            // 1. 参数校验
-            if (ObjectUtil.isEmpty(id)) {
-                throw new BusinessException("标签编码不能为空");
-            }
-
-            // 2. 获取标签基本信息
-            TagDataRule tagRule = tagDataRuleMapper.selectByPrimaryKey(id);
-            if (tagRule == null) {
-                throw new BusinessException("标签不存在");
-            }
-
-            // 3. 构建返回对象
-            TagDetailDTO detailDTO = new TagDetailDTO();
-
-            // 基本信息
-            detailDTO.setTagName(tagRule.getTagName());
-            detailDTO.setTagCode(tagRule.getTagCode());
-            detailDTO.setSourceCode(tagRule.getSourceCode());
-
-            // 条件树转换
-            if (StringUtils.isNotBlank(tagRule.getContent())) {
-                try {
-                    detailDTO.setConditionTree(JSON.parseObject(tagRule.getContent()));
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                            "解析条件树失败！错误信息：" + e.getMessage()), e);
-                    detailDTO.setConditionTree(new JSONObject());
-                }
-            }
-
-            // 时间范围转换
-            String timeRange = convertToTimeRange(tagRule.getTimeNumber(), tagRule.getTimeUnit());
-            detailDTO.setTimeRange(timeRange);
-
-            // 规则总结
-            detailDTO.setSummary(tagRule.getSummary());
-
-            // 用户范围
-            if (StringUtils.isNotBlank(tagRule.getApiCodeScope())) {
-                detailDTO.setScopeApiCodes(Arrays.asList(tagRule.getApiCodeScope().split(",")));
-            } else {
-                detailDTO.setScopeApiCodes(new ArrayList<>());
-            }
-
-            // 授权范围
-            if (StringUtils.isNotBlank(tagRule.getApiCodeLicense())) {
-                detailDTO.setAuthorizedApiCodes(Arrays.asList(tagRule.getApiCodeLicense().split(",")));
-            } else {
-                detailDTO.setAuthorizedApiCodes(new ArrayList<>());
-            }
-
-            // 设置权限信息
-            detailDTO.setOptUserId(tagRule.getOptUserId());
-            detailDTO.setOptUserName(tagRule.getOptUserName());
-            detailDTO.setStatus(tagRule.getStatus());
-
-            return detailDTO;
-        } catch (Exception e) {
-            log.error(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
-                    "获取标签详情失败！id: " + id), e);
-            throw new BusinessException("获取标签详情失败！id: " + id);
+        // 1. 参数校验
+        if (ObjectUtil.isEmpty(id)) {
+            throw new BusinessException("标签编码不能为空");
         }
+
+        // 2. 获取标签基本信息
+        TagDataRule tagRule = tagDataRuleMapper.selectByPrimaryKey(id);
+        if (tagRule == null) {
+            throw new BusinessException("标签不存在");
+        }
+
+        // 3. 构建返回对象
+        TagDetailDTO detailDTO = new TagDetailDTO();
+
+        // 基本信息
+        detailDTO.setTagName(tagRule.getTagName());
+        detailDTO.setTagCode(tagRule.getTagCode());
+        detailDTO.setSourceCode(tagRule.getSourceCode());
+
+        // 条件树转换
+        if (StringUtils.isNotBlank(tagRule.getContent())) {
+            try {
+                detailDTO.setConditionTree(JSON.parseObject(tagRule.getContent()));
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                        "解析条件树失败！错误信息：" + e.getMessage()), e);
+                detailDTO.setConditionTree(new JSONObject());
+            }
+        }
+
+        // 时间范围转换
+        String timeRange = convertToTimeRange(tagRule.getTimeNumber(), tagRule.getTimeUnit());
+        detailDTO.setTimeRange(timeRange);
+
+        // 规则总结
+        detailDTO.setSummary(tagRule.getSummary());
+
+        // 用户范围
+        if (StringUtils.isNotBlank(tagRule.getApiCodeScope())) {
+            detailDTO.setScopeApiCodes(Arrays.asList(tagRule.getApiCodeScope().split(",")));
+        } else {
+            detailDTO.setScopeApiCodes(new ArrayList<>());
+        }
+
+        // 授权范围
+        if (StringUtils.isNotBlank(tagRule.getApiCodeLicense())) {
+            detailDTO.setAuthorizedApiCodes(Arrays.asList(tagRule.getApiCodeLicense().split(",")));
+        } else {
+            detailDTO.setAuthorizedApiCodes(new ArrayList<>());
+        }
+
+        // 设置权限信息
+        detailDTO.setOptUserId(tagRule.getOptUserId());
+        detailDTO.setOptUserName(tagRule.getOptUserName());
+        detailDTO.setStatus(tagRule.getStatus());
+
+        return detailDTO;
     }
 
     /**

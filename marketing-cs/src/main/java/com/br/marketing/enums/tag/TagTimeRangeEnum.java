@@ -1,4 +1,4 @@
-package com.br.marketing.enums;
+package com.br.marketing.enums.tag;
 
 import lombok.Getter;
 
