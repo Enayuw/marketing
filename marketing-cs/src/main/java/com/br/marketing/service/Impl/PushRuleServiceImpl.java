@@ -601,7 +601,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
         }
 
-        int total = 0;
+        int total;
         String federatedQuerySql = "";
         try {
             String mTagCondition = dto.getmTagCondition();
@@ -619,6 +619,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
                 // 构建联邦查询 SQL
                 federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, mTagCondition);
+                if(StringUtils.isEmpty(federatedQuerySql)){
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+                }
                 total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
             }
         }catch (Exception e){

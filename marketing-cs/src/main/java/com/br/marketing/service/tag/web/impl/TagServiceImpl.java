@@ -342,6 +342,10 @@ public class TagServiceImpl implements TagService {
      */
     @Override
     public List<TagEffectiveDTO> getEffectiveTag(String apiCode) {
+
+        if(StringUtils.isEmpty(apiCode)){
+            return new ArrayList<>();
+        }
         // 查询符合条件的 TagRuleSourceLicense 列表
         TagRuleSourceLicenseExample tagRuleSourceLicenseExample = new TagRuleSourceLicenseExample();
         tagRuleSourceLicenseExample.createCriteria()
