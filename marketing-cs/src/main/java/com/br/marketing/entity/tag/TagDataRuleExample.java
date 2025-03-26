@@ -975,52 +975,62 @@ public class TagDataRuleExample {
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameEqualTo(Long value) {
+        public Criteria andOptUserNameEqualTo(String value) {
             addCriterion("opt_user_name =", value, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameNotEqualTo(Long value) {
+        public Criteria andOptUserNameNotEqualTo(String value) {
             addCriterion("opt_user_name <>", value, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameGreaterThan(Long value) {
+        public Criteria andOptUserNameGreaterThan(String value) {
             addCriterion("opt_user_name >", value, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameGreaterThanOrEqualTo(Long value) {
+        public Criteria andOptUserNameGreaterThanOrEqualTo(String value) {
             addCriterion("opt_user_name >=", value, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameLessThan(Long value) {
+        public Criteria andOptUserNameLessThan(String value) {
             addCriterion("opt_user_name <", value, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameLessThanOrEqualTo(Long value) {
+        public Criteria andOptUserNameLessThanOrEqualTo(String value) {
             addCriterion("opt_user_name <=", value, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameIn(List<Long> values) {
+        public Criteria andOptUserNameLike(String value) {
+            addCriterion("opt_user_name like", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameNotLike(String value) {
+            addCriterion("opt_user_name not like", value, "optUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andOptUserNameIn(List<String> values) {
             addCriterion("opt_user_name in", values, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameNotIn(List<Long> values) {
+        public Criteria andOptUserNameNotIn(List<String> values) {
             addCriterion("opt_user_name not in", values, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameBetween(Long value1, Long value2) {
+        public Criteria andOptUserNameBetween(String value1, String value2) {
             addCriterion("opt_user_name between", value1, value2, "optUserName");
             return (Criteria) this;
         }
 
-        public Criteria andOptUserNameNotBetween(Long value1, Long value2) {
+        public Criteria andOptUserNameNotBetween(String value1, String value2) {
             addCriterion("opt_user_name not between", value1, value2, "optUserName");
             return (Criteria) this;
         }
@@ -1145,63 +1155,63 @@ public class TagDataRuleExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatIsNull() {
-            addCriterion("is_repeat is null");
+        public Criteria andDeleteFlagIsNull() {
+            addCriterion("delete_flag is null");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatIsNotNull() {
-            addCriterion("is_repeat is not null");
+        public Criteria andDeleteFlagIsNotNull() {
+            addCriterion("delete_flag is not null");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatEqualTo(Integer value) {
-            addCriterion("is_repeat =", value, "isRepeat");
+        public Criteria andDeleteFlagEqualTo(Integer value) {
+            addCriterion("delete_flag =", value, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatNotEqualTo(Integer value) {
-            addCriterion("is_repeat <>", value, "isRepeat");
+        public Criteria andDeleteFlagNotEqualTo(Integer value) {
+            addCriterion("delete_flag <>", value, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatGreaterThan(Integer value) {
-            addCriterion("is_repeat >", value, "isRepeat");
+        public Criteria andDeleteFlagGreaterThan(Integer value) {
+            addCriterion("delete_flag >", value, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatGreaterThanOrEqualTo(Integer value) {
-            addCriterion("is_repeat >=", value, "isRepeat");
+        public Criteria andDeleteFlagGreaterThanOrEqualTo(Integer value) {
+            addCriterion("delete_flag >=", value, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatLessThan(Integer value) {
-            addCriterion("is_repeat <", value, "isRepeat");
+        public Criteria andDeleteFlagLessThan(Integer value) {
+            addCriterion("delete_flag <", value, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatLessThanOrEqualTo(Integer value) {
-            addCriterion("is_repeat <=", value, "isRepeat");
+        public Criteria andDeleteFlagLessThanOrEqualTo(Integer value) {
+            addCriterion("delete_flag <=", value, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatIn(List<Integer> values) {
-            addCriterion("is_repeat in", values, "isRepeat");
+        public Criteria andDeleteFlagIn(List<Integer> values) {
+            addCriterion("delete_flag in", values, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatNotIn(List<Integer> values) {
-            addCriterion("is_repeat not in", values, "isRepeat");
+        public Criteria andDeleteFlagNotIn(List<Integer> values) {
+            addCriterion("delete_flag not in", values, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatBetween(Integer value1, Integer value2) {
-            addCriterion("is_repeat between", value1, value2, "isRepeat");
+        public Criteria andDeleteFlagBetween(Integer value1, Integer value2) {
+            addCriterion("delete_flag between", value1, value2, "deleteFlag");
             return (Criteria) this;
         }
 
-        public Criteria andIsRepeatNotBetween(Integer value1, Integer value2) {
-            addCriterion("is_repeat not between", value1, value2, "isRepeat");
+        public Criteria andDeleteFlagNotBetween(Integer value1, Integer value2) {
+            addCriterion("delete_flag not between", value1, value2, "deleteFlag");
             return (Criteria) this;
         }
     }

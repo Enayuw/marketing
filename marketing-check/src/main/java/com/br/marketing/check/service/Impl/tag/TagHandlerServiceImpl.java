@@ -63,15 +63,12 @@ public class TagHandlerServiceImpl implements TagHandleService {
     @Override
     public void calculateTagData() {
         TagDataRuleExample example = new TagDataRuleExample();
-        example.createCriteria().andStatusEqualTo(1).andIsRepeatEqualTo(1);
+        example.createCriteria().andStatusEqualTo(1).andDeleteFlagEqualTo(0);
         List<TagDataRule> tagDataRuleList = tagDataRuleMapper.selectByExample(example);
         TagDataSourceConfigExample sourceConfigExample = new TagDataSourceConfigExample();
         sourceConfigExample.createCriteria().andStatusEqualTo(1);
         List<TagDataSourceConfig> sourceConfigList = tagDataSourceConfigMapper.selectByExample(sourceConfigExample);
 
-        TagDataFieldConfigExample fieldConfigExample = new TagDataFieldConfigExample();
-        fieldConfigExample.createCriteria().andStatusEqualTo(1);
-        List<TagDataFieldConfig> tagDataFieldConfigList = tagDataFieldConfigMapper.selectByExample(fieldConfigExample);
         String nowDay = LocalDate.now().toString();
         tagDataRuleList.forEach(tagDataRule -> {
             String tagCode = tagDataRule.getTagCode();
@@ -87,7 +84,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
             // 存在，进入下次循环，不存在，插入记录
             Long recordId = saveTagCalculateRecord(tagDataRule.getTagCode(), nowDay);
             // 标签运算
-            if (tagCalculate(tagDataRule, sourceConfigList, tagDataFieldConfigList, nowDay)) {
+            if (tagCalculate(tagDataRule, sourceConfigList, nowDay)) {
                 status = 2;
                 String querySql = String.format(
                         "select count(1) from t_tag_data_detail where tag_code = '%S' and calculate_date ='%S'",
@@ -106,7 +103,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
 
 
     private Boolean tagCalculate(TagDataRule tagDataRule, List<TagDataSourceConfig> sourceConfigList,
-                                 List<TagDataFieldConfig> tagDataFieldConfigList,
                                  String nowDay) {
         String tagCode = tagDataRule.getTagCode();
         log.warn(TITLE + "开始计算标签: {}", tagCode);
@@ -120,7 +116,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
 
             // 处理每个apiCode的标签
             for (String apiCode : apiCodes) {
-                if (!processTagByapiCode(tagDataRule, apiCode, sourceCodes, sourceConfigList, tagDataFieldConfigList)) {
+                if (!processTagByapiCode(tagDataRule, apiCode, sourceCodes, sourceConfigList)) {
                     return Boolean.FALSE;
                 }
             }
@@ -138,8 +134,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
      * 处理单个apiCode的标签计算
      */
     private Boolean processTagByapiCode(TagDataRule tagDataRule, String apiCode, List<String> sourceCodes,
-                                        List<TagDataSourceConfig> sourceConfigList,
-                                        List<TagDataFieldConfig> tagDataFieldConfigList) {
+                                        List<TagDataSourceConfig> sourceConfigList) {
         String tagCode = tagDataRule.getTagCode();
         // 确定数据源类型和名称
         Integer sourceType;
@@ -421,7 +416,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
                 // 等待5秒再次检查
                 Thread.sleep(5000L);
             } catch (Exception e) {
-                Thread.currentThread().interrupt();
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                         TITLE + viewName + "等待物化视图创建过程被中断"), e);
             }

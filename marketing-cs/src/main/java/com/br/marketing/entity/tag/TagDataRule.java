@@ -91,9 +91,9 @@ public class TagDataRule implements Serializable {
     private Date updateTime;
 
     /**
-     * 是否删除 1：正常，2：剔除
+     * 是否删除 0：正常，1：删除
      */
-    private Integer isRepeat;
+    private Integer deleteFlag;
 
     private static final long serialVersionUID = 1L;
 }
