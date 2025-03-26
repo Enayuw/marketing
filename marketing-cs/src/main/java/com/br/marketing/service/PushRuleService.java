@@ -220,4 +220,5 @@ public interface PushRuleService {
     void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum);
 
     Result<Boolean> deleteRule(Long id);
+    Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO);
 }

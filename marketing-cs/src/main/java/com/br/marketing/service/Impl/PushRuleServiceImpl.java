@@ -568,7 +568,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (isXieChengData(dto)) {
             total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
         } else {
-            Result<PushViewVO> pushViewVOResult = queryFederation(dto, pushViewVO);
+            Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
             if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
             }
@@ -588,6 +588,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
+    @Override
     public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());

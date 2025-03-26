@@ -5,7 +5,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.service.Impl.PushRuleServiceImpl;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.rulecenter.IRuleTaskService;
 import com.br.marketing.service.rulecenter.enums.RuleCenterDataSourceEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -25,19 +25,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RuleTaskByScoreServiceImpl implements IRuleTaskService {
 
-
-    @Resource
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
-    MarketingHistoryEsService marketingHistoryEsService;
-
-
-
     @Resource
     ScoreXieChengServiceImpl scoreXieChengService;
     @Resource
-    PushRuleServiceImpl pushRuleService;
+    PushRuleService pushRuleService;
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
