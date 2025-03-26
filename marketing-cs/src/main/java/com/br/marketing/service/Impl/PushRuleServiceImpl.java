@@ -68,6 +68,7 @@ import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
@@ -398,6 +399,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     CustomerTagsProcessServiceImpl customerTagsProcessService;
 
+    @Resource
+    TagHandleService tagHandleService;
+
 
     @Override
     public Result<CustomerInfoPushMain> getPushTask() {
@@ -609,6 +613,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (mTagCondition== null) {
                 total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
             } else {
+                // 解析标签规则
+                JSONObject jsonObject = JSON.parseObject(mTagCondition);
+                String tagCode = jsonObject.getString("tagCode");
+                int type = jsonObject.getIntValue("type");
+                if(!tagHandleService.tagIsEnabled(dto.getApiCode(), tagCode)){
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该apiCode：" + dto.getApiCode() + ",该tag："+tagCode + "有误");
+                }
                 // 页面规则查询es
                 ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
                 String queryDsl = esQueryRequest.getQueryDsl();
@@ -619,7 +630,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
 
                 // 构建联邦查询 SQL
-                federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, mTagCondition);
+                federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
                 if(StringUtils.isEmpty(federatedQuerySql)){
                     return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
                 }
@@ -632,6 +643,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         pushViewVO.setTotal(total);
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
+
     /**
      * 构建联邦查询 SQL
      *
@@ -640,11 +652,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param mTagCondition   标签规则 JSON
      * @return 联邦查询 SQL
      */
-    private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, String mTagCondition) {
-        // 解析标签规则
-        JSONObject jsonObject = JSON.parseObject(mTagCondition);
-        String tagCode = jsonObject.getString("tagCode");
-        int type = jsonObject.getIntValue("type");
+    private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, String tagCode, int type) {
 
         // 1. 构建 UNION ALL 部分
         StringBuilder unionAllBuilder = new StringBuilder();
@@ -1546,6 +1554,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             for (Integer i = 0; i < parNum; i++) {
                 QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
                 try {
+                    // 解析标签规则
+                    JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                    String tagCode = jsonObject.getString("tagCode");
+                    int type = jsonObject.getIntValue("type");
+                    if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                                "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "有误"));
+
+                        CustomerInfoPushMain customer = new CustomerInfoPushMain();
+                        customer.setId(customerInfoPushMain.getId());
+                        customer.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                        customerInfoPushMainMapper.updateByPrimaryKeySelective(customer);
+                        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+                    }
                     //存在标签
                     if(customerInfoPushMain.getTagContent() != null){
                         List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
@@ -1553,10 +1575,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if(marketingHistories.isEmpty()){
                             continue;
                         }
-                        // 解析标签规则
-                        JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                        String tagCode = jsonObject.getString("tagCode");
-                        int type = jsonObject.getIntValue("type");
                         // 查询es 提取跑分文件中cells
                         List<String> esCells = marketingHistories.stream()
                                 .map(MarketingHistory::getCell_log)
@@ -1816,6 +1834,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
                             String tagCode = jsonObject.getString("tagCode");
                             int type = jsonObject.getIntValue("type");
+
+                            if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
+                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                                        "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "有误"));
+                                Result<Integer> result = new Result<>();
+                                result.setCode(ResultCode.FAIL.getValue());
+                                Callable<Result<Integer>> resultCallable = (Callable) () -> result;
+                                resList.add(pushJcPool.submit(resultCallable));
+                                return resList;
+                            }
+
                             // 查询es 提取跑分文件中cells
                             List<String> esCells = marketingHistories.stream()
                                     .map(MarketingHistory::getCell_log)
