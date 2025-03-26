@@ -28,10 +28,9 @@
     </foreach>
   </insert>
 
-
-  <delete id="deleteByTagCode">
-    DELETE FROM t_tag_rule_source_license
+  <update id="deleteByTagCode" parameterType="com.br.marketing.entity.tag.TagRuleSourceLicense">
+    UPDATE t_tag_rule_source_license set delete_flag = 1
     WHERE tag_code = #{tagCode,jdbcType=VARCHAR}
-  </delete>
+  </update>
 
 </mapper>

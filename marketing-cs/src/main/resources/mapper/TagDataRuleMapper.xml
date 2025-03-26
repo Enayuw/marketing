@@ -156,11 +156,11 @@
     WHERE tag_code = #{tagCode}
   </update>
 
-  <delete id="batchDelete">
+  <update id="batchDelete" parameterType="com.br.marketing.entity.tag.TagDataRule">
     UPDATE t_tag_data_rule set delete_flag = 1
     WHERE tag_code IN
     <foreach collection="tagCodes" item="tagCode" open="(" separator="," close=")">
       #{tagCode}
     </foreach>
-  </delete>
+  </update>
 </mapper>

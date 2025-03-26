@@ -26,22 +26,22 @@ public interface TagService {
     /**
      * 更新标签
      */
-    Boolean updateTag(TagUpdateDTO request);
+    Boolean updateTag(@Validated TagUpdateDTO request);
 
     /**
      * 更新标签状态
      */
-    Boolean updateTagStatus(String tagCode, Integer status, Long optUserId);
+    Boolean updateTagStatus(@Validated String tagCode, @Validated Integer status, @Validated Long optUserId);
 
     /**
      * 获取标签字段配置
      */
-    List<TagFieldConfigDTO> getFieldConfigs(String sourceCode);
+    List<TagFieldConfigDTO> getFieldConfigs(@Validated String sourceCode);
 
     /**
      * 获取字段值列表
      */
-    List<String> getValueOptions(String fieldCode);
+    List<String> getValueOptions(@Validated String fieldCode);
 
     /**
      * 获取apiCode授权的标签
@@ -51,7 +51,7 @@ public interface TagService {
     /**
      * 批量删除标签
      */
-    Boolean batchDelete(TagBatchDeleteDTO request);
+    Boolean batchDelete(@Validated TagBatchDeleteDTO request);
 
     /**
      * 获取创建人列表
@@ -64,12 +64,7 @@ public interface TagService {
     List<TagListResponseDTO> getTagName();
 
     /**
-     * 校验标签名称是否重复
-     */
-    boolean checkTagNameExists(String tagName);
-
-    /**
      * 获取标签详情用于编辑
      */
-    TagDetailDTO getTagDetail(Long id);
+    TagDetailDTO getTagDetail(@Validated Long id);
 }

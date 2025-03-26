@@ -128,7 +128,7 @@ public class TagServiceImpl implements TagService {
 
             // 生成规则总结
             tagRule.setSummary(request.getSummary());
-            tagRule.setIsRepeat(1);
+            tagRule.setDeleteFlag(1);
 
             // 5. 保存标签规则
             tagDataRuleMapper.insert(tagRule);
@@ -219,7 +219,9 @@ public class TagServiceImpl implements TagService {
             tagDataRuleMapper.updateByTagCode(updateTag);
 
             // 3. 更新关联关系
-            updateTagRelations(request.getTagCode(), request);
+            if (!existingTag.getApiCodeLicense().equals(String.join(",", request.getAuthorizedApiCodes()))){
+                updateTagRelations(request.getTagCode(), request);
+            }
 
             return true;
         } catch (Exception e) {
@@ -407,16 +409,6 @@ public class TagServiceImpl implements TagService {
                 if (!tag.getOptUserId().equals(request.getCurrentUserId())) {
                     throw new BusinessException("无权删除其他人创建的标签");
                 }
-
-                ScoreSearchConditionExample example = new ScoreSearchConditionExample();
-                example.createCriteria()
-                        .andIsDelEqualTo(1)
-                        .andStatusEqualTo(1)
-                        .andTagContentLike("%" + tag.getTagCode() + "%");
-                int countByExample = scoreSearchConditionMapper.countByExample(example);
-                if (countByExample > 0) {
-                    throw new BusinessException("已存在相应规则，无法删除！");
-                }
             }
 
             // 执行删除
@@ -465,12 +457,6 @@ public class TagServiceImpl implements TagService {
             }
             if (!existingTag.getOptUserId().equals(optUserId)) {
                 throw new BusinessException("非本人创建，无法编辑");
-            }
-            ScoreSearchConditionExample example = new ScoreSearchConditionExample();
-            example.createCriteria().andIsDelEqualTo(1).andStatusEqualTo(1).andTagContentLike("%" + tagCode + "%");
-            int countByExample = scoreSearchConditionMapper.countByExample(example);
-            if (countByExample > 0) {
-                throw new BusinessException("已存在相应规则，无法更改状态！");
             }
 
             // 2. 更新同步状态
