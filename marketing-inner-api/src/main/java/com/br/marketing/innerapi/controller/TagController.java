@@ -9,6 +9,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.tag.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.tag.web.TagService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class TagController {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "TagQueryDTO")
     })
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getTagList(@RequestBody @Valid TagQueryDTO request) {
         try {
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
@@ -74,6 +76,7 @@ public class TagController {
     @PostMapping("/updateTag")
     @ApiOperation(value = "更新标签", notes = "更新标签")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
+    @AddDataAuthBusiness
     public ApiResult<Boolean> updateTag(@RequestBody @Validated TagUpdateDTO request) {
         try {
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
@@ -92,6 +95,7 @@ public class TagController {
 
     @PostMapping("/updateTagStatus")
     @ApiOperation(value = "更新标签状态", notes = "更新标签启用/禁用状态")
+    @AddDataAuthBusiness
     public ApiResult<Boolean> updateTagStatus(@RequestBody UpdateTagStatusDTO dto) {
         try {
             Boolean result = tagService.updateTagStatus(dto.getTagCode(), dto.getStatus());
@@ -163,6 +167,7 @@ public class TagController {
 
     @PostMapping("/batchDelete")
     @ApiOperation(value = "批量删除标签", notes = "批量删除标签")
+    @AddDataAuthBusiness
     public ApiResult<Boolean> batchDelete(@RequestBody @Valid TagBatchDeleteDTO request) {
         try {
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
