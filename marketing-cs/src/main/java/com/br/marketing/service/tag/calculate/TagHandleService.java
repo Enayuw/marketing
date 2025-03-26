@@ -1,4 +1,4 @@
-package com.br.marketing.check.service.Impl.tag;
+package com.br.marketing.service.tag.calculate;
 
 public interface TagHandleService {
     void calculateTagData();

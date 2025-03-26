@@ -1,6 +1,6 @@
 package com.br.marketing.check.job.tag;
 
-import com.br.marketing.check.service.Impl.tag.TagHandleService;
+import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;

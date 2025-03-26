@@ -1,4 +1,4 @@
-package com.br.marketing.check.service.Impl.tag;
+package com.br.marketing.service.tag.calculate;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
@@ -14,6 +14,7 @@ import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.mapper.tag.*;
+import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,6 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 标签 处理service
