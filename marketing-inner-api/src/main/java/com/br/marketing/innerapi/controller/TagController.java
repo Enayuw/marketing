@@ -45,8 +45,8 @@ public class TagController {
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getTagList(@RequestBody @Valid TagQueryDTO request) {
         try {
-//            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
-//            request.setCurrentUserId(Long.valueOf(userDetail.getId()));
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            request.setCurrentUserId(Long.valueOf(userDetail.getId()));
             PageResultReturn result = tagService.getTagList(request);
             return new ApiResult<PageResultReturn>().success(result);
         } catch (Exception ex) {
@@ -79,9 +79,9 @@ public class TagController {
     @AddDataAuthBusiness
     public ApiResult<Boolean> updateTag(@RequestBody @Validated TagUpdateDTO request) {
         try {
-//            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
-//            request.setOptUserId(Long.valueOf(userDetail.getId()));
-//            request.setOptUserName(userDetail.getUserName());
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            request.setOptUserId(Long.valueOf(userDetail.getId()));
+            request.setOptUserName(userDetail.getUserName());
             Boolean result = tagService.updateTag(request);
             return new ApiResult<Boolean>().success(result);
         } catch (BusinessException be) {
@@ -169,8 +169,8 @@ public class TagController {
     @AddDataAuthBusiness
     public ApiResult<Boolean> batchDelete(@RequestBody @Valid TagBatchDeleteDTO request) {
         try {
-//            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
-//            request.setCurrentUserId(Long.valueOf(userDetail.getId()));
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            request.setCurrentUserId(Long.valueOf(userDetail.getId()));
             Boolean result = tagService.batchDelete(request);
             return new ApiResult<Boolean>().success(result);
         } catch (BusinessException be) {
