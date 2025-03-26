@@ -15,4 +15,15 @@ public class TagData {
     }
 
 
+    @Getter
+    @AllArgsConstructor
+    public enum TagCalculateStatusEnum {
+        READY(0, "待执行"),
+        RUNNING(1, "执行中"),
+        COMPLETE(2, "执行结束");
+        private Integer code;
+        private String desc;
+    }
+
+
 }

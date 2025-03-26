@@ -4,10 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tag.MaterializedViewDTO;
 import com.br.marketing.entity.tag.*;
 import com.br.marketing.enums.SourceTypeEnum;
+import com.br.marketing.enums.tag.DeleteFlagEnum;
 import com.br.marketing.enums.tag.TagData;
+import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.mapper.tag.*;
@@ -63,7 +66,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
     @Override
     public void calculateTagData() {
         TagDataRuleExample example = new TagDataRuleExample();
-        example.createCriteria().andStatusEqualTo(1).andDeleteFlagEqualTo(0);
+        example.createCriteria().andStatusEqualTo(TagStatusEnum.ENABLED.getCode()).andDeleteFlagEqualTo(DeleteFlagEnum.NOT_DELETED.getCode());
         List<TagDataRule> tagDataRuleList = tagDataRuleMapper.selectByExample(example);
         TagDataSourceConfigExample sourceConfigExample = new TagDataSourceConfigExample();
         sourceConfigExample.createCriteria().andStatusEqualTo(1);
@@ -77,7 +80,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
             Integer status;
             Integer number = null;
             // 判断标签记录表是否存在
-            List<TagDataRuleCalculate> tagDataRuleCalculateList = getTagCalculateRecord(tagCode, nowDay);
+            List<TagDataRuleCalculate> tagDataRuleCalculateList = getTagCalculateRecord(tagCode, nowDay, null);
             if (!CollectionUtils.isEmpty(tagDataRuleCalculateList)) {
                 return;
             }
@@ -99,6 +102,40 @@ public class TagHandlerServiceImpl implements TagHandleService {
             }
             log.warn(TITLE + tagCode + "调度结束,耗时:{}ms", System.currentTimeMillis() - start);
         });
+    }
+
+    /**
+     * 标签是否可用
+     *
+     * @param apiCode 客户编码
+     * @param tagCode 标签Code
+     * @return 是否可用
+     */
+    @Override
+    public Boolean tagIsEnabled(String apiCode, String tagCode) {
+        //标签状态判断
+        TagDataRuleExample example = new TagDataRuleExample();
+        example.createCriteria().andTagCodeEqualTo(tagCode).andStatusEqualTo(TagStatusEnum.ENABLED.getCode())
+                .andDeleteFlagEqualTo(DeleteFlagEnum.NOT_DELETED.getCode());
+        List<TagDataRule> tagDataRuleList = tagDataRuleMapper.selectByExample(example);
+        if (CollectionUtils.isEmpty(tagDataRuleList)) {
+            log.warn(TITLE + tagCode + "标签已失效或已删除");
+            return Boolean.FALSE;
+        }
+        TagDataRule tagDataRule = tagDataRuleList.get(0);
+        if (!tagDataRule.getApiCodeLicense().contains(apiCode)) {
+            log.warn(TITLE + tagCode + "apiCode={}标签未授权", apiCode);
+            return Boolean.FALSE;
+        }
+        //标签计算完成状态判断
+        List<TagDataRuleCalculate> records = getTagCalculateRecord(tagCode, LocalDate.now().toString(),
+                TagData.TagCalculateStatusEnum.COMPLETE.getCode());
+        if (CollectionUtils.isEmpty(records)) {
+            log.warn(TITLE + tagCode + "标签计算未完成");
+            return Boolean.FALSE;
+        }
+
+        return Boolean.TRUE;
     }
 
 
@@ -254,10 +291,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
     /**
      * 将数据插入到Doris数据库
      *
-     * @param sourceName             数据源名称
-     * @param sourceType             数据源类型
-     * @param sourceCodes            数据源代码列表
-     * @param tagDataRule            标签数据规则
+     * @param sourceName  数据源名称
+     * @param sourceType  数据源类型
+     * @param sourceCodes 数据源代码列表
+     * @param tagDataRule 标签数据规则
      */
     private void insertDataDoris(String sourceName, Integer sourceType, List<String> sourceCodes,
                                  TagDataRule tagDataRule) {
@@ -305,11 +342,14 @@ public class TagHandlerServiceImpl implements TagHandleService {
         flagDataMapper.insertbI_(insertBuilder.toString());
     }
 
-    private List<TagDataRuleCalculate> getTagCalculateRecord(String tagCode, String calculateDate) {
+    private List<TagDataRuleCalculate> getTagCalculateRecord(String tagCode, String calculateDate, Integer status) {
         TagDataRuleCalculateExample example = new TagDataRuleCalculateExample();
         TagDataRuleCalculateExample.Criteria criteria = example.createCriteria();
         criteria.andTagCodeEqualTo(tagCode)
                 .andCalculateDateEqualTo(calculateDate);
+        if (StringUtils.isNotEmpty(status)) {
+            criteria.andStatusEqualTo(status);
+        }
         return tagDataRuleCalculateMapper.selectByExample(example);
     }
 
