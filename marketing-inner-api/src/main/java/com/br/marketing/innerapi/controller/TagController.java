@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tag.*;
 import com.br.marketing.service.tag.web.TagService;
@@ -54,7 +55,11 @@ public class TagController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
     public ApiResult<Boolean> createTag(@RequestBody @Validated TagCreateDTO request) {
         try {
-            return tagService.createTag(request);
+            Boolean result = tagService.createTag(request);
+            return new ApiResult<Boolean>().success(result);
+        } catch (BusinessException be) {
+            // 处理业务异常
+            return new ApiResult<Boolean>().fail(false, be.getMessage());
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "创建标签接口错误！错误信息：" + ex.getMessage()), ex);
@@ -67,11 +72,14 @@ public class TagController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
     public ApiResult<Boolean> updateTag(@RequestBody @Validated TagUpdateDTO request) {
         try {
-            return tagService.updateTag(request);
+            Boolean result = tagService.updateTag(request);
+            return new ApiResult<Boolean>().success(result);
+        } catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false, be.getMessage());
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "更新标签接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 
@@ -79,28 +87,27 @@ public class TagController {
     @ApiOperation(value = "更新标签状态", notes = "更新标签启用/禁用状态")
     public ApiResult<Boolean> updateTagStatus(@RequestBody UpdateTagStatusDTO dto) {
         try {
-            return tagService.updateTagStatus(dto.getTagCode(), dto.getStatus(), dto.getOptUserId());
+            Boolean result = tagService.updateTagStatus(dto.getTagCode(), dto.getStatus(), dto.getOptUserId());
+            return new ApiResult<Boolean>().success(result);
+        } catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false, be.getMessage());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "更新标签状态失败！错误信息：" + e.getMessage()), e);
-            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 
+
     @PostMapping("/getFieldConfigs")
     @ApiOperation(value = "获取字段配置", notes = "根据数据源编码获取对应的字段配置信息")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "sourceCode", value = "数据源编码", required = true, dataType = "String", example = "SOURCE_001")
-    })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagFieldConfigDTO.class)})
-    public ApiResult<List<TagFieldConfigDTO>> getFieldConfigs(
-            @ApiParam(value = "数据源编码", required = true) @RequestParam String sourceCode) {
+    public ApiResult<List<TagFieldConfigDTO>> getFieldConfigs(@RequestParam String sourceCode) {
         try {
             List<TagFieldConfigDTO> configs = tagService.getFieldConfigs(sourceCode);
-            if (configs != null) {
-                return new ApiResult<List<TagFieldConfigDTO>>().success(configs);
-            }
-            return new ApiResult<List<TagFieldConfigDTO>>().fail(ServiceResultEnum.FAILED);
+            return configs != null ? new ApiResult<List<TagFieldConfigDTO>>().success(configs)
+                    : new ApiResult<List<TagFieldConfigDTO>>().fail(ServiceResultEnum.FAILED);
+        } catch (BusinessException be) {
+            return new ApiResult<List<TagFieldConfigDTO>>().fail(be.getMessage());
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "获取字段配置接口错误！错误信息：" + ex.getMessage()), ex);
@@ -149,12 +156,12 @@ public class TagController {
 
     @PostMapping("/batchDelete")
     @ApiOperation(value = "批量删除标签", notes = "批量删除标签")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "request", value = "删除参数", required = true, dataType = "TagBatchDeleteDTO")
-    })
     public ApiResult<Boolean> batchDelete(@RequestBody @Valid TagBatchDeleteDTO request) {
         try {
-            return tagService.batchDelete(request);
+            Boolean result = tagService.batchDelete(request);
+            return new ApiResult<Boolean>().success(result);
+        } catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false, be.getMessage());
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
                     "批量删除标签接口错误！错误信息：" + ex.getMessage()), ex);
@@ -190,10 +197,17 @@ public class TagController {
 
     @GetMapping("/getTagDetail")
     @ApiOperation(value = "获取标签详情", notes = "根据标签编码获取标签详细信息，用于编辑前的数据反显")
-    public ApiResult<TagDetailDTO> getTagDetail(
-            @ApiParam(value = "标签编码", required = true)
-            @RequestParam Long id) {
-        return tagService.getTagDetail(id);
+    public ApiResult<TagDetailDTO> getTagDetail(@RequestParam Long id) {
+        try {
+            TagDetailDTO detail = tagService.getTagDetail(id);
+            return new ApiResult<TagDetailDTO>().success(detail);
+        } catch (BusinessException be) {
+            return new ApiResult<TagDetailDTO>().fail(be.getMessage());
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "获取标签详情失败！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<TagDetailDTO>().fail(ServiceResultEnum.FAILED);
+        }
     }
 
 
