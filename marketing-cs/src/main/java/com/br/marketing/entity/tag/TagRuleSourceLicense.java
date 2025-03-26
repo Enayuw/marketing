@@ -40,5 +40,10 @@ public class TagRuleSourceLicense implements Serializable {
      */
     private Date updateTime;
 
+    /**
+     * 是否删除 0：正常，1：删除
+     */
+    private Integer deleteFlag;
+
     private static final long serialVersionUID = 1L;
 }

@@ -3,11 +3,11 @@ package com.br.marketing.mapper.tag;
 import com.br.marketing.dto.tag.TagCreatorDTO;
 import com.br.marketing.dto.tag.TagListResponseDTO;
 import com.br.marketing.dto.tag.TagEffectiveDTO;
+import com.br.marketing.dto.tag.TagQueryDTO;
 import com.br.marketing.entity.tag.TagDataRule;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 标签规则Mapper
@@ -19,7 +19,7 @@ public interface TagDataRuleMapper extends TagDataRuleMapperBase {
     /**
      * 根据条件查询标签列表
      */
-    List<TagDataRule> selectList(@Param("params") Map<String, Object> params);
+    List<TagDataRule> selectList(@Param("query") TagQueryDTO query);
 
     /**
      * 检查标签名称是否存在

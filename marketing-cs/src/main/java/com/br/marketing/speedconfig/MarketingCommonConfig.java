@@ -2722,5 +2722,12 @@ public class MarketingCommonConfig {
      * 标签库字段映射配置
      */
     private List<String> fieldCodeList;
+
+
+    /**
+     * 标签:物化视图创建等待时间ms
+     */
+    private Long createMVMaxWaitTime;
+
 }
 
