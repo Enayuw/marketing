@@ -133,7 +133,9 @@ public class TagServiceImpl implements TagService {
         tagRule.setDeleteFlag(DeleteFlagEnum.NOT_DELETED.getCode());
 
         // 5. 保存标签规则
-        tagDataRuleMapper.insert(tagRule);
+        tagDataRuleMapper.insertSelective(tagRule);
+        TagDataRule tagDataRule = tagDataRuleMapper.selectByTagCode(tagCode);
+        entityOptService.writeOptLog(tagDataRule.getId(), tagDataRule, null);
 
         // 6. 保存标签授权关系
         if (ObjectUtil.isNotEmpty(apiCodeLicense)) {
