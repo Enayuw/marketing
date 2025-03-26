@@ -31,7 +31,7 @@ public interface TagService {
     /**
      * 更新标签状态
      */
-    Boolean updateTagStatus(@Validated String tagCode, @Validated Integer status, @Validated Long optUserId);
+    Boolean updateTagStatus(@Validated String tagCode, @Validated Integer status);
 
     /**
      * 获取标签字段配置
