@@ -1798,55 +1798,54 @@ public class PushRuleServiceImpl implements PushRuleService {
                     List<MarketingHistory> marketingHistories;
 
                     // 模拟es异常
-                    boolean b = toPolicyByRuleService.mockSwitch(customerInfoPushMain.getmApiCode(),
+                    boolean mockEsError = toPolicyByRuleService.mockSwitch(customerInfoPushMain.getmApiCode(),
                             MockSwitchEnum.GENERAL.getValue(), MockSwitchEnum.ESRETRY.getValue());
-                    if(b){
-                        marketingHistories = null;
-                    }else {
-                        try {
-                            marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-
-                            if(marketingHistories == null){
-                                throw new Exception();
-                            }
-
-                            if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
-                                // 解析标签规则
-                                JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                                String tagCode = jsonObject.getString("tagCode");
-                                int type = jsonObject.getIntValue("type");
-                                // 查询es 提取跑分文件中cells
-                                List<String> esCells = marketingHistories.stream()
-                                        .map(MarketingHistory::getCell_log)
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.toList());
-
-                                // 获取 TiDB 中存在的 cells
-                                List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
-
-                                if(type == 0){
-                                    // 交集：跑分文件 与 标签数据 都存在
-                                    marketingHistories = marketingHistories.stream()
-                                            .filter(history -> tidbCells.contains(history.getCell_log()))
-                                            .collect(Collectors.toList());
-                                }else{
-                                    // 剔除：去掉标签存在跑分文件中cell
-                                    marketingHistories = marketingHistories.stream()
-                                            .filter(history -> !tidbCells.contains(history.getCell_log()))
-                                            .collect(Collectors.toList());
-                                }
-                            }
-                        }catch (Exception e){
-                            if(errorMark.getId() != null){
-                                // 已存在补推记录
-                                if(errorMark.getRetryTotalAttempts() < 3){
-                                    updateErrorMark(errorMark,errorMark.getRetryTotalAttempts() + 1);
-                                }
-                            }else {
-                                insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
-                            }
-                            return resList;
+                    try {
+                        if(mockEsError){
+                            throw new Exception("模拟ES异常场景");
                         }
+                        marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+
+                        if(marketingHistories == null){
+                            throw new Exception();
+                        }
+
+                        if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
+                            // 解析标签规则
+                            JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                            String tagCode = jsonObject.getString("tagCode");
+                            int type = jsonObject.getIntValue("type");
+                            // 查询es 提取跑分文件中cells
+                            List<String> esCells = marketingHistories.stream()
+                                    .map(MarketingHistory::getCell_log)
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toList());
+
+                            // 获取 TiDB 中存在的 cells
+                            List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
+
+                            if(type == 0){
+                                // 交集：跑分文件 与 标签数据 都存在
+                                marketingHistories = marketingHistories.stream()
+                                        .filter(history -> tidbCells.contains(history.getCell_log()))
+                                        .collect(Collectors.toList());
+                            }else{
+                                // 剔除：去掉标签存在跑分文件中cell
+                                marketingHistories = marketingHistories.stream()
+                                        .filter(history -> !tidbCells.contains(history.getCell_log()))
+                                        .collect(Collectors.toList());
+                            }
+                        }
+                    }catch (Exception e){
+                        if(errorMark.getId() != null){
+                            // 已存在补推记录
+                            if(errorMark.getRetryTotalAttempts() < 3){
+                                updateErrorMark(errorMark,errorMark.getRetryTotalAttempts() + 1);
+                            }
+                        }else {
+                            insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
+                        }
+                        return resList;
                     }
 
                     if (errorMark.getId() != null) {
