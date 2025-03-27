@@ -432,6 +432,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             //获取最新日期
             String proviceCleanDate = carClueProvincesInformationMapper.getMaxCleanDate();
             String seriesCleanDate = carClueSeriesInformationMapper.getMaxCleanDate();
+            String carClueInitDate = carClueInitMappingMapper.getMaxCleanDate();
 
             //获取省市集合
             CarClueProvincesInformationExample carClueProvincesInformationExample = new CarClueProvincesInformationExample();
@@ -453,7 +454,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
             //获取外采初始信息
             CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
-            carClueInitMappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+            carClueInitMappingExample.createCriteria()
+                    .andAppletDateEqualTo(carClueInitDate)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
             List<CarClueInitMapping> carClueInitMappingList = carClueInitMappingMapper.selectByExample(carClueInitMappingExample);
             Map<String, List<CarClueInitMapping>> carClueInitMappingMap = carClueInitMappingList.stream()
                     .collect(Collectors.groupingBy(CarClueInitMapping::getApiCode));
