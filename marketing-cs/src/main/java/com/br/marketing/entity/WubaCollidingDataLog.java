@@ -24,6 +24,11 @@ public class WubaCollidingDataLog {
     private String dataSourceType;
 
     /**
+     * 跑分类型：top-TOP，medium-下探1，down-下探2，low-LOW
+     */
+    private String scoreType;
+
+    /**
      * 
      */
     private Long dataId;
@@ -98,6 +103,14 @@ public class WubaCollidingDataLog {
 
     public void setDataSourceType(String dataSourceType) {
         this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
+    }
+
+    public String getScoreType() {
+        return scoreType;
+    }
+
+    public void setScoreType(String scoreType) {
+        this.scoreType = scoreType == null ? null : scoreType.trim();
     }
 
     public Long getDataId() {

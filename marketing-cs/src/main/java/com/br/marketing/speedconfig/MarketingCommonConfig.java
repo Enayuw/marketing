@@ -1971,8 +1971,8 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingHighValueFiles;
 
     /**
-     * 58撞库status=-2文件id集合，J:非金融周期，Q:金融周期，K:非周期，true:开启撞库，false:关闭撞库 e.g.{"非周期":{"文件id":是否开启撞库}}
-     * {"J":{"123":true},"Q":{"456":true},"K":{"789":true}}
+     * 58撞库status=-2文件id集合，T:非金融周期，S:金融周期，F:非周期，true:开启入库去重，false:关闭去重 e.g.{"非周期":{"文件id":是否开启去重}}
+     * {"T":{"123":true},"S":{"456":true},"F":{"789":true}}
      */
     private HashMap<String, JSONObject> wubaCollidingReavedFileIds;
 
@@ -1982,16 +1982,10 @@ public class MarketingCommonConfig {
     private Integer wubaCollidingDataMaxCountLimit;
 
     /**
-     * 58提交周期撞库与去重开关(T/S控制是否开启去重和撞库，eliminate控制去重。true:开启，false关闭)
+     * 58去重开关(true:开启，false关闭)
      * {"T":true,"S":true,"eliminate":true}
      */
     private HashMap<String, Boolean> wuBaCollidingDataSwitch;
-
-    /**
-     * 58提交撞库周期天数配置
-     * {"T":8,"S":15}
-     */
-    private HashMap<String, Integer> wuBaCollidingCycleDayConfig;
 
     /**
      * 58提交撞库数据分页条数
