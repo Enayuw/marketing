@@ -10,6 +10,9 @@ import javax.annotation.Resource;
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
+import com.br.marketing.config.RocketMqSwitch;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.google.api.client.util.Lists;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +49,10 @@ public class UniversalTransferProcessOffsetDayResend extends ValidityPeriodResen
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
     @Resource
     private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private RocketMqTemplate template;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -109,7 +116,14 @@ public class UniversalTransferProcessOffsetDayResend extends ValidityPeriodResen
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(marketingCommonConfig.getUniversalTransferProcessResendThreadNum(),
             marketingCommonConfig.getUniversalTransferProcessResendThreadNum());
         data.stream().map(transferInfo -> buildMqFact(transferInfo, record)).map(JSONObject::toJSONString)
-            .forEach(mqFact -> pool.submit(() -> rabbitMqProducter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqFact)));
+            .forEach((String mqFact) -> pool.submit(() -> {
+                if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                            , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, mqFact);
+                }else{
+                    rabbitMqProducter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqFact);
+                }
+            }));
         // 关闭线程池
         pool.shutdown();
         try {

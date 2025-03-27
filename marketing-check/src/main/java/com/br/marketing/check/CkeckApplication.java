@@ -57,7 +57,7 @@ public class CkeckApplication {
         try {
             ConsumerService.consumerDownStatus = Boolean.TRUE;
             log.warn("消费者下线");
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
             log.warn("GRPC服务关闭正常");
         } catch (Exception e) {

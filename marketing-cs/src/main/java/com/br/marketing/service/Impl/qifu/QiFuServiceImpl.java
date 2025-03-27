@@ -359,18 +359,101 @@ public class QiFuServiceImpl implements IQiFuService {
         String rTotalAvailableAmt = reserField1.getString("rTotalAvailableAmt");
         String rTaLastAdjustmentAmount = reserField1.getString("rTaLastAdjustmentAmount");
         String rTaTemporaryAmountExpireDate = reserField1.getString("rTaTemporaryAmountExpireDate");
+        String rCouponInfo = reserField1.getString("rCouponInfo");
         // 计算新的字段值
         String oldLowAmountys = getAmount(null, lowAmountys, rTaLastAdjustmentAmount);
         String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
         String changeAmountys = calculateDifference(newHighAmountys, oldLowAmountys);
         String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
         String changeIncrease = calculateIncreaseRate(newHighAmountys, oldLowAmountys);
+        String couponDerived = processCouponInfo(rCouponInfo);
 
         reserField1.put("highAmount_derived", newHighAmountys);
         reserField1.put("lowAmount_derived", oldLowAmountys);
         reserField1.put("changeAmount_derived", changeAmountys);
         reserField1.put("remainDayys_derived", remainDayys);
         reserField1.put("changeIncrease_derived", changeIncrease);
+        reserField1.put("coupon_derived", couponDerived);
+    }
+
+    private String processCouponInfo(String rCouponInfo) {
+        if (StringUtils.isBlank(rCouponInfo)) {
+            return "";
+        }
+
+        try {
+            JSONArray coupons = JSON.parseArray(rCouponInfo);
+            if (coupons == null || coupons.isEmpty()) {
+                return "";
+            }
+
+            String[] keywordsToClean = {"智信", "超级会员", "专属"};
+
+            List<String> couponNames = new ArrayList<>();
+            for (int i = 0; i < coupons.size(); i++) {
+                String couponName = coupons.getJSONObject(i).getString("couponName");
+                couponNames.add(cleanCouponName(couponName, keywordsToClean));
+            }
+
+            if (couponNames.size() == 1) {
+                return couponNames.get(0);
+            }
+
+            Map<String, Integer> priorityMap = getCouponPriorityMap();
+
+            String selectedCoupon = "";
+            int highestPriority = Integer.MAX_VALUE;
+
+            for (String couponName : couponNames) {
+                int priority = priorityMap.getOrDefault(couponName, Integer.MAX_VALUE);
+                if (priority < highestPriority) {
+                    highestPriority = priority;
+                    selectedCoupon = couponName;
+                }
+            }
+
+            if (highestPriority == Integer.MAX_VALUE) {
+                return couponNames.get(0);
+            }
+
+            return selectedCoupon;
+        } catch (Exception e) {
+            log.warn("处理优惠券信息时发生错误：", e);
+            return "";
+        }
+    }
+
+    private Map<String, Integer> getCouponPriorityMap() {
+        Map<String, Integer> priorityMap = new LinkedHashMap<>();
+        String[] priorities = {
+                "6期免息券", "3期免息券", "3期600元免息券", "最高300元6期免息券", "3期300元免息券",
+                "3期免息最高减360", "3期150元免息券", "1期免息券", "1800元免息券", "1500元免息券",
+                "最高900元免息券", "720元免息券", "600元免息券", "最高600元优惠券", "最高600元免息",
+                "28天周转金", "7天周转金", "最高8折免息券", "最高8.3折免息券", "最高8.5折免息券",
+                "最高8.8折免息券", "最高9折免息券", "最高9.2折免息券", "588元免息券", "最高500元免息券",
+                "最高350元免息券", "最高320元免息券", "最高300元免息券", "最高300元分期免息券",
+                "288元免息券", "最高240元免息券", "最高210元免息券", "最高200元免息券",
+                "最高180元免息券", "限时最高180元免息", "最高150元免息券", "最高150元优惠",
+                "最高100元免息券", "88元免息券", "最高60元免息券", "最高30元免息券", "免息优惠券"
+        };
+
+        for (int i = 0; i < priorities.length; i++) {
+            priorityMap.put(priorities[i], i + 1);
+        }
+        return priorityMap;
+    }
+
+
+    private String cleanCouponName(String couponName, String[] keywordsToClean) {
+        if (StringUtils.isBlank(couponName)) {
+            return "";
+        }
+
+        String cleanedName = couponName;
+        for (String keyword : keywordsToClean) {
+            cleanedName = cleanedName.replace(keyword, "");
+        }
+        return cleanedName.trim();
     }
 
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {

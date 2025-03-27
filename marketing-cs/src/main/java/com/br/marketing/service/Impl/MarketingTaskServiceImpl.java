@@ -10,6 +10,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
@@ -18,6 +19,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
@@ -37,6 +39,7 @@ import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
@@ -128,6 +131,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Autowired
     RabbitMqProducter producter;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
@@ -1057,7 +1064,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         updateEntity.setOfflineFilePath(dto.getFilePath());
         straHisFileMapper.updateByPrimaryKeySelective(updateEntity);
         if (suc) {
-            producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK, id.toString());
+            String idString = id.toString();
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK)){
+                rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC
+                        , MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK, idString);
+            }else{
+                producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK, idString);
+            }
         }
         removeOffLineLock(id, lockValue);
         return new Result().setCode(ResultCode.SUCCESS.getValue());

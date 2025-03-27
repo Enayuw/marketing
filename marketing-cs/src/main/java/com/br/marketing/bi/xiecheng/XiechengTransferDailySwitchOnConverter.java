@@ -3,6 +3,7 @@ package com.br.marketing.bi.xiecheng;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
+import com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO;
 import com.br.marketing.dto.report.xiecheng.XiechengTransferDailySwitchOnReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
@@ -55,7 +56,8 @@ public class XiechengTransferDailySwitchOnConverter extends AbstractBiReportConv
      */
     @Override
     public List<BiReportVO> process(List<XiechengTransferDailySwitchOnReportDTO> dtos, JSONObject extend) {
-        List<BiReportVO> biReportVOList = Lists.newArrayList();        BiReportVO biReportVO = new BiReportVO();
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
+        BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_DAILYSWITCHON_REPORT.getTypeName());
         biReportVO.setReportName("接通日转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
@@ -70,16 +72,19 @@ public class XiechengTransferDailySwitchOnConverter extends AbstractBiReportConv
         List<WrapDataVO> yAxis = Lists.newArrayList();
         yAxis.add(buildWrapDataVO("当日运营量", sortedData, XiechengTransferDailySwitchOnReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日接通量", sortedData, XiechengTransferDailySwitchOnReportDTO::getCallNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日登录量", sortedData, XiechengTransferDailySwitchOnReportDTO::getLoginNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日身份认证量", sortedData, XiechengTransferDailySwitchOnReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日申请量", sortedData, XiechengTransferDailySwitchOnReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日授信量", sortedData, XiechengTransferDailySwitchOnReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日申请提现", sortedData, XiechengTransferDailySwitchOnReportDTO::getApplyWithdrawNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日提现量", sortedData, XiechengTransferDailySwitchOnReportDTO::getWithdrawNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日登录率", sortedData, XiechengTransferDailySwitchOnReportDTO::getLoginRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日身份认证率", sortedData, XiechengTransferDailySwitchOnReportDTO::getCertifyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日申请率", sortedData, XiechengTransferDailySwitchOnReportDTO::getApplyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日授信率", sortedData, XiechengTransferDailySwitchOnReportDTO::getCreditRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日申请提现率", sortedData, XiechengTransferDailySwitchOnReportDTO::getApplyWithdrawRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日提现率", sortedData, XiechengTransferDailySwitchOnReportDTO::getWithdrawRatio, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("当日申请身份认证率", sortedData, XiechengTransferDailySwitchOnReportDTO::getApplyCertifyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日身份认证完成率", sortedData, XiechengTransferDailySwitchOnReportDTO::getCertifyCompleteRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日过件率", sortedData, XiechengTransferDailySwitchOnReportDTO::getOverPieceRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日提现发起率", sortedData, XiechengTransferDailySwitchOnReportDTO::getWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
