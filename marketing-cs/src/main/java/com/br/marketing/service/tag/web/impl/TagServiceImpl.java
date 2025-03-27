@@ -251,14 +251,16 @@ public class TagServiceImpl implements TagService {
         if (StringUtils.isBlank(fieldCode)) {
             throw new BusinessException("字段编码不能为空");
         }
+        List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
+        if (tagLibrary.contains(fieldCode)) {
+            List<String> list = getTagLibrary();
+            if (list == null) {
+                throw new BusinessException("查询营销中台标签失败！");
+            }
+            return list;
+        }
 
         try {
-            List<String> tagLibrary = marketingCommonConfig.getFieldCodeList();
-            if (tagLibrary.contains(fieldCode)) {
-                List<String> list = getTagLibrary();
-                return list;
-            }
-
             TagDataFieldConfigExample example = new TagDataFieldConfigExample();
             example.createCriteria().andFieldCodeEqualTo(fieldCode);
             List<TagDataFieldConfig> list = tagDataFieldConfigMapper.selectByExample(example);
