@@ -6,11 +6,7 @@
     select
     *
     from b_xiecheng_data
-    where  status =1 and push_status =1 and local_id = #{localId}
-    <if test="minId != null and minId>0">
-      and id > #{minId}
-    </if>
-    order by id asc limit 15000;
+    where  status =1 and push_status =1 and local_id = #{localId};
   </select>
   <select id="selectLocalIdByNotSend" resultType="java.lang.String">
     select
