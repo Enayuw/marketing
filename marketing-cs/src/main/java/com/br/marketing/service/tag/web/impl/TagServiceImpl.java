@@ -304,7 +304,7 @@ public class TagServiceImpl implements TagService {
         String data = tagLibrary.getData();
         if (data == null || data.isEmpty()) {
             log.warn("返回的数据列表为空！");
-            return null;
+            return new ArrayList<>();
         }
         return Arrays.asList(data.split(","));
     }

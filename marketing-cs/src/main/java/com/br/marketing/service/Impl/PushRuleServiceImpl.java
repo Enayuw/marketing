@@ -618,7 +618,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String tagCode = jsonObject.getString("tagCode");
                 int type = jsonObject.getIntValue("type");
                 if(!tagHandleService.tagIsEnabled(dto.getApiCode(), tagCode)){
-                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该apiCode：" + dto.getApiCode() + ",该tag："+tagCode + "有误");
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                            "该apiCode：" + dto.getApiCode() + "，该tag："+tagCode + "已失效"));
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该apiCode：" + dto.getApiCode() + ",该tag："+tagCode + "已失效");
                 }
                 // 页面规则查询es
                 ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
@@ -649,7 +651,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      *
      * @param indexNames Elasticsearch 索引列表
      * @param queryDsl   Elasticsearch 查询条件
-     * @param mTagCondition   标签规则 JSON
+     * @param tagCode   tagCode
+     * @param type   type
      * @return 联邦查询 SQL
      */
     private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, String tagCode, int type) {
@@ -1554,44 +1557,41 @@ public class PushRuleServiceImpl implements PushRuleService {
             for (Integer i = 0; i < parNum; i++) {
                 QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
                 try {
-                    // 解析标签规则
-                    JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                    String tagCode = jsonObject.getString("tagCode");
-                    int type = jsonObject.getIntValue("type");
-                    if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
-                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                                "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "有误"));
-
-                        CustomerInfoPushMain customer = new CustomerInfoPushMain();
-                        customer.setId(customerInfoPushMain.getId());
-                        customer.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                        customerInfoPushMainMapper.updateByPrimaryKeySelective(customer);
-                        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-                    }
                     //存在标签
                     if(customerInfoPushMain.getTagContent() != null){
-                        List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-                        partDataNum.put(i, marketingHistories.size());
-                        if(marketingHistories.isEmpty()){
-                            continue;
-                        }
-                        // 查询es 提取跑分文件中cells
-                        List<String> esCells = marketingHistories.stream()
-                                .map(MarketingHistory::getCell_log)
-                                .filter(Objects::nonNull)
-                                .collect(Collectors.toList());
-                        // 获取 TiDB 中存在的 cells
-                        List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
+                        // 解析标签规则
+                        JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                        String tagCode = jsonObject.getString("tagCode");
+                        int type = jsonObject.getIntValue("type");
+                        if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
+                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                                    "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "已失效"));
 
-                        if(type == 0){
-                            // 交集：跑分文件 与 标签数据 都存在
-                            nowSum += tidbCells.size();
-                        }else{
-                            // 剔除：去掉标签存在跑分文件中cell
-                            // 计算剔除数量：esCells - tidbCells
-                            esCells.removeAll(tidbCells);
-                            nowSum += esCells.size();
+                            CustomerInfoPushMain customer = new CustomerInfoPushMain();
+                            customer.setId(customerInfoPushMain.getId());
+                            customer.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                            customerInfoPushMainMapper.updateByPrimaryKeySelective(customer);
+                            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
                         }
+
+                        // 页面规则查询es
+                        ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+                        String queryDsl = esQueryRequest.getQueryDsl();
+                        List<String> indexNames = esQueryRequest.getIndexName();
+                        if (CollectionUtils.isEmpty(indexNames)) {
+                            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + numList);
+                        }
+
+                        // 构建联邦查询 SQL
+                        String querySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
+                        if(StringUtils.isEmpty(querySql)){
+                            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+                        }
+                        Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
+                        nowSum += total;
+
+                        Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                        partDataNum.put(i, nowNum);
                     }else {
                         Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
                         partDataNum.put(i, nowNum);
@@ -1837,7 +1837,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
                             if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
                                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                                        "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "有误"));
+                                        "该apiCode：" + customerInfoPushMain.getmApiCode() + "，该tag："+tagCode + "已失效"));
                                 Result<Integer> result = new Result<>();
                                 result.setCode(ResultCode.FAIL.getValue());
                                 Callable<Result<Integer>> resultCallable = (Callable) () -> result;
