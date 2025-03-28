@@ -93,7 +93,7 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
                 .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
         phoneSaleExtendInfo.setAppletTime(bo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        phoneSaleExtendInfo.setStatus("1");//情景1
+        phoneSaleExtendInfo.setStatus(userType);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setSourceId(bo.getId());
         phoneSaleExtendInfo.setPushDxTime(new Date());
