@@ -298,6 +298,11 @@ public enum AlarmSendCodeEnum {
 
     //pp停车业务告警码
     PP_MARKING_SERVICEERROR("6060001", "pp停车业务异常"),
+
+    //榕树新客接口调用失败
+    RSXK_INTERFACE("6071001", "榕树新客接口异常"),
+    //榕树新客业务异常
+    RSXK_SERVICEERROR("6071002", "榕树新客业务异常"),
     ;
 
     /**
