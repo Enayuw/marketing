@@ -661,7 +661,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         StringBuilder unionAllBuilder = new StringBuilder();
         for (int i = 0; i < indexNames.size(); i++) {
             String indexName = indexNames.get(i);
-            unionAllBuilder.append("SELECT * FROM es.default_db.").append(indexName);
+            unionAllBuilder.append("SELECT cell FROM es.default_db.").append(indexName);
             if (i < indexNames.size() - 1) {
                 unionAllBuilder.append("\nUNION ALL\n");
             }
@@ -676,7 +676,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 "    %s\n" +
                                 ") esIndex\n" +
                                 "JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.calculate_date = curdate() AND dorisCall.tag_code = '%s'\n" +
-                                "WHERE esquery(batch_number, '%s');",
+                                "WHERE esquery(esIndex.cell, '%s');",
                         unionAllBuilder,
                         tagCode,
                         queryDsl.replace("'", "''")
@@ -690,7 +690,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 ") esIndex\n" +
                                 "LEFT JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.calculate_date = curdate() AND dorisCall.tag_code = '%s'\n" +
                                 "WHERE dorisCall.cell IS NULL\n" +
-                                "AND esquery(batch_number, '%s');",
+                                "AND esquery(esIndex.cell, '%s');",
                         unionAllBuilder,
                         tagCode,
                         queryDsl.replace("'", "''")
