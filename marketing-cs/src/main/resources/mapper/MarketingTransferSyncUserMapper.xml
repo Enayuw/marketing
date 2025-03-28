@@ -806,7 +806,7 @@
         from b_marketing_transfer_sync_${tCid}
         where cust_num = #{custNum}
         and (reserve_field1->'$.isBlack' = '1' or reserve_field1->'$.isBlack' = 1)
-        <![CDATA[ and create_time < curdate()]>
+        <![CDATA[ and create_time < curdate()]]>
         and api_code in
         <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
             #{apiCode}
