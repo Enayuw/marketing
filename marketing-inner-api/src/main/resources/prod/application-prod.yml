@@ -263,8 +263,8 @@ api:
     commitClue: ${api.hxCar.baseUrl}/open_api/v1/commit_clue
     isProxy: true
   antaios:
-    baseUrl: https://antaios-process-pre.100credit.cn
-    pushUserUrl: ${api.antaios.baseUrl}/api/antaios-app-api/antaios/third/process/resource
+    baseUrl: https://antaios-process-prec.100credit.cn
+    pushUserUrl: ${api.antaios.baseUrl}/api/antaios-app-api-prec/antaios/third/process/resource
     apiCode: test123
 #elastic-job配置
 SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
