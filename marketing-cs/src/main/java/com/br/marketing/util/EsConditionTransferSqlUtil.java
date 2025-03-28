@@ -41,7 +41,7 @@ public class EsConditionTransferSqlUtil {
             } //逻辑运算符处理
             else if (jsonNodeObject.getString("type").equals("logic")) {
                 //递归处理
-                sqlResult.append(jsonTransferSql(jsonNodeObject, logic));
+                sqlResult.append(jsonTransferSqlByFillKey(jsonNodeObject, logic));
                 if (i < dataArray.size() - 1) {
                     //非最后一位，需拼接逻辑运算符logic
                     sqlResult.append(logic).append(" ");

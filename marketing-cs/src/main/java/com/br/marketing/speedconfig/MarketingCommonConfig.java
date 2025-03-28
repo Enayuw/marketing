@@ -2729,5 +2729,10 @@ public class MarketingCommonConfig {
      */
     private Long createMVMaxWaitTime;
 
+    /**
+     * 标签计算配置
+     */
+    private Map<String,String> tagCalculateConfig;
+
 }
 

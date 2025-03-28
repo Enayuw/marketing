@@ -69,7 +69,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         example.createCriteria().andStatusEqualTo(TagStatusEnum.ENABLED.getCode()).andDeleteFlagEqualTo(DeleteFlagEnum.NOT_DELETED.getCode());
         List<TagDataRule> tagDataRuleList = tagDataRuleMapper.selectByExample(example);
         TagDataSourceConfigExample sourceConfigExample = new TagDataSourceConfigExample();
-        sourceConfigExample.createCriteria().andStatusEqualTo(1);
+        sourceConfigExample.createCriteria().andStatusEqualTo(TagStatusEnum.ENABLED.getCode());
         List<TagDataSourceConfig> sourceConfigList = tagDataSourceConfigMapper.selectByExample(sourceConfigExample);
 
         String nowDay = LocalDate.now().toString();
@@ -88,7 +88,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
             Long recordId = saveTagCalculateRecord(tagDataRule.getTagCode(), nowDay);
             // 标签运算
             if (tagCalculate(tagDataRule, sourceConfigList, nowDay)) {
-                status = 2;
+                status = TagData.TagCalculateStatusEnum.COMPLETE.getCode();
                 String querySql = String.format(
                         "select count(1) from t_tag_data_detail where tag_code = '%S' and calculate_date ='%S'",
                         tagCode, nowDay);
@@ -214,7 +214,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         // 查询数据源映射是否存在
         TagDataSourceMappingExample sourceMappingExample = new TagDataSourceMappingExample();
         sourceMappingExample.createCriteria()
-                .andStatusEqualTo(1)
+                .andStatusEqualTo(TagStatusEnum.ENABLED.getCode())
                 .andSourceNameEqualTo(sourceName)
                 .andSourceTypeEqualTo(sourceType);
 
@@ -240,7 +240,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
             dataSourceMapping.setSourceName(sourceName);
             dataSourceMapping.setSourceType(sourceType);
             dataSourceMapping.setApiCode(apiCode);
-            dataSourceMapping.setStatus(1);
+            dataSourceMapping.setStatus(TagStatusEnum.ENABLED.getCode());
             dataSourceMapping.setCreateTime(new Date());
             tagDataSourceMappingMapper.insertSelective(dataSourceMapping);
         } else {
@@ -259,7 +259,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
                 .andTagCodeEqualTo(tagCode)
                 .andSourceMappingCodeEqualTo(sourceMappingCode)
                 .andApiCodeEqualTo(apiCode)
-                .andStatusEqualTo(1);
+                .andStatusEqualTo(TagStatusEnum.ENABLED.getCode());
 
         List<TagRuleSourceRelation> tagRuleSourceRelationList = tagRuleSourceRelationMapper
                 .selectByExample(sourceRelationExample);
@@ -269,7 +269,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
             tagRuleSourceRelation.setApiCode(apiCode);
             tagRuleSourceRelation.setTagCode(tagCode);
             tagRuleSourceRelation.setSourceMappingCode(sourceMappingCode);
-            tagRuleSourceRelation.setStatus(1);
+            tagRuleSourceRelation.setStatus(TagStatusEnum.ENABLED.getCode());
             tagRuleSourceRelation.setCreateTime(new Date());
             tagRuleSourceRelationMapper.insertSelective(tagRuleSourceRelation);
         }
@@ -280,10 +280,11 @@ public class TagHandlerServiceImpl implements TagHandleService {
      */
     private void syncDataToTiDB(String tagCode, String nowDay) {
         Long start = System.currentTimeMillis();
+        String syncDBName = marketingCommonConfig.getTagCalculateConfig().get("syncDBName");
         String syncTiDBSql = String.format(
-                "insert into jdbc_yf_tidb.marketing.t_tag_data_detail (tag_code,calculate_date,cell,cust_num,create_time,"
+                "insert into %s.marketing.t_tag_data_detail (tag_code,calculate_date,cell,cust_num,create_time,"
                         + "update_time) select tag_code,calculate_date,cell,cust_num,create_time,update_time from marketing.t_tag_data_detail where tag_code = '%S' and calculate_date ='%S'",
-                tagCode, nowDay);
+                syncDBName,tagCode, nowDay);
         flagDataMapper.insertbI_(syncTiDBSql);
         log.warn(TITLE + "tagCode={},同步数据到Tidb明细表,耗时={}ms", tagCode, System.currentTimeMillis() - start);
     }
@@ -359,7 +360,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         tagDataRuleCalculate.setCalculateDate(calculateDate);
         tagDataRuleCalculate.setCreateTime(new Date());
         tagDataRuleCalculate.setUpdateTime(new Date());
-        tagDataRuleCalculate.setStatus(1);
+        tagDataRuleCalculate.setStatus(TagData.TagCalculateStatusEnum.RUNNING.getCode());
         tagDataRuleCalculateMapper.insertSelective(tagDataRuleCalculate);
         return tagDataRuleCalculate.getId();
     }
@@ -387,21 +388,27 @@ public class TagHandlerServiceImpl implements TagHandleService {
         Long start = System.currentTimeMillis();
         Boolean isSuccess = Boolean.FALSE;
         // 视图基本定义
-        StringBuilder viewSql = new StringBuilder(500)
+       /* StringBuilder viewSql = new StringBuilder(500)
                 .append("CREATE MATERIALIZED VIEW ").append(viewName)
                 .append(" BUILD IMMEDIATE\n")
                 .append("REFRESH AUTO\n")
                 .append("ON COMMIT\n")
                 .append("DISTRIBUTED BY RANDOM BUCKETS 2\n")
                 .append("PROPERTIES ('replication_num' = '2')\n")
-                .append("AS\nSELECT ");
+                .append("AS\nSELECT ");*/
+        String viewSqlPrefix = marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix");
+        // 视图基本定义
+        StringBuilder viewSql = new StringBuilder(500)
+                .append(String.format(viewSqlPrefix,viewName));
         StringBuilder joinBuilder = new StringBuilder();
-        StringBuilder whereSql = new StringBuilder();
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
             String sourceCode = sourceCodes.get(i);
             String sourceName = sourceConfigList.stream().filter(sourceConfig -> sourceConfig.getSourceCode()
                     .equals(sourceCode)).findFirst().get().getSourceName().replace("${apiCode}", apiCode);
+            // 时间条件
+            StringBuilder whereSql = new StringBuilder().append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "case_log_create_time" : "create_time")
+                    .append(">=").append("\"").append(DateHelper.getPreviousDate("m", 3)).append("\"");
             // 添加字段
             List<String> fieldNameList = flagDataMapper.queryColumnNamebI_(sourceName);
             fieldNameList.forEach(field -> {
@@ -410,23 +417,18 @@ public class TagHandlerServiceImpl implements TagHandleService {
             });
             // 构建FROM和JOIN
             if (i == 0) {
-                joinBuilder.append(" from ").append(sourceName).append(" ").append(sourceCode);
+                joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode);
                 relateField = sourceCode.concat(".")
                         .concat(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell");
             } else {
-                joinBuilder.append(" FULL JOIN ").append(sourceName).append(" ").append(sourceCode).append(" on ")
+                joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode)
+                        .append(" on ")
                         .append(sourceCode).append(".")
                         .append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell")
                         .append("=").append(relateField);
             }
-            // 添加时间条件
-            whereSql.append(" and ").append(sourceCode).append(".")
-                    .append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "case_log_create_time" : "create_time")
-                    .append(">=")
-                    .append("\"").append(DateHelper.getPreviousDate("m", 3)).append("\"");
         }
-        String createViewSql = new StringBuilder(viewSql.substring(0, viewSql.length() - 1)).append(joinBuilder)
-                .append(whereSql).toString();
+        String createViewSql = new StringBuilder(viewSql.substring(0, viewSql.length() - 1)).append(joinBuilder).toString();
         log.warn(TITLE + "apiCode={},创建物化视图sql={}", apiCode, createViewSql);
         // 执行创建视图SQL
         flagDataMapper.insertbI_(createViewSql);
