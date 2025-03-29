@@ -12,7 +12,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.rsxk.CallStatusDTO;
 import com.br.marketing.dto.rsxk.Resp;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +26,7 @@ import java.util.Map;
 @Service
 public class RsxkClient {
 
-    @Resource
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Value(value = "${api.rsxk.queryCallStatus}")
+    @Value(value = "${api.rsxk.queryCallStatus:'https://mdp.shurongdai.cn/mdp-thinker-facade/api/queryCallStatus'}")
     private String queryCallStatusUrl;
 
     @Value("${api.rsxk.isProxy:true}")
