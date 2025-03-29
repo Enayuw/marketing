@@ -2,10 +2,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.dto.rsxk.CallStatusDTO;
 import com.br.marketing.dto.rsxk.Resp;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,5 +106,11 @@ public class RsxkTest {
                     .append(data.get(key));
         }
         return sb.toString();
+    }
+
+    @Test
+    public void test03() {
+        String decode = RpcClientProxy.decode("1b5d7f7aa5149354c647a2ac5bbd7b12", "cell", "md5", "");
+        String encode = BrCipherMaker.getInstance().encode(decode);
     }
 }

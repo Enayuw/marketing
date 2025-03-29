@@ -27,6 +27,8 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -105,15 +107,19 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
             , MarketingSyncUser syncUser, String userType) {
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
         JSONObject rvF = JSONObject.parseObject(syncUser.getReserveField1());
-        dassSingleImportDataDTO.setGender(rvF.getString("gender"));
+        String gender = StringUtils.isNotBlank(rvF.getString("gender")) ? rvF.getString("gender") : "";
+        dassSingleImportDataDTO.setGender(gender.equals("0") ? "女" : (gender.equals("1") ? "男" : ""));
         String name = syncUser.getName();
         if (StringUtils.isNotBlank(name)) {
             try {
                 name = BrCipherMaker.getInstance().decode(name);
                 if (!syncUser.getName().equals(name)) {
                     dassSingleImportDataDTO.setName(name);
+                } else {
+                    dassSingleImportDataDTO.setName("1");
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                dassSingleImportDataDTO.setName("1");
             }
         }
         dassSingleImportDataDTO.setOrgname("rongshuxinke");
@@ -126,9 +132,19 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
         dassSingleImportDataDTO.setLoginTime(rvF.getString("loginTime"));
         dassSingleImportDataDTO.setSource("45");
         dassSingleImportDataDTO.setAuditTime(rvF.getString("auditTime"));
-        dassSingleImportDataDTO.setExtend(syncUser.getReserveField1());
+        JSONObject extend = new JSONObject();
+        String planId = rvF.getString("planId");
+        String tid = rvF.getString("tid");
+        if (StringUtils.isNotBlank(planId)) {
+            extend.put("planId", planId);
+        }
+        if (StringUtils.isNotBlank(tid)) {
+            extend.put("tid", tid);
+        }
+        dassSingleImportDataDTO.setExtend(extend.toString());
         dassSingleImportDataDTO.setAuditAmount(rvF.getString("auditAmount"));
-        dassSingleImportDataDTO.setLentAmount(rvF.getString("lentAmount"));
+        dassSingleImportDataDTO.setLentAmount(StringUtils.isBlank(rvF.getString("lentAmount")) ? null :
+                new BigDecimal(rvF.getString("lentAmount")).setScale(0, RoundingMode.HALF_UP).toString());
         dassSingleImportAdapSoleDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
     }
 
