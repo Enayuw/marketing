@@ -3,6 +3,8 @@ package com.br.marketing.rule.rongshu;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
@@ -42,7 +44,7 @@ import java.util.Map;
  */
 @Service
 @Slf4j
-public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSoleDTO> {
+public class RsxkCallRecordToDassImpl implements AssembleData<BatchRealTimeUserDataDTO> {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
@@ -51,14 +53,70 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
     RsxkClient rsxkClient;
 
     @Override
-    public RealTimeUserDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO bo = (CallRecordBO) transmitFact;
         RsxkCollectDataImpl.RsxkRuleNecessaryData ruleNecessaryData =
                 (RsxkCollectDataImpl.RsxkRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getSyncUserPeriodMap();
         SyncUserValidityPeriodBO syncUserData = syncUserPeriodMap.get(bo.getCaseNum());
         MarketingSyncUser syncUser = syncUserData.getSyncUser();
-        return buildRealTimeUserDataSoleDTO(bo, syncUser);
+//        return buildRealTimeUserDataSoleDTO(bo, syncUser);
+        return buildBatchRealTimeUserDataDTO(bo, syncUser);
+    }
+
+    private BatchRealTimeUserDataDTO buildBatchRealTimeUserDataDTO(CallRecordBO bo, MarketingSyncUser syncUser) {
+        BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
+        DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
+        PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
+        batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
+        batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
+        JSONObject userTypeConfig = marketingCommonConfig.getRsxkToDassUserTypeConfig();
+        JSONObject configForApiCode = userTypeConfig.getJSONObject(bo.getApiCode());
+        String userType = configForApiCode.getString(syncUser.getUserType());
+        buildDassImportDataDTO(syncUser, userType, dassImportDataDTO);
+        buildPhoneSaleExtendInfo(phoneSaleExtendInfo, bo, syncUser, userType);
+        return batchRealTimeUserDataDTO;
+    }
+
+    private void buildDassImportDataDTO(MarketingSyncUser syncUser, String userType, DassImportDataDTO dassImportDataDTO) {
+        JSONObject rvF = JSONObject.parseObject(syncUser.getReserveField1());
+        String gender = StringUtils.isNotBlank(rvF.getString("gender")) ? rvF.getString("gender") : "";
+        dassImportDataDTO.setGender(gender.equals("0") ? "女" : (gender.equals("1") ? "男" : ""));
+        String name = syncUser.getName();
+        if (StringUtils.isNotBlank(name)) {
+            try {
+                name = BrCipherMaker.getInstance().decode(name);
+                if (!syncUser.getName().equals(name)) {
+                    dassImportDataDTO.setName(name);
+                } else {
+                    dassImportDataDTO.setName("1");
+                }
+            } catch (Exception e) {
+                dassImportDataDTO.setName("1");
+            }
+        }
+        dassImportDataDTO.setOrgname("rongshuxinke");
+        dassImportDataDTO.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
+        dassImportDataDTO.setUid(syncUser.getCustNum());
+        dassImportDataDTO.setUserType(userType);
+        dassImportDataDTO.setRegisterTime(rvF.getString("registerTime"));
+        dassImportDataDTO.setLoginTime(rvF.getString("loginTime"));
+        dassImportDataDTO.setLoginTime(rvF.getString("loginTime"));
+        dassImportDataDTO.setSource("45");
+        dassImportDataDTO.setAuditTime(rvF.getString("auditTime"));
+        JSONObject extend = new JSONObject();
+        String planId = rvF.getString("planId");
+        String tid = rvF.getString("tid");
+        if (StringUtils.isNotBlank(planId)) {
+            extend.put("planId", planId);
+        }
+        if (StringUtils.isNotBlank(tid)) {
+            extend.put("tid", tid);
+        }
+        dassImportDataDTO.setExtend(extend.toString());
+        dassImportDataDTO.setAuditAmount(rvF.getString("auditAmount"));
+        dassImportDataDTO.setLentAmount(StringUtils.isBlank(rvF.getString("lentAmount")) ? null :
+                new BigDecimal(rvF.getString("lentAmount")).setScale(0, RoundingMode.HALF_UP).toString());
     }
 
     /**
@@ -99,6 +157,7 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
         phoneSaleExtendInfo.setSourceId(bo.getId());
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setDxUserType(userType);
+        phoneSaleExtendInfo.setUserType(userType);
     }
 
 
@@ -174,10 +233,10 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
      **/
     private Boolean isCall(MarketingSyncUser syncUser) {
         Result<CallStatusDTO> result = rsxkClient.queryCallStatus(syncUser);
-         if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
-             return false;
-         }
-         CallStatusDTO callStatusDTO = result.getData();
+        if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            return false;
+        }
+        CallStatusDTO callStatusDTO = result.getData();
         if (2 == callStatusDTO.getCallFlag()) {
             return false;
         }
@@ -191,7 +250,7 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA_SOLE.getCode();
+        return InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode();
     }
 
     @Override
