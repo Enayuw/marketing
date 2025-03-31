@@ -111,7 +111,7 @@ public class EsConditionTransferSqlUtil {
 
         String sqlTep;
         List<String> operateList = Lists.newArrayList("=", "!=", "<", "<=", ">", ">=", "in", "not_in", "between", "between_right",
-                "between_left", "between_open");
+                "between_left", "between_open", "%");
         if (!operateList.contains(operation)) {
             log.error("规则中心-携程撞库操作符异常");
         }
@@ -159,6 +159,9 @@ public class EsConditionTransferSqlUtil {
                 List<String> betweenOpenList = Arrays.asList(((String) value).split(","));
                 sqlTep = ("(").concat(key).concat(" >\"").concat(betweenOpenList.get(0)).concat("\" and ").concat(key).concat(" <\"")
                         .concat(betweenOpenList.get(1).concat("\")"));
+                break;
+            case "%":
+                sqlTep = key.concat(" like ").concat("\"%").concat(value.toString()).concat("%\"");
                 break;
             default:
                 sqlTep = key.concat(operation).concat("\"").concat(value.toString()).concat("\"");

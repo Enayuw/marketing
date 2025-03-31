@@ -102,7 +102,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing?socketTimeout=1800000
       username: ENC(mysql-pre-ai-marketing-user)
       password: ENC(mysql-pre-ai-marketing-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
