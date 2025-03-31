@@ -88,8 +88,7 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
             , MarketingSyncUser syncUser, String userType) {
         phoneSaleExtendInfo.setApiCode(syncUser.getApiCode());
         phoneSaleExtendInfo.setCustNum(syncUser.getCustNum());
-        phoneSaleExtendInfo.setCell(BrCipherMaker.getInstance().encode(
-                RpcClientProxy.decode(syncUser.getCellMd5(), "cell", "md5", "")));
+        phoneSaleExtendInfo.setCell(syncUser.getCell());
         phoneSaleExtendInfo.setTaskId(syncUser.getCusBatch());
         phoneSaleExtendInfo.setAppletDate(bo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
@@ -123,8 +122,7 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
             }
         }
         dassSingleImportDataDTO.setOrgname("rongshuxinke");
-        dassSingleImportDataDTO.setPhone(
-                RpcClientProxy.decode(syncUser.getCellMd5(), "cell", "md5", ""));
+        dassSingleImportDataDTO.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
         dassSingleImportDataDTO.setUid(syncUser.getCustNum());
         dassSingleImportDataDTO.setUserType(userType);
         dassSingleImportDataDTO.setRegisterTime(rvF.getString("registerTime"));
