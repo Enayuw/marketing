@@ -96,7 +96,7 @@ public class RsxkCallRecordToDassImpl implements AssembleData<BatchRealTimeUserD
             }
         }
         dassImportDataDTO.setOrgname("rongshuxinke");
-        dassImportDataDTO.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
+        dassImportDataDTO.setPhone(syncUser.getCell());
         dassImportDataDTO.setUid(syncUser.getCustNum());
         dassImportDataDTO.setUserType(userType);
         dassImportDataDTO.setRegisterTime(rvF.getString("registerTime"));
