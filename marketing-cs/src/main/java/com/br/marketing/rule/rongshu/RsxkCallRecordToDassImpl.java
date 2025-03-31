@@ -139,7 +139,7 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
         }
         dassSingleImportDataDTO.setExtend(extend.toString());
         dassSingleImportDataDTO.setAuditAmount(rvF.getString("auditAmount"));
-        dassSingleImportDataDTO.setLentAmount(StringUtils.isBlank(rvF.getString("lentAmount")) ? null :
+        dassSingleImportDataDTO.setLentAmount(StringUtils.isBlank(rvF.getString("lentAmount")) ? "" :
                 new BigDecimal(rvF.getString("lentAmount")).setScale(0, RoundingMode.HALF_UP).toString());
         dassSingleImportAdapSoleDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
     }
