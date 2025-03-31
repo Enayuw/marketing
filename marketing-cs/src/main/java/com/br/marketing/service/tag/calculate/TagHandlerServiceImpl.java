@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -389,15 +391,24 @@ public class TagHandlerServiceImpl implements TagHandleService {
         Long start = System.currentTimeMillis();
         Boolean isSuccess = Boolean.FALSE;
         // 视图基本定义
-       /* StringBuilder viewSql = new StringBuilder(500)
+        String viewSqlPrefix = new StringBuilder(500)
                 .append("CREATE MATERIALIZED VIEW ").append(viewName)
                 .append(" BUILD IMMEDIATE\n")
                 .append("REFRESH AUTO\n")
                 .append("ON COMMIT\n")
                 .append("DISTRIBUTED BY RANDOM BUCKETS 2\n")
                 .append("PROPERTIES ('replication_num' = '2')\n")
-                .append("AS\nSELECT ");*/
-        String viewSqlPrefix = marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix");
+                .append("AS\nSELECT ").toString();
+
+        try {
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix"))) {
+                //解码，speed不能填充空格行
+                viewSqlPrefix = URLDecoder.decode(marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix"), "UTF-8");
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    TITLE + "创建物化视图前缀urldecode解码异常,apiCode=" + apiCode + "请关注"), e);
+        }
         // 视图基本定义
         StringBuilder viewSql = new StringBuilder(500)
                 .append(String.format(viewSqlPrefix, viewName));
