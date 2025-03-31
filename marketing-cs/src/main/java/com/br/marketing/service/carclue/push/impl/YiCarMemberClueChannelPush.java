@@ -66,6 +66,7 @@ public class YiCarMemberClueChannelPush extends AbstractClueChannelPush {
                 hxClueCommitDTO.setSeriesId(Integer.parseInt(carClueInfo.getClueMatchSeriesId()));
             }
             hxClueCommitDTO.setPushTask(task);
+            hxClueCommitDTO.setAssignId(carClueInfo.getDemandId());
             hxClueCommitDTO.setBuyTime(LocalDate.now().plusDays(90).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             Result<String> clueRes = carClueClient.commitClue(hxClueCommitDTO);
             if (ResultCode.SUCCESS.getValue().equals(clueRes.getCode())) {
