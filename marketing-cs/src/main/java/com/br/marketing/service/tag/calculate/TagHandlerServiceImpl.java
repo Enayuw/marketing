@@ -284,7 +284,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String syncTiDBSql = String.format(
                 "insert into %s.marketing.t_tag_data_detail (tag_code,calculate_date,cell,cust_num,create_time,"
                         + "update_time) select tag_code,calculate_date,cell,cust_num,create_time,update_time from marketing.t_tag_data_detail where tag_code = '%S' and calculate_date ='%S'",
-                syncDBName,tagCode, nowDay);
+                syncDBName, tagCode, nowDay);
         flagDataMapper.insertbI_(syncTiDBSql);
         log.warn(TITLE + "tagCode={},同步数据到Tidb明细表,耗时={}ms", tagCode, System.currentTimeMillis() - start);
     }
@@ -340,6 +340,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         // 添加其他条件
         insertBuilder.append("(").append(contiditionSql).append(")");
         // 执行插入操作
+        log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", insertBuilder);
         flagDataMapper.insertbI_(insertBuilder.toString());
     }
 
@@ -399,7 +400,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String viewSqlPrefix = marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix");
         // 视图基本定义
         StringBuilder viewSql = new StringBuilder(500)
-                .append(String.format(viewSqlPrefix,viewName));
+                .append(String.format(viewSqlPrefix, viewName));
         StringBuilder joinBuilder = new StringBuilder();
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
