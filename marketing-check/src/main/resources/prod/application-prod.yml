@@ -102,7 +102,7 @@ datasource:
       name: marketing_bi
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi
+      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi?socketTimeout=1800000
       username: ENC(mysql-prod-ai-marketing-bi-user)
       password: ENC(mysql-prod-ai-marketing-bi-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
