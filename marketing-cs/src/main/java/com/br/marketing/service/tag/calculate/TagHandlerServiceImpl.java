@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -284,7 +286,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String syncTiDBSql = String.format(
                 "insert into %s.marketing.t_tag_data_detail (tag_code,calculate_date,cell,cust_num,create_time,"
                         + "update_time) select tag_code,calculate_date,cell,cust_num,create_time,update_time from marketing.t_tag_data_detail where tag_code = '%S' and calculate_date ='%S'",
-                syncDBName,tagCode, nowDay);
+                syncDBName, tagCode, nowDay);
         flagDataMapper.insertbI_(syncTiDBSql);
         log.warn(TITLE + "tagCode={},同步数据到Tidb明细表,耗时={}ms", tagCode, System.currentTimeMillis() - start);
     }
@@ -340,6 +342,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         // 添加其他条件
         insertBuilder.append("(").append(contiditionSql).append(")");
         // 执行插入操作
+        log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", insertBuilder);
         flagDataMapper.insertbI_(insertBuilder.toString());
     }
 
@@ -388,18 +391,27 @@ public class TagHandlerServiceImpl implements TagHandleService {
         Long start = System.currentTimeMillis();
         Boolean isSuccess = Boolean.FALSE;
         // 视图基本定义
-       /* StringBuilder viewSql = new StringBuilder(500)
+        String viewSqlPrefix = new StringBuilder(500)
                 .append("CREATE MATERIALIZED VIEW ").append(viewName)
                 .append(" BUILD IMMEDIATE\n")
                 .append("REFRESH AUTO\n")
                 .append("ON COMMIT\n")
                 .append("DISTRIBUTED BY RANDOM BUCKETS 2\n")
                 .append("PROPERTIES ('replication_num' = '2')\n")
-                .append("AS\nSELECT ");*/
-        String viewSqlPrefix = marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix");
+                .append("AS\nSELECT ").toString();
+
+        try {
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix"))) {
+                //解码，speed不能填充空格行
+                viewSqlPrefix = URLDecoder.decode(marketingCommonConfig.getTagCalculateConfig().get("viewSqlPrefix"), "UTF-8");
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    TITLE + "创建物化视图前缀urldecode解码异常,apiCode=" + apiCode + "请关注"), e);
+        }
         // 视图基本定义
         StringBuilder viewSql = new StringBuilder(500)
-                .append(String.format(viewSqlPrefix,viewName));
+                .append(String.format(viewSqlPrefix, viewName));
         StringBuilder joinBuilder = new StringBuilder();
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
