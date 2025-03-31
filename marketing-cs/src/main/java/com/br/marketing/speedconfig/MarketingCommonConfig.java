@@ -2734,5 +2734,10 @@ public class MarketingCommonConfig {
      */
     private Map<String,String> tagCalculateConfig;
 
+    /**
+     * 标签量级相关
+     */
+    private HashMap<String, Integer> toPolicyThreadNum;
+
 }
 

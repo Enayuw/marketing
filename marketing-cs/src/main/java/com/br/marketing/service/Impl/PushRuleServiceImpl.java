@@ -606,7 +606,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
         }
 
-        int total;
+        int total = 0;
         String federatedQuerySql = "";
         try {
             String mTagCondition = dto.getmTagCondition();
@@ -622,21 +622,49 @@ public class PushRuleServiceImpl implements PushRuleService {
                             "该apiCode：" + dto.getApiCode() + "，该tag："+tagCode + "已失效"));
                     return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该apiCode：" + dto.getApiCode() + ",该tag："+tagCode + "已失效");
                 }
-                // 页面规则查询es
-                ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
-                String queryDsl = esQueryRequest.getQueryDsl();
-                List<String> indexNames = esQueryRequest.getIndexName();
 
-                if (CollectionUtils.isEmpty(indexNames)) {
-                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + dto.getBatchNumberList());
+                StraHisFileExample fileExample = new StraHisFileExample();
+                fileExample.createCriteria().andIdIn(dto.getFileIdList());
+                List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(fileExample);
+
+                Optional<StraHisFile> first = straHisFiles.stream().sorted(Comparator.comparing(StraHisFile::getIndexNum).reversed()).findFirst();
+                Integer parNum = 0;
+                if (first.isPresent()) {
+                    parNum = first.get().getIndexNum();
                 }
 
-                // 构建联邦查询 SQL
-                federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
-                if(StringUtils.isEmpty(federatedQuerySql)){
-                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+                List<Future<Result<Integer>>> resList = new ArrayList<>();
+                Integer pushRuleThreadNum = marketingCommonConfig.getToPolicyThreadNum().get("pushRuleThreadNum");
+                Integer pushRuleQueueNum = marketingCommonConfig.getToPolicyThreadNum().get("pushRuleQueueNum");
+                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(pushRuleThreadNum, pushRuleThreadNum, pushRuleQueueNum);
+                for (int i = 0; i < parNum; i++) {
+                    int finalI = i;
+                    resList.add(threadPool.submit(() -> federatedQueryTotal(dto, queryBaseBean, finalI, tagCode, type)));
                 }
-                total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
+                try {
+                    for (Future<Result<Integer>> pushFuture : resList) {
+                        Result<Integer> pushRes = pushFuture.get();
+                        if (ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                            total += pushRes.getData();
+                        } else {
+                            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片返回量级异常");
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
+                }
+                // 关闭线程池
+                threadPool.shutdown();
+                try {
+                    while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                        log.info("推送决策查询量级：线程池关闭");
+                    }
+                } catch (InterruptedException ex) {
+                    threadPool.shutdownNow();
+                    log.error("推送决策查询量级：日志保存线程池结束异常！", ex);
+                    Thread.currentThread().interrupt();
+                }
+
             }
         }catch (Exception e){
             log.warn("规则中心推送预览 SQL: " + federatedQuerySql);
@@ -644,6 +672,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         pushViewVO.setTotal(total);
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+    }
+
+    private Result<Integer> federatedQueryTotal(PushCustomerDTO dto, QueryBaseBean queryBaseBean,int part,String tagCode,int type) {
+        queryBaseBean.setPart(String.valueOf(part));
+        ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+        String queryDsl = esQueryRequest.getQueryDsl();
+        List<String> indexNames = esQueryRequest.getIndexName();
+
+        if (CollectionUtils.isEmpty(indexNames)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + dto.getBatchNumberList());
+        }
+
+        // 构建联邦查询 SQL
+        String federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
+        if(StringUtils.isEmpty(federatedQuerySql)){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+        }
+        int total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
     }
 
     /**
@@ -1555,40 +1602,44 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         if (!isSigle) {
             Integer nowSum = 0;
-            List<CompletableFuture<Result<Integer>>> futures = Lists.newArrayList();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
+            List<Future<Result<Integer>>> resList = new ArrayList<>();
+            Integer toPolicyThreadNum = marketingCommonConfig.getToPolicyThreadNum().get("toPolicyThreadNum");
+            Integer toPolicyQueueNum = marketingCommonConfig.getToPolicyThreadNum().get("toPolicyQueueNum");
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(toPolicyThreadNum, toPolicyThreadNum, toPolicyQueueNum);
 
             for (Integer i = 0; i < parNum; i++) {
                 QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
                 Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
                 partDataNum.put(i, nowNum);
-
                 if (customerInfoPushMain.getTagContent() != null) {
-                    CompletableFuture<Result<Integer>> future = CompletableFuture.supplyAsync(
-                            () -> queryTotal(customerInfoPushMain, numList, queryBaseBean),
-                            threadPool
-                    );
-                    futures.add(future);
+                    resList.add(threadPool.submit(() -> queryTotal(customerInfoPushMain, numList, queryBaseBean)));
                 } else {
                     nowSum += nowNum;
                 }
             }
-            if (!futures.isEmpty()) {
-                try {
-                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                    for (CompletableFuture<Result<Integer>> future : futures) {
-                        Result<Integer> result = future.get();
-                        if (result.isSuccess() && result.getData() != null) {
-                            nowSum += result.getData();
-                        } else {
-                            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片返回量级异常: " + result.getMessage());
-                        }
+            try {
+                for (Future<Result<Integer>> pushFuture : resList) {
+                    Result<Integer> pushRes = pushFuture.get();
+                    if (ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                        nowSum += pushRes.getData();
+                    } else {
+                        return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片返回量级异常");
                     }
-                } catch (Exception e) {
-                    return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片查询量级异常："+e.getMessage());
                 }
+            } catch (Exception ex) {
+                log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             }
-
+            // 关闭线程池
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.info("推送决策查询量级：线程池关闭");
+                }
+            } catch (InterruptedException ex) {
+                threadPool.shutdownNow();
+                log.error("推送决策查询量级：日志保存线程池结束异常！", ex);
+                Thread.currentThread().interrupt();
+            }
             if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
                         "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数不一致，请手动处理！，分组查询的总数：" + nowSum.toString()
