@@ -42,14 +42,14 @@ import java.util.stream.Collectors;
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
  *
- * @Description : 消息延迟处理类
+ * @Description : 通话明细消息延迟处理类
  * ---------------------------------
- * @Author : jilong.xu
- * @Date : Create in 2022/3/14 10:56
+ * @Author : dongshuo.he
+ * @Date : Create in 2025/3/28 10:56
  */
 
 @Service
-public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact>{
+public class CallRecordMessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact>{
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -101,7 +101,7 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
         mqFact.setIsDelay(1);
         mqFact.setIncludeRules(set);
         mqFact.setMessage(jsonObject.toJSONString());
-        mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+        mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
         String message = JSON.toJSONString(mqFact);
         if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
             rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
@@ -115,6 +115,6 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
 
     @Override
     InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.BATCH_MESSAGE_DELAY;
+        return InterfaceHandlerEnum.CALLRECORD_MESSAGE_DELAY;
     }
 }

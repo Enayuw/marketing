@@ -1041,7 +1041,7 @@ public class MarketingCommonConfig {
     /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
-    private HashMap<String,List<String>>    gradeOfcallToDass;
+    private HashMap<String,List<String>> gradeOfcallToDass;
 
     /**
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
@@ -2733,6 +2733,11 @@ public class MarketingCommonConfig {
      * 车线索姓名匹配配置
      */
     private JSONObject carClueDataMemberConfig;
+
+    /**
+     * 榕树新客推送电销场景映射配置
+     */
+    private JSONObject rsxkToDassUserTypeConfig;
 
 }
 

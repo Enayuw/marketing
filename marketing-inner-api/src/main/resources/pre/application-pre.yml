@@ -262,6 +262,11 @@ api:
     cityList: ${api.hxCar.baseUrl}/open_api/v1/city_list
     commitClue: ${api.hxCar.baseUrl}/open_api/v1/test_commit_clue
     isProxy: true
+  rsxk:
+    baseUrl: https://dymapi.shurongdai.cn
+    queryCallStatus: ${api.rsxk.baseUrl}/mdp-thinker-facade/api/queryCallStatus
+    isProxy: true
+
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job
