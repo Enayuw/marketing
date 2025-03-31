@@ -1552,57 +1552,43 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         HashMap<Integer, Integer> partDataNum = new HashMap<>();
+
         if (!isSigle) {
             Integer nowSum = 0;
+            List<CompletableFuture<Result<Integer>>> futures = Lists.newArrayList();
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
+
             for (Integer i = 0; i < parNum; i++) {
                 QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
-                try {
-                    //存在标签
-                    if(customerInfoPushMain.getTagContent() != null){
-                        // 解析标签规则
-                        JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                        String tagCode = jsonObject.getString("tagCode");
-                        int type = jsonObject.getIntValue("type");
-                        if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
-                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                                    "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "已失效"));
+                Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                partDataNum.put(i, nowNum);
 
-                            CustomerInfoPushMain customer = new CustomerInfoPushMain();
-                            customer.setId(customerInfoPushMain.getId());
-                            customer.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                            customerInfoPushMainMapper.updateByPrimaryKeySelective(customer);
-                            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-                        }
-
-                        // 页面规则查询es
-                        ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
-                        String queryDsl = esQueryRequest.getQueryDsl();
-                        List<String> indexNames = esQueryRequest.getIndexName();
-                        if (CollectionUtils.isEmpty(indexNames)) {
-                            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + numList);
-                        }
-
-                        // 构建联邦查询 SQL
-                        String querySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
-                        if(StringUtils.isEmpty(querySql)){
-                            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
-                        }
-                        Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
-                        nowSum += total;
-
-                        Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
-                        partDataNum.put(i, nowNum);
-                    }else {
-                        Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
-                        partDataNum.put(i, nowNum);
-                        nowSum += nowNum;
-                    }
-                }catch (Exception e){
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                            "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"));
-                    return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+                if (customerInfoPushMain.getTagContent() != null) {
+                    CompletableFuture<Result<Integer>> future = CompletableFuture.supplyAsync(
+                            () -> queryTotal(customerInfoPushMain, numList, queryBaseBean),
+                            threadPool
+                    );
+                    futures.add(future);
+                } else {
+                    nowSum += nowNum;
                 }
             }
+            if (!futures.isEmpty()) {
+                try {
+                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                    for (CompletableFuture<Result<Integer>> future : futures) {
+                        Result<Integer> result = future.get();
+                        if (result.isSuccess() && result.getData() != null) {
+                            nowSum += result.getData();
+                        } else {
+                            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片返回量级异常: " + result.getMessage());
+                        }
+                    }
+                } catch (Exception e) {
+                    return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片查询量级异常："+e.getMessage());
+                }
+            }
+
             if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
                         "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数不一致，请手动处理！，分组查询的总数：" + nowSum.toString()
@@ -1687,6 +1673,45 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private Result<Integer> queryTotal(CustomerInfoPushMain customerInfoPushMain, List<String> numList, QueryBaseBean queryBaseBean) {
+        try {
+            // 解析标签规则
+            JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+            String tagCode = jsonObject.getString("tagCode");
+            int type = jsonObject.getIntValue("type");
+            if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                        "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "已失效"));
+
+                CustomerInfoPushMain customer = new CustomerInfoPushMain();
+                customer.setId(customerInfoPushMain.getId());
+                customer.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(customer);
+                return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "已失效");
+            }
+
+            // 页面规则查询es
+            ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+            String queryDsl = esQueryRequest.getQueryDsl();
+            List<String> indexNames = esQueryRequest.getIndexName();
+            if (CollectionUtils.isEmpty(indexNames)) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + numList);
+            }
+
+            // 构建联邦查询 SQL
+            String querySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
+            if(StringUtils.isEmpty(querySql)){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+            }
+            Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
+        }catch (Exception e){
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                    "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"));
+            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！");
+        }
     }
 
     /**
