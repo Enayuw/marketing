@@ -2739,5 +2739,10 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, Integer> toPolicyThreadNum;
 
+    /**
+     * 同步ai标签库apiCode
+     */
+    private String tagApiCode;
+
 }
 

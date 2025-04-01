@@ -48,10 +48,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TagServiceImpl implements TagService {
-
-    @Value("${api.antaios.apiCode:00}")
-    private String tagApiCode;
-
     @Resource
     AntaiosResourceClient antaiosResourceClient;
 
@@ -287,7 +283,7 @@ public class TagServiceImpl implements TagService {
         jsonObject.put("method", "tagList");
         jsonObject.put("tagGroupName", "营销中台标签");
 
-        antaiosResourceDTO.setApiCode(tagApiCode);
+        antaiosResourceDTO.setApiCode(marketingCommonConfig.getTagApiCode());
         antaiosResourceDTO.setJsonData(jsonObject);
 
         // 调用客户端获取标签库
