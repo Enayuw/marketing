@@ -73,7 +73,8 @@ public enum AlarmSendCodeEnum {
     PUSHING_APIERROR("74000", "推送Api异常"),
     //调用有效期方法异常,立即推送
     VALIDITY_INTERFACEERROR("75000", "调用有效期方法异常"),
-
+    //RocketMQ消费异常
+    ROCKETMQ_CONSUMER_ERROR("76000", "RocketMQ消费异常"),
 
     //中台业务未知错误,立即推送
     YINGXIAO_SERVICEERROR("6000000", "中台业务未知错误"),
@@ -299,6 +300,11 @@ public enum AlarmSendCodeEnum {
 
     //pp停车业务告警码
     PP_MARKING_SERVICEERROR("6060001", "pp停车业务异常"),
+
+    //榕树新客接口调用失败
+    RSXK_INTERFACE("6071001", "榕树新客接口异常"),
+    //榕树新客业务异常
+    RSXK_SERVICEERROR("6071002", "榕树新客业务异常"),
     ;
 
     /**

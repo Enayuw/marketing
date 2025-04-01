@@ -19,7 +19,6 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
-
 /**
  * 程序主类
  *
@@ -45,6 +44,7 @@ public class MarketingInnerApiApplication {
 
 
     public static ConfigurableApplicationContext ac;
+
     /**
      * 启动入口
      *
@@ -55,7 +55,7 @@ public class MarketingInnerApiApplication {
         Long start = System.currentTimeMillis();
 
         log.warn("marketing-inner-api开始启动！");
-        ac =SpringApplication.run(MarketingInnerApiApplication.class, args);
+        ac = SpringApplication.run(MarketingInnerApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -72,7 +72,7 @@ public class MarketingInnerApiApplication {
         try {
             ConsumerService.consumerDownStatus = Boolean.TRUE;
             log.warn("消费者下线");
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
             log.warn("GRPC服务关闭正常");
         } catch (Exception e) {

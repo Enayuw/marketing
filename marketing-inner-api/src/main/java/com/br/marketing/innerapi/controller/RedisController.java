@@ -225,52 +225,55 @@ public class RedisController {
 
     /**
      * 外采映射数据生成SQL
+     *
      * @return
      */
     @GetMapping("/getCarClueInit")
-    public StringBuilder getCarClueInit(){
-        String excelFilePath = "C:\\Users\\bingxu.kong\\Desktop\\车线索\\外采需求明细0120.xlsx";
+    public StringBuilder getCarClueInit(@RequestParam("excelFilePath") String excelFilePath) {
+        List<String> valueStatements = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         try (FileInputStream fis = new FileInputStream(new File(excelFilePath));
              Workbook workbook = new XSSFWorkbook(fis)) {
+
+            // 遍历所有工作表
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet sheet = workbook.getSheetAt(i);
-                StringBuilder insertStatement = new StringBuilder("INSERT INTO b_car_clue_init_mapping (");
+                valueStatements.clear();
+                // 遍历每一行（跳过标题行）
+                for (Row row : sheet) {
+                    if (row.getRowNum() == 0) continue; // 跳过标题行
 
-                // 处理表头
-                Row headerRow = sheet.getRow(0);
-                for (Cell cell : headerRow) {
-                    insertStatement.append(cell.getStringCellValue()).append(", ");
+                    // 提取所需列的值
+                    String brand_name = getCellValue(row, 0);
+                    String series_name = getCellValue(row, 1);
+                    String nation = getCellValue(row, 2);
+                    String satisfy_province_name = getCellValue(row, 3);
+                    String satisfy_city_name = getCellValue(row, 4);
+                    String exclude_province_name = getCellValue(row, 5);
+                    String exclude_city_name = getCellValue(row, 6);
+                    String demand_id = getCellValue(row, 7);
+
+                    // 构建 VALUES 部分
+                    String valueStatement = String.format(
+                            "('3710199', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', curdate(), now())",
+                            escapeSql(brand_name),
+                            escapeSql(series_name),
+                            escapeSql(nation),
+                            escapeSql(satisfy_province_name),
+                            escapeSql(satisfy_city_name),
+                            escapeSql(exclude_province_name),
+                            escapeSql(exclude_city_name),
+                            escapeSql(demand_id)
+                    );
+                    valueStatements.add(valueStatement);
                 }
-                insertStatement.setLength(insertStatement.length() - 2); // 移除最后的逗号和空格
-                insertStatement.append(") VALUES ");
 
-                // 处理内容
-                for (int j = 1; j <= sheet.getLastRowNum(); j++) {
-                    Row row = sheet.getRow(j);
-                    insertStatement.append("(");
-                    for (Cell cell : row) {
-                        if (cell.getCellType() == CellType.BLANK) {
-                            insertStatement.append("null, ");
-                        } else {
-                            switch (cell.getCellType()) {
-                                case STRING:
-                                    String cellValue = cell.toString().replace("\n", ",");
-                                    insertStatement.append("'").append(cellValue).append("', ");
-                                    break;
-                                case NUMERIC:
-                                    insertStatement.append((int) cell.getNumericCellValue()).append(", ");
-                                    break;
-                            }
+                // 构建完整的批量插入 SQL
+                String sql = "INSERT INTO b_car_clue_init_mapping (api_code, brand_name, series_name, nation, satisfy_province_name, " +
+                        "satisfy_city_name, exclude_province_name, exclude_city_name, demand_id, applet_date, create_time) " +
+                        "VALUES " + String.join(", ", valueStatements) + ";";
 
-                        }
-                    }
-                    insertStatement.setLength(insertStatement.length() - 2); // 移除最后的逗号和空格
-                    insertStatement.append("), ");
-                }
-                insertStatement.setLength(insertStatement.length() - 2); // 移除最后的逗号和空格
-                insertStatement.append(";");
-                stringBuilder.append(insertStatement);
+                stringBuilder.append(sql).append("\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -312,5 +315,21 @@ public class RedisController {
         }
         return Arrays.asList(data.split(","));
     }
+
+    // 获取单元格值并处理空值
+    private static String getCellValue(Row row, int cellIndex) {
+        Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return String.valueOf((int) cell.getNumericCellValue());
+        }
+        String cellValue = cell.getStringCellValue();
+        return cellValue != null ? cellValue.trim() : "";
+    }
+
+    // 转义 SQL 中的特殊字符（如单引号）
+    private static String escapeSql(String input) {
+        return input == null || input.isEmpty() ? null : input.replace("\n", ",");
+    }
+
 
 }

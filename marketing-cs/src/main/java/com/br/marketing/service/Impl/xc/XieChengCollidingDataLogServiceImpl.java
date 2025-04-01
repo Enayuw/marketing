@@ -6,6 +6,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
+import com.br.marketing.config.RocketMqSwitch;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.br.common.log.AlertLog;
@@ -46,6 +49,10 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     public static final ThreadPoolExecutor XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL = BrExecutors.getThreadPool(50, 50);
 
@@ -155,7 +162,12 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Override
     public void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
         try {
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
+                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC
+                        , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
+            }else{
+                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "推送携程撞库日志消息异常！"), e);

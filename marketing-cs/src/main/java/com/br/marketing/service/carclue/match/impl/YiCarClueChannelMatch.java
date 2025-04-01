@@ -133,6 +133,7 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         carClueInfo.setCluePushStatus(CarCluePushStatusEnum.READY.getValue());
         carClueInfo.setCluePushChannel(configApiCode);
         carClueInfo.setClueMatchBrandId(clueRelationalMapping.getBrandId().toString());
+        carClueInfo.setDemandId(clueRelationalMapping.getDemandId());
         carClueInfo.setClueMatchSeriesId(seriesInfoConfig.stream().filter(carClueSeriesInfo -> carClueSeriesInfo.getSeriesName()
                 .equals(carClueInfo.getClueMatchSeries())).collect(Collectors.toList()).get(0).getSeriesId().toString());
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(carClueInfo);
