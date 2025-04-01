@@ -263,8 +263,8 @@ api:
     commitClue: ${api.hxCar.baseUrl}/open_api/v1/commit_clue
     isProxy: true
   antaios:
-    baseUrl: https://antaios-op.100credit.com
-    pushUserUrl: ${api.antaios.baseUrl}/api/antaios-app-api/antaios/third/process/resource
+    baseUrl: http://pdai.brapp.com/antaios-app-api
+    pushUserUrl: ${api.antaios.baseUrl}/antaios/third/process/resource
   rsxk:
     baseUrl: https://mdp.shurongdai.cn
     queryCallStatus: ${api.rsxk.baseUrl}/mdp-thinker-facade/api/queryCallStatus
