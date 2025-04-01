@@ -287,10 +287,11 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String syncTiDBSql = String.format(
                 "insert into %s.marketing.t_tag_data_detail (tag_code,calculate_date,cell,cust_num,create_time,"
                         + "update_time) select tag_code,calculate_date,cell,cust_num,create_time,update_time from %s.t_tag_data_detail where tag_code = '%S' and calculate_date ='%S'",
-                syncDBName, tagCode, nowDay,fromDBName);
+                syncDBName, fromDBName, tagCode, nowDay);
         flagDataMapper.insertbI_(syncTiDBSql);
         log.warn(TITLE + "tagCode={},同步数据到Tidb明细表,耗时={}ms", tagCode, System.currentTimeMillis() - start);
     }
+
 
     /**
      * 将数据插入到Doris数据库
