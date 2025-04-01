@@ -1223,7 +1223,7 @@
 
     <job:simple id="【check】-CalculateTagDataJob"
                 class="com.br.marketing.check.job.tag.CalculateTagDataJob"
-                cron="0 1 0 * * ?"
+                cron="0 30 0 * * ?"
                 description="计算标签数据Job"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
