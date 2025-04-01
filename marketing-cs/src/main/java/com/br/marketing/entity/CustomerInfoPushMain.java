@@ -1,7 +1,5 @@
 package com.br.marketing.entity;
 
-import io.swagger.annotations.ApiModelProperty;
-
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -127,7 +125,7 @@ public class CustomerInfoPushMain {
     private String batchName;
 
     /**
-     * 扩展字段
+     * 
      */
     private String extend;
 
@@ -145,6 +143,11 @@ public class CustomerInfoPushMain {
      * 触达策略编号
      */
     private String strategyCode;
+
+    /**
+     * 标签规则
+     */
+    private String tagContent;
 
     public Long getId() {
         return id;
@@ -290,6 +293,14 @@ public class CustomerInfoPushMain {
         this.mRuleConditionShow = mRuleConditionShow == null ? null : mRuleConditionShow.trim();
     }
 
+    public String getmScoreCondition() {
+        return mScoreCondition;
+    }
+
+    public void setmScoreCondition(String mScoreCondition) {
+        this.mScoreCondition = mScoreCondition == null ? null : mScoreCondition.trim();
+    }
+
     public BigDecimal getmPercentage() {
         return mPercentage;
     }
@@ -362,11 +373,11 @@ public class CustomerInfoPushMain {
         this.strategyCode = strategyCode == null ? null : strategyCode.trim();
     }
 
-    public String getmScoreCondition() {
-        return mScoreCondition;
+    public String getTagContent() {
+        return tagContent;
     }
 
-    public void setmScoreCondition(String mScoreCondition) {
-        this.mScoreCondition = mScoreCondition;
+    public void setTagContent(String tagContent) {
+        this.tagContent = tagContent == null ? null : tagContent.trim();
     }
 }

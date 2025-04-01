@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.tag.TagDataRuleMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.tag.TagDataRule">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="tag_code" jdbcType="VARCHAR" property="tagCode" />
+    <result column="tag_name" jdbcType="VARCHAR" property="tagName" />
+    <result column="tag_number" jdbcType="INTEGER" property="tagNumber" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
+    <result column="summary" jdbcType="VARCHAR" property="summary" />
+    <result column="time_number" jdbcType="INTEGER" property="timeNumber" />
+    <result column="time_unit" jdbcType="VARCHAR" property="timeUnit" />
+    <result column="api_code_scope" jdbcType="VARCHAR" property="apiCodeScope" />
+    <result column="api_code_license" jdbcType="VARCHAR" property="apiCodeLicense" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
+    <result column="opt_user_name" jdbcType="VARCHAR" property="optUserName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="delete_flag" jdbcType="INTEGER" property="deleteFlag" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, tag_code, tag_name, tag_number, content, source_code, summary, time_number, time_unit, 
+    api_code_scope, api_code_license, `status`, opt_user_id, opt_user_name, create_time, 
+    update_time, delete_flag
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.tag.TagDataRuleExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from t_tag_data_rule
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_tag_data_rule
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_tag_data_rule
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.tag.TagDataRuleExample">
+    delete from t_tag_data_rule
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataRule" useGeneratedKeys="true">
+    insert into t_tag_data_rule (tag_code, tag_name, tag_number, 
+      content, source_code, summary, 
+      time_number, time_unit, api_code_scope, 
+      api_code_license, `status`, opt_user_id, 
+      opt_user_name, create_time, update_time, 
+      delete_flag)
+    values (#{tagCode,jdbcType=VARCHAR}, #{tagName,jdbcType=VARCHAR}, #{tagNumber,jdbcType=INTEGER}, 
+      #{content,jdbcType=VARCHAR}, #{sourceCode,jdbcType=VARCHAR}, #{summary,jdbcType=VARCHAR}, 
+      #{timeNumber,jdbcType=INTEGER}, #{timeUnit,jdbcType=VARCHAR}, #{apiCodeScope,jdbcType=VARCHAR}, 
+      #{apiCodeLicense,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, 
+      #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{deleteFlag,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataRule" useGeneratedKeys="true">
+    insert into t_tag_data_rule
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="tagCode != null">
+        tag_code,
+      </if>
+      <if test="tagName != null">
+        tag_name,
+      </if>
+      <if test="tagNumber != null">
+        tag_number,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="sourceCode != null">
+        source_code,
+      </if>
+      <if test="summary != null">
+        summary,
+      </if>
+      <if test="timeNumber != null">
+        time_number,
+      </if>
+      <if test="timeUnit != null">
+        time_unit,
+      </if>
+      <if test="apiCodeScope != null">
+        api_code_scope,
+      </if>
+      <if test="apiCodeLicense != null">
+        api_code_license,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="optUserId != null">
+        opt_user_id,
+      </if>
+      <if test="optUserName != null">
+        opt_user_name,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="tagCode != null">
+        #{tagCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tagName != null">
+        #{tagName,jdbcType=VARCHAR},
+      </if>
+      <if test="tagNumber != null">
+        #{tagNumber,jdbcType=INTEGER},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceCode != null">
+        #{sourceCode,jdbcType=VARCHAR},
+      </if>
+      <if test="summary != null">
+        #{summary,jdbcType=VARCHAR},
+      </if>
+      <if test="timeNumber != null">
+        #{timeNumber,jdbcType=INTEGER},
+      </if>
+      <if test="timeUnit != null">
+        #{timeUnit,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCodeScope != null">
+        #{apiCodeScope,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCodeLicense != null">
+        #{apiCodeLicense,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="optUserId != null">
+        #{optUserId,jdbcType=BIGINT},
+      </if>
+      <if test="optUserName != null">
+        #{optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteFlag != null">
+        #{deleteFlag,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.tag.TagDataRuleExample" resultType="java.lang.Long">
+    select count(*) from t_tag_data_rule
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_tag_data_rule
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.tagCode != null">
+        tag_code = #{record.tagCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tagName != null">
+        tag_name = #{record.tagName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tagNumber != null">
+        tag_number = #{record.tagNumber,jdbcType=INTEGER},
+      </if>
+      <if test="record.content != null">
+        content = #{record.content,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sourceCode != null">
+        source_code = #{record.sourceCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.summary != null">
+        summary = #{record.summary,jdbcType=VARCHAR},
+      </if>
+      <if test="record.timeNumber != null">
+        time_number = #{record.timeNumber,jdbcType=INTEGER},
+      </if>
+      <if test="record.timeUnit != null">
+        time_unit = #{record.timeUnit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCodeScope != null">
+        api_code_scope = #{record.apiCodeScope,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCodeLicense != null">
+        api_code_license = #{record.apiCodeLicense,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.optUserId != null">
+        opt_user_id = #{record.optUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.optUserName != null">
+        opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.deleteFlag != null">
+        delete_flag = #{record.deleteFlag,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_tag_data_rule
+    set id = #{record.id,jdbcType=BIGINT},
+      tag_code = #{record.tagCode,jdbcType=VARCHAR},
+      tag_name = #{record.tagName,jdbcType=VARCHAR},
+      tag_number = #{record.tagNumber,jdbcType=INTEGER},
+      content = #{record.content,jdbcType=VARCHAR},
+      source_code = #{record.sourceCode,jdbcType=VARCHAR},
+      summary = #{record.summary,jdbcType=VARCHAR},
+      time_number = #{record.timeNumber,jdbcType=INTEGER},
+      time_unit = #{record.timeUnit,jdbcType=VARCHAR},
+      api_code_scope = #{record.apiCodeScope,jdbcType=VARCHAR},
+      api_code_license = #{record.apiCodeLicense,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
+      opt_user_id = #{record.optUserId,jdbcType=BIGINT},
+      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      delete_flag = #{record.deleteFlag,jdbcType=INTEGER}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.tag.TagDataRule">
+    update t_tag_data_rule
+    <set>
+      <if test="tagCode != null">
+        tag_code = #{tagCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tagName != null">
+        tag_name = #{tagName,jdbcType=VARCHAR},
+      </if>
+      <if test="tagNumber != null">
+        tag_number = #{tagNumber,jdbcType=INTEGER},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceCode != null">
+        source_code = #{sourceCode,jdbcType=VARCHAR},
+      </if>
+      <if test="summary != null">
+        summary = #{summary,jdbcType=VARCHAR},
+      </if>
+      <if test="timeNumber != null">
+        time_number = #{timeNumber,jdbcType=INTEGER},
+      </if>
+      <if test="timeUnit != null">
+        time_unit = #{timeUnit,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCodeScope != null">
+        api_code_scope = #{apiCodeScope,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCodeLicense != null">
+        api_code_license = #{apiCodeLicense,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="optUserId != null">
+        opt_user_id = #{optUserId,jdbcType=BIGINT},
+      </if>
+      <if test="optUserName != null">
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag = #{deleteFlag,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.tag.TagDataRule">
+    update t_tag_data_rule
+    set tag_code = #{tagCode,jdbcType=VARCHAR},
+      tag_name = #{tagName,jdbcType=VARCHAR},
+      tag_number = #{tagNumber,jdbcType=INTEGER},
+      content = #{content,jdbcType=VARCHAR},
+      source_code = #{sourceCode,jdbcType=VARCHAR},
+      summary = #{summary,jdbcType=VARCHAR},
+      time_number = #{timeNumber,jdbcType=INTEGER},
+      time_unit = #{timeUnit,jdbcType=VARCHAR},
+      api_code_scope = #{apiCodeScope,jdbcType=VARCHAR},
+      api_code_license = #{apiCodeLicense,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      opt_user_id = #{optUserId,jdbcType=BIGINT},
+      opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      delete_flag = #{deleteFlag,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

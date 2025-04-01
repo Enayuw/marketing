@@ -2735,6 +2735,42 @@ public class MarketingCommonConfig {
     private JSONObject carClueDataMemberConfig;
 
     /**
+     * 外呼接口方法挡板开关 true:开启挡板。false:关闭挡板
+     * antaiosResourceMock={"switch":true,"code":"00000"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * code：
+     *      00000:请求成功
+     */
+    private HashMap<String, Object> antaiosResourceMock;
+
+    /**
+     * 标签库字段映射配置
+     */
+    private List<String> fieldCodeList;
+
+
+    /**
+     * 标签:物化视图创建等待时间ms
+     */
+    private Long createMVMaxWaitTime;
+
+    /**
+     * 标签计算配置
+     */
+    private Map<String,String> tagCalculateConfig;
+
+    /**
+     * 标签量级相关
+     */
+    private HashMap<String, Integer> toPolicyThreadNum;
+
+    /**
+     * 同步ai标签库apiCode
+     */
+    private String tagApiCode;
+    /**
      * 榕树新客推送电销场景映射配置
      */
     private JSONObject rsxkToDassUserTypeConfig;

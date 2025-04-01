@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.TagDataDetailMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.tag.TagDataDetail">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="tag_code" jdbcType="VARCHAR" property="tagCode" />
+    <result column="calculate_date" jdbcType="VARCHAR" property="calculateDate" />
+    <result column="cell" jdbcType="VARCHAR" property="cell" />
+    <result column="cust_num" jdbcType="VARCHAR" property="custNum" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, tag_code, calculate_date, cell, cust_num, `status`, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.tag.TagDataDetailExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from t_tag_data_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_tag_data_detail
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_tag_data_detail
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.tag.TagDataDetailExample">
+    delete from t_tag_data_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataDetail" useGeneratedKeys="true">
+    insert into t_tag_data_detail (tag_code, calculate_date, cell, 
+      cust_num, `status`, create_time, 
+      update_time)
+    values (#{tagCode,jdbcType=VARCHAR}, #{calculateDate,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
+      #{custNum,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.tag.TagDataDetail" useGeneratedKeys="true">
+    insert into t_tag_data_detail
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="tagCode != null">
+        tag_code,
+      </if>
+      <if test="calculateDate != null">
+        calculate_date,
+      </if>
+      <if test="cell != null">
+        cell,
+      </if>
+      <if test="custNum != null">
+        cust_num,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="tagCode != null">
+        #{tagCode,jdbcType=VARCHAR},
+      </if>
+      <if test="calculateDate != null">
+        #{calculateDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null">
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.tag.TagDataDetailExample" resultType="java.lang.Long">
+    select count(*) from t_tag_data_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_tag_data_detail
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.tagCode != null">
+        tag_code = #{record.tagCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.calculateDate != null">
+        calculate_date = #{record.calculateDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null">
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null">
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_tag_data_detail
+    set id = #{record.id,jdbcType=BIGINT},
+      tag_code = #{record.tagCode,jdbcType=VARCHAR},
+      calculate_date = #{record.calculateDate,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.tag.TagDataDetail">
+    update t_tag_data_detail
+    <set>
+      <if test="tagCode != null">
+        tag_code = #{tagCode,jdbcType=VARCHAR},
+      </if>
+      <if test="calculateDate != null">
+        calculate_date = #{calculateDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null">
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.tag.TagDataDetail">
+    update t_tag_data_detail
+    set tag_code = #{tagCode,jdbcType=VARCHAR},
+      calculate_date = #{calculateDate,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

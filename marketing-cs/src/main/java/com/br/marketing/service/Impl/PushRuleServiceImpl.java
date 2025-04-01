@@ -1,4 +1,6 @@
 package com.br.marketing.service.Impl;
+import java.io.IOException;
+import java.sql.*;
 import java.util.Date;
 
 import com.alibaba.fastjson.*;
@@ -47,6 +49,7 @@ import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
+import com.br.marketing.es.bean.ESQueryRequest;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -67,6 +70,7 @@ import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
@@ -76,6 +80,8 @@ import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -222,10 +228,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     PushDecisionsMapper pushDecisionsMapper;
     @Resource
     ErrorMarkMapper errorMarkMapper;
+
+    @Resource
+    TagDataDetailMapper tagDataDetailMapper;
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
 
     private static final String TITLE = "【通用跑分文件推决策】";
+
 
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
@@ -394,6 +404,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     CustomerTagsProcessServiceImpl customerTagsProcessService;
 
+    @Resource
+    TagHandleService tagHandleService;
+
 
     @Override
     public Result<CustomerInfoPushMain> getPushTask() {
@@ -502,11 +515,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 customerInfoPushMain.setExtend(String.join(";", querySqls));
             }
         } else {
-            Result<PushViewVO> totalRes = getTotal(dto);
-            if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(totalRes.getMessage());
-            }
-            pushNum = totalRes.getData().getTotal();
+            pushNum = dto.getmPrePlanNum();
         }
         //endregion
 
@@ -529,6 +538,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
+        customerInfoPushMain.setTagContent(dto.getmTagCondition());
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
         String batchName;
@@ -567,18 +577,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (isXieChengData(dto)) {
             total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
         } else {
-            QueryBaseBean queryBaseBean = new QueryBaseBean();
-            queryBaseBean.setApiCode(dto.getApiCode());
-            queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
-            queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
-            queryBaseBean.setJsonData(dto.getmRuleCondition());
-            if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+            Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
+            if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
             }
-            if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
-                queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
-            }
-            total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+            total = pushViewVOResult.getData().getTotal();
         }
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
@@ -592,6 +595,163 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         pushViewVO.setTotal(total);
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+    }
+
+    @Override
+    public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode(dto.getApiCode());
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
+        queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
+        queryBaseBean.setJsonData(dto.getmRuleCondition());
+        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+        }
+        if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
+            queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
+        }
+
+        int total = 0;
+        String federatedQuerySql = "";
+        try {
+            String mTagCondition = dto.getmTagCondition();
+            if (mTagCondition== null) {
+                total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+            } else {
+                // 解析标签规则
+                JSONObject jsonObject = JSON.parseObject(mTagCondition);
+                String tagCode = jsonObject.getString("tagCode");
+                int type = jsonObject.getIntValue("type");
+                if(!tagHandleService.tagIsEnabled(dto.getApiCode(), tagCode)){
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                            "该apiCode：" + dto.getApiCode() + "，该tag："+tagCode + "已失效"));
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该apiCode：" + dto.getApiCode() + ",该tag："+tagCode + "已失效");
+                }
+
+                StraHisFileExample fileExample = new StraHisFileExample();
+                fileExample.createCriteria().andIdIn(dto.getFileIdList());
+                List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(fileExample);
+
+                Optional<StraHisFile> first = straHisFiles.stream().sorted(Comparator.comparing(StraHisFile::getIndexNum).reversed()).findFirst();
+                Integer parNum = 0;
+                if (first.isPresent()) {
+                    parNum = first.get().getIndexNum();
+                }
+
+                List<Future<Result<Integer>>> resList = new ArrayList<>();
+                Integer pushRuleThreadNum = marketingCommonConfig.getToPolicyThreadNum().get("pushRuleThreadNum");
+                Integer pushRuleQueueNum = marketingCommonConfig.getToPolicyThreadNum().get("pushRuleQueueNum");
+                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(pushRuleThreadNum, pushRuleThreadNum, pushRuleQueueNum);
+                for (int i = 0; i < parNum; i++) {
+                    int finalI = i;
+                    resList.add(threadPool.submit(() -> federatedQueryTotal(dto, queryBaseBean, finalI, tagCode, type)));
+                }
+                try {
+                    for (Future<Result<Integer>> pushFuture : resList) {
+                        Result<Integer> pushRes = pushFuture.get();
+                        if (ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                            total += pushRes.getData();
+                        } else {
+                            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片返回量级异常");
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
+                }
+                // 关闭线程池
+                threadPool.shutdown();
+                try {
+                    while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                        log.info("推送决策查询量级：线程池关闭");
+                    }
+                } catch (InterruptedException ex) {
+                    threadPool.shutdownNow();
+                    log.error("推送决策查询量级：日志保存线程池结束异常！", ex);
+                    Thread.currentThread().interrupt();
+                }
+
+            }
+        }catch (Exception e){
+            log.warn("规则中心推送预览 SQL: " + federatedQuerySql);
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("构建联邦查询sql有误,sql" + federatedQuerySql);
+        }
+        pushViewVO.setTotal(total);
+        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+    }
+
+    private Result<Integer> federatedQueryTotal(PushCustomerDTO dto, QueryBaseBean queryBaseBean,int part,String tagCode,int type) {
+        queryBaseBean.setPart(String.valueOf(part));
+        ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+        String queryDsl = esQueryRequest.getQueryDsl();
+        List<String> indexNames = esQueryRequest.getIndexName();
+
+        if (CollectionUtils.isEmpty(indexNames)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + dto.getBatchNumberList());
+        }
+
+        // 构建联邦查询 SQL
+        String federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
+        if(StringUtils.isEmpty(federatedQuerySql)){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+        }
+        int total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
+    }
+
+    /**
+     * 构建联邦查询 SQL
+     *
+     * @param indexNames Elasticsearch 索引列表
+     * @param queryDsl   Elasticsearch 查询条件
+     * @param tagCode   tagCode
+     * @param type   type
+     * @return 联邦查询 SQL
+     */
+    private String buildFederatedQuerySql(List<String> indexNames, String queryDsl, String tagCode, int type) {
+
+        // 1. 构建 UNION ALL 部分
+        StringBuilder unionAllBuilder = new StringBuilder();
+        for (int i = 0; i < indexNames.size(); i++) {
+            String indexName = indexNames.get(i);
+            unionAllBuilder.append("SELECT cell FROM es.default_db.").append(indexName);
+            if (i < indexNames.size() - 1) {
+                unionAllBuilder.append("\nUNION ALL\n");
+            }
+        }
+        // 2. 根据 type 构建不同的 SQL
+        String sql;
+        switch (type) {
+            case 0: // 交集
+                sql = String.format(
+                        "SELECT COUNT(1)\n" +
+                                "FROM (\n" +
+                                "    %s\n" +
+                                ") esIndex\n" +
+                                "JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.calculate_date = curdate() AND dorisCall.tag_code = '%s'\n" +
+                                "WHERE esquery(esIndex.cell, '%s');",
+                        unionAllBuilder,
+                        tagCode,
+                        queryDsl.replace("'", "''")
+                );
+                break;
+            case 1: // 剔除
+                sql = String.format(
+                        "SELECT COUNT(1)\n" +
+                                "FROM (\n" +
+                                "    %s\n" +
+                                ") esIndex\n" +
+                                "LEFT JOIN t_tag_data_detail dorisCall ON esIndex.cell = dorisCall.cell AND dorisCall.calculate_date = curdate() AND dorisCall.tag_code = '%s'\n" +
+                                "WHERE dorisCall.cell IS NULL\n" +
+                                "AND esquery(esIndex.cell, '%s');",
+                        unionAllBuilder,
+                        tagCode,
+                        queryDsl.replace("'", "''")
+                );
+                break;
+            default:
+                sql = "";
+        }
+        return sql;
     }
 
     private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
@@ -1444,18 +1604,46 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         HashMap<Integer, Integer> partDataNum = new HashMap<>();
+
         if (!isSigle) {
             Integer nowSum = 0;
+            List<Future<Result<Integer>>> resList = new ArrayList<>();
+            Integer toPolicyThreadNum = marketingCommonConfig.getToPolicyThreadNum().get("toPolicyThreadNum");
+            Integer toPolicyQueueNum = marketingCommonConfig.getToPolicyThreadNum().get("toPolicyQueueNum");
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(toPolicyThreadNum, toPolicyThreadNum, toPolicyQueueNum);
+
             for (Integer i = 0; i < parNum; i++) {
-                QueryBaseBean queryBaseBean = new QueryBaseBean();
-                queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
-                queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
-                queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
-                queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-                queryBaseBean.setPart(i.toString());
+                QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
                 Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
                 partDataNum.put(i, nowNum);
-                nowSum += nowNum;
+                if (customerInfoPushMain.getTagContent() != null) {
+                    resList.add(threadPool.submit(() -> queryTotal(customerInfoPushMain, numList, queryBaseBean)));
+                } else {
+                    nowSum += nowNum;
+                }
+            }
+            try {
+                for (Future<Result<Integer>> pushFuture : resList) {
+                    Result<Integer> pushRes = pushFuture.get();
+                    if (ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                        nowSum += pushRes.getData();
+                    } else {
+                        return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("推送决策分片返回量级异常");
+                    }
+                }
+            } catch (Exception ex) {
+                log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
+            }
+            // 关闭线程池
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.info("推送决策查询量级：线程池关闭");
+                }
+            } catch (InterruptedException ex) {
+                threadPool.shutdownNow();
+                log.error("推送决策查询量级：日志保存线程池结束异常！", ex);
+                Thread.currentThread().interrupt();
             }
             if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
@@ -1541,6 +1729,58 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private Result<Integer> queryTotal(CustomerInfoPushMain customerInfoPushMain, List<String> numList, QueryBaseBean queryBaseBean) {
+        try {
+            // 解析标签规则
+            JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+            String tagCode = jsonObject.getString("tagCode");
+            int type = jsonObject.getIntValue("type");
+            if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                        "该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "已失效"));
+
+                CustomerInfoPushMain customer = new CustomerInfoPushMain();
+                customer.setId(customerInfoPushMain.getId());
+                customer.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(customer);
+                return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("该apiCode：" + customerInfoPushMain.getmApiCode() + ",该tag："+tagCode + "已失效");
+            }
+
+            // 页面规则查询es
+            ESQueryRequest esQueryRequest = marketingHistoryEsService.builderDslConditionOfQueryBaseBean(queryBaseBean);
+            String queryDsl = esQueryRequest.getQueryDsl();
+            List<String> indexNames = esQueryRequest.getIndexName();
+            if (CollectionUtils.isEmpty(indexNames)) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询es索引为空，batchNumberList：" + numList);
+            }
+
+            // 构建联邦查询 SQL
+            String querySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
+            if(StringUtils.isEmpty(querySql)){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+            }
+            Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
+        }catch (Exception e){
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                    "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"));
+            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！");
+        }
+    }
+
+    /**
+     * 创建 QueryBaseBean
+     */
+    private QueryBaseBean createQueryBaseBean(CustomerInfoPushMain customerInfoPushMain, List<String> numList, List<Long> fileIds, Integer part) {
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
+        queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
+        queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+        queryBaseBean.setPart(part.toString());
+        return queryBaseBean;
     }
 
     private int retryEsData(CustomerInfoPushMain customerInfoPushMain) {
@@ -1658,15 +1898,56 @@ public class PushRuleServiceImpl implements PushRuleService {
                     List<MarketingHistory> marketingHistories;
 
                     // 模拟es异常
-                    boolean b = toPolicyByRuleService.mockSwitch(customerInfoPushMain.getmApiCode(),
+                    boolean mockEsError = toPolicyByRuleService.mockSwitch(customerInfoPushMain.getmApiCode(),
                             MockSwitchEnum.GENERAL.getValue(), MockSwitchEnum.ESRETRY.getValue());
-                    if(b){
-                        marketingHistories = null;
-                    }else {
+                    try {
+                        if(mockEsError){
+                            throw new Exception("模拟ES异常场景");
+                        }
                         marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-                    }
-                    //查询ES异常
-                    if(marketingHistories == null){
+
+                        if(marketingHistories == null){
+                            throw new Exception();
+                        }
+
+                        if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
+                            // 解析标签规则
+                            JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                            String tagCode = jsonObject.getString("tagCode");
+                            int type = jsonObject.getIntValue("type");
+
+                            if(!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)){
+                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                                        "该apiCode：" + customerInfoPushMain.getmApiCode() + "，该tag："+tagCode + "已失效"));
+                                Result<Integer> result = new Result<>();
+                                result.setCode(ResultCode.FAIL.getValue());
+                                Callable<Result<Integer>> resultCallable = (Callable) () -> result;
+                                resList.add(pushJcPool.submit(resultCallable));
+                                return resList;
+                            }
+
+                            // 查询es 提取跑分文件中cells
+                            List<String> esCells = marketingHistories.stream()
+                                    .map(MarketingHistory::getCell_log)
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toList());
+
+                            // 获取 TiDB 中存在的 cells
+                            List<String> tidbCells = tagDataDetailMapper.queryCells(esCells,tagCode,LocalDate.now().toString());
+
+                            if(type == 0){
+                                // 交集：跑分文件 与 标签数据 都存在
+                                marketingHistories = marketingHistories.stream()
+                                        .filter(history -> tidbCells.contains(history.getCell_log()))
+                                        .collect(Collectors.toList());
+                            }else{
+                                // 剔除：去掉标签存在跑分文件中cell
+                                marketingHistories = marketingHistories.stream()
+                                        .filter(history -> !tidbCells.contains(history.getCell_log()))
+                                        .collect(Collectors.toList());
+                            }
+                        }
+                    }catch (Exception e){
                         if(errorMark.getId() != null){
                             // 已存在补推记录
                             if(errorMark.getRetryTotalAttempts() < 3){
@@ -4340,6 +4621,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setContent(dto.getmRuleCondition());
         searchCondition.setContentShow(dto.getmRuleConditionShow());
         searchCondition.setScoreContent(dto.getmScoreCondition());
+        searchCondition.setTagContent(dto.getmTagCondition());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
         searchCondition.setSourceType(dto.getSourceType());

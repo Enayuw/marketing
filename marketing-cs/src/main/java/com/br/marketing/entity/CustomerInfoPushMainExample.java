@@ -1246,6 +1246,76 @@ public class CustomerInfoPushMainExample {
             return (Criteria) this;
         }
 
+        public Criteria andMScoreConditionIsNull() {
+            addCriterion("m_score_condition is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionIsNotNull() {
+            addCriterion("m_score_condition is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionEqualTo(String value) {
+            addCriterion("m_score_condition =", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionNotEqualTo(String value) {
+            addCriterion("m_score_condition <>", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionGreaterThan(String value) {
+            addCriterion("m_score_condition >", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionGreaterThanOrEqualTo(String value) {
+            addCriterion("m_score_condition >=", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionLessThan(String value) {
+            addCriterion("m_score_condition <", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionLessThanOrEqualTo(String value) {
+            addCriterion("m_score_condition <=", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionLike(String value) {
+            addCriterion("m_score_condition like", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionNotLike(String value) {
+            addCriterion("m_score_condition not like", value, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionIn(List<String> values) {
+            addCriterion("m_score_condition in", values, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionNotIn(List<String> values) {
+            addCriterion("m_score_condition not in", values, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionBetween(String value1, String value2) {
+            addCriterion("m_score_condition between", value1, value2, "mScoreCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andMScoreConditionNotBetween(String value1, String value2) {
+            addCriterion("m_score_condition not between", value1, value2, "mScoreCondition");
+            return (Criteria) this;
+        }
+
         public Criteria andMPercentageIsNull() {
             addCriterion("m_percentage is null");
             return (Criteria) this;
@@ -1833,6 +1903,76 @@ public class CustomerInfoPushMainExample {
 
         public Criteria andStrategyCodeNotBetween(String value1, String value2) {
             addCriterion("strategy_code not between", value1, value2, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentIsNull() {
+            addCriterion("tag_content is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentIsNotNull() {
+            addCriterion("tag_content is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentEqualTo(String value) {
+            addCriterion("tag_content =", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotEqualTo(String value) {
+            addCriterion("tag_content <>", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentGreaterThan(String value) {
+            addCriterion("tag_content >", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentGreaterThanOrEqualTo(String value) {
+            addCriterion("tag_content >=", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentLessThan(String value) {
+            addCriterion("tag_content <", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentLessThanOrEqualTo(String value) {
+            addCriterion("tag_content <=", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentLike(String value) {
+            addCriterion("tag_content like", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotLike(String value) {
+            addCriterion("tag_content not like", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentIn(List<String> values) {
+            addCriterion("tag_content in", values, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotIn(List<String> values) {
+            addCriterion("tag_content not in", values, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentBetween(String value1, String value2) {
+            addCriterion("tag_content between", value1, value2, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotBetween(String value1, String value2) {
+            addCriterion("tag_content not between", value1, value2, "tagContent");
             return (Criteria) this;
         }
     }

@@ -695,6 +695,76 @@ public class ScoreSearchConditionExample {
             return (Criteria) this;
         }
 
+        public Criteria andScoreContentIsNull() {
+            addCriterion("score_content is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentIsNotNull() {
+            addCriterion("score_content is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentEqualTo(String value) {
+            addCriterion("score_content =", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentNotEqualTo(String value) {
+            addCriterion("score_content <>", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentGreaterThan(String value) {
+            addCriterion("score_content >", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentGreaterThanOrEqualTo(String value) {
+            addCriterion("score_content >=", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentLessThan(String value) {
+            addCriterion("score_content <", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentLessThanOrEqualTo(String value) {
+            addCriterion("score_content <=", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentLike(String value) {
+            addCriterion("score_content like", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentNotLike(String value) {
+            addCriterion("score_content not like", value, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentIn(List<String> values) {
+            addCriterion("score_content in", values, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentNotIn(List<String> values) {
+            addCriterion("score_content not in", values, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentBetween(String value1, String value2) {
+            addCriterion("score_content between", value1, value2, "scoreContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreContentNotBetween(String value1, String value2) {
+            addCriterion("score_content not between", value1, value2, "scoreContent");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;
@@ -872,6 +942,76 @@ public class ScoreSearchConditionExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentIsNull() {
+            addCriterion("tag_content is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentIsNotNull() {
+            addCriterion("tag_content is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentEqualTo(String value) {
+            addCriterion("tag_content =", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotEqualTo(String value) {
+            addCriterion("tag_content <>", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentGreaterThan(String value) {
+            addCriterion("tag_content >", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentGreaterThanOrEqualTo(String value) {
+            addCriterion("tag_content >=", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentLessThan(String value) {
+            addCriterion("tag_content <", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentLessThanOrEqualTo(String value) {
+            addCriterion("tag_content <=", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentLike(String value) {
+            addCriterion("tag_content like", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotLike(String value) {
+            addCriterion("tag_content not like", value, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentIn(List<String> values) {
+            addCriterion("tag_content in", values, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotIn(List<String> values) {
+            addCriterion("tag_content not in", values, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentBetween(String value1, String value2) {
+            addCriterion("tag_content between", value1, value2, "tagContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andTagContentNotBetween(String value1, String value2) {
+            addCriterion("tag_content not between", value1, value2, "tagContent");
             return (Criteria) this;
         }
     }
