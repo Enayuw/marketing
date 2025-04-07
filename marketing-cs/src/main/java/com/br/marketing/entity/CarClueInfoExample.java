@@ -1555,6 +1555,76 @@ public class CarClueInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andCallDialogIsNull() {
+            addCriterion("call_dialog is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogIsNotNull() {
+            addCriterion("call_dialog is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogEqualTo(String value) {
+            addCriterion("call_dialog =", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogNotEqualTo(String value) {
+            addCriterion("call_dialog <>", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogGreaterThan(String value) {
+            addCriterion("call_dialog >", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogGreaterThanOrEqualTo(String value) {
+            addCriterion("call_dialog >=", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogLessThan(String value) {
+            addCriterion("call_dialog <", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogLessThanOrEqualTo(String value) {
+            addCriterion("call_dialog <=", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogLike(String value) {
+            addCriterion("call_dialog like", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogNotLike(String value) {
+            addCriterion("call_dialog not like", value, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogIn(List<String> values) {
+            addCriterion("call_dialog in", values, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogNotIn(List<String> values) {
+            addCriterion("call_dialog not in", values, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogBetween(String value1, String value2) {
+            addCriterion("call_dialog between", value1, value2, "callDialog");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallDialogNotBetween(String value1, String value2) {
+            addCriterion("call_dialog not between", value1, value2, "callDialog");
+            return (Criteria) this;
+        }
+
         public Criteria andClueIdIsNull() {
             addCriterion("clue_id is null");
             return (Criteria) this;
@@ -2702,6 +2772,76 @@ public class CarClueInfoExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIsNull() {
+            addCriterion("demand_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIsNotNull() {
+            addCriterion("demand_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdEqualTo(String value) {
+            addCriterion("demand_id =", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotEqualTo(String value) {
+            addCriterion("demand_id <>", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdGreaterThan(String value) {
+            addCriterion("demand_id >", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdGreaterThanOrEqualTo(String value) {
+            addCriterion("demand_id >=", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLessThan(String value) {
+            addCriterion("demand_id <", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLessThanOrEqualTo(String value) {
+            addCriterion("demand_id <=", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdLike(String value) {
+            addCriterion("demand_id like", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotLike(String value) {
+            addCriterion("demand_id not like", value, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdIn(List<String> values) {
+            addCriterion("demand_id in", values, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotIn(List<String> values) {
+            addCriterion("demand_id not in", values, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdBetween(String value1, String value2) {
+            addCriterion("demand_id between", value1, value2, "demandId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDemandIdNotBetween(String value1, String value2) {
+            addCriterion("demand_id not between", value1, value2, "demandId");
             return (Criteria) this;
         }
     }

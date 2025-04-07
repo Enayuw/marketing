@@ -297,5 +297,32 @@ public class RedisKeyConstant {
 
     public static final String CLUE_CONFIG = prefix.concat("clue:config");
 
+    /**
+     * pp 加解密锁
+     */
+    public static final String DATA_CELL_DECODE_LIST_MARK = prefix.concat("datacelldecodelistmark");
+    /**
+     * 打标白名单锁
+     */
+    public static final String DATA_WHITELIST_MARK = prefix.concat("datawhitelistmark");
+
+    /**
+     * 打标更新ES锁
+     */
+    public static final String DATA_UPDATE_ES_MARK = prefix.concat("dataupdateesmark");
+
+    /**
+     * 打标榕树重复注册锁
+     */
+    public static final String DATA_RONGSHU_MARK = prefix.concat("datarongshumark");
+    /**
+     * 打标pp停车黑名单注册锁
+     */
+    public static final String DATA_BLACKLIST_MARK = prefix.concat("datablacklistmark");
+
+    /**
+     * 车线索更新日限量锁
+     */
+    public static final String UPDATE_DAILY_LIMITED = prefix.concat("updatedailylimited");
 
 }

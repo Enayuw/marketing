@@ -9,12 +9,12 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.dto.wuba.WuBaQueryConversionZipResultDto;
-import com.br.marketing.entity.WubaSubmitConversionDataTransferClean;
+import com.br.marketing.entity.MarketingCleanDataTask;
+import com.br.marketing.entity.WubaOldSubmitConversionDataTransferClean;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
-import com.br.marketing.mapper.WubaSubmitConversionDataTransferCleanMapper;
+import com.br.marketing.mapper.WubaOldSubmitConversionDataTransferCleanMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.service.DataCleaningAutoService;
-import com.br.marketing.service.ftp.PushToInnerSftpService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,16 +52,13 @@ public class WuBaOldQueryConversionZipResultService {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private PushToInnerSftpService pushToInnerSftpService;
-
-    @Resource
     private DataCleaningAutoService cleaningAutoService;
 
     @Resource
     private MarketingCleanDataTaskMapper cleanDataTaskMapper;
 
     @Resource
-    private WubaSubmitConversionDataTransferCleanMapper dataTransferCleanMapper;
+    private WubaOldSubmitConversionDataTransferCleanMapper dataTransferCleanMapper;
 
     public Result action(Page2Condition<WuBaQueryConversionZipResultDto> condition) {
         Result result = new Result<>().failure();
@@ -101,14 +98,27 @@ public class WuBaOldQueryConversionZipResultService {
                 return result.failure();
             }
 
-            String ftpRelativePath = marketingCommonConfig.getWuBaOldQueryConversionZipResultInnerFtpRelativePath();
-            String dateDir = bizDate.replace("-", "");
-            ftpRelativePath = ftpRelativePath.concat(dateDir);
-            Result pushResult = pushToInnerSftpService.push(zipFileName, ftpRelativePath, zipFilePath);
-            if(pushResult == null || !pushResult.isSuccess()){
-                log.error(TITLE + "推送内部SFTP异常");
-                return result.failure();
+            // 文件解析入库
+            for (File csvFile : files) {
+                if (!csvFile.getName().contains(".csv")) {
+                    log.warn(TITLE + "解压文件不是csv文件");
+                    return result.failure();
+                }
+                // 生成清洗任务
+                Long taskId = cleaningAutoService.saveCleanTask(apiCode, 1, "58老客_转化清洗规则勿动");
+                Map<String, String> headerMapping = marketingCommonConfig.getWuBaQueryConversionZipResultHeaderMapping();
+
+                // 文件解析入库
+                parseFile(apiCode, taskId, csvFile, headerMapping);
+
+                // 更新清洗任务表
+                MarketingCleanDataTask cleanDataTaskUpdate = new MarketingCleanDataTask();
+                cleanDataTaskUpdate.setId(taskId);
+                cleanDataTaskUpdate.setCleanStatus(0);
+                cleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTaskUpdate);
+                log.warn(TITLE + "更新清洗任务成功");
             }
+
         } catch (Exception e) {
             log.warn(TITLE + "action error", e);
             return result.failure();
@@ -207,7 +217,7 @@ public class WuBaOldQueryConversionZipResultService {
             if (processResult == null || !processResult.isSuccess() || processResult.getData() == null) {
                 return result.failure();
             }
-            List<WubaSubmitConversionDataTransferClean> dataList = (List<WubaSubmitConversionDataTransferClean>) processResult.getData();
+            List<WubaOldSubmitConversionDataTransferClean> dataList = (List<WubaOldSubmitConversionDataTransferClean>) processResult.getData();
             if (CollectionUtils.isEmpty(dataList)) {
                 return result.failure();
             }
@@ -227,7 +237,7 @@ public class WuBaOldQueryConversionZipResultService {
             return result.success();
         }
 
-        List<WubaSubmitConversionDataTransferClean> dataList = new ArrayList<>();
+        List<WubaOldSubmitConversionDataTransferClean> dataList = new ArrayList<>();
 
         for (String line : lineList) {
             Map<String, Object> dataMap = new HashMap<>();
@@ -242,7 +252,7 @@ public class WuBaOldQueryConversionZipResultService {
                 }
                 extendJo.put(header, value);
             }
-            WubaSubmitConversionDataTransferClean data = BeanUtil.toBean(dataMap, WubaSubmitConversionDataTransferClean.class);
+            WubaOldSubmitConversionDataTransferClean data = BeanUtil.toBean(dataMap, WubaOldSubmitConversionDataTransferClean.class);
             //
             boolean a = (StringUtils.isEmpty(data.getLastLoginTime()) && StringUtils.isEmpty(data.getFinanceApplyTime()));
             boolean b = (StringUtils.isEmpty(data.getFinanceCreditStatus()) && StringUtils.isEmpty(data.getFinanceCreditFinishTime()));
@@ -263,7 +273,7 @@ public class WuBaOldQueryConversionZipResultService {
         return result.success().setDate(dataList);
     }
 
-    private void batAddDataTransferClean(List<WubaSubmitConversionDataTransferClean> batList) {
+    private void batAddDataTransferClean(List<WubaOldSubmitConversionDataTransferClean> batList) {
         dataTransferCleanMapper.batchAdd(batList);
         log.warn(TITLE + "保存转化结果成功");
     }
@@ -282,8 +292,7 @@ public class WuBaOldQueryConversionZipResultService {
                 taskCount = completedTaskCount;
             }
         } catch (InterruptedException e) {
-            log.warn(TITLE + "Interrupted!", e);
-            Thread.currentThread().interrupt();
+            Thread.interrupted();
         } catch (Throwable e) {
             log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }

@@ -6,14 +6,14 @@ import com.br.marketing.datarelayservice.enums.carclue.CarClueRepEnum;
 
 
 public class CarClueResponse {
-    private Integer resultCode;
+    private Integer code;
 
     private String message;
 
 
 
-    public CarClueResponse setResultCode(Integer resultCode) {
-        this.resultCode = resultCode;
+    public CarClueResponse setCode(Integer resultCode) {
+        this.code = resultCode;
         return this;
     }
 
@@ -22,8 +22,8 @@ public class CarClueResponse {
         return this;
     }
 
-    public Integer getResultCode() {
-        return resultCode;
+    public Integer getCode() {
+        return code;
     }
 
     public String getMessage() {
@@ -32,8 +32,8 @@ public class CarClueResponse {
 
     public static CarClueResponse fromResult(Result result) {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            return new CarClueResponse().setResultCode(CarClueRepEnum.SUCCESS.getCode()).setMessage("成功");
+            return new CarClueResponse().setCode(CarClueRepEnum.SUCCESS.getCode()).setMessage("成功");
         }
-        return new CarClueResponse().setResultCode(CarClueRepEnum.FAIL.getCode()).setMessage(result.getMessage());
+        return new CarClueResponse().setCode(CarClueRepEnum.FAIL.getCode()).setMessage(result.getMessage());
     }
 }

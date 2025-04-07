@@ -6,11 +6,7 @@
     select
     *
     from b_xiecheng_data
-    where  status =1 and push_status =1 and local_id = #{localId}
-    <if test="minId != null and minId>0">
-      and id > #{minId}
-    </if>
-    order by id asc limit 15000;
+    where  status =1 and push_status =1 and local_id = #{localId};
   </select>
   <select id="selectLocalIdByNotSend" resultType="java.lang.String">
     select
@@ -79,6 +75,20 @@
     <if test="convType != null and convType!=''">
       and b.reserve_field1 ->'$.convType'=#{convType}
     </if>
+  </select>
+
+  <select id="getReportPushStatusInPeriod" resultType="java.lang.Integer">
+    select
+      report.push_status as pushStatus
+    from
+      b_xiecheng_colliding_data_loop_cycle cycle
+        inner join b_xiecheng_data report on
+        cycle.cell_sha256_code_list = report.sha256_tel
+    where
+      report.sha256_tel = #{cell}
+      and report.api_code = #{apiCode}
+      and cycle.is_delete = 0
+      and cycle.push_time <![CDATA[<]]> report.create_time
   </select>
 
 </mapper>

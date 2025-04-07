@@ -109,6 +109,11 @@ public class CarClueInfo {
     private String recordingPath;
 
     /**
+     * 交互文本
+     */
+    private String callDialog;
+
+    /**
      * 线索id
      */
     private String clueId;
@@ -124,7 +129,7 @@ public class CarClueInfo {
     private Integer clueDataStatus;
 
     /**
-     * 线索补全状态：0-未补全；1-系统补全；2-缺失线索手动补全；3-异常线索手动补全
+     * 线索补全状态：0-无需补全；1-系统补全；2-缺失线索手动补全；3-异常线索手动补全
      */
     private Integer clueCompleteStatus;
 
@@ -197,6 +202,11 @@ public class CarClueInfo {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 需求ID
+     */
+    private String demandId;
 
     public Long getId() {
         return id;
@@ -366,6 +376,14 @@ public class CarClueInfo {
         this.recordingPath = recordingPath == null ? null : recordingPath.trim();
     }
 
+    public String getCallDialog() {
+        return callDialog;
+    }
+
+    public void setCallDialog(String callDialog) {
+        this.callDialog = callDialog == null ? null : callDialog.trim();
+    }
+
     public String getClueId() {
         return clueId;
     }
@@ -508,5 +526,13 @@ public class CarClueInfo {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getDemandId() {
+        return demandId;
+    }
+
+    public void setDemandId(String demandId) {
+        this.demandId = demandId == null ? null : demandId.trim();
     }
 }

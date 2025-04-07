@@ -1,5 +1,7 @@
 package com.br.marketing.monkey.job.wuba;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.service.Impl.wuba.WuBaCollidingDataSubmitService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -23,7 +25,13 @@ public class WuBaCollidingDataSubmitJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         long start = System.currentTimeMillis();
-        service.process(context);
+        try {
+            service.process(context);
+        } catch (Exception e) {
+            String title = "58提交撞库名单，单次运行异常";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                    , title));
+        }
         log.warn("58提交撞库数据作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }

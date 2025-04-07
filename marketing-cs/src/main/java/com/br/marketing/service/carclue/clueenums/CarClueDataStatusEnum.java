@@ -16,7 +16,9 @@ public enum CarClueDataStatusEnum {
     NORMAL_CLUE(1, "有效线索"),
     ABNORMAL_CLUE(2, "异常线索"),
     LACK_CLUE(3, "缺失线索"),
-    INVALID_CLUE(4, "无效线索");
+    INVALID_CLUE(4, "无效线索"),
+    NORMAL_MAPPER_LACK_CLUE(5, "有效线索(外采缺失)"),
+    LIMITED_LACK_CLUE(6, "有效线索(已限量)");
 
     CarClueDataStatusEnum(Integer value, String desc) {
         this.value = value;

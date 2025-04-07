@@ -365,6 +365,76 @@ public class WubaCollidingDataLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andScoreTypeIsNull() {
+            addCriterion("score_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeIsNotNull() {
+            addCriterion("score_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeEqualTo(String value) {
+            addCriterion("score_type =", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeNotEqualTo(String value) {
+            addCriterion("score_type <>", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeGreaterThan(String value) {
+            addCriterion("score_type >", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("score_type >=", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeLessThan(String value) {
+            addCriterion("score_type <", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeLessThanOrEqualTo(String value) {
+            addCriterion("score_type <=", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeLike(String value) {
+            addCriterion("score_type like", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeNotLike(String value) {
+            addCriterion("score_type not like", value, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeIn(List<String> values) {
+            addCriterion("score_type in", values, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeNotIn(List<String> values) {
+            addCriterion("score_type not in", values, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeBetween(String value1, String value2) {
+            addCriterion("score_type between", value1, value2, "scoreType");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreTypeNotBetween(String value1, String value2) {
+            addCriterion("score_type not between", value1, value2, "scoreType");
+            return (Criteria) this;
+        }
+
         public Criteria andDataIdIsNull() {
             addCriterion("data_id is null");
             return (Criteria) this;

@@ -112,6 +112,10 @@ public class MQConstants {
     // AI推送下游通用队列
     public static final String MARKETING_AI_UNIVERSAL_RECEIVE = "marketing_ai_universal_receive";
 
+    // PP榕树打标生成清洗任务
+    public static final String MARKETING_PP_RONGSHU_MARK_CREATE_CLEAN_TASK_QUEUE = "marketing_pp_rongshu_mark_create_clean_task_queue";
+
+    public static final String MARKETING_WUBA_OLD_COLLIDING_ELIMINATE_QUEUE = "marketing_wuba_old_colliding_eliminate_queue";
 
     /**
      * routingkey
@@ -221,4 +225,8 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE = "Marketing.Ai.PreUser.Receive";
     // AI推送下游通用队列
     public static final String ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE = "Marketing.Ai.Universal.Receive";
+
+    public static final String ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE = "marketing.wuba.old.colliding.eliminate";
+    // PP榕树打标生成清洗任务
+    public static final String ROUTING_KEY_PP_RONGSHU_MARK_CREATE_CLEAN_TASK = "Marketing.pp.rongshu.mark.create.clean.task";
 }

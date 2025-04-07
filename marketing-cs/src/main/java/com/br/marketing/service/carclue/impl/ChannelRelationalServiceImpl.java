@@ -1,7 +1,14 @@
 package com.br.marketing.service.carclue.impl;
 
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,23 +16,32 @@ import java.util.stream.Collectors;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.carclue.CarClueClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CarClueInitMappingMapper;
-import com.br.marketing.mapper.CarClueProvincesInformationMapper;
-import com.br.marketing.mapper.CarClueRelationalMappingMapper;
-import com.br.marketing.mapper.CarClueSeriesInformationMapper;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.carclue.ChannelRelationalService;
 import com.br.marketing.service.carclue.clueenums.ChannelRule;
 import com.br.marketing.service.carclue.clueenums.ProvinceTypeEnum;
 import com.br.marketing.service.carclue.web.impl.CarClueReportServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -41,6 +57,12 @@ import javax.annotation.Resource;
 @Slf4j
 public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
+    @Value(value = "${api.ycKA.carList:'https://car.s.zonrn.cn/api/yiPlanDown'}")
+    private String ycKaUrl;
+
+    @Value("${api.ycKA.isProxy:true}")
+    private Boolean isProxy;
+
     @Resource
     CarClueClient carClueClient;
     @Resource
@@ -52,12 +74,176 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     @Resource
     CarClueRelationalMappingMapper carClueRelationalMappingMapper;
     @Resource
+    CarChannelConfigMapper carChannelConfigMapper;
+    @Resource
     CarClueReportServiceImpl carClueReportServiceImpl;
-
+    @Autowired
+    SyncConfigService syncConfigService;
+    @Autowired
+    HttpProxyClient httpProxyClient;
     private static final String YCKATASK = "7-1";
     private static final String YCMEMBERTASK = "6+";
     public static final String ALL_SERVIES = "全系";
     private static final String TITL = "【车线索外采数据相关-】";
+
+    @Override
+    public void getInitMapping() {
+        //拉取线上易车KA文档
+        String syncDate = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String descPath = syncConfigService.getPath().concat("channel/").concat(syncDate).concat("/");
+        String fileName = "易车KA" + "_" + syncDate + ".xls";
+        String filePath = descPath.concat(fileName);
+        try {
+            //每日文档下载
+            if(downloadFile(ycKaUrl, filePath)){
+                //解析文档
+                parseFile(filePath);
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "文件下载失败：" + e.getMessage()));
+        }
+    }
+
+    public boolean downloadFile(String fileUrl, String filePath) {
+
+        HttpResponse response = httpProxyClient.downloadFile(fileUrl, isProxy);
+
+        if(response == null){
+            return Boolean.FALSE;
+        }
+        // 检查响应码
+        if (response.getStatusLine().getStatusCode() != 200) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "线上文档拉取异常，返回响应：" +  response.getStatusLine().getStatusCode()));
+            return Boolean.FALSE;
+        }
+
+        // 获取文件大小
+        HttpEntity entity = response.getEntity();
+        // 创建目录（如果不存在）
+        File file = new File(filePath);
+        File parentDir = file.getParentFile();
+        if (!parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        // 下载文件
+        log.warn(TITL + "下载文件目录："+filePath);
+        try (InputStream in = entity.getContent();
+             FileOutputStream out = new FileOutputStream(filePath)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "下载文件异常，返回响应：" +  response.getStatusLine().getStatusCode()));
+            return Boolean.FALSE;
+        } finally {
+            // 释放连接
+            try {
+                EntityUtils.consume(entity);
+            } catch (IOException e) {
+                log.warn(TITL + "释放连接异常");
+                return Boolean.FALSE;
+            }
+        }
+        return Boolean.TRUE;
+    }
+
+    public void parseFile(String filePath) throws IOException {
+
+        String apiCode = "";
+        List<String> list = new ArrayList<>();
+        CarChannelConfigExample example = new CarChannelConfigExample();
+        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarChannelConfig> carChannelConfigs = carChannelConfigMapper.selectByExample(example);
+
+        for (CarChannelConfig config : carChannelConfigs) {
+            if(ChannelRule.MatchChannelRuleEnum.DAILY_LIMITED.getLabel().equals(config.getStrategyMatch())){
+                apiCode = config.getApiCode();
+            }else {
+                list.add(config.getApiCode());
+            }
+        }
+        FileInputStream file = new FileInputStream(filePath);
+        Workbook workbook = new XSSFWorkbook(file);
+        Sheet sheet = workbook.getSheetAt(0);
+        List<String> valueStatements = new ArrayList<>();
+        // 遍历每一行（跳过标题行）
+        for (Row row : sheet) {
+            // 跳过标题行
+            if (row.getRowNum() == 0) continue;
+            // 提取所需列的值（列索引从0开始）
+            // A列：品牌
+            String brand = getCellValue(row, 0);
+            // B列：车型
+            String series = getCellValue(row, 1);
+            // C列：城市
+            String cities = getCellValue(row, 2);
+            // I列：日限量
+            String dailyLimit = getCellValue(row, 8);
+            // E列：需求ID
+            String demandId = getCellValue(row, 4);
+
+            // 构建VALUES部分
+            String valueStatement = String.format(
+                    "('%s', '%s', '%s', null, null, '%s', null, null, curdate(), now(), now(), 1, %s, '%s')",
+                    apiCode,
+                    escapeSql(brand),
+                    escapeSql(series),
+                    escapeSql(cities),
+                    dailyLimit.isEmpty() ? "0" : dailyLimit,
+                    escapeSql(demandId)
+            );
+            valueStatements.add(valueStatement);
+        }
+        workbook.close();
+        file.close();
+        // 构建完整的批量插入SQL
+        String sql = "INSERT INTO marketing.b_car_clue_init_mapping " +
+                "(api_code, brand_name, series_name, nation, satisfy_province_name, " +
+                "satisfy_city_name, exclude_province_name, exclude_city_name, applet_date, " +
+                "create_time, update_time, is_del, daily_limited, demand_id) " +
+                "VALUES " + String.join(", ", valueStatements) + ";";
+        //生成外采配置
+        generateConfig(sql,list);
+    }
+    public void generateConfig(String sql,List<String> list) {
+        try {
+            log.warn(TITL + "批量插入sql："+sql);
+            // 批量插入数据
+            carClueRelationalMappingMapper.insertSql(sql);
+            // 更新其他渠道日期
+            for (String apiCode : list) {
+                updateAppletDate(apiCode);
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "批量插入外采数据异常，数据列表：" + sql, e.getMessage()));
+        }
+    }
+    private void updateAppletDate(String apiCode) {
+        CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
+        carClueInitMappingExample.createCriteria().andApiCodeEqualTo(apiCode);
+        CarClueInitMapping carClueInitMapping = new CarClueInitMapping();
+        carClueInitMapping.setAppletDate(LocalDate.now().toString());
+        carClueInitMappingMapper.updateByExampleSelective(carClueInitMapping,carClueInitMappingExample);
+    }
+
+    // 获取单元格值并处理空值
+    private static String getCellValue(Row row, int cellIndex) {
+        Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return String.valueOf((int) cell.getNumericCellValue());
+        }
+        return cell.getStringCellValue().trim();
+    }
+    // 转义SQL中的特殊字符（如单引号）
+    private static String escapeSql(String input) {
+        return input.replace("'", "''");
+    }
 
     @Override
     public void getProvinceAndCity() {
@@ -246,6 +432,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             //获取最新日期
             String proviceCleanDate = carClueProvincesInformationMapper.getMaxCleanDate();
             String seriesCleanDate = carClueSeriesInformationMapper.getMaxCleanDate();
+            String carClueInitDate = carClueInitMappingMapper.getMaxCleanDate();
 
             //获取省市集合
             CarClueProvincesInformationExample carClueProvincesInformationExample = new CarClueProvincesInformationExample();
@@ -267,7 +454,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
             //获取外采初始信息
             CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
-            carClueInitMappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+            carClueInitMappingExample.createCriteria()
+                    .andAppletDateEqualTo(carClueInitDate)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
             List<CarClueInitMapping> carClueInitMappingList = carClueInitMappingMapper.selectByExample(carClueInitMappingExample);
             Map<String, List<CarClueInitMapping>> carClueInitMappingMap = carClueInitMappingList.stream()
                     .collect(Collectors.groupingBy(CarClueInitMapping::getApiCode));
@@ -296,6 +485,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                     carClueRelationalMapping.setMatchingType(0);
                     carClueRelationalMapping.setApiCode(carClueInitMapping.getApiCode());
                     carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
+                    carClueRelationalMapping.setDailyLimited(carClueInitMapping.getDailyLimited());
+                    carClueRelationalMapping.setMatchDailyLimited(0);
+                    carClueRelationalMapping.setDemandId(carClueInitMapping.getDemandId());
 
                     //校验初始外采信息是否能匹配
                     StringBuilder stringBuilder = new StringBuilder();

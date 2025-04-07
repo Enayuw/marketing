@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -20,22 +19,24 @@ import com.br.marketing.entity.Log360aiExample;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.mapper.Log360aiMapper;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
+import com.br.marketing.service.Impl.qifu.valobj.QiFuSyncStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -99,12 +100,12 @@ public class QiFuServiceImpl implements IQiFuService {
             }
             String insertLog = insertLogSql.toString().substring(0, insertLogSql.toString().length() - 1);
             log360aiMapper.batchSaveLog(insertLog);
-            drsCustomizeUploadDataMapper.updateSyncStatusByIds(tcId, ids, 1);
+            drsCustomizeUploadDataMapper.updateSyncStatusByIds(tcId, ids, QiFuSyncStatusEnum.SUCCESS.getValue());
             threadPool.submit(() -> {
                 try {
                     pushProcess(dataOfNeedClean);
                 } catch (Exception ex) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode(), ex.getMessage()), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), ex.getMessage()), ex);
                 }
             });
 
@@ -140,8 +141,8 @@ public class QiFuServiceImpl implements IQiFuService {
         StringBuilder warnMsg = new StringBuilder();
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         ArrayList<MarketingPreUserDetailDTO> list = new ArrayList<>();
-        marketingPreUserDTO.setDataItems(list);
         String requestJsonData = drsCustomizeUploadData.getRequestJsonData();
+        String extend = drsCustomizeUploadData.getExtend();
         JSONObject jsonObject = JSONObject.parseObject(requestJsonData);
         String taskId = "";
         String requestId = "";
@@ -212,14 +213,14 @@ public class QiFuServiceImpl implements IQiFuService {
             //endregion
 
             if (StringUtils.isNotBlank(errorMsg.toString())) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
                         , "奇富360ai清洗数据异常[" + drsCustomizeUploadData.getId() + "]" + errorMsg.toString()));
                 return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
             }
 
             marketingPreUserDTO.setTaskId(taskId);
             marketingPreUserDTO.setRequestId(requestId);
-
+            Map<String, Map<String, String>> extendToMap = parseExtendToMap(extend);
             //region 遍历二级字段
             JSONArray dataList = jsonObject.getJSONArray("dataList");
             if (!ObjectUtils.isEmpty(dataList)) {
@@ -227,15 +228,16 @@ public class QiFuServiceImpl implements IQiFuService {
                     JSONObject reserField1 = new JSONObject();
                     extendKey.keySet().forEach(t -> reserField1.put(t, extendKey.get(t)));
                     JSONObject o1 = (JSONObject) o;
-                    MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg);
+                    MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg, extendToMap);
                     list.add(marketingPreUserDetailDTO);
                 }
                 if (StringUtils.isNotBlank(warnMsg.toString())) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
                             , "奇富360ai清洗数据异常字段告警[" + drsCustomizeUploadData.getId() + "]" + warnMsg.toString()));
                 }
             }
-            //endregion
+            marketingPreUserDTO.setDataItems(list);
+
 
             return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO).setMessage(warnMsg.toString());
         } catch (Exception ex) {
@@ -244,7 +246,31 @@ public class QiFuServiceImpl implements IQiFuService {
     }
 
 
-    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg) {
+    public static Map<String, Map<String, String>> parseExtendToMap(String extend) {
+        if (extend == null || extend.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            List<Map<String, String>> list = objectMapper.readValue(extend, new TypeReference<List<Map<String, String>>>() {});
+
+            Map<String, Map<String, String>> resultMap = new HashMap<>();
+            for (Map<String, String> item : list) {
+                String serialNo = item.get("serialNo");
+                if (serialNo != null) {
+                    resultMap.put(serialNo, item);
+                }
+            }
+            return resultMap;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(), "extend解析错误"));
+            return Collections.emptyMap();
+        }
+    }
+
+    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg,
+                                                   Map<String, Map<String, String>> extendToMap) {
         MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
         for (String s : o1.keySet()) {
             switch (s) {
@@ -272,8 +298,162 @@ public class QiFuServiceImpl implements IQiFuService {
                     break;
             }
         }
+        buildNewListDto(marketingPreUserDetailDTO.getCustNum(), extendToMap, reserField1, warnMsg);
         marketingPreUserDetailDTO.setReserveField1(JSONArray.toJSONString(reserField1));
         return marketingPreUserDetailDTO;
+    }
+
+    public void buildNewListDto(String custNum, Map<String, Map<String, String>> extendToMap, JSONObject reserField1,
+                                StringBuilder warnMsg) {
+        if (custNum == null || custNum.isEmpty()) {
+            warnMsg.append("custNum 为空，请检查！\n");
+            return;
+        }
+
+        if (extendToMap == null || extendToMap.isEmpty()) {
+            warnMsg.append("extendToMap 为空，请检查！\n");
+            return;
+        }
+
+        if (reserField1 == null) {
+            reserField1 = new JSONObject();
+        }
+
+        Map<String, String> extendData = extendToMap.get(custNum);
+
+        if (extendData == null) {
+            warnMsg.append("未找到匹配项: custNum=").append(custNum).append(";\n");
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : extendData.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue() != null ? entry.getValue() : "";
+
+            switch (key) {
+                case "increaseCustomer":
+                    reserField1.put("increaseCustomer", mapYesNo(value));
+                    break;
+                case "temporaryIncrease":
+                    reserField1.put("temporaryIncrease", mapYesNo(value));
+                    break;
+                case "rTotalAvailableAmt":
+                    reserField1.put("rTotalAvailableAmt", mapNumberToRange(value));
+                    break;
+                case "rTaLastAdjustmentAmount":
+                    reserField1.put("rTaLastAdjustmentAmount", mapNumberToRange(value));
+                    break;
+                case "rTaTemporaryAmountExpireDate":
+                    reserField1.put("rTaTemporaryAmountExpireDate", mapDateString(value));
+                    break;
+                case "rCouponInfo":
+                    reserField1.put("rCouponInfo", value);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        String highAmountys = "highAmountys";
+        String lowAmountys = "lowAmountys";
+        String rTotalAvailableAmt = reserField1.getString("rTotalAvailableAmt");
+        String rTaLastAdjustmentAmount = reserField1.getString("rTaLastAdjustmentAmount");
+        String rTaTemporaryAmountExpireDate = reserField1.getString("rTaTemporaryAmountExpireDate");
+        String rCouponInfo = reserField1.getString("rCouponInfo");
+        // 计算新的字段值
+        String oldLowAmountys = getAmount(null, lowAmountys, rTaLastAdjustmentAmount);
+        String newHighAmountys = getAmount(highAmountys, null, rTotalAvailableAmt);
+        String changeAmountys = calculateDifference(newHighAmountys, oldLowAmountys);
+        String remainDayys = calculateDaysDifference(rTaTemporaryAmountExpireDate);
+        String changeIncrease = calculateIncreaseRate(newHighAmountys, oldLowAmountys);
+        String couponDerived = processCouponInfo(rCouponInfo);
+
+        reserField1.put("highAmount_derived", newHighAmountys);
+        reserField1.put("lowAmount_derived", oldLowAmountys);
+        reserField1.put("changeAmount_derived", changeAmountys);
+        reserField1.put("remainDayys_derived", remainDayys);
+        reserField1.put("changeIncrease_derived", changeIncrease);
+        reserField1.put("coupon_derived", couponDerived);
+    }
+
+    private String processCouponInfo(String rCouponInfo) {
+        if (StringUtils.isBlank(rCouponInfo)) {
+            return "";
+        }
+
+        try {
+            JSONArray coupons = JSON.parseArray(rCouponInfo);
+            if (coupons == null || coupons.isEmpty()) {
+                return "";
+            }
+
+            String[] keywordsToClean = {"智信", "超级会员", "专属"};
+
+            List<String> couponNames = new ArrayList<>();
+            for (int i = 0; i < coupons.size(); i++) {
+                String couponName = coupons.getJSONObject(i).getString("couponName");
+                couponNames.add(cleanCouponName(couponName, keywordsToClean));
+            }
+
+            if (couponNames.size() == 1) {
+                return couponNames.get(0);
+            }
+
+            Map<String, Integer> priorityMap = getCouponPriorityMap();
+
+            String selectedCoupon = "";
+            int highestPriority = Integer.MAX_VALUE;
+
+            for (String couponName : couponNames) {
+                int priority = priorityMap.getOrDefault(couponName, Integer.MAX_VALUE);
+                if (priority < highestPriority) {
+                    highestPriority = priority;
+                    selectedCoupon = couponName;
+                }
+            }
+
+            if (highestPriority == Integer.MAX_VALUE) {
+                return couponNames.get(0);
+            }
+
+            return selectedCoupon;
+        } catch (Exception e) {
+            log.warn("处理优惠券信息时发生错误：", e);
+            return "";
+        }
+    }
+
+    private Map<String, Integer> getCouponPriorityMap() {
+        Map<String, Integer> priorityMap = new LinkedHashMap<>();
+        String[] priorities = {
+                "6期免息券", "3期免息券", "3期600元免息券", "最高300元6期免息券", "3期300元免息券",
+                "3期免息最高减360", "3期150元免息券", "1期免息券", "1800元免息券", "1500元免息券",
+                "最高900元免息券", "720元免息券", "600元免息券", "最高600元优惠券", "最高600元免息",
+                "28天周转金", "7天周转金", "最高8折免息券", "最高8.3折免息券", "最高8.5折免息券",
+                "最高8.8折免息券", "最高9折免息券", "最高9.2折免息券", "588元免息券", "最高500元免息券",
+                "最高350元免息券", "最高320元免息券", "最高300元免息券", "最高300元分期免息券",
+                "288元免息券", "最高240元免息券", "最高210元免息券", "最高200元免息券",
+                "最高180元免息券", "限时最高180元免息", "最高150元免息券", "最高150元优惠",
+                "最高100元免息券", "88元免息券", "最高60元免息券", "最高30元免息券", "免息优惠券"
+        };
+
+        for (int i = 0; i < priorities.length; i++) {
+            priorityMap.put(priorities[i], i + 1);
+        }
+        return priorityMap;
+    }
+
+
+    private String cleanCouponName(String couponName, String[] keywordsToClean) {
+        if (StringUtils.isBlank(couponName)) {
+            return "";
+        }
+
+        String cleanedName = couponName;
+        for (String keyword : keywordsToClean) {
+            cleanedName = cleanedName.replace(keyword, "");
+        }
+        return cleanedName.trim();
     }
 
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
@@ -293,7 +473,8 @@ public class QiFuServiceImpl implements IQiFuService {
                 try {
                     Thread.sleep(3000L);
                 } catch (InterruptedException e) {
-                    log.error(e.getMessage(),e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                            e.getMessage()), e);
                     Thread.currentThread().interrupt();
                 }
             }
@@ -315,4 +496,148 @@ public class QiFuServiceImpl implements IQiFuService {
         }
         return Boolean.FALSE;
     }
+
+    public String mapYesNo(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        switch (input.toUpperCase()) {
+            case "Y":
+                return "是";
+            case "N":
+                return "否";
+            default:
+                return input;
+        }
+    }
+
+    public String mapNumberToRange(String input) {
+        if (input == null || input.isEmpty() || "0".equals(input)) {
+            return "";
+        }
+        try {
+            int num = Integer.parseInt(input);
+            if (num < 0 || num > 1001) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富AI 额度枚举输入非法！"));
+                return "";
+            }
+
+            int lowerBound = (num - 1) * 1000;
+            int upperBound = num * 1000;
+            return "[" + lowerBound + " - " + upperBound + ")";
+        } catch (NumberFormatException e) {
+            log.warn("奇富AI 额度计算发生错误！");
+            return "";
+        }
+    }
+
+    private static final Pattern DATE_PATTERN = Pattern.compile("^(\\d{2})-(\\d{2})$");
+
+    public String mapDateString(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        if ("noLimit".equalsIgnoreCase(input)) {
+            return "noLimit";
+        }
+
+        Matcher matcher = DATE_PATTERN.matcher(input);
+        if (matcher.matches()) {
+            return input;
+        }
+
+        return "";
+    }
+
+    public String getAmount(String highAmountys, String lowAmountys, String rTotalAvailableAmt) {
+        if (rTotalAvailableAmt == null || rTotalAvailableAmt.isEmpty()) {
+            return "";
+        }
+
+        rTotalAvailableAmt = rTotalAvailableAmt.replace("[", "").replace(")", "").replace(" ", "");
+        String[] rangeParts = rTotalAvailableAmt.split("-");
+
+        if (rangeParts.length != 2) {
+            return "";
+        }
+
+        String leftValue = rangeParts[0];
+        String rightValue = rangeParts[1];
+
+        if (highAmountys != null) {
+            return rightValue;
+        } else if (lowAmountys != null) {
+            return leftValue;
+        }
+
+        return "";
+    }
+
+
+    public String calculateDifference(String highAmountys, String lowAmountys) {
+        try {
+            if (highAmountys == null || highAmountys.isEmpty() || lowAmountys == null || lowAmountys.isEmpty()) {
+                return "";
+            }
+            int high = Integer.parseInt(highAmountys);
+            int low = Integer.parseInt(lowAmountys);
+            int result = high - low;
+
+            return result > 0 ? String.valueOf(result) : "0";
+        } catch (NumberFormatException e) {
+            log.warn("奇富AI提升额度计算发生错误！" );
+            return "";
+        }
+    }
+
+    public String calculateDaysDifference(String rTaTemporaryAmountExpireDate) {
+        if ("noLimit".equalsIgnoreCase(rTaTemporaryAmountExpireDate) || ObjectUtil.isEmpty(rTaTemporaryAmountExpireDate)) {
+            return "9999";
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate today = LocalDate.now();
+
+        try {
+            String dateWithYear = today.getYear() + "-" + rTaTemporaryAmountExpireDate;
+            LocalDate expireDate = LocalDate.parse(dateWithYear, formatter);
+
+            if (expireDate.isBefore(today)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富AI 额度到期日期小于今天！"));
+                expireDate = expireDate.plusYears(1);
+            }
+
+            return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
+        } catch (Exception e) {
+            log.warn("奇富AI额度到期日期计算发生错误！");
+            return "";
+        }
+    }
+
+    public String calculateIncreaseRate(String highAmountys, String lowAmountys) {
+        if (ObjectUtil.isEmpty(highAmountys) || ObjectUtil.isEmpty(lowAmountys) || lowAmountys.equals("0")) {
+            return "";
+        }
+
+        try {
+            BigDecimal high = new BigDecimal(highAmountys);
+            BigDecimal low = new BigDecimal(lowAmountys);
+
+            BigDecimal rate = high.divide(low, 10, BigDecimal.ROUND_HALF_UP)
+                    .subtract(BigDecimal.ONE)
+                    .multiply(BigDecimal.valueOf(100));
+
+            int result = (int) Math.ceil(rate.doubleValue());
+
+            return String.valueOf(result);
+        } catch (NumberFormatException e) {
+            log.warn("奇富AI提额幅度计算发生错误！");
+            return "";
+        }
+    }
+
 }

@@ -39,6 +39,7 @@ public enum InterfaceHandlerEnum {
     BIOCLOO_BLACK_LIST(33, "百可录黑名单"),
     CUSTOMER_AUTO_FILTRATION_RS(34, "榕树自动化过滤不去重(分发到多个apiCode)"),
     CUSTOMER_AUTO_FILTRATION_SOLE_RS(35, "榕树自动化过滤去重(分发到多个apiCode)"),
+    CALLRECORD_MESSAGE_DELAY(36, "通话明细消息延迟批量接口"),
     ;
 
 

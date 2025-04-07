@@ -80,11 +80,6 @@ public class MarketingCommonConfig {
     private List<String> universalProcessApiCode;
 
     /**
-     * 断点自动分发通用apiCode（智能规则编排）
-     */
-    private List<String> mrpTransferDataPushMqApiCodes;
-
-    /**
      * 众安推送黑名单定时任务执行时间
      */
     private String zhongAnPushBlackDataExecuteTime;
@@ -234,6 +229,16 @@ public class MarketingCommonConfig {
     private List<String> mrpCallRecordDataPushMqApiCodes;
 
     /**
+     * 转化数据配置apiCode推送智能规则的mq
+     */
+    private List<String> mrpTransferDataPushMqApiCodes;
+
+    /**
+     * 上传数据配置apiCode推送智能规则的mq
+     */
+    private List<String> mrpUploadDataPushMqApiCodes;
+
+    /**
      * 玖富转化数据提取apiCode集合
      */
     private List<String> JiuFuTransferApiCodes;
@@ -304,6 +309,11 @@ public class MarketingCommonConfig {
      * check服务job的上线开关
      */
     private Boolean checkJobOnlineSwitch;
+
+    /**
+     * 跑批服务job的上线开关
+     */
+    private Boolean scoreTaskJobOnlineSwitch;
 
     /**
      * check服务job的上线开关
@@ -1031,7 +1041,7 @@ public class MarketingCommonConfig {
     /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
-    private HashMap<String,List<String>>    gradeOfcallToDass;
+    private HashMap<String,List<String>> gradeOfcallToDass;
 
     /**
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
@@ -1961,8 +1971,8 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingHighValueFiles;
 
     /**
-     * 58撞库status=-2文件id集合，J:非金融周期，Q:金融周期，K:非周期，true:开启撞库，false:关闭撞库 e.g.{"非周期":{"文件id":是否开启撞库}}
-     * {"J":{"123":true},"Q":{"456":true},"K":{"789":true}}
+     * 58撞库status=-2文件id集合，T:非金融周期，S:金融周期，F:非周期，true:开启入库去重，false:关闭去重 e.g.{"非周期":{"文件id":是否开启去重}}
+     * {"T":{"123":true},"S":{"456":true},"F":{"789":true}}
      */
     private HashMap<String, JSONObject> wubaCollidingReavedFileIds;
 
@@ -1972,16 +1982,10 @@ public class MarketingCommonConfig {
     private Integer wubaCollidingDataMaxCountLimit;
 
     /**
-     * 58提交周期撞库与去重开关(T/S控制是否开启去重和撞库，eliminate控制去重。true:开启，false关闭)
+     * 58去重开关(true:开启，false关闭)
      * {"T":true,"S":true,"eliminate":true}
      */
     private HashMap<String, Boolean> wuBaCollidingDataSwitch;
-
-    /**
-     * 58提交撞库周期天数配置
-     * {"T":8,"S":15}
-     */
-    private HashMap<String, Integer> wuBaCollidingCycleDayConfig;
 
     /**
      * 58提交撞库数据分页条数
@@ -2057,6 +2061,34 @@ public class MarketingCommonConfig {
      * 58新客-营销转化结果查询-调用线程
      */
     private List<Integer> wuBaQueryConversionThreadPool;
+    /**
+     * 是否使用 RocketMq 发送消息配置:（注意区分大小写）
+     *     1.speed中global= true 时全部apiCode和全部队列都使用 RocketMq
+     *     2.flag= true 时tag对应的队列中全部apiCode都使用 RocketMq
+     *     3.global=false且flag=false时， apiCodes中包含的apiCode使用RocketMQ,多个以逗号分隔
+     * 结构：
+     * {
+     *     "global": "false",
+     *     "group": {
+     *         "Marketing.PreUser.Receive": {
+     *             "flag": "false",
+     *             "apiCodes": "7410950,7410951",
+     *             "printLog":"false"
+     *         },
+     *         "Marketing.PreUser.Receive.Small": {
+     *             "flag": "false",
+     *             "apiCodes": "7410950,7410951",
+     *             "printLog":"false"
+     *         }
+     *     }
+     * }
+     * 说明：
+     *      global：全局
+     *      name：配置启用RocketMQ的服务名称,多个以逗号分隔
+     *      apiCodes：配置启用RocketMQ的apiCode,多个以逗号分隔
+     *      tags：配置启用RocketMQ的tag,多个以逗号分隔
+     */
+    private String rocketMqSwitch2;
 
     /**
      * 58新客-营销转化结果查询-批量DB线程
@@ -2226,6 +2258,11 @@ public class MarketingCommonConfig {
      * 榕树上传数据清洗-扩展字段映射
      */
     private Map<String,String> rongShuCleanUploadExtendFieldMap = new HashMap<>();
+
+    /**
+     * 榕树上传数据清洗-扩展字段映射
+     */
+    private Map<String, Map<String, String>> rongShuCleanUploadCipherMap = new HashMap<>();
 
     /**
      * 奇富360数据提取custNum对应上传字段
@@ -2583,6 +2620,11 @@ public class MarketingCommonConfig {
     private Boolean xcTruePushCustomerPushPreviewOptFlag;
 
     /**
+     * 携程true包剔除量级预览优化开关
+     */
+    private Boolean xcTrueDeletePushPreviewOptFlag;
+
+    /**
      * 携程规则中心false包操作优化线程数
      */
     private Integer xcFalsePackageOptSoleNum;
@@ -2606,10 +2648,96 @@ public class MarketingCommonConfig {
      */
     private String carClueFilterStr;
     /**
+     * 车线索校验特殊字符:,;，；
+     */
+    private String carClueVerifyStr;
+
+    /**
      * 规则中心推决策参数大小
      * eg:{"7410950":500,"7410960":500}
      */
     private HashMap<String, Integer> toPolicyParamSize;
+
+    /**
+     * 携程false包补充小时值
+     */
+    private Integer xcFalsePackageCleanHour;
+
+    /**
+     * 异业打标手机号自动化同步配置
+     * eg:{"7410717":"cell_md5","7410718":"cell_sha256","7410720":"cell_log"}
+     */
+    private Map<String, String> autoSyncCellToFlagDataEncTypeConfig;
+
+    /**
+     * 数据打标api_code
+     */
+    private List<String> dataMarkApiCodes;
+
+    /**
+     * 数据打标分页大小
+     */
+    private Integer dataMarkPageSize;
+
+    /**
+     * 数据打标写入doris分页大小
+     */
+    private Integer dataDorisMarkPageSize;
+
+    /**
+     * 数据打标分页大小es专用
+     */
+    private Integer dataMarkForEsPageSize;
+
+    /**
+     * 数据打标线程
+     */
+    private Integer dataMarkThreadNum;
+
+    /**
+     * 数据打标写入文件线程
+     */
+    private Integer dataWriterMarkThreadNum;
+
+    /**
+     * 数据打标查询ES线程
+     */
+    private Integer dataMarkESThreadNum;
+
+    /**
+     * 数据打标更新ES线程
+     */
+    private Integer dataUpdateMarkESThreadNum;
+
+    /**
+     * 数据打标队列大小
+     */
+    private Integer dataMarkEsQueueNum;
+
+    /**
+     * pp停车同步文件表
+     */
+    private String dataMarkTableName;
+
+    /**
+     * pp停车黑名单输出配置
+     */
+    private Map<String, Integer> ppCarBlackList;
+
+    /**
+     * 通用上传推送决策特殊客户
+     */
+    private List<String> apiCodeOfpushPolicy;
+
+    /**
+     * 车线索姓名匹配配置
+     */
+    private JSONObject carClueDataMemberConfig;
+
+    /**
+     * 榕树新客推送电销场景映射配置
+     */
+    private JSONObject rsxkToDassUserTypeConfig;
 
 }
 

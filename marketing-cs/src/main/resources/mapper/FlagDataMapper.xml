@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.FlagDataMapper" >
+
+    <insert id="insertbI_">
+        ${querySql}
+    </insert>
+
+    <select id="queryDataByCellbI_" resultType="java.util.Map">
+        ${querySql}
+    </select>
+
+    <update id="updateTaskIdByLocalId" parameterType="java.lang.Long">
+        update b_marketing_flag_data
+        set task_id = #{taskId}
+        where local_id = #{localId}
+          and task_id is null limit 100000;
+    </update>
+
+    <update id="updateByDynamicEncCell">
+        UPDATE b_marketing_flag_data
+        <choose>
+            <when test="encType == 'cell_md5'">
+                SET cell_sha256 = #{cellSha256}, cell_log = #{cellLog}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                WHERE cell_md5 = #{cellMd5}
+            </when>
+            <when test="encType == 'cell_sha256'">
+                SET cell_md5 = #{cellMd5}, cell_log = #{cellLog}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                WHERE cell_sha256 = #{cellSha256}
+            </when>
+            <when test="encType == 'cell_log'">
+                SET cell_md5 = #{cellMd5}, cell_sha256 = #{cellSha256}, applet_date = #{appletDate}, dt_whitelist = #{appletDate}, user_type = #{userType}
+                WHERE cell_log = #{cellLog}
+            </when>
+        </choose>
+        and api_code = #{apiCode} and date(create_time) = date(now()) and applet_date  is null
+    </update>
+
+    <update id="updateWhenDecodeFail">
+        UPDATE b_marketing_flag_data
+        set is_delete = 1, extend = #{extend}
+        where api_code = #{apiCode} and cust_num = #{custNum} and date(create_time) = date(now()) and applet_date is null
+    </update>
+
+    <update id="batchUpdateEsStatusById">
+        update b_marketing_flag_data
+        set es_sync_status = #{status}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="queryFlagNewCustComputation"  resultType="com.br.marketing.entity.FlagData">
+        select id,cell_log
+        from b_marketing_flag_data
+        where flag_new_cust_computation is null and status = 1 and is_delete = 0 and  applet_date = date(now())
+        and api_code = #{apiCode} limit #{pageSize}
+    </select>
+
+    <select id="queryFlagBlackListComputation"  resultType="com.br.marketing.entity.FlagData">
+        select id,cell_md5
+        from b_marketing_flag_data
+        where flag_blacklist_computation is null and status = 1 and is_delete = 0 and  applet_date = date(now())
+        and api_code = #{apiCode} limit #{pageSize}
+    </select>
+    <update id="batchUpdateFlagNewCustComputationByIds">
+        update b_marketing_flag_data
+        set flag_new_cust_computation = #{tag}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateFlagBlackListComputationByIds">
+        update b_marketing_flag_data
+        set flag_blacklist_computation = #{tag}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="intersectionWithRongshubI_" resultType="java.lang.String">
+        select cell from tmp_rongshu_20250113 where cell in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <select id="intersectionWithBlackList" resultType="java.lang.String">
+        select cell_md5 from b_pp_car_black_list where
+        label_type = #{type}
+        and cell_md5 in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <update id="batchUpdateFlagNewCustComputationByCells">
+        update b_marketing_flag_data
+        set flag_new_cust_computation = #{flagNewCustComputation},
+            flag_new_cust = #{flagNewCust}
+        where
+        applet_date = date(now())
+        and is_delete = 0
+        and status = 1
+        and cell_log in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+
+    </update>
+
+    <update id="batchUpdateFlagBlackListComputationByCells">
+        update b_marketing_flag_data
+        set flag_blacklist_computation = #{flagBlacklistComputation},
+        flag_intellaudio_blacklist = #{flagBlacklist}
+        where
+        applet_date = date(now())
+        and is_delete = 0
+        and status = 1
+        and cell_md5 in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </update>
+
+    <select id="queryLogCellByDate" resultType="com.br.marketing.dto.mark.FlagDataCarryLogCell">
+        select id,cell_log,cell_sha256,flag_riskgroup
+        from b_marketing_flag_data
+        where api_code = #{apiCode} and applet_date = #{appletDate}
+        and status = 1 and cell_log is not null
+        and flag_high_risk_computation is null
+        and flag_riskgroup is not null and is_delete = 0
+        limit #{pageSize}
+    </select>
+
+    <select id="queryRiskGroupAndInterestData" resultType="com.br.marketing.entity.FlagData">
+        select id,cell_md5 from b_marketing_flag_data
+        where api_code = #{apiCode} and status = 1 and flag_customer_base_computation is null
+        and applet_date = date(now()) and is_delete =0
+        limit #{pageSize}
+    </select>
+
+    <update id="batchUpdateFlagStatusById">
+        update b_marketing_flag_data
+        set flag_customer_base_computation = #{flagStatus}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="queryOdsOrgDataByCellbI_" resultType="com.br.marketing.entity.FlagData">
+        select cell_md5, user_type, api_code from ods_all_apicode_upload_data_rongshu_distinct
+        where cell_md5 in
+        <foreach collection="cells" item="cell" separator="," open="(" close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <update id="batchUpdateRiskGroupFlagById">
+        update b_marketing_flag_data
+        set flag_riskgroup = #{flagRiskGroup}
+        where id in
+        <foreach collection="data" item="item" separator="," open="(" close=")">
+            #{item.id}
+        </foreach>
+    </update>
+    <update id="batchUpdateInterestFlagById">
+        update b_marketing_flag_data
+        set flag_interest = #{flagInterest},flag_customer_base_computation = #{flagStatus}
+        where id in
+        <foreach collection="data" item="item" separator="," open="(" close=")">
+            #{item.id}
+        </foreach>
+    </update>
+    <update id="batchUpdateHighRiskStatusByIds">
+        update b_marketing_flag_data
+        set flag_high_risk_computation = #{flagHighRiskComputation},
+            flag_whitelist_computation = #{flagWhitelistComputation}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
+    <select id="queryCellListComputation"  resultType="com.br.marketing.entity.FlagData">
+        select id,cell_md5,cell_log,cell_sha256
+        from b_marketing_flag_data
+        where cell_log is null
+          and cell_sha256 is  null
+          and status = 1 and api_code = #{apiCode}
+        limit #{pageSize}
+    </select>
+
+    <select id="queryFlagWhiteListComputation"  resultType="com.br.marketing.entity.FlagData">
+        select id,flag_score_whitelist,flag_riskgroup
+        from b_marketing_flag_data
+        where flag_whitelist_computation is null
+          and flag_score_whitelist is not null
+          and flag_riskgroup is not null
+        and status = 1 and api_code = #{apiCode}
+        limit #{pageSize}
+    </select>
+
+    <select id="queryEsMarkByDate" resultType="com.br.marketing.dto.mark.FlagDataEsMark">
+        select id,
+               cell_log,
+               dt_whitelist,
+               flag_new_cust,
+               flag_riskgroup,
+               flag_interest,
+               flag_age,
+               flag_province,
+               flag_special_small,
+               flag_specialrisklevel_rule,
+               flag_applyloan,
+               flag_scoreysbase,
+               flag_scorefxsbbaseb,
+               flag_scorescashonregisternologin,
+               flag_scorescashonyxxy,
+               flag_scorencashonzawswyyym,
+               flag_intellaudio_blacklist,
+               flag_without_willingness,
+               flag_whitelist
+        from b_marketing_flag_data
+        where api_code = #{apiCode}
+          and applet_date = #{date}
+          and flag_new_cust_computation = 1
+          and flag_customer_base_computation = 1
+          and flag_high_risk_computation = 1
+          and flag_blacklist_computation = 1
+          and flag_whitelist_computation = 1
+          and es_sync_status is null
+          and is_delete = 0
+            limit #{pageSize}
+    </select>
+
+    <select id="queryColumnNamebI_" resultType="java.lang.String">
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = #{tableName}
+    </select>
+
+    <update id="batchUpdateFlagWhiteListByIds">
+        update b_marketing_flag_data
+        set flag_whitelist_computation = #{flagWhitelistComputation},
+        flag_whitelist = #{flagWhitelist}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateCellDecodeListByIds" >
+            UPDATE b_marketing_flag_data
+            SET
+            <if test="flagData.cellLog!=null and flagData.cellLog!=''">
+                cell_log = #{flagData.cellLog},
+            </if>
+            <if test="flagData.cellSha256!=null and flagData.cellSha256!=''">
+                cell_sha256 = #{flagData.cellSha256},
+            </if>
+            flag_cell_decode_computation=#{flagData.flagCellDecodeComputation}
+            WHERE id = #{flagData.id}
+    </update>
+
+    <update id="batchUpdateFlagWhiteListComputationByIds">
+        update b_marketing_flag_data
+        set flag_whitelist_computation = #{flagWhitelistComputation}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateCellDecodeListComputationByIds">
+        update b_marketing_flag_data
+        set flag_cell_decode_computation = #{flagWhitelistComputation}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

@@ -9,8 +9,10 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferSmallConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataDTO;
@@ -76,6 +78,8 @@ public class ShuHeUserServiceImpl {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
 
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
@@ -282,8 +286,14 @@ public class ShuHeUserServiceImpl {
             transferInfo.setJsonData(JSONObject.toJSONString(transferDataDTO));
             transferInfo.setActualNum(1);
             marketingTransferInfoMapper.insertSelective(transferInfo);
-            pushRuleService.sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL, String.valueOf(transferInfo.getId()),
-                CustomerQueueEnum.ORG_TRANSFER);
+            String id = String.valueOf(transferInfo.getId());
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
+                pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferSmallConstants.TOPIC
+                        , MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_SYNC);
+            }else{
+                pushRuleService.sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL, id,
+                        CustomerQueueEnum.ORG_TRANSFER);
+            }
         } catch (Exception e) {
             caseShuheUser.setStatus(2);
             caseShuheUserMapper.updateByPrimaryKey(caseShuheUser);

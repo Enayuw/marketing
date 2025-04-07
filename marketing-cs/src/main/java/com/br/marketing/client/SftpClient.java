@@ -26,7 +26,7 @@ public class SftpClient extends BaseFtpClient{
     private ChannelSftp sftp = null;
     private Channel channel = null;
     private Session session = null;
-
+    private static final int DEFAULT_TIMEOUT = 60 * 1000;
 
     /**
      * Instantiates a new Sftp config.
@@ -59,9 +59,9 @@ public class SftpClient extends BaseFtpClient{
             jSch = new JSch();
             session = jSch.getSession(userName, hostName, port);
             session.setPassword(password);
-
             session.setConfig(this.getSshConfig());
-            session.connect();
+
+            session.connect(DEFAULT_TIMEOUT);
 
             channel = session.openChannel("sftp");
             channel.connect();

@@ -29,6 +29,7 @@ import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.CommonException;
@@ -37,6 +38,7 @@ import com.br.marketing.common.utils.*;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
@@ -74,6 +76,7 @@ import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -163,8 +166,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     PhoneSaleMapper phoneSaleMapper;
 
-    @Resource
-    private ZhongyouFileDataMapper zhongyouFileDataMapper;
 
     @Resource
     private ZhongbangCaifuDataMapper zhongbangCaifuDataMapper;
@@ -194,6 +195,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private XiechengCollidingDataPackageRuleMapper xiechengCollidingDataPackageRuleMapper;
@@ -593,6 +598,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //blacklist_delete有值时，前端控制不会做量级预览
         int total = 0;
         String querySql = "";
+        String opeLabel = "";
         List<String> querySqls = new ArrayList<>();
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
@@ -601,6 +607,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if ("true".equals(collidingFilterDTO.getResult())) {
             if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
                 //推决策
+                opeLabel = "推送决策";
                 Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
                 if (xcTruePushCustomerPushPreviewOptFlag) {
                     cycleDataQueryOpt(jsonObject, batchNumberList, collidingFilterDTO, querySqls);
@@ -609,21 +616,29 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             } else {
                 //true包剔除
-                querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+                opeLabel = "true包剔除";
+                Boolean xcTrueDeletePushPreviewOptFlag = marketingCommonConfig.getXcTrueDeletePushPreviewOptFlag();
+                if (xcTrueDeletePushPreviewOptFlag) {
+                    cycleDataQueryForDeleteOpt(jsonObject, batchNumberList, collidingFilterDTO, querySqls);
+                } else {
+                    querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+                }
             }
         } else if ("false".equals(collidingFilterDTO.getResult())) {
             String info = collidingFilterDTO.getInfo();
             if (Objects.isNull(info)) {
                 //false包补充
+                opeLabel = "false包补充";
                 Boolean xcFalsePackagePushPreviewOptFlag = marketingCommonConfig.getXcFalsePackagePushPreviewOptFlag();
                 if (xcFalsePackagePushPreviewOptFlag) {
-                    falseDataQueryOpt(jsonObject, batchNumberList, querySqls, true);
+                    falseDataQueryOpt(jsonObject, batchNumberList, querySqls, collidingFilterDTO.getCleanTime(), true);
                 } else {
                     querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
                 }
             } else {
                 if (info.equals("") || info.equalsIgnoreCase("NULL")) {
                     //false动态包剔除
+                    opeLabel = "false动态包剔除";
                     Boolean xcFalsePackageDynaPushPreviewOptFlag = marketingCommonConfig.getXcFalsePackageDynaPushPreviewOptFlag();
                     if (xcFalsePackageDynaPushPreviewOptFlag) {
                         dynaPackageDeleteConditionOpt(
@@ -638,10 +653,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 查询Doris
         try {
             if (CollectionUtils.isEmpty(querySqls)) {
-                log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
+                log.warn("规则中心携程={} 的试算量级sql={}", opeLabel, querySql);
                 total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
             } else {
-                log.warn("规则中心携程={} 的试算量级样例sql={}", collidingFilterDTO.getResult(), querySqls.get(0));
+                log.warn("规则中心携程={} 的试算量级样例sql={}", opeLabel, querySqls.get(0));
                 total = getTotalOpt(querySqls, marketingCommonConfig.getXcFalsePackageOptSoleNum());
             }
         } catch (Exception e) {
@@ -654,6 +669,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         return total;
     }
 
+    private void cycleDataQueryForDeleteOpt(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+        for (String batchNumber : batchNumberList) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+            List<String> batchNumbers = Arrays.asList(batchNumber);
+            querySqls.add(cycleDataQueryForDelete(jsonObject, batchNumbers, collidingFilterDTO));
+        }
+    }
 
 
     /**
@@ -745,11 +769,12 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param jsonObject
      * @param batchNumberList
      * @param querySqls
+     * @param cleanTime
      * @description false包预估量级sql优化
      * @author hedongshuo
      * @date 2025/1/2 15:32
      **/
-    private void falseDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, List<String> querySqls, Boolean isPreviewForOpt) {
+    private void falseDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, List<String> querySqls, String cleanTime, Boolean isPreviewForOpt) {
         String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
         for (String batchNumber : batchNumberList) {
             if (StringUtils.isEmpty(batchNumber)) {
@@ -761,12 +786,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 //                    sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, i);
 //                }
 //            }
-            sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, null);
+            sqlCollect(querySqls, isPreviewForOpt, conditions, batchNumber, cleanTime, null);
         }
     }
 
-    private void sqlCollect(List<String> querySqls, Boolean isPreviewForOpt, String conditions, String batchNumber, Integer pageIndex) {
-        String querySql = falseQuerySqlOpt(conditions, batchNumber, pageIndex);
+    private void sqlCollect(List<String> querySqls, Boolean isPreviewForOpt, String conditions, String batchNumber, String cleanTime, Integer pageIndex) {
+        String querySql = falseQuerySqlOpt(conditions, batchNumber, cleanTime, pageIndex);
         if (isPreviewForOpt) {
             String queryCountSql = "select count(0) from (" + querySql + ") countSql;";
             querySqls.add(queryCountSql);
@@ -775,7 +800,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private String falseQuerySqlOpt(String conditions, String batchNumber, Integer pageIndex) {
+    private String falseQuerySqlOpt(String conditions, String batchNumber, String cleanTime, Integer pageIndex) {
+        //将已生成还未清洗的补充包的cell剔除
+        XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
+        taskExample.createCriteria()
+                .andTaskTypeEqualTo(0)
+                .andTaskStatusEqualTo(0)
+                .andBatchNumberLike("%" + batchNumber + "%")
+                .andIsDeleteEqualTo(0);
+        List<XiechengCollidingDataProcessTask> taskList = xiechengCollidingDataProcessTaskMapper.selectByExample(taskExample);
+        if (!CollectionUtils.isEmpty(taskList)) {
+            StringBuilder conditionsBuilder = new StringBuilder(conditions);
+            for (XiechengCollidingDataProcessTask processTask : taskList) {
+                conditionsBuilder
+                        .append("and !(")
+                        .append(processTask.getTaskExecutionConditions())
+                        .append(")");
+            }
+            conditions = conditionsBuilder.toString();
+        }
+        //组装左表sql
         StringBuilder queryRuleScoreDataSql = new StringBuilder();
         queryRuleScoreDataSql
                 .append("select id, cell, is_delete from b_xiecheng_colliding_")
@@ -785,20 +829,36 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (pageIndex != null) {
             queryRuleScoreDataSql.append(" order by id limit ").append(pageIndex * 30000000).append(", 30000000");
         }
-        List<String> xcDynaFalsePackageIds = marketingCommonConfig.getXcDynaFalsePackageIds();
-        if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
-            xcDynaFalsePackageIds = Arrays.asList("120007");
+        //清洗时间在撞库区间内去重，业务应规避此条件
+        String packageIds = "";
+        if (StringUtils.isNotEmpty(cleanTime)) {
+            Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
+            XiechengCollidingDataPackageRuleExample packageRuleExample = new XiechengCollidingDataPackageRuleExample();
+            packageRuleExample.createCriteria()
+                    .andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.getDateByHour(DateHelper.parseDate(cleanTime),xcFalsePackageCleanHour))
+                    .andIsDeleteEqualTo(0);
+            List<XiechengCollidingDataPackageRule> packageRules = xiechengCollidingDataPackageRuleMapper.selectByExample(packageRuleExample);
+            packageIds = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId()
+                    .toString()).collect(Collectors.toSet()).stream().collect(Collectors.joining(","));
         }
-        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream()
-                .collect(Collectors.joining(",", "(", ")"));
-        String querySql =
-                "SELECT a.id, a.cell FROM " +
-                        "(" + queryRuleScoreDataSql + ") AS a " +
-                        "LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0 " +
-                        "LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.package_id in "
-                        + xcDynaFalsePackageIdString + " and c.is_delete = 0 " +
-                        "WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0";
-        return querySql;
+        //组装全sql
+        StringBuilder querySqlBuilder = new StringBuilder();
+        querySqlBuilder
+                .append("SELECT a.id, a.cell FROM ")
+                .append("(")
+                .append(queryRuleScoreDataSql.toString())
+                .append(") AS a ")
+                .append("LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0 ");
+        if (StringUtils.isNotEmpty(packageIds)) {
+            querySqlBuilder.append("LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.package_id in (")
+                    .append(packageIds)
+                    .append(") and c.is_delete = 0 ");
+        }
+        querySqlBuilder.append("WHERE b.id IS NULL AND a.is_delete = 0");
+        if (StringUtils.isNotEmpty(packageIds)) {
+            querySqlBuilder.append(" AND c.id IS NULL ");
+        }
+        return querySqlBuilder.toString();
     }
 
     /**
@@ -970,6 +1030,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         return cycleAndscoreSql.toString();
     }
 
+    private String cycleDataDeleteQueryForOpt(JSONObject jsonObject, String batchNumber, String cleanDate) {
+        String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        Date cleanTime = DateHelper.parseDate(cleanDate);
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
+        return String.format ("select count(0) from b_xiecheng_colliding_data_loop_cycle cycle " +
+                "join b_xiecheng_colliding_%s score on cycle.cell_sha256_code_list = score.cell and score.is_delete = 0 " +
+                "left join (select id, cell, is_delete from b_xiecheng_colliding_%s where %s) scoreCd " +
+                "on score.cell = scoreCd.cell and scoreCd.is_delete = 0 " +
+                "where cycle.is_delete = 0 and scoreCd.id is null " +
+                "and (cycle.release_time < '%s' or (cycle.release_time >= '%s' and cycle.release_time < '%s'))"
+                , batchNumber, batchNumber, conditions, cleanDateTime, cleanEndTime, endDateTime);
+    }
+
     /**
      * 组装跑分筛选SQL
      *
@@ -1109,7 +1186,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String getExecutionSql(JSONObject jsonObject, List<String> batchNumberList,
                                    String cleanTime, XcProcessTaskEnum xcProcessTaskEnum) {
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DELETE) {
-            return cycleDataDeleteQuery(jsonObject, batchNumberList, cleanTime);
+            Boolean xcTrueDeletePushPreviewOptFlag = marketingCommonConfig.getXcTrueDeletePushPreviewOptFlag();
+            if (xcTrueDeletePushPreviewOptFlag) {
+                List<String> querySqls = new ArrayList<>();
+                cycleDataDeleteQueryOpt(jsonObject, batchNumberList, cleanTime, querySqls);
+                return String.join(";", querySqls);
+            } else {
+                return cycleDataDeleteQuery(jsonObject, batchNumberList, cleanTime);
+            }
         }
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
             Boolean xcFalsePackageDynaPushPreviewOptFlag = marketingCommonConfig.getXcFalsePackageDynaPushPreviewOptFlag();
@@ -1156,8 +1240,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPrePlanNum());
+        Integer xcFalsePackageCleanHour = marketingCommonConfig.getXcFalsePackageCleanHour();
         try {
-            xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+            xiechengCollidingDataProcessTask
+                    .setTaskStartTime(DateHelper.getDateByHour(
+                            DateHelper.parseDate(collidingFilterDTO.getCleanTime()),xcFalsePackageCleanHour));
         } catch (Exception e) {
             log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
@@ -1170,7 +1257,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     collidingFilterDTO.getCleanTime()));
         } else {
             List<String> querySqls = new ArrayList<>();
-            falseDataQueryOpt(jsonObject, dto.getBatchNumberList(), querySqls, false);
+            falseDataQueryOpt(jsonObject, dto.getBatchNumberList(), querySqls, collidingFilterDTO.getCleanTime(), false);
             xiechengCollidingDataProcessTask.setTaskExecutionSql(String.join(";", querySqls));
         }
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
@@ -1210,7 +1297,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         //result = true
         if (StringUtils.isNotEmpty(result)) {
             if ("true".equals(result)) {
-                deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
+                Boolean xcTrueDeletePushPreviewOptFlag = marketingCommonConfig.getXcTrueDeletePushPreviewOptFlag();
+                if (xcTrueDeletePushPreviewOptFlag) {
+                    cycleDataDeleteQueryOpt(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime(), querySqls);
+                } else {
+                    deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
+                }
             }
             if ("false".equals(result)) {
                 if (Objects.isNull(info)) {
@@ -1244,6 +1336,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
+    }
+
+    private void cycleDataDeleteQueryOpt(JSONObject jsonObject, List<String> batchNumberList, String cleanTime, List<String> querySqls) {
+        for (String batchNumber : batchNumberList) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+            querySqls.add(cycleDataDeleteQueryForOpt(jsonObject, batchNumber, cleanTime));
+        }
     }
 
     public String encrypt3k(Integer type, String content) {
@@ -2032,7 +2133,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
         //region 写入上传明细MQ
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
+                        , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -2069,6 +2175,42 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception ex) {
             log.error("推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
+        }
+    }
+    @Override
+    public void sendToRocketMqByConfig(String apiCode, String topic, String tag, String infoId, CustomerQueueEnum queueEnum) {
+        try {
+            long l3 = System.currentTimeMillis();
+            // 根据apicode和bizType获取路由键
+            String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
+            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
+            if (null == routingKeyConfig) {
+                rocketMqSwitch.syncSend(topic, tag, infoId);
+            } else {
+                // RocketMQ不支持优先级
+                String tagFromDb = routingKeyConfig.getRoutingKey();
+                if(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingUploadSmallConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingUploadEmergencyConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingTransferSmallConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingTransferEmergencyConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE.equalsIgnoreCase(tagFromDb)){
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC, tagFromDb, infoId);
+                }else{
+                    log.warn("[{}]RocketMQ的tag（RoutingKey）配置错误-tag[{}]consumerGroup[{}]-",
+                            apiCode, tagFromDb, routingKeyConfig.getQueueName());
+                }
+            }
+            if (log.isInfoEnabled()) {
+                log.info("RocketMQ推送" + queueEnum.getDesc() + "队列耗时:{}", (System.currentTimeMillis() - l3));
+            }
+        } catch (Exception ex) {
+            log.error("RocketMQ推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
         }
     }
 
@@ -2279,16 +2421,29 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
-            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-            dataInfoDTO.setApiCode(apiCode);
-            dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
-            dataInfoDTO.setArgList(collections);
-            dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
-            return dataInfoDTO.addUploadMsgSource();
-        }, MQConstants.ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
+                return dataInfoDTO.addUploadMsgSource();
+            },MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION);
+        }else{
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
+                return dataInfoDTO.addUploadMsgSource();
+            }, MQConstants.ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        }
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -2332,7 +2487,27 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(infoId);
             mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
-            producter.sendToUniversalTransferQueue(mqFact);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mqFact);
+            }
+        }
+        List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
+        if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)){
+            MrpMqFact mrpMqFact = new MrpMqFact();
+            mrpMqFact.setSourceId(infoId);
+            mrpMqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+            mrpMqFact.setApiCode(apiCode);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mrpMqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mrpMqFact);
+            }
         }
         List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
         if (apiCodeOfRecordTaskTime.contains(apiCode)) {
@@ -2356,6 +2531,28 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
+    /**
+     * （RocketMQ使用）上传数据发送场景消息到收集队列
+     * @Date 2024/8/22 17:09
+     * @param localUserTypeCache
+     * @param function
+     * @param topic
+     * @param tag
+     */
+    private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache
+            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function
+            ,String topic, String tag) {
+        String msg = "";
+        try {
+            msg = JSONObject.toJSONString(function.apply(localUserTypeCache));
+            rocketMqSwitch.syncSend(topic, tag, msg);
+        } catch (Exception e) {
+            log.error("推送场景信息到队列失败,topic[{}]tag[{}]msg[{}]异常信息:",topic, tag, msg, e);
+        } finally {
+            // 辅助gc
+            localUserTypeCache.clear();
+        }
+    }
 
     /**
      * 2024-02-29 10:12
@@ -2441,7 +2638,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
+                        , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -2558,9 +2760,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 throw new KnowException(e.getMessage());
             }
         }
-
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -2613,7 +2819,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
+                sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
+            }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -2630,7 +2841,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer soleNumTrans = marketingCommonConfig.getSoleNumTrans();
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
-        TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
+        String apiCode = transferInfo.getApiCode();
+        TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(apiCode);
         TransferDataDTO<TransferDataItemDTO> dto = null;
         if (transferFieldProcessFactory != null && transferFieldProcessFactory.isFormat()) {
             dto = transferFieldProcessFactory.formatTransferObj(transferInfo.getJsonData());
@@ -2639,10 +2851,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             }.getType());
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).andStatusEqualTo(customerStatus);
+        customerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(customerStatus);
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         if (marketingCustomers.size() == 0) {
-            throw new RuntimeException(String.format("该apicode:%s 没有维护cid信息,消费有问题", transferInfo.getApiCode()));
+            throw new RuntimeException(String.format("该apicode:%s 没有维护cid信息,消费有问题", apiCode));
         }
         String cid = marketingCustomers.get(0).getCid();
         String tcid = cid.replaceFirst("-", "");
@@ -2678,7 +2890,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
                 BeanUtils.copyProperties(transferDataItemDTO, transferSyncUser);
                 transferSyncUser.setRequestId(transferInfo.getRequestId());
-                transferSyncUser.setApiCode(transferInfo.getApiCode());
+                transferSyncUser.setApiCode(apiCode);
                 transferSyncUser.setOrgName(transferInfo.getOrgName());
                 transferSyncUser.setRequestData(requestDate);
                 transferSyncUser.setRequestTime(requestTime);
@@ -2702,7 +2914,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     String key = transferSyncUser.getUserType();
                     Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
                     if (StringUtils.isNotBlank(key)
-                            && startsWith.stream().anyMatch(transferInfo.getApiCode()::startsWith)
+                            && startsWith.stream().anyMatch(apiCode::startsWith)
                             && transferSyncUser.getId() != null && !localUserTypeCache.containsKey(key)) {
                         // 入库成功后将userType为key，并且唯一
                         // 缓存场景数据
@@ -2773,20 +2985,50 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
         }
 
-        if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
+        if (pushCustomerApiCodes.contains(apiCode)
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             if (transferInfo.getRequestId().startsWith("black_")) {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)){
+                    rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                }else{
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                }
             } else {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)){
+                    rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                }else{
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                }
             }
         }
-        if (universalProcessApiCode.contains(transferInfo.getApiCode())) {
+        if (universalProcessApiCode.contains(apiCode)) {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-            producter.sendToUniversalTransferQueue(mqFact);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mqFact);
+            }
+        }
+        List<String> mrpApiCodes = marketingCommonConfig.getMrpTransferDataPushMqApiCodes();
+        if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)){
+            MrpMqFact mrpMqFact = new MrpMqFact();
+            mrpMqFact.setSourceId(id);
+            mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            mrpMqFact.setApiCode(apiCode);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mrpMqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mrpMqFact);
+            }
         }
 
         if (!CollectionUtils.isEmpty(mrpUniversalProcessApiCode) && mrpUniversalProcessApiCode.contains(transferInfo.getApiCode())) {
@@ -2801,17 +3043,32 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private void transferSendUserTypeCollectionMsg(String cid, MarketingTransferInfo transferInfo
             , Map<String, UserTypeCollectionDTO> localUserTypeCache) {
-        sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
-            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
-            dataInfoDTO.setArgList(collections);
-            dataInfoDTO.setCid(cid);
-            dataInfoDTO.setApiCode(transferInfo.getApiCode());
-            dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            dataInfoDTO.setRequestId(transferInfo.getRequestId());
-            return dataInfoDTO.addTransferMsgSource();
-        }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        String apiCode = transferInfo.getApiCode();
+        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION)){
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setCid(cid);
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                dataInfoDTO.setRequestId(transferInfo.getRequestId());
+                return dataInfoDTO.addTransferMsgSource();
+            }, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION);
+        }else{
+            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+                dataInfoDTO.setArgList(collections);
+                dataInfoDTO.setCid(cid);
+                dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                dataInfoDTO.setRequestId(transferInfo.getRequestId());
+                return dataInfoDTO.addTransferMsgSource();
+            }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
+        }
     }
 
 

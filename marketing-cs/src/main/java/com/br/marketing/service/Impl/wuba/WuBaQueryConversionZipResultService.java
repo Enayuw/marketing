@@ -296,11 +296,4 @@ public class WuBaQueryConversionZipResultService {
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }
-
-    public static void main(String[] args) {
-        String str = "2024-11-19,a48a5a80ce25e66a01195c1a2298dc2d,2,2024-11-10 01:41:54,2024-11-24 23:59:59,2024-11-10 01:41:54,2024-11-18 11:53:51,,,,,,";
-        List<String> split = StrUtil.split(str, ',');
-        String[] split1 = str.split(",");
-        String[] split2 = str.split(",", -1);
-    }
 }

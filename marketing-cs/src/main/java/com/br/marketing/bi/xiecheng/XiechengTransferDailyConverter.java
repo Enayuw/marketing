@@ -73,16 +73,19 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
         yAxis.add(buildWrapDataVO("当日运营量", sortedData, XiechengTransferDailyReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日登录量", sortedData, XiechengTransferDailyReportDTO::getLoginNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日身份认证量", sortedData, XiechengTransferDailyReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日申请量", sortedData, XiechengTransferDailyReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日授信量", sortedData, XiechengTransferDailyReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日申请提现", sortedData, XiechengTransferDailyReportDTO::getApplyWithdrawNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日提现量", sortedData, XiechengTransferDailyReportDTO::getWithdrawNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日登录率", sortedData, XiechengTransferDailyReportDTO::getLoginRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日身份认证率", sortedData, XiechengTransferDailyReportDTO::getCertifyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日申请率", sortedData, XiechengTransferDailyReportDTO::getApplyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日授信率", sortedData, XiechengTransferDailyReportDTO::getCreditRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日申请提现率", sortedData, XiechengTransferDailyReportDTO::getApplyWithdrawRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日提现率", sortedData, XiechengTransferDailyReportDTO::getWithdrawRatio, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("当日申请身份认证率", sortedData, XiechengTransferDailyReportDTO::getApplyCertifyRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日身份认证完成率", sortedData, XiechengTransferDailyReportDTO::getCertifyCompleteRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日过件率", sortedData, XiechengTransferDailyReportDTO::getOverPieceRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日提现发起率", sortedData, XiechengTransferDailyReportDTO::getWithdrawLaunchRatio, FormatType.PERCENT_SIGN));

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaCollidingConfigMapper">
+    <select id="queryWuBaCollidingConfigByPriority" resultType="com.br.marketing.entity.WubaCollidingConfig">
+        select id, priority, data_source_type, score_type, query_sql
+        from b_wuba_colliding_config
+        where is_deleted = 0
+        order by priority;
+    </select>
+
+    <select id="queryCollidingDataByConfigSql" resultType="com.br.marketing.entity.WubaCollidingData">
+        ${completeSql}
+    </select>
+</mapper>

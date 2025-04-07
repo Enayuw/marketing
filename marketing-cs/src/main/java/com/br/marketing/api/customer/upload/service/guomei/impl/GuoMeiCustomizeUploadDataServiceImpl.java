@@ -1,13 +1,17 @@
 package com.br.marketing.api.customer.upload.service.guomei.impl;
 
 import com.br.common.log.AlertLog;
+import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.Resource;
+
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +37,10 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
 
     @Resource
     private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     /**
      * 解密jsonData
@@ -202,7 +210,13 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
             JSONObject json = new JSONObject();
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN, json.toJSONString());
+            String msg = json.toJSONString();
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_GUOMEI_DATA_CLEAN)){
+                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
+                        , MarketingUploadConstants.TAG_MARKETING_GUOMEI_DATA_CLEAN, msg);
+            }else{
+                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN, msg);
+            }
             log.warn("国美定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), e.getMessage()
