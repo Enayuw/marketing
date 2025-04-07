@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.retry.DatabaseOperationService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
@@ -53,6 +54,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
+    @Resource
+    private DatabaseOperationService dbService;
 
     public static final ThreadPoolExecutor XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL = BrExecutors.getThreadPool(50, 50);
 
@@ -194,8 +197,37 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      */
     private void saveLogAndMapping(XieChengCollidingDataLog collidingLog) {
         try {
+            DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder()
+                    .maxRetries(3)
+                    .initialDelay(1000L)
+                    .maxDelay(5000L)
+                    .exponentialBackoff(true)
+                    .printSqlOnError(true)
+                    .build();
+            dbService.executeWithRetry(new DatabaseOperationService.SqlOperation<Integer>() {
+
+                @Override
+                public Integer execute() {
+                    return null;
+                }
+
+                @Override
+                public String getMapperClass() {
+                    return null;
+                }
+
+                @Override
+                public String getMapperMethod() {
+                    return null;
+                }
+            },"",config);
+
+        } catch (Exception e) {
+
+        }
+
+        try {
             // 写入日志表
-            xieChengCollidingDataLogMapper.insertSelective(collidingLog);
             XieChengCollidingDataHitRequestNoMapping requestNoMapping = new XieChengCollidingDataHitRequestNoMapping();
             String returnContent = collidingLog.getReturnContent();
             JSONObject jsonReturnContent = JSONObject.parseObject(returnContent);
@@ -212,4 +244,5 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
                     , "携程撞库保存日志和映射表异常！"), e);
         }
     }
+
 }
