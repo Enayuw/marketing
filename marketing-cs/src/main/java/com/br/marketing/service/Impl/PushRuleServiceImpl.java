@@ -2522,6 +2522,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.sendToUniversalTransferQueue(mrpMqFact);
             }
         }
+
+        List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
+        if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
+            MqFact mqFact = new MqFact();
+            mqFact.setSourceId(infoId);
+            mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+            producter.sendToAIUniversalQueue(mqFact);
+        }
+
         List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
         if (apiCodeOfRecordTaskTime.contains(apiCode)) {
             String concat = apiCode.concat(":").concat(marketingSyncInfo.getCusBatch());

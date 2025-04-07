@@ -127,4 +127,14 @@ public class RabbitMqProducter {
             return arg0;
         },correlationData);
     }
+
+    public void sendToAIUniversalQueue(MqFact mqFact) {
+        String message = JSON.toJSONString(mqFact);
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
+        // todo查redis
+        rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE, message, arg0 -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            return arg0;
+        },correlationData);
+    }
 }
