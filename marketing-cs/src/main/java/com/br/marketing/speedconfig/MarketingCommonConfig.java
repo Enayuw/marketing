@@ -2739,5 +2739,9 @@ public class MarketingCommonConfig {
      */
     private JSONObject rsxkToDassUserTypeConfig;
 
+    /**
+     * AI客户apiCode集合
+     */
+    private List<String> aiApiCodeList;
 }
 

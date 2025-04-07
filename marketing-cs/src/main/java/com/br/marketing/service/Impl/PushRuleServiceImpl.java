@@ -2137,12 +2137,25 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                sengToRabbitMq(apiCode, syncInfoId);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
+    /**
+     * 根据apiCode，区分AI与非AI客户，发送到不同MQ
+     * @param apiCode
+     * @param syncInfoId
+     */
+    private void sengToRabbitMq(String apiCode, String syncInfoId) {
+        if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
+            // todo查redis
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE, syncInfoId);
+        } else {
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+        }
+    }
 
     /**
      * 根据配置表发送到对应MQ
@@ -2642,7 +2655,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                sengToRabbitMq(apiCode, syncInfoId);
             }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
