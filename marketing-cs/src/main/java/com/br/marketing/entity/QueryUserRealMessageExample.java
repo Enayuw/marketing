@@ -445,6 +445,76 @@ public class QueryUserRealMessageExample {
             return (Criteria) this;
         }
 
+        public Criteria andCellIsNull() {
+            addCriterion("cell is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIsNotNull() {
+            addCriterion("cell is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellEqualTo(String value) {
+            addCriterion("cell =", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotEqualTo(String value) {
+            addCriterion("cell <>", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellGreaterThan(String value) {
+            addCriterion("cell >", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellGreaterThanOrEqualTo(String value) {
+            addCriterion("cell >=", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLessThan(String value) {
+            addCriterion("cell <", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLessThanOrEqualTo(String value) {
+            addCriterion("cell <=", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLike(String value) {
+            addCriterion("cell like", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotLike(String value) {
+            addCriterion("cell not like", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIn(List<String> values) {
+            addCriterion("cell in", values, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotIn(List<String> values) {
+            addCriterion("cell not in", values, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellBetween(String value1, String value2) {
+            addCriterion("cell between", value1, value2, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotBetween(String value1, String value2) {
+            addCriterion("cell not between", value1, value2, "cell");
+            return (Criteria) this;
+        }
+
         public Criteria andMobileMd5IsNull() {
             addCriterion("mobile_md5 is null");
             return (Criteria) this;

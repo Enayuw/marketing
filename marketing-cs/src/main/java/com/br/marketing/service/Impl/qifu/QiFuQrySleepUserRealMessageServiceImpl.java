@@ -120,6 +120,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
     private Result<String> action(List<MarketingSyncUser> pageList, String apiCode, String tskId) {
         Result<String> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
+        Map<String, List<MarketingSyncUser>> listMap = pageList.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCellMd5));
         try {
             ArrayList<RealDataesReq> list = new ArrayList<>();
             for (MarketingSyncUser marketingSyncUser : pageList) {
@@ -187,6 +188,9 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     }
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
+                    queryUserRealMessage.setAppletDate(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getAppletDate());
+                    queryUserRealMessage.setUserType(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getUserType());
+                    queryUserRealMessage.setCell(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getCell());
                     queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());

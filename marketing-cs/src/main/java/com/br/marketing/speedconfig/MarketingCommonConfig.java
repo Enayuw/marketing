@@ -2775,5 +2775,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject rsxkToDassUserTypeConfig;
 
+    /**
+     * 奇富促动支清洗上传及Es配置
+     */
+    private Map<String,String> qiFuCleanDataConfig;
+
 }
 

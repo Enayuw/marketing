@@ -36,6 +36,11 @@ public class QueryUserRealMessage implements Serializable {
     private String uniqueReqNo;
 
     /**
+     * log加密手机号
+     */
+    private String cell;
+
+    /**
      * 手机号
      */
     private String mobileMd5;

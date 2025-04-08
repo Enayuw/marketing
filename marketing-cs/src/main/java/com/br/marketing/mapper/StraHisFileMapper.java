@@ -22,4 +22,8 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
     List<TaskTemplateVO> getFileByruleNameShorts(@Param("ruleNameShorts") List<String> ruleNameShorts, @Param("apiCode") String apiCode);
 
     List<StraHisFile> getLatestRecord(@Param("apiCode") String apiCode, @Param("scoreDate") String scoreDate);
+
+
+    StraHisFile getTaskbyDataContion(@Param("apiCode") String apiCode,@Param("appletDate") String appletDate,@Param("userType")String userType);
+
 }
