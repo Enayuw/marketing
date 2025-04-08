@@ -552,8 +552,11 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                 apiCode, seriesName, seriesNameMap, seriesErrorMsg);
 
         if (seriesInfo.isPresent()) {
+            mapping.setBrandId(seriesInfo.get().getBrandId());
+            mapping.setBrandName(seriesInfo.get().getBrandName());
             mapping.setSeriesId(seriesInfo.get().getSeriesId());
             mapping.setSeriesName(seriesInfo.get().getSeriesName());
+            mapping.setMatchingType(0);
         } else {
             mapping.setSeriesName(seriesName);
             mapping.setMatchingType(1);
