@@ -15,6 +15,10 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -45,9 +49,6 @@ public class DatabaseOperationService {
         long delay = config.getInitialDelay();
         while (retryCount <= config.getMaxRetries()) {
             try {
-                if (retryCount > 0) {
-                    log.warn("{}操作重试第{}次", operationName, retryCount);
-                }
                 if (isMock) {
                     throw new RuntimeException("mock exception");
                 }
@@ -55,12 +56,11 @@ public class DatabaseOperationService {
                 operation.execute();
                 return;
             } catch (Exception e) {
-                log.warn("{}操作失败，重试次数：{}", operationName, retryCount, e);
                 if (retryCount == config.getMaxRetries()) {
                     //获取SQL和参数
                     String sql = getSqlStatement(operation);
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(),
-                            "数据库操作异常，场景：" + operationName + ",尝试次数：" + retryCount + "执行sql：" + sql), e);
+                            "数据库操作异常，场景：" + operationName + "，尝试次数：" + retryCount + "，执行sql：" + sql), e);
                 }
                 sleep(delay);
                 if (config.isExponentialBackoff()) {
@@ -105,6 +105,7 @@ public class DatabaseOperationService {
         if (parameterMappings == null || parameterMappings.isEmpty()) {
             return sql;
         }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         for (ParameterMapping mapping : parameterMappings) {
             String property = mapping.getProperty();
             Object value;
@@ -122,6 +123,11 @@ public class DatabaseOperationService {
             // 替换占位符
             if (value instanceof String) {
                 value = "'" + value + "'";
+            }
+            if (value instanceof Date) {
+                Date date = (Date) value;
+                LocalDateTime ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                value = ldt.format(formatter);
             }
             sql = sql.replaceFirst("\\?", value.toString());
         }
