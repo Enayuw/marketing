@@ -120,14 +120,13 @@ public class DatabaseOperationService {
                 MetaObject metaObject = SystemMetaObject.forObject(parameterObject);
                 value = metaObject.getValue(property);
             }
-            // 替换占位符
-            if (value instanceof String) {
-                value = "'" + value + "'";
-            }
             if (value instanceof Date) {
                 Date date = (Date) value;
                 LocalDateTime ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
                 value = ldt.format(formatter);
+            }
+            if (value instanceof String) {
+                value = "'" + value + "'";
             }
             sql = sql.replaceFirst("\\?", value.toString());
         }
