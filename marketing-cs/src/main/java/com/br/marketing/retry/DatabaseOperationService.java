@@ -14,7 +14,7 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -35,36 +35,32 @@ public class DatabaseOperationService {
         @Builder.Default private long initialDelay = 1000L;
         @Builder.Default private long maxDelay = 5000L;
         @Builder.Default private boolean exponentialBackoff = true;
-        @Builder.Default private boolean printSqlOnError = true;
     }
 
     /**
      * 执行数据库操作（带重试和SQL打印）
      */
-    public <T> T executeWithRetry(SqlOperation<T> operation, String operationName, RetryConfig config) {
+    public void executeWithRetry(SqlOperation operation, String operationName, RetryConfig config, Boolean isMock) {
         int retryCount = 0;
         long delay = config.getInitialDelay();
-        Exception lastException = null;
         while (retryCount <= config.getMaxRetries()) {
             try {
                 if (retryCount > 0) {
                     log.warn("{}操作重试第{}次", operationName, retryCount);
                 }
+                if (isMock) {
+                    throw new RuntimeException("mock exception");
+                }
                 // 执行实际操作
-                T result = operation.execute();
-                return result;
+                operation.execute();
+                return;
             } catch (Exception e) {
-                lastException = e;
                 log.warn("{}操作失败，重试次数：{}", operationName, retryCount, e);
                 if (retryCount == config.getMaxRetries()) {
-                    if (config.isPrintSqlOnError()) {
-                        //获取SQL和参数
-                        String sql = getSqlStatement(operation);
-                    }
-                    throw new RuntimeException("操作失败，重试次数耗尽", e);
-//                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-//                            "携程撞库FALSE数据插入，单线程处理异常：packageId=" + collidingDataPackage.getId()
-//                                    + "errorMessage=" + e.getMessage()), e);
+                    //获取SQL和参数
+                    String sql = getSqlStatement(operation);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(),
+                            "数据库操作异常，场景：" + operationName + ",尝试次数：" + retryCount + "执行sql：" + sql), e);
                 }
                 sleep(delay);
                 if (config.isExponentialBackoff()) {
@@ -73,14 +69,13 @@ public class DatabaseOperationService {
                 retryCount++;
             }
         }
-        throw new RuntimeException("Unexpected error", lastException);
     }
 
     /**
      * SQL操作接口
      */
-    public interface SqlOperation<T> {
-        T execute();
+    public interface SqlOperation {
+        void execute();
         Object getParams();
         String getMapperClass();
         String getMapperMethod();
@@ -89,7 +84,7 @@ public class DatabaseOperationService {
     /**
      * 获取SQL语句
      */
-    private String getSqlStatement(SqlOperation<?> operation) {
+    private String getSqlStatement(SqlOperation operation) {
         try {
             Configuration configuration = sqlSessionFactory.getConfiguration();
             String statementId = operation.getMapperClass() + "." + operation.getMapperMethod();

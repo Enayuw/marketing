@@ -5,7 +5,6 @@ import com.br.marketing.entity.XiechengCollidingDataProcessTask;
 import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
 import com.br.marketing.retry.DatabaseOperationService;
-import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.SyncConfigService;
 import org.junit.Test;
@@ -18,7 +17,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.annotation.Resource;
-import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -60,13 +58,12 @@ public class XieChengTest {
 
         try {
             DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
-            dbService.executeWithRetry(new DatabaseOperationService.SqlOperation<Integer>() {
+            dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
                 @Override
-                public Integer execute() {
+                public void execute() {
                     XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
                     taskExample.createCriteria().andIdEqualTo(1L);
                     List<XiechengCollidingDataProcessTask> xiechengCollidingDataProcessTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(taskExample);
-                    return 1;
                 }
 
                 @Override
@@ -85,8 +82,7 @@ public class XieChengTest {
                 public String getMapperMethod() {
                     return "selectByExample";
                 }
-            },"",config);
-
+            },"",config, true);
         } catch (Exception e) {
 
         }

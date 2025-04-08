@@ -2739,5 +2739,7 @@ public class MarketingCommonConfig {
      */
     private JSONObject rsxkToDassUserTypeConfig;
 
+    private Boolean xcCollidingDataLogExceptionMock;
+
 }
 

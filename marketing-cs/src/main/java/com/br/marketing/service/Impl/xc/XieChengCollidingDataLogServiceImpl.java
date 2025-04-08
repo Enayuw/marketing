@@ -8,6 +8,8 @@ import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.entity.XiechengCollidingDataProcessTask;
+import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.retry.DatabaseOperationService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import cn.hutool.core.date.DatePattern;
@@ -196,37 +198,42 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      * @param collidingLog
      */
     private void saveLogAndMapping(XieChengCollidingDataLog collidingLog) {
-//        try {
-//            DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
-//            dbService.executeWithRetry(new DatabaseOperationService.SqlOperation<Integer>() {
-//
-//                @Override
-//                public Integer execute() {
-//                    return null;
-//                }
-//
-//                @Override
-//                public String getMapperClass() {
-//                    return null;
-//                }
-//
-//                @Override
-//                public String getMapperMethod() {
-//                    return null;
-//                }
-//            },"",config);
-//
-//        } catch (Exception e) {
-//
-//        }
-
+        // 写入日志表
         try {
-            // 写入日志表
+            if (marketingCommonConfig.getXcCollidingDataLogExceptionMock()) {
+                throw new RuntimeException("mock exception");
+            }
+            xieChengCollidingDataLogMapper.insertSelective(collidingLog);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程撞库保存日志异常！"), e);
+            DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
+            dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
+                @Override
+                public void execute() {
+                    xieChengCollidingDataLogMapper.insertSelective(collidingLog);
+                }
+                @Override
+                public Object getParams() {
+                    return collidingLog;
+                }
+                @Override
+                public String getMapperClass() {
+                    return "com.br.marketing.mapper.XieChengCollidingDataLogMapperBase";
+                }
+                @Override
+                public String getMapperMethod() {
+                    return "insertSelective";
+                }
+            },"携程撞库日志写入", config, marketingCommonConfig.getXcCollidingDataLogExceptionMock());
+        }
+
+        // 写入映射表
+        try {
             XieChengCollidingDataHitRequestNoMapping requestNoMapping = new XieChengCollidingDataHitRequestNoMapping();
             String returnContent = collidingLog.getReturnContent();
             JSONObject jsonReturnContent = JSONObject.parseObject(returnContent);
 
-            // 写入映射表
             String hitRequestNo = jsonReturnContent.getString("hitRequestNo");
             requestNoMapping.setLogId(collidingLog.getId());
             requestNoMapping.setHitRequestNo(hitRequestNo);
@@ -235,7 +242,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
             xieChengCollidingDataHitRequestNoMappingMapper.insertSelective(requestNoMapping);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                    , "携程撞库保存日志和映射表异常！"), e);
+                    , "携程撞库保存映射表异常！"), e);
         }
     }
 

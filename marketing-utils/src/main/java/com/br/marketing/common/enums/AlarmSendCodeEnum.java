@@ -76,6 +76,8 @@ public enum AlarmSendCodeEnum {
     //RocketMQ消费异常
     ROCKETMQ_CONSUMER_ERROR("76000", "RocketMQ消费异常"),
 
+    DB_ERROR("80001", "数据库异常"),
+
     //中台业务未知错误,立即推送
     YINGXIAO_SERVICEERROR("6000000", "中台业务未知错误"),
 
