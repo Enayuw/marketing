@@ -221,7 +221,8 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             bQifuClenTaskAction.setApiCode(apiCode);
             bQifuClenTaskAction.setActionDate(now);
             bQifuClenTaskAction.setCreateTime(new Date());
-            return bqifuClenTaskActionMapper.insertSelect(bQifuClenTaskAction);
+            bqifuClenTaskActionMapper.insertSelective(bQifuClenTaskAction);
+            return bqifuClenTaskActionMapper.selectByExample(bQifuClenTaskActionExample).get(0);
         } catch (Exception e) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
                             "促动支清洗记录插入异常，错误信息：" + e.getMessage()), e);
