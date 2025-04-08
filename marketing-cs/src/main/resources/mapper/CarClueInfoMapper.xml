@@ -36,6 +36,7 @@
         bcci.recording_path as recordingPath,
         bcci.call_dialog as callDiaLog,
         bcci.resource_type as resourceType,
+        bcci.call_id as callId,
         bcci.clue_error_reason as clueErrorReason
         from b_car_clue_info bcci
         <where>
