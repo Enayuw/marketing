@@ -196,35 +196,29 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      * @param collidingLog
      */
     private void saveLogAndMapping(XieChengCollidingDataLog collidingLog) {
-        try {
-            DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder()
-                    .maxRetries(3)
-                    .initialDelay(1000L)
-                    .maxDelay(5000L)
-                    .exponentialBackoff(true)
-                    .printSqlOnError(true)
-                    .build();
-            dbService.executeWithRetry(new DatabaseOperationService.SqlOperation<Integer>() {
-
-                @Override
-                public Integer execute() {
-                    return null;
-                }
-
-                @Override
-                public String getMapperClass() {
-                    return null;
-                }
-
-                @Override
-                public String getMapperMethod() {
-                    return null;
-                }
-            },"",config);
-
-        } catch (Exception e) {
-
-        }
+//        try {
+//            DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
+//            dbService.executeWithRetry(new DatabaseOperationService.SqlOperation<Integer>() {
+//
+//                @Override
+//                public Integer execute() {
+//                    return null;
+//                }
+//
+//                @Override
+//                public String getMapperClass() {
+//                    return null;
+//                }
+//
+//                @Override
+//                public String getMapperMethod() {
+//                    return null;
+//                }
+//            },"",config);
+//
+//        } catch (Exception e) {
+//
+//        }
 
         try {
             // 写入日志表

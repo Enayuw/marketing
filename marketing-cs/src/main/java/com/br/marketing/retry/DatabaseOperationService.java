@@ -1,15 +1,21 @@
 package com.br.marketing.retry;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
+import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.reflection.SystemMetaObject;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -39,51 +45,34 @@ public class DatabaseOperationService {
         int retryCount = 0;
         long delay = config.getInitialDelay();
         Exception lastException = null;
-
         while (retryCount <= config.getMaxRetries()) {
             try {
                 if (retryCount > 0) {
-                    log.info("{}操作重试第{}次", operationName, retryCount);
+                    log.warn("{}操作重试第{}次", operationName, retryCount);
                 }
-
-                // 获取SQL和参数
-                String sql = getSqlStatement(operation);
-                Map<String, Object> params = operation.getParams();
-
-                // 执行操作前打印SQL
-                logSql(sql, params);
-
                 // 执行实际操作
                 T result = operation.execute();
-
-                if (retryCount > 0) {
-                    log.info("{}操作重试成功", operationName);
-                }
-
                 return result;
-
             } catch (Exception e) {
                 lastException = e;
                 log.warn("{}操作失败，重试次数：{}", operationName, retryCount, e);
-
                 if (retryCount == config.getMaxRetries()) {
                     if (config.isPrintSqlOnError()) {
-                        // 最后一次失败时打印完整SQL信息
-                        printDetailedSqlInfo(operation, e);
+                        //获取SQL和参数
+                        String sql = getSqlStatement(operation);
                     }
                     throw new RuntimeException("操作失败，重试次数耗尽", e);
+//                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+//                            "携程撞库FALSE数据插入，单线程处理异常：packageId=" + collidingDataPackage.getId()
+//                                    + "errorMessage=" + e.getMessage()), e);
                 }
-
                 sleep(delay);
-
                 if (config.isExponentialBackoff()) {
                     delay = Math.min(delay * 2, config.getMaxDelay());
                 }
-
                 retryCount++;
             }
         }
-
         throw new RuntimeException("Unexpected error", lastException);
     }
 
@@ -92,9 +81,7 @@ public class DatabaseOperationService {
      */
     public interface SqlOperation<T> {
         T execute();
-        default Map<String, Object> getParams() {
-            return new HashMap<>();
-        }
+        Object getParams();
         String getMapperClass();
         String getMapperMethod();
     }
@@ -108,43 +95,42 @@ public class DatabaseOperationService {
             String statementId = operation.getMapperClass() + "." + operation.getMapperMethod();
             MappedStatement mappedStatement = configuration.getMappedStatement(statementId);
             BoundSql boundSql = mappedStatement.getBoundSql(operation.getParams());
-            return boundSql.getSql();
+            String completeSql = getCompleteSql(boundSql);
+            return completeSql;
         } catch (Exception e) {
             log.warn("获取SQL失败", e);
             return "无法获取SQL";
         }
     }
 
-    /**
-     * 打印SQL和参数
-     */
-    private void logSql(String sql, Map<String, Object> params) {
-        if (log.isDebugEnabled()) {
-            log.debug("执行SQL: {}", formatSql(sql));
-            log.debug("参数: {}", params);
+    public String getCompleteSql(BoundSql boundSql) {
+        String sql = boundSql.getSql();
+        Object parameterObject = boundSql.getParameterObject();
+        List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+        if (parameterMappings == null || parameterMappings.isEmpty()) {
+            return sql;
         }
-    }
-
-    /**
-     * 打印详细的SQL信息
-     */
-    private void printDetailedSqlInfo(SqlOperation<?> operation, Exception e) {
-        log.error("=== SQL执行失败详细信息 ===");
-        log.error("Mapper类: {}", operation.getMapperClass());
-        log.error("方法名: {}", operation.getMapperMethod());
-        log.error("SQL: {}", formatSql(getSqlStatement(operation)));
-        log.error("参数: {}", operation.getParams());
-        log.error("异常: ", e);
-    }
-
-    /**
-     * 格式化SQL
-     */
-    private String formatSql(String sql) {
-        if (sql == null) {
-            return "";
+        for (ParameterMapping mapping : parameterMappings) {
+            String property = mapping.getProperty();
+            Object value;
+            // 处理动态参数
+            if (boundSql.hasAdditionalParameter(property)) {
+                value = boundSql.getAdditionalParameter(property);
+            } else if (parameterObject == null) {
+                value = null;
+            } else if (parameterObject instanceof Map) {
+                value = ((Map<?, ?>) parameterObject).get(property);
+            } else {
+                MetaObject metaObject = SystemMetaObject.forObject(parameterObject);
+                value = metaObject.getValue(property);
+            }
+            // 替换占位符
+            if (value instanceof String) {
+                value = "'" + value + "'";
+            }
+            sql = sql.replaceFirst("\\?", value.toString());
         }
-        // 去除多余的空白字符
+        //格式化
         return sql.replaceAll("\\s+", " ").trim();
     }
 
