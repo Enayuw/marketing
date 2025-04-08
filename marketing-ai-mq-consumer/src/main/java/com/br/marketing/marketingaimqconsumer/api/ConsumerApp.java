@@ -2,22 +2,11 @@ package com.br.marketing.marketingaimqconsumer.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.Impl.wuba.WuBaCollidingDataQueryResultService;
-import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
-import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.TransferSyncReportService;
-import com.br.marketing.service.VariableDicService;
-import com.br.marketing.service.XieChengSmsPushToTransferService;
-import com.br.marketing.service.clean.guomei.GuoMeiDataCleanService;
-import com.br.marketing.service.clean.hengchang.HengChangDataCleanService;
-import com.br.marketing.service.clean.weiju.WeiJuDataCleanService;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
@@ -68,7 +57,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_PREUSER_RECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
+        consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
     }
 
     /**

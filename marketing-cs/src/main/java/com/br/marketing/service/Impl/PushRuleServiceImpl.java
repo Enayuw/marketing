@@ -2523,8 +2523,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
 
+        // ai客户数据发送到ai客户队列
         List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
-        if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
+        if (status && !CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(infoId);
             mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
