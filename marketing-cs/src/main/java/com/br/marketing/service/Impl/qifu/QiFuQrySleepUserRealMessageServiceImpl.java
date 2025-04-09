@@ -210,9 +210,15 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             List<BQifuClenTaskAction> bQifuClenTaskActions = bqifuClenTaskActionMapper.selectByExample(bQifuClenTaskActionExample);
             if (ObjectUtil.isNotEmpty(bQifuClenTaskActions)) {
                 QueryUserRealMessageExample messageExample = new QueryUserRealMessageExample();
-                messageExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now).andIsDeletedEqualTo(0).andStatusIn(Arrays.asList(0, 1));
+                messageExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now)
+                        .andIsDeletedEqualTo(0).andEsUpdateStatusNotEqualTo(2);
                 List<QueryUserRealMessage> queryUserRealMessages = queryUserRealMessageMapper.selectByExample(messageExample);
-                if (CollectionUtil.isEmpty(queryUserRealMessages)) {
+                QueryUserRealMessageExample example = new QueryUserRealMessageExample();
+                example.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now)
+                        .andIsDeletedEqualTo(0).andUploadUpdateStatusNotEqualTo(2);
+                List<QueryUserRealMessage> queryUserRealMessageList = queryUserRealMessageMapper.selectByExample(messageExample);
+
+                if (CollectionUtil.isEmpty(queryUserRealMessages) && CollectionUtil.isEmpty(queryUserRealMessageList)) {
                     BQifuClenTaskAction action = new BQifuClenTaskAction();
                     action.setId(bQifuClenTaskActions.get(0).getId());
                     action.setClenStatus(3);
