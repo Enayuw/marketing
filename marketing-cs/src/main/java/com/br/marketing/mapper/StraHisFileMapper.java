@@ -24,6 +24,6 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
     List<StraHisFile> getLatestRecord(@Param("apiCode") String apiCode, @Param("scoreDate") String scoreDate);
 
 
-    StraHisFile getTaskbyDataContion(@Param("apiCode") String apiCode,@Param("appletDate") String appletDate,@Param("userType")String userType);
+    StraHisFile getTaskbyDataContion(@Param("apiCode") String apiCode,@Param("condition") String condition);
 
 }

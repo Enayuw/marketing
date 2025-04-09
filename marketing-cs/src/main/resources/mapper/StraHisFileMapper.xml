@@ -92,7 +92,7 @@
             inner join b_marketing_task_extend bmte on bmt.id = bmte.task_id
         where
             shf.api_code = #{apiCode} and shf.status = 2 and shf.type = 2
-          and bmte.data_condition like CONCAT('%', #{appletDate}, '%') and bmte.data_condition like CONCAT('%', #{userType}, '%')
+          and bmte.data_condition like CONCAT('%', #{condition}, '%')
 
           and bmt.monitor_type = 1
         order by bmte.create_time desc limit 1

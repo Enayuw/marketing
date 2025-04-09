@@ -130,7 +130,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
                 Integer curAvailableQuota = tradeMsaages.getInteger("curAvailableQuota");
                 String curAvailableQuotays_derived = null;
                 if (!Objects.isNull(curAvailableQuota)) {
-                    curAvailableQuotays_derived = "[".concat(String.valueOf((curAvailableQuota * 3000 - 3000))).concat(",").concat(String.valueOf(curAvailableQuota * 3000)).concat(")");
+                    curAvailableQuotays_derived = String.valueOf((curAvailableQuota * 3000 - 3000));
                 }
 
                 JSONObject jsonObject = JSON.parseObject(sync.getReserveField1());
@@ -185,8 +185,9 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
         String finalApiCode = apiCode;
         String finalCreateDate = createDate;
         appletDateAndTypeMap.forEach((appletDate, userType) -> {
-
-            StraHisFile straHisFile = straHisFileMapper.getTaskbyDataContion(finalApiCode, appletDate, userType);
+            String condition = "{\"fieldName\":\"appletDate\",\"fieldValue\":\"".concat(appletDate).concat("\",\"operation\":\"=\"},{\"fieldName\":\"userType\",\"fieldValue\":\"")
+                    .concat(userType).concat("\",\"operation\":\"=\"}");
+            StraHisFile straHisFile = straHisFileMapper.getTaskbyDataContion(finalApiCode,condition);
             if (Objects.isNull(straHisFile)) {
                 log.warn("跑分记录未找到，appletDate={}，userType={}", appletDate, userType);
                 return;
