@@ -26,10 +26,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -192,10 +189,16 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                 }
             }
             String tradeMessage = qrm.getTradeMessage();
+            String hisSettleTime = null;
+            String curAvailableQuotays_derived = null;
             if(StringUtils.isNotBlank(tradeMessage)){
                 JSONObject object = JSON.parseObject(tradeMessage);
                 if(null != object && !object.isEmpty()){
                     String isSuccOriginal = object.getString("isSucc");
+                    hisSettleTime = object.getString("hisSettleTime");
+                    Integer curAvailableQuota = object.getInteger("curAvailableQuota");
+                    if (!Objects.isNull(curAvailableQuota)) {
+                        curAvailableQuotays_derived = String.valueOf((curAvailableQuota * 3000 - 3000));                    }
                     String[] isSuccValue = {"1","0"};
                     String[] isSuccKey = {"Y","N"};
                     isSuccOriginal = emptyDefault(isSuccOriginal);
@@ -241,6 +244,8 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             reserveField1JSON.put("operationScene", operationScene);
             reserveField1JSON.put("applyLoan", isLoan);
             reserveField1JSON.put("succAmtType",succAmtType);
+            reserveField1JSON.put("hisSettleTime",hisSettleTime);
+            reserveField1JSON.put("curAvailableQuota",curAvailableQuotays_derived);
             transferDataItemDTO.setReserveField1(reserveField1JSON.toJSONString());
             dataItems.add(transferDataItemDTO);
             idList.add(qrm.getId());

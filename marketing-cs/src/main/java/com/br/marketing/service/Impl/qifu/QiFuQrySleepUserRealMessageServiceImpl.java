@@ -152,9 +152,12 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\"," +
                             "\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
                     queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
-                    queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
+                    queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\",\"curAvailableQuota\":\"12\"}");
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
+                    queryUserRealMessage.setAppletDate(marketingSyncUser.getAppletDate());
+                    queryUserRealMessage.setUserType(marketingSyncUser.getUserType());
+                    queryUserRealMessage.setCell(marketingSyncUser.getCell());
                     queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
                     log.warn(TITLE + "挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
                 }
