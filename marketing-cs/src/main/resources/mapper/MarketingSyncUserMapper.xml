@@ -1128,7 +1128,7 @@
         <foreach collection="cellset" item="cell" open="(" separator="," close=")">
             '${cell}'
         </foreach>
-        and status=1
+        and applet_date = #{appletDate} and user_type = #{userType} and status=1
         and is_repeat in (1,2)
 
     </select>

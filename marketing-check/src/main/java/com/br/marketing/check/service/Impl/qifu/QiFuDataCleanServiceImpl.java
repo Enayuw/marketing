@@ -73,24 +73,31 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             apiCode = paramJson.getString("apiCode");
         }
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5, 20);
-        Long indexId = null;
         Integer pageSize = dynamicParameterServiceImpl.getPageSize("qiFuUploadDataClean");
-        while (true) {
-            Integer threadNum = Integer.valueOf(marketingCommonConfig.getQiFuCleanDataConfig().get("qiFuUploadDataCleanThreadNum"));
-            modifyCorePoolSize(pushPool, threadNum);
-            // 从数据库读取满足条件的数据
-            List<QueryUserRealMessage> list = queryUserRealMessageMapper.selectUserMessageByStatus(apiCode, createDate, 0,
-                    null, null, null, indexId, pageSize);
-            if (CollectionUtils.isEmpty(list)) {
-                break;
+        List<Map<String, String>> appletDateAndTypeList = queryUserRealMessageMapper.selectAppletDataByUpload(apiCode, createDate);
+        String finalApiCode = apiCode;
+        String finalCreateDate = createDate;
+        appletDateAndTypeList.forEach(map -> {
+            String appletDate = map.get("appletDate");
+            String userType = map.get("userType");
+            Long indexId = null;
+            while (true) {
+                Integer threadNum = Integer.valueOf(marketingCommonConfig.getQiFuCleanDataConfig().get("qiFuUploadDataCleanThreadNum"));
+                modifyCorePoolSize(pushPool, threadNum);
+                // 从数据库读取满足条件的数据
+                List<QueryUserRealMessage> list = queryUserRealMessageMapper.selectUserMessageByStatus(finalApiCode, finalCreateDate, 0,
+                        null, appletDate, userType, indexId, pageSize);
+                if (CollectionUtils.isEmpty(list)) {
+                    break;
+                }
+                indexId = list.get(list.size() - 1).getId();
+                // list数据按照500条切割
+                List<List<QueryUserRealMessage>> splitList = Lists.partition(list, 500);
+                splitList.forEach((List<QueryUserRealMessage> userRealMessageList) ->
+                        pushPool.submit(() -> uploadDataUpdate(userRealMessageList, appletDate, userType))
+                );
             }
-            indexId = list.get(list.size() - 1).getId();
-            // list数据按照500条切割
-            List<List<QueryUserRealMessage>> splitList = Lists.partition(list, 500);
-            splitList.forEach((List<QueryUserRealMessage> userRealMessageList) ->
-                    pushPool.submit(() -> uploadDataUpdate(userRealMessageList))
-            );
-        }
+        });
         pushPool.shutdown();
         try {
             while (!pushPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -108,14 +115,14 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
 
     }
 
-    private void uploadDataUpdate(List<QueryUserRealMessage> userRealMessageList) {
+    private void uploadDataUpdate(List<QueryUserRealMessage> userRealMessageList, String appletDate, String userType) {
 
         try {
             Map<String, List<QueryUserRealMessage>> syncuserList = userRealMessageList.stream().collect(Collectors.groupingBy(QueryUserRealMessage::getCell));
             Set<String> cellSet = userRealMessageList.stream().map(QueryUserRealMessage::getCell).collect(Collectors.toSet());
 
             String apiCode = userRealMessageList.get(0).getApiCode();
-            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCells(apiCode, cellSet);
+            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCells(apiCode, cellSet, appletDate, userType);
             StringBuilder update = new StringBuilder(String.format("UPDATE b_marketing_sync_%s SET reserve_field1 = CASE id ", apiCode));
             List<Long> ids = new ArrayList<>();
             for (MarketingSyncUser sync : marketingSyncUserList) {
@@ -197,7 +204,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             } else {
                 straHisFile = straHisFileMapper.getTaskbyDataContion(finalApiCode, condition);
             }
-            log.warn("奇富促动支更新Es数据batchNumber={}",straHisFile.getBatchNumber());
+            log.warn("奇富促动支更新Es数据batchNumber={}", straHisFile.getBatchNumber());
             if (Objects.isNull(straHisFile)) {
                 log.warn("跑分记录未找到，appletDate={}，userType={}", appletDate, userType);
                 return;
@@ -215,7 +222,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
                 }
                 indexId = list.get(list.size() - 1).getId();
                 // list数据按照500条切割
-                List<List<QueryUserRealMessage>> splitList = Lists.partition(list, 1000);
+                List<List<QueryUserRealMessage>> splitList = Lists.partition(list, 500);
                 StraHisFile finalStraHisFile = straHisFile;
                 splitList.forEach((List<QueryUserRealMessage> userRealMessageList) ->
                         pushPool.submit(() -> esDataUpdate(userRealMessageList, finalStraHisFile)
@@ -306,6 +313,20 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
         }
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(curAvailableQuotays_derived)) {
             addOrUpdateCustypeCondition(conditions, "curAvailableQuotays_derived", curAvailableQuotays_derived);
+        }
+        JSONObject userMessages = JSONObject.parseObject(queryUserRealMessage.getUserMessage());
+        String gender = userMessages.getString("sex");
+        if (StringUtils.isNotEmpty(gender)) {
+            gender = "M".equals(gender) ? "1" : "0";
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(gender)) {
+            addOrUpdateCustypeCondition(conditions, "gender", gender);
+        }
+
+
+        String name = userMessages.getString("name");
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(name)) {
+            addOrUpdateCustypeCondition(conditions, "cusName", name);
         }
 
     }

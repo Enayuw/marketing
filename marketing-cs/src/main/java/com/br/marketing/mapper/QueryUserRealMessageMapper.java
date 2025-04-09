@@ -39,6 +39,8 @@ public interface QueryUserRealMessageMapper extends QueryUserRealMessageMapperBa
      */
     void updateEsStatusByIdList(@Param("status") Integer status, @Param("idList") List<Long> idList);
 
+    List<Map<String,String>> selectAppletDataByUpload(@Param("apiCode")String apiCode, @Param("createDate")String createDate);
+
 
 
 }

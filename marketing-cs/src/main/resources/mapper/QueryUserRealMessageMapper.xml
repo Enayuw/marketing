@@ -35,7 +35,7 @@
 
         select * from b_qifu_batch_query_user_real_message
         <where>
-            <if test="uploadUpdateStatus !=null and uploadUpdateStatus!=''">
+            <if test="uploadUpdateStatus !=null">
                 and upload_update_status = #{uploadUpdateStatus}
             </if>
             <if test="esUpdateStatus !=null and esUpdateStatus!=''">
@@ -60,6 +60,16 @@
         SELECT applet_date as appletDate,
                user_type as userType
         FROM b_qifu_batch_query_user_real_message where api_code =#{apiCode} and create_date =#{createDate} and es_update_status = 0
+        GROUP BY applet_date,
+                 user_type
+        ORDER BY applet_date desc, user_type desc;
+    </select>
+
+
+    <select id="selectAppletDataByUpload" resultType="java.util.Map">
+        SELECT applet_date as appletDate,
+               user_type as userType
+        FROM b_qifu_batch_query_user_real_message where api_code =#{apiCode} and create_date =#{createDate} and upload_update_status = 0
         GROUP BY applet_date,
                  user_type
         ORDER BY applet_date desc, user_type desc;
