@@ -643,7 +643,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             log.error("更新品牌补充映射表失败", e);
         }
     }
-    //-----
+
     /**
      * 匹配省市类型
      * @param carClueInitMapping
@@ -756,7 +756,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         for (String name : names) {
             String searchKey = name.trim().replaceAll("市$", "");
-            String matchedKey = findMatchedKey(searchKey, nameMap); // 查找匹配的Key
+            String matchedKey = findMatchedKey(searchKey, nameMap);
 
             if (nameMap.containsKey(matchedKey) && !CollectionUtils.isEmpty(nameMap.get(matchedKey))) {
                 if (!isFirst) {
@@ -783,10 +783,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private String findMatchedKey(String searchKey, Map<String, List<CarClueProvincesInformation>> nameMap) {
         for (String key : nameMap.keySet()) {
             if (key.contains(searchKey)) {
-                return key; // 返回匹配到的标准Key（如："广东省"）
+                // 返回匹配到的标准Key（如："广东省"）
+                return key;
             }
         }
-        return searchKey; // 未匹配时返回原Key
+        // 未匹配时返回原Key
+        return searchKey;
     }
 
     private List<CarClueSupplement> queryClueSupplement(String apiCode, String oldName,Integer type){
