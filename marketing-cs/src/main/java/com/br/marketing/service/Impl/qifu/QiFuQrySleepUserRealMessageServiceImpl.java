@@ -212,13 +212,13 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 QueryUserRealMessageExample messageExample = new QueryUserRealMessageExample();
                 messageExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now)
                         .andIsDeletedEqualTo(0).andEsUpdateStatusNotEqualTo(2);
-                List<QueryUserRealMessage> queryUserRealMessages = queryUserRealMessageMapper.selectByExample(messageExample);
+                long count = queryUserRealMessageMapper.countByExample(messageExample);
                 QueryUserRealMessageExample example = new QueryUserRealMessageExample();
                 example.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now)
                         .andIsDeletedEqualTo(0).andUploadUpdateStatusNotEqualTo(2);
-                List<QueryUserRealMessage> queryUserRealMessageList = queryUserRealMessageMapper.selectByExample(messageExample);
+                long countByExample = queryUserRealMessageMapper.countByExample(example);
 
-                if (CollectionUtil.isEmpty(queryUserRealMessages) && CollectionUtil.isEmpty(queryUserRealMessageList)) {
+                if (count == 0 && countByExample == 0) {
                     BQifuClenTaskAction action = new BQifuClenTaskAction();
                     action.setId(bQifuClenTaskActions.get(0).getId());
                     action.setClenStatus(3);
