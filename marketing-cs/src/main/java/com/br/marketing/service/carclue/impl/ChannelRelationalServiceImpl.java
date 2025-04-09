@@ -535,13 +535,13 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                                             carClueRelationalMapping, seriesNameMap, carClueRelationalMappings,
                                             stringBuilder));
 
-                    Optional<CarClueRelationalMapping> firstMatch = carClueRelationalMappings.stream()
-                            .filter(mapping -> mapping.getMatchingType() == 0)
-                            .findFirst();
-                    //品牌未匹配到，但车系反找到品牌，则需要增加映射记录
-                    if (carClueRelationalMapping.getMatchingType() == 1 && firstMatch.isPresent()) {
-                        CarClueRelationalMapping clueRelationalMapping = firstMatch.get();
-                        updateBrandSupplementMapping(apiCode,carClueRelationalMapping.getBrandName(),clueRelationalMapping.getBrandName());
+                    if(!CollectionUtils.isEmpty(carClueRelationalMappings)){
+                        CarClueRelationalMapping mapping = carClueRelationalMappings.get(carClueRelationalMappings.size() - 1);
+
+                        //品牌未匹配到，但车系反找到品牌，则需要增加映射记录
+                        if (carClueRelationalMapping.getMatchingType() == 1 && mapping.getMatchingType() == 0) {
+                            updateBrandSupplementMapping(apiCode,carClueRelationalMapping.getBrandName(),mapping.getBrandName());
+                        }
                     }
 
                     if (carClueRelationalMappings.size() >= 500) {
@@ -589,7 +589,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         // 匹配成功的情况
         CarClueSeriesInformation matchedSeries = seriesInfo.get();
-        int matchingType = carClueRelationalMapping.getMatchingType();
+        int matchingType = mapping.getMatchingType();
 
         if (matchingType == 1) {
             // 品牌赋值失败但车系匹配成功，覆盖品牌信息
@@ -601,10 +601,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         } else if (!mapping.getBrandName().equals(matchedSeries.getBrandName())) {
             // 品牌不一致的情况
             seriesErrorMsg
-                    .append("车系：").append(seriesName)
-                    .append("，原品牌和匹配品牌不一致，原品牌：").append(carClueRelationalMapping.getBrandName())
-                    .append("，匹配品牌：").append(matchedSeries.getBrandName())
-                    .append(seriesName).append(" | ");
+                    .append("【车系：").append(seriesName).append("】")
+                    .append("原品牌和匹配品牌不一致，原品牌：").append(mapping.getBrandName())
+                    .append("，匹配品牌：").append(matchedSeries.getBrandName());
 
             mapping.setSeriesName(seriesName);
             mapping.setMatchingType(1);
