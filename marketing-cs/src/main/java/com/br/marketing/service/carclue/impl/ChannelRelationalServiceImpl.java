@@ -576,12 +576,14 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         StringBuilder seriesErrorMsg = new StringBuilder();
 
         Optional<CarClueSeriesInformation> seriesInfo = matchSeries(
-                apiCode, seriesName, seriesNameMap, seriesErrorMsg, carClueRelationalMapping);
+                apiCode, seriesName, seriesNameMap, seriesErrorMsg);
 
         if (!seriesInfo.isPresent()) {
             // 匹配失败的情况
             mapping.setSeriesName(seriesName);
             mapping.setMatchingType(1);
+            mapping.setMatchingCause(stringBuilder.toString() + seriesErrorMsg);
+            carClueRelationalMappings.add(mapping);
             return;
         }
 
@@ -598,10 +600,11 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             mapping.setMatchingType(0);
         } else if (!mapping.getBrandName().equals(matchedSeries.getBrandName())) {
             // 品牌不一致的情况
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    "原品牌和匹配品牌不一致，原品牌：" + carClueRelationalMapping.getBrandName() +
-                            "，匹配品牌：" + matchedSeries.getBrandName()));
+            seriesErrorMsg
+                    .append("车系：").append(seriesName)
+                    .append("，原品牌和匹配品牌不一致，原品牌：").append(carClueRelationalMapping.getBrandName())
+                    .append("，匹配品牌：").append(matchedSeries.getBrandName())
+                    .append(seriesName).append(" | ");
 
             mapping.setSeriesName(seriesName);
             mapping.setMatchingType(1);
@@ -640,7 +643,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private Optional<CarClueSeriesInformation> matchSeries(String apiCode,
                                                            String seriesName,
                                                            Map<String, List<CarClueSeriesInformation>> seriesNameMap,
-                                                           StringBuilder errorMsg,CarClueRelationalMapping baseMapping) {
+                                                           StringBuilder errorMsg) {
         // 1. 尝试直接匹配
         List<CarClueSeriesInformation> seriesList = seriesNameMap.get(seriesName);
         if (!CollectionUtils.isEmpty(seriesList)) {
