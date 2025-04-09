@@ -188,7 +188,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
 
             StraHisFile straHisFile = straHisFileMapper.getTaskbyDataContion(finalApiCode, appletDate, userType);
             if (Objects.isNull(straHisFile)) {
-                log.warn("跑分记录为找到，appletDate={}，userType={}", appletDate, userType);
+                log.warn("跑分记录未找到，appletDate={}，userType={}", appletDate, userType);
                 return;
             }
             Long indexId = null;
@@ -299,7 +299,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
         Integer curAvailableQuota = tradeMsaages.getInteger("curAvailableQuota");
         String curAvailableQuotays_derived = null;
         if (!Objects.isNull(curAvailableQuota)) {
-            curAvailableQuotays_derived = "[".concat(String.valueOf((curAvailableQuota * 3000 - 3000))).concat(",").concat(String.valueOf(curAvailableQuota * 3000)).concat(")");
+            curAvailableQuotays_derived = String.valueOf((curAvailableQuota * 3000 - 3000));
         }
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(curAvailableQuotays_derived)) {
             addOrUpdateCustypeCondition(conditions, "curAvailableQuotays_derived", curAvailableQuotays_derived);
