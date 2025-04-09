@@ -23,6 +23,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.carclue.ChannelRelationalService;
+import com.br.marketing.service.carclue.clueenums.CarInformationTypeEnum;
 import com.br.marketing.service.carclue.clueenums.ChannelRule;
 import com.br.marketing.service.carclue.clueenums.ProvinceTypeEnum;
 import com.br.marketing.service.carclue.web.impl.CarClueReportServiceImpl;
@@ -388,42 +389,60 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         }
     }
 
-    private void buildYcCar(String task,String provincesType) {
+    private void buildYcCar(String task, String provincesType) {
+        // 1. 获取易车车辆数据
         Result<JSONArray> ycCarResult = carClueClient.getYcCar(task);
 
         if (!ResultCode.SUCCESS.getValue().equals(ycCarResult.getCode())) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    TITL + "易车，车辆信息获取异常, provincesType:" + provincesType +", result:"+ ycCarResult.getMessage()));
+                    TITL + "易车，车辆信息获取异常, provincesType:" + provincesType + ", result:" + ycCarResult.getMessage()));
             return;
         }
+
         JSONArray jsonArray = ycCarResult.getData();
         if (jsonArray == null || jsonArray.isEmpty()) {
-            log.warn(TITL + "易车，车辆信息获取异常，返回数据为空, provincesType = {}",provincesType);
+            log.warn(TITL + "易车，车辆信息获取异常，返回数据为空, provincesType = {}", provincesType);
             return;
         }
+
         List<String> apiCodes = carClueReportServiceImpl.getValueByKey(provincesType);
         List<CarClueSeriesInformation> list = new ArrayList<>();
+
+        // 2. 用于去重的Set
+        Set<Integer> processedSeriesIds = new HashSet<>();
+
         for (int i = 0; i < jsonArray.size(); i++) {
             JSONObject firstData = jsonArray.getJSONObject(i);
+            Integer seriesId = firstData.getInteger("seriesId");
+
+            // 3. 检查是否已处理过该seriesId
+            if (processedSeriesIds.contains(seriesId)) {
+                continue;
+            }
+            processedSeriesIds.add(seriesId);
+
             for (String apiCode : apiCodes) {
                 CarClueSeriesInformation info = new CarClueSeriesInformation();
                 info.setApiCode(apiCode);
                 info.setBrandId(firstData.getInteger("brandId"));
                 info.setBrandName(firstData.getString("brandName"));
-                info.setSeriesId(firstData.getInteger("seriesId"));
+                info.setSeriesId(seriesId);
                 info.setSeriesName(firstData.getString("seriesName"));
                 list.add(info);
             }
+
+            // 批量插入
             if (list.size() >= 500) {
                 carClueSeriesInformationMapper.batchInsert(list);
                 list.clear();
             }
         }
-        // 插入剩余的数据
+        // 4. 插入剩余的数据
         if (!list.isEmpty()) {
             carClueSeriesInformationMapper.batchInsert(list);
         }
     }
+
 
     @Override
     public void relationalMapping() {
@@ -516,6 +535,15 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                                             carClueRelationalMapping, seriesNameMap, carClueRelationalMappings,
                                             stringBuilder));
 
+                    Optional<CarClueRelationalMapping> firstMatch = carClueRelationalMappings.stream()
+                            .filter(mapping -> mapping.getMatchingType() == 0)
+                            .findFirst();
+                    //品牌未匹配到，但车系反找到品牌，则需要增加映射记录
+                    if (carClueRelationalMapping.getMatchingType() == 1 && firstMatch.isPresent()) {
+                        CarClueRelationalMapping clueRelationalMapping = firstMatch.get();
+                        updateBrandSupplementMapping(apiCode,carClueRelationalMapping.getBrandName(),clueRelationalMapping.getBrandName());
+                    }
+
                     if (carClueRelationalMappings.size() >= 500) {
                         carClueRelationalMappingMapper.batchInsert(carClueRelationalMappings);
                         carClueRelationalMappings.clear();
@@ -539,32 +567,55 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      */
     private void processSingleSeriesMatch(String apiCode,
                                           String seriesName,
-                                          CarClueRelationalMapping baseMapping,
+                                          CarClueRelationalMapping carClueRelationalMapping,
                                           Map<String, List<CarClueSeriesInformation>> seriesNameMap,
-                                          List<CarClueRelationalMapping> resultMappings,
+                                          List<CarClueRelationalMapping> carClueRelationalMappings,
                                           StringBuilder stringBuilder) {
 
-        CarClueRelationalMapping mapping = createMappingCopy(baseMapping);
+        CarClueRelationalMapping mapping = createMappingCopy(carClueRelationalMapping);
         StringBuilder seriesErrorMsg = new StringBuilder();
 
-        // 尝试匹配车系
         Optional<CarClueSeriesInformation> seriesInfo = matchSeries(
-                apiCode, seriesName, seriesNameMap, seriesErrorMsg);
+                apiCode, seriesName, seriesNameMap, seriesErrorMsg, carClueRelationalMapping);
 
-        if (seriesInfo.isPresent()) {
-            mapping.setBrandId(seriesInfo.get().getBrandId());
-            mapping.setBrandName(seriesInfo.get().getBrandName());
-            mapping.setSeriesId(seriesInfo.get().getSeriesId());
-            mapping.setSeriesName(seriesInfo.get().getSeriesName());
-            mapping.setMatchingType(0);
-        } else {
+        if (!seriesInfo.isPresent()) {
+            // 匹配失败的情况
             mapping.setSeriesName(seriesName);
             mapping.setMatchingType(1);
+            return;
+        }
+
+        // 匹配成功的情况
+        CarClueSeriesInformation matchedSeries = seriesInfo.get();
+        int matchingType = carClueRelationalMapping.getMatchingType();
+
+        if (matchingType == 1) {
+            // 品牌赋值失败但车系匹配成功，覆盖品牌信息
+            mapping.setBrandId(matchedSeries.getBrandId());
+            mapping.setBrandName(matchedSeries.getBrandName());
+            mapping.setSeriesId(matchedSeries.getSeriesId());
+            mapping.setSeriesName(matchedSeries.getSeriesName());
+            mapping.setMatchingType(0);
+        } else if (!mapping.getBrandName().equals(matchedSeries.getBrandName())) {
+            // 品牌不一致的情况
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "原品牌和匹配品牌不一致，原品牌：" + carClueRelationalMapping.getBrandName() +
+                            "，匹配品牌：" + matchedSeries.getBrandName()));
+
+            mapping.setSeriesName(seriesName);
+            mapping.setMatchingType(1);
+
+        } else {
+            // 完全匹配成功的情况
+            mapping.setSeriesId(matchedSeries.getSeriesId());
+            mapping.setSeriesName(matchedSeries.getSeriesName());
+            mapping.setMatchingType(0);
         }
 
         // 合并错误信息
         mapping.setMatchingCause(stringBuilder.toString() + seriesErrorMsg);
-        resultMappings.add(mapping);
+        carClueRelationalMappings.add(mapping);
 
         // 记录警告信息
         if (seriesErrorMsg.length() > 0) {
@@ -589,21 +640,26 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     private Optional<CarClueSeriesInformation> matchSeries(String apiCode,
                                                            String seriesName,
                                                            Map<String, List<CarClueSeriesInformation>> seriesNameMap,
-                                                           StringBuilder errorMsg) {
+                                                           StringBuilder errorMsg,CarClueRelationalMapping baseMapping) {
         // 1. 尝试直接匹配
         List<CarClueSeriesInformation> seriesList = seriesNameMap.get(seriesName);
         if (!CollectionUtils.isEmpty(seriesList)) {
-            updateBrandSupplementMapping(apiCode, seriesName, seriesList.get(0).getBrandName());
             return Optional.of(seriesList.get(0));
         }
 
         // 2. 尝试补充匹配
-        List<CarClueSupplement> supplements = queryClueSupplement(apiCode, seriesName, 1);
+        List<CarClueSupplement> supplements = queryClueSupplement(apiCode, seriesName, CarInformationTypeEnum.SERIES.getValue());
         if (CollectionUtils.isEmpty(supplements)) {
             errorMsg.append("未匹配到该车系：").append(seriesName).append(" | ");
             return Optional.empty();
         }
-
+        if (supplements.size() > 1) {
+            errorMsg.append("补充表匹配出多个车系：").append(seriesName).append(" | ");
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "补充表匹配出多个车系：" + apiCode + seriesName));
+            return Optional.empty();
+        }
         // 3. 处理补充匹配结果
         String alternativeName = supplements.get(0).getNewName();
         List<CarClueSeriesInformation> alternativeSeries = seriesNameMap.get(alternativeName);
@@ -618,10 +674,6 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         // 4. 处理品牌映射更新
         CarClueSeriesInformation matchedSeries = alternativeSeries.get(0);
-        if (!matchedSeries.getBrandName().equals(seriesName)) {
-            updateBrandSupplementMapping(apiCode, seriesName, matchedSeries.getBrandName());
-        }
-
         return Optional.of(matchedSeries);
     }
 
@@ -629,11 +681,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      * 更新品牌补充映射表
      */
     private void updateBrandSupplementMapping(String apiCode, String oldName, String newName) {
+
         CarClueSupplement supplement = new CarClueSupplement();
         supplement.setApiCode(apiCode);
         supplement.setOldName(oldName);
         supplement.setNewName(newName);
-        supplement.setType(1);
+        supplement.setType(CarInformationTypeEnum.BRAND.getValue());
         supplement.setCreateTime(new Date());
         supplement.setUpdateTime(new Date());
 
@@ -675,7 +728,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                                    CarClueInitMapping carClueInitMapping, Map<String, List<CarClueProvincesInformation>> provinceNameMap,
                                    Map<String, List<CarClueProvincesInformation>> cityNameMap, Map<String, List<CarClueSeriesInformation>> brandNameMap) {
 
-        // 调用优化后的方法处理省份和城市
+        // 处理省份和城市
         String satisfyProvinceName = carClueInitMapping.getSatisfyProvinceName();
         if (satisfyProvinceName != null) {
             String processedNames = processRegionNames(satisfyProvinceName, provinceNameMap, "未匹配到该省：", stringBuilder);
@@ -700,17 +753,17 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             carClueRelationalMapping.setExcludeCityName(processedNames);
         }
 
-        // 尝试从品牌映射中获取品牌信息列表
+        // 从品牌映射中获取品牌信息列表
         List<CarClueSeriesInformation> brandInfoList = brandNameMap.get(carClueInitMapping.getBrandName());
 
-        // 如果品牌映射中直接找到匹配项
+        // 品牌映射中直接找到匹配项
         if (!CollectionUtils.isEmpty(brandInfoList)) {
             carClueRelationalMapping.setBrandId(brandInfoList.get(0).getBrandId());
             return;
         }
         // 未直接匹配时，查询补充数据表
         List<CarClueSupplement> supplements = queryClueSupplement(carClueRelationalMapping.getApiCode(),
-                carClueInitMapping.getBrandName(),0);
+                carClueInitMapping.getBrandName(), CarInformationTypeEnum.BRAND.getValue());
 
         // 补充表中无匹配记录
         if (CollectionUtils.isEmpty(supplements)) {

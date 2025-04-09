@@ -173,6 +173,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 reserveField1.put("city", city);
                                 reserveField1.put("member", (member + fullCall));
                                 reserveField1.put("resourceType", resourceType);
+                                reserveField1.put("callId", callRecord.getSessionId());
                                 marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
                                 dataItems.add(marketingPreUserDetailDTO);
                                 successRecords.add(callRecordLog);
