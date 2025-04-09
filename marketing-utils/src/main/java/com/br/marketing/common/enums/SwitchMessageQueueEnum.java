@@ -1,5 +1,6 @@
 package com.br.marketing.common.enums;
 
+import com.br.marketing.common.utils.AiMQConstants;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,17 +13,28 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 public enum SwitchMessageQueueEnum {
-    MARKETING_AI_PREUSER_RECEIVE("Marketing.Ai.PreUser.Receive", "MARKETING_AI_PREUSER_RECEIVE",
-            ImmutableMap.of("Marketing.Ai.PreUser.Receive.1", "MARKETING_AI_PREUSER_RECEIVE_1", "Marketing.Ai.PreUser.Receive.2",
-                    "MARKETING_AI_PREUSER_RECEIVE_2"), "AI上传数据队列"),
+    MARKETING_AI_PREUSER_RECEIVE("aiPreuserReceive",
+            ImmutableMap.of(AiMQConstants.MARKETING_AI_PREUSER_RECEIVE, AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE,
+                    AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_1, AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_1,
+                    AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_2, AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_2), "AI上传数据队列"),
 
-    MARKETING_AI_UNIVERSAL_RECEIVE("Marketing.Ai.Universal.Receive", "MARKETING_AI_UNIVERSAL_RECEIVE",
-            ImmutableMap.of("Marketing.Ai.Universal.Receive", "MARKETING_AI_UNIVERSAL_RECEIVE_1", "Marketing.Ai.Universal.Receive.2",
-                    "MARKETING_AI_UNIVERSAL_RECEIVE_2"), "AI推送下游通用队列");
+    MARKETING_AI_UNIVERSAL_RECEIVE("aiUniversalReceive",
+            ImmutableMap.of(AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE, AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE,
+                    AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_1, AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_1,
+                    AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_2, AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_2), "AI推送下游通用队列");
 
 
-    private final String route_key;
-    private final String default_queue;
-    private final Map<String, String> standby_queue;
+    private final String queueType;
+    private final Map<String, String> queueAndRoutingKeyMap;
     private final String desc;
+
+    public static SwitchMessageQueueEnum getSwitchMessageQueueEnum(String queueType) {
+        for (SwitchMessageQueueEnum switchMessageQueueEnum : SwitchMessageQueueEnum.values()) {
+            if (switchMessageQueueEnum.getQueueType().equals(queueType)) {
+                return switchMessageQueueEnum;
+            }
+        }
+
+        return null;
+    }
 }

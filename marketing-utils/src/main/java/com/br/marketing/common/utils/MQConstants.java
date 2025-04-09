@@ -107,13 +107,6 @@ public class MQConstants {
     public static final String MARKETING_GUOMEI_BLACK_DATA_CLEAN_QUEUE = "marketing_guomei_black_data_clean_queue";
     public static final String MARKETING_HENGCHANG_DATA_CLEAN_QUEUE = "marketing_hengchang_data_clean_queue";
     public static final String MARKETING_WUBA_COLLIDING_ELIMINATE_QUEUE = "marketing_wuba_colliding_eliminate_queue";
-    // AI上传数据队列
-    public static final String MARKETING_AI_PREUSER_RECEIVE = "marketing_ai_preuser_receive";
-    // AI上传数据错误重试延迟队列
-    public static final String MARKETING_AI_PREUSER_RECEIVE_ERROR_DELAY = "marketing_ai_preuser_receive_Error_Delay";
-    // AI推送下游通用队列
-    public static final String MARKETING_AI_UNIVERSAL_RECEIVE = "marketing_ai_universal_receive";
-
     // PP榕树打标生成清洗任务
     public static final String MARKETING_PP_RONGSHU_MARK_CREATE_CLEAN_TASK_QUEUE = "marketing_pp_rongshu_mark_create_clean_task_queue";
 
@@ -222,13 +215,6 @@ public class MQConstants {
 
     public static final String ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN = "marketing.guomei.black.data.clean";
     public static final String ROUTING_KEY_MARKETING_WUBA_COLLIDING_ELIMINATE = "marketing.wuba.colliding.eliminate";
-
-    // AI上传数据队列路由键
-    public static final String ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE = "Marketing.Ai.PreUser.Receive";
-    // AI上传数据错误重试延迟队列路由键
-    public static final String ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY = "Marketing.Ai.PreUser.Receive.Error.Delay";
-    // AI推送下游通用队列路由键
-    public static final String ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE = "Marketing.Ai.Universal.Receive";
 
     public static final String ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE = "marketing.wuba.old.colliding.eliminate";
     // PP榕树打标生成清洗任务

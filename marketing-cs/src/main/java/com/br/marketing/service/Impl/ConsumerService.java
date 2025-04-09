@@ -1,12 +1,17 @@
 package com.br.marketing.service.Impl;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +23,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
+
+import static com.br.marketing.common.enums.SwitchMessageQueueEnum.getSwitchMessageQueueEnum;
 
 @Service
 public class ConsumerService {
@@ -35,6 +45,11 @@ public class ConsumerService {
     private RabbitMqProducter producter;
 
     public static Boolean consumerDownStatus = Boolean.FALSE;
+
+    @Autowired
+    RedisChgService redisChgService;
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
 
     /**
      * rabbitMQ消费端
@@ -103,6 +118,58 @@ public class ConsumerService {
         for (int i=0;i<consumerNum;i++){
             log.warn("开始初始化 pulsar 消费端 method:{},subscription:{},topic:{}", method.toString(), subscription, topic);
             new PulsarConsumerThread(method,subscription,topic).start();
+        }
+    }
+
+    /**
+     * rabbitMQ消费端，数据消费后根据队列积压情况切换队列
+     * @param channel 渠道
+     * @param message 消费消息
+     * @param method 消费业务
+     * @param t 消费信息
+     * @param retryRouteKey 重试路由key
+     * @param <T> 消费消息类型
+     */
+    public <T> void consumerRunAndSwitchQueue(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey,
+                                              String queueType, String queueName) {
+        consumerRun(channel, message, method, t, retryRouteKey);
+        switchQueue(channel, queueType, queueName);
+    }
+
+    private void switchQueue(Channel channel, String queueType, String queueName) {
+        try {
+            AMQP.Queue.DeclareOk declareOk = channel.queueDeclarePassive(queueName);
+            int currentMsgCount = declareOk.getMessageCount();
+            if (currentMsgCount <= marketingCommonConfig.getSwitchMqMaxMsgCount()) {
+                return;
+            }
+
+            SwitchMessageQueueEnum queueEnum = getSwitchMessageQueueEnum(queueType);
+            if (queueEnum == null) {
+                return;
+            }
+
+            Map<String, Integer> queueNameAndMsgCountMap = new HashMap<>();
+            Map<String, String> queueAndRoutingKeyMap = queueEnum.getQueueAndRoutingKeyMap();
+            for (String key : queueAndRoutingKeyMap.keySet()) {
+                queueNameAndMsgCountMap.put(key, channel.queueDeclarePassive(key).getMessageCount());
+            }
+
+            String winnerQueueName =
+                    queueNameAndMsgCountMap.entrySet().stream()
+                            .min(Comparator.comparingInt(Map.Entry::getValue))
+                            .map(Map.Entry::getKey).orElse(queueName);
+
+            if (queueName.equals(winnerQueueName)) {
+                return;
+            }
+
+            String winnerRoutingKey = queueAndRoutingKeyMap.get(winnerQueueName);
+            redisChgService.set(RedisKeyConstant.prefix.concat(queueType), winnerRoutingKey);
+            log.warn("当前消费队列：{}，切换到最小压力队列：{}", queueName, winnerQueueName);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                    , "mq消费端，数据消费后，队列切换出现异常"), e);
         }
     }
 

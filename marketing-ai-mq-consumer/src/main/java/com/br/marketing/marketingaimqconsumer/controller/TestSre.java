@@ -2,6 +2,7 @@ package com.br.marketing.marketingaimqconsumer.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MerchantParam;
@@ -74,7 +75,7 @@ public class TestSre {
             log.warn("redis-value:{}", redisChgService.get(value));
         }
         if ("rabbitmq".equals(key)) {
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE, String.valueOf(value));
+            rabbitMqProducter.send(AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE, String.valueOf(value));
             log.warn("rabbitmq-成功");
         }
         if ("tidb".equals(key)) {

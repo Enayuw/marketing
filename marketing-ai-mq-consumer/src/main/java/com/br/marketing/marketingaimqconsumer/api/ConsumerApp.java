@@ -2,6 +2,8 @@ package com.br.marketing.marketingaimqconsumer.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
@@ -50,15 +52,48 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_AI_PREUSER_RECEIVE, durable = "true")
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_PREUSER_RECEIVE, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE)}, containerFactory = "concurrentContainerFactory")
+            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE)}, containerFactory = "concurrentContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
         log.warn("MARKETING_AI_PREUSER_RECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o,
-                MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
+        consumerService.consumerRunAndSwitchQueue(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY,
+                SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(), AiMQConstants.MARKETING_AI_PREUSER_RECEIVE);
+    }
+    /**
+     * 消费 AI上传数据消费端-备用1
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_1, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_1)}, containerFactory = "concurrentContainerFactory")
+    public void consumerPreUser1(Channel channel, Message message) {
+        log.warn("MARKETING_AI_PREUSER_RECEIVE_1：获取消息成功");
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRunAndSwitchQueue(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY,
+                SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(), AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_1);
+    }
+    /**
+     * 消费 AI上传数据消费端-备用2
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_2, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_2)}, containerFactory = "concurrentContainerFactory")
+    public void consumerPreUser2(Channel channel, Message message) {
+        log.warn("MARKETING_AI_PREUSER_RECEIVE_2：获取消息成功");
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRunAndSwitchQueue(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY,
+                SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(), AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_2);
     }
 
     /**
@@ -66,13 +101,46 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_AI_UNIVERSAL_RECEIVE, durable = "true")
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE)}, containerFactory = "concurrentContainerFactory")
+            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE)}, containerFactory = "concurrentContainerFactory")
     public void consumerUniversalTransfer(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o,
-                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
+        consumerService.consumerRunAndSwitchQueue(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+                AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE);
+    }
+
+    /**
+     * 消费 AI推送下游数据消费端-备用1
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_1, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_1)}, containerFactory = "concurrentContainerFactory")
+    public void consumerUniversalTransfer1(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        /*消费逻辑*/
+        consumerService.consumerRunAndSwitchQueue(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+                AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_1);
+    }
+
+    /**
+     * 消费 AI推送下游数据消费端-备用2
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_2, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_2)}, containerFactory = "concurrentContainerFactory")
+    public void consumerUniversalTransfer2(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        /*消费逻辑*/
+        consumerService.consumerRunAndSwitchQueue(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+                AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_2);
     }
 }

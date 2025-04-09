@@ -2,7 +2,14 @@ package com.br.marketing.rabbitmq;
 
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.MrpMqFact;
 import org.slf4j.Logger;
@@ -25,6 +32,9 @@ public class RabbitMqProducter {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    RedisChgService redisChgService;
 
 
     @PostConstruct
@@ -131,10 +141,21 @@ public class RabbitMqProducter {
     public void sendToAIUniversalQueue(MqFact mqFact) {
         String message = JSON.toJSONString(mqFact);
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
-        // todo查redis
-        rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE, message, arg0 -> {
+
+        String aiUniversalRoutingKey = "";
+        try {
+            aiUniversalRoutingKey =
+                    redisChgService.get(RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType()));
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                    , "ai客户数据推送下游，获取redis路由键失败，数据进入默认队列"), e);
+        }
+
+        aiUniversalRoutingKey = StringUtils.isEmpty(aiUniversalRoutingKey) ? AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE :
+                aiUniversalRoutingKey;
+        rabbitTemplate.convertAndSend(exchange, aiUniversalRoutingKey, message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             return arg0;
-        },correlationData);
+        }, correlationData);
     }
 }

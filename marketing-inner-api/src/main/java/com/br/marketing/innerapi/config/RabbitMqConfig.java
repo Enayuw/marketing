@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.config;
 
+import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -113,16 +114,16 @@ public class RabbitMqConfig {
      *
      * @return
      */
-    @Bean(name = MQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_DELAY)
+    @Bean(name = AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_DELAY)
     public Queue aiPreUserReceiveErrorDelayQueue() {
         Map<String, Object> args = new HashMap<>(2);
         // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
         args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
         // x-dead-letter-routing-key  这里声明当前队列的死信路由key
-        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
+        args.put("x-dead-letter-routing-key", AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
         // x-message-ttl  声明队列的TTL 5分钟静置时间
         args.put("x-message-ttl", 300000);
-        return QueueBuilder.durable(MQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_DELAY).withArguments(args).build();
+        return QueueBuilder.durable(AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_DELAY).withArguments(args).build();
     }
 
     /**
@@ -170,7 +171,7 @@ public class RabbitMqConfig {
     public Binding aiPreUserReceiveQueueErrorDelayBinding() {
         return BindingBuilder.bind(aiPreUserReceiveErrorDelayQueue())
                 .to(gateExchange())
-                .with(MQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
+                .with(AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
     }
 
     /**
