@@ -212,6 +212,9 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             bQifuClenTaskActionExample.setOrderByClause("create_time desc");
             List<BQifuClenTaskAction> bQifuClenTaskActions = bqifuClenTaskActionMapper.selectByExample(bQifuClenTaskActionExample);
             if (ObjectUtil.isNotEmpty(bQifuClenTaskActions)) {
+                if (bQifuClenTaskActions.get(0).getClenStatus() == 3) {
+                    return null;
+                }
                 QueryUserRealMessageExample messageExample = new QueryUserRealMessageExample();
                 messageExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now)
                         .andIsDeletedEqualTo(0).andEsUpdateStatusNotEqualTo(2);
