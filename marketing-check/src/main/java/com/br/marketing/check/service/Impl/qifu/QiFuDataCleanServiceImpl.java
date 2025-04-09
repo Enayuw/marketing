@@ -204,11 +204,11 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             } else {
                 straHisFile = straHisFileMapper.getTaskbyDataContion(finalApiCode, condition);
             }
-            log.warn("奇富促动支更新Es数据batchNumber={}", straHisFile.getBatchNumber());
             if (Objects.isNull(straHisFile)) {
-                log.warn("跑分记录未找到，appletDate={}，userType={}", appletDate, userType);
+                log.warn("奇富促动支跑分记录未找到，appletDate={}，userType={}", appletDate, userType);
                 return;
             }
+            log.warn("奇富促动支更新Es数据batchNumber={}", straHisFile.getBatchNumber());
             Long indexId = null;
             while (true) {
                 Integer threadNum = Integer.valueOf(marketingCommonConfig.getQiFuCleanDataConfig().get("qiFuEsDataCleanThreadNum"));
