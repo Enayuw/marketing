@@ -98,4 +98,10 @@
         order by bmte.create_time desc limit 1
     </select>
 
+    <select id="getStFileByBatchNumber" resultType="com.br.marketing.entity.StraHisFile">
+        select *
+        from stra_his_file
+        where batch_number = #{batchNumber}
+    </select>
+
 </mapper>

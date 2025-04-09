@@ -73,10 +73,6 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
         Integer pageSize = marketingCommonConfig.getQiFuQryUserMessageSize();
 
         Set<String> taskIdSet = configList.stream().map(MarketingCustomizeDataValidConfig::getTaskId).collect(Collectors.toSet());
-        BQifuClenTaskAction clenTaskAction = new BQifuClenTaskAction();
-        clenTaskAction.setId(action.getId());
-        clenTaskAction.setClenStatus(2);
-        bqifuClenTaskActionMapper.updateByPrimaryKeySelective(clenTaskAction);
         for (String tskId : taskIdSet) {
             Long indexId = null;
             while (true) {
@@ -114,6 +110,10 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     TITLE + "，错误信息：" + e.getMessage()), e);
             Thread.currentThread().interrupt();
         }
+        BQifuClenTaskAction clenTaskAction = new BQifuClenTaskAction();
+        clenTaskAction.setId(action.getId());
+        clenTaskAction.setClenStatus(2);
+        bqifuClenTaskActionMapper.updateByPrimaryKeySelective(clenTaskAction);
 
     }
 
@@ -152,7 +152,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\"," +
                             "\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
                     queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
-                    queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\",\"curAvailableQuota\":\"12\"}");
+                    queryUserRealMessage.setTradeMessage("{\"isSucc\":\"Y\",\"succAmtType\":\"1\",\"curAvailableQuota\":\"7\",\"hisSettleTime\":\"2025-03\",\"isLoan\":\"Y\"}");
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
                     queryUserRealMessage.setAppletDate(marketingSyncUser.getAppletDate());

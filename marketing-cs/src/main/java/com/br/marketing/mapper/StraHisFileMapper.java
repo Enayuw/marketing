@@ -26,4 +26,7 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
 
     StraHisFile getTaskbyDataContion(@Param("apiCode") String apiCode,@Param("condition") String condition);
 
+    StraHisFile getStFileByBatchNumber(@Param("batchNumber") String batchNumber);
+
+
 }

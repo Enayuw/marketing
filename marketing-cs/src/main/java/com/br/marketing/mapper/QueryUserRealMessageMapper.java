@@ -23,7 +23,7 @@ public interface QueryUserRealMessageMapper extends QueryUserRealMessageMapperBa
                                                          @Param("indexId")Long indexId, @Param("pageSize")Integer pageSize);
 
 
-    Map<String,String> selectAppletDataAndType(@Param("apiCode")String apiCode, @Param("createDate")String createDate);
+    List<Map<String,String>> selectAppletDataAndType(@Param("apiCode")String apiCode, @Param("createDate")String createDate);
 
     /**
      * 更新状态

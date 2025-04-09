@@ -1252,4 +1252,19 @@
                 job-parameter=""
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+    <job:simple id="【check】-QiFuCuDongZhiESCleanJob"
+                class="com.br.marketing.check.job.qifu.QiFuCuDongZhiESCleanJob"
+                cron="0 0/5 * * * ?"
+                description="促动支更新ES数据Job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-parameter=""
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

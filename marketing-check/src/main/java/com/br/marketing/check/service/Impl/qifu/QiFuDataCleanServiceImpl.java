@@ -89,7 +89,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             List<List<QueryUserRealMessage>> splitList = Lists.partition(list, 500);
             splitList.forEach((List<QueryUserRealMessage> userRealMessageList) ->
                     pushPool.submit(() -> uploadDataUpdate(userRealMessageList))
-                    );
+            );
         }
         pushPool.shutdown();
         try {
@@ -180,14 +180,24 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
 
         Integer pageSize = dynamicParameterServiceImpl.getPageSize("qiFuEsDataClean");
 
-        Map<String, String> appletDateAndTypeMap = queryUserRealMessageMapper.selectAppletDataAndType(apiCode, createDate);
+        List<Map<String, String>> appletDateAndTypeList = queryUserRealMessageMapper.selectAppletDataAndType(apiCode, createDate);
+        String batchNumber = marketingCommonConfig.getQiFuCleanDataConfig().get("qiFuEsDataCleanBatchNumber");
 
         String finalApiCode = apiCode;
         String finalCreateDate = createDate;
-        appletDateAndTypeMap.forEach((appletDate, userType) -> {
+        appletDateAndTypeList.forEach(map -> {
+            String appletDate = map.get("appletDate");
+            String userType = map.get("userType");
             String condition = "{\"fieldName\":\"appletDate\",\"fieldValue\":\"".concat(appletDate).concat("\",\"operation\":\"=\"},{\"fieldName\":\"userType\",\"fieldValue\":\"")
                     .concat(userType).concat("\",\"operation\":\"=\"}");
-            StraHisFile straHisFile = straHisFileMapper.getTaskbyDataContion(finalApiCode,condition);
+            StraHisFile straHisFile = null;
+            //batchNumber配置了，取配置
+            if (StringUtils.isNotEmpty(batchNumber)) {
+                straHisFile = straHisFileMapper.getStFileByBatchNumber(batchNumber);
+            } else {
+                straHisFile = straHisFileMapper.getTaskbyDataContion(finalApiCode, condition);
+            }
+            log.warn("奇富促动支更新Es数据batchNumber={}",straHisFile.getBatchNumber());
             if (Objects.isNull(straHisFile)) {
                 log.warn("跑分记录未找到，appletDate={}，userType={}", appletDate, userType);
                 return;
@@ -206,8 +216,9 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
                 indexId = list.get(list.size() - 1).getId();
                 // list数据按照500条切割
                 List<List<QueryUserRealMessage>> splitList = Lists.partition(list, 1000);
+                StraHisFile finalStraHisFile = straHisFile;
                 splitList.forEach((List<QueryUserRealMessage> userRealMessageList) ->
-                        pushPool.submit(() -> esDataUpdate(userRealMessageList, straHisFile)
+                        pushPool.submit(() -> esDataUpdate(userRealMessageList, finalStraHisFile)
                         ));
             }
         });
@@ -256,7 +267,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             queryBaseBean.setPageSize(2000);
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
-            log.warn("ES中查询的数据量级为num={}", marketingHistoryMapList.size());
+            log.warn("奇富促动支ES中查询的数据量级为num={}", marketingHistoryMapList.size());
             for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
                 for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
                     MarketingHistory marketingHistory = entry.getValue();
@@ -287,15 +298,6 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             return;
         }
         QueryUserRealMessage queryUserRealMessage = marketingSyncList.get(0);
-        JSONObject userMessages = JSONObject.parseObject(queryUserRealMessage.getUserMessage());
-        String gender = userMessages.getString("sex");
-        if (StringUtils.isNotEmpty(gender)) {
-            gender = "M".equals(gender) ? "1" : "0";
-
-        }
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(gender)) {
-            addOrUpdateCustypeCondition(conditions, "gender", gender);
-        }
         JSONObject tradeMsaages = JSONObject.parseObject(queryUserRealMessage.getTradeMessage());
         Integer curAvailableQuota = tradeMsaages.getInteger("curAvailableQuota");
         String curAvailableQuotays_derived = null;
@@ -334,4 +336,6 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             conditions.add(newCondition);
         }
     }
+
+
 }
