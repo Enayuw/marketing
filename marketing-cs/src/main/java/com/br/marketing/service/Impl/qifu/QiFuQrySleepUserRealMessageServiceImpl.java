@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.qifu;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.qifu.*;
@@ -9,9 +10,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
-import com.br.marketing.mapper.QueryUserRealMessageMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -42,6 +41,8 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
     private MarketingCustomizeDataValidConfigMapper customizeDataValidConfigMapper;
     @Resource
     private QueryUserRealMessageMapper queryUserRealMessageMapper;
+    @Resource
+    private BQifuClenTaskActionMapper bqifuClenTaskActionMapper;
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -54,6 +55,10 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
     public void process(String apiCode) {
         // 根据apiCode和日期获取有效期配置不分页
         String now = LocalDate.now().toString();
+        BQifuClenTaskAction action = getAction(apiCode, now);
+        if (ObjectUtil.isEmpty(action)) {
+            return;
+        }
         MarketingCustomizeDataValidConfigExample example = new MarketingCustomizeDataValidConfigExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andValidStartDateLessThanOrEqualTo(now)
                 .andValidEndDateGreaterThanOrEqualTo(now).andIsDelEqualTo(1);
@@ -101,16 +106,21 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                    , TITLE), e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
+                    TITLE + "，错误信息：" + e.getMessage()), e);
             Thread.currentThread().interrupt();
         }
+        BQifuClenTaskAction clenTaskAction = new BQifuClenTaskAction();
+        clenTaskAction.setId(action.getId());
+        clenTaskAction.setClenStatus(2);
+        bqifuClenTaskActionMapper.updateByPrimaryKeySelective(clenTaskAction);
 
     }
 
     private Result<String> action(List<MarketingSyncUser> pageList, String apiCode, String tskId) {
         Result<String> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
+        Map<String, List<MarketingSyncUser>> listMap = pageList.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCellMd5));
         try {
             ArrayList<RealDataesReq> list = new ArrayList<>();
             for (MarketingSyncUser marketingSyncUser : pageList) {
@@ -142,9 +152,12 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\"," +
                             "\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
                     queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
-                    queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
+                    queryUserRealMessage.setTradeMessage("{\"isSucc\":\"Y\",\"succAmtType\":\"1\",\"curAvailableQuota\":\"7\",\"hisSettleTime\":\"2025-03\",\"isLoan\":\"Y\"}");
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
+                    queryUserRealMessage.setAppletDate(marketingSyncUser.getAppletDate());
+                    queryUserRealMessage.setUserType(marketingSyncUser.getUserType());
+                    queryUserRealMessage.setCell(marketingSyncUser.getCell());
                     queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
                     log.warn(TITLE + "挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
                 }
@@ -178,14 +191,59 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     }
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
+                    queryUserRealMessage.setAppletDate(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getAppletDate());
+                    queryUserRealMessage.setUserType(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getUserType());
+                    queryUserRealMessage.setCell(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getCell());
                     queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
             }
         } catch (Exception e) {
-            log.error("调用奇富查询用户方法执行异常", e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
+                    "调用奇富查询用户方法执行异常，错误信息：" + e.getMessage()), e);
         }
         return result;
+    }
+
+    private BQifuClenTaskAction getAction(String apiCode, String now) {
+        try {
+            BQifuClenTaskActionExample bQifuClenTaskActionExample = new BQifuClenTaskActionExample();
+            bQifuClenTaskActionExample.createCriteria().andApiCodeEqualTo(apiCode).andActionDateEqualTo(now).andDeleteFlagEqualTo(0);
+            bQifuClenTaskActionExample.setOrderByClause("create_time desc");
+            List<BQifuClenTaskAction> bQifuClenTaskActions = bqifuClenTaskActionMapper.selectByExample(bQifuClenTaskActionExample);
+            if (ObjectUtil.isNotEmpty(bQifuClenTaskActions)) {
+                if (bQifuClenTaskActions.get(0).getClenStatus() == 3) {
+                    return null;
+                }
+                QueryUserRealMessageExample messageExample = new QueryUserRealMessageExample();
+                messageExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now)
+                        .andIsDeletedEqualTo(0).andEsUpdateStatusNotEqualTo(2);
+                long count = queryUserRealMessageMapper.countByExample(messageExample);
+                QueryUserRealMessageExample example = new QueryUserRealMessageExample();
+                example.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(now)
+                        .andIsDeletedEqualTo(0).andUploadUpdateStatusNotEqualTo(2);
+                long countByExample = queryUserRealMessageMapper.countByExample(example);
+
+                if (count == 0 && countByExample == 0) {
+                    BQifuClenTaskAction action = new BQifuClenTaskAction();
+                    action.setId(bQifuClenTaskActions.get(0).getId());
+                    action.setClenStatus(3);
+                    bqifuClenTaskActionMapper.updateByPrimaryKeySelective(action);
+                    return null;
+                }
+                return null;
+            }
+            BQifuClenTaskAction bQifuClenTaskAction = new BQifuClenTaskAction();
+            bQifuClenTaskAction.setApiCode(apiCode);
+            bQifuClenTaskAction.setActionDate(now);
+            bQifuClenTaskAction.setCreateTime(new Date());
+            bqifuClenTaskActionMapper.insertSelective(bQifuClenTaskAction);
+            return bqifuClenTaskActionMapper.selectByExample(bQifuClenTaskActionExample).get(0);
+        } catch (Exception e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
+                            "促动支清洗记录插入异常，错误信息：" + e.getMessage()), e);
+            return null;
+        }
     }
 
 }

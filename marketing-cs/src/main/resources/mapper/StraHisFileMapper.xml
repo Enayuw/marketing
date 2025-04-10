@@ -84,4 +84,24 @@
         order by shf.create_time desc limit 1
     </select>
 
+
+    <select id="getTaskbyDataContion" resultType="com.br.marketing.entity.StraHisFile">
+        select shf.id, shf.api_code, shf.batch_number
+        from stra_his_file shf
+            inner join b_marketing_task bmt on shf.batch_number = bmt.batch_number
+            inner join b_marketing_task_extend bmte on bmt.id = bmte.task_id
+        where
+            shf.api_code = #{apiCode} and shf.status = 2 and shf.type = 2
+          and bmte.data_condition like CONCAT('%', #{condition}, '%')
+
+          and bmt.monitor_type = 1
+        order by bmte.create_time desc limit 1
+    </select>
+
+    <select id="getStFileByBatchNumber" resultType="com.br.marketing.entity.StraHisFile">
+        select *
+        from stra_his_file
+        where batch_number = #{batchNumber}
+    </select>
+
 </mapper>

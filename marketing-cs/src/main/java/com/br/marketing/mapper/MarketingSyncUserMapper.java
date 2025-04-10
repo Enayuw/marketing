@@ -452,4 +452,10 @@ public interface MarketingSyncUserMapper {
      */
     MarketingSyncUser getCellLatestByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
+
+    List<MarketingSyncUser> getSyncUserByCells(@Param("apiCode") String apiCode
+            , @Param("cellset") Set<String> custNumSet,@Param("appletDate") String appletDate,@Param("userType") String userType);
+
+    int updateBatchData(@Param("updateSql")String update);
+
 }
