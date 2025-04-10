@@ -5,14 +5,12 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcProcessTaskEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.XiechengCollidingTaskBatchVo;
-import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -265,7 +264,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskTypeIn(taskTypes)
                 .andTaskStatusNotEqualTo(2);
         int deletingTaskCount = taskMapper.countByExample(processTaskExample);
@@ -614,14 +613,14 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
         List<Long> reserveIds;
         // 获取当前任务清洗时间
-        LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDateTime cleanDateTime = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         reserveIds =
                 maxEndTimeGroupByPackageId.stream()
                         .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
                         .filter((XiechengCollidingDataPackageRule t) -> {
-                            LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant()
-                                    .atZone(ZoneId.systemDefault()).toLocalDate();
-                            return !cleanDate.isAfter(collidingMaxDate);
+                            LocalDateTime collidingMaxDateTIme = t.getCollidingEndTime().toInstant()
+                                    .atZone(ZoneId.systemDefault()).toLocalDateTime();
+                            return !cleanDateTime.isAfter(collidingMaxDateTIme);
                         }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
         return reserveIds;
     }
