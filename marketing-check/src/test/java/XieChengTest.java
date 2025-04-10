@@ -82,7 +82,7 @@ public class XieChengTest {
                 public String getMapperMethod() {
                     return "selectByExample";
                 }
-            },"",config, true);
+            },"",config);
         } catch (Exception e) {
 
         }

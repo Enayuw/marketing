@@ -200,9 +200,6 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     private void saveLogAndMapping(XieChengCollidingDataLog collidingLog) {
         // 写入日志表
         try {
-            if (marketingCommonConfig.getXcCollidingDataLogExceptionMock()) {
-                throw new RuntimeException("mock exception");
-            }
             xieChengCollidingDataLogMapper.insertSelective(collidingLog);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
@@ -225,7 +222,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
                 public String getMapperMethod() {
                     return "insertSelective";
                 }
-            },"携程撞库日志写入", config, marketingCommonConfig.getXcCollidingDataLogExceptionMock());
+            },"携程撞库日志写入", config);
         }
 
         // 写入映射表

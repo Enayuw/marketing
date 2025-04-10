@@ -44,14 +44,11 @@ public class DatabaseOperationService {
     /**
      * 执行数据库操作（带重试和SQL打印）
      */
-    public void executeWithRetry(SqlOperation operation, String operationName, RetryConfig config, Boolean isMock) {
+    public void executeWithRetry(SqlOperation operation, String operationName, RetryConfig config) {
         int retryCount = 0;
         long delay = config.getInitialDelay();
         while (retryCount <= config.getMaxRetries()) {
             try {
-                if (isMock) {
-                    throw new RuntimeException("mock exception");
-                }
                 // 执行实际操作
                 operation.execute();
                 return;

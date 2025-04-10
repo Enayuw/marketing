@@ -2739,10 +2739,5 @@ public class MarketingCommonConfig {
      */
     private JSONObject rsxkToDassUserTypeConfig;
 
-    /**
-     * 携程撞库日志数据库异常挡板
-     */
-    private Boolean xcCollidingDataLogExceptionMock;
-
 }
 
