@@ -361,7 +361,7 @@
     from
         b_marketing_sync_${apiCode}
     where
-        applet_date = #{uploadDate,jdbcType=VARCHAR}
+        applet_date = #{appletDate,jdbcType=VARCHAR}
         and (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
   </select>
 

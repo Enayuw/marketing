@@ -105,11 +105,11 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
      * 统计上传记录关键信息：正常入库条数，去重后条数，上传开始时间，上传结束时间
      * @param apiCode
      * @param userType
-     * @param uploadDate
+     * @param appletDate
      * @return
      */
     Map<String,Object> selectUploadMagnStatInfotiflash_(@Param("apiCode") String apiCode,
                                                 @Param("userType") String userType,
-                                                @Param("uploadDate") String uploadDate);
+                                                @Param("appletDate") String appletDate);
 
 }
