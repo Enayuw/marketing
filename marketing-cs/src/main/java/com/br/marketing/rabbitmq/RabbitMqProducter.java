@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -142,17 +143,20 @@ public class RabbitMqProducter {
         String message = JSON.toJSONString(mqFact);
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
 
-        String aiUniversalRoutingKey = "";
+        String redisKey = RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
+        String aiUniversalRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE;
+
         try {
-            aiUniversalRoutingKey =
-                    redisChgService.get(RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType()));
+            List<String> zrange = redisChgService.zrange(redisKey, 0L, 1L);
+            aiUniversalRoutingKey = zrange.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(aiUniversalRoutingKey);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                    , "ai客户数据推送下游，获取redis路由键失败，数据进入默认队列"), e);
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    e.getMessage(),
+                    "ai客户数据推送下游，获取redis路由键失败，数据进入默认队列"
+            ), e);
         }
 
-        aiUniversalRoutingKey = StringUtils.isEmpty(aiUniversalRoutingKey) ? AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE :
-                aiUniversalRoutingKey;
         rabbitTemplate.convertAndSend(exchange, aiUniversalRoutingKey, message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             return arg0;

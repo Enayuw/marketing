@@ -2138,7 +2138,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sengToRabbitMq(apiCode, syncInfoId);
+                sendToRabbitMq(apiCode, syncInfoId);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
@@ -2150,18 +2150,22 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      * @param syncInfoId
      */
-    private void sengToRabbitMq(String apiCode, String syncInfoId) {
+    private void sendToRabbitMq(String apiCode, String syncInfoId) {
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            String aiQueueRoutingKey = "";
+            String redisKey = RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
+            String aiQueueRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE;
+
             try {
-                aiQueueRoutingKey =
-                        redisChgService.get(RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType()));
+                List<String> zrange = redisChgService.zrange(redisKey, 0L, 1L);
+                aiQueueRoutingKey = zrange.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(aiQueueRoutingKey);
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                        , "ai客户数据上传接口，获取redis路由键失败，数据进入默认队列"), e);
+                log.warn(AlertLog.buildWarnMessage(
+                        AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        e.getMessage(),
+                        "ai客户数据上传接口，获取redis路由键失败，数据进入默认队列"
+                ), e);
             }
 
-            aiQueueRoutingKey = StringUtils.isEmpty(aiQueueRoutingKey) ? AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE : aiQueueRoutingKey;
             producter.send(aiQueueRoutingKey, syncInfoId);
         } else {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -2676,7 +2680,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sengToRabbitMq(apiCode, syncInfoId);
+                sendToRabbitMq(apiCode, syncInfoId);
             }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());

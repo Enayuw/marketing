@@ -7,15 +7,14 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,12 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
-
-import static com.br.marketing.common.enums.SwitchMessageQueueEnum.getSwitchMessageQueueEnum;
 
 @Service
 public class ConsumerService {
@@ -130,43 +124,27 @@ public class ConsumerService {
      * @param retryRouteKey 重试路由key
      * @param <T> 消费消息类型
      */
-    public <T> void consumerRunAndSwitchQueue(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey,
-                                              String queueType, String queueName) {
+    public <T> void consumerRunAndCacheMsgCount(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey,
+                                                String queueType) {
         consumerRun(channel, message, method, t, retryRouteKey);
-        switchQueue(channel, queueType, queueName);
+        cacheMsgCount(message, queueType);
     }
 
-    private void switchQueue(Channel channel, String queueType, String queueName) {
+    /**
+     * 缓存当前队列的消息数量到redis
+     * @param message
+     * @param queueType
+     */
+    private void cacheMsgCount(Message message, String queueType) {
         try {
-            AMQP.Queue.DeclareOk declareOk = channel.queueDeclarePassive(queueName);
-            int currentMsgCount = declareOk.getMessageCount();
+            MessageProperties messageProperties = message.getMessageProperties();
+            String routingKey = messageProperties.getReceivedRoutingKey();
+            int currentMsgCount = messageProperties.getMessageCount();
             if (currentMsgCount <= marketingCommonConfig.getSwitchMqMaxMsgCount()) {
                 return;
             }
 
-            SwitchMessageQueueEnum queueEnum = getSwitchMessageQueueEnum(queueType);
-            if (queueEnum == null) {
-                return;
-            }
-
-            Map<String, Integer> queueNameAndMsgCountMap = new HashMap<>();
-            Map<String, String> queueAndRoutingKeyMap = queueEnum.getQueueAndRoutingKeyMap();
-            for (String key : queueAndRoutingKeyMap.keySet()) {
-                queueNameAndMsgCountMap.put(key, channel.queueDeclarePassive(key).getMessageCount());
-            }
-
-            String winnerQueueName =
-                    queueNameAndMsgCountMap.entrySet().stream()
-                            .min(Comparator.comparingInt(Map.Entry::getValue))
-                            .map(Map.Entry::getKey).orElse(queueName);
-
-            if (queueName.equals(winnerQueueName)) {
-                return;
-            }
-
-            String winnerRoutingKey = queueAndRoutingKeyMap.get(winnerQueueName);
-            redisChgService.set(RedisKeyConstant.prefix.concat(queueType), winnerRoutingKey);
-            log.warn("当前消费队列：{}，切换到最小压力队列：{}", queueName, winnerQueueName);
+            redisChgService.zadd(RedisKeyConstant.prefix.concat(queueType), routingKey, (long) currentMsgCount);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
                     , "mq消费端，数据消费后，队列切换出现异常"), e);

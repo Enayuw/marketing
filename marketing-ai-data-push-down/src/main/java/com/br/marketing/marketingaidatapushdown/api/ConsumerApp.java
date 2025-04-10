@@ -56,9 +56,8 @@ public class ConsumerApp {
     public void consumerUniversalTransfer(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRunAndSwitchQueue(channel, message, interfaceHandlerService::handleDataDirection, o,
-                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE);
+        consumerService.consumerRunAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
     }
 
     /**
@@ -72,9 +71,8 @@ public class ConsumerApp {
     public void consumerUniversalTransfer1(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRunAndSwitchQueue(channel, message, interfaceHandlerService::handleDataDirection, o,
-                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_1);
+        consumerService.consumerRunAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
     }
 
     /**
@@ -88,8 +86,7 @@ public class ConsumerApp {
     public void consumerUniversalTransfer2(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRunAndSwitchQueue(channel, message, interfaceHandlerService::handleDataDirection, o,
-                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_2);
+        consumerService.consumerRunAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
     }
 }
