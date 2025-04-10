@@ -4,17 +4,17 @@ import java.util.Date;
 
 public class CarClueInfo {
     /**
-     *
+     * 
      */
     private Long id;
 
     /**
-     *
+     * 
      */
     private String cid;
 
     /**
-     *
+     * 
      */
     private String apiCode;
 
@@ -109,7 +109,7 @@ public class CarClueInfo {
     private String recordingPath;
 
     /**
-     * 交互文本
+     * 
      */
     private String callDialog;
 
@@ -207,6 +207,11 @@ public class CarClueInfo {
      * 需求ID
      */
     private String demandId;
+
+    /**
+     * 通话记录编号
+     */
+    private String callId;
 
     public Long getId() {
         return id;
@@ -534,5 +539,13 @@ public class CarClueInfo {
 
     public void setDemandId(String demandId) {
         this.demandId = demandId == null ? null : demandId.trim();
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId == null ? null : callId.trim();
     }
 }
