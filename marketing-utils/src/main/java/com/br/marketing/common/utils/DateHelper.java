@@ -14,10 +14,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -505,6 +502,71 @@ public class DateHelper {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String dateTime = format.format(date);
         return dateTime;
+    }
+
+
+    /**
+     * 获取当前时间减去时间范围后的日期（无时间部分）
+     *
+     * @param unit   时间单位，d-天，m-月
+     * @param amount 时间量级（必须 >= 0）
+     * @return 计算后的日期，格式：yyyy-MM-dd
+     * @throws IllegalArgumentException 参数非法时抛出
+     */
+    public static LocalDate getPreviousDate(String unit, int amount) {
+        return calculateDate(unit, amount);
+    }
+
+    /**
+     * 获取当前时间减去时间范围后的日期时间（包含时间部分）
+     *
+     * @param unit   时间单位，d-天，m-月
+     * @param amount 时间量级（必须 >= 0）
+     * @return 计算后的日期时间，格式：yyyy-MM-dd HH:mm:ss
+     * @throws IllegalArgumentException 参数非法时抛出
+     */
+    public static LocalDateTime getPreviousDateTime(String unit, int amount) {
+        return calculateDateTime(unit, amount);
+    }
+
+
+    // 核心计算方法（返回 LocalDate）
+    private static LocalDate calculateDate(String unit, int amount) {
+        validateParameters(unit, amount);
+        LocalDate now = LocalDate.now();
+        switch (unit.toLowerCase()) {
+            case "d":
+                return now.minusDays(amount);
+            case "m":
+                return now.minusMonths(amount);
+            default:
+                throw new IllegalArgumentException("不支持的时间单位: " + unit);
+        }
+    }
+
+    // 核心计算方法（返回 LocalDateTime）
+    private static LocalDateTime calculateDateTime(String unit, int amount) {
+        validateParameters(unit, amount);
+        LocalDateTime now = LocalDateTime.now();
+        switch (unit.toLowerCase()) {
+            case "d":
+                return now.minusDays(amount);
+            case "m":
+                return now.minusMonths(amount);
+            default:
+                throw new IllegalArgumentException("不支持的时间单位: " + unit);
+        }
+    }
+
+    // 参数校验
+    private static void validateParameters(String unit, int amount) {
+        Objects.requireNonNull(unit, "时间单位不能为 null");
+        if (amount < 0) {
+            throw new IllegalArgumentException("时间量级不能为负数");
+        }
+        if (!unit.equalsIgnoreCase("d") && !unit.equalsIgnoreCase("m")) {
+            throw new IllegalArgumentException("仅支持 d（天）和 m（月）");
+        }
     }
 
 

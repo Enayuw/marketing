@@ -2,12 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.QueryUserRealMessage;
 import com.br.marketing.entity.QueryUserRealMessageExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface QueryUserRealMessageMapperBase {
-    int countByExample(QueryUserRealMessageExample example);
+    long countByExample(QueryUserRealMessageExample example);
 
     int deleteByExample(QueryUserRealMessageExample example);
 

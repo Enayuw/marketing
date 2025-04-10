@@ -68,6 +68,11 @@ public class ScoreSearchCondition {
      */
     private Date updateTime;
 
+    /**
+     * 标签条件内容
+     */
+    private String tagContent;
+
     public Long getId() {
         return id;
     }
@@ -140,6 +145,14 @@ public class ScoreSearchCondition {
         this.contentShow = contentShow == null ? null : contentShow.trim();
     }
 
+    public String getScoreContent() {
+        return scoreContent;
+    }
+
+    public void setScoreContent(String scoreContent) {
+        this.scoreContent = scoreContent == null ? null : scoreContent.trim();
+    }
+
     public Integer getIsDel() {
         return isDel;
     }
@@ -164,11 +177,11 @@ public class ScoreSearchCondition {
         this.updateTime = updateTime;
     }
 
-    public String getScoreContent() {
-        return scoreContent;
+    public String getTagContent() {
+        return tagContent;
     }
 
-    public void setScoreContent(String scoreContent) {
-        this.scoreContent = scoreContent;
+    public void setTagContent(String tagContent) {
+        this.tagContent = tagContent == null ? null : tagContent.trim();
     }
 }

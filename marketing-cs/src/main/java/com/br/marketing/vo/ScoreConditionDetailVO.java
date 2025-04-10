@@ -24,6 +24,9 @@ public class ScoreConditionDetailVO {
     @ApiModelProperty(value = "规则内容")
     private String contentShow;
 
+    @ApiModelProperty(value = "标签规则")
+    private String tagContent;
+
     @ApiModelProperty(value = "创建时间")
     private String createTime;
 

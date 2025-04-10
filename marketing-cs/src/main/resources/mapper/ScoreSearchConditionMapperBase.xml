@@ -15,6 +15,7 @@
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="tag_content" property="tagContent" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -76,7 +77,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, `condition_number`, `name`, `status`, condition_type, source_type, source_condition, 
-    content, content_show, score_content, is_del, create_time, update_time
+    content, content_show, score_content, is_del, create_time, update_time, tag_content
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreSearchConditionExample" >
     select
@@ -114,12 +115,14 @@
     </selectKey>
     insert into b_score_search_condition (`condition_number`, `name`, `status`, 
       condition_type, source_type, source_condition, 
-      content, content_show, score_content, is_del,
-      create_time, update_time)
+      content, content_show, score_content, 
+      is_del, create_time, update_time, 
+      tag_content)
     values (#{conditionNumber,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{conditionType,jdbcType=INTEGER}, #{sourceType,jdbcType=INTEGER}, #{sourceCondition,jdbcType=VARCHAR}, 
-      #{content,jdbcType=VARCHAR}, #{contentShow,jdbcType=VARCHAR}, #{scoreContent,jdbcType=VARCHAR},
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{content,jdbcType=VARCHAR}, #{contentShow,jdbcType=VARCHAR}, #{scoreContent,jdbcType=VARCHAR}, 
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{tagContent,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreSearchCondition" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -163,6 +166,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="tagContent != null" >
+        tag_content,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="conditionNumber != null" >
@@ -200,6 +206,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="tagContent != null" >
+        #{tagContent,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -251,6 +260,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.tagContent != null" >
+        tag_content = #{record.tagContent,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -270,7 +282,8 @@
       score_content = #{record.scoreContent,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      tag_content = #{record.tagContent,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -314,6 +327,9 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="tagContent != null" >
+        tag_content = #{tagContent,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -330,7 +346,8 @@
       score_content = #{scoreContent,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      tag_content = #{tagContent,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
