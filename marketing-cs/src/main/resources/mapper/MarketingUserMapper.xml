@@ -422,7 +422,8 @@
 			KEY `idx_marketing_sync_code_cell_t_n_u_r_a` (`cell`,`cus_batch`,`cust_num`,`user_type`,`is_repeat`,`applet_date`),
 			KEY `idx_marketing_sync_code_cust_t_u_r_a` (`cust_num`,`cus_batch`,`user_type`,`is_repeat`,`applet_date`),
 		    KEY `idx_appletTime` (`applet_time`),
-			KEY `idx_ad_ut_s` (`applet_date`,`user_type`,`status`)
+			KEY `idx_ad_ut_s` (`applet_date`,`user_type`,`status`),
+			KEY `idx_reqid` (`request_batch`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户上传数据表'
 	</update>
 
