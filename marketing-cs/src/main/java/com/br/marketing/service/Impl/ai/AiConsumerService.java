@@ -7,7 +7,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -48,14 +47,14 @@ public class AiConsumerService {
 
     @Autowired
     RedisChgService redisChgService;
-    @Resource
+
+    @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-    ThreadPoolExecutor aiCommonThreadPool = BrExecutors.getThreadPool(200,200);
-
-    public <T> void consumerAndCacheMsgCount(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String exRouteKey, String queueType) {
+    public <T> void consumerAndCacheMsgCount(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String exRouteKey,
+                                             String queueType, ThreadPoolExecutor poolExecutor) {
         // 下线标识，不再消费消息
-        if(consumerDownStatus){
+        if (consumerDownStatus) {
             log.warn("服务下线，消费者不再接收新的流量");
             try {
                 Thread.sleep(10000L);
@@ -66,7 +65,9 @@ public class AiConsumerService {
             log.warn("服务下线，消费者休眠时间到");
         }
 
-        aiCommonThreadPool.submit(()-> {
+        poolExecutor.setCorePoolSize(marketingCommonConfig.getAiMqConsumerCommonThreadNum());
+        poolExecutor.setMaximumPoolSize(marketingCommonConfig.getAiMqConsumerCommonThreadNum());
+        poolExecutor.submit(() -> {
             try {
                 Result<Boolean> apply = method.apply(t);
                 if (ResultCode.FAIL.getValue().equals(apply.getCode()) || apply.getData()) {
@@ -88,14 +89,14 @@ public class AiConsumerService {
             }
         });
 
+        cacheMsgCount(message, queueType);
+
         try {
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
                     , "mq消费端，消息ack异常"), e);
         }
-
-        cacheMsgCount(message, queueType);
     }
 
     /**
@@ -108,49 +109,10 @@ public class AiConsumerService {
             MessageProperties messageProperties = message.getMessageProperties();
             String routingKey = messageProperties.getReceivedRoutingKey();
             int currentMsgCount = messageProperties.getMessageCount();
-//            if (currentMsgCount <= marketingCommonConfig.getSwitchMqMaxMsgCount()) {
-//                return;
-//            }
-
             redisChgService.zadd(RedisKeyConstant.prefix.concat(queueType), routingKey, (long) currentMsgCount);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
                     , "mq消费端，缓存当前队列的消息异常"), e);
-        }
-    }
-
-    public <T> void consumerErrorRetry(Channel channel, Message message, Function<T, Result<Boolean>> method, T t) {
-        // 下线标识，不再消费消息
-        if(consumerDownStatus){
-            log.warn("服务下线，消费者不再接收新的流量");
-            try {
-                Thread.sleep(10000L);
-            } catch (InterruptedException e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                        , "mq消费端，服务下线，线程休眠异常"), e);
-            }
-            log.warn("服务下线，消费者休眠时间到");
-        }
-
-        try {
-            Result<Boolean> apply = method.apply(t);
-            if (ResultCode.FAIL.getValue().equals(apply.getCode()) || apply.getData()) {
-                // 落库
-            }
-        } catch (Exception e) {
-            String error = String.format("路由键：%s,\r\n消息内容：%s,\r\n错误信息：%s"
-                    , message.getMessageProperties().getReceivedRoutingKey()
-                    , new String(message.getBody(), StandardCharsets.UTF_8)
-                    , e.getMessage());
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), error
-                    , "mq异常重试消费端，消费异常"), e);
-        }
-
-        try {
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-        } catch (IOException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                    , "mq异常重试消费端，消息ack异常"), e);
         }
     }
 }

@@ -568,7 +568,7 @@ public class RedisChgService {
     public void zadd(String key, String member, Long score) {
         try {
             BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-            marketingRedisClient.zadd(key, member, score);
+            marketingRedisClient.zadd(key, score, member);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

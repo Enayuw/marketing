@@ -2,6 +2,7 @@ package com.br.marketing.marketingaidatapushdown.api;
 
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.utils.AiMQConstants;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
@@ -65,7 +66,8 @@ public class ConsumerApp {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
-                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
+                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+                BrExecutors.getThreadPool(100, 100));
     }
 
     /**
@@ -81,7 +83,8 @@ public class ConsumerApp {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
-                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
+                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+                BrExecutors.getThreadPool(100, 100));
     }
 
     /**
@@ -97,7 +100,8 @@ public class ConsumerApp {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
-                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
+                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+                BrExecutors.getThreadPool(100, 100));
     }
 
     /**
@@ -108,10 +112,10 @@ public class ConsumerApp {
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY)}, containerFactory = "concurrentContainerFactory")
-    public void consumerUniversalTransferErrorDelay(Channel channel, Message message) {
+    public void consumerUniversalTransferErrorRetry(Channel channel, Message message) {
         log.warn("MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY：获取消息成功");
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        aiConsumerService.consumerErrorRetry(channel, message, interfaceHandlerService::handleDataDirection, o);
+        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, null);
     }
 }
