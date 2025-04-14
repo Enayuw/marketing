@@ -458,4 +458,6 @@ public interface MarketingSyncUserMapper {
 
     int updateBatchData(@Param("updateSql")String update);
 
+    List<MarketingSyncUser> getUserByCell(@Param("apiCode") String apiCode, @Param("appletDates") List<String> appletDates, @Param("cell") String cell);
+
 }
