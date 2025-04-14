@@ -1,20 +1,16 @@
 package com.br.marketing.service.Impl;
 
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -39,11 +35,6 @@ public class ConsumerService {
     private RabbitMqProducter producter;
 
     public static Boolean consumerDownStatus = Boolean.FALSE;
-
-    @Autowired
-    RedisChgService redisChgService;
-    @Resource
-    MarketingCommonConfig marketingCommonConfig;
 
     /**
      * rabbitMQ消费端
@@ -112,42 +103,6 @@ public class ConsumerService {
         for (int i=0;i<consumerNum;i++){
             log.warn("开始初始化 pulsar 消费端 method:{},subscription:{},topic:{}", method.toString(), subscription, topic);
             new PulsarConsumerThread(method,subscription,topic).start();
-        }
-    }
-
-    /**
-     * rabbitMQ消费端，数据消费后根据队列积压情况切换队列
-     * @param channel 渠道
-     * @param message 消费消息
-     * @param method 消费业务
-     * @param t 消费信息
-     * @param retryRouteKey 重试路由key
-     * @param <T> 消费消息类型
-     */
-    public <T> void consumerRunAndCacheMsgCount(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey,
-                                                String queueType) {
-        consumerRun(channel, message, method, t, retryRouteKey);
-        cacheMsgCount(message, queueType);
-    }
-
-    /**
-     * 缓存当前队列的消息数量到redis
-     * @param message
-     * @param queueType
-     */
-    private void cacheMsgCount(Message message, String queueType) {
-        try {
-            MessageProperties messageProperties = message.getMessageProperties();
-            String routingKey = messageProperties.getReceivedRoutingKey();
-            int currentMsgCount = messageProperties.getMessageCount();
-            if (currentMsgCount <= marketingCommonConfig.getSwitchMqMaxMsgCount()) {
-                return;
-            }
-
-            redisChgService.zadd(RedisKeyConstant.prefix.concat(queueType), routingKey, (long) currentMsgCount);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                    , "mq消费端，数据消费后，队列切换出现异常"), e);
         }
     }
 

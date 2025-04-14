@@ -1,6 +1,5 @@
 package com.br.marketing.innerapi.config;
 
-import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -110,23 +109,6 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 延迟队列-AI上传数据错误重试延迟队列路由键
-     *
-     * @return
-     */
-    @Bean(name = AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_DELAY)
-    public Queue aiPreUserReceiveErrorDelayQueue() {
-        Map<String, Object> args = new HashMap<>(2);
-        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
-        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
-        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
-        args.put("x-dead-letter-routing-key", AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
-        // x-message-ttl  声明队列的TTL 5分钟静置时间
-        args.put("x-message-ttl", 300000);
-        return QueueBuilder.durable(AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_DELAY).withArguments(args).build();
-    }
-
-    /**
      * 绑定死信交换机- 延迟队列通过死信交换机推送到延迟队列
      *
      * @return
@@ -160,18 +142,6 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(universalTransferErrorDelayQueue())
                 .to(gateExchange())
                 .with(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
-    }
-
-    /**
-     * 绑定交换机- 发送消息到延迟队列
-     *
-     * @return
-     */
-    @Bean
-    public Binding aiPreUserReceiveQueueErrorDelayBinding() {
-        return BindingBuilder.bind(aiPreUserReceiveErrorDelayQueue())
-                .to(gateExchange())
-                .with(AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY);
     }
 
     /**

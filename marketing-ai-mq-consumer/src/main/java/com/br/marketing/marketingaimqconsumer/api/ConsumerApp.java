@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.Impl.ai.AiConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
@@ -21,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+
+import static com.br.marketing.common.utils.AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY;
 
 /**
  * rabbitmq 消费端
@@ -42,6 +45,9 @@ public class ConsumerApp {
     @Autowired
     PushDataService pushDataService;
 
+    @Autowired
+    AiConsumerService aiConsumerService;
+
     /**
      * 消费 AI上传数据消费端
      * @param channel 通道
@@ -54,9 +60,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_PREUSER_RECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRunAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
-                AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY,
-                SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
+        aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
     }
 
     /**
@@ -71,9 +76,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_PREUSER_RECEIVE_1：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRunAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
-                AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY,
-                SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
+        aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
     }
 
     /**
@@ -88,8 +92,23 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_PREUSER_RECEIVE_2：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRunAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
-                AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_DELAY,
-                SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
+        aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
+    }
+
+    /**
+     * 消费 AI上传数据异常重试消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_RETRY, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY)}, containerFactory = "concurrentContainerFactory")
+    public void consumerUniversalTransferErrorDelay(Channel channel, Message message) {
+        log.warn("MARKETING_AI_PREUSER_RECEIVE_ERROR_RETRY：获取消息成功");
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        aiConsumerService.consumerErrorRetry(channel, message, pushRuleService::insertMarketingPreUserSync, o);
     }
 }
