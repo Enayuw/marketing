@@ -18,6 +18,7 @@ import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.UserCenterHandler;
 import com.google.common.base.Joiner;
+import io.lettuce.core.ScoredValue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -293,23 +294,23 @@ public class RedisController {
         return input == null || input.isEmpty() ? null : input.replace("\n", ",");
     }
 
-    @GetMapping("zrange")
-    public String zrange(@RequestParam("key") String key, @RequestParam("start") Long start, @RequestParam("stop") Long stop) {
+    @GetMapping("zrangeWithScores")
+    public String zrange(@RequestParam("key") String key, @RequestParam("start") String start, @RequestParam("stop") String stop) {
         if (!redisChgService.exists(key)) {
             return "key不存在";
         }
 
-        List<String> zrange = redisChgService.zrange(key, start, stop);
-        return Joiner.on(",").join(zrange);
+        List<ScoredValue<String>> scoredValues = redisChgService.zrangeWithScores(key, Long.valueOf(start), Long.valueOf(stop));
+        return Joiner.on(",").join(scoredValues);
     }
 
     @GetMapping("zadd")
-    public String zadd(@RequestParam("key") String key, @RequestParam("member") String member, @RequestParam("score") Long score) {
+    public String zadd(@RequestParam("key") String key, @RequestParam("member") String member, @RequestParam("score") String score) {
         if (!redisChgService.exists(key)) {
             return "key不存在";
         }
 
-        redisChgService.zadd(key, member, score);
+        redisChgService.zadd(key, member, Long.valueOf(score));
         return "zadd-success";
     }
 
