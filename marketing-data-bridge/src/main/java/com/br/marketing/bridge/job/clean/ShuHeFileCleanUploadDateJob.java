@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.validator.DateUtils;
-import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
@@ -118,8 +117,8 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             syncConfigExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
                     .andStatusEqualTo(1)
-                    .andDataTypeEqualTo(DataTypeEnum.MARKETINGDATA.getValue())
-                    //.andSrcSftpHostLike("/DATASHARE/yingxiao/mmg/shuhe")
+                    .andDataTypeEqualTo(DataTypeEnum.MARKETINGUPLOADDATA.getValue())
+                    .andTargetPathLike("%/download/marketingCommonApplet%")
                     .andTypeEqualTo(1);
             List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
             if (CollectionUtils.isEmpty(syncConfigs)) {
@@ -141,131 +140,113 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         syncConfig.setTargetPath(targetPath);
 
         //BaseFtpClient client= null;
-        if(Constants.LOAN_WARNING_FTP.equals(syncConfig.getSrcType())){
+        if (Constants.LOAN_WARNING_FTP.equals(syncConfig.getSrcType())) {
             FtpClient ftpClient = new FtpClient(syncConfig, true);
-            ftpFileList(ftpClient,syncConfig,fileName);
-        }else if(Constants.LOAN_WARNING_SFTP.equals(syncConfig.getSrcType())){
-            SftpClient sftpClient= new SftpClient(syncConfig,true);
-            sftpFileList(sftpClient,syncConfig,fileName);
+            ftpFileList(ftpClient, syncConfig, fileName, appletDates);
+        } else if (Constants.LOAN_WARNING_SFTP.equals(syncConfig.getSrcType())) {
+            SftpClient sftpClient = new SftpClient(syncConfig, true);
+            sftpFileList(sftpClient, syncConfig, fileName, appletDates);
         }
-        workWithFiles(syncConfig, appletDates);
     }
 
-    private void ftpFileList(FtpClient ftpClient, SyncConfig syncConfig, String fileName){
+    private void ftpFileList(FtpClient ftpClient, SyncConfig syncConfig, String fileName, List<String> appletDates) {
         String srcPath = syncConfig.getSrcPath();
         String targetPath = syncConfig.getTargetPath();
-        for (int retry = 0; retry <= MAX_RETRY_COUNT; retry++) {
+        try {
+            ftpClient.connect();
+            boolean fileExists = ftpClient.isExsits(srcPath.concat(fileName));
+            if (!fileExists) {
+                log.warn(TITLE + "文件不存在:{}", fileName);
+                return;
+            }
+            // 判断文件创建时间是否超过1分钟
+            FTPFile ftpFile = ftpClient.getFtpFile(srcPath, fileName);
+            Calendar timestamp = ftpFile.getTimestamp();
+            String createFileTime = DateUtils.parseDateTimeByDate(timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
+            long minutes = DateHelper.getDistanceMinutes(createFileTime);
+            if (minutes < 1) {
+                log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, createFileTime);
+                return;
+            }
+            //判断.success文件是否存在
+            String successName = fileName + ".success";
+            boolean successFileExists = ftpClient.isExsits(srcPath.concat(successName));
+            if (!successFileExists) {
+                //创建.success文件
+                log.warn(TITLE + ".success文件不存在:{}", successName);
+                File file = new File(targetPath.concat("success/"));
+                if (!file.exists()) {
+                    file.mkdirs();
+                }
+                File successFile = new File(targetPath.concat("success/").concat(successName));
+                if (!successFile.exists()) {
+                    successFile.createNewFile();
+                }
+                ftpClient.uploadFile(Files.newInputStream(Paths.get(srcPath + successName)), targetPath, successName);
+                return;
+            }
+            workWithFiles(syncConfig, appletDates);
+        } catch (Exception e) {
+            log.error(TITLE + "拉取文件异常", e);
+        } finally {
             try {
-                ftpClient.connect();
-                boolean fileExists = ftpClient.isExsits(srcPath.concat(fileName));
-                if (!fileExists) {
-                    log.warn(TITLE + "文件不存在:{}", fileName);
-                    return;
-                }
-                // 判断文件创建时间是否超过1分钟
-                FTPFile ftpFile = ftpClient.getFtpFile(srcPath, fileName);
-                Calendar timestamp = ftpFile.getTimestamp();
-                String createFileTime = DateUtils.parseDateTimeByDate(timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
-                long minutes = DateHelper.getDistanceMinutes(createFileTime);
-                if (minutes < 1) {
-                    log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, createFileTime);
-                    return;
-                }
-                //判断.success文件是否存在
-                String successName = fileName + ".success";
-                boolean successFileExists = ftpClient.isExsits(srcPath.concat(successName));
-                if (!successFileExists) {
-                    //创建.success文件
-                    log.warn(TITLE + ".success文件不存在:{}", successName);
-                    File file = new File(targetPath.concat("success/"));
-                    if (!file.exists()) {
-                        file.mkdirs();
-                    }
-                    File successFile = new File(targetPath.concat("success/").concat(successName));
-                    if (!successFile.exists()) {
-                        successFile.createNewFile();
-                    }
-                    ftpClient.uploadFile(Files.newInputStream(Paths.get(srcPath + successName)), targetPath, successName);
-                    return;
-                }
-                break;
+                ftpClient.disconnect();
             } catch (Exception e) {
-                log.warn(TITLE + "第{}次任务异常", retry + 1, e);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            } finally {
-                try {
-                    ftpClient.disconnect();
-                } catch (Exception e) {
-                    log.error(TITLE + "文件检查任务关闭FTP客户端异常", e);
-                }
+                log.error(TITLE + "文件检查任务关闭FTP客户端异常", e);
             }
         }
     }
 
-    private void sftpFileList(SftpClient sftpClient, SyncConfig syncConfig, String fileName){
+    private void sftpFileList(SftpClient sftpClient, SyncConfig syncConfig, String fileName, List<String> appletDates) {
         String srcPath = syncConfig.getSrcPath();
         String targetPath = syncConfig.getTargetPath();
+        try {
+            sftpClient.connect();
+            boolean fileExists = sftpClient.isExistFile(srcPath.concat(fileName));
+            if (!fileExists) {
+                log.warn(TITLE + "文件不存在:{}", fileName);
+                return;
+            }
+            // 判断文件创建时间是否超过1分钟
+            Map<String, SftpATTRS> map = sftpClient.listFiles(srcPath);
+            log.warn("SFTP同步路径:{},该路径下文件有:{}个", srcPath, map.keySet().size());
+            for (Map.Entry<String, SftpATTRS> entry : map.entrySet()) {
 
-        for (int retry = 0; retry <= MAX_RETRY_COUNT; retry++) {
+                if (entry.getKey().equals(fileName)) {
+                    SftpATTRS attrs = entry.getValue();
+                    String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
+                    long minutes = DateHelper.getDistanceMinutes(createFileTime);
+                    if (minutes < 1) {
+                        log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, createFileTime);
+                        return;
+                    }
+                }
+            }
+            //判断.success文件是否存在
+            String successName = fileName + ".success";
+            boolean successFileExists = sftpClient.isExistFile(srcPath.concat(successName));
+            if (!successFileExists) {
+                //创建.success文件
+                log.warn(TITLE + ".success文件不存在:{}", successName);
+                File file = new File(targetPath.concat("success/"));
+                if (!file.exists()) {
+                    file.mkdirs();
+                }
+                File successFile = new File(targetPath.concat("success/").concat(successName));
+                successFile.createNewFile();
+                if (successFile.exists()) {
+                    sftpClient.uploadFile(srcPath, successName, targetPath.concat("success/").concat(successName));
+                }
+                return;
+            }
+            workWithFiles(syncConfig, appletDates);
+        } catch (Exception e) {
+            log.error(TITLE + "拉取文件异常", e);
+        } finally {
             try {
-                sftpClient.connect();
-                boolean fileExists = sftpClient.isExistFile(srcPath.concat(fileName));
-                if (!fileExists) {
-                    log.warn(TITLE + "文件不存在:{}", fileName);
-                    return;
-                }
-                // 判断文件创建时间是否超过1分钟
-                Map<String, SftpATTRS> map = sftpClient.listFiles(srcPath);
-                log.warn("SFTP同步路径:{},该路径下文件有:{}个",srcPath,map.keySet().size());
-                for(Map.Entry<String, SftpATTRS> entry : map.entrySet()){
-
-                    if(entry.getKey().equals(fileName)){
-                        SftpATTRS attrs = entry.getValue();
-                        String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
-                        long minutes = DateHelper.getDistanceMinutes(createFileTime);
-                        if (minutes < 1) {
-                            log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, createFileTime);
-                            return;
-                        }
-                    }
-                }
-                //判断.success文件是否存在
-                String successName = fileName + ".success";
-                boolean successFileExists = sftpClient.isExistFile(srcPath.concat(successName));
-                if (!successFileExists) {
-                    //创建.success文件
-                    log.warn(TITLE + ".success文件不存在:{}", successName);
-                    File file = new File(targetPath.concat("success/"));
-                    if (!file.exists()) {
-                        file.mkdirs();
-                    }
-                    File successFile = new File(targetPath.concat("success/").concat(successName));
-                    successFile.createNewFile();
-                    if (successFile.exists()) {
-                        sftpClient.uploadFile(srcPath, successName, targetPath.concat("success/").concat(successName));
-                    }
-                    return;
-                }
-                break;
+                sftpClient.disconnect();
             } catch (Exception e) {
-                log.warn(TITLE + "第{}次任务异常", retry + 1, e);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            } finally {
-                try {
-                    sftpClient.disconnect();
-                } catch (Exception e) {
-                    log.error(TITLE + "文件检查任务关闭FTP客户端异常", e);
-                }
+                log.error(TITLE + "文件检查任务关闭FTP客户端异常", e);
             }
         }
     }
@@ -338,11 +319,11 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 }
                 String name = tFile.getName();
                 List<String> fileNames = splitFile(tFile.getPath(), splitPath, splitNum);
-                if (CollectionUtils.isEmpty(fileNames)) {
+                if (!CollectionUtils.isEmpty(fileNames)) {
                     fileNameList.addAll(fileNames);
                 }
                 //文件移动
-                moveFiles(tFile, targetPath, name);
+                moveFiles(tFile, requestPath, name);
             }
         }
         log.warn(TITLE + "切分文件结束--{},耗时--{}", fileNameList.size(), System.currentTimeMillis() - l);
@@ -364,12 +345,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         if (!writeName.exists()) {
             writeName.mkdirs();
         }
-        //创建返回目录
-        String resultPath = destBlockPath.replace("split", "result");
-        File resultWriteName = new File(resultPath);
-        if (!resultWriteName.exists()) {
-            resultWriteName.mkdirs();
-        }
         Writer fw = null;
         try (FileReader read = new FileReader(pathName);
              BufferedReader br = new BufferedReader(read)) {
@@ -377,18 +352,18 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             int rownum = 1;
             int fileNo = 1;
             //创建写入文件
-            String splitName = destBlockPath + PATH_SEPARATOR + fileNo + SUFFIX_TXT;
+            String splitName = destBlockPath + fileNo + SUFFIX_TXT;
             File file1 = new File(splitName);
             fw = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(Paths.get(file1.getPath())), StandardCharsets.UTF_8));
             fileNameList.add(file1.getPath());
             while ((row = br.readLine()) != null) {
-                log.info("data---{}", row);
+                log.warn("data---{}", row);
                 rownum++;
                 fw.append(row + "\r\n");
                 if ((rownum / splitNum) > (fileNo - 1)) {
                     fw.close();
                     fileNo++;
-                    File fileAdd = new File(splitName);
+                    File fileAdd = new File(destBlockPath + fileNo + SUFFIX_TXT);
                     fw = new FileWriter(fileAdd);
                     fileNameList.add(fileAdd.getPath());
                 }
@@ -491,7 +466,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             int total = 0;
             while ((params = reader.readLine()) != null) {
                 if (StringUtils.isNotBlank(params)) {
-                    log.info("params:{}", params);
+                    log.warn("params:{}", params);
                     if (params.contains("mobile_sha256")) {
                         log.warn("过滤表头params:{}", params);
                         continue;
@@ -523,9 +498,9 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     updateHisUser.setReserveField1(reserveField1Obj.toJSONString());
 
 
-                                    StringBuilder update = new StringBuilder(String.format("UPDATE b_marketing_sync_%s SET reserve_field1 = ", apiCode));
+                                    StringBuilder update = new StringBuilder(String.format("UPDATE b_marketing_sync_%s SET reserve_field1 = '", apiCode));
                                     update.append(reserveField1Obj.toJSONString());
-                                    update.append(" WHERE id = ");
+                                    update.append("' WHERE id = ");
                                     update.append(sync.getId());
                                     int i1 = marketingSyncUserMapper.updateBatchData(update.toString());
                                     if (total % 100 == 0) {
