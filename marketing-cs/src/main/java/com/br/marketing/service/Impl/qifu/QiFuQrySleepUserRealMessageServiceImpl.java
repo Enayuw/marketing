@@ -75,14 +75,18 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
         int threadPoolNum = marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0) == null ? 10 :
                 marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0);
 
+        // 使用CallerRunsPolicy避免任务被拒绝
         ThreadPoolExecutor actionThreadPool = BrExecutors.getThreadPool(actionThreadNum, actionThreadNum);
+        actionThreadPool.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
         ThreadPoolExecutor taskIdThreadPool = BrExecutors.getThreadPool(threadPoolNum, threadPoolNum);
-        
+        taskIdThreadPool.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
         Integer pageSize = marketingCommonConfig.getQiFuQryUserMessageSize();
 
         Set<String> taskIdSet = configList.stream().map(MarketingCustomizeDataValidConfig::getTaskId).collect(Collectors.toSet());
         CountDownLatch taskLatch = new CountDownLatch(taskIdSet.size());
-        
+
         for (String tskId : taskIdSet) {
             taskIdThreadPool.submit(() -> {
                 try {
@@ -93,10 +97,10 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                         final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getSyncUserByCusBatch(
                                 apiCode, tskId, indexId, now, pageSize);
 
-                        log.warn(TITLE+"筛选数据:{}", pageList);
                         if (CollectionUtils.isEmpty(pageList)) {
                             break;
                         }
+                        log.warn(TITLE + "筛选数据, 数量:{}", pageList.size());
                         indexId = pageList.get(pageList.size() - 1).getId();
 
                         List<List<MarketingSyncUser>> partition = ListUtils.partition(pageList, 50);
@@ -110,15 +114,16 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 }
             });
         }
-        
+
         try {
-            taskLatch.await(60, TimeUnit.MINUTES);
+            // 设置较短的超时时间，避免长时间等待
+            taskLatch.await(30, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
                     TITLE + "等待taskId处理完成被中断，错误信息：" + e.getMessage()), e);
             Thread.currentThread().interrupt();
         }
-        
+
         long taskCount = -1;
         actionThreadPool.shutdown();
         taskIdThreadPool.shutdown();
@@ -140,7 +145,6 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
         clenTaskAction.setId(action.getId());
         clenTaskAction.setClenStatus(2);
         bqifuClenTaskActionMapper.updateByPrimaryKeySelective(clenTaskAction);
-
     }
 
     private Result<String> action(List<MarketingSyncUser> pageList, String apiCode, String tskId) {
@@ -170,26 +174,12 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             if (mock.get("switch") == Boolean.TRUE) {
                 List<QueryUserRealMessage> batchInsertList = new ArrayList<>();
                 for (MarketingSyncUser marketingSyncUser : pageList) {
-                    QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
-                    queryUserRealMessage.setApiCode(apiCode);
-                    queryUserRealMessage.setBatchNo(tskId);
-                    queryUserRealMessage.setUniqueReqNo(marketingSyncUser.getCustNum());
-                    queryUserRealMessage.setMobileMd5(marketingSyncUser.getCellMd5());
-                    queryUserRealMessage.setStopMarketingSign("N");
-                    queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\"," +
-                            "\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
-                    queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
-                    queryUserRealMessage.setTradeMessage("{\"isSucc\":\"Y\",\"succAmtType\":\"1\",\"curAvailableQuota\":\"7\",\"hisSettleTime\":\"2025-03\",\"isLoan\":\"Y\"}");
-                    queryUserRealMessage.setCreateDate(LocalDate.now().toString());
-                    queryUserRealMessage.setCreateTime(new Date());
-                    queryUserRealMessage.setAppletDate(marketingSyncUser.getAppletDate());
-                    queryUserRealMessage.setUserType(marketingSyncUser.getUserType());
-                    queryUserRealMessage.setCell(marketingSyncUser.getCell());
+                    QueryUserRealMessage queryUserRealMessage = createQueryUserRealMessage(apiCode, tskId, marketingSyncUser);
                     batchInsertList.add(queryUserRealMessage);
                 }
+                // 处理批量数据
                 if (!CollectionUtils.isEmpty(batchInsertList)) {
-                    queryUserRealMessageMapper.batchInsert(batchInsertList);
-                    log.warn(TITLE + "挡板数据批量插入, 数量:{}", batchInsertList.size());
+                    batchInsertAndClear(batchInsertList, "挡板数据批量插入");
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
                 return result;
@@ -202,7 +192,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 ResponseData<QrySleepUserRealMessageResp> data = dataResult.getData();
                 QrySleepUserRealMessageResp qrySleepUserRealMessageResp = data.getData().getT();
                 List<QryUserRealMessage> realDetails = qrySleepUserRealMessageResp.getRealDetails();
-                
+
                 List<QueryUserRealMessage> batchInsertList = new ArrayList<>();
                 for (QryUserRealMessage qryUserRealMessage : realDetails) {
                     // 保存返回数据
@@ -223,13 +213,19 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     }
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
-                    queryUserRealMessage.setAppletDate(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getAppletDate());
-                    queryUserRealMessage.setUserType(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getUserType());
-                    queryUserRealMessage.setCell(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getCell());
+
+                    // 安全获取关联数据
+                    List<MarketingSyncUser> users = listMap.get(qryUserRealMessage.getMobileMd5());
+                    if (users != null && !users.isEmpty()) {
+                        queryUserRealMessage.setAppletDate(users.get(0).getAppletDate());
+                        queryUserRealMessage.setUserType(users.get(0).getUserType());
+                        queryUserRealMessage.setCell(users.get(0).getCell());
+                    }
                     batchInsertList.add(queryUserRealMessage);
                 }
+                // 批量插入
                 if (!CollectionUtils.isEmpty(batchInsertList)) {
-                    queryUserRealMessageMapper.batchInsert(batchInsertList);
+                    batchInsertAndClear(batchInsertList, "批量插入API返回数据");
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
             }
@@ -238,6 +234,47 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     "调用奇富查询用户方法执行异常，错误信息：" + e.getMessage()), e);
         }
         return result;
+    }
+
+    /**
+     * 批量插入并清空列表
+     *
+     * @param batchList  待插入列表
+     * @param logMessage 日志消息
+     */
+    private void batchInsertAndClear(List<QueryUserRealMessage> batchList, String logMessage) {
+        try {
+            if (!CollectionUtils.isEmpty(batchList)) {
+                queryUserRealMessageMapper.batchInsert(batchList);
+                log.warn(TITLE + "{}, 数量:{}", logMessage, batchList.size());
+                batchList.clear();
+            }
+        } catch (Exception e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
+                    "批量插入数据异常：" + e.getMessage()), e);
+        }
+    }
+
+    /**
+     * 创建用户消息对象
+     */
+    private QueryUserRealMessage createQueryUserRealMessage(String apiCode, String tskId, MarketingSyncUser marketingSyncUser) {
+        QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
+        queryUserRealMessage.setApiCode(apiCode);
+        queryUserRealMessage.setBatchNo(tskId);
+        queryUserRealMessage.setUniqueReqNo(marketingSyncUser.getCustNum());
+        queryUserRealMessage.setMobileMd5(marketingSyncUser.getCellMd5());
+        queryUserRealMessage.setStopMarketingSign("N");
+        queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\"," +
+                "\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
+        queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
+        queryUserRealMessage.setTradeMessage("{\"isSucc\":\"Y\",\"succAmtType\":\"1\",\"curAvailableQuota\":\"7\",\"hisSettleTime\":\"2025-03\",\"isLoan\":\"Y\"}");
+        queryUserRealMessage.setCreateDate(LocalDate.now().toString());
+        queryUserRealMessage.setCreateTime(new Date());
+        queryUserRealMessage.setAppletDate(marketingSyncUser.getAppletDate());
+        queryUserRealMessage.setUserType(marketingSyncUser.getUserType());
+        queryUserRealMessage.setCell(marketingSyncUser.getCell());
+        return queryUserRealMessage;
     }
 
     private BQifuClenTaskAction getAction(String apiCode, String now) {
@@ -276,7 +313,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             return bqifuClenTaskActionMapper.selectByExample(bQifuClenTaskActionExample).get(0);
         } catch (Exception e) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
-                            "促动支清洗记录插入异常，错误信息：" + e.getMessage()), e);
+                    "促动支清洗记录插入异常，错误信息：" + e.getMessage()), e);
             return null;
         }
     }

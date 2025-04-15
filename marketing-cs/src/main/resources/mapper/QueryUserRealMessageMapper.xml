@@ -79,12 +79,12 @@
         INSERT INTO b_qifu_batch_query_user_real_message
         (api_code, batch_no, unique_req_no, mobile_md5, stop_marketing_sign, 
         user_message, risk_message, trade_message, create_date, create_time, 
-        applet_date, user_type, cell)
+        applet_date, user_type, cell, status, is_deleted, upload_update_status, es_update_status)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.apiCode}, #{item.batchNo}, #{item.uniqueReqNo}, #{item.mobileMd5}, #{item.stopMarketingSign},
             #{item.userMessage}, #{item.riskMessage}, #{item.tradeMessage}, #{item.createDate}, #{item.createTime},
-            #{item.appletDate}, #{item.userType}, #{item.cell})
+            #{item.appletDate}, #{item.userType}, #{item.cell}, 0, 0, 0, 0)
         </foreach>
     </insert>
 
