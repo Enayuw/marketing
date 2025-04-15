@@ -2,16 +2,14 @@ package com.br.marketing.rabbitmq;
 
 
 import com.alibaba.fastjson.JSON;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.MrpMqFact;
+import com.br.marketing.service.PushRuleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -21,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -36,6 +33,9 @@ public class RabbitMqProducter {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Autowired
+    PushRuleService pushRuleService;
 
 
     @PostConstruct
@@ -145,19 +145,9 @@ public class RabbitMqProducter {
 
         String redisKey = RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
         String aiUniversalRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE;
+        String routingKeyFromRedis = pushRuleService.getRoutingKeyFromRedis(redisKey, aiUniversalRoutingKey);
 
-        try {
-            List<String> zrange = redisChgService.zrange(redisKey, 0L, 1L);
-            aiUniversalRoutingKey = zrange.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(aiUniversalRoutingKey);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                    e.getMessage(),
-                    "ai客户数据推送下游，获取redis路由键失败，数据进入默认队列"
-            ), e);
-        }
-
-        rabbitTemplate.convertAndSend(exchange, aiUniversalRoutingKey, message, arg0 -> {
+        rabbitTemplate.convertAndSend(exchange, routingKeyFromRedis, message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             return arg0;
         }, correlationData);

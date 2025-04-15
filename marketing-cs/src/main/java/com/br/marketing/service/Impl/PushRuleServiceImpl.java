@@ -2154,22 +2154,27 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
             String redisKey = RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
             String aiQueueRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE;
-
-            try {
-                List<String> zrange = redisChgService.zrange(redisKey, 0L, 1L);
-                aiQueueRoutingKey = zrange.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(aiQueueRoutingKey);
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(
-                        AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                        e.getMessage(),
-                        "ai客户数据上传接口，获取redis路由键失败，数据进入默认队列"
-                ), e);
-            }
-
-            producter.send(aiQueueRoutingKey, syncInfoId);
+            String routingKeyFromRedis = getRoutingKeyFromRedis(redisKey, aiQueueRoutingKey);
+            producter.send(routingKeyFromRedis, syncInfoId);
         } else {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
+    }
+
+    @Override
+    public String getRoutingKeyFromRedis(String key, String defaultValue) {
+        try {
+            List<String> zrange = redisChgService.zrange(key, 0L, 1L);
+            defaultValue = zrange.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(defaultValue);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    e.getMessage(),
+                    "ai客户数据，获取redis路由键失败，数据进入默认队列"
+            ), e);
+        }
+
+        return defaultValue;
     }
 
     /**
