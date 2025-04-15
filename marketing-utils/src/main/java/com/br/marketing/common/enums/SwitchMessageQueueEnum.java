@@ -34,7 +34,6 @@ public enum SwitchMessageQueueEnum {
                 return switchMessageQueueEnum;
             }
         }
-
         return null;
     }
 }

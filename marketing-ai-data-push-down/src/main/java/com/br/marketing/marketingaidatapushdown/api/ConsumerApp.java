@@ -1,6 +1,7 @@
 package com.br.marketing.marketingaidatapushdown.api;
 
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
@@ -10,6 +11,8 @@ import com.br.marketing.service.Impl.ai.AiConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.strategy.InterfaceHandlerService;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +56,9 @@ public class ConsumerApp {
     @Autowired
     AiConsumerService aiConsumerService;
 
+    TpDynamicExecutor aiConsumerUniversalTransferThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_CONSUMER_PREUSER.getName(),
+            100, 100);
+
     /**
      * 消费 AI推送下游数据消费端
      * @param channel 通道
@@ -67,7 +73,7 @@ public class ConsumerApp {
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
                 ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                BrExecutors.getThreadPool(100, 100));
+                aiConsumerUniversalTransferThreadPool);
     }
 
     /**
@@ -84,7 +90,7 @@ public class ConsumerApp {
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
                 ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                BrExecutors.getThreadPool(100, 100));
+                aiConsumerUniversalTransferThreadPool);
     }
 
     /**
@@ -101,7 +107,7 @@ public class ConsumerApp {
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
                 ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                BrExecutors.getThreadPool(100, 100));
+                aiConsumerUniversalTransferThreadPool);
     }
 
     /**

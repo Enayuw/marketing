@@ -3,6 +3,7 @@ package com.br.marketing.marketingaimqconsumer.api;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
@@ -11,6 +12,8 @@ import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.ai.AiConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.br.marketing.common.utils.AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY;
 
@@ -49,6 +53,9 @@ public class ConsumerApp {
     @Autowired
     AiConsumerService aiConsumerService;
 
+    TpDynamicExecutor aiConsumerPreUserThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_CONSUMER_PREUSER.getName(), 100,
+            100);
+
     /**
      * 消费 AI上传数据消费端
      * @param channel 通道
@@ -63,7 +70,7 @@ public class ConsumerApp {
         }.getType());
         aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
                 ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
-                BrExecutors.getThreadPool(100, 100));
+                aiConsumerPreUserThreadPool);
     }
 
     /**
@@ -80,7 +87,7 @@ public class ConsumerApp {
         }.getType());
         aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
                 ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
-                BrExecutors.getThreadPool(100, 100));
+                aiConsumerPreUserThreadPool);
     }
 
     /**
@@ -97,7 +104,7 @@ public class ConsumerApp {
         }.getType());
         aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
                 ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
-                BrExecutors.getThreadPool(100, 100));
+                aiConsumerPreUserThreadPool);
     }
 
     /**
