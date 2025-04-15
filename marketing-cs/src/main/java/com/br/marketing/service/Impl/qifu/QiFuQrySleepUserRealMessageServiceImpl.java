@@ -171,7 +171,27 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
 
             // 获取挡板开关
             HashMap<String, Object> mock = marketingCommonConfig.getQifuQryUserMessageMock();
+
             if (mock.get("switch") == Boolean.TRUE) {
+                try {
+                    long time = 200;
+                    if (mock.get("time") != null) {
+                        time = Long.parseLong(mock.get("time").toString());
+                    }
+                    // 模拟真实接口调用耗时，记录开始时间
+                    long startMockTime = System.currentTimeMillis();
+                    
+                    // 使用配置的固定延迟时间
+                    Thread.sleep(time);
+                    
+                    // 记录结束时间并计算耗时
+                    long endMockTime = System.currentTimeMillis();
+                    log.warn(TITLE + "挡板模拟接口调用完成, 耗时:{}ms", (endMockTime - startMockTime));
+                } catch (InterruptedException e) {
+                    log.warn(TITLE + "挡板延迟模拟被中断");
+                    Thread.currentThread().interrupt();
+                }
+                
                 List<QueryUserRealMessage> batchInsertList = new ArrayList<>();
                 for (MarketingSyncUser marketingSyncUser : pageList) {
                     QueryUserRealMessage queryUserRealMessage = createQueryUserRealMessage(apiCode, tskId, marketingSyncUser);
