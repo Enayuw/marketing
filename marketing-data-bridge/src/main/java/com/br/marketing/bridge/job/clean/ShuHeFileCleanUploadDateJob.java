@@ -453,7 +453,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         if (!writeName.exists()) {
             boolean mkdirs = writeName.mkdirs();
             if (!mkdirs) {
-                log.error("writeName mkdirs error:{}", writeName);
+                log.error(TITLE + "writeName mkdirs error:{}", writeName);
             }
         }
         StringBuilder path = new StringBuilder()
@@ -482,7 +482,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             while ((params = reader.readLine()) != null) {
                 if (StringUtils.isNotBlank(params)) {
                     if (params.contains("mobile_sha256")) {
-                        log.warn("过滤表头params:{}", params);
+                        log.warn(TITLE + "过滤表头params:{}", params);
                         continue;
                     }
 
@@ -495,7 +495,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         total = processCellData(cell, riskCreditLimitHbLv0, apiCode, appletDates,
                                 batchList, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
                     } else {
-                        log.warn("cell为空:{}", params);
+                        log.warn(TITLE + "cell为空:{}", params);
                     }
                 }
             }
@@ -505,9 +505,9 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
             }
 
-            log.warn("处理完成:{},total:{}", fileName, total);
+            log.warn(TITLE + "处理完成:{},total:{}", fileName, total);
         } catch (Exception e) {
-            log.error("处理出错", e);
+            log.error(TITLE + "处理出错", e);
         } finally {
             countDownLatch.countDown();
         }
@@ -528,7 +528,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
             if (list != null && !list.isEmpty()) {
                 if (list.size() > 1) {
-                    log.warn("查询：{},{},{},list:{}", apiCode, cellLogEncode, appletDates, JSON.toJSON(list));
+                    log.warn(TITLE + "查询：{},{},{},list:{}", apiCode, cellLogEncode, appletDates, JSON.toJSON(list));
                 }
 
                 // 保存每条记录对应的cell和加密信息
@@ -550,7 +550,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 }
             }
         } else {
-            log.warn("解密失败:{}", cell);
+            log.warn(TITLE + "解密失败:{}", cell);
         }
         return total;
     }
@@ -594,7 +594,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
         int updateCount = marketingSyncUserMapper.updateBatchData(updateSql.toString());
         if (total % 100 == 0) {
-            log.warn("% 100参数total:{},批量更新操作 updateCount:{}", total, updateCount);
+            log.warn(TITLE + "% 100参数total:{},批量更新操作 updateCount:{}", total, updateCount);
         }
         return total;
     }
