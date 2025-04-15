@@ -26,3 +26,9 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 线程池动态配置监控
+tp:
+  dynamic:
+    metric:
+      enabled: true
