@@ -39,7 +39,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
-
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ClassName ShuHeFileCleanUploadDateJob
@@ -60,12 +60,10 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     MarketingSyncUserMapper marketingSyncUserMapper;
     @Resource
     SyncConfigMapper syncConfigMapper;
-    public static final String PATH = "/opt/data/inloan/download/marketingCommonApplet/";
     public static final String PATH_SEPARATOR = "/";
     public static final String SUFFIX_TXT = ".txt";
-    public static final String PATHSPLIT = "/split/";
+    public static final String PATH_SPLIT = "/split/";
     public static final String PATH_SPECIAL = "special";
-    public static final int MAX_RETRY_COUNT = 3;
     private static final String TITLE = "【数禾首借数据自动化匹配洗库】";
 
     @Override
@@ -82,7 +80,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     }
 
     private void processApiCodes() {
-        // {"apiCode":["3710128","3710148"],"appletDate":["2025-01-01","2025-01-02"],"fileName":"pdm_cusop_slp_dyy_br1_df_yyyy-MM-dd_5.csv"}
         Map<String, Object> map = marketingCommonConfig.getShuHeFileCleanUploadDateConfig();
         List<String> apiCodes = (List<String>) map.get("apiCode");
         List<String> appletDates = (List<String>) map.get("appletDate");
@@ -116,9 +113,9 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             SyncConfigExample syncConfigExample = new SyncConfigExample();
             syncConfigExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
-                    .andStatusEqualTo(1)
                     .andDataTypeEqualTo(DataTypeEnum.MARKETINGUPLOADDATA.getValue())
                     .andTargetPathLike("%/download/marketingCommonApplet%")
+                    .andStatusEqualTo(1)
                     .andTypeEqualTo(1);
             List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
             if (CollectionUtils.isEmpty(syncConfigs)) {
@@ -139,7 +136,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         syncConfig.setSrcPath(srcPath);
         syncConfig.setTargetPath(targetPath);
 
-        //BaseFtpClient client= null;
         if (Constants.LOAN_WARNING_FTP.equals(syncConfig.getSrcType())) {
             FtpClient ftpClient = new FtpClient(syncConfig, true);
             ftpFileList(ftpClient, syncConfig, fileName, appletDates);
@@ -209,9 +205,8 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             }
             // 判断文件创建时间是否超过1分钟
             Map<String, SftpATTRS> map = sftpClient.listFiles(srcPath);
-            log.warn("SFTP同步路径:{},该路径下文件有:{}个", srcPath, map.keySet().size());
+            log.warn(TITLE + "SFTP同步路径:{},该路径下文件有:{}个", srcPath, map.keySet().size());
             for (Map.Entry<String, SftpATTRS> entry : map.entrySet()) {
-
                 if (entry.getKey().equals(fileName)) {
                     SftpATTRS attrs = entry.getValue();
                     String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
@@ -239,6 +234,13 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 }
                 return;
             }
+            //判断本地文件是否存在
+            File targetFile = new File(targetPath.concat(fileName));
+            if (!targetFile.exists()) {
+                log.warn(TITLE + "本地文件不存在:{}", targetPath.concat(fileName));
+                return;
+            }
+            //文件处理
             workWithFiles(syncConfig, appletDates);
         } catch (Exception e) {
             log.error(TITLE + "拉取文件异常", e);
@@ -258,12 +260,13 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             String apiCode = syncConfig.getApiCode();
             //新增执行记录
             Long jobId = jobManager.saveFrontData(apiCode, LocalDate.now().toString(), TransferActionFrontActionTypeEnum.ONE.getValue());
+            //文件切分
             List<String> fileNameList = specialSplitFile(syncConfig, 5000);
             //2、小文件自动化匹配洗库
             Writer fw = null;
             if (!CollectionUtils.isEmpty(fileNameList)) {
                 //创建写入文件
-                fw = createSpecial(apiCode, PATH_SPECIAL, TimeUtils.getNowDate(TimeUtils.DATE_STRING));
+                fw = createSpecial(syncConfig, TimeUtils.getNowDate(TimeUtils.DATE_STRING));
                 CountDownLatch countDownLatch = new CountDownLatch(fileNameList.size());
                 for (String name : fileNameList) {
                     Writer finalFw = fw;
@@ -281,6 +284,16 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             if (fw != null) {
                 fw.close();
             }
+            // 关闭线程池
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.warn("等待线程池结束");
+                }
+            } catch (Exception ex) {
+                log.error(TITLE + "线程池关闭异常", ex);
+            }
+
             //更新执行记录
             jobManager.updateFrontDataStatus(jobId, 2);
         } catch (Exception e) {
@@ -305,7 +318,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         // 切分文件路径---apiCode/special/yyyyMMdd
         String requestPath = targetPath + uploadDate;
         // 切分小文件路径---apiCode/special/yyyyMMdd/split/
-        String splitPath = requestPath + PATHSPLIT;
+        String splitPath = requestPath + PATH_SPLIT;
         File tmpFile = new File(targetPath);
         if (!tmpFile.exists()) {
             tmpFile.mkdirs();
@@ -334,14 +347,14 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      * 切分文件
      *
      * @param pathName      需要拆分的文件全路径
-     * @param destBlockPath 拆分结果目标路径
+     * @param splitPath     拆分结果目标路径
      * @param splitNum      单个文件拆分大小
      * @return
      */
-    public static List<String> splitFile(String pathName, String destBlockPath, int splitNum) {
+    public static List<String> splitFile(String pathName, String splitPath, int splitNum) {
         //创建切割目录
         List<String> fileNameList = new ArrayList<>();
-        File writeName = new File(destBlockPath);
+        File writeName = new File(splitPath);
         if (!writeName.exists()) {
             writeName.mkdirs();
         }
@@ -352,7 +365,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             int rownum = 1;
             int fileNo = 1;
             //创建写入文件
-            String splitName = destBlockPath + fileNo + SUFFIX_TXT;
+            String splitName = splitPath + fileNo + SUFFIX_TXT;
             File file1 = new File(splitName);
             fw = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(Paths.get(file1.getPath())), StandardCharsets.UTF_8));
             fileNameList.add(file1.getPath());
@@ -363,7 +376,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 if ((rownum / splitNum) > (fileNo - 1)) {
                     fw.close();
                     fileNo++;
-                    File fileAdd = new File(destBlockPath + fileNo + SUFFIX_TXT);
+                    File fileAdd = new File(splitPath + fileNo + SUFFIX_TXT);
                     fw = new FileWriter(fileAdd);
                     fileNameList.add(fileAdd.getPath());
                 }
@@ -430,13 +443,13 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     /**
      * 创建文件
      *
-     * @param apiCode
-     * @param nextFolderByApiCode
+     * @param syncConfig
      * @param requestTime
      * @return
      */
-    private Writer createSpecial(String apiCode, String nextFolderByApiCode, String requestTime) throws IOException {
-        File writeName = new File(PATH + apiCode + PATH_SEPARATOR + nextFolderByApiCode);
+    private Writer createSpecial(SyncConfig syncConfig, String requestTime) throws IOException {
+        String targetPath = syncConfig.getTargetPath();
+        File writeName = new File(targetPath);
         if (!writeName.exists()) {
             boolean mkdirs = writeName.mkdirs();
             if (!mkdirs) {
@@ -444,11 +457,9 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             }
         }
         StringBuilder path = new StringBuilder()
-                .append(PATH)
-                .append(apiCode).append(PATH_SEPARATOR)
-                .append(nextFolderByApiCode).append(PATH_SEPARATOR)
+                .append(targetPath)
                 .append(requestTime).append(PATH_SEPARATOR)
-                .append(nextFolderByApiCode).append("_").append(requestTime).append("_").append(System.currentTimeMillis())
+                .append(PATH_SPECIAL).append("_").append(requestTime).append("_").append(System.currentTimeMillis())
                 .append(SUFFIX_TXT);
         File file1 = new File(path.toString());
         return new BufferedWriter(
@@ -459,77 +470,133 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     public void syncDataToShThreadOnlyRisk(String fileName, String apiCode, List<String> appletDates,
                                            CountDownLatch countDownLatch, Writer fw) {
         log.warn("开始自动化匹配洗库处理:{}", fileName);
-        //读取
         try (InputStreamReader fReader = new InputStreamReader(Files.newInputStream(Paths.get(fileName)), StandardCharsets.UTF_8);
              BufferedReader reader = new BufferedReader(fReader)) {
-            String params = null;
+            String params;
             int total = 0;
+            List<MarketingSyncUser> batchList = new ArrayList<>();
+            Map<Long, String> cellMap = new HashMap<>();
+            Map<Long, String> cellLogEncodeMap = new HashMap<>();
+            Map<Long, String> riskCreditLimitMap = new HashMap<>();
+
             while ((params = reader.readLine()) != null) {
                 if (StringUtils.isNotBlank(params)) {
-                    log.warn("params:{}", params);
                     if (params.contains("mobile_sha256")) {
                         log.warn("过滤表头params:{}", params);
                         continue;
                     }
-                    //获取cell 和 riskCreditLimitHbLv0
+
+                    // 解析数据
                     String[] split = params.split(",");
                     String cell = split.length >= 2 ? split[1] : "";
                     String riskCreditLimitHbLv0 = split.length >= 3 ? split[2] : "";
+
                     if (StringUtils.isNotBlank(cell)) {
-                        //mobile_sha256 解密
-                        String cellEncode = RpcClientProxy.decode(cell, "cell", "sha", "");
-                        if (StringUtils.isNotBlank(cellEncode) && !cellEncode.equals(cell)) {
-                            //log加密
-                            String cellLogEncode = BrCipherMaker.getInstance().encode(cellEncode);
-                            List<MarketingSyncUser> list = marketingSyncUserMapper.getUserByCell(apiCode, appletDates, cellLogEncode);
-                            if (list != null && !list.isEmpty()) {
-                                if (list.size() > 1) {
-                                    log.warn("查询：{},{},{},list:{}", apiCode, cellLogEncode, appletDates, JSON.toJSON(list));
-                                }
-                                for (int i = 0; i < list.size(); i++) {
-                                    MarketingSyncUser sync = list.get(i);
-                                    //洗入reserve_field1.risk_credit_limit_hb_lv0
-                                    MarketingSyncUser updateHisUser = new MarketingSyncUser();
-                                    JSONObject reserveField1Obj = JSONObject.parseObject(sync.getReserveField1());
-                                    String riskCreditLimitHbLv0His = reserveField1Obj.getString("risk_credit_limit_hb_lv0");
-                                    if (StringUtils.isNotBlank(riskCreditLimitHbLv0) && StringUtils.isBlank(riskCreditLimitHbLv0His)) {
-                                        reserveField1Obj.put("risk_credit_limit_hb_lv0", riskCreditLimitHbLv0);
-                                    }
-                                    updateHisUser.setReserveField1(reserveField1Obj.toJSONString());
-
-
-                                    StringBuilder update = new StringBuilder(String.format("UPDATE b_marketing_sync_%s SET reserve_field1 = '", apiCode));
-                                    update.append(reserveField1Obj.toJSONString());
-                                    update.append("' WHERE id = ");
-                                    update.append(sync.getId());
-                                    int i1 = marketingSyncUserMapper.updateBatchData(update.toString());
-                                    if (total % 100 == 0) {
-                                        log.warn("% 100参数total:{},更新操作 update:{} id:{}", total, i1, sync.getId());
-                                    }
-                                    StringBuilder sb = new StringBuilder()
-                                            .append(cell).append(",")
-                                            .append(cellLogEncode).append(",")
-                                            .append(riskCreditLimitHbLv0).append(",")
-                                            .append(updateHisUser.getReserveField1()).append(",")
-                                            .append(sync.getId());
-                                    fw.append(sb + "\r\n");
-                                    total++;
-                                }
-                            }
-                        } else {
-                            log.warn("解密失败:{}", params);
-                        }
+                        total = processCellData(cell, riskCreditLimitHbLv0, apiCode, appletDates,
+                                batchList, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
                     } else {
                         log.warn("cell为空:{}", params);
                     }
                 }
             }
+
+            // 处理最后一批数据
+            if (!batchList.isEmpty()) {
+                processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
+            }
+
             log.warn("处理完成:{},total:{}", fileName, total);
         } catch (Exception e) {
             log.error("处理出错", e);
         } finally {
             countDownLatch.countDown();
         }
+    }
+
+    /**
+     * 处理手机号数据
+     * @return 更新后的total值
+     */
+    private int processCellData(String cell, String riskCreditLimitHbLv0, String apiCode,
+                                List<String> appletDates, List<MarketingSyncUser> batchList,
+                                Map<Long, String> cellMap, Map<Long, String> cellLogEncodeMap,
+                                Map<Long, String> riskCreditLimitMap, Writer fw, int total) throws IOException {
+        String cellEncode = RpcClientProxy.decode(cell, "cell", "sha", "");
+        if (StringUtils.isNotBlank(cellEncode) && !cellEncode.equals(cell)) {
+            String cellLogEncode = BrCipherMaker.getInstance().encode(cellEncode);
+            List<MarketingSyncUser> list = marketingSyncUserMapper.getUserByCell(apiCode, appletDates, cellLogEncode);
+
+            if (list != null && !list.isEmpty()) {
+                if (list.size() > 1) {
+                    log.warn("查询：{},{},{},list:{}", apiCode, cellLogEncode, appletDates, JSON.toJSON(list));
+                }
+
+                // 保存每条记录对应的cell和加密信息
+                for (MarketingSyncUser user : list) {
+                    cellMap.put(user.getId(), cell);
+                    cellLogEncodeMap.put(user.getId(), cellLogEncode);
+                    riskCreditLimitMap.put(user.getId(), riskCreditLimitHbLv0);
+                }
+
+                batchList.addAll(list);
+
+                if (batchList.size() >= 500) {
+                    total = processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
+                    batchList.clear();
+                    // 清理已处理的数据
+                    cellMap.clear();
+                    cellLogEncodeMap.clear();
+                    riskCreditLimitMap.clear();
+                }
+            }
+        } else {
+            log.warn("解密失败:{}", cell);
+        }
+        return total;
+    }
+
+    /**
+     * 批量更新数据
+     */
+    private int processBatchUpdate(List<MarketingSyncUser> batchList, String apiCode,
+                                   Map<Long, String> cellMap, Map<Long, String> cellLogEncodeMap,
+                                   Map<Long, String> riskCreditLimitMap, Writer fw, int total) throws IOException {
+        StringBuilder updateSql = new StringBuilder();
+        updateSql.append("UPDATE b_marketing_sync_").append(apiCode).append(" SET reserve_field1 = CASE id ");
+
+        List<Long> idList = new ArrayList<>();
+
+        for (MarketingSyncUser sync : batchList) {
+            JSONObject reserveField1Obj = JSONObject.parseObject(sync.getReserveField1());
+            String riskCreditLimitHbLv0 = riskCreditLimitMap.get(sync.getId());
+            String riskCreditLimitHbLv0His = reserveField1Obj.getString("risk_credit_limit_hb_lv0");
+
+            if (StringUtils.isNotBlank(riskCreditLimitHbLv0) && StringUtils.isBlank(riskCreditLimitHbLv0His)) {
+                reserveField1Obj.put("risk_credit_limit_hb_lv0", riskCreditLimitHbLv0);
+            }
+
+            updateSql.append("WHEN ").append(sync.getId())
+                    .append(" THEN '").append(reserveField1Obj.toJSONString()).append("' ");
+
+            idList.add(sync.getId());
+
+            // 写入日志，使用每条记录对应的信息
+            fw.append(String.format("%s,%s,%s,%s,%d\r\n",
+                    cellMap.get(sync.getId()),
+                    cellLogEncodeMap.get(sync.getId()),
+                    riskCreditLimitMap.get(sync.getId()),
+                    reserveField1Obj.toJSONString(),
+                    sync.getId()));
+            total++;
+        }
+
+        updateSql.append("END WHERE id IN (").append(StringUtils.join(idList, ",")).append(")");
+
+        int updateCount = marketingSyncUserMapper.updateBatchData(updateSql.toString());
+        if (total % 100 == 0) {
+            log.warn("% 100参数total:{},批量更新操作 updateCount:{}", total, updateCount);
+        }
+        return total;
     }
 
 }
