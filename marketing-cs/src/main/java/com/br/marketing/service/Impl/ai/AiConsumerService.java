@@ -61,6 +61,7 @@ public class AiConsumerService {
             } catch (InterruptedException e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
                         , "mq消费端，服务下线，线程休眠异常"), e);
+                Thread.currentThread().interrupt();
             }
             log.warn("服务下线，消费者休眠时间到");
         }

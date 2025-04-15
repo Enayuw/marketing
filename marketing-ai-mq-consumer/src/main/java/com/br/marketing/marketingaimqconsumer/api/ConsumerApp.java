@@ -107,7 +107,7 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_ERROR_RETRY, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY)}, containerFactory = "concurrentContainerFactory")
+            , key = ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY)}, containerFactory = "concurrentContainerFactory")
     public void consumerUniversalTransferErrorRetry(Channel channel, Message message) {
         log.warn("MARKETING_AI_PREUSER_RECEIVE_ERROR_RETRY：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
