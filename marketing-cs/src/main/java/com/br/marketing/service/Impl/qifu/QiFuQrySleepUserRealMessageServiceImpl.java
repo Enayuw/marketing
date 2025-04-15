@@ -21,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -68,37 +69,62 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             return;
         }
 
-        int i = marketingCommonConfig.getQiFuQryUserMessageThreadNum() == null ? 5 : marketingCommonConfig.getQiFuQryUserMessageThreadNum();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(i, i);
+        int actionThreadNum = marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0) == null ? 5 :
+                marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0);
+
+        int threadPoolNum = marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0) == null ? 10 :
+                marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0);
+
+        ThreadPoolExecutor actionThreadPool = BrExecutors.getThreadPool(actionThreadNum, actionThreadNum);
+        ThreadPoolExecutor taskIdThreadPool = BrExecutors.getThreadPool(threadPoolNum, threadPoolNum);
+        
         Integer pageSize = marketingCommonConfig.getQiFuQryUserMessageSize();
 
         Set<String> taskIdSet = configList.stream().map(MarketingCustomizeDataValidConfig::getTaskId).collect(Collectors.toSet());
+        CountDownLatch taskLatch = new CountDownLatch(taskIdSet.size());
+        
         for (String tskId : taskIdSet) {
-            Long indexId = null;
-            while (true) {
-                // 循环获取条件数据，每次2000条
-                // 根据手机号 筛选 未推送过的数据
-                final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getSyncUserByCusBatch(
-                        apiCode, tskId, indexId, now, pageSize);
+            taskIdThreadPool.submit(() -> {
+                try {
+                    Long indexId = null;
+                    while (true) {
+                        // 循环获取条件数据，每次2000条
+                        // 根据手机号 筛选 未推送过的数据
+                        final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getSyncUserByCusBatch(
+                                apiCode, tskId, indexId, now, pageSize);
 
-                log.warn(TITLE+"筛选数据:{}", pageList);
-                if (CollectionUtils.isEmpty(pageList)) {
-                    break;
+                        log.warn(TITLE+"筛选数据:{}", pageList);
+                        if (CollectionUtils.isEmpty(pageList)) {
+                            break;
+                        }
+                        indexId = pageList.get(pageList.size() - 1).getId();
+
+                        List<List<MarketingSyncUser>> partition = ListUtils.partition(pageList, 50);
+
+                        partition.forEach((List<MarketingSyncUser> p) -> {
+                            actionThreadPool.submit(() -> action(p, apiCode, tskId));
+                        });
+                    }
+                } finally {
+                    taskLatch.countDown();
                 }
-                indexId = pageList.get(pageList.size() - 1).getId();
-
-                List<List<MarketingSyncUser>> partition = ListUtils.partition(pageList, 50);
-
-                partition.forEach((List<MarketingSyncUser> p) -> {
-                    threadPool.submit(() -> action(p, apiCode, tskId));
-                });
-            }
+            });
         }
-        long taskCount = -1;
-        threadPool.shutdown();
+        
         try {
-            while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
-                long completedTask2Count = threadPool.getCompletedTaskCount();
+            taskLatch.await(60, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
+                    TITLE + "等待taskId处理完成被中断，错误信息：" + e.getMessage()), e);
+            Thread.currentThread().interrupt();
+        }
+        
+        long taskCount = -1;
+        actionThreadPool.shutdown();
+        taskIdThreadPool.shutdown();
+        try {
+            while (!actionThreadPool.awaitTermination(30, TimeUnit.SECONDS)) {
+                long completedTask2Count = actionThreadPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
                     log.warn(TITLE + "业务线程等待超时, apiCode{}", apiCode);
                     break;
@@ -142,6 +168,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             // 获取挡板开关
             HashMap<String, Object> mock = marketingCommonConfig.getQifuQryUserMessageMock();
             if (mock.get("switch") == Boolean.TRUE) {
+                List<QueryUserRealMessage> batchInsertList = new ArrayList<>();
                 for (MarketingSyncUser marketingSyncUser : pageList) {
                     QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
                     queryUserRealMessage.setApiCode(apiCode);
@@ -158,8 +185,11 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setAppletDate(marketingSyncUser.getAppletDate());
                     queryUserRealMessage.setUserType(marketingSyncUser.getUserType());
                     queryUserRealMessage.setCell(marketingSyncUser.getCell());
-                    queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
-                    log.warn(TITLE + "挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
+                    batchInsertList.add(queryUserRealMessage);
+                }
+                if (!CollectionUtils.isEmpty(batchInsertList)) {
+                    queryUserRealMessageMapper.batchInsert(batchInsertList);
+                    log.warn(TITLE + "挡板数据批量插入, 数量:{}", batchInsertList.size());
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
                 return result;
@@ -172,6 +202,8 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 ResponseData<QrySleepUserRealMessageResp> data = dataResult.getData();
                 QrySleepUserRealMessageResp qrySleepUserRealMessageResp = data.getData().getT();
                 List<QryUserRealMessage> realDetails = qrySleepUserRealMessageResp.getRealDetails();
+                
+                List<QueryUserRealMessage> batchInsertList = new ArrayList<>();
                 for (QryUserRealMessage qryUserRealMessage : realDetails) {
                     // 保存返回数据
                     QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
@@ -194,7 +226,10 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setAppletDate(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getAppletDate());
                     queryUserRealMessage.setUserType(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getUserType());
                     queryUserRealMessage.setCell(listMap.get(qryUserRealMessage.getMobileMd5()).get(0).getCell());
-                    queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
+                    batchInsertList.add(queryUserRealMessage);
+                }
+                if (!CollectionUtils.isEmpty(batchInsertList)) {
+                    queryUserRealMessageMapper.batchInsert(batchInsertList);
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
             }

@@ -41,6 +41,12 @@ public interface QueryUserRealMessageMapper extends QueryUserRealMessageMapperBa
 
     List<Map<String,String>> selectAppletDataByUpload(@Param("apiCode")String apiCode, @Param("createDate")String createDate);
 
+    /**
+     * 批量插入用户消息
+     * @param list 用户消息列表
+     * @return 插入数量
+     */
+    int batchInsert(@Param("list") List<QueryUserRealMessage> list);
 
 
 }
