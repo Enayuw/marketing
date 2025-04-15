@@ -157,6 +157,9 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
                     (RsxkCollectDataImpl.RsxkRuleNecessaryData) context.getRuleNecessaryData();
             Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getSyncUserPeriodMap();
             SyncUserValidityPeriodBO syncUserData = syncUserPeriodMap.get(bo.getCaseNum());
+            if (syncUserData == null) {
+                return false;
+            }
             MarketingSyncUser syncUser = syncUserData.getSyncUser();
             return isCall(syncUser);
         }
@@ -171,6 +174,12 @@ public class RsxkCallRecordToDassImpl implements AssembleData<RealTimeUserDataSo
      * @date 2025/3/28 10:53
      **/
     private Boolean isCall(MarketingSyncUser syncUser) {
+        //数据静置后，最新上传数据的user_type可能会变化，以最新的user_type为准，这里需要做二次场景过滤
+        JSONObject userTypeConfig = marketingCommonConfig.getRsxkToDassUserTypeConfig();
+        JSONObject configForApiCode = userTypeConfig.getJSONObject(syncUser.getApiCode());
+        if (!configForApiCode.containsKey(syncUser.getUserType())) {
+            return false;
+        }
         Result<CallStatusDTO> result = rsxkClient.queryCallStatus(syncUser);
         if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
             return false;
