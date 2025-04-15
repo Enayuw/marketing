@@ -69,11 +69,11 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             return;
         }
 
-        int actionThreadNum = marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0) == null ? 5 :
-                marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0);
+        int actionThreadNum = marketingCommonConfig.getQiFuQryUserMessageThreadNum() == null ? 5 :
+                marketingCommonConfig.getQiFuQryUserMessageThreadNum();
 
-        int threadPoolNum = marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0) == null ? 10 :
-                marketingCommonConfig.getQiFuQryUserMessageThreadNum().get(0);
+        int threadPoolNum = marketingCommonConfig.getQiFuQryUserMessageSelectThreadNum() == null ? 10 :
+                marketingCommonConfig.getQiFuQryUserMessageSelectThreadNum();
 
         // 使用CallerRunsPolicy避免任务被拒绝
         ThreadPoolExecutor actionThreadPool = BrExecutors.getThreadPool(actionThreadNum, actionThreadNum);

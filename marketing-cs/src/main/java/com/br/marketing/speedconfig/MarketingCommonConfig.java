@@ -1804,7 +1804,12 @@ public class MarketingCommonConfig {
     /**
      * 奇富360获取用户信息接口线程数
      */
-    private List<Integer> qiFuQryUserMessageThreadNum;
+    private Integer qiFuQryUserMessageThreadNum;
+
+    /**
+     * 奇富360获取用户信息接口查询线程数
+     */
+    private Integer qiFuQryUserMessageSelectThreadNum;
 
     /**
      * 奇富360用户信息接口分页参数
