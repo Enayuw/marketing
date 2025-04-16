@@ -531,7 +531,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
             // 处理最后一批数据
             if (!batchList.isEmpty()) {
-                processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, total);
+                processBatchUpdate(batchList, apiCode, riskCreditLimitMap, total);
             }
 
             log.warn(TITLE + "处理完成:{},total:{}", fileName, total);
@@ -570,7 +570,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 batchList.addAll(list);
 
                 if (batchList.size() >= 500) {
-                    total = processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, total);
+                    total = processBatchUpdate(batchList, apiCode, riskCreditLimitMap, total);
                     batchList.clear();
                     // 清理已处理的数据
                     cellMap.clear();
@@ -588,8 +588,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      * 批量更新数据
      */
     private int processBatchUpdate(List<MarketingSyncUser> batchList, String apiCode,
-                                   Map<Long, String> cellMap, Map<Long, String> cellLogEncodeMap,
-                                   Map<Long, String> riskCreditLimitMap, int total) throws IOException {
+                                   Map<Long, String> riskCreditLimitMap, int total) {
         StringBuilder updateSql = new StringBuilder();
         updateSql.append("UPDATE b_marketing_sync_").append(apiCode).append(" SET reserve_field1 = CASE id ");
 
