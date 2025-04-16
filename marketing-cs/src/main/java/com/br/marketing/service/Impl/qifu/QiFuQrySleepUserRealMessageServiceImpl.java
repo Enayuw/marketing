@@ -104,12 +104,10 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
-                long completedTask2Count = threadPool.getCompletedTaskCount();
-                if (taskCount == completedTask2Count) {
-                    log.warn(TITLE + "业务线程等待超时, apiCode{}", apiCode);
-                    break;
-                }
-                taskCount = completedTask2Count;
+                String str = String.format("线程状态(客户：%s,活动线程：%d,核心线程数：%d,未完成任务数：%d)"
+                        , apiCode, threadPool.getActiveCount(), threadPool.getCorePoolSize()
+                        , threadPool.getTaskCount() - threadPool.getCompletedTaskCount());
+                log.warn(TITLE + str);
             }
         } catch (InterruptedException e) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
