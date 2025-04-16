@@ -67,16 +67,20 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             log.warn("api_code:{}【该apiCode无有效期配置】", apiCode);
             return;
         }
+        // 每次循环重新获取线程数配置
+        int i = marketingCommonConfig.getQiFuQryUserMessageThreadNum() == null ? 5 : marketingCommonConfig.getQiFuQryUserMessageThreadNum();
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(i, i);
+        Integer pageSize = marketingCommonConfig.getQiFuQryUserMessageSize();
 
         Set<String> taskIdSet = configList.stream().map(MarketingCustomizeDataValidConfig::getTaskId).collect(Collectors.toSet());
         for (String tskId : taskIdSet) {
             Long indexId = null;
             while (true) {
-                // 每次循环重新获取线程数配置
-                int i = marketingCommonConfig.getQiFuQryUserMessageThreadNum() == null ? 5 : marketingCommonConfig.getQiFuQryUserMessageThreadNum();
-                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(i, i);
-                Integer pageSize = marketingCommonConfig.getQiFuQryUserMessageSize();
-                
+               if (ObjectUtil.isNotEmpty(marketingCommonConfig.getQiFuQryUserMessageThreadNum())
+                       && threadPool.getCorePoolSize() != marketingCommonConfig.getQiFuQryUserMessageThreadNum()) {
+                   threadPool.setCorePoolSize(marketingCommonConfig.getQiFuQryUserMessageThreadNum());
+                   threadPool.setMaximumPoolSize(marketingCommonConfig.getQiFuQryUserMessageThreadNum());
+               }
                 // 循环获取条件数据，每次2000条
                 // 根据手机号 筛选 未推送过的数据
                 final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getSyncUserByCusBatch(
@@ -93,27 +97,25 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 partition.forEach((List<MarketingSyncUser> p) -> {
                     threadPool.submit(() -> action(p, apiCode, tskId));
                 });
-                
-                // 在每次内循环结束时等待当前线程池完成
-                long taskCount = -1;
-                threadPool.shutdown();
-                try {
-                    while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
-                        long completedTask2Count = threadPool.getCompletedTaskCount();
-                        if (taskCount == completedTask2Count) {
-                            log.warn(TITLE + "业务线程等待超时, apiCode{}", apiCode);
-                            break;
-                        }
-                        taskCount = completedTask2Count;
-                    }
-                } catch (InterruptedException e) {
-                    log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
-                            TITLE + "，错误信息：" + e.getMessage()), e);
-                    Thread.currentThread().interrupt();
-                }
             }
         }
-
+        // 在每次内循环结束时等待当前线程池完成
+        long taskCount = -1;
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
+                long completedTask2Count = threadPool.getCompletedTaskCount();
+                if (taskCount == completedTask2Count) {
+                    log.warn(TITLE + "业务线程等待超时, apiCode{}", apiCode);
+                    break;
+                }
+                taskCount = completedTask2Count;
+            }
+        } catch (InterruptedException e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUCUDONGZHI_SERVICEERROR.getCode(),
+                    TITLE + "，错误信息：" + e.getMessage()), e);
+            Thread.currentThread().interrupt();
+        }
         BQifuClenTaskAction clenTaskAction = new BQifuClenTaskAction();
         clenTaskAction.setId(action.getId());
         clenTaskAction.setClenStatus(2);
