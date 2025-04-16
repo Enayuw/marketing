@@ -3,9 +3,11 @@ package com.br.marketing.bridge.job.clean;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.BrCipherMaker;
+import com.br.common.log.AlertLog;
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -152,7 +154,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             ftpClient.connect();
             boolean fileExists = ftpClient.isExistFile(srcPath.concat(fileName));
             if (!fileExists) {
-                log.warn(TITLE + "文件不存在:{}", fileName);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), TITLE + "文件不存在："+srcPath.concat(fileName)));
                 return;
             }
             // 判断文件创建时间是否超过1分钟

@@ -196,7 +196,7 @@
     />
     <job:simple id="【bridge】-ShuHeFileCleanUploadDateJob"
                 class="com.br.marketing.bridge.job.clean.ShuHeFileCleanUploadDateJob"
-                cron="0 0/10 * * * ?"
+                cron="0 30/10 10-23 * * ? "
                 description="数禾首借数据洗库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
