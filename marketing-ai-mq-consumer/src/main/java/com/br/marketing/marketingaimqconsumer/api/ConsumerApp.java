@@ -55,9 +55,9 @@ public class ConsumerApp {
 
     TpDynamicExecutor aiConsumerPreUserThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 100,
             100);
-    TpDynamicExecutor aiConsumerPreUserThreadPool_1 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 100,
+    TpDynamicExecutor aiConsumerPreUserThreadPool_1 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE_1.getName(), 100,
             100);
-    TpDynamicExecutor aiConsumerPreUserThreadPool_2 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 100,
+    TpDynamicExecutor aiConsumerPreUserThreadPool_2 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE_2.getName(), 100,
             100);
 
     /**
