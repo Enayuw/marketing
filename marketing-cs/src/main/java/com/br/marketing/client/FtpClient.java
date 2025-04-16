@@ -107,6 +107,22 @@ public class FtpClient extends BaseFtpClient {
         return flag;
     }
 
+    /**
+     * 判断文件是否存在
+     *
+     * @param remoteFile
+     * @return
+     */
+    public boolean isExistFile(String remoteFile) {
+        try {
+            FTPFile[] files = ftp.listFiles(remoteFile);
+            return files.length > 0 && !files[0].isDirectory();
+        } catch (IOException e) {
+            log.error("检查文件是否存在时出错", e);
+            return false;
+        }
+    }
+
     @Override
     public InputStream getInputStream(String path, String fileName) throws IOException {
         log.warn("path:{},fileName:{}",path,fileName);

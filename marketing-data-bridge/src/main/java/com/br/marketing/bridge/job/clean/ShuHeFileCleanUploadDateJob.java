@@ -150,7 +150,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         String targetPath = syncConfig.getTargetPath();
         try {
             ftpClient.connect();
-            boolean fileExists = ftpClient.isExsits(srcPath.concat(fileName));
+            boolean fileExists = ftpClient.isExistFile(srcPath.concat(fileName));
             if (!fileExists) {
                 log.warn(TITLE + "文件不存在:{}", fileName);
                 return;
@@ -166,7 +166,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             }
             //判断.success文件是否存在
             String successName = fileName + ".success";
-            boolean successFileExists = ftpClient.isExsits(srcPath.concat(successName));
+            boolean successFileExists = ftpClient.isExistFile(srcPath.concat(successName));
             if (!successFileExists) {
                 //创建.success文件
                 log.warn(TITLE + ".success文件不存在:{}", successName);
@@ -178,7 +178,13 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 if (!successFile.exists()) {
                     successFile.createNewFile();
                 }
-                ftpClient.uploadFile(Files.newInputStream(Paths.get(srcPath + successName)), targetPath, successName);
+                ftpClient.uploadFile(Files.newInputStream(Paths.get(targetPath.concat("success/").concat(successName))), srcPath, successName);
+                return;
+            }
+            //判断本地文件是否存在
+            File targetFile = new File(targetPath.concat(fileName));
+            if (!targetFile.exists()) {
+                log.warn(TITLE + "本地文件不存在:{}", targetPath.concat(fileName));
                 return;
             }
             workWithFiles(syncConfig, appletDates);
@@ -228,10 +234,10 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     file.mkdirs();
                 }
                 File successFile = new File(targetPath.concat("success/").concat(successName));
-                successFile.createNewFile();
-                if (successFile.exists()) {
-                    sftpClient.uploadFile(srcPath, successName, targetPath.concat("success/").concat(successName));
+                if (!successFile.exists()) {
+                    successFile.createNewFile();
                 }
+                sftpClient.uploadFile(srcPath, successName, targetPath.concat("success/").concat(successName));
                 return;
             }
             //判断本地文件是否存在
