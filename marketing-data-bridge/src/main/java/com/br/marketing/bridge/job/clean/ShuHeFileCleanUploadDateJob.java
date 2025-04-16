@@ -159,7 +159,8 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             }
         }
         //文件处理
-        if(flag && transferActionFront.getStatus() == 3){
+        TransferActionFront front = transferActionFrontMapper.selectByPrimaryKey(transferActionFront.getId());
+        if(flag && front.getStatus() == 3){
             workWithFiles(syncConfig, appletDates, transferActionFront.getId());
         }
     }
