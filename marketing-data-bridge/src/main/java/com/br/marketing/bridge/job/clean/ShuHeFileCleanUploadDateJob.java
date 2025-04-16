@@ -399,7 +399,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             fw = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(Paths.get(file1.getPath())), StandardCharsets.UTF_8));
             fileNameList.add(file1.getPath());
             while ((row = br.readLine()) != null) {
-                log.warn("data---{}", row);
                 rownum++;
                 fw.append(row + "\r\n");
                 if ((rownum / splitNum) > (fileNo - 1)) {
@@ -410,7 +409,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     fileNameList.add(fileAdd.getPath());
                 }
             }
-            log.warn(TITLE + "rownum:{};fileNo:{}", rownum, fileNo);
         } catch (IOException e) {
             log.error(TITLE + "splitFile error", e);
         } finally {
@@ -612,10 +610,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
         updateSql.append("END WHERE id IN (").append(StringUtils.join(idList, ",")).append(")");
 
-        int updateCount = marketingSyncUserMapper.updateBatchData(updateSql.toString());
-        if (total % 100 == 0) {
-            log.warn(TITLE + "% 100参数total:{},批量更新操作 updateCount:{}", total, updateCount);
-        }
+        marketingSyncUserMapper.updateBatchData(updateSql.toString());
         return total;
     }
 
