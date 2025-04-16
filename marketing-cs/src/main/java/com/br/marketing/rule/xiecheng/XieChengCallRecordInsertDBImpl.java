@@ -8,6 +8,7 @@ import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
     private XieChengDataMapper xieChengDataMapper;
 
     @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -62,8 +66,9 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
                 return false;
             }
             if (callRecordBO.getDetail() != null && callStatusIsBlack.contains(callRecordBO.getDetail().getCallStatus())) {
+                String tcid = tableCreateService.getTcId(callRecordBO.getApiCode());
                 MarketingTransferSyncUser xcTransferTodayNoAdDataByOnlyBlack = marketingTransferSyncUserMapper.getXcTransferTodayNoAdDataByOnlyBlack(
-                        String.valueOf(callRecordBO.getCid()), callRecordBO.getCaseNum(), callRecordBO.getApiCode());
+                        tcid, callRecordBO.getCaseNum(), callRecordBO.getApiCode());
                 if (xcTransferTodayNoAdDataByOnlyBlack != null) {
                     keepRecord(callRecordBO, String.format("CallStatus状态是：%d,且当天转化isBlack='1'", callRecordBO.getDetail().getCallStatus()));
                     return false;
