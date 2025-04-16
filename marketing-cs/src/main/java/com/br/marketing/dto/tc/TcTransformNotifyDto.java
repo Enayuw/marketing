@@ -9,12 +9,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class TcTransformNotifyDto {
-
-    @ApiModelProperty(value = "batchNo")
-    @NotNull(message = "batchNo必传")
-    @NotEmpty(message = "batchNo必传")
-    private String batchNo;
+public class TcTransformNotifyDto extends TcDataDto{
 
     @ApiModelProperty(value = "userKey")
     @NotNull(message = "userKey必传")

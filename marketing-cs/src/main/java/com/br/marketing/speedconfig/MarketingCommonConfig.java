@@ -2783,7 +2783,7 @@ public class MarketingCommonConfig {
     /**
      * 同程易融服务配置
      */
-    private Map<String,String> tcyrServerConfig;
+    private JSONObject tcyrServerConfig;
 
 }
 

@@ -8,12 +8,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class TcDataPushDto {
-
-    @ApiModelProperty(value = "batchNo")
-    @NotNull(message = "batchNo必传")
-    @NotEmpty(message = "batchNo必传")
-    private String batchNo;
+public class TcDataPushDto extends TcDataDto{
 
     @ApiModelProperty(value = "fileUrl")
     @NotNull(message = "fileUrl必传")

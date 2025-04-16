@@ -8,16 +8,12 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
-public class TcRevokeDto {
-
-    @ApiModelProperty(value = "batchNo")
-    @NotNull(message = "batchNo必传")
-    @NotEmpty(message = "batchNo必传")
-    private String batchNo;
+public class TcRevokeDto extends TcDataDto{
 
     @ApiModelProperty(value = "userKeyList")
     private List<String> userKeyList;
 
+    @Override
     public String validate() {
         if (StringUtils.isEmpty(batchNo)) {
             return "缺少必输字段data.batchNo";
