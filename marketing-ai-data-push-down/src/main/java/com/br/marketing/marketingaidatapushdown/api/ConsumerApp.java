@@ -3,7 +3,6 @@ package com.br.marketing.marketingaidatapushdown.api;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.AiMQConstants;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
@@ -56,8 +55,15 @@ public class ConsumerApp {
     @Autowired
     AiConsumerService aiConsumerService;
 
-    TpDynamicExecutor aiConsumerUniversalTransferThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_CONSUMER_PREUSER.getName(),
+    TpDynamicExecutor aiConsumerUniversalTransferThreadPool =
+            TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE.getName(),
             100, 100);
+    TpDynamicExecutor aiConsumerUniversalTransferThreadPool_1 =
+            TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE_1.getName(),
+                    100, 100);
+    TpDynamicExecutor aiConsumerUniversalTransferThreadPool_2 =
+            TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE_2.getName(),
+                    100, 100);
 
     /**
      * 消费 AI推送下游数据消费端
@@ -90,7 +96,7 @@ public class ConsumerApp {
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
                 ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                aiConsumerUniversalTransferThreadPool);
+                aiConsumerUniversalTransferThreadPool_1);
     }
 
     /**
@@ -107,7 +113,7 @@ public class ConsumerApp {
         /*消费逻辑*/
         aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
                 ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
-                aiConsumerUniversalTransferThreadPool);
+                aiConsumerUniversalTransferThreadPool_2);
     }
 
     /**

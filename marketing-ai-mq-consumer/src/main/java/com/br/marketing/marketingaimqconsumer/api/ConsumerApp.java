@@ -53,7 +53,11 @@ public class ConsumerApp {
     @Autowired
     AiConsumerService aiConsumerService;
 
-    TpDynamicExecutor aiConsumerPreUserThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_CONSUMER_PREUSER.getName(), 100,
+    TpDynamicExecutor aiConsumerPreUserThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 100,
+            100);
+    TpDynamicExecutor aiConsumerPreUserThreadPool_1 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 100,
+            100);
+    TpDynamicExecutor aiConsumerPreUserThreadPool_2 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 100,
             100);
 
     /**
@@ -87,7 +91,7 @@ public class ConsumerApp {
         }.getType());
         aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
                 ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
-                aiConsumerPreUserThreadPool);
+                aiConsumerPreUserThreadPool_1);
     }
 
     /**
@@ -104,7 +108,7 @@ public class ConsumerApp {
         }.getType());
         aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
                 ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
-                aiConsumerPreUserThreadPool);
+                aiConsumerPreUserThreadPool_2);
     }
 
     /**

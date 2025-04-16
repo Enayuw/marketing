@@ -2748,5 +2748,10 @@ public class MarketingCommonConfig {
      * AI客户消费端通用线程数
      */
     private Integer aiMqConsumerCommonThreadNum;
+
+    /**
+     * AI客户消费端启用线程池开关
+     */
+    private Boolean aiMqEnableThreadPoolSwitch;
 }
 
