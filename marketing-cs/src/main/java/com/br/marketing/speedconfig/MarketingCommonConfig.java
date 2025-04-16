@@ -2784,6 +2784,11 @@ public class MarketingCommonConfig {
      * 奇富促动支清洗上传及Es配置
      */
     private Map<String,String> qiFuCleanDataConfig;
+    /**
+     * 携程队列apiCode 集合
+     */
+    private List<String> xieChengQueueApiCodes;
+
 
 }
 

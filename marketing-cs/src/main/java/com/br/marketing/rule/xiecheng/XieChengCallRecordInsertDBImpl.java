@@ -3,7 +3,9 @@ package com.br.marketing.rule.xiecheng;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -28,10 +30,13 @@ import java.util.List;
 public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengDataDTO> {
 
     private List<Integer> callStatusFail = Arrays.asList(13, 15);
+    private List<Integer> callStatusIsBlack = Arrays.asList(12);
 
     @Resource
     private XieChengDataMapper xieChengDataMapper;
 
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO bo = (CallRecordBO) transmitFact;
@@ -55,6 +60,14 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
             if (callRecordBO.getDetail() != null && callStatusFail.contains(callRecordBO.getDetail().getCallStatus())) {
                 keepRecord(callRecordBO, String.format("CallStatus状态是：%d", callRecordBO.getDetail().getCallStatus()));
                 return false;
+            }
+            if (callRecordBO.getDetail() != null && callStatusIsBlack.contains(callRecordBO.getDetail().getCallStatus())) {
+                MarketingTransferSyncUser xcTransferTodayNoAdDataByOnlyBlack = marketingTransferSyncUserMapper.getXcTransferTodayNoAdDataByOnlyBlack(
+                        String.valueOf(callRecordBO.getCid()), callRecordBO.getCaseNum(), callRecordBO.getApiCode());
+                if (xcTransferTodayNoAdDataByOnlyBlack != null) {
+                    keepRecord(callRecordBO, String.format("CallStatus状态是：%d,且当天转化isBlack='1'", callRecordBO.getDetail().getCallStatus()));
+                    return false;
+                }
             }
             return true;
         }
@@ -94,3 +107,4 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         xieChengDataMapper.insertSelective(xieChengData);
     }
 }
+
