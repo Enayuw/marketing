@@ -34,8 +34,11 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -103,20 +106,27 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             frontExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
                     .andActionDataEqualTo(LocalDate.now().toString())
-                    .andActionTypeEqualTo(1)
+                    .andActionTypeEqualTo(TransferActionFrontActionTypeEnum.ONE.getValue())
                     .andIsDelEqualTo(Constants.DATA_VALID);
             List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
 
+            TransferActionFront transferActionFront;
             if (!CollectionUtils.isEmpty(transferActionFronts)) {
-                log.warn(TITLE + "今日已执行！");
-                continue;
+                transferActionFront = transferActionFronts.get(0);
+                if(transferActionFront.getStatus() == 2){
+                    log.warn(TITLE + "今日已执行！");
+                    continue;
+                }
+            }else {
+                //新增执行记录 setStatus 任务状态 1-未执行；2-执行结束；3-本地文件已生成
+                transferActionFront = jobManager.saveFront(apiCode, LocalDate.now().toString(), TransferActionFrontActionTypeEnum.ONE.getValue());
             }
 
             SyncConfigExample syncConfigExample = new SyncConfigExample();
             syncConfigExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
                     .andDataTypeEqualTo(DataTypeEnum.MARKETINGUPLOADDATA.getValue())
-                    .andTargetPathLike("%/download/marketingCommonApplet%")
+                    .andTargetPathLike("%/download/marketing%")
                     .andStatusEqualTo(1)
                     .andTypeEqualTo(1);
             List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
@@ -126,28 +136,35 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             }
             SyncConfig syncConfig = syncConfigs.get(0);
             // 文件处理逻辑
-            processFile(syncConfig, fileName, appletDates);
+            processFile(syncConfig, fileName, appletDates, transferActionFront);
         }
-
     }
 
-    private void processFile(SyncConfig syncConfig, String fileName, List<String> appletDates) {
+    private void processFile(SyncConfig syncConfig, String fileName,
+                             List<String> appletDates,TransferActionFront transferActionFront) {
         //源文件逻辑处理
         String srcPath = syncConfig.getSrcPath().replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
         String targetPath = syncConfig.getTargetPath().replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
         syncConfig.setSrcPath(srcPath);
         syncConfig.setTargetPath(targetPath);
 
-        if (Constants.LOAN_WARNING_FTP.equals(syncConfig.getSrcType())) {
-            FtpClient ftpClient = new FtpClient(syncConfig, true);
-            ftpFileList(ftpClient, syncConfig, fileName, appletDates);
-        } else if (Constants.LOAN_WARNING_SFTP.equals(syncConfig.getSrcType())) {
-            SftpClient sftpClient = new SftpClient(syncConfig, true);
-            sftpFileList(sftpClient, syncConfig, fileName, appletDates);
+        Boolean flag = Boolean.TRUE;
+        if(transferActionFront.getStatus() == 1){
+            if (Constants.LOAN_WARNING_FTP.equals(syncConfig.getSrcType())) {
+                FtpClient ftpClient = new FtpClient(syncConfig, true);
+                flag = ftpFileList(ftpClient, syncConfig, fileName, transferActionFront);
+            } else if (Constants.LOAN_WARNING_SFTP.equals(syncConfig.getSrcType())) {
+                SftpClient sftpClient = new SftpClient(syncConfig, true);
+                flag = sftpFileList(sftpClient, syncConfig, fileName, transferActionFront);
+            }
+        }
+        //文件处理
+        if(flag && transferActionFront.getStatus() == 3){
+            workWithFiles(syncConfig, appletDates, transferActionFront.getId());
         }
     }
 
-    private void ftpFileList(FtpClient ftpClient, SyncConfig syncConfig, String fileName, List<String> appletDates) {
+    private Boolean ftpFileList(FtpClient ftpClient, SyncConfig syncConfig, String fileName,TransferActionFront transferActionFront) {
         String srcPath = syncConfig.getSrcPath();
         String targetPath = syncConfig.getTargetPath();
         try {
@@ -155,7 +172,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             boolean fileExists = ftpClient.isExistFile(srcPath.concat(fileName));
             if (!fileExists) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), TITLE + "文件不存在："+srcPath.concat(fileName)));
-                return;
+                return Boolean.FALSE;
             }
             // 判断文件创建时间是否超过1分钟
             FTPFile ftpFile = ftpClient.getFtpFile(srcPath, fileName);
@@ -163,8 +180,8 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             String createFileTime = DateUtils.parseDateTimeByDate(timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
             long minutes = DateHelper.getDistanceMinutes(createFileTime);
             if (minutes < 1) {
-                log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, createFileTime);
-                return;
+                log.warn(TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, createFileTime);
+                return Boolean.FALSE;
             }
             //判断.success文件是否存在
             String successName = fileName + ".success";
@@ -176,22 +193,33 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 if (!file.exists()) {
                     file.mkdirs();
                 }
-                File successFile = new File(targetPath.concat("success/").concat(successName));
+                String targetPathConcat = targetPath.concat("success/").concat(successName);
+                File successFile = new File(targetPathConcat);
                 if (!successFile.exists()) {
                     successFile.createNewFile();
                 }
-                ftpClient.uploadFile(Files.newInputStream(Paths.get(targetPath.concat("success/").concat(successName))), srcPath, successName);
-                return;
+                ftpClient.uploadFile(Files.newInputStream(Paths.get(targetPathConcat)), srcPath, successName);
+                return Boolean.FALSE;
             }
             //判断本地文件是否存在
             File targetFile = new File(targetPath.concat(fileName));
             if (!targetFile.exists()) {
                 log.warn(TITLE + "本地文件不存在:{}", targetPath.concat(fileName));
-                return;
+                return Boolean.FALSE;
             }
-            workWithFiles(syncConfig, appletDates);
+            //判断本地文件生成时间是否小于2分钟
+            Path filePath = targetFile.toPath();
+            BasicFileAttributes attrs = Files.readAttributes(filePath, BasicFileAttributes.class);
+            FileTime targetCreationTime = attrs.creationTime();
+            String targetCreateFileTime = DateUtils.parseDateTimeByDate(new Date(targetCreationTime.toMillis()), "yyyy-MM-dd HH:mm:ss");
+            long targetMinutes = DateHelper.getDistanceMinutes(targetCreateFileTime);
+            if (targetMinutes < 1) {
+                log.warn(TITLE + "本地文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, targetCreateFileTime);
+                return Boolean.FALSE;
+            }
         } catch (Exception e) {
             log.error(TITLE + "拉取文件异常", e);
+            return Boolean.FALSE;
         } finally {
             try {
                 ftpClient.disconnect();
@@ -199,9 +227,11 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 log.error(TITLE + "文件检查任务关闭FTP客户端异常", e);
             }
         }
+        jobManager.updateFrontDataStatus(transferActionFront.getId(),3);
+        return Boolean.TRUE;
     }
 
-    private void sftpFileList(SftpClient sftpClient, SyncConfig syncConfig, String fileName, List<String> appletDates) {
+    private Boolean sftpFileList(SftpClient sftpClient, SyncConfig syncConfig, String fileName,TransferActionFront transferActionFront) {
         String srcPath = syncConfig.getSrcPath();
         String targetPath = syncConfig.getTargetPath();
         try {
@@ -209,7 +239,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             boolean fileExists = sftpClient.isExistFile(srcPath.concat(fileName));
             if (!fileExists) {
                 log.warn(TITLE + "文件不存在:{}", fileName);
-                return;
+                return Boolean.FALSE;
             }
             // 判断文件创建时间是否超过1分钟
             Map<String, SftpATTRS> map = sftpClient.listFiles(srcPath);
@@ -221,7 +251,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     long minutes = DateHelper.getDistanceMinutes(createFileTime);
                     if (minutes < 1) {
                         log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理，文件名{},创建时间{}", fileName, createFileTime);
-                        return;
+                        return Boolean.FALSE;
                     }
                 }
             }
@@ -240,18 +270,17 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     successFile.createNewFile();
                 }
                 sftpClient.uploadFile(srcPath, successName, targetPath.concat("success/").concat(successName));
-                return;
+                return Boolean.FALSE;
             }
             //判断本地文件是否存在
             File targetFile = new File(targetPath.concat(fileName));
             if (!targetFile.exists()) {
                 log.warn(TITLE + "本地文件不存在:{}", targetPath.concat(fileName));
-                return;
+                return Boolean.FALSE;
             }
-            //文件处理
-            workWithFiles(syncConfig, appletDates);
         } catch (Exception e) {
             log.error(TITLE + "拉取文件异常", e);
+            return Boolean.FALSE;
         } finally {
             try {
                 sftpClient.disconnect();
@@ -259,27 +288,23 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 log.error(TITLE + "文件检查任务关闭FTP客户端异常", e);
             }
         }
+        jobManager.updateFrontDataStatus(transferActionFront.getId(),3);
+        return Boolean.TRUE;
     }
 
-    private void workWithFiles(SyncConfig syncConfig, List<String> appletDates) {
+    private void workWithFiles(SyncConfig syncConfig, List<String> appletDates, Long jobId) {
         try {
             //本地文件逻辑处理
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10, 20);
             String apiCode = syncConfig.getApiCode();
-            //新增执行记录
-            Long jobId = jobManager.saveFrontData(apiCode, LocalDate.now().toString(), TransferActionFrontActionTypeEnum.ONE.getValue());
             //文件切分
             List<String> fileNameList = specialSplitFile(syncConfig, 5000);
             //2、小文件自动化匹配洗库
-            Writer fw = null;
             if (!CollectionUtils.isEmpty(fileNameList)) {
-                //创建写入文件
-                fw = createSpecial(syncConfig, TimeUtils.getNowDate(TimeUtils.DATE_STRING));
                 CountDownLatch countDownLatch = new CountDownLatch(fileNameList.size());
                 for (String name : fileNameList) {
-                    Writer finalFw = fw;
                     threadPool.submit(() -> {
-                        syncDataToShThreadOnlyRisk(name, apiCode, appletDates, countDownLatch, finalFw);
+                        syncDataToShThreadOnlyRisk(name, apiCode, appletDates, countDownLatch);
                     });
                 }
                 try {
@@ -287,10 +312,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 } catch (Exception e) {
                     log.warn(TITLE, e);
                 }
-            }
-            //关闭写入
-            if (fw != null) {
-                fw.close();
             }
             // 关闭线程池
             threadPool.shutdown();
@@ -301,7 +322,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             } catch (Exception ex) {
                 log.error(TITLE + "线程池关闭异常", ex);
             }
-
             //更新执行记录
             jobManager.updateFrontDataStatus(jobId, 2);
         } catch (Exception e) {
@@ -476,7 +496,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     }
 
     public void syncDataToShThreadOnlyRisk(String fileName, String apiCode, List<String> appletDates,
-                                           CountDownLatch countDownLatch, Writer fw) {
+                                           CountDownLatch countDownLatch) {
         log.warn("开始自动化匹配洗库处理:{}", fileName);
         try (InputStreamReader fReader = new InputStreamReader(Files.newInputStream(Paths.get(fileName)), StandardCharsets.UTF_8);
              BufferedReader reader = new BufferedReader(fReader)) {
@@ -501,7 +521,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
                     if (StringUtils.isNotBlank(cell)) {
                         total = processCellData(cell, riskCreditLimitHbLv0, apiCode, appletDates,
-                                batchList, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
+                                batchList, cellMap, cellLogEncodeMap, riskCreditLimitMap, total);
                     } else {
                         log.warn(TITLE + "cell为空:{}", params);
                     }
@@ -510,7 +530,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
             // 处理最后一批数据
             if (!batchList.isEmpty()) {
-                processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
+                processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, total);
             }
 
             log.warn(TITLE + "处理完成:{},total:{}", fileName, total);
@@ -528,7 +548,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     private int processCellData(String cell, String riskCreditLimitHbLv0, String apiCode,
                                 List<String> appletDates, List<MarketingSyncUser> batchList,
                                 Map<Long, String> cellMap, Map<Long, String> cellLogEncodeMap,
-                                Map<Long, String> riskCreditLimitMap, Writer fw, int total) throws IOException {
+                                Map<Long, String> riskCreditLimitMap, int total) throws IOException {
         String cellEncode = RpcClientProxy.decode(cell, "cell", "sha", "");
         if (StringUtils.isNotBlank(cellEncode) && !cellEncode.equals(cell)) {
             String cellLogEncode = BrCipherMaker.getInstance().encode(cellEncode);
@@ -549,7 +569,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 batchList.addAll(list);
 
                 if (batchList.size() >= 500) {
-                    total = processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, fw, total);
+                    total = processBatchUpdate(batchList, apiCode, cellMap, cellLogEncodeMap, riskCreditLimitMap, total);
                     batchList.clear();
                     // 清理已处理的数据
                     cellMap.clear();
@@ -568,7 +588,7 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      */
     private int processBatchUpdate(List<MarketingSyncUser> batchList, String apiCode,
                                    Map<Long, String> cellMap, Map<Long, String> cellLogEncodeMap,
-                                   Map<Long, String> riskCreditLimitMap, Writer fw, int total) throws IOException {
+                                   Map<Long, String> riskCreditLimitMap, int total) throws IOException {
         StringBuilder updateSql = new StringBuilder();
         updateSql.append("UPDATE b_marketing_sync_").append(apiCode).append(" SET reserve_field1 = CASE id ");
 
@@ -587,14 +607,6 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     .append(" THEN '").append(reserveField1Obj.toJSONString()).append("' ");
 
             idList.add(sync.getId());
-
-            // 写入日志，使用每条记录对应的信息
-            fw.append(String.format("%s,%s,%s,%s,%d\r\n",
-                    cellMap.get(sync.getId()),
-                    cellLogEncodeMap.get(sync.getId()),
-                    riskCreditLimitMap.get(sync.getId()),
-                    reserveField1Obj.toJSONString(),
-                    sync.getId()));
             total++;
         }
 
