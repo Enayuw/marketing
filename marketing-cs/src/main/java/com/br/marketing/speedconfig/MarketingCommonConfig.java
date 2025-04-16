@@ -2780,5 +2780,10 @@ public class MarketingCommonConfig {
      */
     private Map<String,String> qiFuCleanDataConfig;
 
+    /**
+     * 同程易融服务配置
+     */
+    private Map<String,String> tcyrServerConfig;
+
 }
 
