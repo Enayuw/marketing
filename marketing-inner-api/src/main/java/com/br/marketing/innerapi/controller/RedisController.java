@@ -306,10 +306,6 @@ public class RedisController {
 
     @GetMapping("zadd")
     public String zadd(@RequestParam("key") String key, @RequestParam("member") String member, @RequestParam("score") String score) {
-        if (!redisChgService.exists(key)) {
-            return "key不存在";
-        }
-
         redisChgService.zadd(key, member, Long.valueOf(score));
         return "zadd-success";
     }
