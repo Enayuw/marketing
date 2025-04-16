@@ -459,7 +459,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     MarketingTransferSyncUser getXcTransferNoAdDataByOnlyConvType(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
 
     MarketingTransferSyncUser getXcTransferNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
-    MarketingTransferSyncUser getXcTransferTodayNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") String apiCodes);
+    MarketingTransferSyncUser getXcTransferTodayNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCode") String apiCode);
 
     List<MarketingTransferSyncUser> getZhongBangTransferByApiCodetikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
