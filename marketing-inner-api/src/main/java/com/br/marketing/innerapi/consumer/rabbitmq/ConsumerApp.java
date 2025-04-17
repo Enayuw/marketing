@@ -107,7 +107,8 @@ public class ConsumerApp {
     public void consumerXieChengUniversalTransfer(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
+        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_XIECHENG_UNIVERSAL_TRANSFER_RECEIVE);
     }
 
     /**
