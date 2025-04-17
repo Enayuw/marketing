@@ -196,9 +196,9 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUniqueReqNo(emptyDefault(qryUserRealMessage.getUniqueReqNo()));
                     queryUserRealMessage.setMobileMd5(emptyDefault(qryUserRealMessage.getMobileMd5()));
                     queryUserRealMessage.setStopMarketingSign(emptyDefault(qryUserRealMessage.getStopMarketingSign()));
-                    queryUserRealMessage.setUserMessage(emptyDefault(qryUserRealMessage.getUserMessageRes().toString()));
-                    queryUserRealMessage.setRiskMessage(emptyDefault(qryUserRealMessage.getRiskMessageRes().toString()));
-                    queryUserRealMessage.setTradeMessage(emptyDefault(qryUserRealMessage.getTradeMessageRes().toString()));
+                    queryUserRealMessage.setUserMessage(emptyDefault(qryUserRealMessage.getUserMessageRes()));
+                    queryUserRealMessage.setRiskMessage(emptyDefault(qryUserRealMessage.getRiskMessageRes()));
+                    queryUserRealMessage.setTradeMessage(emptyDefault(qryUserRealMessage.getTradeMessageRes()));
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
 
@@ -306,7 +306,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
         }
     }
 
-    private String emptyDefault(String value) {
-        return ObjectUtil.isNotEmpty(value) ? value : "";
+    private String emptyDefault(Object value) {
+        return ObjectUtil.isNotEmpty(value) ? value.toString() : "";
     }
 }
