@@ -1,5 +1,6 @@
 package com.br.marketing.marketingaimqconsumer.job;
 
+import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -25,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @Description DetermineTargetMessageQueueJob
+ * @Description 动态切换消息队列作业
  * @Author hong.chen
  * @CreateTime 2025/04/17
  */
@@ -73,6 +74,7 @@ public class DetermineTargetMessageQueueJob extends AbstractSimpleElasticJob {
                         routingKeyAndMsgCountMap.put(key, channel.queueDeclarePassive(queueAndRoutingKeyMap.get(key)).getMessageCount());
                     }
 
+                    log.warn("动态切换消息队列作业，各队列消息积压情况：{}", JSON.toJSONString(routingKeyAndMsgCountMap));
                     String winnerRoutingKey =
                             routingKeyAndMsgCountMap.entrySet().stream()
                                     .min(Comparator.comparingInt(Map.Entry::getValue))
@@ -83,10 +85,10 @@ public class DetermineTargetMessageQueueJob extends AbstractSimpleElasticJob {
                     }
 
                     redisChgService.hset(RedisKeyConstant.SWITCH_MESSAGE_QUEUE, switchMessageQueueEnum.name(), winnerRoutingKey);
-                    log.warn("当前消费队列路由键：{}，切换到最小压力队列路由键：{}", currentRoutingKey, winnerRoutingKey);
+                    log.warn("动态切换消息队列作业，当前消费队列路由键：{}，切换到最小压力队列路由键：{}", currentRoutingKey, winnerRoutingKey);
                 } catch (IOException e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                            , "DetermineTargetMessageQueueJob，队列切换异常"), e);
+                            , "动态切换消息队列作业，队列切换异常"), e);
                 }
             });
         }
