@@ -96,8 +96,18 @@ public class SyncServiceImpl implements SyncService {
             String srcPath = loanSyncConfig.getSrcPath();
             String targetPath = loanSyncConfig.getTargetPath();
             for (String date : dateSet) {
-                loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
-                loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
+                if (srcPath.contains("yyyy-MM-dd")) {
+                    loanSyncConfig.setSrcPath(srcPath.replace("yyyy-MM-dd", date));
+                }else {
+                    loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
+                }
+
+                if (targetPath.contains("yyyy-MM-dd")) {
+                    loanSyncConfig.setTargetPath(targetPath.replace("yyyy-MM-dd", date));
+                }else {
+                    loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
+                }
+
                 Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
                 syncFile(loanSyncConfig,stringListMap,date);
             }
