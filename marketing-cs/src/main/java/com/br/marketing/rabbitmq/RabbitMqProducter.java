@@ -127,4 +127,18 @@ public class RabbitMqProducter {
             return arg0;
         },correlationData);
     }
+
+    /**
+     * 发送携程拨打mq信息
+     *
+     * @param mqFact
+     */
+    public void sendToXieChengUniversalTransferQueue(MqFact mqFact) {
+        String message = JSON.toJSONString(mqFact);
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
+        rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_XIECHENG_UNIVERSAL_TRANSFER_RECEIVE, message, arg0 -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            return arg0;
+        },correlationData);
+    }
 }

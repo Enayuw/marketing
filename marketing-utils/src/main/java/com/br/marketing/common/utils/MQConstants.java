@@ -50,6 +50,7 @@ public class MQConstants {
 
     //通用转化处理队列
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_Universal_Transfer_Receive";
+    public static final String MARKETING_XIECHENG_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_XieCheng_Universal_Transfer_Receive";
     //通用转化业务静置队列
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY = "Marketing_Universal_Transfer_Receive_Delay";
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR = "Marketing_Universal_Transfer_Receive_Delay_HalfHour";
@@ -144,6 +145,7 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing.queue.push.transfer.haier";
     //通用转化处理队列
     public static final String ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.Transfer.Receive";
+    public static final String ROUTING_KEY_XIECHENG_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.XieCheng.Transfer.Receive";
 
     //智能规则数据分发实时流程处理
     public static final String ROUTING_KEY_MRP_UNIVERSAL_TRANSFER = "Mrp.Universal.Transfer.Nexus";

@@ -161,7 +161,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                         producter.sendToUniversalTransferQueue(mqFact);
                     }
                 }
-
+                if(marketingCommonConfig.getXieChengQueueApiCodes().contains(apiCode)){
+                    //推mq
+                    final MqFact mqFact = new MqFact();
+                    mqFact.setSourceId(callRecord.getId());
+                    mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                    producter.sendToXieChengUniversalTransferQueue(mqFact);
+                }
                 List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
                 if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
                     MrpMqFact mrpMqFact = new MrpMqFact();
