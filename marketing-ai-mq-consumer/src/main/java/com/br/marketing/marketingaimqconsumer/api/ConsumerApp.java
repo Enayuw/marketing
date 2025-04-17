@@ -5,7 +5,6 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.AiMQConstants;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
@@ -26,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.br.marketing.common.utils.AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY;
 
@@ -72,8 +70,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_PREUSER_RECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
-                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
+        aiConsumerService.consumer(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY,
                 aiConsumerPreUserThreadPool);
     }
 
@@ -89,8 +87,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_PREUSER_RECEIVE_1：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
-                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
+        aiConsumerService.consumer(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY,
                 aiConsumerPreUserThreadPool_1);
     }
 
@@ -106,8 +104,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_PREUSER_RECEIVE_2：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        aiConsumerService.consumerAndCacheMsgCount(channel, message, pushRuleService::insertMarketingPreUserSync, o,
-                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType(),
+        aiConsumerService.consumer(channel, message, pushRuleService::insertMarketingPreUserSync, o,
+                ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE_ERROR_RETRY,
                 aiConsumerPreUserThreadPool_2);
     }
 

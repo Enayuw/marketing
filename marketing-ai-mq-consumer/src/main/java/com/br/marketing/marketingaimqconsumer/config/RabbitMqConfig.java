@@ -1,5 +1,6 @@
 package com.br.marketing.marketingaimqconsumer.config;
 
+import com.rabbitmq.client.Channel;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,7 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -76,5 +78,10 @@ public class RabbitMqConfig {
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         configurer.configure(factory, connectionFactory);
         return factory;
+    }
+
+    @Bean(name = "connectionFactoryChannel")
+    public Channel connectionFactoryChannel(@Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+        return connectionFactory.createConnection().createChannel(false);
     }
 }

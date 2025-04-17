@@ -143,9 +143,10 @@ public class RabbitMqProducter {
         String message = JSON.toJSONString(mqFact);
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
 
-        String redisKey = RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType());
+        String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
+        String field = SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.name();
         String aiUniversalRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE;
-        String routingKeyFromRedis = pushRuleService.getRoutingKeyFromRedis(redisKey, aiUniversalRoutingKey);
+        String routingKeyFromRedis = pushRuleService.getRoutingKeyFromRedis(redisKey, field, aiUniversalRoutingKey);
 
         rabbitTemplate.convertAndSend(exchange, routingKeyFromRedis, message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");

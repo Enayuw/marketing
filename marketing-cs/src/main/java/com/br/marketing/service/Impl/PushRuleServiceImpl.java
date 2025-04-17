@@ -2152,9 +2152,10 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     private void sendToRabbitMq(String apiCode, String syncInfoId) {
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            String redisKey = RedisKeyConstant.prefix.concat(SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getQueueType());
+            String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
+            String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
             String aiQueueRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE;
-            String routingKeyFromRedis = getRoutingKeyFromRedis(redisKey, aiQueueRoutingKey);
+            String routingKeyFromRedis = getRoutingKeyFromRedis(redisKey, field, aiQueueRoutingKey);
             producter.send(routingKeyFromRedis, syncInfoId);
         } else {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -2162,10 +2163,10 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
-    public String getRoutingKeyFromRedis(String key, String defaultValue) {
+    public String getRoutingKeyFromRedis(String key, String field, String defaultValue) {
+        String routingKey = "";
         try {
-            List<String> zrange = redisChgService.zrange(key, 0L, 1L);
-            defaultValue = zrange.stream().filter(StringUtils::isNotEmpty).findFirst().orElse(defaultValue);
+            routingKey = redisChgService.hget(key, field);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
@@ -2174,7 +2175,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             ), e);
         }
 
-        return defaultValue;
+        routingKey = StringUtils.isEmpty(routingKey) ? defaultValue : routingKey;
+        return routingKey;
     }
 
     /**

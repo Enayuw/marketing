@@ -222,5 +222,5 @@ public interface PushRuleService {
 
     Result<Boolean> deleteRule(Long id);
 
-    String getRoutingKeyFromRedis(String key, String defaultValue);
+    String getRoutingKeyFromRedis(String key, String field, String defaultValue);
 }

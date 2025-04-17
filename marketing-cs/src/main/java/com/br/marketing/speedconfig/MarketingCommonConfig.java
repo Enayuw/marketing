@@ -2745,13 +2745,13 @@ public class MarketingCommonConfig {
     private List<String> aiApiCodeList;
 
     /**
-     * AI客户消费端通用线程数
-     */
-    private Integer aiMqConsumerCommonThreadNum;
-
-    /**
      * AI客户消费端启用线程池开关
      */
     private Boolean aiMqEnableThreadPoolSwitch;
+
+    /**
+     * 动态切换MQ消息数量阈值
+     */
+    private Integer switchMqMaxMsgCount;
 }
 

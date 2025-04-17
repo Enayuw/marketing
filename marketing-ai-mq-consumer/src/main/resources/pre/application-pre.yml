@@ -280,6 +280,15 @@ api:
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: true
 
+#elastic-job配置
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
+NAMESPACE: marketing-job
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/
+
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
   name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876

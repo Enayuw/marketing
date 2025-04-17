@@ -57,7 +57,7 @@ public class ConsumerApp {
 
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE.getName(),
-            100, 100);
+                    100, 100);
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool_1 =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE_1.getName(),
                     100, 100);
@@ -77,8 +77,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_UNIVERSAL_RECEIVE：获取消息成功");
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
-                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+        aiConsumerService.consumer(channel, message, interfaceHandlerService::handleDataDirection, o,
+                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY,
                 aiConsumerUniversalTransferThreadPool);
     }
 
@@ -94,8 +94,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_UNIVERSAL_RECEIVE_1：获取消息成功");
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
-                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+        aiConsumerService.consumer(channel, message, interfaceHandlerService::handleDataDirection, o,
+                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY,
                 aiConsumerUniversalTransferThreadPool_1);
     }
 
@@ -111,8 +111,8 @@ public class ConsumerApp {
         log.warn("MARKETING_AI_UNIVERSAL_RECEIVE_2：获取消息成功");
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        aiConsumerService.consumerAndCacheMsgCount(channel, message, interfaceHandlerService::handleDataDirection, o,
-                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY, SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getQueueType(),
+        aiConsumerService.consumer(channel, message, interfaceHandlerService::handleDataDirection, o,
+                ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE_ERROR_RETRY,
                 aiConsumerUniversalTransferThreadPool_2);
     }
 

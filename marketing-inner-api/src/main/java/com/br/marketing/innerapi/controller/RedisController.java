@@ -319,4 +319,10 @@ public class RedisController {
         Map<String, Object> hashAll = redisChgService.hgetall(key);
         return JSON.toJSONString(hashAll);
     }
+
+    @GetMapping("hset")
+    public String hset(@RequestParam("key") String key, @RequestParam("field") String field, @RequestParam("value") String value) {
+        redisChgService.hset(key, field, value);
+        return "hset-success";
+    }
 }
