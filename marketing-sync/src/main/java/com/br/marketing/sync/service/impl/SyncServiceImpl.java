@@ -34,6 +34,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -92,25 +93,50 @@ public class SyncServiceImpl implements SyncService {
         dateSet.add(DateHelper.getDateByMinute(-60));
         dateSet.add(DateHelper.getDateAddYyMmDd(0));
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
-            log.info("LoanSyncConfig:{}",loanSyncConfig);
-            String srcPath = loanSyncConfig.getSrcPath();
-            String targetPath = loanSyncConfig.getTargetPath();
-            for (String date : dateSet) {
-                if (srcPath.contains("yyyy-MM-dd")) {
-                    loanSyncConfig.setSrcPath(srcPath.replace("yyyy-MM-dd", date));
-                }else {
-                    loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
+            if(loanSyncConfig.getSrcPath().contains("/dp_mkplat/7410726/")){
+                log.info("LoanSyncConfig:{}",loanSyncConfig);
+                String srcPath = loanSyncConfig.getSrcPath();
+                String targetPath = loanSyncConfig.getTargetPath();
+                for (String date : dateSet) {
+                    // 根据路径格式转换日期格式
+                    String formattedDate = date;
+                    if (srcPath.contains("yyyy-MM-dd")) {
+                        // 将yyyyMMdd格式转换为yyyy-MM-dd格式
+                        formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
+                        loanSyncConfig.setSrcPath(srcPath.replace("yyyy-MM-dd", formattedDate));
+                    } else {
+                        loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
+                    }
+                    if (targetPath.contains("yyyy-MM-dd")) {
+                        // 将yyyyMMdd格式转换为yyyy-MM-dd格式
+                        formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
+                        loanSyncConfig.setTargetPath(targetPath.replace("yyyy-MM-dd", formattedDate));
+                    } else {
+                        loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
+                    }
+                    Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
+                    syncFile(loanSyncConfig,stringListMap,date);
                 }
-
-                if (targetPath.contains("yyyy-MM-dd")) {
-                    loanSyncConfig.setTargetPath(targetPath.replace("yyyy-MM-dd", date));
-                }else {
-                    loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
-                }
-
-                Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
-                syncFile(loanSyncConfig,stringListMap,date);
             }
+        }
+    }
+
+    /**
+     * 日期格式转换
+     * @param date 原始日期字符串
+     * @param sourceFormat 源格式
+     * @param targetFormat 目标格式
+     * @return 转换后的日期字符串
+     */
+    private String formatDate(String date, String sourceFormat, String targetFormat) {
+        try {
+            SimpleDateFormat sourceFormatter = new SimpleDateFormat(sourceFormat);
+            SimpleDateFormat targetFormatter = new SimpleDateFormat(targetFormat);
+            return targetFormatter.format(sourceFormatter.parse(date));
+        } catch (Exception e) {
+            log.error("日期格式转换失败, date: {}, sourceFormat: {}, targetFormat: {}",
+                    date, sourceFormat, targetFormat, e);
+            return date;
         }
     }
 
