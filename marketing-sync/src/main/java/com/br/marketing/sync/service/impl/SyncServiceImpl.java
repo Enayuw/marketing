@@ -93,30 +93,28 @@ public class SyncServiceImpl implements SyncService {
         dateSet.add(DateHelper.getDateByMinute(-60));
         dateSet.add(DateHelper.getDateAddYyMmDd(0));
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
-            if(loanSyncConfig.getSrcPath().contains("/dp_mkplat/7410726/")){
-                log.info("LoanSyncConfig:{}",loanSyncConfig);
-                String srcPath = loanSyncConfig.getSrcPath();
-                String targetPath = loanSyncConfig.getTargetPath();
-                for (String date : dateSet) {
-                    // 根据路径格式转换日期格式
-                    String formattedDate = date;
-                    if (srcPath.contains("yyyy-MM-dd")) {
-                        // 将yyyyMMdd格式转换为yyyy-MM-dd格式
-                        formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
-                        loanSyncConfig.setSrcPath(srcPath.replace("yyyy-MM-dd", formattedDate));
-                    } else {
-                        loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
-                    }
-                    if (targetPath.contains("yyyy-MM-dd")) {
-                        // 将yyyyMMdd格式转换为yyyy-MM-dd格式
-                        formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
-                        loanSyncConfig.setTargetPath(targetPath.replace("yyyy-MM-dd", formattedDate));
-                    } else {
-                        loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
-                    }
-                    Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
-                    syncFile(loanSyncConfig,stringListMap,date);
+            log.info("LoanSyncConfig:{}",loanSyncConfig);
+            String srcPath = loanSyncConfig.getSrcPath();
+            String targetPath = loanSyncConfig.getTargetPath();
+            for (String date : dateSet) {
+                // 根据路径格式转换日期格式
+                String formattedDate = date;
+                if (srcPath.contains("yyyy-MM-dd")) {
+                    // 将yyyyMMdd格式转换为yyyy-MM-dd格式
+                    formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
+                    loanSyncConfig.setSrcPath(srcPath.replace("yyyy-MM-dd", formattedDate));
+                } else {
+                    loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
                 }
+                if (targetPath.contains("yyyy-MM-dd")) {
+                    // 将yyyyMMdd格式转换为yyyy-MM-dd格式
+                    formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
+                    loanSyncConfig.setTargetPath(targetPath.replace("yyyy-MM-dd", formattedDate));
+                } else {
+                    loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
+                }
+                Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
+                syncFile(loanSyncConfig,stringListMap,date);
             }
         }
     }
