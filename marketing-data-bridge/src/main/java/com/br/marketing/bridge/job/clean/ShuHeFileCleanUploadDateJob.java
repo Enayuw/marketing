@@ -594,6 +594,11 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
         for (MarketingSyncUser sync : batchList) {
             JSONObject reserveField1Obj = JSONObject.parseObject(sync.getReserveField1());
+
+            if (reserveField1Obj == null || reserveField1Obj.isEmpty()) {
+                reserveField1Obj = new JSONObject();
+            }
+
             String riskCreditLimitHbLv0 = riskCreditLimitMap.get(sync.getId());
             String riskCreditLimitHbLv0His = reserveField1Obj.getString("risk_credit_limit_hb_lv0");
 
