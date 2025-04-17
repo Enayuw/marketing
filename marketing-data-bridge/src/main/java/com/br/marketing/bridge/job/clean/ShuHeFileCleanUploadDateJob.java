@@ -213,6 +213,8 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 if (!successFile.exists()) {
                     successFile.createNewFile();
                 }
+
+                log.warn(TITLE + "ftpClient推送success文件本地目录:{},远程目录:{}", targetPathConcat,srcPath+successName);
                 ftpClient.uploadFile(Files.newInputStream(Paths.get(targetPathConcat)), srcPath, successName);
                 return Boolean.FALSE;
             }
