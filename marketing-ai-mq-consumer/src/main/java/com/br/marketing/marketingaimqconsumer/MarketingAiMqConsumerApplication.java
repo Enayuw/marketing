@@ -30,7 +30,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @ImportResource(locations = {"classpath:scheduler.xml"})
-//@EnableBrCounter(namespace = "marketing_mq_consumer")
+@EnableBrCounter(namespace = "marketing_ai_mq_consumer")
 public class MarketingAiMqConsumerApplication {
 
     public static void main(String[] args) {

@@ -32,3 +32,10 @@ tp:
   dynamic:
     metric:
       enabled: true
+
+#exporter监控
+endpoints:
+  prometheus:
+    enabled: true
+    path: /prometheus
+    sensitive: false
