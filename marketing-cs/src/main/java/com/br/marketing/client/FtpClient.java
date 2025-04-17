@@ -178,7 +178,7 @@ public class FtpClient extends BaseFtpClient {
     public void uploadFile(InputStream inputStream, String path, String fileName) throws Exception {
         try {
             if (!ftp.storeFile(path+fileName, inputStream)) {
-                throw new IOException("Can't upload file '" + fileName + "' to FTP server. Check FTP permissions and path.");
+                throw new IOException("Can't upload file '" + path+fileName + "' to FTP server. Check FTP permissions and path.");
             }
         } finally {
             closeStream(inputStream);

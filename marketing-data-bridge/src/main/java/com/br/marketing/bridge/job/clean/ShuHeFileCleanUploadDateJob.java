@@ -142,9 +142,23 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
 
     private void processFile(SyncConfig syncConfig, String fileName,
                              List<String> appletDates,TransferActionFront transferActionFront) {
+
+        String srcPath = syncConfig.getSrcPath();
+        String targetPath = syncConfig.getTargetPath();
+
         //源文件逻辑处理
-        String srcPath = syncConfig.getSrcPath().replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
-        String targetPath = syncConfig.getTargetPath().replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
+        if (srcPath.contains("yyyy-MM-dd")) {
+            srcPath = srcPath.replace("yyyy-MM-dd", TimeUtils.getNowDate(TimeUtils.DATE_FORMAT));
+        }else if(srcPath.contains("yyyyMMdd")){
+            srcPath = srcPath.replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
+        }
+
+        if (targetPath.contains("yyyy-MM-dd")) {
+            targetPath = targetPath.replace("yyyy-MM-dd", TimeUtils.getNowDate(TimeUtils.DATE_FORMAT));
+        }else if(targetPath.contains("yyyyMMdd")){
+            targetPath = targetPath.replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
+        }
+
         syncConfig.setSrcPath(srcPath);
         syncConfig.setTargetPath(targetPath);
 
@@ -199,6 +213,8 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 if (!successFile.exists()) {
                     successFile.createNewFile();
                 }
+
+                log.warn(TITLE + "ftpClient推送success文件本地目录:{},远程目录:{}", targetPathConcat,srcPath+successName);
                 ftpClient.uploadFile(Files.newInputStream(Paths.get(targetPathConcat)), srcPath, successName);
                 return Boolean.FALSE;
             }
