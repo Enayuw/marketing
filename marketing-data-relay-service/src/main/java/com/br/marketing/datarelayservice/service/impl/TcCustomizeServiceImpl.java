@@ -106,6 +106,7 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
      * @param <T>
      */
     private <T extends TcDataDto> TcResponseDTO process(TcRequestDTO tcRequestDTO, Class<T> clazz, Consumer<T> businessHandler) {
+        log.warn("接收到同程易融请求数据，clazz:{}，data:{}",clazz.getName(), tcRequestDTO);
         TcResponseDTO resdto = new TcResponseDTO();
         JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
         //同程公钥验签

@@ -44,6 +44,11 @@ public class MyTest {
     final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Test
+    public void test001() {
+        String batch_no = com.br.marketing.common.utils.StringUtils.humpToLine2("batch_no");
+    }
+
+    @Test
     public void yu(){
 
         int offset = 0;
