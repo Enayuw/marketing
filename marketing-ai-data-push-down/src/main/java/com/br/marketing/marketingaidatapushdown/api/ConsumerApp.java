@@ -1,6 +1,5 @@
 package com.br.marketing.marketingaidatapushdown.api;
 
-import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
@@ -57,13 +56,13 @@ public class ConsumerApp {
 
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE.getName(),
-                    100, 100);
+                    50, 50, 0);
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool_1 =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE_1.getName(),
-                    100, 100);
+                    50, 50, 0);
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool_2 =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE_2.getName(),
-                    100, 100);
+                    50, 50, 0);
 
     /**
      * 消费 AI推送下游数据消费端

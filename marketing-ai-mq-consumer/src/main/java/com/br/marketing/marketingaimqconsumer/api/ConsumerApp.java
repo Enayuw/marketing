@@ -51,12 +51,9 @@ public class ConsumerApp {
     @Autowired
     AiConsumerService aiConsumerService;
 
-    TpDynamicExecutor aiConsumerPreUserThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 100,
-            100);
-    TpDynamicExecutor aiConsumerPreUserThreadPool_1 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE_1.getName(), 100,
-            100);
-    TpDynamicExecutor aiConsumerPreUserThreadPool_2 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE_2.getName(), 100,
-            100);
+    TpDynamicExecutor aiConsumerPreUserThreadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE.getName(), 50,50,0);
+    TpDynamicExecutor aiConsumerPreUserThreadPool_1 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE_1.getName(), 50,50,0);
+    TpDynamicExecutor aiConsumerPreUserThreadPool_2 = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_PREUSER_RECEIVE_2.getName(), 50,50,0);
 
     /**
      * 消费 AI上传数据消费端
