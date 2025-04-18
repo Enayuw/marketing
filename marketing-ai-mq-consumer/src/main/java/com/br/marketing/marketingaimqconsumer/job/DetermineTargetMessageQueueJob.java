@@ -49,6 +49,7 @@ public class DetermineTargetMessageQueueJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
 
+        long start = System.currentTimeMillis();
         for (SwitchMessageQueueEnum switchMessageQueueEnum : SwitchMessageQueueEnum.values()) {
             threadPoolExecutor.submit(() -> {
                 try {
@@ -92,5 +93,6 @@ public class DetermineTargetMessageQueueJob extends AbstractSimpleElasticJob {
                 }
             });
         }
+        log.warn("动态切换消息队列作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }
