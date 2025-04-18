@@ -56,13 +56,13 @@ public class ConsumerApp {
 
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE.getName(),
-                    50, 50, 0);
+                    50, 50, 1);
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool_1 =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE_1.getName(),
-                    50, 50, 0);
+                    50, 50, 1);
     TpDynamicExecutor aiConsumerUniversalTransferThreadPool_2 =
             TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.AI_UNIVERSAL_RECEIVE_2.getName(),
-                    50, 50, 0);
+                    50, 50, 1);
 
     /**
      * 消费 AI推送下游数据消费端
