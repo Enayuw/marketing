@@ -55,6 +55,7 @@ public class RSAUtil {
             Map<String, String> keyMap = new HashMap();
             keyMap.put(PUBLIC_KEY, publicKeyStr);
             keyMap.put(PRIVATE_KEY, privateKeyStr);
+            System.out.println(keyMap);
             return keyMap;
         } catch (Exception e) {
             throw new RuntimeException("RSA generate key pair error!", e);

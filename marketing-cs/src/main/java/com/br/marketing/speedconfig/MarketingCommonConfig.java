@@ -2785,5 +2785,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcyrServerConfig;
 
+    /**
+     * 同程易融apiCode
+     */
+    private String tcyrApiCode;
+
 }
 

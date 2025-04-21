@@ -102,12 +102,7 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                 }
                 List<String> content = Splitter.on("=").splitToList(row);
                 String fieldNm = content.get(0);
-                String fieldValue;
-                if (content.size() == 2) {
-                    fieldValue = content.get(1);
-                } else {
-                    fieldValue = row.substring(fieldNm.length()+1);
-                }
+                String fieldValue = content.get(1);
                 Field field = null;
                 try {
                     field = config.getClass().getDeclaredField(fieldNm);

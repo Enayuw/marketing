@@ -69,13 +69,24 @@ public class TcResponseDTO {
         return this;
     }
 
+    public TcResponseDTO idempotentFail(String brPrivateKey) {
+        this.code = ResultEnum.IDEMPOTENT_ERRROR.getCode();
+        this.msg = ResultEnum.IDEMPOTENT_ERRROR.getMsg();
+        this.timestamp = String.valueOf(System.currentTimeMillis());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("status", ResultEnum.IDEMPOTENT_ERRROR.getStatus());
+        this.data = jsonObject.toJSONString();
+        RSAUtil.sign(this, brPrivateKey);
+        return this;
+    }
+
     public TcResponseDTO innerParamsFail(String brPrivateKey, String msg) {
         this.code = TcResponseDTO.ResultEnum.INNERPARAMS_ERROR.getCode();
         this.timestamp = String.valueOf(System.currentTimeMillis());
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("status", ResultEnum.INNERPARAMS_ERROR.getStatus());
+        jsonObject.put("msg", msg);
         this.data = jsonObject.toJSONString();
-        this.msg = msg;
         RSAUtil.sign(this, brPrivateKey);
         return this;
     }
@@ -105,8 +116,9 @@ public class TcResponseDTO {
         OUTTERPARAMS_ERROR("4000", "FAIL",null),
         SIGN_ERROR("5000", "FAIL","验签失败"),
         INNERPARAMS_ERROR("6000", "FAIL",null),
-        SYSTEM_ERROR("7000", "FAIL","系统异常"),
-        BIZ_ERROR("8000", "FAIL","业务异常");
+        IDEMPOTENT_ERRROR("7000", "FAIL", "requestNo重复"),
+        SYSTEM_ERROR("8000", "FAIL","系统异常"),
+        BIZ_ERROR("9000", "FAIL","业务异常");
 
         private String code;
 
