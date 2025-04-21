@@ -2800,5 +2800,18 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
+
+    /**
+     * 携程上报新接口
+     */
+    private HashMap<String,JSONObject> xieChengCpaAndCpsConfig;
+
+
+    /**
+     * 携程上报切换开关
+     * true 打开 新接口，false 关闭执行旧接口
+     */
+    private Boolean xieChengCpaAndCpsSwitch;
+
 }
 

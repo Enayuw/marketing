@@ -5,11 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengSmsCollidingReq;
@@ -244,6 +246,85 @@ public class XieChengService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
+    }
+
+    @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result pushXieChengDataNew(AdReqDTO xieChengData) {
+        // 1. 获取配置
+        Map<String, JSONObject> configMap = marketingCommonConfig.getXieChengCpaAndCpsConfig();
+        JSONObject config = "1".equals(xieChengData.getConditionKey()) ? configMap.get("cpa") : configMap.get("cps");
+
+        // 2. 准备基础数据
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        JSONObject deviceInfo = new JSONObject();
+        deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
+
+        // 3. 处理扩展源
+        String extendSource = config.getString("source");
+        try {
+            JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
+            String sourceStr = extend.getString("source");
+            if (StringUtils.isNotEmpty(sourceStr)) {
+                extendSource = sourceStr;
+            } else {
+                log.warn("携程广告上报接口，source为空，置为默认值:{}", extendSource);
+            }
+        } catch (Exception e) {
+            log.error("携程广告上报接口，source字段解析异常:{}", xieChengData.getExtend(), e);
+        }
+
+        // 4. 构建请求对象
+        ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(
+                timestamp,
+                extendSource,
+                xieChengData.getClickId(),
+                xieChengData.getActionType(),
+                deviceInfo.toString(),
+                config.getString("mktMode"),
+                xieChengData.getMktChannel(),
+                config.getString("mktProductNo"),
+                config.getString("appId")
+        );
+
+        // 5. 准备请求参数
+        Map<String, Object> retMap = new HashMap<>();
+        retMap.put("appId", config.getString("appId"));
+        retMap.put("timestamp", timestamp);
+        retMap.put("channel", config.getString("channel"));
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq),
+                config.getString("aesKey"), config.getString("iv")));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, config.getString("singKey")));
+
+        // 6. 发送请求
+        Map<String, String> resMap = httpProxyClient.sendByCodeWithLog(
+                retMap,
+                config.getString("url"),
+                isProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE,
+                JSON.toJSONString(thirdAdOuterReq),
+                true,
+                false
+        );
+
+        // 7. 处理响应
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程上报异常重试3次！ThirdAdOuterReq="+JSON.toJSONString(thirdAdOuterReq)));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+
+        JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
+        Integer code = resultJson.getInteger("code");
+
+        // 8. 根据响应码返回结果
+        if (code == 0) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue())
+                    .setMessage(resMap.get("content"));
+        }
+        return new Result()
+                .setCode(code == 500 || code == 704 ? ResultCode.INTERNAL_SERVER_ERROR.getValue() : ResultCode.FAIL.getValue())
+                .setMessage(resMap.get("content"));
     }
 
     /**

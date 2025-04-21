@@ -49,33 +49,7 @@ import com.br.marketing.common.utils.RandomUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.entity.HaierCollidingData;
-import com.br.marketing.entity.HaierCollidingDataLog;
-import com.br.marketing.entity.HaierData;
-import com.br.marketing.entity.HaierDataExample;
-import com.br.marketing.entity.HaierReq;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferInfo;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.PhoneSaleIbu;
-import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.entity.TwosevenFile;
-import com.br.marketing.entity.XieChengData;
-import com.br.marketing.entity.XieChengDataExample;
-import com.br.marketing.entity.XieChengJudgeConvTypeValue;
-import com.br.marketing.entity.XieChengSmsCollidingData;
-import com.br.marketing.entity.XieChengSmsCollidingDataExample;
-import com.br.marketing.entity.XieChengSmsCollidingDataLog;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogExample;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
-import com.br.marketing.entity.XieChengSmsCollidingDataVt;
-import com.br.marketing.entity.XiechengSmsQuitData;
-import com.br.marketing.entity.XiechengSmsQuitDataExample;
-import com.br.marketing.entity.YiqianbaoData;
-import com.br.marketing.entity.YiqianbaoDataExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -191,6 +165,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
+
+    @Resource
+    private XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
@@ -1689,7 +1666,6 @@ public class PushDataServiceImpl implements PushDataService {
             String tcId = tableCreateService.getTcId(apiCode);
             // 字段修改兼容
             String sha256Tel = xieChengData.getSha256Tel();
-            xieChengData.setSha256Tel(sha256Tel);
             // 获取redis 锁
             String key = RedisKeyConstant.pushXieChengLock.concat(":")
                     .concat(conditionKey)
@@ -1727,6 +1703,15 @@ public class PushDataServiceImpl implements PushDataService {
                         redisChgService.unlock(key, value);
                         return;
                     }
+                    XieChengCollidingDataLog selectLog = xieChengCollidingDataLogMapper.selectlog(sha256Tel);
+                    if(selectLog==null){
+                        resultData.setDataMessage("当前数据在日志表中未查到");
+                        resultData.setStatus(2);
+                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                        redisChgService.unlock(key, value);
+                        return;
+                    }
+                    adReqDTO.setMktChannel(selectLog.getOrgChannel());
                     //endregion
                 }else{
                     //region 剔除规则2 查询黑名单和当日撞库结果
@@ -1769,9 +1754,7 @@ public class PushDataServiceImpl implements PushDataService {
                         return;
                     }
                     //endregion
-                    adReqDTO.setMktMode("CPS");
                     adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
-                    adReqDTO.setMktProductNo("CASH");
                 }
                 //endregion
                 Boolean isPush;
@@ -1794,8 +1777,16 @@ public class PushDataServiceImpl implements PushDataService {
                     // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
                     String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
                     adReqDTO.setClickId(clickId);
-                    // 携程推送
-                    Result result = xieChengService.pushXieChengData(adReqDTO);
+                    Boolean xieChengCpaAndCpsSwitch = marketingCommonConfig.getXieChengCpaAndCpsSwitch();
+                    Result result;
+                    if(xieChengCpaAndCpsSwitch){
+                        // 携程推送新接口
+                         result = xieChengService.pushXieChengDataNew(adReqDTO);
+                    }else{
+                        // 携程推送旧接口
+                         result = xieChengService.pushXieChengData(adReqDTO);
+                    }
+
                     if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                         resultData.setPushStatus(2);
                     } else {
