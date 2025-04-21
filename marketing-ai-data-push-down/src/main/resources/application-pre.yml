@@ -79,8 +79,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
-      username: ENC(mysql-pre-ai-marketing-log-user)
-      password: ENC(mysql-pre-ai-marketing-log-password)
+      username: u_pd_m_log
+      password: kZ4IDzKrI1a4BKpLqSnW
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
       maxActive: 30 # 最大连接池数量
