@@ -2785,5 +2785,20 @@ public class MarketingCommonConfig {
     private List<String> xieChengQueueApiCodes;
 
 
+    /**
+     * 数禾自动化洗库参数配置 {"apiCode":["3710028","3710048"],"appletDate":["2025-01-01","2025-01-02"],"fileName":"pdm_cusop_slp_dyy_br1_df_yyyy-MM-dd_5.csv"}
+     */
+    private Map<String,Object> shuHeFileCleanUploadDateConfig;
+
+    /**
+     * 同程易融服务配置
+     */
+    private JSONObject tcyrServerConfig;
+
+    /**
+     * 同程易融apiCode
+     */
+    private String tcyrApiCode;
+
 }
 
