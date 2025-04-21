@@ -2790,5 +2790,15 @@ public class MarketingCommonConfig {
      */
     private Map<String,Object> shuHeFileCleanUploadDateConfig;
 
+    /**
+     * 同程易融服务配置
+     */
+    private JSONObject tcyrServerConfig;
+
+    /**
+     * 同程易融apiCode
+     */
+    private String tcyrApiCode;
+
 }
 
