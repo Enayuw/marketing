@@ -96,6 +96,22 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
     }
     /**
+     * 携程拨打数据
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_UNIVERSAL_TRANSFER_RECEIVE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_XIECHENG_UNIVERSAL_TRANSFER_RECEIVE)}, containerFactory = "universalDataContainerFactory")
+    public void consumerXieChengUniversalTransfer(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, interfaceHandlerService::handleDataDirection, o,
+                MQConstants.ROUTING_KEY_XIECHENG_UNIVERSAL_TRANSFER_RECEIVE);
+    }
+
+    /**
      * 延迟消费 获取推送客服中心数据状态
      *
      * @param channel 通道
