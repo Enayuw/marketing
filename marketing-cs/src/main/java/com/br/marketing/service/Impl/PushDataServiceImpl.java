@@ -1709,6 +1709,8 @@ public class PushDataServiceImpl implements PushDataService {
                         resultData.setStatus(2);
                         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                         redisChgService.unlock(key, value);
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                                , "当前数据在日志表中未查到"));
                         return;
                     }
                     adReqDTO.setMktChannel(selectLog.getOrgChannel());

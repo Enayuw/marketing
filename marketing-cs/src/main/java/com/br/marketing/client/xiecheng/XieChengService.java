@@ -251,6 +251,7 @@ public class XieChengService {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengDataNew(AdReqDTO xieChengData) {
+        log.warn("携程上报新接口罗逻辑："+xieChengData.getSha256Tel());
         // 1. 获取配置
         Map<String, JSONObject> configMap = marketingCommonConfig.getXieChengCpaAndCpsConfig();
         JSONObject config = "1".equals(xieChengData.getConditionKey()) ? configMap.get("cpa") : configMap.get("cps");
