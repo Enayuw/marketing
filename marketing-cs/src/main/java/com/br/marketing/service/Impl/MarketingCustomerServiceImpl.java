@@ -121,7 +121,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                         : marketingCustomerConfig.getCheckType());
                 customerListVo.setScoreSeparator(marketingCustomerConfig == null ? CommonConstants.COMMA :
                         marketingCustomerConfig.getScoreSeparator());
-                customerListVo.setThreeKEncryptType(marketingCustomerConfig == null ? ThreeKeyEncryptEnum.md5.getCode():
+                customerListVo.setThreeKEncryptType(marketingCustomerConfig == null ? null:
                         marketingCustomerConfig.getThreeKEncryptType());
                 customerListVos.add(customerListVo);
             }
@@ -202,9 +202,12 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 updateEntity.setId(marketingCustomerConfig.getId());
                 updateEntity.setCheckType(vo.getCheckType());
                 updateEntity.setScoreSeparator(vo.getScoreSeparator());
+                updateEntity.setThreeKEncryptType(vo.getThreeKEncryptType());
                 marketingCustomerConfigMapper.updateByPrimaryKeySelective(updateEntity);
                 //更新3k加密类型
-                iCustomerConfigService.updateEncryptyType(vo.getApiCode(),vo.getThreeKEncryptType());
+                if (!Objects.isNull(vo.getThreeKEncryptType())) {
+                    iCustomerConfigService.updateEncryptyType(vo.getApiCode(), vo.getThreeKEncryptType());
+                }
                 content.append("【checkType】=【" + marketingCustomerConfig.getCheckType() + "】" + "->【" + vo.getCheckType() + "】,");
             }
 
