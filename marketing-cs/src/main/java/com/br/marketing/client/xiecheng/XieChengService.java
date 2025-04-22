@@ -272,7 +272,8 @@ public class XieChengService {
                 log.warn("携程广告上报接口，source为空，置为默认值:{}", extendSource);
             }
         } catch (Exception e) {
-            log.error("携程广告上报接口，source字段解析异常:{}", xieChengData.getExtend(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程广告上报接口，source 解析异常"+xieChengData.getSha256Tel()));
         }
 
         // 4. 构建请求对象
