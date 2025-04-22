@@ -148,6 +148,7 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
 //            String dateApplSubmit = null;
             String sxSuccess = null;
             String creditAmt = null;
+            String creditTime = null;
             String isSucc = null;
             // 下面放到扩展字段里面
             String name = null;
@@ -186,6 +187,7 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                 JSONObject object = JSON.parseObject(riskMessage);
                 if(null != object && !object.isEmpty()){
                     creditAmt = object.getString("creditAmt");
+                    creditTime = object.getString("creditTime");
                 }
             }
             String tradeMessage = qrm.getTradeMessage();
@@ -249,6 +251,7 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             reserveField1JSON.put("hisSettleTime",hisSettleTime);
             reserveField1JSON.put("curAvailableQuota",curAvailableQuota);
             reserveField1JSON.put("curAvailableQuotays_derived",curAvailableQuotays_derived);
+            reserveField1JSON.put("creditTime",creditTime);
             transferDataItemDTO.setReserveField1(reserveField1JSON.toJSONString());
             dataItems.add(transferDataItemDTO);
             idList.add(qrm.getId());
