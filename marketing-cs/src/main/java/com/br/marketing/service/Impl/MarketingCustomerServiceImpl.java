@@ -12,6 +12,7 @@ import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.mapper.EntityOptLogMapper;
 import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -120,6 +121,8 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                         : marketingCustomerConfig.getCheckType());
                 customerListVo.setScoreSeparator(marketingCustomerConfig == null ? CommonConstants.COMMA :
                         marketingCustomerConfig.getScoreSeparator());
+                customerListVo.setThreeKEncryptType(marketingCustomerConfig == null ? ThreeKeyEncryptEnum.md5.getCode():
+                        marketingCustomerConfig.getThreeKEncryptType());
                 customerListVos.add(customerListVo);
             }
             PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
