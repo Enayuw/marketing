@@ -85,20 +85,16 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     }
 
     private void processApiCodes() {
-        Map<String, Object> map = marketingCommonConfig.getShuHeFileCleanUploadDateConfig();
-        List<String> apiCodes = (List<String>) map.get("apiCode");
-        List<String> appletDates = (List<String>) map.get("appletDate");
-        String fileName = (String) map.get("fileName");
-        if (CollectionUtils.isEmpty(apiCodes)) {
-            apiCodes.add("3710128");
-            apiCodes.add("3710148");
-        }
-        if (CollectionUtils.isEmpty(appletDates)) {
-            appletDates.add(LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        }
-        if (fileName.contains("yyyy-MM-dd")) {
-            fileName = fileName.replace("yyyy-MM-dd", TimeUtils.getNowDate(TimeUtils.DATE_FORMAT));
-        }
+
+        // 从配置获取初始数据
+        Map<String, Object> configMap = marketingCommonConfig.getShuHeFileCleanUploadDateConfig();
+        log.warn(TITLE + "获取speed！" + configMap.toString());
+        // 1. 处理apiCodes
+        List<String> apiCodes = getApiCodesWithDefaults(configMap);
+        // 2. 处理日期列表
+        List<String> appletDates = getAppletDatesWithDefaults(configMap);
+        // 3. 处理文件名
+        String fileName = processFileName(configMap);
 
         for (String apiCode : apiCodes) {
             //判断今日是否执行过
@@ -138,6 +134,31 @@ public class ShuHeFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             // 文件处理逻辑
             processFile(syncConfig, fileName, appletDates, transferActionFront);
         }
+    }
+
+    private List<String> getApiCodesWithDefaults(Map<String, Object> configMap) {
+        List<String> configuredApiCodes = (List<String>) configMap.get("apiCode");
+        if (!CollectionUtils.isEmpty(configuredApiCodes)) {
+            return new ArrayList<>(configuredApiCodes);
+        }
+        return Arrays.asList("3710128", "3710148");
+    }
+
+    private List<String> getAppletDatesWithDefaults(Map<String, Object> configMap) {
+        List<String> configuredDates = (List<String>) configMap.get("appletDate");
+        if (!CollectionUtils.isEmpty(configuredDates)) {
+            return new ArrayList<>(configuredDates);
+        }
+        // 默认取昨天日期
+        return Arrays.asList(LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+    }
+
+    private String processFileName(Map<String, Object> configMap) {
+        String fileName = (String) configMap.get("fileName");
+        if (fileName != null && fileName.contains("yyyy-MM-dd")) {
+            return fileName.replace("yyyy-MM-dd", TimeUtils.getNowDate(TimeUtils.DATE_FORMAT));
+        }
+        return fileName;
     }
 
     private void processFile(SyncConfig syncConfig, String fileName,
