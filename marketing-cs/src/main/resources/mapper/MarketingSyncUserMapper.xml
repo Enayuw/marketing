@@ -1133,4 +1133,16 @@
 
     </select>
 
+    <select id="getUserByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where applet_date in
+        <foreach collection="appletDates" item="appletDate" open="(" separator="," close=")">
+            '${appletDate}'
+        </foreach>
+        and cell = #{cell}
+        and status=1
+        and is_repeat in (1,2)
+    </select>
+
 </mapper>
