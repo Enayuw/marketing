@@ -244,4 +244,10 @@ public class MarketingCustomerListVO {
     @ApiModelProperty(value = "跑分分隔符")
     private String scoreSeparator;
 
+    /**
+     * 客户3k的加密类型 1-MD5;2-sha256
+     */
+    @ApiModelProperty(value = "客户3k的加密类型:1-MD5;2-sha256")
+    private Integer threeKEncryptType;
+
 }

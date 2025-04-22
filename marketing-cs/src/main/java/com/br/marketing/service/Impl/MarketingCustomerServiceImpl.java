@@ -12,9 +12,11 @@ import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.mapper.EntityOptLogMapper;
 import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.service.ICustomerConfigService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
@@ -27,6 +29,7 @@ import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -61,6 +64,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
 
     @Resource
     CustomerTagsProcessServiceImpl customerTagsProcessService;
+
+    @Autowired
+    ICustomerConfigService iCustomerConfigService;
 
 
     @Override
@@ -115,6 +121,8 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                         : marketingCustomerConfig.getCheckType());
                 customerListVo.setScoreSeparator(marketingCustomerConfig == null ? CommonConstants.COMMA :
                         marketingCustomerConfig.getScoreSeparator());
+                customerListVo.setThreeKEncryptType(marketingCustomerConfig == null ? null:
+                        marketingCustomerConfig.getThreeKEncryptType());
                 customerListVos.add(customerListVo);
             }
             PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
@@ -161,6 +169,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomerConfig.setUpdateTime(date);
             marketingCustomerConfig.setCheckType(vo.getCheckType());
             marketingCustomerConfig.setScoreSeparator(vo.getScoreSeparator());
+            marketingCustomerConfig.setThreeKEncryptType(vo.getThreeKEncryptType());
             marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
 
         } else {
@@ -185,6 +194,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 marketingCustomerConfig.setUpdateTime(date);
                 marketingCustomerConfig.setCheckType(vo.getCheckType());
                 marketingCustomerConfig.setScoreSeparator(vo.getScoreSeparator());
+                marketingCustomerConfig.setThreeKEncryptType(vo.getThreeKEncryptType());
                 marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
             } else {
                 MarketingCustomerConfig marketingCustomerConfig = marketingCustomerConfigs.get(0);
@@ -192,7 +202,12 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 updateEntity.setId(marketingCustomerConfig.getId());
                 updateEntity.setCheckType(vo.getCheckType());
                 updateEntity.setScoreSeparator(vo.getScoreSeparator());
+                updateEntity.setThreeKEncryptType(vo.getThreeKEncryptType());
                 marketingCustomerConfigMapper.updateByPrimaryKeySelective(updateEntity);
+                //更新3k加密类型
+                if (!Objects.isNull(vo.getThreeKEncryptType())) {
+                    iCustomerConfigService.updateEncryptyType(vo.getApiCode(), vo.getThreeKEncryptType());
+                }
                 content.append("【checkType】=【" + marketingCustomerConfig.getCheckType() + "】" + "->【" + vo.getCheckType() + "】,");
             }
 
