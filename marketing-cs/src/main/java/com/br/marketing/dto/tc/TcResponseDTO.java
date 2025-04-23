@@ -105,7 +105,6 @@ public class TcResponseDTO {
     public TcResponseDTO failed(TcResponseDTO.ResultEnum resultEnum, String msg) {
         this.code = resultEnum.getCode();
         this.msg = resultEnum.getMsg().concat(msg);
-        this.sign = sign;
         this.timestamp = String.valueOf(System.currentTimeMillis());
         return this;
     }
