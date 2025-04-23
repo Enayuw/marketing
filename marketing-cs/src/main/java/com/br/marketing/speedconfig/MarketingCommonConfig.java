@@ -2789,6 +2789,14 @@ public class MarketingCommonConfig {
      * 数禾自动化洗库参数配置 {"apiCode":["3710028","3710048"],"appletDate":["2025-01-01","2025-01-02"],"fileName":"pdm_cusop_slp_dyy_br1_df_yyyy-MM-dd_5.csv"}
      */
     private Map<String,Object> shuHeFileCleanUploadDateConfig;
+    /**
+    * 转化文件提取到marketingBI的配置
+    */
+    private List<String> transFileExtractionApiCodesConfig;
+    /**
+     * 转化文件提取到BI线程数
+     */
+    private Integer transFileExtractionBIThread;
 
 }
 

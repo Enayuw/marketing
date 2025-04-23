@@ -308,6 +308,8 @@ public enum AlarmSendCodeEnum {
     RSXK_INTERFACE("6071001", "榕树新客接口异常"),
     //榕树新客业务异常
     RSXK_SERVICEERROR("6071002", "榕树新客业务异常"),
+    //BI业务异常
+    BI_SERVICEERROR("6072001", "BI业务异常"),
     ;
 
     /**
