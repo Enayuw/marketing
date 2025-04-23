@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.QueryUserRealMessageMapper" >
+<mapper namespace="com.br.marketing.mapper.QueryUserRealMessageMapper">
 
     <update id="updateStatusByIdList">
         update b_qifu_batch_query_user_real_message
@@ -10,5 +10,82 @@
             #{item}
         </foreach>
     </update>
+
+    <update id="updateUploadStatusByIdList">
+
+        update b_qifu_batch_query_user_real_message
+        set upload_update_status = #{status}
+        where id in
+        <foreach collection="idList" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+
+    </update>
+    <update id="updateEsStatusByIdList">
+        update b_qifu_batch_query_user_real_message
+        set es_update_status = #{status}
+        where id in
+        <foreach collection="idList" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+
+    </update>
+
+    <select id="selectUserMessageByStatus" resultType="com.br.marketing.entity.QueryUserRealMessage">
+
+        select * from b_qifu_batch_query_user_real_message
+        <where>
+            <if test="uploadUpdateStatus !=null">
+                and upload_update_status = #{uploadUpdateStatus}
+            </if>
+            <if test="esUpdateStatus !=null and esUpdateStatus!=''">
+                and es_update_status = #{es_update_status}
+            </if>
+            <if test="appletDate !=null and appletDate!=''">
+                and applet_date = #{appletDate}
+            </if>
+            <if test="userType !=null and userType!=''">
+                and user_type = #{userType}
+            </if>
+            and api_code =#{apiCode} and create_date =#{createDate}
+            <if test="indexId != null and indexId!=''">
+                and id > #{indexId}
+            </if>
+            order by id asc limit #{pageSize};
+        </where>
+
+
+    </select>
+    <select id="selectAppletDataAndType" resultType="java.util.Map">
+        SELECT applet_date as appletDate,
+               user_type as userType
+        FROM b_qifu_batch_query_user_real_message where api_code =#{apiCode} and create_date =#{createDate} and es_update_status = 0
+        GROUP BY applet_date,
+                 user_type
+        ORDER BY applet_date desc, user_type desc;
+    </select>
+
+
+    <select id="selectAppletDataByUpload" resultType="java.util.Map">
+        SELECT applet_date as appletDate,
+               user_type as userType
+        FROM b_qifu_batch_query_user_real_message where api_code =#{apiCode} and create_date =#{createDate} and upload_update_status = 0
+        GROUP BY applet_date,
+                 user_type
+        ORDER BY applet_date desc, user_type desc;
+    </select>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO b_qifu_batch_query_user_real_message
+        (api_code, batch_no, unique_req_no, mobile_md5, stop_marketing_sign, 
+        user_message, risk_message, trade_message, create_date, create_time, 
+        applet_date, user_type, cell, status, is_deleted, upload_update_status, es_update_status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.apiCode}, #{item.batchNo}, #{item.uniqueReqNo}, #{item.mobileMd5}, #{item.stopMarketingSign},
+            #{item.userMessage}, #{item.riskMessage}, #{item.tradeMessage}, #{item.createDate}, #{item.createTime},
+            #{item.appletDate}, #{item.userType}, #{item.cell}, 0, 0, 0, 0)
+        </foreach>
+    </insert>
 
 </mapper>

@@ -10,6 +10,9 @@ import com.br.marketing.client.carclue.CarClueClient;
 import com.br.marketing.client.carclue.dto.HxClueCommitDTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.tag.AntaiosResourceClient;
+import com.br.marketing.client.tag.dto.AntaiosResourceDTO;
+import com.br.marketing.client.tag.vo.AntaiosResourceVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -278,6 +281,40 @@ public class RedisController {
         return stringBuilder;
     }
 
+
+    @Resource
+    AntaiosResourceClient antaiosResourceClient;
+
+    @GetMapping("/getTagLibrary")
+    public List<String> getTagLibrary(){
+        AntaiosResourceDTO antaiosResourceDTO = new AntaiosResourceDTO();
+
+        // 构建 JSON 请求数据
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("method", "tagList");
+        jsonObject.put("tagGroupName", "营销中台标签");
+
+        antaiosResourceDTO.setApiCode("test123");
+        antaiosResourceDTO.setJsonData(jsonObject);
+
+        // 调用客户端获取标签库
+        AntaiosResourceVo tagLibrary = antaiosResourceClient.getTagLibrary(antaiosResourceDTO);
+
+        // 检查返回结果的状态码
+        if (!"000000".equals(tagLibrary.getCode())) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAG_SERVICEERROR.getCode(),
+                    "同步标签库失败！" + JSONObject.toJSONString(tagLibrary)));
+            return null;
+        }
+
+        // 获取数据列表
+        String data = tagLibrary.getData();
+        if (data == null || data.isEmpty()) {
+            log.warn("返回的数据列表为空！");
+            return null;
+        }
+        return Arrays.asList(data.split(","));
+    }
 
     // 获取单元格值并处理空值
     private static String getCellValue(Row row, int cellIndex) {

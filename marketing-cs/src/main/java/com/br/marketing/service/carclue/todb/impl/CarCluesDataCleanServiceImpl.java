@@ -154,6 +154,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                                     carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
                                     carClueInfo.setResourceType(resourceType);
+                                    carClueInfo.setCallId(callRecord.getSessionId());
                                     carClueInfo.setCreateTime(new Date());
                                     carClueInfo.setUpdateTime(new Date());
                                     carClueInfos.add(carClueInfo);
@@ -172,6 +173,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 reserveField1.put("city", city);
                                 reserveField1.put("member", (member + fullCall));
                                 reserveField1.put("resourceType", resourceType);
+                                reserveField1.put("callId", callRecord.getSessionId());
                                 marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
                                 dataItems.add(marketingPreUserDetailDTO);
                                 successRecords.add(callRecordLog);

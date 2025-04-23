@@ -76,6 +76,8 @@ public enum AlarmSendCodeEnum {
     //RocketMQ消费异常
     ROCKETMQ_CONSUMER_ERROR("76000", "RocketMQ消费异常"),
 
+    DB_ERROR("80001", "数据库异常"),
+
     //中台业务未知错误,立即推送
     YINGXIAO_SERVICEERROR("6000000", "中台业务未知错误"),
 
@@ -104,7 +106,8 @@ public enum AlarmSendCodeEnum {
     QIFUAI_SERVICEERROR("6004003", "360ai业务告警码"),
     //360接口错误,阶梯推送
     QIFUAI_INTERFACEERROR("6004004", "360ai接口调用失败"),
-
+    //360促动支业务错误,立即推送
+    QIFUCUDONGZHI_SERVICEERROR("6004005", "360促动支业务告警码"),
     //携程业务错误,立即推送
     XIECHENG_SERVICEERROR("6005001", "携程业务告警码"),
     //携程接口错误,阶梯推送
@@ -285,6 +288,8 @@ public enum AlarmSendCodeEnum {
     //萨摩耶黑名单自动化过滤未查询到手机号,阶梯推送
     SAMOYE_TRANSFER_PHONE_NOT_FIND("6041003", "萨摩耶黑名单自动化过滤未查询到手机号"),
     PUSH_TO_SFTP("6042003", "跑分文件推送SFTP异常"),
+    //中台标签业务告警码
+    TAG_SERVICEERROR("6043001", "中台标签业务处理异常"),
     //萨摩耶黑名单传输业务异常,立即推送
     SMY_SERVICEERROR("6050001", "萨摩耶黑名单传输业务异常"),
     //萨摩耶接口调用失败,阶梯推送

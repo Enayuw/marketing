@@ -26,10 +26,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -151,6 +148,7 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
 //            String dateApplSubmit = null;
             String sxSuccess = null;
             String creditAmt = null;
+            String creditTime = null;
             String isSucc = null;
             // 下面放到扩展字段里面
             String name = null;
@@ -189,13 +187,22 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                 JSONObject object = JSON.parseObject(riskMessage);
                 if(null != object && !object.isEmpty()){
                     creditAmt = object.getString("creditAmt");
+                    creditTime = object.getString("creditTime");
                 }
             }
             String tradeMessage = qrm.getTradeMessage();
+            String hisSettleTime = null;
+            String curAvailableQuotays_derived = null;
+            Integer curAvailableQuota = null;
             if(StringUtils.isNotBlank(tradeMessage)){
                 JSONObject object = JSON.parseObject(tradeMessage);
                 if(null != object && !object.isEmpty()){
                     String isSuccOriginal = object.getString("isSucc");
+                    hisSettleTime = object.getString("hisSettleTime");
+                    curAvailableQuota = object.getInteger("curAvailableQuota");
+                    if (!Objects.isNull(curAvailableQuota)) {
+                        curAvailableQuotays_derived = String.valueOf((curAvailableQuota * 3000 - 3000));
+                    }
                     String[] isSuccValue = {"1","0"};
                     String[] isSuccKey = {"Y","N"};
                     isSuccOriginal = emptyDefault(isSuccOriginal);
@@ -241,6 +248,10 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             reserveField1JSON.put("operationScene", operationScene);
             reserveField1JSON.put("applyLoan", isLoan);
             reserveField1JSON.put("succAmtType",succAmtType);
+            reserveField1JSON.put("hisSettleTime",hisSettleTime);
+            reserveField1JSON.put("curAvailableQuota",curAvailableQuota);
+            reserveField1JSON.put("curAvailableQuotays_derived",curAvailableQuotays_derived);
+            reserveField1JSON.put("creditTime",creditTime);
             transferDataItemDTO.setReserveField1(reserveField1JSON.toJSONString());
             dataItems.add(transferDataItemDTO);
             idList.add(qrm.getId());

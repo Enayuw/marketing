@@ -2844,6 +2844,76 @@ public class CarClueInfoExample {
             addCriterion("demand_id not between", value1, value2, "demandId");
             return (Criteria) this;
         }
+
+        public Criteria andCallIdIsNull() {
+            addCriterion("call_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdIsNotNull() {
+            addCriterion("call_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdEqualTo(String value) {
+            addCriterion("call_id =", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdNotEqualTo(String value) {
+            addCriterion("call_id <>", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdGreaterThan(String value) {
+            addCriterion("call_id >", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdGreaterThanOrEqualTo(String value) {
+            addCriterion("call_id >=", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdLessThan(String value) {
+            addCriterion("call_id <", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdLessThanOrEqualTo(String value) {
+            addCriterion("call_id <=", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdLike(String value) {
+            addCriterion("call_id like", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdNotLike(String value) {
+            addCriterion("call_id not like", value, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdIn(List<String> values) {
+            addCriterion("call_id in", values, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdNotIn(List<String> values) {
+            addCriterion("call_id not in", values, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdBetween(String value1, String value2) {
+            addCriterion("call_id between", value1, value2, "callId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallIdNotBetween(String value1, String value2) {
+            addCriterion("call_id not between", value1, value2, "callId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

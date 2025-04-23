@@ -66,6 +66,8 @@ public class CarClueInfoVo {
     private String callDiaLog;
     @ApiModelProperty("资源标识")
     private String resourceType;
+    @ApiModelProperty("通话记录编号")
+    private String callId;
     @ApiModelProperty("错误原因")
     private String clueErrorReason;
 

@@ -3,8 +3,12 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.validators.user.UserValidator;
+import com.br.marketing.entity.XiechengCollidingDataProcessTask;
+import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
+import com.br.marketing.retry.DatabaseOperationService;
 import com.br.marketing.util.GeneScriptUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.swagger.models.auth.In;
@@ -17,6 +21,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -37,6 +42,9 @@ public class MyTest {
 
     final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
+
+    @Resource
+    private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
     @Test
     public void testTime(){
         LocalDate startDate = LocalDate.parse("2021-12-29",DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -318,6 +326,9 @@ public class MyTest {
     private boolean isNumeric(String str) {
         return str != null && str.matches("[+-]?(?:\\d+\\.\\d*|\\.\\d+|\\d+)(?:[eE][+-]?\\d+)?");
     }
+
+    @Resource
+    private DatabaseOperationService dbService;
 
 
 }

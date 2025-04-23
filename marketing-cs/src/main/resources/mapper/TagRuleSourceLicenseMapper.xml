@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.tag.TagRuleSourceLicenseMapper">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.tag.TagRuleSourceLicense">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="tag_code" jdbcType="VARCHAR" property="tagCode" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, tag_code, api_code, `status`, create_time, update_time
+  </sql>
+
+  <insert id="batchInsert" parameterType="java.util.List">
+    insert into t_tag_rule_source_license (
+    tag_code, api_code, status, create_time, update_time
+    ) values
+    <foreach collection="list" item="item" separator=",">
+      (
+      #{item.tagCode,jdbcType=VARCHAR},
+      #{item.apiCode,jdbcType=VARCHAR},
+      #{item.status,jdbcType=BOOLEAN},
+      #{item.createTime,jdbcType=TIMESTAMP},
+      #{item.updateTime,jdbcType=TIMESTAMP}
+      )
+    </foreach>
+  </insert>
+
+  <update id="deleteByTagCode" parameterType="com.br.marketing.entity.tag.TagRuleSourceLicense">
+    UPDATE t_tag_rule_source_license set delete_flag = 1
+    WHERE tag_code = #{tagCode,jdbcType=VARCHAR}
+  </update>
+
+</mapper>

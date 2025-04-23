@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.tag.TagDataFieldConfigMapper">
+
+  <select id="selectFieldsByApiCode" resultType="com.br.marketing.dto.tag.TagFieldConfigDTO">
+    SELECT
+      source_code as sourceCode,
+      field_code as fieldCode,
+      field_option as fieldOption,
+      field_name as fieldName,
+      field_type as fieldType,
+      description
+    FROM t_tag_data_field_config
+    WHERE source_code = #{apiCode,jdbcType=BIGINT}
+      AND status = 1
+  </select>
+
+</mapper>

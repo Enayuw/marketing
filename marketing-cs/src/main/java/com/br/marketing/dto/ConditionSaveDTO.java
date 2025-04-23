@@ -26,6 +26,9 @@ public class ConditionSaveDTO{
     @ApiModelProperty(value = "评分分布规则")
     private String mScoreCondition;
 
+    @ApiModelProperty(value = "标签规则")
+    private String mTagCondition;
+
     @ApiModelProperty(value = "数据源类型")
     private Integer sourceType;
 
@@ -88,4 +91,11 @@ public class ConditionSaveDTO{
         this.mScoreCondition = mScoreCondition;
     }
 
+    public String getmTagCondition() {
+        return mTagCondition;
+    }
+
+    public void setmTagCondition(String mTagCondition) {
+        this.mTagCondition = mTagCondition;
+    }
 }

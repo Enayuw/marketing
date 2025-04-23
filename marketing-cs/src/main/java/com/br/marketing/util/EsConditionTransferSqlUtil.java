@@ -1,21 +1,66 @@
 package com.br.marketing.util;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.DateHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 @Slf4j
 public class EsConditionTransferSqlUtil {
 
+
+    /**
+     * 运算条件转化为SQL条件（添加key前缀,sourceCode_key）
+     *
+     * @param jsonObject  json条件
+     * @param parentLogic 上层逻辑节点
+     * @return
+     */
+    public static String jsonTransferSqlByFillKey(JSONObject jsonObject, String parentLogic) {
+        String logic = jsonObject.getString("logic");
+        JSONArray dataArray = jsonObject.getJSONArray("data");
+        StringBuilder sqlResult = new StringBuilder();
+        for (int i = 0; i < dataArray.size(); i++) {
+            JSONObject jsonNodeObject = dataArray.getJSONObject(i);
+            //数值操作运算符处理
+            if (jsonNodeObject.getString("type").equals("operation")) {
+                String key = jsonNodeObject.getString("key");
+                String sourceCode = jsonNodeObject.getString("sourceCode");
+                String filedDeal = assemblefiled(sourceCode.concat("_").concat(key), jsonNodeObject.getString("operation"),
+                        jsonNodeObject.get("value"));
+                if (i < dataArray.size() - 1) {
+                    //非最后一位，需拼接逻辑运算符logic
+                    sqlResult.append(filedDeal).append(" ").append(logic).append(" ");
+                } else {
+                    sqlResult.append(filedDeal).append(" ");
+                }
+            } //逻辑运算符处理
+            else if (jsonNodeObject.getString("type").equals("logic")) {
+                //递归处理
+                sqlResult.append(jsonTransferSqlByFillKey(jsonNodeObject, logic));
+                if (i < dataArray.size() - 1) {
+                    //非最后一位，需拼接逻辑运算符logic
+                    sqlResult.append(logic).append(" ");
+                }
+            }
+        }
+        //内层logic运算用括号括起来
+        if (com.br.marketing.common.utils.StringUtils.isNotEmpty(parentLogic)) {
+            sqlResult.insert(0, " (").append(" ) ");
+        }
+        return sqlResult.toString();
+
+    }
+
+
     /**
      * ES运算条件转化为SQL条件
-     * @param jsonObject json条件
+     *
+     * @param jsonObject  json条件
      * @param parentLogic 上层逻辑节点
      * @return
      */
@@ -56,16 +101,17 @@ public class EsConditionTransferSqlUtil {
 
     /**
      * SQL条件运算符拼接
-     * @param key 字段名
+     *
+     * @param key       字段名
      * @param operation 运算符
-     * @param value  值
+     * @param value     值
      * @return
      */
     public static String assemblefiled(String key, String operation, Object value) {
 
         String sqlTep;
         List<String> operateList = Lists.newArrayList("=", "!=", "<", "<=", ">", ">=", "in", "not_in", "between", "between_right",
-                "between_left", "between_open");
+                "between_left", "between_open", "%");
         if (!operateList.contains(operation)) {
             log.error("规则中心-携程撞库操作符异常");
         }
@@ -113,6 +159,9 @@ public class EsConditionTransferSqlUtil {
                 List<String> betweenOpenList = Arrays.asList(((String) value).split(","));
                 sqlTep = ("(").concat(key).concat(" >\"").concat(betweenOpenList.get(0)).concat("\" and ").concat(key).concat(" <\"")
                         .concat(betweenOpenList.get(1).concat("\")"));
+                break;
+            case "%":
+                sqlTep = key.concat(" like ").concat("\"%").concat(value.toString()).concat("%\"");
                 break;
             default:
                 sqlTep = key.concat(operation).concat("\"").concat(value.toString()).concat("\"");

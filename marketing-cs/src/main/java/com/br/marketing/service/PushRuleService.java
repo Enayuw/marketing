@@ -221,6 +221,7 @@ public interface PushRuleService {
     void sendToRocketMqByConfig(String apiCode, String topic, String tag, String infoId, CustomerQueueEnum queueEnum);
 
     Result<Boolean> deleteRule(Long id);
+    Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO);
 
     String getRoutingKeyFromRedis(String key, String field, String defaultValue);
 }

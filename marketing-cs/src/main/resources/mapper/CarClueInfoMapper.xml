@@ -36,6 +36,7 @@
         bcci.recording_path as recordingPath,
         bcci.call_dialog as callDiaLog,
         bcci.resource_type as resourceType,
+        bcci.call_id as callId,
         bcci.clue_error_reason as clueErrorReason
         from b_car_clue_info bcci
         <where>
@@ -119,7 +120,7 @@
         INSERT INTO b_car_clue_info (
         cid, api_code, cust_num, cell, intention, brand, member, series,
         province, city, recording_path, call_dialog, clue_data_status, clue_complete_status,
-        resource_type, create_time, update_time
+        resource_type, call_id, create_time, update_time
         )
         VALUES
         <foreach collection="carClueInfoList" item="item" separator=",">
@@ -139,6 +140,7 @@
             #{item.clueDataStatus, jdbcType=INTEGER},
             #{item.clueCompleteStatus, jdbcType=INTEGER},
             #{item.resourceType, jdbcType=VARCHAR},
+            #{item.callId, jdbcType=VARCHAR},
             #{item.createTime, jdbcType=TIMESTAMP},
             #{item.updateTime, jdbcType=TIMESTAMP}
             )

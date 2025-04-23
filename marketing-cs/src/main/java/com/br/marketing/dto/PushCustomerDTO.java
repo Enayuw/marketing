@@ -50,6 +50,9 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "评分分布规则")
     private String mScoreCondition;
 
+    @ApiModelProperty(value = "标签规则")
+    private String mTagCondition;
+
     @ApiModelProperty(value = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
 
@@ -207,5 +210,13 @@ public class PushCustomerDTO {
 
     public void setmScoreCondition(String mScoreCondition) {
         this.mScoreCondition = mScoreCondition;
+    }
+
+    public String getmTagCondition() {
+        return mTagCondition;
+    }
+
+    public void setmTagCondition(String mTagCondition) {
+        this.mTagCondition = mTagCondition;
     }
 }

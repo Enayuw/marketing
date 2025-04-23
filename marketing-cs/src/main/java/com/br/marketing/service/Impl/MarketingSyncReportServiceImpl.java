@@ -196,7 +196,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                         , appletDateStart);
                                 for (String appletDate : appletDateList) {
                                     //统计上传记录关键信息
-                                    Map<String, Object> uploadMagnStatInfo = syncReportMapper.selectUploadMagnStatInfotiflash_(apiCode, userType, uploadDate);
+                                    Map<String, Object> uploadMagnStatInfo = syncReportMapper.selectUploadMagnStatInfotiflash_(apiCode, userType, appletDate);
                                     Integer normalNum = Integer.parseInt(uploadMagnStatInfo.get("normalNum").toString());
                                     if (normalNum == 0) {
                                         continue;

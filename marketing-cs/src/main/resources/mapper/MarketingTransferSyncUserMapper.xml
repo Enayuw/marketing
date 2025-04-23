@@ -813,7 +813,15 @@
         </foreach>
         limit 1
     </select>
-
+    <select id="getXcTransferTodayNoAdDataByOnlyBlack" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where cust_num = #{custNum}
+        and (reserve_field1->'$.isBlack' = '1' or reserve_field1->'$.isBlack' = 1)
+        <![CDATA[ and create_time > curdate()]]>
+        and api_code = #{apiCode}
+        limit 1
+    </select>
     <select id="getZhongBangTransferByApiCodetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select id, cust_num, if_apply, if_lent
         from b_marketing_transfer_sync_${tCid}
