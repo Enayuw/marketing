@@ -42,7 +42,7 @@ public class TcCustomizeWithoutSignController {
         String signature = RSAUtil.generateContent(convert);
         JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
         //同程私钥加签
-        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey");
+        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
         //百融私钥加签
         String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
         tcRequestDTO.setSign(sign);
@@ -58,7 +58,7 @@ public class TcCustomizeWithoutSignController {
         String signature = RSAUtil.generateContent(convert);
         JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
         //同程私钥加签
-        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey");
+        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
         String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
         tcRequestDTO.setSign(sign);
         return tcCustomizeService.marketRevoke(tcRequestDTO);
@@ -71,10 +71,9 @@ public class TcCustomizeWithoutSignController {
         tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
         Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
         String signature = RSAUtil.generateContent(convert);
-//        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
+        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
         //同程私钥加签
-//        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey");
-        String tcPrivateKey = "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCz0d7j3WGnfMIjvSspB7v2ZcmCWJ8Zqzn1gvMe99bqWOnve7V3fpTZSdZVMg7B8viJDUtrUqDY/ZSWsUojW0N374bzjYlGNZYlWmYqiZfKZZ44ABK6+dky5MDhnaTpYihlhwxiKp8P48awjyMxgqWxv7dWhSEgVFvhDkIQr9XYtQf11EL2s1N6bqkaf1uvGARAb6yDz9vh4torzow+bmfe0HejH1Qyw5C3eza+WEmhFdBFEeH4GhkLwp3wQ6mopQDpyPPXzrNJIo7zaqbaJ+s+LTj2q8ECV8hHndwSHrai0fogkadAMF9tgTD2UwHZAtvK0K8IW1RL0E8kFIamflWVAgMBAAECggEASu+H0i+clX6RLPGVPekCNIFgg1hJHRpU8fIbPOmNf2WEP4+vJNf0UcTKdACDU+HcHskSh+wMKcErHc1OFwPeTunbtD1kWoTUSEau0sU6I1dLowyswYyDLglUM/FNGxETwpOP3ozicm26jDNqOCS4xiUd0wlxr5ZYH6agc3HDTSYXG6M+Q4q8jhHs0oEpr4b4aL0oDNHnEg7mPynS/LEritzr1D06dBXbF6UTlOVB/swnvsidAEHbdzIbmL+sH+pqljnkgk1wtrkqWTDJj4apzmQIuDiRwk8yWtPHiQTxhqk0EKSTsTVie0KaEuW7NrgcaGFhSFlrkCOhx+oEpWkWoQKBgQD40s73g8BR70LcG7N9V9ITh+7IkW6BptKJr8nKCm7+xTyGh7aInwT50PJBVJVmfVub4Bf5wVD6BE1IJ/Ss9WYJPZa2pK0QqwFElGKDzxx19NdBNqsR3W8t6CaM39iokUwaDLC4YUK41IJ1h9uFsHPJg4raX/ye1d/uQijedx1TrQKBgQC5AZKcWC2xU7Gz0GNjupkhfmt+H1+jXPybwM9kz1pScZ5z0bbZ8ZuiS0VC0eI+ILLEMa5UmeSik5ZEJJHLFwzQgQukNBQeU+llRRWqSmXyabkJD3zC85hQCm2kUbLUVzexgvB7CPL1hqQT6ayMItQf9+/2jgrkRrHUalD/hgCGiQKBgFKY0AFT5/SK4vvj6ioyi9bV6csEk9VQBlWUV/zMh9nkqVnTFSG2/9TZqoFLTajO9ikBM5RButqzsN/B+7OqZmus2SnZ8mU1Dt+wDh/JEZ6KXyYTuqfchLqNdLaQ2//g8402JzedeaOXT5MqPRHc6CK9msswz8/+GS6jIaPvkHmlAoGAWfPazivNo6+28l/7Q01CEVf/eeZVQQAATtazwCdVmkpmKZgpGNTxwDpq5a9ZGq4ZXW1ufvIIicfKwz0oqh99+o8UEvXDZm+URsoNW6wq32/qKO6f0cZRI3G+l6ulkLsLeELbHGdggmLBunDelZCFpTmPMkkkIJQC+O3sjiEgdkkCgYBUBxcHzomyZ/oUZNutF5qMBwzM6S7iLITPNNVAUYRHIGPebeUrTkS+kZgvfP9qLFq41kja8KdauPD1OX2FsE/Q7LpjbxsSfIkL5rdqwpICgX/DMEM9T1450BE0QipPLBR8euhCfxrUPNYiANEPrMmJOvHWgzAjBvV8M1ID1CP/VA==";
+        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
         String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
         tcRequestDTO.setSign(sign);
         return tcCustomizeService.transformNotify(tcRequestDTO);

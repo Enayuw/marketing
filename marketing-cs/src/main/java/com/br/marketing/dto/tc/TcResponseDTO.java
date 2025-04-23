@@ -102,10 +102,15 @@ public class TcResponseDTO {
         return this;
     }
 
-    public TcResponseDTO failed(TcResponseDTO.ResultEnum resultEnum, String msg) {
-        this.code = resultEnum.getCode();
-        this.msg = resultEnum.getMsg().concat(msg);
+    public TcResponseDTO failed(String brPrivateKey, String msg) {
+        this.code = TcResponseDTO.ResultEnum.BIZ_ERROR.getCode();
+        this.msg = TcResponseDTO.ResultEnum.BIZ_ERROR.getMsg();
         this.timestamp = String.valueOf(System.currentTimeMillis());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("status", ResultEnum.BIZ_ERROR.getStatus());
+        jsonObject.put("msg", msg);
+        this.data = jsonObject.toJSONString();
+        RSAUtil.sign(this, brPrivateKey);
         return this;
     }
 
