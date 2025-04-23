@@ -29,7 +29,6 @@ import org.springframework.context.annotation.ImportResource;
 @EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
-@ImportResource(locations = {"classpath:scheduler.xml"})
 @EnableBrCounter(namespace = "marketing_ai_mq_consumer")
 public class MarketingAiMqConsumerApplication {
 

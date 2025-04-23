@@ -280,25 +280,6 @@ api:
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: false
 
-#elastic-job配置
-SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: marketing-local-job
-BASE_SLEEP_TIME_MILLISECONDS: 1000
-MAX_SLEEP_TIME_MILLISECONDS: 3000
-MAX_RETRIES: 3
-NESTED_PORT: -1
-NESTED_DATA_DIR: target/test_zk_data/
-corn:
-  closeDateAlarmJob: 00 00 10 * * ?
-  sftpDeleteMonitorJob: 00 0/2 00-23 * * ?
-  ftpDeleteMonitorJob: 00 0/2 00-23 * * ?
-  finishPutJob: 00 00 10 * * ?
-  ftpToDbJob: 00 0/2 00-23 * * ?
-  sftpToDbJob: 00 0/2 00-23 * * ?
-  monitoringExpirationAlarmJob: 00 00 10 * * ?
-  progressReportJob: 00 00 09 * * ?
-  reportJob: 00 00 18 * * ?
-
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
   #  name-server: 192.168.161.109:9876
