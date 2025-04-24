@@ -558,4 +558,50 @@ public class RedisChgService {
             log.error(e.getMessage(), e);
         }
     }
+
+    /**
+     * 将元素添加到zset
+     * @param key
+     * @param member
+     * @param score
+     */
+    public void zadd(String key, String member, Long score) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            marketingRedisClient.zadd(key, score, member);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 返回zset中指定范围的元素列表
+     * @param key
+     * @param start
+     * @param stop
+     */
+    public List<String> zrange(String key, Long start, Long stop) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.zrange(key, start, stop);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 返回zset中指定范围的元素列表
+     * @param key
+     * @param start
+     * @param stop
+     */
+    public List<ScoredValue<String>> zrangeWithScores(String key, Long start, Long stop) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            List<ScoredValue<String>> scoredValues = marketingRedisClient.zrangeWithScores(key, start, stop);
+            return scoredValues;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

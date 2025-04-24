@@ -2,9 +2,14 @@ package com.br.marketing.rabbitmq;
 
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.utils.AiMQConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.MrpMqFact;
+import com.br.marketing.service.PushRuleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -25,6 +30,12 @@ public class RabbitMqProducter {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    RedisChgService redisChgService;
+
+    @Autowired
+    PushRuleService pushRuleService;
 
 
     @PostConstruct
@@ -140,5 +151,20 @@ public class RabbitMqProducter {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             return arg0;
         },correlationData);
+    }
+
+    public void sendToAIUniversalQueue(MqFact mqFact) {
+        String message = JSON.toJSONString(mqFact);
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
+
+        String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
+        String field = SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.name();
+        String aiUniversalRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE;
+        String routingKeyFromRedis = pushRuleService.getRoutingKeyFromRedis(redisKey, field, aiUniversalRoutingKey);
+
+        rabbitTemplate.convertAndSend(exchange, routingKeyFromRedis, message, arg0 -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            return arg0;
+        }, correlationData);
     }
 }

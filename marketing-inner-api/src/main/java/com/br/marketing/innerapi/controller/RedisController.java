@@ -8,7 +8,6 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.carclue.CarClueClient;
 import com.br.marketing.client.carclue.dto.HxClueCommitDTO;
-import com.br.marketing.client.hxchannel.HxChannelClient;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.tag.AntaiosResourceClient;
@@ -17,11 +16,12 @@ import com.br.marketing.client.tag.vo.AntaiosResourceVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.UserCenterHandler;
+import com.google.common.base.Joiner;
+import io.lettuce.core.ScoredValue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -331,5 +331,35 @@ public class RedisController {
         return input == null || input.isEmpty() ? null : input.replace("\n", ",");
     }
 
+    @GetMapping("zrangeWithScores")
+    public String zrange(@RequestParam("key") String key, @RequestParam("start") String start, @RequestParam("stop") String stop) {
+        if (!redisChgService.exists(key)) {
+            return "key不存在";
+        }
 
+        List<ScoredValue<String>> scoredValues = redisChgService.zrangeWithScores(key, Long.valueOf(start), Long.valueOf(stop));
+        return Joiner.on(",").join(scoredValues);
+    }
+
+    @GetMapping("zadd")
+    public String zadd(@RequestParam("key") String key, @RequestParam("member") String member, @RequestParam("score") String score) {
+        redisChgService.zadd(key, member, Long.valueOf(score));
+        return "zadd-success";
+    }
+
+    @GetMapping("hash")
+    public String hash(@RequestParam("key") String key) {
+        if (!redisChgService.exists(key)) {
+            return "key不存在";
+        }
+
+        Map<String, Object> hashAll = redisChgService.hgetall(key);
+        return JSON.toJSONString(hashAll);
+    }
+
+    @GetMapping("hset")
+    public String hset(@RequestParam("key") String key, @RequestParam("field") String field, @RequestParam("value") String value) {
+        redisChgService.hset(key, field, value);
+        return "hset-success";
+    }
 }

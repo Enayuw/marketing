@@ -34,6 +34,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.*;
@@ -2418,12 +2419,46 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                sendToRabbitMq(apiCode, syncInfoId);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
+    /**
+     * 根据apiCode，区分AI与非AI客户，发送到不同MQ
+     * 使用范围：上传数据入库mq队列、pulsar队列
+     * @param apiCode
+     * @param syncInfoId
+     */
+    private void sendToRabbitMq(String apiCode, String syncInfoId) {
+        if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
+            String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
+            String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
+            String aiQueueRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE;
+            String routingKeyFromRedis = getRoutingKeyFromRedis(redisKey, field, aiQueueRoutingKey);
+            producter.send(routingKeyFromRedis, syncInfoId);
+        } else {
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+        }
+    }
+
+    @Override
+    public String getRoutingKeyFromRedis(String key, String field, String defaultValue) {
+        String routingKey = "";
+        try {
+            routingKey = redisChgService.hget(key, field);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    e.getMessage(),
+                    "ai客户数据，获取redis路由键失败，数据进入默认队列"
+            ), e);
+        }
+
+        routingKey = StringUtils.isEmpty(routingKey) ? defaultValue : routingKey;
+        return routingKey;
+    }
 
     /**
      * 根据配置表发送到对应MQ
@@ -2790,6 +2825,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.sendToUniversalTransferQueue(mrpMqFact);
             }
         }
+
+        // ai客户数据发送到ai客户队列
+        List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
+        if (status && !CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
+            MqFact mqFact = new MqFact();
+            mqFact.setSourceId(infoId);
+            mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+            producter.sendToAIUniversalQueue(mqFact);
+        }
+
         List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
         if (apiCodeOfRecordTaskTime.contains(apiCode)) {
             String concat = apiCode.concat(":").concat(marketingSyncInfo.getCusBatch());
@@ -2923,7 +2968,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                sendToRabbitMq(apiCode, syncInfoId);
             }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());

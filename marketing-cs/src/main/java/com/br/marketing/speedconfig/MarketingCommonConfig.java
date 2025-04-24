@@ -2800,5 +2800,19 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
+    /**
+     * AI客户apiCode集合
+     */
+    private List<String> aiApiCodeList;
+
+    /**
+     * AI客户消费端启用线程池开关
+     */
+    private Boolean aiMqEnableThreadPoolSwitch;
+
+    /**
+     * 动态切换MQ消息数量阈值
+     */
+    private Integer switchMqMaxMsgCount;
 }
 
