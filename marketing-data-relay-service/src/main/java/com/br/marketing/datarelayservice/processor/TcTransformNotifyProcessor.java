@@ -27,19 +27,22 @@ public class TcTransformNotifyProcessor extends AbstractTcCustomizeProcessor{
 
     @Override
     protected Long recordSave(TcRequestDTO tcRequestDTO, String batchNo, String apiCode, String brPrivateKey) {
-        MarketingTcyrTransferRecord marketingTcyrTransferRecord = new MarketingTcyrTransferRecord();
-        marketingTcyrTransferRecord.setApiCode(apiCode);
-        marketingTcyrTransferRecord.setRequestNo(tcRequestDTO.getRequestNo());
-        marketingTcyrTransferRecord.setBatchNo(batchNo);
-        marketingTcyrTransferRecord.setData(tcRequestDTO.getData());
-        marketingTcyrTransferRecord.setCreateTime(new Date());
+        MarketingTcyrTransferRecord record = new MarketingTcyrTransferRecord();
+        record.setApiCode(apiCode);
+        record.setRequestNo(tcRequestDTO.getRequestNo());
+        record.setBatchNo(batchNo);
+        record.setData(tcRequestDTO.getData());
+        record.setStatus(0);
+        record.setCreateTime(new Date());
+        record.setUpdateTime(new Date());
         try {
-            tcyrTransferRecordMapper.insert(marketingTcyrTransferRecord);
-            return marketingTcyrTransferRecord.getId();
+            tcyrTransferRecordMapper.insert(record);
+            return record.getId();
         } catch (DuplicateKeyException e) {
             //告警
-            marketingTcyrTransferRecord.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
-            tcyrTransferRecordMapper.insert(marketingTcyrTransferRecord);
+            record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
+            record.setStatus(2);
+            tcyrTransferRecordMapper.insert(record);
             return null;
         }
     }

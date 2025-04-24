@@ -1,13 +1,18 @@
 package com.br.marketing.datarelayservice.processor;
 
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tc.TcRequestDTO;
+import com.br.marketing.entity.MarketingDataCleanConfig;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
+import com.br.marketing.util.TimeUtils;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -32,15 +37,20 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
         record.setRequestNo(tcRequestDTO.getRequestNo());
         record.setBatchNo(batchNo);
         record.setData(tcRequestDTO.getData());
+        record.setStatus(0);
         record.setCreateTime(new Date());
+        record.setUpdateTime(new Date());
         try {
             tcyrSyncRecordMapper.insert(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
+            record.setStatus(2);
             tcyrSyncRecordMapper.insert(record);
             return null;
         }
     }
+
+
 }

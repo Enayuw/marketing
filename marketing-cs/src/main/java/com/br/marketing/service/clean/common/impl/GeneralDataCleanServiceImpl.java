@@ -5,15 +5,21 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.entity.FlagData;
 import com.br.marketing.entity.MarketingDataCleanConfig;
 import com.br.marketing.mapper.MarketingDataCleanConfigMapper;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
+import com.br.marketing.service.mark.DataMarkCommonService;
+import com.br.marketing.util.TimeUtils;
 import groovy.util.logging.Slf4j;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,7 +30,11 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     @Resource
     private MarketingDataCleanConfigMapper marketingDataCleanConfigMapper;
 
+    @Resource
+    DataMarkCommonService dataMarkCommonService;
+
     private static final Integer CLEAN_TYPE_UPLOAD = 0;
+
     private static final Integer CLEAN_TYPE_TRANSFER = 1;
 
     private static final Integer ORIGIN_TYPE_BASIC = 1;
@@ -35,15 +45,11 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
 
     private static final Integer TARGET_TYPE_EXTEND = 2;
 
-
-
     private static final Integer MAPPING_MODE_MAPPING = 1;
 
     private static final Integer MAPPING_MODE_GROUP = 2;
 
     private static final Integer MAPPING_MODE_DEFAULT = 3;
-
-
 
     private static final String BIZ_ACTION = "common";
 
@@ -65,6 +71,19 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗配置");
         }
         //2.基础字段集合
+        Map<String, Field> fieldMap = getStringFieldMap(configs);
+        //3.配置按targetName分组
+        List<Pair<MarketingPreUserDetailDTO, JSONObject>> dtos = processData(data, configs, fieldMap, MarketingPreUserDetailDTO.class);
+        dtos.forEach(pair -> {
+            MarketingPreUserDetailDTO dto = pair.getLeft();
+            JSONObject json = pair.getRight();
+            dto.setReserveField1(json.toJSONString());
+        });
+        return null;
+    }
+
+    private static Map<String, Field> getStringFieldMap(List<MarketingDataCleanConfig> configs) throws NoSuchFieldException {
+        //2.基础字段集合
         Set<String> basicTargetNames = configs.stream()
                 .filter(config -> config.getTargetType() == TARGET_TYPE_BASIC)
                 .map(MarketingDataCleanConfig::getTargetName)
@@ -75,34 +94,98 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
             declaredField.setAccessible(true);
             fieldMap.put(basicTargetName, declaredField);
         }
-        //3.配置按targetName分组
+        return fieldMap;
+    }
+
+    private <T> List<Pair<T, JSONObject>> processData(List<JSONObject> data, List<MarketingDataCleanConfig> configs,
+                                                      Map<String, Field> fieldMap, Class<T> dtoClass) {
         Map<String, List<MarketingDataCleanConfig>> configsGroup = configs.stream()
                 .collect(Collectors.groupingBy(MarketingDataCleanConfig::getTargetName));
-        List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = new ArrayList<>();
-        data.parallelStream().forEach(datum -> {
-            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-            JSONObject extend = extendStandardizat(datum);
-            for (String targetName : configsGroup.keySet()) {
-                Object fieldValue = null;
-                List<MarketingDataCleanConfig> configList = configsGroup.get(targetName);
-                MarketingDataCleanConfig configExample = configList.get(0);
-                if(configExample.getMappingMode() == MAPPING_MODE_MAPPING){
-                    //取值
-                    if (configExample.getOriginType() == ORIGIN_TYPE_BASIC) {
-                        fieldValue = datum.get(configExample.getOriginName());
-                    } else if (configExample.getOriginType() == ORIGIN_TYPE_EXTEND) {
-                        fieldValue = extend.get(configExample.getOriginName());
+        return data.parallelStream()
+                .map(datum -> {
+                    try {
+                        return processSingleRecord(datum, configsGroup, fieldMap, dtoClass);
+                    } catch (InstantiationException e) {
+                        throw new RuntimeException(e);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
                     }
-                    fieldFormat(fieldValue, configExample);
-                    //赋值
-                    if(configExample.getTargetType() == TARGET_TYPE_BASIC){
-                        Field field = fieldMap.get(configExample.getTargetName());
-                    }
+                })
+                .collect(Collectors.toList());
+    }
 
+    private <T> Pair<T, JSONObject> processSingleRecord(JSONObject datum, Map<String, List<MarketingDataCleanConfig>> configsGroup, Map<String, Field> fieldMap, Class<T> dtoClass) throws InstantiationException, IllegalAccessException {
+        T dto = dtoClass.newInstance();
+        JSONObject extend = extendStandardizat(datum);
+        datum.putAll(extend);
+        configsGroup.forEach((targetName, configList) -> {
+            Object fieldValue = null;
+            MarketingDataCleanConfig configExample = configList.get(0);
+            if(configExample.getMappingMode() == MAPPING_MODE_MAPPING){
+                //取值
+                if (configExample.getOriginType() == ORIGIN_TYPE_BASIC) {
+                    fieldValue = datum.get(configExample.getOriginName());
+                } else if (configExample.getOriginType() == ORIGIN_TYPE_EXTEND) {
+                    fieldValue = extend.get(configExample.getOriginName());
+                }
+                //格式化
+                fieldValue = fieldFormat(fieldValue, configExample);
+                //赋值
+                if(configExample.getTargetType() == TARGET_TYPE_BASIC){
+                    Field field = fieldMap.get(configExample.getTargetName());
+                    field.setAccessible(true);
+                    try {
+                        field.set(dto, fieldValue);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else if (configExample.getTargetType() == TARGET_TYPE_EXTEND) {
+                    extend.put(configExample.getTargetName(), fieldValue);
+                }
+            } else if (configExample.getMappingMode() == MAPPING_MODE_GROUP) {
+                for (MarketingDataCleanConfig config : configList) {
+                    if (dataMarkCommonService.isMatch(new HashMap<>(datum), config.getMappingCondition())) {
+                        if (config.getOriginType() != null) {
+                            if (config.getOriginType() == ORIGIN_TYPE_BASIC) {
+                                fieldValue = datum.get(config.getOriginName());
+                            } else if (config.getOriginType() == ORIGIN_TYPE_EXTEND) {
+                                fieldValue = extend.get(config.getOriginName());
+                            }
+                            //格式化
+                            fieldValue = fieldFormat(fieldValue, configExample);
+                        } else {
+                            fieldValue = config.getMappingOutValue();
+                        }
+                        //赋值
+                        if(config.getTargetType() == TARGET_TYPE_BASIC){
+                            Field field = fieldMap.get(config.getTargetName());
+                            field.setAccessible(true);
+                            try {
+                                field.set(dto, ConvertUtils.convert(fieldValue, field.getType()));
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
+                        } else if (config.getTargetType() == TARGET_TYPE_EXTEND) {
+                            extend.put(config.getTargetName(), fieldValue);
+                        }
+                    }
+                }
+            } else if (configExample.getMappingMode() == MAPPING_MODE_DEFAULT) {
+                fieldValue = configExample.getDefaultValue();
+                if(configExample.getTargetType() == TARGET_TYPE_BASIC){
+                    Field field = fieldMap.get(configExample.getTargetName());
+                    field.setAccessible(true);
+                    try {
+                        field.set(dto, ConvertUtils.convert(fieldValue, field.getType()));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else if (configExample.getTargetType() == TARGET_TYPE_EXTEND) {
+                    extend.put(configExample.getTargetName(), fieldValue);
                 }
             }
         });
-        return null;
+        return ImmutablePair.of(dto, extend);
     }
 
     /**
@@ -113,10 +196,21 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
      * @author hedongshuo
      * @date 2025/4/24 17:15
      **/
-    private void fieldFormat(Object fieldValue, MarketingDataCleanConfig config) {
-        if (StringUtils.isNotBlank(config.getConversion())) {
-            JSONObject.parseObject(config.getConversion());
+    private Object fieldFormat(Object fieldValue, MarketingDataCleanConfig config) {
+        if(fieldValue == null) {
+            return null;
         }
+        if (StringUtils.isNotBlank(config.getConversion())) {
+            JSONObject conversion = JSONObject.parseObject(config.getConversion());
+            return conversion.get(fieldValue.toString());
+        }
+        if (StringUtils.isNotBlank(config.getDateTransformPattern())) {
+            return TimeUtils.getFormatterValue(fieldValue.toString(), config.getDateTransformPattern());
+        }
+        if (config.getDecimalReserveType() != null) {
+
+        }
+        return fieldValue;
     }
 
     /**
@@ -139,5 +233,14 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     @Override
     public Result transferClean(List<JSONObject> data, String apiCode, String bizAction) {
         return null;
+    }
+
+    private static String getRequestId(String taskId) {
+        return taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
+    }
+
+    private static String getTaskId(String apiCode) {
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return apiCode.concat("_").concat(yyyyMMdd);
     }
 }

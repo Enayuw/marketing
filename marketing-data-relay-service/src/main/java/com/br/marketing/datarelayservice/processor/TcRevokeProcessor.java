@@ -32,13 +32,16 @@ public class TcRevokeProcessor extends AbstractTcCustomizeProcessor{
         record.setRequestNo(tcRequestDTO.getRequestNo());
         record.setBatchNo(batchNo);
         record.setData(tcRequestDTO.getData());
+        record.setStatus(0);
         record.setCreateTime(new Date());
+        record.setUpdateTime(new Date());
         try {
             tcyrRevokeRecordMapper.insert(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
+            record.setStatus(2);
             tcyrRevokeRecordMapper.insert(record);
             return null;
         }
