@@ -108,7 +108,7 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
             }
             threadPoolShutDown(threadPool);
         } catch (Exception e) {
-            String errMsg = "nfs转化提取文件读取入库异常path: " + filePath;
+            String errMsg = "nfs转化提取文件读取入库异常path: " + filePath + " Exception: " + e.getMessage();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
             threadPoolShutDown(threadPool);
         }
