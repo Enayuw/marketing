@@ -210,7 +210,7 @@
     />
     <job:simple id="【bridge】-TransFileToMarketingBIJob"
                 class="com.br.marketing.bridge.job.TransFileToMarketingBIJob"
-                cron="0 0 14 * * ?"
+                cron="0 0 10 * * ?"
                 description="内部服务器的转化文件落库到marketingBI"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
