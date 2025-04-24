@@ -237,4 +237,9 @@ public class CustomerListVo {
      * 跑分分隔符,默认,
      */
     private String scoreSeparator;
+    /**
+     * 客户3k的加密类型 1-MD5;2-sha256
+     */
+    private Integer threeKEncryptType;
+
 }

@@ -20,7 +20,6 @@ public class RedisKeyConstant {
      * 跑分状态
      */
     public static final String scoreStatus = prefix.concat("scoreStatus");
-
     /**
      * 没有命中标识的产品
      */
@@ -324,5 +323,10 @@ public class RedisKeyConstant {
      * 车线索更新日限量锁
      */
     public static final String UPDATE_DAILY_LIMITED = prefix.concat("updatedailylimited");
+
+    /**
+     * 队列切换
+     */
+    public static final String SWITCH_MESSAGE_QUEUE = prefix.concat("switchmessagequeue");
 
 }

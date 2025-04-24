@@ -62,58 +62,127 @@ public class HengChangTransferJsonDTO extends TransferDataAdaptee {
     private JSONArray userTransferInfoList;
 
     @Override
-    protected TransferDataDTO<TransferDataItemDTO> adapteeRequest(String apiCode
-            , TransferDataDTO<TransferDataItemDTO> transferDataDTO) {
+    protected TransferDataDTO<TransferDataItemDTO> adapteeRequest(String apiCode,
+                                                                  TransferDataDTO<TransferDataItemDTO> transferDataDTO) {
+        // 生成请求ID
+        transferDataDTO.setRequestId(generateRequestId(apiCode));
 
-        //requestId：yyyymmdd_apicde_五位随机数加毫秒级时间戳
-        long timestamp = System.currentTimeMillis();
-        String date = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        String requestId = date.concat("_") + apiCode.concat("_") + RandomStringUtils.randomNumeric(5)+timestamp;
-        transferDataDTO.setRequestId(requestId);
-        List<TransferDataItemDTO> objects = new ArrayList<>();
-        JSONArray data = this.getUserTransferInfoList();
-        int size = data.size();
-        for (int i = 0; i < size; i++) {
-            JSONObject jsonObject = data.getJSONObject(i);
-            TransferDataItemDTO dto = new TransferDataItemDTO();
-            dto.setApiCode(apiCode);
-            dto.setCustNum(jsonObject.getString("uniqueId"));
-
-            dto.setLoginTime(jsonObject.getString("lastLoginTime"));
-            dto.setApplyDt(jsonObject.getString("creditGrantingTime"));
-            dto.setApplyResult(jsonObject.getString("creditResult"));
-            dto.setAuditTime(jsonObject.getString("creditAuditTime"));
-            dto.setAuditAmount(jsonObject.getString("creditAmount"));
-            dto.setIfLent(jsonObject.getString("lentStatus"));
-            dto.setLentTime(jsonObject.getString("lentTime"));
-            dto.setLentAmount(jsonObject.getString("lentAmount"));
-            dto.setUnlentAmount(jsonObject.getString("creditBalance"));
-
-            JSONObject jsonObject1 = new JSONObject();
-            jsonObject1.put("cell",jsonObject.getString("phone"));
-            jsonObject1.put("name",jsonObject.getString("name"));
-            jsonObject1.put("creditPushRiskTime",jsonObject.getString("creditPushRiskTime"));
-            jsonObject1.put("loanTime",jsonObject.getString("loanTime"));
-            jsonObject1.put("loanRiskResult",jsonObject.getString("loanRiskResult"));
-            jsonObject1.put("loanPushRiskTime",jsonObject.getString("loanPushRiskTime"));
-            jsonObject1.put("creditChannelCode",jsonObject.getString("creditChannelCode"));
-            jsonObject1.put("loanChannelCode",jsonObject.getString("loanChannelCode"));
-            jsonObject1.put("isBlack",jsonObject.getString("complaintFlag"));
-            jsonObject1.put("taskCode",this.taskCode);
-            jsonObject1.put("batchId",this.batchId);
-
-            if (StringUtils.isNotEmpty(jsonObject.getString("extra"))) {
-                JSONObject jsonObject2 = JSONObject.parseObject(jsonObject.getString("extra"));
-                for (String key : jsonObject2.keySet()) {
-                    Object value = jsonObject2.get(key);
-                    jsonObject1.put(key, value);
-                }
-            }
-            dto.setReserveField1(JSON.toJSONString(jsonObject1));
-            objects.add(dto);
-        }
-        transferDataDTO.setDataItems(objects);
+        // 处理数据转换
+        transferDataDTO.setDataItems(processTransferDataItems(apiCode));
         return transferDataDTO;
     }
+
+    /**
+     * 生成请求ID: yyyyMMdd_apiCode_五位随机数加毫秒级时间戳
+     */
+    private String generateRequestId(String apiCode) {
+        return LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT))
+                + "_" + apiCode + "_"
+                + RandomStringUtils.randomNumeric(5)
+                + System.currentTimeMillis();
+    }
+
+    /**
+     * 处理数据项转换
+     */
+    private List<TransferDataItemDTO> processTransferDataItems(String apiCode) {
+        List<TransferDataItemDTO> items = new ArrayList<>();
+        JSONArray data = this.getUserTransferInfoList();
+
+        for (int i = 0; i < data.size(); i++) {
+            JSONObject sourceData = data.getJSONObject(i);
+            TransferDataItemDTO item = new TransferDataItemDTO();
+
+            // 设置基本字段
+            setBasicFields(item, apiCode, sourceData);
+
+            // 处理保留字段
+            item.setReserveField1(buildReserveField(sourceData));
+
+            items.add(item);
+        }
+        return items;
+    }
+
+    /**
+     * 设置基本字段
+     */
+    private void setBasicFields(TransferDataItemDTO item, String apiCode, JSONObject sourceData) {
+        item.setApiCode(apiCode);
+        item.setCustNum(removeAndGet(sourceData, "uniqueId"));
+        item.setLoginTime(removeAndGet(sourceData, "lastLoginTime"));
+        item.setApplyDt(removeAndGet(sourceData, "creditGrantingTime"));
+        item.setApplyResult(removeAndGet(sourceData, "creditResult"));
+        item.setAuditTime(removeAndGet(sourceData, "creditAuditTime"));
+        item.setAuditAmount(removeAndGet(sourceData, "creditAmount"));
+        item.setIfLent(removeAndGet(sourceData, "lentStatus"));
+        item.setLentTime(removeAndGet(sourceData, "lentTime"));
+        item.setLentAmount(removeAndGet(sourceData, "lentAmount"));
+        item.setUnlentAmount(removeAndGet(sourceData, "creditBalance"));
+    }
+
+    /**
+     * 构建保留字段JSON
+     */
+    private String buildReserveField(JSONObject sourceData) {
+        JSONObject reserveField = new JSONObject();
+
+        // 添加固定字段
+        addFixedFields(reserveField, sourceData);
+
+        // 处理额外字段
+        processExtraFields(reserveField, sourceData);
+
+        // 添加剩余字段
+        addRemainingFields(reserveField, sourceData);
+
+        return JSON.toJSONString(reserveField);
+    }
+
+    /**
+     * 添加固定字段
+     */
+    private void addFixedFields(JSONObject reserveField, JSONObject sourceData) {
+        reserveField.put("cell", removeAndGet(sourceData, "phone"));
+        reserveField.put("name", removeAndGet(sourceData, "name"));
+        reserveField.put("creditPushRiskTime", removeAndGet(sourceData, "creditPushRiskTime"));
+        reserveField.put("loanTime", removeAndGet(sourceData, "loanTime"));
+        reserveField.put("loanRiskResult", removeAndGet(sourceData, "loanRiskResult"));
+        reserveField.put("loanPushRiskTime", removeAndGet(sourceData, "loanPushRiskTime"));
+        reserveField.put("creditChannelCode", removeAndGet(sourceData, "creditChannelCode"));
+        reserveField.put("loanChannelCode", removeAndGet(sourceData, "loanChannelCode"));
+        reserveField.put("isBlack", removeAndGet(sourceData, "complaintFlag"));
+        reserveField.put("taskCode", this.taskCode);
+        reserveField.put("batchId", this.batchId);
+    }
+
+    /**
+     * 处理额外字段
+     */
+    private void processExtraFields(JSONObject reserveField, JSONObject sourceData) {
+        String extraStr = sourceData.getString("extra");
+        if (StringUtils.isNotEmpty(extraStr)) {
+            JSONObject extra = JSONObject.parseObject(extraStr);
+            extra.forEach(reserveField::put);
+        }
+        sourceData.remove("extra");
+    }
+
+    /**
+     * 添加剩余字段
+     */
+    private void addRemainingFields(JSONObject reserveField, JSONObject sourceData) {
+        sourceData.forEach(reserveField::put);
+    }
+
+    /**
+     * 从JSONObject中获取并移除指定key的值
+     */
+    private String removeAndGet(JSONObject jsonObject, String key) {
+        String value = jsonObject.getString(key);
+        jsonObject.remove(key);
+        return value;
+    }
+
 
 }
