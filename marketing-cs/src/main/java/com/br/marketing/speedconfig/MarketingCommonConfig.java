@@ -2800,22 +2800,6 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
-    /**
-     * 同城易融-tcSyncDataMatch-开关，1-开，0-关
-     */
-    private String tcDataMatchJobSwitch;
-
-
-    /**
-     * 同城易融-tcSyncDataClean-开关，1-开，0-关
-     */
-    private String tcSyncDataCleanJobSwitch;
-
-    /**
-     * 同城易融-tcSyncDataClean-开关，1-开，0-关
-     */
-    private String tcTransferCleanJobSwitch;
-
 
     /**
      * 同城易融-gz包查询-文件路径
