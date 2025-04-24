@@ -51,7 +51,7 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
     @Resource
     private BFileBiConfigMapper bFileBiConfigMapper;
 
-    private static final int BATCH_SIZE = 100;
+    private static final int BATCH_SIZE = 50;
 
     @Override
     public void transFileToMarketingBiProcess(String jobParam) {
