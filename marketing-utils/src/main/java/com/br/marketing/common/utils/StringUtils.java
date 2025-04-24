@@ -1,5 +1,7 @@
 package com.br.marketing.common.utils;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
@@ -213,5 +215,21 @@ public class StringUtils {
 
     public static boolean isNumeric(String str) {
         return str != null && str.matches(NumberRegex);
+    }
+
+    public static boolean isJson(String str) {
+        if (StringUtils.isBlank(str)) {
+            return false;
+        }
+        try {
+            str = str.trim();
+            if (str.startsWith("{") && str.endsWith("}")) {
+                JSONObject.parseObject(str);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
