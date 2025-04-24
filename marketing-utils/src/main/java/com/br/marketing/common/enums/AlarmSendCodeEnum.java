@@ -55,6 +55,8 @@ public enum AlarmSendCodeEnum {
     //360业务错误,立即推送
     EXCEPTION_QIFU_ALARM("62360", "360业务告警码"),
 
+    //TC 同城易融代项目
+    EXCEPTION_TC("63001","同城易融业务报错code"),
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
     DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),

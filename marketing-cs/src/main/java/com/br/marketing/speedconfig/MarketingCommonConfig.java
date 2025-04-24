@@ -2800,5 +2800,45 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
+    /**
+     * 同城易融-tcSyncDataMatch-开关，1-开，0-关
+     */
+    private String tcDataMatchJobSwitch;
+
+
+    /**
+     * 同城易融-tcSyncDataClean-开关，1-开，0-关
+     */
+    private String tcSyncDataCleanJobSwitch;
+
+    /**
+     * 同城易融-tcSyncDataClean-开关，1-开，0-关
+     */
+    private String tcTransferCleanJobSwitch;
+
+
+    /**
+     * 同城易融-gz包查询-文件路径
+     */
+    private String tcGzFilePath;
+
+    /**
+     * 同城易融-gz查询-csv分页size
+     */
+    private Integer tcGzResultPartitionSize;
+
+
+    /**
+     * 同城易融-gz包查询-批量DB线程
+     */
+    private Integer tcGzBatDBThreadPool;
+
+    /**
+     * 同城易融-转化清洗job每页查询条数
+     */
+
+    private Integer  tcPageSearchSize;
+
+
 }
 

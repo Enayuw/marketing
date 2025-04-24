@@ -2,4 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrTransferRecordMapper" >
 
+
+    <select id="selectTcyrTransforRecordList" resultType="com.br.marketing.entity.MarketingTcyrTransferRecord">
+        SELECT id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time
+        FROM b_marketing_tcyr_transfer_record
+        WHERE id > #{lastSearchId}
+            AND api_code = #{apiCode}
+            AND status = #{status}
+        ORDER BY id ASC
+        LIMIT #{searchSize}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE b_marketing_tcyr_transfer_record set status = #{status}
+        WHERE id IN (0,
+        <foreach collection="idList" item="id" separator=",">
+            #{id}
+        </foreach>)
+    </update>
 </mapper>

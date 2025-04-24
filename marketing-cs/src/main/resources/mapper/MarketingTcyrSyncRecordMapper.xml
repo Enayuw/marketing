@@ -2,4 +2,67 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncRecordMapper" >
 
+
+    <select id="searchTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        select  id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time
+        from b_marketing_tcyr_sync_record
+        where api_code = #{apiCode} and status = #{status} order by id desc limit 1
+    </select>
+
+    <update id="updageTcyrRecordSyncStatus">
+        update b_marketing_tcyr_sync_record set status = #{status} where batch_no = #{batchNo}
+    </update>
+
+
+
+    <insert id="batchAdd">
+        INSERT INTO marketing.b_marketing_tcyr_sync
+        (api_code,batch_no,user_key,terminal,cell,is_match,is_clean,create_time,update_time)
+        values
+         <foreach collection="dataList" item="item" separator=",">
+             (
+              #{item.apiCode},#{item.batchNo},#{item.userKey},#{item.terminal},
+              #{item.cell},#{item.isMatch},#{item.isClean},#{item.createTime},#{item.updateTime}
+             )
+         </foreach>
+    </insert>
+
+
+
+
+    <select id="selectLastUserCellList" resultType="java.util.Map">
+        SELECT t1.cust_num AS "custNum", t1.cell AS "cell"
+        FROM b_marketing_sync_${apiCode} t1
+        WHERE t1.id IN (
+            SELECT MAX(t2.id)
+            FROM b_marketing_sync_${apiCode} t2
+            WHERE t2.cust_num IN
+            <foreach item="userKey" index="index" collection="userKeyList"
+                     open="(" separator="," close=")">
+                #{userKey}
+            </foreach>
+        GROUP BY t2.cust_num
+        )
+    </select>
+
+    <select id="selectLastUserRecordIdList" resultType="java.lang.Long">
+        SELECT  MAX(id)
+        FROM b_marketing_sync_${apiCode}
+        WHERE cust_num IN
+        <foreach item="userKey" index="index" collection="userKeyList"
+                 open="(" separator="," close=")">
+            #{userKey}
+        </foreach>
+        GROUP BY cust_num;
+    </select>
+
+    <select id="selectLastUserRecordList" resultType="java.util.Map">
+        SELECT t1.cust_num AS "custNum", t1.cell AS "cell"
+        FROM b_marketing_sync_${apiCode} t1 where id in
+        <foreach item="id" index="index" collection="idList"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
 </mapper>
