@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +49,7 @@ public class ServiceConfig {
     public ThreadPoolExecutor xieChengThreadPool() {
         Integer xiechengDataSendThread = marketingCommonConfig.getXiechengDataSendThread();
         return new ThreadPoolExecutor(xiechengDataSendThread,xiechengDataSendThread,10L, TimeUnit.SECONDS
-                , new ArrayBlockingQueue(100),new ThreadFactoryBuilder().setNameFormat("xieCheng-pushData-pool-%d").build()
+                , new SynchronousQueue<>(),new ThreadFactoryBuilder().setNameFormat("xieCheng-pushData-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
     @Bean(name = "xieChengSmsThreadPool")

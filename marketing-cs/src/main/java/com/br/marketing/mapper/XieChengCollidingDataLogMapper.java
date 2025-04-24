@@ -29,4 +29,6 @@ public interface XieChengCollidingDataLogMapper extends XieChengCollidingDataLog
             , @Param("dateTimeEnd") Date dateTimeEnd);
 
     List<XieChengCollidingDataLog> selectFalseDynamicData();
+
+    XieChengCollidingDataLog selectlog(@Param("sha256tel") String sha256tel);
 }

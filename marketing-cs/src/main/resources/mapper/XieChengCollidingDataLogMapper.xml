@@ -91,4 +91,8 @@
           and rob.id is null
           and dlc.id is null
     </select>
+    <select id="selectlog" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select * from b_xiecheng_colliding_data_log where result = true and cell_sha256_code_list =#{sha256tel}
+        order by create_time desc limit 1;
+    </select>
 </mapper>
