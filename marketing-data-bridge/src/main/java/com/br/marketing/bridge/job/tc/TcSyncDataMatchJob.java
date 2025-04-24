@@ -42,9 +42,6 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
             log.warn(TITLE+"调度开始");
-            if (!checkJobSwitch()) {
-                return;
-            }
 
             Map<String, String> paramMap = parseParmeter();
 
@@ -129,17 +126,4 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
         return paramMap;
     }
 
-    /**
-     * 检测开关
-     * @return
-     */
-    private boolean checkJobSwitch(){
-        String jobSwitch = marketingCommonConfig.getTcDataMatchJobSwitch();
-        if ("1".equals(jobSwitch)) {
-            log.warn(TITLE + "开关打开");
-            return true;
-        }
-        log.warn(TITLE + "开关关闭");
-        return false;
-    }
 }
