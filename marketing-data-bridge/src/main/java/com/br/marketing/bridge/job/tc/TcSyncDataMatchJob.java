@@ -30,7 +30,7 @@ import java.util.Map;
 @Slf4j
 public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
 
-    private final static String TITLE = "【同程上传数据匹配任务】";
+    private final static String TITLE = "【同程易融上传数据匹配任务】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;

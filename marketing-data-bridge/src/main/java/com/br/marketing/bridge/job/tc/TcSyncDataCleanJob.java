@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
@@ -20,9 +21,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -79,6 +80,11 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         String apiCode = paramMap.get("apiCode");
         List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataMatchService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.MATTCH_COMPELTED.getValue());
 
+        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(10, 10);
+        List<CompletableFuture<Result>> futureList = new ArrayList<>();
+        List<Long> resultList = Collections.synchronizedList(new ArrayList<>(20));
+
+
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
                 tcSyncDataMatchService.updageTcyrRecordSyncStatus(syncRecord.getBatchNo(), TcSyncRecordStatusEnum.CLEAN_IN.getValue());
@@ -96,24 +102,69 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                         }else {
                             lastSearchId = tcyrSyncList.get(tcyrSyncList.size()-1).getId();
                         }
-                        List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
-                        // 调用uploadClean
-                        Result result = generalDataCleanService.uploadClean(jsonObjectList, syncRecord.getBatchNo(), apiCode);
-                        // 返回结果成功 修改isClean状态
-                        if (result!=null && result.isSuccess()) {
-                            List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
-                            tcSyncDataCleanService.updateCleanStatus(idList,1);
-                        }
+
+                        processList(syncRecord.getApiCode(),syncRecord.getBatchNo(),tcyrSyncList,actionPool,futureList,resultList);
+                        // 调用换成线程调用
+//                        List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
+//                        // 调用uploadClean
+//                        Result result = generalDataCleanService.uploadClean(jsonObjectList, syncRecord.getBatchNo(), apiCode);
+//                        // 返回结果成功 修改isClean状态
+//                        if (result!=null && result.isSuccess()) {
+//                            List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
+//                            tcSyncDataCleanService.updateCleanStatus(idList,1);
+//                        }
                     }
                 }
+                CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
+                Long successLine = 0L;
+                for (Long successCount : resultList) {
+                    successLine += successCount;
+                }
+                log.warn("{},apiCode:{},batchNo:{} syncDataClean process complete,successLine:{}",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo(),successLine);
                 tcSyncDataMatchService.updageTcyrRecordSyncStatus(syncRecord.getBatchNo(), TcSyncRecordStatusEnum.CLEAN_COMPLETED.getValue());
-                log.warn(TITLE+"fileSync任务执行成功,apiCode:{}, batchNo:{}",syncRecord.getApiCode(),syncRecord.getBatchNo());
             }catch (Exception e) {
                 log.error("{} apiCode:{}, batchNo:{} syncDataClean异常,error: ",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo(),e);
             }
         }
     }
 
+
+    private Result processList(String apiCode, String batchNo, List<MarketingTcyrSync> tcyrSyncList, ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
+        Result result = new Result().failure();
+        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, tcyrSyncList), actionPool)
+                .whenComplete((processDataResult, throwable) -> {
+                    if (processDataResult == null || !processDataResult.isSuccess()) {
+                        resultList.add(0L);
+                        return;
+                    }
+                    resultList.add((Long) processDataResult.getData());
+                    if (throwable != null) {
+                        log.error(TITLE + "completableFuture error:{}", throwable);
+                        resultList.add(0L);
+                    }
+                })
+        );
+        return result.success();
+    }
+
+    private Result processData(String apiCode, String batchNo, List<MarketingTcyrSync> tcyrSyncList) {
+        Result result = new Result().failure();
+        try {
+            List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
+            Result callResult = generalDataCleanService.uploadClean(jsonObjectList, batchNo, apiCode);
+            if (callResult!=null && callResult.isSuccess()) {
+                List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
+                tcSyncDataCleanService.updateCleanStatus(idList,1);
+            }
+            log.warn("{},batchNo:{} sycnDataClean成功,successLine:{}",TITLE,batchNo,tcyrSyncList.size());
+            return result.success().setDate(tcyrSyncList.size());
+        } catch (Exception e) {
+            log.error(TITLE + "processData error", e);
+            return result.failure();
+        }
+    }
 
     /**
      * 解析job参数
