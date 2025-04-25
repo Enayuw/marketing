@@ -2,9 +2,9 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingTcyrSyncRecord{
+public class MarketingTcyrSyncRecord extends MarketingTcyrSyncRecordExample{
     /**
-     * id
+     * 主键id
      */
     private Long id;
 
@@ -29,7 +29,7 @@ public class MarketingTcyrSyncRecord{
     private String data;
 
     /**
-     * 状态 0-接入中；1-接入成功；2-接入失败；
+     * 状态 0-接入中；1-接入成功；2-接入失败；3-匹配中；4-匹配完成；5-清洗中；6-清洗完成
      */
     private Integer status;
 
@@ -47,6 +47,16 @@ public class MarketingTcyrSyncRecord{
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 文件下载入库状态 0-未完成 1-已完成
+     */
+    private Integer downStatus;
+
+    /**
+     * 删除状态 1-可用 9-删除
+     */
+    private Integer isDel;
 
     public Long getId() {
         return id;
@@ -120,4 +130,19 @@ public class MarketingTcyrSyncRecord{
         this.updateTime = updateTime;
     }
 
+    public Integer getDownStatus() {
+        return downStatus;
+    }
+
+    public void setDownStatus(Integer downStatus) {
+        this.downStatus = downStatus;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
 }

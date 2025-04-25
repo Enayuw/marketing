@@ -694,6 +694,126 @@ public class MarketingTcyrSyncRecordExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andDownStatusIsNull() {
+            addCriterion("down_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusIsNotNull() {
+            addCriterion("down_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusEqualTo(Integer value) {
+            addCriterion("down_status =", value, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusNotEqualTo(Integer value) {
+            addCriterion("down_status <>", value, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusGreaterThan(Integer value) {
+            addCriterion("down_status >", value, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("down_status >=", value, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusLessThan(Integer value) {
+            addCriterion("down_status <", value, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("down_status <=", value, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusIn(List<Integer> values) {
+            addCriterion("down_status in", values, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusNotIn(List<Integer> values) {
+            addCriterion("down_status not in", values, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusBetween(Integer value1, Integer value2) {
+            addCriterion("down_status between", value1, value2, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDownStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("down_status not between", value1, value2, "downStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelIsNull() {
+            addCriterion("is_del is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelIsNotNull() {
+            addCriterion("is_del is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelEqualTo(Integer value) {
+            addCriterion("is_del =", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelNotEqualTo(Integer value) {
+            addCriterion("is_del <>", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelGreaterThan(Integer value) {
+            addCriterion("is_del >", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_del >=", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelLessThan(Integer value) {
+            addCriterion("is_del <", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelLessThanOrEqualTo(Integer value) {
+            addCriterion("is_del <=", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelIn(List<Integer> values) {
+            addCriterion("is_del in", values, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelNotIn(List<Integer> values) {
+            addCriterion("is_del not in", values, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelBetween(Integer value1, Integer value2) {
+            addCriterion("is_del between", value1, value2, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_del not between", value1, value2, "isDel");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

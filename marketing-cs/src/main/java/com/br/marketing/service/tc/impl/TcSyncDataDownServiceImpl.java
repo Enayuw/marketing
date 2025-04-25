@@ -1,15 +1,17 @@
 package com.br.marketing.service.tc.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
-import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
+import com.br.marketing.service.tc.TcSyncDataDownService;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -34,9 +36,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
-public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
+public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
 
-    private static final String TITLE = "【同城易融上传数据匹配-gz包拉取入库】";
+    private static final String TITLE = "【同程易融-DownToDb任务】";
 
     private Integer PARTITION_SIZE = 1000;
 
@@ -49,12 +51,14 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     @Resource
     private MarketingTcyrSyncRecordMapper tcPullGzFileMapper;
 
+    @Override
+    public List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode,Integer status,Date dayBeginTime, Date dayEndTime) {
+        return tcPullGzFileMapper.searchTcyrSyncList(apiCode,status,dayBeginTime,dayEndTime);
+    }
 
-    @Resource
-    private MarketingTcyrSyncMapper tcyrSyncMapper;
 
     /**
-     *  具体的下载文件->匹配数据->入库->文件备份操作
+     *  具体的下载文件->数据入库->文件备份操作
      *  //TODO 文件上传SFTP,SFTP相关的服务器/账号/路径 都通过speed配置
      * @param syncRecord
      * @return
@@ -104,11 +108,8 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
             }
             //文件解析入库
             for (File csvFile : files) {
-                log.warn("csv文件入db,csvName:{},csvPath:{} 开始执行",csvFile.getName(),csvFile.getAbsolutePath());
-                if (!csvFile.getName().contains(".csv")) {
-                    log.warn(TITLE + "解压文件不是csv文件");
-                    return result.failure();
-                }
+                log.warn("文件入db,csvName:{},csvPath:{} 开始执行",csvFile.getName(),csvFile.getAbsolutePath());
+                //TODO 理论上读取csv 和文本一致，待验证
                 Result parseResult = parseCsvFileToDb(syncRecord.getApiCode(),syncRecord.getBatchNo(),csvFile);
                 Long successLine = Long.parseLong(parseResult.getData().toString());
                 log.warn("csv文件入db,batchNo:{},csvName{} 执行完成,successCount:{}",syncRecord.getBatchNo(),csvFile.getName(),successLine);
@@ -170,7 +171,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
             result = result.success().setDate(successLine);
             shutdownThreadPool(actionPool);
         }catch (IOException e) {
-            log.error(TITLE + "parseFile error", e);
+            log.error("{} apiCode:{}, batchNo:{} dealTcyrFileSync异常,error: ",TITLE,apiCode,batchNo,e);
             return result.failure();
         }
         return result;
@@ -189,7 +190,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                     }
                     resultList.add((Long) processDataResult.getData());
                     if (throwable != null) {
-                        log.error(TITLE + "completableFuture error:{}", throwable);
+                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),throwable.getMessage(), TITLE), throwable);
                         resultList.add(0L);
                     }
                 })
@@ -212,13 +213,13 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
             log.warn("{},batchNo:{} 保存转化结果成功,successLine:{}",TITLE,batchNo,dataList.size());
             return result.success().setDate( Long.valueOf(dataList.size()));
         } catch (Exception e) {
-            log.error(TITLE + "processData error", e);
+            log.error("{} apiCode:{}, batchNo:{} processData入库异常,error: ",TITLE,apiCode,batchNo,e);
             return result.failure();
         }
     }
 
     /**
-     * 转化成 List<MarketingTcyrSync> ,并去匹配填充is_match,cell字段
+     * 转化成 List<MarketingTcyrSync>
      * @param apiCode
      * @param batchNo
      * @param lineList
@@ -252,32 +253,11 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
             syncItem.setBatchNo(batchNo);
             syncItem.setUserKey(userKey);
             syncItem.setTerminal(terminal);
-            syncItem.setIsMatch(0);
-            syncItem.setIsClean(0);
             Date nowDate = new Date();
             syncItem.setCreateTime(nowDate);
             syncItem.setUpdateTime(nowDate);
             userKeyList.add(userKey);
             dataList.add(syncItem);
-        }
-        List<Long> idList = tcPullGzFileMapper.selectLastUserRecordIdList(apiCode,userKeyList);
-        if (!CollectionUtils.isEmpty(idList)) {
-            List<Map<String,String>>  userCellMap = tcPullGzFileMapper.selectLastUserRecordList(apiCode,idList);
-            //List<Map<String,String>>  userCellMap = tcPullGzFileMapper.selectLastUserCellList(userKeyList);
-            Map<String, String> resultMap = new HashMap<>();
-            for (Map<String,String> map : userCellMap) {
-                String custNum = map.get("custNum");
-                String cell = map.get("cell");
-                if(StringUtils.isNotBlank(custNum) && StringUtils.isNotBlank(cell)) {
-                    resultMap.put(custNum, cell);
-                }
-            }
-            for(MarketingTcyrSync syncItem : dataList) {
-                if(resultMap.containsKey(syncItem.getUserKey())) {
-                    syncItem.setCell(resultMap.get(syncItem.getUserKey()));
-                    syncItem.setIsMatch(1);
-                }
-            }
         }
         return result.success().setDate(dataList);
     }
@@ -304,18 +284,9 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         log.warn(TITLE + "shutdownThreadPool结束");
     }
 
-    @Override
-    public Integer updageTcyrRecordSyncStatus(String batchNo, Integer status) {
-        return tcPullGzFileMapper.updageTcyrRecordSyncStatus(batchNo,status);
-    }
 
     @Override
-    public Long selectWaitMatchCount(String apiCode) {
-        return tcyrSyncMapper.selectWaitMatchCount(apiCode);
-    }
-
-    @Override
-    public Integer dealTcMatch(String apiCode) {
-        return tcyrSyncMapper.dealTcMatch(apiCode);
+    public Integer updageTcyrRecordDownStatus(String batchNo, Integer status) {
+        return tcPullGzFileMapper.updageTcyrRecordDownStatus(batchNo,status);
     }
 }

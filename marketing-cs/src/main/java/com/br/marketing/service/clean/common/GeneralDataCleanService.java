@@ -2,6 +2,8 @@ package com.br.marketing.service.clean.common;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.MarketingTcyrSyncRecord;
+
 import java.util.List;
 
 /**

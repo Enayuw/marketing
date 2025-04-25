@@ -12,12 +12,16 @@ import java.util.List;
  */
 public interface TcSyncDataMatchService {
 
-    //获取未匹配处理的同城易融批次请求记录
-    List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode,Integer status);
 
     //处理单个同城易融具体批次batchNo的文件加载和同步db
     Result dealTcyrFileSync(MarketingTcyrSyncRecord syncRecord);
 
     //修改单个syncRecord的处理结果
     Integer updageTcyrRecordSyncStatus(String batchNo, Integer status);
+
+    //查询apiCode对应的待匹配的条数
+    Long selectWaitMatchCount(String apiCode);
+
+    // sql 直接处理同城match
+    Integer dealTcMatch(String apiCode);
 }

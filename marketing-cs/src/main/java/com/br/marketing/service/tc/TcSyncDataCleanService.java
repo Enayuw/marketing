@@ -16,5 +16,11 @@ public interface TcSyncDataCleanService {
 
     List<MarketingTcyrSync> selectTcSyncList(String batchNo, Integer cleanStatus,Long lastSearchId,Integer searchSize);
 
+    //修改单个syncRecord的处理结果
+    Integer updageTcyrRecordSyncStatus(String batchNo, Integer status);
+
+
     Integer updateCleanStatus(List<Long> idList, Integer cleanStatus);
+
+    List<MarketingTcyrSyncRecord> searchAllTcyrSyncList(String apiCode, Integer status);
 }

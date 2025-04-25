@@ -45,9 +45,6 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TcSyncDataMatchService tcSyncDataMatchService;
-
-    @Resource
     private TcSyncDataCleanService tcSyncDataCleanService;
 
     @Resource
@@ -60,11 +57,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
             log.warn(TITLE+"调度开始");
-
-            //parseParameter
-            Map<String, String> paramMap = parseParmeter();
-            atciton(paramMap);
-
+            atciton(marketingCommonConfig.getTcyrApiCode());
             log.warn(TITLE+"调度结束");
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
@@ -75,26 +68,22 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
      * 具体执行动作
      * 1、查询未执行任务list
      * 2、单个批次号batchNo任务执行操作:
-     *    (1)查询 b_marketing_tcyr_sync_record 匹配完成的数据,修改为清洗中
+     *    (1)查询 b_marketing_tcyr_sync_record 接入成功的数据
      *    (2)查找 b_marketing_tcyr_sync (batch_no = record.data.batchNo，is_clean = 0，limit 1000)
      *    (3)调用接口uploadClean(List<Object>, apiCode),
      *    (4)uploadClean成功，修改b_marketing_tcyr_syn is_clean=1
      *    (5)修改batchNo 对应 b_marketing_tcyr_sync_record 状态 ->清洗完成
-     * @param paramMap
+     * @param apiCode
      */
-    private void atciton(Map<String, String> paramMap) {
-        String apiCode = paramMap.get("apiCode");
-        List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataMatchService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.MATTCH_COMPELTED.getValue());
+    private void atciton(String apiCode) {
+        List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataCleanService.searchAllTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
 
         ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(10, 10);
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         List<Long> resultList = Collections.synchronizedList(new ArrayList<>(20));
 
-
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
-                tcSyncDataMatchService.updageTcyrRecordSyncStatus(syncRecord.getBatchNo(), TcSyncRecordStatusEnum.CLEAN_IN.getValue());
-
                 boolean stillFlag =true;
                 Long lastSearchId =0L;
                 Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
@@ -108,17 +97,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                         }else {
                             lastSearchId = tcyrSyncList.get(tcyrSyncList.size()-1).getId();
                         }
-
                         processList(syncRecord.getApiCode(),syncRecord.getBatchNo(),tcyrSyncList,actionPool,futureList,resultList);
-                        // 调用换成线程调用
-//                        List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
-//                        // 调用uploadClean
-//                        Result result = generalDataCleanService.uploadClean(jsonObjectList, syncRecord.getBatchNo(), apiCode);
-//                        // 返回结果成功 修改isClean状态
-//                        if (result!=null && result.isSuccess()) {
-//                            List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
-//                            tcSyncDataCleanService.updateCleanStatus(idList,1);
-//                        }
                     }
                 }
                 CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
@@ -127,7 +106,6 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                     successLine += successCount;
                 }
                 log.warn("{},apiCode:{},batchNo:{} syncDataClean process complete,successLine:{}",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo(),successLine);
-                tcSyncDataMatchService.updageTcyrRecordSyncStatus(syncRecord.getBatchNo(), TcSyncRecordStatusEnum.CLEAN_COMPLETED.getValue());
             }catch (Exception e) {
                 log.error("{} apiCode:{}, batchNo:{} syncDataClean异常,error: ",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo(),e);
             }
@@ -145,7 +123,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                         resultList.add(0L);
                         return;
                     }
-                    resultList.add((Long) processDataResult.getData());
+                    resultList.add(Long.parseLong(processDataResult.getData().toString()));
                     if (throwable != null) {
                         log.error(TITLE + "completableFuture error:{}", throwable);
                         resultList.add(0L);
@@ -159,7 +137,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         Result result = new Result().failure();
         try {
             List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
-            Result callResult = generalDataCleanService.uploadClean(jsonObjectList, batchNo, apiCode);
+            Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
             if (callResult!=null && callResult.isSuccess()) {
                 //调用定制化上传接口
                 List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
@@ -196,18 +174,4 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         return uploadDataDTO;
     }
 
-    /**
-     * 解析job参数
-     * 目前参数 tcyrApiCode
-     * @return
-     */
-    private Map<String, String> parseParmeter() throws Exception {
-        Map<String, String> paramMap = new HashMap<>();
-        String apiCode = marketingCommonConfig.getTcyrApiCode();
-        if(StringUtils.isEmpty(apiCode)){
-            throw new Exception("Job参数apiCode格式不正确");
-        }
-        paramMap.put("apiCode", apiCode);
-        return paramMap;
-    }
 }

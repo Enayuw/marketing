@@ -1,7 +1,9 @@
 package com.br.marketing.service.tc.impl;
 
 import com.br.marketing.entity.MarketingTcyrSync;
+import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncMapper;
+import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataCleanService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ public class TcSynDataCleanServiceImpl implements TcSyncDataCleanService {
     @Resource
     private MarketingTcyrSyncMapper tcyrSyncMapper;
 
+    @Resource
+    private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
+
 
     @Override
     public List<MarketingTcyrSync> selectTcSyncList(String batchNo, Integer cleanStatus, Long lastSearchId, Integer searchSize) {
@@ -32,4 +37,15 @@ public class TcSynDataCleanServiceImpl implements TcSyncDataCleanService {
     public Integer updateCleanStatus(List<Long> idList, Integer cleanStatus) {
         return tcyrSyncMapper.updateCleanStatus(idList,cleanStatus);
     }
+
+    @Override
+    public Integer updageTcyrRecordSyncStatus(String batchNo, Integer status) {
+        return tcyrSyncRecordMapper.updageTcyrRecordSyncStatus(batchNo,status);
+    }
+
+    @Override
+    public List<MarketingTcyrSyncRecord> searchAllTcyrSyncList(String apiCode,Integer status) {
+        return tcyrSyncRecordMapper.searchAllTcyrSyncList(apiCode,status);
+    }
+
 }
