@@ -20,11 +20,11 @@
       b_marketing_data_clean_config config join b_marketing_data_clean_rule rule
         on config.rule_id = rule.id
     where
-      rule.api_code = = #{apiCode}
+      rule.api_code = #{apiCode}
       and rule.clean_type = #{cleanType}
       and rule.biz_action = #{bizAction}
       and rule.is_del = 1
-      and config.is_del = 1;
+      and config.is_del = 1
   </select>
 
 </mapper>
