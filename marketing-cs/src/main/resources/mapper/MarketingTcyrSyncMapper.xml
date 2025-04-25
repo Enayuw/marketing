@@ -12,7 +12,7 @@
         LIMIT #{searchSize}
     </select>
     <select id="selectWaitMatchCount" resultType="java.lang.Long">
-        SELECT count(*) FROM b_marketing_tcyr_sync WHERE is_match = NULL
+        SELECT count(*) FROM b_marketing_tcyr_sync WHERE is_match is NULL
     </select>
 
     <update id="updateCleanStatus">
