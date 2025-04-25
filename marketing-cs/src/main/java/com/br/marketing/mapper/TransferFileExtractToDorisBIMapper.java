@@ -8,5 +8,5 @@ import org.apache.ibatis.annotations.Param;
  * @date 2025/4/22 20:01
  */
 public interface TransferFileExtractToDorisBIMapper {
-    Integer insertDataToMarketingBiTabledoris_(@Param("insertDorisSql") String insertDorisSql);
+    Integer insertDataToMarketingBiTablebI_(@Param("insertDorisSql") String insertDorisSql);
 }

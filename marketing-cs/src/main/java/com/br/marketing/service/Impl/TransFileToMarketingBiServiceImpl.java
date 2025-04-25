@@ -61,7 +61,8 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
             dateList.forEach(dateItem -> {
                 //按照日期执行
                 TransferFileTaskExample taskExample = new TransferFileTaskExample();
-                taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateItem).andFileTypeEqualTo(1).andStatusEqualTo(2);
+                taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateItem)
+                        .andFileTypeEqualTo(1).andStatusGreaterThanOrEqualTo(2);
                 List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
                 if (CollectionUtils.isNotEmpty(transferFileTasks)) {
                     TransferFileTask transferFileTask = transferFileTasks.get(0);
@@ -154,7 +155,7 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
             }
         }
         insertSql.setLength(insertSql.length() - 1);
-        transferFileExtractToDorisBIMapper.insertDataToMarketingBiTabledoris_(insertSql.toString());
+        transferFileExtractToDorisBIMapper.insertDataToMarketingBiTablebI_(insertSql.toString());
     }
 
     private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
