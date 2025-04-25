@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TcTransferCleanJob extends AbstractSimpleElasticJob {
 
-    private final static String TITLE = "【同城易融转化数据清洗任务】";
+    private final static String TITLE = "【同程易融-转化数据清洗任务】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;

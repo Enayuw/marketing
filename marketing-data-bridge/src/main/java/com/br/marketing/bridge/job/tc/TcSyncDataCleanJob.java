@@ -15,12 +15,10 @@ import com.br.marketing.enums.TcSyncRecordStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.tc.TcSyncDataCleanService;
-import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -31,7 +29,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
- * @Description 同城易融上传数据清洗任务
+ * @Description 同程易融上传数据清洗任务
  * @Author zhiyong.zhang
  * @CreateTime 2025/04/21
  */
@@ -39,7 +37,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
 
-    private final static String TITLE = "【同城易融上传数据清洗任务】";
+    private final static String TITLE = "【同程易融-上传数据清洗任务】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;

@@ -1,31 +1,19 @@
 package com.br.marketing.bridge.job.tc;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.entity.MarketingTcyrSync;
-import com.br.marketing.entity.MarketingTcyrSyncRecord;
-import com.br.marketing.enums.TcSyncRecordStatusEnum;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.stream.Collectors;
 
 /**
  * @Description 同程据匹配任务 - GZ数据拉取&&匹配入库

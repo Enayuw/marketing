@@ -7,7 +7,6 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
 import com.br.marketing.service.tc.TcSyncDataDownService;
-import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
