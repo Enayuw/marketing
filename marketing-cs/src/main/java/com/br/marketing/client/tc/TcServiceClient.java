@@ -23,7 +23,7 @@ public class TcServiceClient {
         Result result = new Result().failure();
         // 调用客户接口
         try {
-            Result callResult = zipFileClient.downloadZipFile(fileUrl, targetPath, false);
+            Result callResult = zipFileClient.downloadZipFile(fileUrl, targetPath, true);
             if(callResult == null || !callResult.isSuccess()){
                 return result.failure();
             }

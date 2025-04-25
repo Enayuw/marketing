@@ -3,12 +3,16 @@ package com.br.marketing.bridge.job.tc;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
+import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.tc.TcSyncDataCleanService;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
@@ -49,6 +53,8 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
     @Resource
     private GeneralDataCleanService generalDataCleanService;
 
+    @Resource
+    private PushInfoService pushInfoService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -155,6 +161,11 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
             List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
             Result callResult = generalDataCleanService.uploadClean(jsonObjectList, batchNo, apiCode);
             if (callResult!=null && callResult.isSuccess()) {
+                //调用定制化上传接口
+                List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
+                UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS);
+                Result<Boolean> pullResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                // 修改状态为已清洗
                 List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
                 tcSyncDataCleanService.updateCleanStatus(idList,1);
             }
@@ -164,6 +175,25 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
             log.error(TITLE + "processData error", e);
             return result.failure();
         }
+    }
+
+    /**
+     * 封装异步调用上传的数据
+     *
+     * @param apiCode   apiCode
+     * @param syncUsers 具体数据对象
+     */
+    private UploadDataDTO initUploadData(String apiCode,String batchNo, List<MarketingPreUserDetailDTO> syncUsers) {
+        String taskId = batchNo;
+        String requestId = apiCode+"_"+taskId+"_"+System.currentTimeMillis();
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        marketingPreUserDTO.setTaskId(taskId);
+        marketingPreUserDTO.setRequestId(requestId);
+        marketingPreUserDTO.setDataItems(syncUsers);
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+        uploadDataDTO.setApiCode(apiCode);
+        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+        return uploadDataDTO;
     }
 
     /**
