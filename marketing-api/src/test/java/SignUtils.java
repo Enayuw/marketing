@@ -37,6 +37,17 @@ public class SignUtils {
         return sign;
     }
 
+    public static String signVt(String requestNo, String timestamp, String data) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("requestNo", requestNo);
+        jsonObject.put("timestamp", timestamp);
+        jsonObject.put("data", data);
+        Map<String, Object> map = new HashMap<>(jsonObject);
+        String signature = generateContent(map);
+        String sign = signByPrivateKey(tcPrivateKey, signature);
+        return sign;
+    }
+
     private static String generateContent(Map<String, Object> params) {
         Map<String, Object> kvMap = new TreeMap();
         params.entrySet().forEach(entry -> {

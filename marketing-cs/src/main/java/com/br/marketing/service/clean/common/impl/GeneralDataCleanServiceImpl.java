@@ -1,16 +1,23 @@
 package com.br.marketing.service.clean.common.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingDataCleanConfig;
 import com.br.marketing.mapper.MarketingDataCleanConfigMapper;
+import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.util.TimeUtils;
-import groovy.util.logging.Slf4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -33,6 +40,9 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     @Resource
     DataMarkCommonService dataMarkCommonService;
 
+    @Resource
+    private PushInfoService pushInfoService;
+
     private static final Integer CLEAN_TYPE_UPLOAD = 0;
 
     private static final Integer CLEAN_TYPE_TRANSFER = 1;
@@ -54,7 +64,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     private static final String BIZ_ACTION = "common";
 
     @Override
-    public Result uploadClean(List<JSONObject> data, String apiCode) throws NoSuchFieldException {
+    public Result uploadClean(List<JSONObject> data, String apiCode){
         return this.uploadClean(data, apiCode, BIZ_ACTION);
     }
 
@@ -64,22 +74,55 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     }
 
     @Override
-    public Result uploadClean(List<JSONObject> data, String apiCode, String bizAction) throws NoSuchFieldException {
-        //1.查询清洗配置
-        List<MarketingDataCleanConfig> configs = marketingDataCleanConfigMapper.selectConfigs(apiCode, CLEAN_TYPE_UPLOAD, bizAction);
-        if (CollectionUtils.isEmpty(configs)) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗配置");
+    public Result uploadClean(List<JSONObject> data, String apiCode, String bizAction){
+        try {
+            //1.查询清洗配置
+            List<MarketingDataCleanConfig> configs = marketingDataCleanConfigMapper.selectConfigs(apiCode, CLEAN_TYPE_UPLOAD, bizAction);
+            if (CollectionUtils.isEmpty(configs)) {
+                log.warn("上传清洗未查询到配置，apiCode={}，bizAction={}", apiCode, bizAction);
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗配置");
+            }
+            //2.清洗流程
+            List<Pair<MarketingPreUserDetailDTO, JSONObject>> pairs = processData(data, configs, MarketingPreUserDetailDTO.class);
+            List<MarketingPreUserDetailDTO> dtos =
+                    pairs.stream().map(pair -> {
+                        MarketingPreUserDetailDTO dto = pair.getLeft();
+                        JSONObject extend = pair.getRight();
+                        dto.setReserveField1(extend.toJSONString());
+                        return dto;
+                    }).collect(Collectors.toList());
+            UploadDataDTO uploadDataDTO = initUploadData(dtos, apiCode);
+            return pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+        } catch (Exception e) {
+            log.warn("通用上传清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("上传清洗流程出现异常");
         }
-        //2.基础字段集合
-        Map<String, Field> fieldMap = getStringFieldMap(configs);
-        //3.配置按targetName分组
-        List<Pair<MarketingPreUserDetailDTO, JSONObject>> dtos = processData(data, configs, fieldMap, MarketingPreUserDetailDTO.class);
-        dtos.forEach(pair -> {
-            MarketingPreUserDetailDTO dto = pair.getLeft();
-            JSONObject json = pair.getRight();
-            dto.setReserveField1(json.toJSONString());
-        });
-        return null;
+    }
+
+    @Override
+    public Result transferClean(List<JSONObject> data, String apiCode, String bizAction) {
+        try {
+            //1.查询清洗配置
+            List<MarketingDataCleanConfig> configs = marketingDataCleanConfigMapper.selectConfigs(apiCode, CLEAN_TYPE_TRANSFER, bizAction);
+            if (CollectionUtils.isEmpty(configs)) {
+                log.warn("转化清洗未查询到配置，apiCode={}，bizAction={}", apiCode, bizAction);
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗配置");
+            }
+            //2.清洗流程
+            List<Pair<TransferDataItemDTO, JSONObject>> pairs = processData(data, configs, TransferDataItemDTO.class);
+            List<TransferDataItemDTO> dtos =
+                    pairs.stream().map(pair -> {
+                        TransferDataItemDTO dto = pair.getLeft();
+                        JSONObject extend = pair.getRight();
+                        dto.setReserveField1(extend.toJSONString());
+                        return dto;
+                    }).collect(Collectors.toList());
+            PushTransferDataDetailDTO pushTransferDataDetailDTO = initTransferData(dtos, apiCode);
+            return pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
+        } catch (Exception e) {
+            log.warn("通用上传清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("上传清洗流程出现异常");
+        }
     }
 
     private static Map<String, Field> getStringFieldMap(List<MarketingDataCleanConfig> configs) throws NoSuchFieldException {
@@ -97,8 +140,8 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         return fieldMap;
     }
 
-    private <T> List<Pair<T, JSONObject>> processData(List<JSONObject> data, List<MarketingDataCleanConfig> configs,
-                                                      Map<String, Field> fieldMap, Class<T> dtoClass) {
+    private <T> List<Pair<T, JSONObject>> processData(List<JSONObject> data, List<MarketingDataCleanConfig> configs, Class<T> dtoClass) throws NoSuchFieldException {
+        Map<String, Field> fieldMap = getStringFieldMap(configs);
         Map<String, List<MarketingDataCleanConfig>> configsGroup = configs.stream()
                 .collect(Collectors.groupingBy(MarketingDataCleanConfig::getTargetName));
         return data.parallelStream()
@@ -230,11 +273,6 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         return extend;
     }
 
-    @Override
-    public Result transferClean(List<JSONObject> data, String apiCode, String bizAction) {
-        return null;
-    }
-
     private static String getRequestId(String taskId) {
         return taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
     }
@@ -242,5 +280,30 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     private static String getTaskId(String apiCode) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         return apiCode.concat("_").concat(yyyyMMdd);
+    }
+
+    private UploadDataDTO initUploadData(List<MarketingPreUserDetailDTO> syncUsers, String apiCode) {
+        String taskId = getTaskId(apiCode);
+        String requestId = getRequestId(taskId);
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        marketingPreUserDTO.setTaskId(taskId);
+        marketingPreUserDTO.setRequestId(requestId);
+        marketingPreUserDTO.setDataItems(syncUsers);
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+        uploadDataDTO.setApiCode(apiCode);
+        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+        return uploadDataDTO;
+    }
+
+    private PushTransferDataDetailDTO initTransferData(List<TransferDataItemDTO> transferDataItemDTOS, String apiCode) {
+        PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
+        TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
+        transferDataDTO.setDataItems(transferDataItemDTOS);
+        String taskId = getTaskId(apiCode);
+        String requestId = getRequestId(taskId);
+        transferDataDTO.setRequestId(requestId);
+        dto.setApiCode(apiCode);
+        dto.setJsonData(JSON.toJSONString(transferDataDTO));
+        return dto;
     }
 }

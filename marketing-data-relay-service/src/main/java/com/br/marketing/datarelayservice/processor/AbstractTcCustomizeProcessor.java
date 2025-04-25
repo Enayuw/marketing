@@ -1,6 +1,8 @@
 package com.br.marketing.datarelayservice.processor;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tc.TcDataDto;
 import com.br.marketing.dto.tc.TcRequestDTO;
@@ -8,7 +10,7 @@ import com.br.marketing.dto.tc.TcResponseDTO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.tc.RSAUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import groovy.util.logging.Slf4j;
+import lombok.extern.slf4j.Slf4j;
 import javax.annotation.Resource;
 
 @Slf4j
@@ -31,7 +33,8 @@ public abstract class AbstractTcCustomizeProcessor {
      * @author hedongshuo
      * @date 2025/4/23 20:04
      **/
-    public final <T extends TcDataDto> TcResponseDTO process(TcRequestDTO tcRequestDTO, Class<T> clazz) {
+    public final <T extends TcDataDto> TcResponseDTO process(TcRequestDTO tcRequestDTO, String apiCode, Class<T> clazz) {
+        log.warn("接收到同程易融请求数据，clazz:{}，data:{}",clazz.getName(), tcRequestDTO);
         TcResponseDTO resdto = new TcResponseDTO();
         Long recordId = null;
         JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
@@ -40,7 +43,8 @@ public abstract class AbstractTcCustomizeProcessor {
         try {
             //1.保存记录
             TcDataDto tcDataDto = objectMapper.readValue(tcRequestDTO.getData(), clazz);
-            recordId = recordSave(tcRequestDTO, tcDataDto.getBatchNo(), marketingCommonConfig.getTcyrApiCode(), brPrivateKey);
+            apiCode = StringUtils.isNotBlank(apiCode) ? apiCode : marketingCommonConfig.getTcyrApiCode();
+            recordId = recordSave(tcRequestDTO, tcDataDto.getBatchNo(), apiCode, brPrivateKey);
             if(null == recordId){
                 return resdto.idempotentFail(brPrivateKey);
             }
@@ -62,6 +66,8 @@ public abstract class AbstractTcCustomizeProcessor {
             //5.将record更新为status = 1-接入成功
             updateRecord(recordId, RECORD_STATUS_SUCCESS, null);
         } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "同程数据接入异常！"), e);
             if (null != recordId) {
                 updateRecord(recordId, RECORD_STATUS_FAIL, e.getMessage());
             }

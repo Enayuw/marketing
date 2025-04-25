@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 @Api(value = "同程易融代运营")
 @RequestMapping("/marketing/v1/api")
@@ -26,21 +27,21 @@ public class TcCustomizeController {
     @ApiOperation(value = "数据推送")
     @PostMapping("/marketDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
-    public TcResponseDTO marketDataPush(@RequestBody TcRequestDTO tcRequestDTO) {
-        return tcCustomizeService.marketDataPush(tcRequestDTO);
+    public TcResponseDTO marketDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+        return tcCustomizeService.marketDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
     @ApiOperation(value = "撤销营销")
     @PostMapping("/marketRevoke")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
-    public TcResponseDTO marketRevoke(@RequestBody TcRequestDTO tcRequestDTO) {
-        return tcCustomizeService.marketRevoke(tcRequestDTO);
+    public TcResponseDTO marketRevoke(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+        return tcCustomizeService.marketRevoke(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
     @ApiOperation(value = "转化通知")
     @PostMapping("/transformNotify")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
-    public TcResponseDTO transformNotify(@RequestBody TcRequestDTO tcRequestDTO) {
-        return tcCustomizeService.transformNotify(tcRequestDTO);
+    public TcResponseDTO transformNotify(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+        return tcCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 }

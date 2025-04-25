@@ -9,9 +9,9 @@ import com.br.marketing.dto.tc.TcResponseDTO;
  */
 public interface TcCustomizeService {
 
-    TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO);
+    TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode);
 
-    TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO);
+    TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO, String apiCode);
 
-    TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO);
+    TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode);
 }

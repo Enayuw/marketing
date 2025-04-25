@@ -26,38 +26,41 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
     private AbstractTcCustomizeProcessor tcRevokeProcessor;
 
     /**
-     * @description 数据推送
      * @param tcRequestDTO
+     * @param apiCode
      * @return com.br.marketing.dto.tc.TcResponseCommonDTO
+     * @description 数据推送
      * @author hedongshuo
      * @date 2025/4/15 15:24
      **/
     @Override
-    public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO) {
-        return tcDataPushProcessor.process(tcRequestDTO, TcDataPushDto.class);
+    public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
+        return tcDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class);
     }
 
     /**
-     * @description 撤销营销
      * @param tcRequestDTO
+     * @param apiCode
      * @return com.br.marketing.dto.tc.TcResponseDTO
+     * @description 撤销营销
      * @author hedongshuo
      * @date 2025/4/16 10:20
      **/
     @Override
-    public TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO) {
-        return tcRevokeProcessor.process(tcRequestDTO, TcRevokeDto.class);
+    public TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO, String apiCode) {
+        return tcRevokeProcessor.process(tcRequestDTO, apiCode, TcRevokeDto.class);
     }
 
     /**
-     * @description 转化通知
      * @param tcRequestDTO
+     * @param apiCode
      * @return com.br.marketing.dto.tc.TcResponseDTO
+     * @description 转化通知
      * @author hedongshuo
      * @date 2025/4/16 11:30
      **/
     @Override
-    public TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO) {
-        return tcTransformNotifyProcessor.process(tcRequestDTO, TcTransformNotifyDto.class);
+    public TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode) {
+        return tcTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class);
     }
 }
