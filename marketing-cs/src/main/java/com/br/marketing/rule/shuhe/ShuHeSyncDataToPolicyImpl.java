@@ -117,7 +117,7 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
             }
             return value;
         } catch (NumberFormatException e) {
-            log.warn("金额格式错误，key={}, value={}", key, value);
+            log.warn("金额格式错误，value={}", value);
             return value;
         }
     }
