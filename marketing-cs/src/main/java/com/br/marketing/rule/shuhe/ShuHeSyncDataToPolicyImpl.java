@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -73,10 +74,12 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         varDto.put("orderId", syncUser.getCustNum());
         varDto.put("appletDate",syncUser.getAppletDate());
         varDto.putAll(parseObject);
-        String rtUsrHvyMaxAvaLmt = parseObject.getOrDefault("rt_usr_hvy_max_ava_lmt", "").toString();
-        String clcDp = parseObject.getOrDefault("clc_usr_light_current_available_limit_dp", "").toString();
-        String rtUsrHvyMaxAvaLmtDerived = getReportAmount(parseObject, rtUsrHvyMaxAvaLmt);
-        String clcDerived = getReportAmount(parseObject, clcDp);
+        String rtUsrHvyMaxAvaLmtDerived = getReportAmount(parseObject, "rt_usr_hvy_max_ava_lmt");
+        String clcDerived = getReportAmount(parseObject, "clc_usr_light_current_available_limit_dp");
+
+        varDto.put("rt_usr_hvy_max_ava_lmt_derived", rtUsrHvyMaxAvaLmtDerived);
+        varDto.put("clc_usr_light_current_available_limit_dp_derived", clcDerived);
+
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
         log.warn("数禾上传数据推送决策,apicode={}", apiCode);
@@ -84,7 +87,35 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
     }
 
     private String getReportAmount(JSONObject parseObject, String key) {
+        if (parseObject == null || StringUtils.isBlank(key)) {
+            return "";
+        }
         
+        String value = parseObject.getOrDefault(key, "").toString();
+        if (StringUtils.isBlank(value)) {
+            return "";
+        }
+        
+        try {
+            BigDecimal amount = new BigDecimal(value);
+            BigDecimal threshold = new BigDecimal("5000");
+            if (amount.compareTo(threshold) >= 0) {
+                // 金额大于等于5000时，只保留前两位，其他位数为0
+                String amountStr = amount.setScale(0, BigDecimal.ROUND_DOWN).toString();
+                if (amountStr.length() <= 2) {
+                    return amountStr;
+                }
+                StringBuilder result = new StringBuilder(amountStr.substring(0, 2));
+                for (int i = 0; i < amountStr.length() - 2; i++) {
+                    result.append("0");
+                }
+                return result.toString();
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            log.warn("金额格式错误，key={}, value={}", key, value);
+            return value;
+        }
     }
 
     @Override
