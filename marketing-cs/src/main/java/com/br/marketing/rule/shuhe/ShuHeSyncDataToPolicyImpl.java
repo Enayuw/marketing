@@ -74,11 +74,16 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         varDto.put("orderId", syncUser.getCustNum());
         varDto.put("appletDate",syncUser.getAppletDate());
         varDto.putAll(parseObject);
-        String rtUsrHvyMaxAvaLmtDerived = getReportAmount(parseObject, "rt_usr_hvy_max_ava_lmt");
-        String clcDerived = getReportAmount(parseObject, "clc_usr_light_current_available_limit_dp");
-
-        varDto.put("rt_usr_hvy_max_ava_lmt_derived", rtUsrHvyMaxAvaLmtDerived);
-        varDto.put("clc_usr_light_current_available_limit_dp_derived", clcDerived);
+        String rtUsrHvyMaxAvaLmt = parseObject.getOrDefault("rt_usr_hvy_max_ava_lmt", "").toString();
+        String currentAvailableLimitDp = parseObject.getOrDefault("clc_usr_light_current_available_limit_dp", "").toString();
+        if (StringUtils.isNotBlank(rtUsrHvyMaxAvaLmt)){
+            String rtUsrHvyMaxAvaLmtDerived = getReportAmount(parseObject, rtUsrHvyMaxAvaLmt);
+            varDto.put("rt_usr_hvy_max_ava_lmt_derived", rtUsrHvyMaxAvaLmtDerived);
+        }
+        if (StringUtils.isNotBlank(currentAvailableLimitDp)){
+            String clcDerived = getReportAmount(parseObject, currentAvailableLimitDp);
+            varDto.put("clc_usr_light_current_available_limit_dp_derived", clcDerived);
+        }
 
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
@@ -86,12 +91,11 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         return pushMarketingUserDetailByRuleDTO;
     }
 
-    private String getReportAmount(JSONObject parseObject, String key) {
-        if (parseObject == null || StringUtils.isBlank(key)) {
+    private String getReportAmount(JSONObject parseObject, String value) {
+        if (parseObject == null || StringUtils.isBlank(value)) {
             return "";
         }
         
-        String value = parseObject.getOrDefault(key, "").toString();
         if (StringUtils.isBlank(value)) {
             return "";
         }
