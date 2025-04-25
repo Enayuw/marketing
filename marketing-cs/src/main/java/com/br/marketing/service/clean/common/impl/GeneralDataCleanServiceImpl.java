@@ -1,19 +1,13 @@
 package com.br.marketing.service.clean.common.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
-import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingDataCleanConfig;
 import com.br.marketing.mapper.MarketingDataCleanConfigMapper;
-import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.util.TimeUtils;
@@ -25,8 +19,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,9 +31,6 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
 
     @Resource
     DataMarkCommonService dataMarkCommonService;
-
-    @Resource
-    private PushInfoService pushInfoService;
 
     private static final Integer CLEAN_TYPE_UPLOAD = 0;
 
@@ -64,8 +53,8 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     private static final String BIZ_ACTION = "common";
 
     @Override
-    public Result uploadClean(List<JSONObject> data, String taksId, String apiCode){
-        return this.uploadClean(data, taksId, apiCode, BIZ_ACTION);
+    public Result uploadClean(List<JSONObject> data, String apiCode){
+        return this.uploadClean(data, apiCode, BIZ_ACTION);
     }
 
     @Override
@@ -74,7 +63,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     }
 
     @Override
-    public Result uploadClean(List<JSONObject> data, String taksId, String apiCode, String bizAction){
+    public Result uploadClean(List<JSONObject> data, String apiCode, String bizAction){
         try {
             //1.查询清洗配置
             List<MarketingDataCleanConfig> configs = marketingDataCleanConfigMapper.selectConfigs(apiCode, CLEAN_TYPE_UPLOAD, bizAction);
@@ -91,8 +80,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                         dto.setReserveField1(extend.toJSONString());
                         return dto;
                     }).collect(Collectors.toList());
-            UploadDataDTO uploadDataDTO = initUploadData(dtos, apiCode);
-            return pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(dtos);
         } catch (Exception e) {
             log.warn("通用上传清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("上传清洗流程出现异常");
@@ -117,8 +105,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                         dto.setReserveField1(extend.toJSONString());
                         return dto;
                     }).collect(Collectors.toList());
-            PushTransferDataDetailDTO pushTransferDataDetailDTO = initTransferData(dtos, apiCode);
-            return pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(dtos);
         } catch (Exception e) {
             log.warn("通用上传清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("上传清洗流程出现异常");
@@ -273,37 +260,4 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         return extend;
     }
 
-    private static String getRequestId(String taskId) {
-        return taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
-    }
-
-    private static String getTaskId(String apiCode) {
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return apiCode.concat("_").concat(yyyyMMdd);
-    }
-
-    private UploadDataDTO initUploadData(List<MarketingPreUserDetailDTO> syncUsers, String apiCode) {
-        String taskId = getTaskId(apiCode);
-        String requestId = getRequestId(taskId);
-        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-        marketingPreUserDTO.setTaskId(taskId);
-        marketingPreUserDTO.setRequestId(requestId);
-        marketingPreUserDTO.setDataItems(syncUsers);
-        UploadDataDTO uploadDataDTO = new UploadDataDTO();
-        uploadDataDTO.setApiCode(apiCode);
-        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-        return uploadDataDTO;
-    }
-
-    private PushTransferDataDetailDTO initTransferData(List<TransferDataItemDTO> transferDataItemDTOS, String apiCode) {
-        PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
-        TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
-        transferDataDTO.setDataItems(transferDataItemDTOS);
-        String taskId = getTaskId(apiCode);
-        String requestId = getRequestId(taskId);
-        transferDataDTO.setRequestId(requestId);
-        dto.setApiCode(apiCode);
-        dto.setJsonData(JSON.toJSONString(transferDataDTO));
-        return dto;
-    }
 }
