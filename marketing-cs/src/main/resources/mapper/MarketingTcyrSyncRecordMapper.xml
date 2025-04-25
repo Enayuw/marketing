@@ -17,8 +17,8 @@
         FROM b_marketing_tcyr_sync_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
-          AND down_status = 0
-          AND is_del = 1
+          AND (down_status is NULL OR down_status = 0)
+          AND (is_del is NULL OR is_del = 0)
           AND create_time BETWEEN #{dayBeginTime, jdbcType=TIMESTAMP} AND #{dayEndTime, jdbcType=TIMESTAMP}
         ORDER BY id DESC limit 1
     </select>
