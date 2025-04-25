@@ -73,10 +73,18 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         varDto.put("orderId", syncUser.getCustNum());
         varDto.put("appletDate",syncUser.getAppletDate());
         varDto.putAll(parseObject);
+        String rtUsrHvyMaxAvaLmt = parseObject.getOrDefault("rt_usr_hvy_max_ava_lmt", "").toString();
+        String clcDp = parseObject.getOrDefault("clc_usr_light_current_available_limit_dp", "").toString();
+        String rtUsrHvyMaxAvaLmtDerived = getReportAmount(parseObject, rtUsrHvyMaxAvaLmt);
+        String clcDerived = getReportAmount(parseObject, clcDp);
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
         log.warn("数禾上传数据推送决策,apicode={}", apiCode);
         return pushMarketingUserDetailByRuleDTO;
+    }
+
+    private String getReportAmount(JSONObject parseObject, String key) {
+        
     }
 
     @Override
