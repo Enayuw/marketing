@@ -64,8 +64,8 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     private static final String BIZ_ACTION = "common";
 
     @Override
-    public Result uploadClean(List<JSONObject> data, String apiCode){
-        return this.uploadClean(data, apiCode, BIZ_ACTION);
+    public Result uploadClean(List<JSONObject> data, String taksId, String apiCode){
+        return this.uploadClean(data, taksId, apiCode, BIZ_ACTION);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     }
 
     @Override
-    public Result uploadClean(List<JSONObject> data, String apiCode, String bizAction){
+    public Result uploadClean(List<JSONObject> data, String taksId, String apiCode, String bizAction){
         try {
             //1.查询清洗配置
             List<MarketingDataCleanConfig> configs = marketingDataCleanConfigMapper.selectConfigs(apiCode, CLEAN_TYPE_UPLOAD, bizAction);

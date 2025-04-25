@@ -98,7 +98,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                         }
                         List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
                         // 调用uploadClean
-                        Result result = generalDataCleanService.uploadClean(jsonObjectList,apiCode);
+                        Result result = generalDataCleanService.uploadClean(jsonObjectList, syncRecord.getBatchNo(), apiCode);
                         // 返回结果成功 修改isClean状态
                         if (result!=null && result.isSuccess()) {
                             List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());

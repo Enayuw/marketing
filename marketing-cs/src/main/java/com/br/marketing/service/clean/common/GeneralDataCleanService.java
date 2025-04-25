@@ -20,7 +20,7 @@ public interface GeneralDataCleanService {
      * @author hedongshuo
      * @date 2025/4/24 11:45
      **/
-    Result uploadClean(List<JSONObject> data, String apiCode) throws NoSuchFieldException;
+    Result uploadClean(List<JSONObject> data, String taksId, String apiCode) throws NoSuchFieldException;
 
     /**
      * @description common转化清洗
@@ -41,7 +41,7 @@ public interface GeneralDataCleanService {
      * @author hedongshuo
      * @date 2025/4/24 13:37
      **/
-    Result uploadClean(List<JSONObject> data, String apiCode, String bizAction) throws NoSuchFieldException;
+    Result uploadClean(List<JSONObject> data, String taksId, String apiCode, String bizAction) throws NoSuchFieldException;
 
     /**
      * @description bizAction转化清洗
