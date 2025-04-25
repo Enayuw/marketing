@@ -60,7 +60,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
 
             log.warn(TITLE+"调度结束");
         }catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_TC.getCode(),e.getMessage(), TITLE), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }
 
