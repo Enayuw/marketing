@@ -1,6 +1,7 @@
 package com.br.marketing.service.tc;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 
 import java.util.List;
@@ -24,4 +25,10 @@ public interface TcSyncDataMatchService {
 
     // sql 直接处理同城match
     Integer dealTcMatch(String apiCode);
+
+    // 查询未匹配的tcyrSnclist
+    List<MarketingTcyrSync> selectUnMatchSyncList(String apiCode,Long lastSearchId, Integer searchSize);
+
+    //match匹配
+    void matchTcyrSyncList(String apiCode,List<MarketingTcyrSync> tcyrSyncList);
 }

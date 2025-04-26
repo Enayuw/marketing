@@ -213,7 +213,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             log.warn("{},batchNo:{} 保存转化结果成功,successLine:{}",TITLE,batchNo,dataList.size());
             return result.success().setDate( Long.valueOf(dataList.size()));
         } catch (Exception e) {
-            log.error("{} apiCode:{}, batchNo:{} processData入库异常,error: ",TITLE,apiCode,batchNo,e);
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             return result.failure();
         }
     }

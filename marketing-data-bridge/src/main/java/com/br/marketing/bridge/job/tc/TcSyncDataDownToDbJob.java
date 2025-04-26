@@ -73,7 +73,6 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
                     log.warn(TITLE+"fileSync任务执行成功,apiCode:{}, batchNo:{},total:{},totalSuccess:{}",syncRecord.getApiCode(),syncRecord.getBatchNo(),total,syncResult.getData().toString());
                 }
             }catch (Exception e) {
-                //log.error("{} apiCode:{}, batchNo:{} fileSync异常,error: ",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo(),e);
                 log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             }
         }

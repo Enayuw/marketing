@@ -105,7 +105,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                 }
                 log.warn("{},apiCode:{},batchNo:{} syncDataClean process complete,successLine:{}",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo(),successLine);
             }catch (Exception e) {
-                log.error("{} apiCode:{}, batchNo:{} syncDataClean异常,error: ",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo(),e);
+                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             }
         }
     }
@@ -140,15 +140,17 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                 //调用定制化上传接口
                 List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
                 UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS);
-                Result<Boolean> pullResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                // 修改状态为已清洗
-                List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
-                tcSyncDataCleanService.updateCleanStatus(idList,1);
+                Result<Boolean> pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                if (pushResult != null && pushResult.isSuccess()) {
+                    // 修改状态为已清洗
+                    List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
+                    tcSyncDataCleanService.updateCleanStatus(idList,1);
+                }
             }
             log.warn("{},batchNo:{} sycnDataClean成功,successLine:{}",TITLE,batchNo,tcyrSyncList.size());
             return result.success().setDate(tcyrSyncList.size());
         } catch (Exception e) {
-            log.error(TITLE + "processData error", e);
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             return result.failure();
         }
     }
