@@ -246,7 +246,12 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 }
                 userKey = firstColumn;
                 if (StringUtils.isNotBlank(secondColumn)) {
-                    terminal =Integer.parseInt(secondColumn);
+                    try {
+                        terminal =Integer.parseInt(secondColumn);
+                    }catch (Exception e) {
+                        log.warn("{},porcessLine解析terminal异常,{},e:",TITLE,secondColumn,e);
+                        terminal =-2;
+                    }
                 }else {
                     terminal = -1;
                 }
