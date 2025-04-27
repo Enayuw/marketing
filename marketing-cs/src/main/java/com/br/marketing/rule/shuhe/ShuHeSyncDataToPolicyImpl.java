@@ -74,13 +74,14 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         varDto.put("orderId", syncUser.getCustNum());
         varDto.put("appletDate",syncUser.getAppletDate());
         varDto.putAll(parseObject);
+        String userType = syncUser.getUserType();
         String rtUsrHvyMaxAvaLmt = parseObject.getOrDefault("rt_usr_hvy_max_ava_lmt", "").toString();
         String currentAvailableLimitDp = parseObject.getOrDefault("clc_usr_light_current_available_limit_dp", "").toString();
-        if (StringUtils.isNotBlank(rtUsrHvyMaxAvaLmt)){
+        if (StringUtils.isNotBlank(userType) && "促复借".equals(userType) && StringUtils.isNotBlank(rtUsrHvyMaxAvaLmt)){
             String rtUsrHvyMaxAvaLmtDerived = getReportAmount(parseObject, rtUsrHvyMaxAvaLmt);
             varDto.put("rt_usr_hvy_max_ava_lmt_derived", rtUsrHvyMaxAvaLmtDerived);
         }
-        if (StringUtils.isNotBlank(currentAvailableLimitDp)){
+        if (StringUtils.isNotBlank(userType) && "轻资产".equals(userType) && StringUtils.isNotBlank(currentAvailableLimitDp)){
             String clcDerived = getReportAmount(parseObject, currentAvailableLimitDp);
             varDto.put("clc_usr_light_current_available_limit_dp_derived", clcDerived);
         }
