@@ -213,7 +213,7 @@
 
     <job:simple id="【bridge】-TcSyncDataDownToDbJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncDataDownToDbJob"
-                cron="00 00 */3 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="同程DownToDb数据任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -228,7 +228,7 @@
 
     <job:simple id="【bridge】-TcSyncDataMatchJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncDataMatchJob"
-                cron="00 */30 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="同程上匹配任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -243,7 +243,7 @@
 
     <job:simple id="【bridge】-TcSyncDataCleanJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncDataCleanJob"
-                cron="00 */30 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="同程上传数据清洗任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -258,7 +258,7 @@
 
     <job:simple id="【bridge】-TcTransferCleanJob"
                 class="com.br.marketing.bridge.job.tc.TcTransferCleanJob"
-                cron="00 */10 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="同程转化数据清洗任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

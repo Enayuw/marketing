@@ -241,11 +241,11 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 String firstColumn = data[0].trim();
                 String secondColumn = data[1].trim();
                 // 单个字段为空写入，数据状态异常；整行为空，也存入
-                if (!firstColumn.isEmpty() && !secondColumn.isEmpty()) {
+                if (StringUtils.isNotBlank(firstColumn) && StringUtils.isNotBlank(secondColumn)) {
                     dataStatus = 1;
                 }
                 userKey = firstColumn;
-                if (!secondColumn.isEmpty()) {
+                if (StringUtils.isNotBlank(secondColumn)) {
                     terminal =Integer.parseInt(secondColumn);
                 }else {
                     terminal = -1;
