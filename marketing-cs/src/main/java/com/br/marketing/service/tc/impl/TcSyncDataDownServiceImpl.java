@@ -171,7 +171,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             result = result.success().setDate(successLine);
             shutdownThreadPool(actionPool);
         }catch (IOException e) {
-            log.error("{} apiCode:{}, batchNo:{} dealTcyrFileSync异常,error: ",TITLE,apiCode,batchNo,e);
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             return result.failure();
         }
         return result;
@@ -236,17 +236,23 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             String[] data = line.split(",");
             String userKey;
             Integer terminal = 0;
+            Integer dataStatus = 0;
             if (data.length > 1) {
                 String firstColumn = data[0].trim();
                 String secondColumn = data[1].trim();
-                if (firstColumn.isEmpty() || secondColumn.isEmpty()) {
-                    continue;
-                }else {
-                    userKey = firstColumn;
+                // 单个字段为空写入，数据状态异常；整行为空，也存入
+                if (!firstColumn.isEmpty() && !secondColumn.isEmpty()) {
+                    dataStatus = 1;
+                }
+                userKey = firstColumn;
+                if (!secondColumn.isEmpty()) {
                     terminal =Integer.parseInt(secondColumn);
+                }else {
+                    terminal = -1;
                 }
             }else {
-                continue;
+                userKey= "";
+                terminal = -1;
             }
             MarketingTcyrSync syncItem = new MarketingTcyrSync();
             syncItem.setApiCode(apiCode);
@@ -256,6 +262,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             Date nowDate = new Date();
             syncItem.setCreateTime(nowDate);
             syncItem.setUpdateTime(nowDate);
+            syncItem.setStatus(dataStatus);
             userKeyList.add(userKey);
             dataList.add(syncItem);
         }

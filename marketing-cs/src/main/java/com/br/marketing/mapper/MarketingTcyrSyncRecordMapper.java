@@ -16,15 +16,16 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
     List<MarketingTcyrSyncRecord> searchTcyrSyncList(@Param("apiCode")String apiCode, @Param("status")Integer status,@Param("dayBeginTime") Date dayBeginTime, @Param("dayEndTime") Date dayEndTime);
 
 
-    List<Map<String, String>> selectLastUserCellList (@Param("apiCode") String apiCode ,@Param("userKeyList") List<String> userKeyList);
 
     Integer batchAdd(@Param("dataList") List<MarketingTcyrSync> dataList);
 
     List<Long> selectLastUserRecordIdList(@Param("apiCode")String apiCode,@Param("userKeyList") List<String> userKeyList);
 
-    List<Map<String, String>> selectLastUserRecordList(@Param("apiCode")String apiCode,@Param("idList") List<Long> idList);
-
     Integer updageTcyrRecordSyncStatus(@Param("batchNo") String batchNo, @Param("status") Integer status);
 
     Integer updageTcyrRecordDownStatus(@Param("batchNo") String batchNo, @Param("downStatus") Integer downStatus);
+
+
+    List<Map<String, String>> selectLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKeyList") List<String> userKeyList);
+
 }

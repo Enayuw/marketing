@@ -2,10 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingTcyrSync extends MarketingTcyrSyncExample{
-
-
-    public MarketingTcyrSync(){}
+public class MarketingTcyrSync {
     /**
      * 
      */
@@ -42,7 +39,7 @@ public class MarketingTcyrSync extends MarketingTcyrSyncExample{
     private Integer isMatch;
 
     /**
-     * 清洗状态 0-待清洗；1-清洗完成
+     * 清洗状态 0-待清洗；1-清洗完成2:上传清洗失败 3:推送清洗失败
      */
     private Integer isClean;
 
@@ -55,6 +52,11 @@ public class MarketingTcyrSync extends MarketingTcyrSyncExample{
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     *  0:异常数据 1:正常数据
+     */
+    private Integer status;
 
     public Long getId() {
         return id;
@@ -134,5 +136,13 @@ public class MarketingTcyrSync extends MarketingTcyrSyncExample{
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

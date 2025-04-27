@@ -87,11 +87,11 @@ public class ZipFileClient {
                 downloadedBytes += bytes;
                 
                 // 计算和显示进度
-                if (totalBytes > 0) {
-                    int progress = (int) ((downloadedBytes * 100) / totalBytes);
-                    double speed = calculateSpeed(downloadedBytes, startTime);
-                    log.warn("Progress: {}% - Speed: {} MB/s", progress, String.format("%.2f", speed));
-                }
+//                if (totalBytes > 0) {
+//                    int progress = (int) ((downloadedBytes * 100) / totalBytes);
+//                    double speed = calculateSpeed(downloadedBytes, startTime);
+//                    log.warn("Progress: {}% - Speed: {} MB/s", progress, String.format("%.2f", speed));
+//                }
             }
         }
     }
