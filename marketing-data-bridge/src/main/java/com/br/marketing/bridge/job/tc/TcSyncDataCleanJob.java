@@ -82,7 +82,6 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
 
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
-                boolean stillFlag =true;
                 Long lastSearchId =0L;
                 Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
                 while (true) {
