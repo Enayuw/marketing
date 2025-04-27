@@ -245,9 +245,14 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                     dataStatus = 1;
                 }
                 userKey = firstColumn;
-                terminal =Integer.parseInt(secondColumn);
+                if (secondColumn.isEmpty()) {
+                    terminal =Integer.parseInt(secondColumn);
+                }else {
+                    terminal = -1;
+                }
             }else {
-                continue;
+                userKey= "";
+                terminal = -1;
             }
             MarketingTcyrSync syncItem = new MarketingTcyrSync();
             syncItem.setApiCode(apiCode);

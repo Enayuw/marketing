@@ -71,9 +71,7 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
 
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
-                // TODO 改成下载中
                 tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
-
                 Result syncResult =tcSyncDataDownService.dealTcyrFileSync(syncRecord);
                 if (syncResult != null  && syncResult.isSuccess()) {
                     tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
