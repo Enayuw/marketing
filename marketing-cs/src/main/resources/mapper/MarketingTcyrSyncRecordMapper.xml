@@ -61,7 +61,7 @@
 
     <select id="selectLastCustNumCelltikv_" resultType="java.util.Map">
         SELECT
-            cust_num AS caseNum,
+            cust_num AS custNum,
             cell AS cell
         FROM (
             SELECT
