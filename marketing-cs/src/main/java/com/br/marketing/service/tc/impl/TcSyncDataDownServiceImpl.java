@@ -245,7 +245,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                     dataStatus = 1;
                 }
                 userKey = firstColumn;
-                if (secondColumn.isEmpty()) {
+                if (!secondColumn.isEmpty()) {
                     terminal =Integer.parseInt(secondColumn);
                 }else {
                     terminal = -1;
