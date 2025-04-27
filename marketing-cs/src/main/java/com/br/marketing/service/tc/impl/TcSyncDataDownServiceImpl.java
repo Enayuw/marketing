@@ -108,11 +108,11 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             }
             //文件解析入库
             for (File csvFile : files) {
-                log.warn("文件入db,csvName:{},csvPath:{} 开始执行",csvFile.getName(),csvFile.getAbsolutePath());
+                log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
                 //TODO 理论上读取csv 和文本一致，待验证
                 Result parseResult = parseCsvFileToDb(syncRecord.getApiCode(),syncRecord.getBatchNo(),csvFile);
                 Long successLine = Long.parseLong(parseResult.getData().toString());
-                log.warn("csv文件入db,batchNo:{},csvName{} 执行完成,successCount:{}",syncRecord.getBatchNo(),csvFile.getName(),successLine);
+                log.warn("{} csv文件入db,batchNo:{},csvName{} 执行完成,successCount:{}",TITLE,syncRecord.getBatchNo(),csvFile.getName(),successLine);
                 totalSuccess += successLine;
             }
             result = result.success().setDate(totalSuccess);
