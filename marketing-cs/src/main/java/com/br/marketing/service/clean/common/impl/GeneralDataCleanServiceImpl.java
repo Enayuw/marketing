@@ -67,7 +67,8 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         try {
             //1.查询清洗配置
             List<MarketingDataCleanConfig> configs = marketingDataCleanConfigMapper.selectConfigs(apiCode, CLEAN_TYPE_UPLOAD, bizAction);
-            if (CollectionUtils.isEmpty(configs)) {
+            if (configs.size() != 1) {
+                //todo 加告警
                 log.warn("上传清洗未查询到配置，apiCode={}，bizAction={}", apiCode, bizAction);
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗配置");
             }
@@ -113,7 +114,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     }
 
     private static Map<String, Field> getStringFieldMap(List<MarketingDataCleanConfig> configs) throws NoSuchFieldException {
-        //2.基础字段集合
+        //1.基础字段集合
         Set<String> basicTargetNames = configs.stream()
                 .filter(config -> config.getTargetType() == TARGET_TYPE_BASIC)
                 .map(MarketingDataCleanConfig::getTargetName)
@@ -165,7 +166,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                     Field field = fieldMap.get(configExample.getTargetName());
                     field.setAccessible(true);
                     try {
-                        field.set(dto, fieldValue);
+                        field.set(dto, ConvertUtils.convert(fieldValue, field.getType()));
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }

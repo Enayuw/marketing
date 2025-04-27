@@ -73,7 +73,7 @@ public abstract class AbstractTcCustomizeProcessor {
             }
             return resdto.systemFail(brPrivateKey);
         }
-        return null;
+        return resdto.success(brPrivateKey);
     }
 
     /**

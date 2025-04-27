@@ -44,7 +44,7 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
             tcyrSyncRecordMapper.insert(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
-            //告警
+            //告警 todo
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
             record.setStatus(2);
             tcyrSyncRecordMapper.insert(record);
