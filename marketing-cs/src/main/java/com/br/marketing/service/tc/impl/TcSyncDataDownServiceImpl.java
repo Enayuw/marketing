@@ -171,7 +171,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             result = result.success().setDate(successLine);
             shutdownThreadPool(actionPool);
         }catch (IOException e) {
-            log.error("{} apiCode:{}, batchNo:{} dealTcyrFileSync异常,error: ",TITLE,apiCode,batchNo,e);
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             return result.failure();
         }
         return result;

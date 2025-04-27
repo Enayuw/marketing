@@ -119,7 +119,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                     }
                     resultList.add(Long.parseLong(processDataResult.getData().toString()));
                     if (throwable != null) {
-                        log.error(TITLE + "completableFuture error:{}", throwable);
+                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),throwable.getMessage(), TITLE), throwable);
                         resultList.add(0L);
                     }
                 })
