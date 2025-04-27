@@ -62,11 +62,11 @@
     <select id="selectLastCustNumCelltikv_" resultType="java.util.Map">
         SELECT
             cust_num AS custNum,
-            cell AS cell
+            cell_md5 AS cell
         FROM (
             SELECT
                 cust_num,
-                cell,
+                cell_md5,
                 ROW_NUMBER() OVER (PARTITION BY cust_num ORDER BY create_time DESC) AS rn
             FROM b_marketing_sync_${apiCode}
                 WHERE cust_num IN
