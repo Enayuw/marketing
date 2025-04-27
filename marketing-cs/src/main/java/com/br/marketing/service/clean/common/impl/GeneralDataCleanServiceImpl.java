@@ -1,8 +1,10 @@
 package com.br.marketing.service.clean.common.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
@@ -67,9 +69,8 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         try {
             //1.查询清洗配置
             List<MarketingDataCleanConfig> configs = marketingDataCleanConfigMapper.selectConfigs(apiCode, CLEAN_TYPE_UPLOAD, bizAction);
-            if (configs.size() != 1) {
-                //todo 加告警
-                log.warn("上传清洗未查询到配置，apiCode={}，bizAction={}", apiCode, bizAction);
+            if (CollectionUtils.isEmpty(configs)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_URGENT.getCode(), "未查询到清洗配置！"));
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗配置");
             }
             //2.清洗流程
