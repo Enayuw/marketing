@@ -42,24 +42,17 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
             log.warn(TITLE+"调度开始");
-            //atciton(marketingCommonConfig.getTcyrApiCode());
 
-
-            boolean stillFlag = true;
             Long lastSearchId = 0L;
             String apiCode = marketingCommonConfig.getTcyrApiCode();
             Integer searchSize = 1000;
-            while (stillFlag) {
+            while (true) {
                 List<MarketingTcyrSync> tcyrSyncList = tcSyncDataMatchService.selectUnMatchSyncList(apiCode,lastSearchId,searchSize);
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
-                    stillFlag = false;
-                }else {
-                    if (tcyrSyncList.size() < searchSize) {
-                        stillFlag = false;
-                    }
-                    tcSyncDataMatchService.matchTcyrSyncList(apiCode,tcyrSyncList);
-                    lastSearchId = tcyrSyncList.get(tcyrSyncList.size() - 1).getId();
+                    break;
                 }
+                tcSyncDataMatchService.matchTcyrSyncList(apiCode,tcyrSyncList);
+                lastSearchId = tcyrSyncList.get(tcyrSyncList.size() - 1).getId();
             }
             log.warn(TITLE+"调度结束");
         }catch (Exception e) {

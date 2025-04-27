@@ -236,15 +236,16 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             String[] data = line.split(",");
             String userKey;
             Integer terminal = 0;
+            Integer dataStatus = 0;
             if (data.length > 1) {
                 String firstColumn = data[0].trim();
                 String secondColumn = data[1].trim();
-                if (firstColumn.isEmpty() || secondColumn.isEmpty()) {
-                    continue;
-                }else {
-                    userKey = firstColumn;
-                    terminal =Integer.parseInt(secondColumn);
+                // 单个字段为空写入，数据状态异常；整行为空，也存入
+                if (!firstColumn.isEmpty() && !secondColumn.isEmpty()) {
+                    dataStatus = 1;
                 }
+                userKey = firstColumn;
+                terminal =Integer.parseInt(secondColumn);
             }else {
                 continue;
             }
@@ -256,6 +257,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             Date nowDate = new Date();
             syncItem.setCreateTime(nowDate);
             syncItem.setUpdateTime(nowDate);
+            syncItem.setStatus(dataStatus);
             userKeyList.add(userKey);
             dataList.add(syncItem);
         }

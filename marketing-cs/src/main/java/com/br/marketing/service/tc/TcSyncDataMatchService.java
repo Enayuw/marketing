@@ -14,9 +14,6 @@ import java.util.List;
 public interface TcSyncDataMatchService {
 
 
-    //处理单个同城易融具体批次batchNo的文件加载和同步db
-    Result dealTcyrFileSync(MarketingTcyrSyncRecord syncRecord);
-
     //修改单个syncRecord的处理结果
     Integer updageTcyrRecordSyncStatus(String batchNo, Integer status);
 

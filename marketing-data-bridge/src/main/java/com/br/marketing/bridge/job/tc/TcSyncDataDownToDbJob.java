@@ -40,6 +40,7 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
+        //TODO 把处理过的 url配置下，重新下载
         try {
             log.warn(TITLE+"调度开始");
             atciton(marketingCommonConfig.getTcyrApiCode());
@@ -60,15 +61,22 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
      *      <5>基础数据入库
      *      <6> TODO 上传SFTP服务器
      *      <7>修改batchNo 对应记录为MATTCH_COMPELTED
+     *
+     *      downStatus: 0未下载 1下载中 2下载完成
      * @param apiCode
      */
     private void atciton(String apiCode) {
+        //
         List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataDownService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue(),getStartOfDay(),getEndOfDay());
+
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
+                // TODO 改成下载中
+                tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
+
                 Result syncResult =tcSyncDataDownService.dealTcyrFileSync(syncRecord);
                 if (syncResult != null  && syncResult.isSuccess()) {
-                    tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
+                    tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
                     Long total = JSONObject.parseObject(syncRecord.getData()).getLong("total");
                     log.warn(TITLE+"fileSync任务执行成功,apiCode:{}, batchNo:{},total:{},totalSuccess:{}",syncRecord.getApiCode(),syncRecord.getBatchNo(),total,syncResult.getData().toString());
                 }

@@ -7,21 +7,17 @@
         FROM b_marketing_tcyr_sync_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
-          AND down_status = 1
+          AND down_status = 2
           AND is_del = 1
     </select>
-
-
 
     <select id="searchTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
         SELECT  id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,down_status,is_del
         FROM b_marketing_tcyr_sync_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
-          AND (down_status is NULL OR down_status = 0)
-          AND (is_del is NULL OR is_del = 1)
-          AND create_time BETWEEN #{dayBeginTime, jdbcType=TIMESTAMP} AND #{dayEndTime, jdbcType=TIMESTAMP}
-        ORDER BY id DESC limit 1
+          AND down_status = 0
+          AND is_del = 1
     </select>
 
     <update id="updageTcyrRecordSyncStatus">
@@ -36,12 +32,12 @@
 
     <insert id="batchAdd">
         INSERT INTO marketing.b_marketing_tcyr_sync
-        (api_code,batch_no,user_key,terminal,create_time,update_time)
+        (api_code,batch_no,user_key,terminal,create_time,update_time,status)
         values
          <foreach collection="dataList" item="item" separator=",">
              (
               #{item.apiCode},#{item.batchNo},#{item.userKey},#{item.terminal},
-              #{item.createTime},#{item.updateTime}
+              #{item.createTime},#{item.updateTime},#{item.status}
              )
          </foreach>
     </insert>
@@ -49,21 +45,8 @@
 
 
 
-    <select id="selectLastUserCellList" resultType="java.util.Map">
-        SELECT t1.cust_num AS "custNum", t1.cell AS "cell"
-        FROM b_marketing_sync_${apiCode} t1
-        WHERE t1.id IN (
-            SELECT MAX(t2.id)
-            FROM b_marketing_sync_${apiCode} t2
-            WHERE t2.cust_num IN
-            <foreach item="userKey" index="index" collection="userKeyList"
-                     open="(" separator="," close=")">
-                #{userKey}
-            </foreach>
-        GROUP BY t2.cust_num
-        )
-    </select>
 
+<!--   TODO-0427 map tikv下划线  -->
     <select id="selectLastUserRecordIdList" resultType="java.lang.Long">
         SELECT  MAX(id)
         FROM b_marketing_sync_${apiCode}
@@ -75,13 +58,23 @@
         GROUP BY cust_num;
     </select>
 
-    <select id="selectLastUserRecordList" resultType="java.util.Map">
-        SELECT t1.cust_num AS "custNum", t1.cell AS "cell"
-        FROM b_marketing_sync_${apiCode} t1 where id in
-        <foreach item="id" index="index" collection="idList"
-                 open="(" separator="," close=")">
-            #{id}
-        </foreach>
+
+    <select id="selectLastCustNumCelltikv_" resultType="java.util.Map">
+        SELECT
+            cust_num AS caseNum,
+            cell AS cell
+        FROM (
+            SELECT
+                cust_num,
+                cell,
+                ROW_NUMBER() OVER (PARTITION BY cust_num ORDER BY create_time DESC) AS rn
+            FROM b_marketing_sync_${apiCode}
+                WHERE cust_num IN
+                <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
+                    #{userKey}
+                </foreach>
+        ) t
+        WHERE rn = 1
     </select>
 
 </mapper>
