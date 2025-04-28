@@ -116,7 +116,7 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
     }
 
     private void modifyThreadPool(ThreadPoolExecutor pool) {
-        Integer threadNum = marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread();
+        Integer threadNum = marketingCommonConfig.getTransFileExtractionBIThread();
         pool.setCorePoolSize(threadNum);
         pool.setMaximumPoolSize(threadNum);
     }
