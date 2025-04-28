@@ -79,7 +79,7 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
                     Long totalSuccess = Long.parseLong(syncResult.getData().toString());
                     log.warn(TITLE+"fileSync任务执行成功,apiCode:{}, batchNo:{},total:{},totalSuccess:{}",syncRecord.getApiCode(),syncRecord.getBatchNo(),total,totalSuccess);
                     if (total != null && !total.equals(totalSuccess)) {
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),syncRecord.getBatchNo()+"success数量和total数不一致", TITLE));
+                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),"batchNo:"+syncRecord.getBatchNo()+",total:"+total+",success:"+totalSuccess+",success数量和total数不一致", TITLE));
                     }
                 }
             }catch (Exception e) {
