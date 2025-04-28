@@ -12,6 +12,7 @@ import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -122,9 +123,12 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                     syncItem.setIsMatch(1);
                     syncItem.setIsClean(0);
                 }
-                tcyrSyncMapper.updateMatchInfo(syncItem);
+//                tcyrSyncMapper.updateMatchInfo(syncItem);
             }
-            // tcyrSyncMapper.batchUpdateMatchInfo(tcyrSyncList);
+            List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(tcyrSyncList, 1000);
+            for (List<MarketingTcyrSync> partitionItemList : partitionList) {
+                tcyrSyncMapper.batchUpdateMatchInfo(partitionItemList);
+            }
             return result.success();
         } catch(Exception e){
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
