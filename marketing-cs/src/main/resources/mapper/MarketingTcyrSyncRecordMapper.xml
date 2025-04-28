@@ -78,7 +78,7 @@
     <select id="selectSingleLastCustNumCell" resultType="java.util.Map">
         SELECT cust_num AS custNum,cell_md5 AS cell
         FROM b_marketing_sync_${apiCode}
-        WHERE cust_num = #{userKey}
+        WHERE cust_num = #{userKey} and status=1
         ORDER BY create_time DESC
         LIMIT 1
     </select>

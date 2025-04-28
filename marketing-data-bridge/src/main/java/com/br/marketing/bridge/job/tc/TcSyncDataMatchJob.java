@@ -46,15 +46,16 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
             Long lastSearchId = 0L;
             String apiCode = marketingCommonConfig.getTcyrApiCode();
             Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
-            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(10, 10);
-            actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-            actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                    marketingCommonConfig.getTcGzBatDBThreadPool(),
+                    marketingCommonConfig.getTcGzBatDBThreadPool());
             while (true) {
+                actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+                actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
                 List<MarketingTcyrSync> tcyrSyncList = tcSyncDataMatchService.selectUnMatchSyncList(apiCode,lastSearchId,searchSize);
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
                     break;
                 }
-                tcSyncDataMatchService.matchTcyrSyncList(apiCode,tcyrSyncList);
                 tcyrSyncList.forEach(tcyrSync ->
                         actionPool.submit(() -> tcSyncDataMatchService.processUnMatchSingleData(apiCode, tcyrSync))
                 );
