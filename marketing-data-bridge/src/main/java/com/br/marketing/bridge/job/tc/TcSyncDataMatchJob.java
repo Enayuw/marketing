@@ -56,9 +56,12 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
                     break;
                 }
-                tcyrSyncList.forEach(tcyrSync ->
-                        actionPool.submit(() -> tcSyncDataMatchService.processUnMatchSingleData(apiCode, tcyrSync))
-                );
+                //多线程 批量match
+                tcSyncDataMatchService.matchTcyrSyncList(apiCode,tcyrSyncList);
+                // 多线程单个match
+//                tcyrSyncList.forEach(tcyrSync ->
+//                        actionPool.submit(() -> tcSyncDataMatchService.processUnMatchSingleData(apiCode, tcyrSync))
+//                );
                 lastSearchId = tcyrSyncList.get(tcyrSyncList.size() - 1).getId();
             }
             shutdownThreadPool(actionPool);
