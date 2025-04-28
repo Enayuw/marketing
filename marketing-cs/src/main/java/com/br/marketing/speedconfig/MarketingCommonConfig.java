@@ -2802,11 +2802,6 @@ public class MarketingCommonConfig {
 
 
     /**
-     * 同城易融-gz包查询-文件路径
-     */
-    private String tcGzFilePath;
-
-    /**
      * 同城易融-gz查询-csv分页size
      */
     private Integer tcGzResultPartitionSize;

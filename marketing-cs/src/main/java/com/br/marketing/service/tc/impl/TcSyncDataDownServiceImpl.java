@@ -80,7 +80,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 return result.failure();
             }
             //文件下载
-            String dirPath = marketingCommonConfig.getTcGzFilePath();
+            String dirPath = getPath();
             String gzFileName= "tcyr_"+syncRecord.getBatchNo()+".csv.gz";
             String gzFilePath = dirPath.concat(gzFileName);
             Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
@@ -296,6 +296,11 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
         log.warn(TITLE + "shutdownThreadPool结束");
     }
 
+
+    public String getPath() {
+        String nfsPath = marketingCommonConfig.getNfsPath();
+        return StringUtils.isBlank(nfsPath) ? "/opt/data/inloan/download/marketing/" : nfsPath;
+    }
 
     @Override
     public Integer updageTcyrRecordDownStatus(String batchNo, Integer status) {
