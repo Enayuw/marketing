@@ -19,6 +19,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -108,6 +109,9 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
 
     private Result processList(String apiCode, String batchNo, List<MarketingTcyrSync> tcyrSyncList, ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
         Result result = new Result().failure();
+        if (CollectionUtils.isEmpty(tcyrSyncList)) {
+            return result.success();
+        }
         actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, tcyrSyncList), actionPool)
@@ -135,34 +139,36 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
      */
     private Result processData(String apiCode, String batchNo, List<MarketingTcyrSync> tcyrSyncList) {
         Result result = new Result().failure();
-        List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
-
-        try {
-            List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
-            Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
-            log.warn("{},apiCode:{},batchNo:{},syncDataClen调用uploadClean结果:{}", TITLE,apiCode,batchNo,JSONObject.toJSONString(callResult));
-            if (callResult!=null && callResult.isSuccess()) {
-                //调用定制化上传接口
-                List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
-                UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS);
-                Result<Boolean> pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                log.warn("{},apiCode:{},batchNo:{},syncDataClen调用push接口结果:{}", TITLE,apiCode,batchNo,JSONObject.toJSONString(pushResult));
-                if (pushResult != null && pushResult.isSuccess()) {
-                    // 修改状态为已清洗
-                    tcSyncDataCleanService.updateCleanStatus(idList,1);
-                }else {
-                    tcSyncDataCleanService.updateCleanStatus(idList,3);
-                }
-            }else {
-                tcSyncDataCleanService.updateCleanStatus(idList,2);
+        List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(tcyrSyncList, 1000);
+        for(List<MarketingTcyrSync> tcyrSyncItemList : partitionList){
+            List<Long> idList =tcyrSyncItemList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
+            try {
+                    List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncItemList), JSONObject.class);
+                    Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
+                    log.warn("{},apiCode:{},batchNo:{},syncDataClen调用uploadClean结果:{}", TITLE,apiCode,batchNo,JSONObject.toJSONString(callResult));
+                    if (callResult!=null && callResult.isSuccess()) {
+                        //调用定制化上传接口
+                        List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
+                        UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS);
+                        Result<Boolean> pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                        log.warn("{},apiCode:{},batchNo:{},syncDataClen调用push接口结果:{}", TITLE,apiCode,batchNo,JSONObject.toJSONString(pushResult));
+                        if (pushResult != null && pushResult.isSuccess()) {
+                            // 修改状态为已清洗
+                            tcSyncDataCleanService.updateCleanStatus(idList,1);
+                        }else {
+                            tcSyncDataCleanService.updateCleanStatus(idList,3);
+                        }
+                    }else {
+                        tcSyncDataCleanService.updateCleanStatus(idList,2);
+                    }
+            } catch (Exception e) {
+                tcSyncDataCleanService.updateCleanStatus(idList,4);
+                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
+                return result.failure();
             }
-            log.warn("{},batchNo:{} sycnDataClean成功,successLine:{}",TITLE,batchNo,tcyrSyncList.size());
-            return result.success().setDate(tcyrSyncList.size());
-        } catch (Exception e) {
-            tcSyncDataCleanService.updateCleanStatus(idList,4);
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
-            return result.failure();
         }
+        log.warn("{},batchNo:{} sycnDataClean成功,successLine:{}",TITLE,batchNo,tcyrSyncList.size());
+        return result.success().setDate(tcyrSyncList.size());
     }
 
     /**
