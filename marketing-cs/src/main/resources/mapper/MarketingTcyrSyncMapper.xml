@@ -12,9 +12,6 @@
         ORDER BY id ASC
         LIMIT #{searchSize}
     </select>
-    <select id="selectWaitMatchCount" resultType="java.lang.Long">
-        SELECT count(*) FROM b_marketing_tcyr_sync WHERE is_match is NULL
-    </select>
 
 
     <select id="selectUnMatchSyncList" resultType="com.br.marketing.entity.MarketingTcyrSync">
@@ -33,57 +30,6 @@
         <foreach collection="idList" item="id" separator=",">
             #{id}
         </foreach>)
-    </update>
-
-    <update id="dealTcMatch">
---         WITH latest_b AS (
---             SELECT b1.cust_num, b1.cell
---             FROM b_marketing_sync_${apiCode} b1
---                      INNER JOIN (
---                 SELECT cust_num, MAX(id) AS max_id
---                 FROM b_marketing_sync_${apiCode}
---                 GROUP BY cust_num
---             ) b2 ON b1.cust_num = b2.cust_num AND b1.id = b2.max_id
---         )
---         UPDATE b_marketing_tcyr_sync a
---             LEFT JOIN latest_b ON a.user_key = latest_b.cust_num
---             SET
---                 a.cell = CASE
---                     WHEN latest_b.cust_num IS NOT NULL THEN latest_b.cell
---                     ELSE a.cell
---                 END,
---                 a.is_match = CASE
---                     WHEN latest_b.cust_num IS NOT NULL THEN 1
---                     ELSE 0
---                 END,
---                 a.is_clean = 0
---             WHERE a.is_match IS NULL
---             LIMIT 2000;
-
-        UPDATE b_marketing_tcyr_sync a
-            LEFT JOIN (
-                SELECT b1.cust_num, b1.cell
-                FROM b_marketing_sync_${apiCode} b1
-                INNER JOIN (
-                -- 找到每个 cust_num 对应的最大 id
-                SELECT cust_num, MAX(id) AS max_id
-                FROM b_marketing_sync_${apiCode}
-                GROUP BY cust_num
-                ) b2 ON b1.cust_num = b2.cust_num AND b1.id = b2.max_id
-            ) latest_b ON a.user_key = latest_b.cust_num
-            SET
-                a.cell = CASE
-                WHEN latest_b.cust_num IS NOT NULL THEN latest_b.cell
-                ELSE a.cell
-                END,
-                a.is_match = CASE
-                    WHEN latest_b.cust_num IS NOT NULL THEN 1
-                    ELSE 0
-                END,
-                a.is_clean = 0
-        WHERE a.is_match IS NULL
-       ORDER BY a.id ASC
-        LIMIT 2000;
     </update>
 
     <update id="batchUpdateMatchInfo">

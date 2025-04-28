@@ -56,23 +56,6 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     @Resource
     private MarketingTcyrSyncMapper tcyrSyncMapper;
 
-
-
-    @Override
-    public Integer updageTcyrRecordSyncStatus(String batchNo, Integer status) {
-        return tcyrSyncRecordMapper.updageTcyrRecordSyncStatus(batchNo,status);
-    }
-
-    @Override
-    public Long selectWaitMatchCount(String apiCode) {
-        return tcyrSyncMapper.selectWaitMatchCount(apiCode);
-    }
-
-    @Override
-    public Integer dealTcMatch(String apiCode) {
-        return tcyrSyncMapper.dealTcMatch(apiCode);
-    }
-
     @Override
     public List<MarketingTcyrSync> selectUnMatchSyncList(String apiCode,Long lastSearchId, Integer searchSize) {
         return tcyrSyncMapper.selectUnMatchSyncList(apiCode,lastSearchId,searchSize);

@@ -11,10 +11,6 @@ public interface MarketingTcyrSyncMapper extends MarketingTcyrSyncMapperBase {
 
     Integer updateCleanStatus(@Param("idList") List<Long> idList, @Param("cleanStatus") Integer cleanStatus);
 
-    Long selectWaitMatchCount(@Param("apiCode") String apiCode);
-
-    Integer dealTcMatch(@Param("apiCode") String apiCode);
-
     List<MarketingTcyrSync> selectUnMatchSyncList(@Param("apiCode") String apiCode,@Param("lastSearchId")Long lastSearchId, @Param("searchSize") Integer searchSize);
 
     Integer batchUpdateMatchInfo(List<MarketingTcyrSync> tcyrSyncList);

@@ -13,16 +13,6 @@ import java.util.List;
  */
 public interface TcSyncDataMatchService {
 
-
-    //修改单个syncRecord的处理结果
-    Integer updageTcyrRecordSyncStatus(String batchNo, Integer status);
-
-    //查询apiCode对应的待匹配的条数
-    Long selectWaitMatchCount(String apiCode);
-
-    // sql 直接处理同城match
-    Integer dealTcMatch(String apiCode);
-
     // 查询未匹配的tcyrSnclist
     List<MarketingTcyrSync> selectUnMatchSyncList(String apiCode,Long lastSearchId, Integer searchSize);
 
