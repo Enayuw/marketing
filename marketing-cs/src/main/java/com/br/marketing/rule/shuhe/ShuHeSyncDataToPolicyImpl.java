@@ -78,11 +78,11 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         String rtUsrHvyMaxAvaLmt = parseObject.getOrDefault("rt_usr_hvy_max_ava_lmt", "").toString();
         String currentAvailableLimitDp = parseObject.getOrDefault("clc_usr_light_current_available_limit_dp", "").toString();
         if (StringUtils.isNotBlank(userType) && "促复借".equals(userType) && StringUtils.isNotBlank(rtUsrHvyMaxAvaLmt)){
-            String rtUsrHvyMaxAvaLmtDerived = getReportAmount(parseObject, rtUsrHvyMaxAvaLmt);
+            String rtUsrHvyMaxAvaLmtDerived = getReportAmount(rtUsrHvyMaxAvaLmt);
             varDto.put("rt_usr_hvy_max_ava_lmt_derived", rtUsrHvyMaxAvaLmtDerived);
         }
         if (StringUtils.isNotBlank(userType) && "轻资产".equals(userType) && StringUtils.isNotBlank(currentAvailableLimitDp)){
-            String clcDerived = getReportAmount(parseObject, currentAvailableLimitDp);
+            String clcDerived = getReportAmount(currentAvailableLimitDp);
             varDto.put("clc_usr_light_current_available_limit_dp_derived", clcDerived);
         }
 
@@ -92,11 +92,7 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         return pushMarketingUserDetailByRuleDTO;
     }
 
-    private String getReportAmount(JSONObject parseObject, String value) {
-        if (parseObject == null || StringUtils.isBlank(value)) {
-            return "";
-        }
-        
+    private String getReportAmount(String value) {
         if (StringUtils.isBlank(value)) {
             return "";
         }
