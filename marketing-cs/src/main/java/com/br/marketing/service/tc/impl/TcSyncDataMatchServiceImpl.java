@@ -126,8 +126,9 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                     syncItem.setIsMatch(1);
                     syncItem.setIsClean(0);
                 }
+                tcyrSyncMapper.updateMatchInfo(syncItem);
             }
-            tcyrSyncMapper.batchUpdateMatchInfo(tcyrSyncList);
+            // tcyrSyncMapper.batchUpdateMatchInfo(tcyrSyncList);
             return result.success();
         } catch(Exception e){
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);

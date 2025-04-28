@@ -2901,10 +2901,6 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcyrServerConfig;
 
-    /**
-     * 同程易融apiCode
-     */
-    private String tcyrApiCode;
 
     /**
      * 携程上报新接口
@@ -2918,22 +2914,12 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCpaAndCpsSwitch;
 
-    /**
-     * 同城易融-tcSyncDataMatch-开关，1-开，0-关
-     */
-    private String tcDataMatchJobSwitch;
 
 
     /**
-     * 同城易融-tcSyncDataClean-开关，1-开，0-关
+     * 同程易融apiCode
      */
-    private String tcSyncDataCleanJobSwitch;
-
-    /**
-     * 同城易融-tcSyncDataClean-开关，1-开，0-关
-     */
-    private String tcTransferCleanJobSwitch;
-
+    private String tcyrApiCode;
 
     /**
      * 同城易融-gz查询-csv分页size
@@ -2948,7 +2934,6 @@ public class MarketingCommonConfig {
     /**
      * 同城易融-转化清洗job每页查询条数
      */
-
     private Integer  tcPageSearchSize;
 
 }

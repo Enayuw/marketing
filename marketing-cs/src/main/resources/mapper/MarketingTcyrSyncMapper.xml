@@ -114,4 +114,19 @@
         )
     </update>
 
+    <update id="updateMatchInfo" parameterType="com.br.marketing.entity.MarketingTcyrSync">
+            UPDATE b_marketing_tcyr_sync
+            <set>
+                is_match = #{isMatch}
+                <if test="isClean != null">
+                    ,is_clean = #{isClean}
+                </if>
+                <if test="cell != null">
+                    ,cell = #{cell}
+                </if>
+            </set>
+            WHERE id = #{id}
+        </update>
+
+
 </mapper>

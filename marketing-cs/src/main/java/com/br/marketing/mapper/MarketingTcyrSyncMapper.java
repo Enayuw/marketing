@@ -18,4 +18,6 @@ public interface MarketingTcyrSyncMapper extends MarketingTcyrSyncMapperBase {
     List<MarketingTcyrSync> selectUnMatchSyncList(@Param("apiCode") String apiCode,@Param("lastSearchId")Long lastSearchId, @Param("searchSize") Integer searchSize);
 
     Integer batchUpdateMatchInfo(List<MarketingTcyrSync> tcyrSyncList);
+
+    Integer updateMatchInfo(MarketingTcyrSync syncItem);
 }
