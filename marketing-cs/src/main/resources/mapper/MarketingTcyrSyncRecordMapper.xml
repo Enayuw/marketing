@@ -69,7 +69,7 @@
                 cell_md5,
                 ROW_NUMBER() OVER (PARTITION BY cust_num ORDER BY create_time DESC) AS rn
             FROM b_marketing_sync_${apiCode}
-                WHERE cust_num IN
+                WHERE status = 1 AND cust_num IN
                 <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
                     #{userKey}
                 </foreach>

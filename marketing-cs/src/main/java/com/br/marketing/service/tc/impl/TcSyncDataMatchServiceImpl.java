@@ -108,6 +108,9 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
             tcyrSyncList.forEach(tcyrSync -> {tcyrSync.setIsMatch(0);});
 
             List<String> userKeyList = tcyrSyncList.stream().map(MarketingTcyrSync::getUserKey).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(userKeyList)) {
+                return  result.success();
+            }
             List<Map<String, String>> userCellMap = tcyrSyncRecordMapper.selectLastCustNumCelltikv_(apiCode,userKeyList);
             Map<String, String> resultMap = new HashMap<>();
             for (Map<String, String> map : userCellMap) {
