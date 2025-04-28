@@ -132,9 +132,9 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 String carSeries = getPhoneFromJsonObject(jsonObject, "seriesName");
                                 String province = getPhoneFromJsonObject(jsonObject, "province");
                                 String city = getPhoneFromJsonObject(jsonObject, "city");
-                                String member = getPhoneFromJsonObject(jsonObject, "cusName");
                                 String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
-                                String fullCall = getGenderTitle(jsonObject, resourceType);
+                                String firstName = getFirstName(jsonObject, resourceType);
+                                String gender = getGenderTitle(jsonObject, resourceType);
                                 String intentionGrade = ObjectUtil.isNotEmpty(callRecord.getIntentionGrade()) ?
                                         callRecord.getIntentionGrade() : "";
                                 if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
@@ -145,7 +145,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                     carClueInfo.setCell(phone);
                                     carClueInfo.setIntention(intentionGrade.toUpperCase());
                                     carClueInfo.setBrand(carBrand);
-                                    carClueInfo.setMember(member + fullCall);
+                                    carClueInfo.setMember(firstName + gender);
                                     carClueInfo.setSeries(carSeries);
                                     carClueInfo.setProvince(province);
                                     carClueInfo.setCity(city);
@@ -171,7 +171,9 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                                 reserveField1.put("series", carSeries);
                                 reserveField1.put("province", province);
                                 reserveField1.put("city", city);
-                                reserveField1.put("member", (member + fullCall));
+                                reserveField1.put("firstName", firstName);
+                                reserveField1.put("gender", gender);
+                                reserveField1.put("member", (firstName + gender));
                                 reserveField1.put("resourceType", resourceType);
                                 reserveField1.put("callId", callRecord.getSessionId());
                                 marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
@@ -294,6 +296,34 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
         }
     }
 
+    public String getFirstName(JSONObject jsonObject, String resourceType) {
+        try {
+            JSONObject config = marketingCommonConfig.getCarClueDataMemberConfig();
+            JSONObject genderKeys = config.getJSONObject("firstNameKeys");
+
+            JSONArray genderKeyArray = genderKeys.getJSONArray(resourceType);
+            if (ObjectUtil.isEmpty(genderKeyArray)) {
+                return "";
+            }
+
+
+            for (int i = 0; i < genderKeyArray.size(); i++) {
+                String genderKey = genderKeyArray.getString(i);
+                String genderValue = jsonObject.getString(genderKey);
+
+                if (ObjectUtil.isNotEmpty(genderValue)) {
+                    return genderValue;
+                }
+            }
+
+            return "";
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据姓名转化入库异常！异常信息：" + e.getMessage()), e);
+            return "";
+        }
+    }
+
     public String getGenderTitle(JSONObject jsonObject, String resourceType) {
         try {
             JSONObject config = marketingCommonConfig.getCarClueDataMemberConfig();
@@ -323,7 +353,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
             return "";
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    "车线索数据姓名转化入库异常！异常信息：" + e.getMessage()), e);
+                    "车线索数据性别转化入库异常！异常信息：" + e.getMessage()), e);
             return "";
         }
     }

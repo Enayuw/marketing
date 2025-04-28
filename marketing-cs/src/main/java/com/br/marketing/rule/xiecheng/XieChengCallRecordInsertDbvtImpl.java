@@ -57,7 +57,8 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
         xieChengData.setActionType("IVR");
         xieChengDataDTO.setInitId(bo.getId());
         xieChengData.setSha256Tel(bo.getCaseNum());
-
+        // 保存通话明细扩展字段
+        xieChengData.setExtend(bo.getDetail().getUserProperties());
         // 来自延迟队列，且已判断过有106，进入携程队列(toDelay==true:要进延迟队列，toDelay==false:要进携程队列)
         MqFact mqFact = context.getMqFact();
         Integer isDelay = mqFact.getIsDelay();

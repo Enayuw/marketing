@@ -222,4 +222,6 @@ public interface PushRuleService {
 
     Result<Boolean> deleteRule(Long id);
     Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO);
+
+    String getRoutingKeyFromRedis(String key, String field, String defaultValue);
 }

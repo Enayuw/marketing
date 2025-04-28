@@ -1,0 +1,174 @@
+package com.br.marketing.service.Impl;
+
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.BFileBiConfig;
+import com.br.marketing.entity.BFileBiConfigExample;
+import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.TransferFileTaskExample;
+import com.br.marketing.mapper.BFileBiConfigMapper;
+import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
+import com.br.marketing.mapper.TransferFileTaskMapper;
+import com.br.marketing.service.TransFileToMarketingBiService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author peng.kang
+ * @description: 内部服务器的转化文件落库到marketing BI
+ * @date 2025/4/22 16:04
+ */
+@Slf4j
+@Service
+public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBiService {
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    @Autowired
+    private TransferFileTaskMapper transferFileTaskMapper;
+
+    @Autowired
+    private TransferFileExtractToDorisBIMapper transferFileExtractToDorisBIMapper;
+
+    @Resource
+    private BFileBiConfigMapper bFileBiConfigMapper;
+
+    private static final int BATCH_SIZE = 50;
+
+    @Override
+    public void transFileToMarketingBiProcess(String jobParam) {
+        marketingCommonConfig.getTransFileExtractionApiCodesConfig().forEach(apiCode -> {
+            String date = StringUtils.isNotEmpty(jobParam) ? jobParam : LocalDate.now().toString().replace("-", "");
+            List<String> dateList = Arrays.asList(date.split(","));
+            dateList.forEach(dateItem -> {
+                //按照日期执行
+                TransferFileTaskExample taskExample = new TransferFileTaskExample();
+                taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateItem).andFileTypeEqualTo(1).andStatusEqualTo(2);
+                List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+                if (CollectionUtils.isNotEmpty(transferFileTasks)) {
+                    TransferFileTask transferFileTask = transferFileTasks.get(0);
+                    String filePath = transferFileTask.getFilePath().concat(transferFileTask.getFileName());
+
+                    BFileBiConfigExample example = new BFileBiConfigExample();
+                    example.createCriteria().andApiCodeEqualTo(apiCode).andBusTypeEqualTo("1");
+                    List<BFileBiConfig> bFileBiConfigs = bFileBiConfigMapper.selectByExample(example);
+                    if (CollectionUtils.isEmpty(bFileBiConfigs)) {
+                        String errMsg = "apiCode: " + apiCode + " nfs转化提取文件落库到marketingBI没有找到对应的配置信息";
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
+                    }
+                    processTransferFile(filePath, bFileBiConfigs.get(0), dateItem);
+                }
+            });
+        });
+    }
+
+    void processTransferFile(String filePath, BFileBiConfig bFileBiConfig, String dateItem) {
+        //修改自己的配置
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getTransFileExtractionBIThread()
+                , marketingCommonConfig.getTransFileExtractionBIThread());
+        File file = new File(filePath);
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            // 获取文件表头
+            List<String> columns = Arrays.asList(bFileBiConfig.getDbFields().split(","));
+            // 每50行数据1个线程写入tidb
+            List<String> batchData = new ArrayList<>();
+            String dataLine;
+            reader.readLine();
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            while ((dataLine = reader.readLine()) != null) {
+                modifyThreadPool(threadPool);
+                batchData.add(dataLine);
+                if (batchData.size() == BATCH_SIZE) {
+                    ArrayList<String> copyListObj = new ArrayList<>(batchData);
+                    futures.add(CompletableFuture.runAsync(() -> writeFileDataToTidb(bFileBiConfig.getDbName(), columns, copyListObj, dateItem), threadPool));
+                    batchData.clear();
+                }
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            if (!batchData.isEmpty()) {
+                writeFileDataToTidb(bFileBiConfig.getDbName(), columns, new ArrayList<>(batchData), dateItem);
+            }
+            threadPoolShutDown(threadPool);
+        } catch (Exception e) {
+            String errMsg = "nfs转化提取文件读取入库异常path: " + filePath + " Exception: " + e.getMessage();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
+            threadPoolShutDown(threadPool);
+        }
+    }
+
+    private void modifyThreadPool(ThreadPoolExecutor pool) {
+        Integer threadNum = marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
+    }
+
+    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData, String dateItem) {
+        StringBuilder insertSql = new StringBuilder("INSERT INTO ");
+        insertSql.append(tableName).append(" (");
+        for (int i = 0; i < columns.size(); i++) {
+            if (i != columns.size() - 1) {
+                insertSql.append(columns.get(i).trim()).append(", ");
+            } else {
+                insertSql.append(columns.get(i).trim()).append(") VALUES ");
+            }
+        }
+        List<String> dataList;
+        // 遍历每行
+        for (String dataLine : batchData) {
+            dataList = Arrays.asList(dataLine.split(",", -1));
+            insertSql.append("(");
+            // 遍历每列
+            for (int i = 0; i < dataList.size(); i++) {
+                String value = StringUtils.isEmpty(dataList.get(i).trim()) ? null : dataList.get(i).trim();
+                if (i != dataList.size() - 1) {
+                    insertSql.append("'").append(value).append("', ");
+                } else {
+                    try {
+                        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMdd");
+                        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        insertSql.append("'").append(value).append("', ");
+                        insertSql.append("'").append(outputFormat.format(inputFormat.parse(dateItem))).append("'),");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }
+        insertSql.setLength(insertSql.length() - 1);
+        transferFileExtractToDorisBIMapper.insertDataToMarketingBiTabledoris_(insertSql.toString());
+    }
+
+    private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("nfs转文件提取至BI线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "nfs转文件提取至BI，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+
