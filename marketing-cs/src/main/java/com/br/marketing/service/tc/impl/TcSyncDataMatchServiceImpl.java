@@ -101,6 +101,27 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         );
     }
 
+    @Override
+    public void processUnMatchSingleData(String apiCode, MarketingTcyrSync tcyrSync) {
+        try {
+            tcyrSync.setIsMatch(0);
+            Map<String,String> userCellMap = tcyrSyncRecordMapper.selectSingleLastCustNumCell(apiCode,tcyrSync.getUserKey());
+            if (userCellMap != null) {
+                String custNum = userCellMap.get("custNum");
+                String cell = userCellMap.get("cell");
+                if (StringUtils.isNotBlank(custNum) && StringUtils.isNotBlank(cell)) {
+                    tcyrSync.setCell(cell);
+                    tcyrSync.setIsMatch(1);
+                    tcyrSync.setIsClean(0);
+                }
+            }
+            tcyrSyncMapper.updateMatchInfo(tcyrSync);
+        }catch (Exception e) {
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
+        }
+
+    }
+
     private Result processUnMatchData(String apiCode,List<MarketingTcyrSync> tcyrSyncList) {
         Result result = new Result().failure();
         try {

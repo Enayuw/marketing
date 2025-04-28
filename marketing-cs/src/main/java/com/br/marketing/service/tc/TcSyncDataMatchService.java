@@ -28,4 +28,6 @@ public interface TcSyncDataMatchService {
 
     //match匹配
     void matchTcyrSyncList(String apiCode,List<MarketingTcyrSync> tcyrSyncList);
+
+    void processUnMatchSingleData(String apiCode, MarketingTcyrSync tcyrSync);
 }

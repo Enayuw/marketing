@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Description 同程据匹配任务 - GZ数据拉取&&匹配入库
@@ -44,15 +45,22 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
 
             Long lastSearchId = 0L;
             String apiCode = marketingCommonConfig.getTcyrApiCode();
-            Integer searchSize = 1000;
+            Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
+            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(10, 10);
+            actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+            actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
             while (true) {
                 List<MarketingTcyrSync> tcyrSyncList = tcSyncDataMatchService.selectUnMatchSyncList(apiCode,lastSearchId,searchSize);
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
                     break;
                 }
                 tcSyncDataMatchService.matchTcyrSyncList(apiCode,tcyrSyncList);
+                tcyrSyncList.forEach(tcyrSync ->
+                        actionPool.submit(() -> tcSyncDataMatchService.processUnMatchSingleData(apiCode, tcyrSync))
+                );
                 lastSearchId = tcyrSyncList.get(tcyrSyncList.size() - 1).getId();
             }
+            shutdownThreadPool(actionPool);
             log.warn(TITLE+"调度结束");
         }catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
@@ -60,47 +68,25 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
     }
 
 
-
-
-
-    /**
-     * 多线程match
-     * @param apiCode
-     */
-    private void atciton(String apiCode) {
-        Long waitMatchCount = tcSyncDataMatchService.selectWaitMatchCount(apiCode);
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(10, 10);
-        boolean stillFlag = waitMatchCount>0L;
-        while (stillFlag) {
-            processList(apiCode,actionPool);
-            waitMatchCount = tcSyncDataMatchService.selectWaitMatchCount(apiCode);
-            stillFlag = waitMatchCount>0L;
-        }
-
-    }
-
-    private Result processList(String apiCode, ThreadPoolExecutor actionPool) {
-        Result result = new Result().failure();
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        CompletableFuture.supplyAsync(() -> processData(apiCode), actionPool)
-                .whenComplete((processDataResult, throwable) -> {
-                    if (throwable != null) {
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),throwable.getMessage(), TITLE), throwable);
-                    }
-                });
-        return result.success();
-    }
-
-    private Result processData(String apiCode) {
-        Result result = new Result().failure();
+    public  void shutdownThreadPool(ThreadPoolExecutor executor) {
+        log.warn(TITLE + "shutdownThreadPool开始");
+        long taskCount = -1;
+        executor.shutdown();
         try {
-            tcSyncDataMatchService.dealTcMatch(apiCode);
-            return result.success();
-        } catch (Exception e) {
-            log.error(TITLE + "processData error", e);
-            return result.failure();
+            while (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
+                long completedTaskCount = executor.getCompletedTaskCount();
+                if (taskCount == completedTaskCount) {
+                    log.warn(TITLE + "业务线程等待超时");
+                    break;
+                }
+                taskCount = completedTaskCount;
+            }
+        } catch (InterruptedException e) {
+            Thread.interrupted();
+        } catch (Throwable e) {
+            log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }
+        log.warn(TITLE + "shutdownThreadPool结束");
     }
 
 
