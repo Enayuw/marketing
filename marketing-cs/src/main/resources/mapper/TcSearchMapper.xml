@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcSearchMapper" >
+
+
+  <select id="search" resultType="java.util.Map">
+    SELECT csv_cust.cust_num,CASE WHEN b.cust_num IS NULL THEN 0 ELSE 1 END AS status
+    FROM (
+    VALUES
+<!--    <foreach collection="custList" item="custNum" separator=",">-->
+<!--      (#{custNum})-->
+<!--    </foreach>-->
+    ('fyp2023040401'), ('fyp2023040402')
+    ) AS csv_cust(cust_num)
+    INNER JOIN b_marketing_sync_7492805 b ON csv_cust.cust_num = b.cust_num;
+  </select>
+</mapper>

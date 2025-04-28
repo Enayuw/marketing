@@ -25,7 +25,6 @@ public class ZipFileClient {
     @Resource
     private HttpProxyClient httpProxyClient;
     private final int bufferSize = 8192;
-//    private final int connectionTimeout = 5000;
     private final int socketTimeout = 30000;
 
     public Result downloadZipFile(String url, String targetPath, Boolean isProxy) {
@@ -39,9 +38,7 @@ public class ZipFileClient {
             // 添加请求头
             httpGet.addHeader("Accept", "application/zip");
             httpGet.addHeader("Accept-Encoding", "gzip, deflate");
-            
             log.warn("Starting download from: {}", url);
-            
             try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 
@@ -90,11 +87,11 @@ public class ZipFileClient {
                 downloadedBytes += bytes;
                 
                 // 计算和显示进度
-                if (totalBytes > 0) {
-                    int progress = (int) ((downloadedBytes * 100) / totalBytes);
-                    double speed = calculateSpeed(downloadedBytes, startTime);
-                    log.warn("Progress: {}% - Speed: {:.2f} MB/s", progress, speed);
-                }
+//                if (totalBytes > 0) {
+//                    int progress = (int) ((downloadedBytes * 100) / totalBytes);
+//                    double speed = calculateSpeed(downloadedBytes, startTime);
+//                    log.warn("Progress: {}% - Speed: {} MB/s", progress, String.format("%.2f", speed));
+//                }
             }
         }
     }
@@ -123,15 +120,4 @@ public class ZipFileClient {
         return (bytes / (1024.0 * 1024.0)) / elapsedSeconds;
     }
 
-    public static void main(String[] args) {
-        String url = "https://common-gateway.58.com/thirdpartnar/v1/queryConversionByDate?orgCode=bairongkj&collectDate=2024-11-19&password=d9y6u3";
-        String savePath = "E:/temp/file.zip";
-
-        ZipFileClient zipFileClient = new ZipFileClient();
-        try {
-            zipFileClient.downloadZipFile(url, savePath, false);
-        } catch (Exception e) {
-            log.error("Download failed", e);
-        }
-    }
 }

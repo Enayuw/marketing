@@ -2,4 +2,81 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncRecordMapper" >
 
+    <select id="searchAllTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT  id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code = #{apiCode}
+          AND status = #{status}
+          AND is_del = 1
+    </select>
+
+    <select id="searchTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT  id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code = #{apiCode}
+          AND status = #{status}
+          AND down_status = 0
+          AND is_del = 1
+    </select>
+
+
+    <update id="updageTcyrRecordDownStatus">
+        update b_marketing_tcyr_sync_record set down_status = #{downStatus} where batch_no = #{batchNo}
+    </update>
+
+
+    <insert id="batchAdd">
+        INSERT INTO marketing.b_marketing_tcyr_sync
+        (api_code,batch_no,user_key,terminal,create_time,update_time,status)
+        values
+         <foreach collection="dataList" item="item" separator=",">
+             (
+              #{item.apiCode},#{item.batchNo},#{item.userKey},#{item.terminal},
+              #{item.createTime},#{item.updateTime},#{item.status}
+             )
+         </foreach>
+    </insert>
+
+
+
+
+
+<!--   TODO-0427 map tikv下划线  -->
+    <select id="selectLastUserRecordIdList" resultType="java.lang.Long">
+        SELECT  MAX(id)
+        FROM b_marketing_sync_${apiCode}
+        WHERE cust_num IN
+        <foreach item="userKey" index="index" collection="userKeyList"
+                 open="(" separator="," close=")">
+            #{userKey}
+        </foreach>
+        GROUP BY cust_num;
+    </select>
+
+
+    <select id="selectLastCustNumCelltikv_" resultType="java.util.Map">
+        SELECT
+            cust_num AS custNum,
+            cell_md5 AS cell
+        FROM (
+            SELECT
+                cust_num,
+                cell_md5,
+                ROW_NUMBER() OVER (PARTITION BY cust_num ORDER BY create_time DESC) AS rn
+            FROM b_marketing_sync_${apiCode}
+                WHERE status = 1 AND cust_num IN
+                <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
+                    #{userKey}
+                </foreach>
+        ) t
+        WHERE rn = 1
+    </select>
+    <select id="selectSingleLastCustNumCell" resultType="java.util.Map">
+        SELECT cust_num AS custNum,cell_md5 AS cell
+        FROM b_marketing_sync_${apiCode}
+        WHERE cust_num = #{userKey} and status=1
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
 </mapper>
