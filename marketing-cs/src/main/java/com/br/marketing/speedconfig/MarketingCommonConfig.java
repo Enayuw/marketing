@@ -2800,12 +2800,10 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
-
     /**
      * 同城易融-gz查询-csv分页size
      */
     private Integer tcGzResultPartitionSize;
-
 
     /**
      * 同城易融-gz包查询-批量DB线程
@@ -2817,7 +2815,6 @@ public class MarketingCommonConfig {
      */
 
     private Integer  tcPageSearchSize;
-
 
 }
 
