@@ -21,8 +21,6 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
 
     List<Long> selectLastUserRecordIdList(@Param("apiCode")String apiCode,@Param("userKeyList") List<String> userKeyList);
 
-    Integer updageTcyrRecordSyncStatus(@Param("batchNo") String batchNo, @Param("status") Integer status);
-
     Integer updageTcyrRecordDownStatus(@Param("batchNo") String batchNo, @Param("downStatus") Integer downStatus);
 
 

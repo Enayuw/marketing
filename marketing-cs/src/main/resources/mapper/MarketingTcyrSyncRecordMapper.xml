@@ -19,10 +19,6 @@
           AND is_del = 1
     </select>
 
-    <update id="updageTcyrRecordSyncStatus">
-        update b_marketing_tcyr_sync_record set status = #{status} where batch_no = #{batchNo}
-    </update>
-
 
     <update id="updageTcyrRecordDownStatus">
         update b_marketing_tcyr_sync_record set down_status = #{downStatus} where batch_no = #{batchNo}

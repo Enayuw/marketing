@@ -1,15 +1,12 @@
 package com.br.marketing.service.tc.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
-import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
@@ -19,14 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**

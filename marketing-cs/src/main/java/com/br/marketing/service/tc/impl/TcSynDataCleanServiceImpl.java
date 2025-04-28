@@ -39,11 +39,6 @@ public class TcSynDataCleanServiceImpl implements TcSyncDataCleanService {
     }
 
     @Override
-    public Integer updageTcyrRecordSyncStatus(String batchNo, Integer status) {
-        return tcyrSyncRecordMapper.updageTcyrRecordSyncStatus(batchNo,status);
-    }
-
-    @Override
     public List<MarketingTcyrSyncRecord> searchAllTcyrSyncList(String apiCode,Integer status) {
         return tcyrSyncRecordMapper.searchAllTcyrSyncList(apiCode,status);
     }
