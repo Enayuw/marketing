@@ -20,6 +20,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MarketingCommonConfig {
 
     /**
+     * 线程池动态配置服务端URL
+     */
+    private String tpDynamicServiceUrl;
+
+    /**
+     * 线程池动态配置停用开关(true:停用（不可恢复）)
+     */
+    private Boolean tpDynamicServiceDisableSwitch;
+
+    /**
+     * 线程池动态配置暂停开关(true:暂停（可恢复）)
+     */
+    private Boolean tpDynamicServicePauseSwitch;
+
+    /**
      * 推送客服
      */
     private List<String> apiCodeOfpushCustomer;
@@ -1157,6 +1172,10 @@ public class MarketingCommonConfig {
      * 携程新AppId 撞库
      */
     private String xieChengNewAppId;
+    /**
+     * 携程短信撞库挡板开关
+     */
+    private String xieChengSmsCollidingDataVtSwitch;
 
     /**
      * 2023-09-27 19:12
@@ -1654,6 +1673,12 @@ public class MarketingCommonConfig {
     private Boolean xieChengCleanSwitch;
 
     /**
+     * 2024-03-25 14:02
+     * 滴滴场景与媒体名称映射 eg:{"userType":"mediaName"}
+     */
+    private Map<String, String> diDiUserTypeAndMediaNameMapping = new HashMap<>();
+
+    /**
      * 携程定制化配置ApiCode
      */
     private String xieChengDingZhiApiCode;
@@ -1692,6 +1717,7 @@ public class MarketingCommonConfig {
      */
     @Deprecated
     private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
+
     /**
      * 修复cell的apiCode前缀集合
      */
@@ -1756,24 +1782,14 @@ public class MarketingCommonConfig {
     private Long queryCustomerPushTimeOutDelay;
 
     /**
+     * 金美鑫黑名单文件校验相关配置
+     */
+    private String jinMeiXinBlackListFileCheckConfig;
+    /**
      * 宜信推决策(原转人工数据)的 apiCode
      */
     private String yiXinToPolicyApiCode;
 
-    /**
-     * 金美鑫黑名单文件校验相关配置
-     */
-    private String jinMeiXinBlackListFileCheckConfig;
-
-    /**
-     * 榕树转化数据提取apiCode集合
-     */
-    private List<String> rongShuTransferApiCodes;
-
-    /**
-     * 榕树数据提取时间
-     */
-    private String rongShuFileExecTime;
     /**
      * 间隔几分钟后调用决策配置
      * apiCode：客户编号
@@ -1785,16 +1801,32 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> periodPushConfig;
 
+    /**
+     * 携程撞库条件开关失效时间n秒
+     */
+    private Integer xieChengExpireSeconds;
+
+
+    /**
+     * 榕树转化数据提取apiCode集合
+     */
+    private List<String> rongShuTransferApiCodes;
+
+    /**
+     * 榕树数据提取时间
+     */
+    private String rongShuFileExecTime;
+
+    /**
+     * marketing-task跑分服务节点数量
+     */
+    private Integer numberOfScoreTaskNodes;
 
     /**
      * 数据清洗试跑apiCode
      */
     private String datacleanTestRunApiCode;
 
-    /**
-     *  * marketing-task跑分服务节点数量
-     */
-    private Integer numberOfScoreTaskNodes;
 
     /**
      * 携程CPA撞库过滤转化数据convType配置
@@ -1820,14 +1852,21 @@ public class MarketingCommonConfig {
      * 奇富360转化数据提取执行时间
      */
     private String CuDongZhiTransferFileExecuteTime;
+
+    /**
+     *  携程撞库推决策分页查询数量
+     */
+    private Integer xiechengZkToPlicyPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengSmsCollidingConfig;
+
     /**
      * 奇富360数据清洗调用转化接口线程数
      */
     private Integer dataCleanQiFu360CoreAndMaxNum;
-    /**
-     * #奇富360获取用户信息接口挡板 true:开启挡板。false:关闭挡板
-     */
-    private HashMap<String, Object> qifuQryUserMessageMock;
 
     /**
      * 数禾推送客服黑名单促首登场景apicode映射配置
@@ -1840,16 +1879,10 @@ public class MarketingCommonConfig {
      * eg:{"3710149":["促首登"],"7410727":["促首登"]}
      */
     private HashMap<String, List<String>> shuHeCuShouDengTransferApiCodeMapping;
-
     /**
-     *  携程撞库推决策分页查询数量
+     * #奇富360获取用户信息接口挡板 true:开启挡板。false:关闭挡板
      */
-    private Integer xiechengZkToPlicyPageSize;
-
-    /**
-     *  携程短信撞库接口参数配置
-     */
-    private JSONObject xieChengSmsCollidingConfig;
+    private HashMap<String, Object> qifuQryUserMessageMock;
 
     /**
      *  携程短信撞库一次性初始化流水号接口参数配置
@@ -1867,6 +1900,10 @@ public class MarketingCommonConfig {
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
     /**
+     * 奇富360数据提取参数配置
+     */
+    private HashMap<String, JSONObject> qiFuExtDataConfig;
+    /**
      * 之家创建线索程池数
      */
     private Integer zhiJiaCollidingThread;
@@ -1875,55 +1912,6 @@ public class MarketingCommonConfig {
      * 之家落库apiCode
      */
     private String zhiJiaApiCode;
-
-    /**
-     * 之家用户信息分页参数
-     */
-    private Integer zhiJiaQryUserMessageSize;
-    /**
-     * 奇富360数据提取参数配置
-     */
-    private HashMap<String, JSONObject> qiFuExtDataConfig;
-
-    /**
-     * 奇富360全量数据提取VT切换参数配置
-     */
-    private Boolean qiFuExtDataVTConfig;
-
-    /**
-     * 奇富360全量数据提取参数配置
-     */
-    private HashMap<String, JSONObject> qiFuFullExtDataConfig;
-
-    /**
-     * 奇富360全量数据提取线程数
-     */
-    private Integer qiFuFullExtDataSoleNum;
-
-    /**
-     * 苏商推送通话明细apiCode
-     */
-    private List<String> suShangApiCodes;
-
-    /**
-     * 苏商查询数据 limit 量级
-     */
-    private Integer suShangSearchPageSize;
-
-    /**
-     * 苏商推送数据线程数
-     */
-    private Integer suShangPushThreadNum;
-
-    /**
-     * 苏商自动化回传apiCode集合
-     */
-    private List<String> SuShangTransferExtractApiCodes;
-
-    /**
-     * 苏商自动化回传执行时间
-     */
-    private String SuShangTransferFileExecuteTime;
 
     /**
      * 58老客撞库提交撞库apiCode集合
@@ -1936,6 +1924,11 @@ public class MarketingCommonConfig {
     private Integer wubaOldCollidingDataSyncThreadNum;
 
     /**
+     * 58老客提交撞库开关(true:开启，false关闭)
+     */
+    private Boolean wuBaOldCollidingDataSwitch;
+
+    /**
      * 58老客查询撞库结果分页条数
      */
     private Integer wuBaOldCollidingQueryResultPageSize;
@@ -1946,8 +1939,8 @@ public class MarketingCommonConfig {
     private JSONObject wuBaOldCollidingUrlConfig;
 
     /**
-    *  58老客查询撞库结果挡板
-    */
+     *  58老客查询撞库结果挡板
+     */
     private JSONObject wuBaOldMock;
 
     /**
@@ -2001,7 +1994,30 @@ public class MarketingCommonConfig {
      * 58查询撞库结果等待时长（分钟）
      */
     private Integer wuBaCollidingQueryResultWaitMinutes;
+    /**
+     * 苏商推送通话明细apiCode
+     */
+    private List<String> suShangApiCodes;
 
+    /**
+     * 苏商查询数据 limit 量级
+     */
+    private Integer suShangSearchPageSize;
+
+    /**
+     * 苏商推送数据线程数
+     */
+    private Integer suShangPushThreadNum;
+
+    /**
+     * 苏商自动化回传apiCode集合
+     */
+    private List<String> SuShangTransferExtractApiCodes;
+
+    /**
+     * 苏商自动化回传执行时间
+     */
+    private String SuShangTransferFileExecuteTime;
     /**
      * 58新客-营销名单上报-修改上报数据-开关，1-开，0-关
      */
@@ -2198,12 +2214,24 @@ public class MarketingCommonConfig {
     private JSONObject commonMockConfig;
 
     /**
+     * 奇富360全量数据提取VT切换参数配置
+     */
+    private Boolean qiFuExtDataVTConfig;
+    /**
      *
      * 58新课数据提取参数配置
      */
-    private HashMap<String, JSONObject> wbxkExtDataConfig;
+    private HashMap<String, JSONObject> qiFuFullExtDataConfig;
 
     /**
+     * 奇富360全量数据提取线程数
+     */
+    private Integer qiFuFullExtDataSoleNum;
+
+    /**
+     private HashMap<String, JSONObject> wbxkExtDataConfig;
+
+     /**
      * 58撞库接口参数配置
      */
     private JSONObject wuBaCollidingUrlConfig;
@@ -2217,6 +2245,17 @@ public class MarketingCommonConfig {
      * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
+
+
+    /**
+     * 58新课数据提取参数配置
+     */
+    private HashMap<String, JSONObject> wbxkExtDataConfig;
+
+    /**
+     * 之家用户信息分页参数
+     */
+    private Integer zhiJiaQryUserMessageSize;
 
 
     /**
@@ -2306,14 +2345,14 @@ public class MarketingCommonConfig {
     private String wuBaDingDingSecret;
 
     /**
-     * 数禾推送百可录AES加密key配置
-     */
-    private JSONObject shuHeToBioclooAesKeyConfig;
-
-    /**
      * 携程Bi报表展示数量
      */
     private Map<String, Integer> xiechengBiReportShowNumMap;
+
+    /**
+     * 数禾推送百可录AES加密key配置
+     */
+    private JSONObject shuHeToBioclooAesKeyConfig;
 
     /**
      * 携程Bi单日撞库报表dataPacket排序
@@ -2331,6 +2370,10 @@ public class MarketingCommonConfig {
     private HashMap<String, JSONObject> biReportGroupConfig;
 
     /**
+     * 数禾推送百可录场景及apiCode路由配置
+     */
+    private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
+    /**
      * Bi报表分组维度字典配置
      */
     private HashMap<String, JSONObject> biReportGroupDictConfig;
@@ -2342,23 +2385,10 @@ public class MarketingCommonConfig {
 
     /**
      * 跑分模型分布 配置数据展示规则时需要的多头前缀
+     * 你我贷转化规则过滤配置
      */
     private Set<String> reportmultPointPrefixSet;
 
-    /**
-     * bi报表场景名称前缀配置
-     */
-    private HashMap<String, String> biReportScenePrefixConfig;
-
-    /**
-     * 数禾推送百可录场景及apiCode路由配置
-     */
-    private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
-
-    /**
-     * 你我贷转化规则过滤配置
-     */
-    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();
 
     /**
      * 苏商文件时间
@@ -2371,6 +2401,18 @@ public class MarketingCommonConfig {
     private String suShangFileExecTime;
 
     /**
+     * bi报表场景名称前缀配置
+     */
+    private HashMap<String, String> biReportScenePrefixConfig;
+
+    /**
+     * 你我贷转化规则过滤配置
+     */
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+
+    /**
+
+     /**
      * 携程促活数据处理线程数
      */
     private Integer xiechengCollidingActivateThread;
@@ -2380,6 +2422,16 @@ public class MarketingCommonConfig {
      * true 打开，false 关闭
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
+
+    /**
+     * #自动刷新任务配置：apiCode \ 跑分配置规则编号 \ 推送决策规则编号
+     */
+    private Map<String, JSONObject> autoRefreshConfig;
+
+    /**
+     * 数禾促复借每日自动化匹配数据相关配置
+     */
+    private String shuHeCuFuJieMatchDataConfig;
 
     /**
      * 奇富360-促完件-用户信息批量查询-Job开关，1-开，0-关
@@ -2413,14 +2465,9 @@ public class MarketingCommonConfig {
     private JSONObject weiJuCleanFieldMappingConfig;
 
     /**
-     * #自动刷新任务配置：apiCode \ 跑分配置规则编号 \ 推送决策规则编号
+     * 交付系统下发apiType类型
      */
-    private Map<String, JSONObject> autoRefreshConfig;
-
-    /**
-     * 数禾促复借每日自动化匹配数据相关配置
-     */
-    private String shuHeCuFuJieMatchDataConfig;
+    private List<String> apiTypeList;
 
     /**
      * 国美清洗字段映射配置
@@ -2436,6 +2483,11 @@ public class MarketingCommonConfig {
      * 奇富AI上传数据参数配置
      */
     private JSONObject qiFuAIServerConfig;
+
+    /**
+     * 营销推决策数据打标es使用标志
+     */
+    private Boolean pushPolicyMarkWithEsFlag;
 
     /**
      * 国美用户数据回传配置
@@ -2467,11 +2519,6 @@ public class MarketingCommonConfig {
     private JSONObject syncReportThreadConfig;
 
     /**
-     * 营销推决策数据打标es使用标志
-     */
-    private Boolean pushPolicyMarkWithEsFlag;
-
-    /**
      * 360ai的strategyCode清洗配置
      */
     private Boolean qifuAiCleanStrategyCodeFlag;
@@ -2491,16 +2538,26 @@ public class MarketingCommonConfig {
      */
     private List<String> XcDynaFalsePackageIds;
 
+
+    /**
+     * 携程剔除量级告警配置
+     */
+    private Map<String, Object> xcDeleteAlarmConfig;
+
+
     private Integer xieChengBlackEncAndDesThread;
 
     private Integer xieChengPreCollidingBlackListDeleteThread;
-
 
     /**
      * 自动化测试免密登陆ip
      */
     private List<String> autoTestIp;
 
+    /**
+     * 众安经营分析报表统计apiCode
+     */
+    private String zhongAnReportStatisticApiCode;
     /**
      * 三方apiCode映射配置
      */
@@ -2510,6 +2567,15 @@ public class MarketingCommonConfig {
      * 三方接口方法参数配置
      */
     private HashMap<String, JSONObject> thirdPartnerApiMethodConfig;
+    /**
+     * 模拟ES异常的开关 {"scoreStart":true,"esRetry":true}
+     * true 打开开关, false关闭开关
+     */
+    private HashMap<String, JSONObject> esRetryToDataSwitch;
+    /**
+     * ES补推创建线索程池数
+     */
+    private Integer esRetryToDataThread;
 
     /**
      * 三方接口方法挡板开关 true:开启挡板。false:关闭挡板
@@ -2523,30 +2589,25 @@ public class MarketingCommonConfig {
     private HashMap<String, Object> thirdPartnerApiMethodMock;
 
     /**
-     * 众安经营分析报表统计apiCode
-     */
-    private String zhongAnReportStatisticApiCode;
-
-    /**
-     * 模拟ES异常的开关 {"scoreStart":true,"esRetry":true}
-     * true 打开开关, false关闭开关
-     */
-    private HashMap<String, JSONObject> esRetryToDataSwitch;
-    /**
-     * ES补推创建线索程池数
-     */
-    private Integer esRetryToDataThread;
-
-
-    /**
-     * 数据分组分页大小
-     */
-    private Map<String,Integer> dataGroupPageSize;
-    /**
      * 萨摩耶客制化传输数据配置
      * {"uploadApiCode":"3710196","transferApiCode":"3710196"}
      */
     private JSONObject smyCustomizeDataConfig;
+    /**
+     * 数据分组分页大小
+     */
+    private Map<String,Integer> dataGroupPageSize;
+
+    /**
+     *  凌霄宝殿脚本告警
+     */
+    private String aviatorAlarmUrl;
+
+    /**
+     * 萨摩耶客制化数据清洗配置
+     * {"uploadThread":10,"transferThread":10}
+     */
+    private JSONObject smyCustomizeDataCleanConfig;
 
     /**
      * 模拟跑分推决策异常开关 true:开启挡板。false:关闭挡板
@@ -2559,12 +2620,6 @@ public class MarketingCommonConfig {
      *     policyRetry：推决策异常
      */
     private HashMap<String, JSONObject> policyRetrySwitch;
-
-    /**
-     * 萨摩耶客制化数据清洗配置
-     * {"uploadThread":10,"transferThread":10}
-     */
-    private JSONObject smyCustomizeDataCleanConfig;
 
     /**
      * 萨摩耶黑名单推送配置
@@ -2725,15 +2780,37 @@ public class MarketingCommonConfig {
     private Map<String, Integer> ppCarBlackList;
 
     /**
+     * 众安AI明细推送配置
+     */
+    private HashMap<String, JSONObject> zhongAnAIDetailPush;
+
+    /**
+     * 众安AI名单锁定推送数据线程池配置,eg：{"MG":[50,100]},50为业务线程数据，100为推送线程数
+     */
+    private HashMap<String, List<Integer>> zhongAnAIPushTreadPoolSizeMap;
+
+    /**
      * 通用上传推送决策特殊客户
      */
     private List<String> apiCodeOfpushPolicy;
+    /**
+     * 众安AI 通话明细名单推送时间
+     */
+    private String zhongAnAIRosterLockingTime;
 
     /**
      * 车线索姓名匹配配置
      */
     private JSONObject carClueDataMemberConfig;
 
+    /**
+     * 榕树新客推送电销场景映射配置
+     */
+    private JSONObject rsxkToDassUserTypeConfig;
+
+    /**
+     * 携程撞库日志数据库异常挡板
+     */
     /**
      * 外呼接口方法挡板开关 true:开启挡板。false:关闭挡板
      * antaiosResourceMock={"switch":true,"code":"00000"}
@@ -2762,6 +2839,11 @@ public class MarketingCommonConfig {
     private Map<String,String> tagCalculateConfig;
 
     /**
+     * 携程定制传输数据接口apicode（不能换成测试账号！）
+     */
+    private String xieChengDrsTransferApiCode;
+
+    /**
      * 标签量级相关
      */
     private HashMap<String, Integer> toPolicyThreadNum;
@@ -2770,10 +2852,6 @@ public class MarketingCommonConfig {
      * 同步ai标签库apiCode
      */
     private String tagApiCode;
-    /**
-     * 榕树新客推送电销场景映射配置
-     */
-    private JSONObject rsxkToDassUserTypeConfig;
 
     /**
      * 奇富促动支清洗上传及Es配置
@@ -2786,9 +2864,37 @@ public class MarketingCommonConfig {
 
 
     /**
+     * 携程定制转化清洗apicode
+     */
+    private List<String> xcTransferDataCleanApiCodes;
+
+    /**
      * 数禾自动化洗库参数配置 {"apiCode":["3710028","3710048"],"appletDate":["2025-01-01","2025-01-02"],"fileName":"pdm_cusop_slp_dyy_br1_df_yyyy-MM-dd_5.csv"}
      */
     private Map<String,Object> shuHeFileCleanUploadDateConfig;
+    /**
+     * 转化文件提取到marketingBI的配置
+     */
+    private List<String> transFileExtractionApiCodesConfig;
+    /**
+     * 转化文件提取到BI线程数
+     */
+    private Integer transFileExtractionBIThread;
+
+    /**
+     * AI客户apiCode集合
+     */
+    private List<String> aiApiCodeList;
+
+    /**
+     * AI客户消费端启用线程池开关
+     */
+    private Boolean aiMqEnableThreadPoolSwitch;
+
+    /**
+     * 动态切换MQ消息数量阈值
+     */
+    private Integer switchMqMaxMsgCount;
 
     /**
      * 同程易融服务配置
@@ -2799,6 +2905,35 @@ public class MarketingCommonConfig {
      * 同程易融apiCode
      */
     private String tcyrApiCode;
+
+    /**
+     * 携程上报新接口
+     */
+    private HashMap<String,JSONObject> xieChengCpaAndCpsConfig;
+
+
+    /**
+     * 携程上报切换开关
+     * true 打开 新接口，false 关闭执行旧接口
+     */
+    private Boolean xieChengCpaAndCpsSwitch;
+
+    /**
+     * 同城易融-tcSyncDataMatch-开关，1-开，0-关
+     */
+    private String tcDataMatchJobSwitch;
+
+
+    /**
+     * 同城易融-tcSyncDataClean-开关，1-开，0-关
+     */
+    private String tcSyncDataCleanJobSwitch;
+
+    /**
+     * 同城易融-tcSyncDataClean-开关，1-开，0-关
+     */
+    private String tcTransferCleanJobSwitch;
+
 
     /**
      * 同城易融-gz查询-csv分页size
