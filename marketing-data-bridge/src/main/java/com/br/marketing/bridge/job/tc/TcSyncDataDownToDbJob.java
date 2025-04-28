@@ -67,7 +67,8 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
      */
     private void atciton(String apiCode) {
         //
-        List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataDownService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue(),getStartOfDay(),getEndOfDay());
+        List<MarketingTcyrSyncRecord> syncRecordList =
+                tcSyncDataDownService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue(),getStartOfDay(),getEndOfDay());
 
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
@@ -77,9 +78,11 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
                     tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
                     Long total = JSONObject.parseObject(syncRecord.getData()).getLong("total");
                     Long totalSuccess = Long.parseLong(syncResult.getData().toString());
-                    log.warn(TITLE+"任务执行成功,apiCode:{}, batchNo:{},total:{},totalSuccess:{}",syncRecord.getApiCode(),syncRecord.getBatchNo(),total,totalSuccess);
+                    log.warn(TITLE+"任务执行成功,apiCode:{}, batchNo:{},total:{},totalSuccess:{}"
+                            ,syncRecord.getApiCode(),syncRecord.getBatchNo(),total,totalSuccess);
                     if (total != null && !total.equals(totalSuccess)) {
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),"batchNo:"+syncRecord.getBatchNo()+",total:"+total+",success:"+totalSuccess+",success数量和total数不一致", TITLE));
+                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                                "batchNo:"+syncRecord.getBatchNo()+",total:"+total+",success:"+totalSuccess+",success数量和total数不一致", TITLE));
                     }
                 }
             }catch (Exception e) {

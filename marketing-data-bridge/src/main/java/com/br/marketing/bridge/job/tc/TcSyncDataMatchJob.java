@@ -86,7 +86,7 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
                 taskCount = completedTaskCount;
             }
         } catch (InterruptedException e) {
-            Thread.interrupted();
+            Thread.currentThread().interrupt();
         } catch (Throwable e) {
             log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }

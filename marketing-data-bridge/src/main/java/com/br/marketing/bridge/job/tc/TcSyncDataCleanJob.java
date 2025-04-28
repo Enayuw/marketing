@@ -179,7 +179,8 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
      */
     private UploadDataDTO initUploadData(String apiCode,String batchNo, List<MarketingPreUserDetailDTO> syncUsers) {
         String taskId = batchNo;
-        int randomNumber = 10000 + new Random().nextInt(90000);
+        Random random = new Random();
+        int randomNumber = 10000 + random.nextInt(90000);
         String requestId = apiCode+"_"+taskId+"_"+System.currentTimeMillis()+"_"+randomNumber;
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(taskId);
