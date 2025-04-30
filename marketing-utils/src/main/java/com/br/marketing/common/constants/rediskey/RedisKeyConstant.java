@@ -329,4 +329,9 @@ public class RedisKeyConstant {
      */
     public static final String SWITCH_MESSAGE_QUEUE = prefix.concat("switchmessagequeue");
 
+    /**
+     * 队列切换
+     */
+    public static final String ORIGINAL_DATA_JSON_PARSE = prefix.concat("datajsonparse");
+
 }
