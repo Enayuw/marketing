@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="clean_config_id" jdbcType="BIGINT" property="cleanConfigId" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="mapping_field" jdbcType="VARCHAR" property="mappingField" />
+    <result column="clean_fields" jdbcType="VARCHAR" property="cleanFields" />
+    <result column="is_mapping" jdbcType="BOOLEAN" property="isMapping" />
+    <result column="mapping_rule" jdbcType="VARCHAR" property="mappingRule" />
+    <result column="result_preview" jdbcType="VARCHAR" property="resultPreview" />
+    <result column="is_del" jdbcType="INTEGER" property="isDel" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, clean_config_id, api_code, mapping_field, clean_fields, is_mapping, mapping_rule, 
+    result_preview, is_del, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfigExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_data_clean_general_rule_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_data_clean_general_rule_config
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_marketing_data_clean_general_rule_config
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfigExample">
+    delete from b_marketing_data_clean_general_rule_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig" useGeneratedKeys="true">
+    insert into b_marketing_data_clean_general_rule_config (clean_config_id, api_code, mapping_field, 
+      clean_fields, is_mapping, mapping_rule, 
+      result_preview, is_del, create_time, 
+      update_time)
+    values (#{cleanConfigId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{mappingField,jdbcType=VARCHAR}, 
+      #{cleanFields,jdbcType=VARCHAR}, #{isMapping,jdbcType=BOOLEAN}, #{mappingRule,jdbcType=VARCHAR}, 
+      #{resultPreview,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig" useGeneratedKeys="true">
+    insert into b_marketing_data_clean_general_rule_config
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="cleanConfigId != null">
+        clean_config_id,
+      </if>
+      <if test="apiCode != null">
+        api_code,
+      </if>
+      <if test="mappingField != null">
+        mapping_field,
+      </if>
+      <if test="cleanFields != null">
+        clean_fields,
+      </if>
+      <if test="isMapping != null">
+        is_mapping,
+      </if>
+      <if test="mappingRule != null">
+        mapping_rule,
+      </if>
+      <if test="resultPreview != null">
+        result_preview,
+      </if>
+      <if test="isDel != null">
+        is_del,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="cleanConfigId != null">
+        #{cleanConfigId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingField != null">
+        #{mappingField,jdbcType=VARCHAR},
+      </if>
+      <if test="cleanFields != null">
+        #{cleanFields,jdbcType=VARCHAR},
+      </if>
+      <if test="isMapping != null">
+        #{isMapping,jdbcType=BOOLEAN},
+      </if>
+      <if test="mappingRule != null">
+        #{mappingRule,jdbcType=VARCHAR},
+      </if>
+      <if test="resultPreview != null">
+        #{resultPreview,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null">
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfigExample" resultType="java.lang.Long">
+    select count(*) from b_marketing_data_clean_general_rule_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_marketing_data_clean_general_rule_config
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.cleanConfigId != null">
+        clean_config_id = #{record.cleanConfigId,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mappingField != null">
+        mapping_field = #{record.mappingField,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cleanFields != null">
+        clean_fields = #{record.cleanFields,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isMapping != null">
+        is_mapping = #{record.isMapping,jdbcType=BOOLEAN},
+      </if>
+      <if test="record.mappingRule != null">
+        mapping_rule = #{record.mappingRule,jdbcType=VARCHAR},
+      </if>
+      <if test="record.resultPreview != null">
+        result_preview = #{record.resultPreview,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null">
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_marketing_data_clean_general_rule_config
+    set id = #{record.id,jdbcType=BIGINT},
+      clean_config_id = #{record.cleanConfigId,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      mapping_field = #{record.mappingField,jdbcType=VARCHAR},
+      clean_fields = #{record.cleanFields,jdbcType=VARCHAR},
+      is_mapping = #{record.isMapping,jdbcType=BOOLEAN},
+      mapping_rule = #{record.mappingRule,jdbcType=VARCHAR},
+      result_preview = #{record.resultPreview,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig">
+    update b_marketing_data_clean_general_rule_config
+    <set>
+      <if test="cleanConfigId != null">
+        clean_config_id = #{cleanConfigId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mappingField != null">
+        mapping_field = #{mappingField,jdbcType=VARCHAR},
+      </if>
+      <if test="cleanFields != null">
+        clean_fields = #{cleanFields,jdbcType=VARCHAR},
+      </if>
+      <if test="isMapping != null">
+        is_mapping = #{isMapping,jdbcType=BOOLEAN},
+      </if>
+      <if test="mappingRule != null">
+        mapping_rule = #{mappingRule,jdbcType=VARCHAR},
+      </if>
+      <if test="resultPreview != null">
+        result_preview = #{resultPreview,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null">
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig">
+    update b_marketing_data_clean_general_rule_config
+    set clean_config_id = #{cleanConfigId,jdbcType=BIGINT},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      mapping_field = #{mappingField,jdbcType=VARCHAR},
+      clean_fields = #{cleanFields,jdbcType=VARCHAR},
+      is_mapping = #{isMapping,jdbcType=BOOLEAN},
+      mapping_rule = #{mappingRule,jdbcType=VARCHAR},
+      result_preview = #{resultPreview,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,7 +1,7 @@
 package com.br.marketing.service.clean.common.impl;
 
-import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -9,17 +9,21 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
+import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
 import com.br.marketing.entity.MarketingJsonNodeParse;
 import com.br.marketing.entity.MarketingJsonNodeParseExample;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.service.clean.common.DataCleanService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +33,10 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Autowired
     private MarketingJsonNodeParseMapper marketingJsonNodeParseMapper;
+
+
+    @Autowired
+    private MarketingDataCleanGeneralRuleConfigMapper marketingDataCleanGeneralRuleConfigMapper;
 
 
     @Resource
@@ -71,6 +79,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         return result;
     }
+
 
     /**
      * 递归处理JSON节点并存入数据库
@@ -115,9 +124,9 @@ public class DataCleanServiceImpl implements DataCleanService {
             for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
                 processJsonNode(apiCode, dataType, acceptType, entry.getKey(), newParentPath, entry.getValue(), level + 1, false);
             }
-        } else if (nodeValue instanceof com.alibaba.fastjson.JSONArray) {
+        } else if (nodeValue instanceof JSONArray) {
             // 数组类型
-            com.alibaba.fastjson.JSONArray jsonArray = (com.alibaba.fastjson.JSONArray) nodeValue;
+            JSONArray jsonArray = (JSONArray) nodeValue;
             nodeType = "array";
 
             // 数组值直接转为字符串
@@ -200,6 +209,32 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         //写入缓存
         redisChgService.saddMember(redisKey, nodeName);
+    }
+
+
+    @Override
+    public Map<String, String> getConfigRule(String apiCode, Integer dataType, Integer acceptType) {
+        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode).concat(":").concat(dataType.toString()).concat(":").concat(acceptType.toString());
+        Map<String, Object> ruleMap = redisChgService.hgetall(redisKey);
+        if (!CollectionUtils.isEmpty(ruleMap)) {
+            Map<String, String> resultMap = new HashMap<>();
+            ruleMap.forEach((key, value) -> {
+                resultMap.put(key, value != null ? value.toString() : null);
+            });
+            return resultMap;
+        }
+        //查询数据库
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.getRuleConfigList(apiCode, dataType, acceptType);
+        if (CollectionUtils.isEmpty(ruleConfigList)) {
+            return null;
+        }
+        Map<String, String> config = new HashMap<>();
+        ruleConfigList.forEach(rule -> {
+            config.put(rule.getMappingField(), rule.getMappingRule());
+
+        });
+        redisChgService.hmset(redisKey, config);
+        return config;
     }
 
 }
