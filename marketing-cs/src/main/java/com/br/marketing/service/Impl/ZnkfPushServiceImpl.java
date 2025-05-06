@@ -7,7 +7,9 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
+import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
@@ -45,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -130,17 +133,12 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             callRecord.setCallStartTime(StringUtils.isNotEmpty(dto.getDetail().getCallStartTime()) ? new Date(dto.getDetail().getCallStartTime()) : null);
             callRecord.setCallConnectTime(StringUtils.isNotEmpty(dto.getDetail().getCallConnectTime()) ? new Date(dto.getDetail().getCallConnectTime()) : null);
             callRecord.setCallEndTime(StringUtils.isNotEmpty(dto.getDetail().getCallEndTime()) ? new Date(dto.getDetail().getCallEndTime()) : null);
-            //校验是否已经落库
-            CallRecordExample callRecordExample = new CallRecordExample();
-            callRecordExample.createCriteria().andTaskIdEqualTo(callRecord.getTaskId())
-                    .andCaseNumEqualTo(callRecord.getCaseNum())
-                    .andSessionIdEqualTo(callRecord.getSessionId());
-            List<CallRecord> callRecords = callRecordMapper.selectByExample(callRecordExample);
-            if (callRecords != null && callRecords.size() > 0) {
-                log.info("taskId={},caseNum={},sessionId={} 的拨打记录已落库！", callRecord.getTaskId(), callRecord.getCaseNum(), callRecord.getSessionId());
-                return "success";
-            } else {
+            // 增加联合唯一索引，去掉查询 提升性能
+            try {
                 callRecordMapper.insertSelective(callRecord);
+            }catch (DuplicateKeyException keyException) {
+                return "success";
+            }
                 // 2022-5-17 15:13:23 修改为可配置的apiCode
 //                if ("3710004".equals(callRecord.getApiCode()) || "3710023".equals(callRecord.getApiCode()) || "7410785".equals(callRecord.getApiCode())) {
                 List<String> apiCodes = marketingCommonConfig.getCallRecordDataPushMqApiCodes();
@@ -182,8 +180,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                         producter.sendToUniversalTransferQueue(mrpMqFact);
                     }
                 }
-
-            }
         } catch (Exception ex) {
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId(), ex);
             return "客服拨打记录落库失败(insert b_call_record fail)!";
