@@ -1,24 +1,29 @@
 package com.br.marketing.service.carclue.web.impl;
+import java.util.Date;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.dto.ExecuteCarClueDTO;
+import com.br.marketing.entity.CarClueExecuteRecording;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.carclue.clueenums.ExecuteClueStatusEnum;
 import com.br.marketing.service.carclue.web.CarClueReportService;
 import com.br.marketing.service.carclue.clueenums.CarClueCompleteStatusEnum;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
-import org.springframework.beans.BeanUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -36,6 +41,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
     @Resource
     CarClueInfoMapper carClueInfoMapper;
+    @Resource
+    CarClueExecuteRecordingMapper carClueExecuteRecordingMapper;
 
     @Resource
     EntityOptServiceImpl entityOptService;
@@ -152,6 +159,29 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                         "编辑车线索信息失败！voId: " + vo.getId()), e);
             }
         }
+        return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    public ApiResult<Boolean> executeClueData(ExecuteCarClueDTO dto) {
+
+        if(dto == null){
+            return new ApiResult<Boolean>().fail("入参为空！");
+        }
+        CarClueExecuteRecording carClueExecuteRecording = new CarClueExecuteRecording();
+        carClueExecuteRecording.setExecuteType(dto.getExecuteType());
+        carClueExecuteRecording.setExecuteStatus(ExecuteClueStatusEnum.AWAIT_EXECUTE.getValue());
+        carClueExecuteRecording.setCreateTime(new Date());
+        carClueExecuteRecording.setUpdateTime(new Date());
+        carClueExecuteRecording.setIsDel(Constants.DATA_VALID);
+
+        List<Long> ids = dto.getClueIds();
+        if(CollectionUtils.isEmpty(ids)){
+            carClueExecuteRecording.setClueRange(String.valueOf(dto.getClueRange()));
+        }else {
+            carClueExecuteRecording.setClueIds(dto.getClueIds().toString());
+        }
+        carClueExecuteRecordingMapper.insertSelective(carClueExecuteRecording);
         return new ApiResult<Boolean>().success(true);
     }
 

@@ -161,4 +161,73 @@
         order by `id` asc limit 2000
     </select>
 
+    <select id="queryList" resultType="com.br.marketing.entity.CarClueInfo" parameterType="com.br.marketing.dto.CarClueReportDTO">
+        select *
+        from b_car_clue_info
+        <where>
+            <if test="createTimeStart != null and createTimeStart != ''">
+                <![CDATA[ and create_time >= #{createTimeStart} ]]>
+            </if>
+            <if test="createTimeEnd != null and createTimeEnd != ''">
+                <![CDATA[ and create_time < #{createTimeEnd} ]]>
+            </if>
+            <if test="resourceType != null and resourceType != ''">
+                and resource_type = #{resourceType}
+            </if>
+            <if test="intention != null and intention != ''">
+                and intention = #{intention}
+            </if>
+            <if test="clueDataStatus != null and !clueDataStatus.isEmpty()">
+                AND clue_data_status IN
+                <foreach collection="clueDataStatus" item="clueDataStatus" open="(" separator="," close=")">
+                    #{clueDataStatus}
+                </foreach>
+            </if>
+            <if test="clueCompleteStatus != null and !clueCompleteStatus.isEmpty()">
+                AND clue_complete_status IN
+                <foreach collection="clueCompleteStatus" item="clueCompleteStatus" open="(" separator="," close=")">
+                    #{clueCompleteStatus}
+                </foreach>
+            </if>
+            <if test="updateTimeStart != null and updateTimeStart != ''">
+                <![CDATA[ and update_time >= #{updateTimeStart} ]]>
+            </if>
+            <if test="updateTimeEnd != null and updateTimeEnd != ''">
+                <![CDATA[ and update_time < #{updateTimeEnd} ]]>
+            </if>
+            <if test="cluePushChannel != null and !cluePushChannel.isEmpty()">
+                AND clue_push_channel IN
+                <foreach collection="cluePushChannel" item="channel" open="(" separator="," close=")">
+                    #{channel}
+                </foreach>
+            </if>
+            <if test="cluePushStatus != null">
+                and clue_push_status = #{cluePushStatus}
+            </if>
+            <if test="pushTimeStart != null and pushTimeStart != ''">
+                <![CDATA[ and push_time >= #{pushTimeStart} ]]>
+            </if>
+            <if test="pushTimeEnd != null and pushTimeEnd != ''">
+                <![CDATA[ and push_time < #{pushTimeEnd} ]]>
+            </if>
+            <if test="clueCallbackFinalState != null">
+                and clue_callback_final_state = #{status}
+            </if>
+            <if test="callBackTimeStart != null and callBackTimeStart != ''">
+                <![CDATA[ and call_back_time >= #{callBackTimeStart} ]]>
+            </if>
+            <if test="callBackTimeEnd != null and callBackTimeEnd != ''">
+                <![CDATA[ and call_back_time < #{callBackTimeEnd} ]]>
+            </if>
+            <if test="search !=null and search!=''">
+                and (brand like concat("%", #{search},"%")
+                or series like concat("%", #{search},"%")
+                or city like concat("%", #{search},"%")
+                or clue_match_brand like concat("%", #{search},"%")
+                or clue_match_series like concat("%", #{search},"%")
+                or clue_match_city like concat("%", #{search},"%"))
+            </if>
+        </where>
+    </select>
+
 </mapper>

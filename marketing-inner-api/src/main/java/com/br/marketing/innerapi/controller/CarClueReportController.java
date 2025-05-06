@@ -6,6 +6,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.dto.ExecuteCarClueDTO;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.carclue.web.CarClueReportService;
@@ -64,5 +65,16 @@ public class CarClueReportController {
         }
     }
 
+    @ApiOperation(value = "增加线索执行记录", notes = "增加线索执行记录")
+    @PostMapping("/executeClueData")
+    public ApiResult<Boolean> executeClueData(@RequestBody @Validated ExecuteCarClueDTO dto) {
+        try {
+            return carClueReportService.executeClueData(dto);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "增加线索执行记录接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+    }
 
 }
