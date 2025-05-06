@@ -237,4 +237,16 @@ public class DataCleanServiceImpl implements DataCleanService {
         return config;
     }
 
+
+    /**
+     * 获取数据清洗结果
+     */
+    @Override
+    public Object getCleanResult(JSONObject jsonObject, String rule) {
+
+
+        return null;
+    }
+
+
 }
