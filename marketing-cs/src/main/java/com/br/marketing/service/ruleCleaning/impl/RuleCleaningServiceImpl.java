@@ -355,11 +355,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
     }
 
-    /**
-     * 保存字段清洗配置
-     * @param configDTO 字段清洗配置DTO
-     * @return 操作结果
-     */
     @Override
     public boolean saveFieldCleaningConfig(FieldCleaningConfigDTO configDTO) {
         try {
@@ -440,6 +435,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private void saveFieldCleaningRule(Long cleanConfigId, FieldCleaningConfigDTO configDTO) {
         Date now = new Date();
 
+        // 计算清洗结果预览
+        String resultPreview = calculateResultPreview(configDTO.getFieldSample(), configDTO.getMappingRule());
+
         // 查询是否已存在该映射字段的规则
         MarketingDataCleanGeneralRuleConfigExample example = new MarketingDataCleanGeneralRuleConfigExample();
         example.createCriteria()
@@ -459,6 +457,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             updateRule.setCleanFields(configDTO.getCleanField());
             updateRule.setIsMapping(configDTO.getIsMapping());
             updateRule.setMappingRule(configDTO.getMappingRule());
+            updateRule.setResultPreview(resultPreview);
             updateRule.setUpdateTime(now);
 
             cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
@@ -473,6 +472,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             newRule.setCleanFields(configDTO.getCleanField());
             newRule.setIsMapping(configDTO.getIsMapping());
             newRule.setMappingRule(configDTO.getMappingRule());
+            newRule.setResultPreview(resultPreview);
             newRule.setIsDel(1);
             newRule.setCreateTime(now);
             newRule.setUpdateTime(now);
@@ -481,43 +481,36 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.info("新增字段清洗规则: apiCode={}, mappingField={}, isMapping={}",
                     configDTO.getApiCode(), configDTO.getMappingField(), configDTO.getIsMapping());
         }
-
-        // 更新字段样例值（如果有）
-        if (StringUtils.isNotBlank(configDTO.getFieldSample()) && StringUtils.isNotBlank(configDTO.getCleanField())) {
-            updateFieldSample(configDTO.getApiCode(), configDTO.getCleanField(), configDTO.getFieldSample());
-        }
     }
 
     /**
-     * 更新字段样例值
+     * 计算清洗结果预览
+     *
+     * @param fieldSample 字段样例值
+     * @param mappingRule 映射规则
+     * @return 清洗结果预览
      */
-    private void updateFieldSample(String apiCode, String fieldName, String fieldSample) {
-        if (StringUtils.isBlank(fieldSample)) {
-            return;
+    private String calculateResultPreview(String fieldSample, String mappingRule) {
+        if (StringUtils.isBlank(fieldSample) || StringUtils.isBlank(mappingRule)) {
+            return "";
         }
 
         try {
-            // 查询JSON结构定义
-            MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
-            nodeExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode)
-                    .andNodeNameEqualTo(fieldName);
+            // TODO: 根据映射规则和字段样例计算清洗结果预览
+            // 这里是一个框架，具体的计算逻辑可以后续实现
 
-            List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+            // 示例：如果没有具体的清洗规则，则返回原样例值
+            return fieldSample;
 
-            if (nodes != null && !nodes.isEmpty()) {
-                MarketingJsonNodeParse node = nodes.get(0);
-
-                // 更新样例值
-                MarketingJsonNodeParse updateNode = new MarketingJsonNodeParse();
-                updateNode.setId(node.getId());
-                updateNode.setNodeValue(fieldSample);
-                jsonNodeParseMapper.updateByPrimaryKeySelective(updateNode);
-
-                log.info("更新字段样例值成功: apiCode={}, fieldName={}, sample={}", apiCode, fieldName, fieldSample);
-            }
+            /*
+             * 未来可能的实现：
+             * 1. 解析映射规则的JSON格式
+             * 2. 根据规则类型执行不同的清洗逻辑
+             * 3. 返回清洗后的结果
+             */
         } catch (Exception e) {
-            log.error("更新字段样例值失败: apiCode={}, fieldName={}", apiCode, fieldName, e);
+            log.error("计算清洗结果预览失败: fieldSample={}, mappingRule={}", fieldSample, mappingRule, e);
+            return "";
         }
     }
 }
