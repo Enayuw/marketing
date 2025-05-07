@@ -26,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -78,7 +77,8 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
         List<Long> resultList = new ArrayList<>(20);
 
         while (true) {
-            List<MarketingTcyrTransferRecord> tcyrTransferRecordList = tcTransferRecordService.selectTcyrTransforRecordList(apiCode, TcTransferRecordStatusEnum.ACCESS_SUCCESS.getValue(),lastSearchId,searchSize);
+            List<MarketingTcyrTransferRecord> tcyrTransferRecordList = tcTransferRecordService.selectTcyrTransforRecordList(apiCode,
+                    TcTransferRecordStatusEnum.ACCESS_SUCCESS.getValue(),lastSearchId,searchSize);
             if (CollectionUtils.isEmpty(tcyrTransferRecordList)) {
                 break;
             }
@@ -94,9 +94,10 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
         log.warn("{},apiCode:{}, transferClean process complete,successLine:{}",TITLE,apiCode,successLine);
     }
 
-    private Result processList(String apiCode,List<MarketingTcyrTransferRecord> tcyrTransferRecordList, ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
+    private Result processList(String apiCode,List<MarketingTcyrTransferRecord> tcyrTransferRecordList,
+                               ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
         Result result = new Result().failure();
-        if (org.springframework.util.CollectionUtils.isEmpty(tcyrTransferRecordList)) {
+        if (CollectionUtils.isEmpty(tcyrTransferRecordList)) {
             return result.success();
         }
         actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
@@ -121,9 +122,10 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
         Result result = new Result().failure();
         List<Long> idList = tcyrTransferRecordList.stream().map(MarketingTcyrTransferRecord::getId).collect(Collectors.toList());
         try {
-            List<JSONObject> jsonObjectList = tcyrTransferRecordList.stream().map(m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
+            List<JSONObject> jsonObjectList = tcyrTransferRecordList.stream().map(
+                    m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
             Result transferResult = generalDataCleanService.transferClean(jsonObjectList,apiCode);
-            log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,result.getCode(),result.isSuccess(),result.getMessage());
+            log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,transferResult.getCode(),transferResult.isSuccess(),transferResult.getMessage());
             if (transferResult !=null && transferResult.isSuccess()) {
                 List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
                 if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
