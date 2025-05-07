@@ -1,13 +1,13 @@
 package com.br.marketing.client;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.SyncConfig;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -418,6 +418,51 @@ public class SftpClient extends BaseFtpClient{
             throw e;
         }
         return success;
+    }
+
+    /**
+     * resume断点续传
+     * 1、检查远程文件是否存在并获取其大小。
+     * 2、调整本地文件输入流的位置，使其跳过已经上传的部分。
+     * 3、使用适当的模式进行上传
+     * @param remotePath
+     * @param remoteFilename
+     * @param localFileName
+     * @throws Exception
+     */
+    public  boolean uploadFileWithResume( String remotePath, String remoteFilename,String localFileName) throws Exception {
+        boolean flag = false;
+        log.warn("remotePath:{},fileName:{} 开始上传文件!", remotePath,remoteFilename);
+        File localFile = new File(localFileName);
+        try (FileInputStream fis = new FileInputStream(localFile)) {
+            if (!isExist(remotePath)) {
+                mkdir(remotePath);
+            }
+            sftp.cd(remotePath);
+            long localFileSize = localFile.length();
+            long remoteFileSize = 0;
+            try {
+                SftpATTRS attrs = sftp.lstat(remoteFilename);
+                remoteFileSize = attrs.getSize();
+            } catch (SftpException e) {
+                if (e.id != ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+                    throw e; // 如果不是因为文件不存在而抛出异常，则重新抛出
+                }
+            }
+            if (remoteFileSize < localFileSize) {
+                fis.skip(remoteFileSize);
+                // 使用 RESUME 模式上传，如果文件不存在也会自动创建
+                sftp.put(fis, remoteFilename, ChannelSftp.RESUME);
+                log.warn("remotePath:{},fileName:{} 文件上传成功!",remotePath,remoteFilename);
+                flag = true;
+            } else if (remoteFileSize == localFileSize) {
+                log.warn("remotePath:{},fileName:{} 文件已完整上传", remotePath,remoteFilename);
+                flag = true;
+            } else {
+                log.error("remotePath:{},fileName:{} 远程文件大小超过本地文件，可能数据异常!",remotePath,remoteFilename);
+            }
+        }
+        return flag;
     }
 
     @Override

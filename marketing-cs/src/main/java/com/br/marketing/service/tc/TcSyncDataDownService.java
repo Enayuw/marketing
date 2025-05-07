@@ -21,4 +21,6 @@ public interface TcSyncDataDownService {
 
     //修改单个down的处理结果
     Integer updageTcyrRecordDownStatus(String batchNo, Integer status);
+
+    void syncToSFTP(String remotePath, String remoteFilename, String localFileName);
 }

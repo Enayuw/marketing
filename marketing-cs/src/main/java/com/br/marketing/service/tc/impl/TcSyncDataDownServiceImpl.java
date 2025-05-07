@@ -2,27 +2,28 @@ package com.br.marketing.service.tc.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.SftpClient;
 import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataDownService;
-import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -50,6 +51,15 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
 
     @Resource
     private MarketingTcyrSyncRecordMapper tcPullGzFileMapper;
+
+    @Value("${otherConfig.warning.sftpHost:00}")
+    private String sftpHost;
+    @Value("${otherConfig.warning.sftpPort:00}")
+    private Integer sftpPort;
+    @Value("${otherConfig.warning.sftpUser:00}")
+    private String sftpUsername;
+    @Value("${otherConfig.warning.sftpPwd:00}")
+    private String sftpPwd;
 
     @Override
     public List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode,Integer status,Date dayBeginTime, Date dayEndTime) {
@@ -80,7 +90,8 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 return result.failure();
             }
             //文件下载
-            String dirPath = getPath();
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+            String dirPath = getPath() +"tongcheng_customize_upload_data"+yyyyMMdd+"/";
             String gzFileName= "tcyr_"+syncRecord.getBatchNo()+".csv.gz";
             String gzFilePath = dirPath.concat(gzFileName);
             Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
@@ -109,17 +120,61 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             //文件解析入库
             for (File csvFile : files) {
                 log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
-                //TODO 理论上读取csv 和文本一致，待验证
                 Result parseResult = parseCsvFileToDb(syncRecord.getApiCode(),syncRecord.getBatchNo(),csvFile);
                 Long successLine = Long.parseLong(parseResult.getData().toString());
                 log.warn("{} csv文件入db,batchNo:{},csvName{} 执行完成,successCount:{}",TITLE,syncRecord.getBatchNo(),csvFile.getName(),successLine);
                 totalSuccess += successLine;
             }
             result = result.success().setDate(totalSuccess);
+//            log.warn("{},apiCode:{},batchNo:{},csv文件解析入库完成，开始sftp上传任务",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo());
+//            //TODO 05-07 sftp remoteFilePath路径
+//            String remoteFilePath ="/tongcheng_customize/upload_data"+yyyyMMdd+"/";
+//            syncFileToSFTP(syncRecord.getBatchNo(),remoteFilePath,dirPath,gzFileName);
         }catch (Exception e){
-            log.warn("{} sync error,batchNo:{},error: ", TITLE,syncRecord.getBatchNo(),e);
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
         return result;
+    }
+
+    /**
+     * csv数据解析完成后 上传gz文件到sftp服务器
+     * @param batchNo
+     * @param remoteFilePath
+     * @param localFilePath
+     * @param localFileName
+     */
+    private void syncFileToSFTP(String batchNo,String remoteFilePath, String localFilePath, String localFileName) {
+        SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
+        try {
+            sftpClient.connect();
+            log.warn("push file to sftp, batchNo:{},remoteFilePath:{},fileName:{}", batchNo,remoteFilePath,localFileName);
+            boolean uploadFileFlag = sftpClient.uploadFileWithResume(remoteFilePath, localFileName, localFilePath+localFileName);
+            if (uploadFileFlag) {
+                String successFileName = localFileName + ".success";
+                File successFile = new File(localFilePath , successFileName);
+                if (!successFile.exists()) {
+                    successFile.createNewFile();
+                }
+                log.warn("push successFile to sftp, batchNo:{},successFileName:{}", batchNo,successFileName);
+                boolean successFileFlag = sftpClient.uploadFile(remoteFilePath, successFileName, successFile.getAbsolutePath());
+                if(!successFileFlag){
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_PUSHFILETOSFTP.getCode(),
+                            "同程推送success文件到SFTP异常，batchNo："+batchNo));
+                }
+            }else {
+                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_PUSHFILETOSFTP.getCode(),
+                        "同程推送文件到SFTP异常，batchNo："+batchNo));
+            }
+        }catch (Exception e){
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_PUSHFILETOSFTP.getCode(),e.getMessage(), TITLE), e);
+        }finally {
+            try {
+                sftpClient.disconnect();
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
+                        TITLE + "文件推送SFTP关闭连接异常，batchNo:" +batchNo), e);
+            }
+        }
     }
 
     /**
@@ -210,7 +265,6 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 return result.failure();
             }
             tcPullGzFileMapper.batchAdd(dataList);
-            //log.warn("{},batchNo:{} 保存转化结果成功,successLine:{}",TITLE,batchNo,dataList.size());
             return result.success().setDate( Long.valueOf(dataList.size()));
         } catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
@@ -305,5 +359,10 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
     @Override
     public Integer updageTcyrRecordDownStatus(String batchNo, Integer status) {
         return tcPullGzFileMapper.updageTcyrRecordDownStatus(batchNo,status);
+    }
+
+    @Override
+    public void syncToSFTP(String remotePath, String localFilePath, String localFileName) {
+        syncFileToSFTP("123",remotePath,localFilePath,localFileName);
     }
 }
