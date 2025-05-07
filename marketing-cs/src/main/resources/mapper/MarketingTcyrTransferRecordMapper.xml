@@ -9,7 +9,7 @@
         WHERE id > #{lastSearchId}
             AND api_code = #{apiCode}
             AND status = #{status}
-            AND id_del = 1
+            AND is_del = 1
             AND is_clean = 0
         ORDER BY id ASC
         LIMIT #{searchSize}
