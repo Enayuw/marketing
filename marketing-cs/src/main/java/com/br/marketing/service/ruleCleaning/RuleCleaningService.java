@@ -1,8 +1,9 @@
 package com.br.marketing.service.ruleCleaning;
 
+import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
-import com.br.marketing.service.ruleCleaning.dto.FieldSampleDTO;
+import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 
 import java.util.List;
 
@@ -40,4 +41,11 @@ public interface RuleCleaningService {
      * @return 字段样例列表
      */
     List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType);
+
+    /**
+     * 保存字段清洗配置
+     * @param configDTO 字段清洗配置DTO
+     * @return 操作结果
+     */
+    boolean saveFieldCleaningConfig(FieldCleaningConfigDTO configDTO);
 }

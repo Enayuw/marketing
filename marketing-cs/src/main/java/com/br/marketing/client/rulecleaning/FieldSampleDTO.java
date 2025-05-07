@@ -1,4 +1,4 @@
-package com.br.marketing.service.ruleCleaning.dto;
+package com.br.marketing.client.rulecleaning;
 
 import lombok.Data;
 

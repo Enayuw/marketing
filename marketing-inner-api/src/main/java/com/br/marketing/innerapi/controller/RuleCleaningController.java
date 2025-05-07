@@ -1,13 +1,13 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
-import com.br.marketing.service.ruleCleaning.dto.FieldSampleDTO;
+import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -27,7 +27,6 @@ public class RuleCleaningController {
     @Resource
     private RuleCleaningService ruleCleaningService;
 
-    // 规则列表查询接口
     @GetMapping("/getRuleList")
     @ApiOperation(value = "规则列表查询", notes = "规则列表查询接口", httpMethod = "GET")
     @ApiImplicitParams({
@@ -49,7 +48,6 @@ public class RuleCleaningController {
         return new ApiResult<PageResultReturn>().success(pageResultReturn);
     }
 
-    // 规则列表新增、编辑接口
     @PostMapping("/saveOrUpdateRule")
     @ApiOperation(value = "保存或更新规则", notes = "保存或更新规则接口", httpMethod = "POST")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
@@ -66,7 +64,6 @@ public class RuleCleaningController {
     }
 
 
-    // 字段样例查询接口
     @GetMapping("/getFieldSamples")
     @ApiOperation(value = "字段样例查询", notes = "查询定制化接口字段和字段样例", httpMethod = "GET")
     @ApiImplicitParams({
@@ -84,8 +81,15 @@ public class RuleCleaningController {
         return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
     }
 
-    // 字段清洗配置接口
 
+    @PostMapping("/saveFieldCleaningConfig")
+    @ApiOperation(value = "保存字段清洗配置", notes = "保存字段与清洗规则的映射关系", httpMethod = "POST")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
+    public ApiResult<Boolean> saveFieldCleaningConfig(@RequestBody FieldCleaningConfigDTO configDTO) {
+        log.info("接收到字段清洗配置请求: {}", configDTO);
+        boolean result = ruleCleaningService.saveFieldCleaningConfig(configDTO);
+        return new ApiResult<Boolean>().success(result);
+    }
 
     // 字段运算清洗结果预览接口
 
