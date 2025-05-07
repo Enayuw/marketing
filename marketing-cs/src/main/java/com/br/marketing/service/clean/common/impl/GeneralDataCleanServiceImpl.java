@@ -18,6 +18,7 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
@@ -114,7 +115,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         }
     }
 
-    private static Map<String, Field> getStringFieldMap(List<MarketingDataCleanConfig> configs) throws NoSuchFieldException {
+    private static <T> Map<String, Field> getStringFieldMap(List<MarketingDataCleanConfig> configs, Class<T> dtoClass) throws NoSuchFieldException {
         //1.基础字段集合
         Set<String> basicTargetNames = configs.stream()
                 .filter(config -> config.getTargetType() == TARGET_TYPE_BASIC)
@@ -122,7 +123,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                 .collect(Collectors.toSet());
         Map<String, Field> fieldMap = new HashMap<>();
         for (String basicTargetName : basicTargetNames) {
-            Field declaredField = MarketingPreUserDetailDTO.class.getDeclaredField(basicTargetName);
+            Field declaredField = dtoClass.getDeclaredField(basicTargetName);
             declaredField.setAccessible(true);
             fieldMap.put(basicTargetName, declaredField);
         }
@@ -130,7 +131,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     }
 
     private <T> List<Pair<T, JSONObject>> processData(List<JSONObject> data, List<MarketingDataCleanConfig> configs, Class<T> dtoClass) throws NoSuchFieldException {
-        Map<String, Field> fieldMap = getStringFieldMap(configs);
+        Map<String, Field> fieldMap = getStringFieldMap(configs, dtoClass);
         Map<String, List<MarketingDataCleanConfig>> configsGroup = configs.stream()
                 .collect(Collectors.groupingBy(MarketingDataCleanConfig::getTargetName));
         return data.parallelStream()
