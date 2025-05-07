@@ -1,13 +1,18 @@
 package com.br.marketing.bridge.job.tc;
 
 import com.alibaba.excel.util.CollectionUtils;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingTcyrTransferRecord;
 import com.br.marketing.enums.TcTransferRecordStatusEnum;
+import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.tc.TcTransferRecordService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -16,8 +21,12 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -42,6 +51,9 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
 
     @Resource
     private GeneralDataCleanService generalDataCleanService;
+
+    @Resource
+    private PushInfoService pushInfoService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -111,13 +123,25 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
         try {
             List<JSONObject> jsonObjectList = tcyrTransferRecordList.stream().map(m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
             Result transferResult = generalDataCleanService.transferClean(jsonObjectList,apiCode);
-            log.warn("{},调用transferClean code:{},isSuccess:{},msg:{}",TITLE,result.getCode(),result.isSuccess(),result);
+            log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,result.getCode(),result.isSuccess(),result.getMessage());
             if (transferResult !=null && transferResult.isSuccess()) {
-                tcTransferRecordService.updateCleanStatus(idList,1);
-                result = result.success().setDate(tcyrTransferRecordList.size());
+                List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
+                if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
+                    return result.success();
+                }
+                PushTransferDataDetailDTO dto = initTransferData(apiCode,transferDataItemDTOS);
+                Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+                log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
+                if (pushResult!=null && pushResult.isSuccess()) {
+                    tcTransferRecordService.updateCleanStatus(idList,1);
+                     result = result.success().setDate(tcyrTransferRecordList.size());
+                }else {
+                    tcTransferRecordService.updateCleanStatus(idList,3);
+                    return result.failure();
+                }
             }else {
                 tcTransferRecordService.updateCleanStatus(idList,2);
-                result = result.failure();
+                return result.failure();
             }
         }catch (Exception e) {
             tcTransferRecordService.updateCleanStatus(idList,4);
@@ -125,6 +149,21 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
             return result.failure();
         }
         return result;
+    }
+
+    private PushTransferDataDetailDTO initTransferData(String apiCode, List<TransferDataItemDTO> transferDataItems) {
+        PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
+        TransferDataDTO transferDataDTO = new TransferDataDTO();
+        transferDataDTO.setDataItems(transferDataItems);
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String taskId =  yyyyMMdd.concat("_").concat(apiCode);
+        Random random = new Random();
+        int randomNumber = 10000 + random.nextInt(90000);
+        String requestId = apiCode+"_"+taskId+"_"+System.currentTimeMillis()+"_"+randomNumber;
+        transferDataDTO.setRequestId(requestId);
+        dto.setApiCode(apiCode);
+        dto.setJsonData(JSON.toJSONString(transferDataDTO));
+        return dto;
     }
 
 }
