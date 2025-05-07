@@ -4,6 +4,7 @@ import com.br.marketing.bo.CellValidityPeriodBO;
 import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -459,5 +460,12 @@ public interface MarketingSyncUserMapper {
     int updateBatchData(@Param("updateSql")String update);
 
     List<MarketingSyncUser> getUserByCell(@Param("apiCode") String apiCode, @Param("appletDates") List<String> appletDates, @Param("cell") String cell);
+
+    /**
+     * 执行原生SQL查询
+     * @param sql SQL语句
+     * @return 查询结果Map
+     */
+    Map<String, Object> executeRawSql(@Param("sql") String sql);
 
 }

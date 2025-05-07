@@ -1145,4 +1145,8 @@
         and is_repeat in (1,2)
     </select>
 
+    <select id="executeRawSql" resultType="java.util.Map">
+        ${sql}
+    </select>
+
 </mapper>

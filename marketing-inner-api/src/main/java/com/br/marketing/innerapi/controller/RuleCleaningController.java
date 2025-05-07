@@ -4,12 +4,14 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
+import com.br.marketing.service.ruleCleaning.dto.FieldSampleDTO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 规则数据清洗
@@ -65,9 +67,22 @@ public class RuleCleaningController {
 
 
     // 字段样例查询接口
-
-
-
+    @GetMapping("/getFieldSamples")
+    @ApiOperation(value = "字段样例查询", notes = "查询定制化接口字段和字段样例", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
+            @ApiImplicitParam(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
+            @ApiImplicitParam(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true)
+    })
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
+    public ApiResult<List<FieldSampleDTO>> getFieldSamples(
+            @RequestParam String apiCode,
+            @RequestParam Integer dataType,
+            @RequestParam Integer acceptType) {
+        
+        List<FieldSampleDTO> fieldSamples = ruleCleaningService.getFieldSamples(apiCode, dataType, acceptType);
+        return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
+    }
 
     // 字段清洗配置接口
 

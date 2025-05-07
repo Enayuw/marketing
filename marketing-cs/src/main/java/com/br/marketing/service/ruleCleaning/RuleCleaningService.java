@@ -2,6 +2,9 @@ package com.br.marketing.service.ruleCleaning;
 
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
+import com.br.marketing.service.ruleCleaning.dto.FieldSampleDTO;
+
+import java.util.List;
 
 /**
  * 规则数据清洗接口
@@ -27,6 +30,14 @@ public interface RuleCleaningService {
      * @return 操作结果
      */
     boolean saveOrUpdateRule(MarketingDataCleanGeneralConfig config);
-    
 
+    
+    /**
+     * 字段样例查询
+     * @param apiCode API编码
+     * @param dataType 数据类型：0上传，1转化
+     * @param acceptType 接口类型：0通用,1定制,2FTP
+     * @return 字段样例列表
+     */
+    List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType);
 }
