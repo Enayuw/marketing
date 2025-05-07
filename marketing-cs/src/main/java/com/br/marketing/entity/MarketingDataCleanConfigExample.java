@@ -775,52 +775,62 @@ public class MarketingDataCleanConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeEqualTo(String value) {
             addCriterion("decimal_reserve_type =", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeNotEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeNotEqualTo(String value) {
             addCriterion("decimal_reserve_type <>", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeGreaterThan(Integer value) {
+        public Criteria andDecimalReserveTypeGreaterThan(String value) {
             addCriterion("decimal_reserve_type >", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeGreaterThanOrEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeGreaterThanOrEqualTo(String value) {
             addCriterion("decimal_reserve_type >=", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeLessThan(Integer value) {
+        public Criteria andDecimalReserveTypeLessThan(String value) {
             addCriterion("decimal_reserve_type <", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeLessThanOrEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeLessThanOrEqualTo(String value) {
             addCriterion("decimal_reserve_type <=", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeIn(List<Integer> values) {
+        public Criteria andDecimalReserveTypeLike(String value) {
+            addCriterion("decimal_reserve_type like", value, "decimalReserveType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalReserveTypeNotLike(String value) {
+            addCriterion("decimal_reserve_type not like", value, "decimalReserveType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalReserveTypeIn(List<String> values) {
             addCriterion("decimal_reserve_type in", values, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeNotIn(List<Integer> values) {
+        public Criteria andDecimalReserveTypeNotIn(List<String> values) {
             addCriterion("decimal_reserve_type not in", values, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeBetween(Integer value1, Integer value2) {
+        public Criteria andDecimalReserveTypeBetween(String value1, String value2) {
             addCriterion("decimal_reserve_type between", value1, value2, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeNotBetween(Integer value1, Integer value2) {
+        public Criteria andDecimalReserveTypeNotBetween(String value1, String value2) {
             addCriterion("decimal_reserve_type not between", value1, value2, "decimalReserveType");
             return (Criteria) this;
         }

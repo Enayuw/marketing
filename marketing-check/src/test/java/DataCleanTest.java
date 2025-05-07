@@ -52,7 +52,7 @@ public class DataCleanTest {
 
     @Test
     public void transferClean01() {
-        JSONObject jsonObject = JSONObject.parseObject("{\"batchNo\":\"CP20250429000000000014015\",\"nodeStatus\":\"SUCCESS\",\"transformNode\":\"VISIT\",\"transformTime\":\"2025-05-01 12:47:00\",\"userKey\":\"86192406\"}");
+        JSONObject jsonObject = JSONObject.parseObject("{\"batchNo\":\"CP20250429000000000014015\",\"nodeStatus\":\"SUCCESS\",\"transformNode\":\"CREDIT\",\"transformAmount\":\"6666.699\",\"transformTime\":\"2025-05-01 12:47:00\",\"userKey\":\"86192406\"}");
         List<JSONObject> jsons = new ArrayList<>();
         jsons.add(jsonObject);
         Result callResult = generalDataCleanService.transferClean(jsons,"7492773");

@@ -22,6 +22,8 @@ import org.apache.poi.ss.formula.functions.T;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -233,15 +235,20 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         if(fieldValue == null) {
             return null;
         }
-        if (StringUtils.isNotBlank(config.getConversion())) {
-            JSONObject conversion = JSONObject.parseObject(config.getConversion());
-            return conversion.get(fieldValue.toString());
-        }
-        if (StringUtils.isNotBlank(config.getDateTransformPattern())) {
-            return TimeUtils.getFormatterValue(fieldValue.toString(), config.getDateTransformPattern());
-        }
-        if (config.getDecimalReserveType() != null) {
-
+        try {
+            if (StringUtils.isNotBlank(config.getConversion())) {
+                JSONObject conversion = JSONObject.parseObject(config.getConversion());
+                return conversion.get(fieldValue.toString());
+            }
+            if (StringUtils.isNotBlank(config.getDateTransformPattern())) {
+                return TimeUtils.getFormatterValue(fieldValue.toString(), config.getDateTransformPattern());
+            }
+            if (config.getDecimalReserveType() != null && config.getDecimalReservePrecision() != null) {
+                BigDecimal bigDecimalValue = new BigDecimal(fieldValue.toString());
+                return bigDecimalValue.setScale(config.getDecimalReservePrecision(), RoundingMode.valueOf(config.getDecimalReserveType()));
+            }
+        } catch(Exception e){
+            
         }
         return fieldValue;
     }
