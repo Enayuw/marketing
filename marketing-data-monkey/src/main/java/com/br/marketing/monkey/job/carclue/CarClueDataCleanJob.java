@@ -1,26 +1,25 @@
 package com.br.marketing.monkey.job.carclue;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.br.common.log.AlertLog;
 import com.br.common.util.StringUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.carclue.CarClueExecuteService;
 import com.br.marketing.service.carclue.CarClueService;
-import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
-import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
+import com.br.marketing.service.carclue.clueenums.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -37,63 +36,133 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
 
     @Resource
     private CarClueInfoMapper carClueInfoMapper;
-
     @Resource
     private CarClueService carClueService;
 
     @Resource
-    private CarChannelConfigMapper carChannelConfigMapper;
-
+    private CarClueExecuteRecordingMapper carClueExecuteRecordingMapper;
     @Resource
-    private CarClueProvincesInformationMapper carClueProvincesInformationMapper;
-
-    @Resource
-    private CarClueSeriesInformationMapper carClueSeriesInformationMapper;
-
-    @Resource
-    private CarClueRelationalMappingMapper carClueRelationalMappingMapper;
-
+    private CarClueExecuteService carClueExecuteService;
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
     public static ThreadPoolExecutor pushCluePool = BrExecutors.getThreadPool(10, 10);
 
+    private static final String TITLE = "【清洗车线索】";
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
+        // 1. 获取车线索配置
+        Optional<CarClueManageConfig> configOpt = carClueExecuteService.getCarClueConfig();
+        if (!configOpt.isPresent()) {
+            log.warn("{}车线索配置为空！", TITLE);
+            return;
+        }
+
+        // 2. 根据配置类型执行清洗
+        CarClueManageConfig config = configOpt.get();
+        if (config.getPullType() == 0) {
+            manualCleanCarClue();
+        } else {
+            autoCleanCarClue();
+        }
+    }
+
+    /**
+     * 手动执行
+     */
+    private void manualCleanCarClue() {
+        // 获取待手动执行的推送数据
+        CarClueExecuteRecordingExample example = new CarClueExecuteRecordingExample();
+        example.createCriteria()
+                .andExecuteTypeEqualTo(ExecuteClueTypeEnum.CLEAN.getValue())
+                .andExecuteStatusEqualTo(ExecuteClueStatusEnum.AWAIT_EXECUTE.getValue())
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarClueExecuteRecording> recordings = carClueExecuteRecordingMapper.selectByExample(example);
+
+        if (CollectionUtil.isEmpty(recordings)) {
+            log.warn("{}手动待执行记录为空！", TITLE);
+            return;
+        }
+        // 获取字典信息
+        List<CarClueProvincesInformation> carClueProvincesInfoList = carClueExecuteService.getProvincesInfo();
+        List<CarClueSeriesInformation> carClueSeriesInfoList = carClueExecuteService.getSeriesInfo();
+        List<CarClueRelationalMapping> carClueRelationalMappingList = carClueExecuteService.getRelationalMapping();
+        List<CarChannelConfig> channelConfigList = carClueExecuteService.getChannelConfig();
+
+        for (CarClueExecuteRecording recording : recordings) {
+            processSingleRecording(recording, carClueProvincesInfoList,
+                    carClueSeriesInfoList, carClueRelationalMappingList, channelConfigList);
+        }
+    }
+
+    private void processSingleRecording(CarClueExecuteRecording recording, List<CarClueProvincesInformation> carClueProvincesInfoList,
+                                        List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList,
+                                        List<CarChannelConfig> channelConfigList) {
+        try {
+            if (StringUtils.isNotBlank(recording.getClueIds())) {
+
+                List<CarClueInfo> carClueInfos = carClueExecuteService.processClueByIds(recording.getClueIds());
+                pushCluesByChannel(carClueInfos, carClueProvincesInfoList,
+                        carClueSeriesInfoList, carClueRelationalMappingList, channelConfigList);
+
+            } else if (StringUtils.isNotBlank(recording.getClueRange())) {
+
+                CarClueReportDTO carClueReportDTO = carClueExecuteService.processClueByRange(recording.getClueRange());
+                Long minId = null;
+                while (true) {
+                    List<CarClueInfo> clues = carClueInfoMapper.queryList(carClueReportDTO, minId);
+                    if (CollectionUtil.isEmpty(clues)) {
+                        break;
+                    }
+                    minId = clues.get(clues.size() - 1).getId();
+                    pushCluesByChannel(clues, carClueProvincesInfoList,
+                            carClueSeriesInfoList, carClueRelationalMappingList, channelConfigList);
+                }
+
+            } else {
+                log.warn("{}线索查询条件为空！记录ID:{}", TITLE, recording.getId());
+            }
+
+            updateRecordingStatus(recording.getId(), ExecuteClueStatusEnum.EXECUTE_FINISH.getValue());
+        } catch (Exception e) {
+            log.error("{}处理推送记录失败, ID:{}", TITLE, recording.getId(), e);
+            updateRecordingStatus(recording.getId(), ExecuteClueStatusEnum.EXECUTE_ERROR.getValue());
+        }
+    }
+
+    private void pushCluesByChannel(List<CarClueInfo> carClueInfoList, List<CarClueProvincesInformation> carClueProvincesInfoList,
+                                    List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList,
+                                    List<CarChannelConfig> channelConfigList) {
+        try {
+            cleanClueList(carClueInfoList, channelConfigList, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗线程处理异常，请关注"), e);
+        }
+    }
+
+    private void updateRecordingStatus(Long id, Integer status) {
+        CarClueExecuteRecording update = new CarClueExecuteRecording();
+        update.setId(id);
+        update.setExecuteStatus(status);
+        carClueExecuteRecordingMapper.updateByPrimaryKeySelective(update);
+    }
+
+    /**
+     * 自动执行
+     */
+    private void autoCleanCarClue() {
+        // 获取字典信息
+        List<CarClueProvincesInformation> carClueProvincesInfoList = carClueExecuteService.getProvincesInfo();
+        List<CarClueSeriesInformation> carClueSeriesInfoList = carClueExecuteService.getSeriesInfo();
+        List<CarClueRelationalMapping> carClueRelationalMappingList = carClueExecuteService.getRelationalMapping();
+        List<CarChannelConfig> channelConfigList = carClueExecuteService.getChannelConfig();
         // 通话明细apiCode
         Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
         List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
-        //查询城市，车型配置
-        String proviceCleanDate = carClueProvincesInformationMapper.getMaxCleanDate();
-        String seriesCleanDate = carClueSeriesInformationMapper.getMaxCleanDate();
-        String relationCleanDate = carClueRelationalMappingMapper.getMaxCleanDate();
-        if (StringUtils.isEmpty(proviceCleanDate) || StringUtils.isEmpty(seriesCleanDate) || StringUtils.isEmpty(relationCleanDate)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗配置最大清洗日期为空，请关注"));
-            return;
-        }
-        CarClueProvincesInformationExample provincesInformationExample = new CarClueProvincesInformationExample();
-        provincesInformationExample.createCriteria().andAppletDateEqualTo(proviceCleanDate);
-        List<CarClueProvincesInformation> carClueProvincesInfoList = carClueProvincesInformationMapper.selectByExample(provincesInformationExample);
-        CarClueSeriesInformationExample seriesInformationExample = new CarClueSeriesInformationExample();
-        seriesInformationExample.createCriteria().andAppletDateEqualTo(seriesCleanDate);
-        List<CarClueSeriesInformation> carClueSeriesInfoList = carClueSeriesInformationMapper.selectByExample(seriesInformationExample);
-        CarClueRelationalMappingExample carClueRelationalMappingExample = new CarClueRelationalMappingExample();
-        carClueRelationalMappingExample.createCriteria().andAppletDateEqualTo(relationCleanDate).andMatchingTypeEqualTo(0);
-        List<CarClueRelationalMapping> carClueRelationalMappingList = carClueRelationalMappingMapper.selectByExample(carClueRelationalMappingExample);
-        if (CollectionUtils.isEmpty(carClueProvincesInfoList) || CollectionUtils.isEmpty(carClueSeriesInfoList) ||
-                CollectionUtils.isEmpty(carClueRelationalMappingList)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗配置为空，请关注"));
-            return;
-        }
-        //查询渠道商配置
-        CarChannelConfigExample channelConfigExample = new CarChannelConfigExample();
-        channelConfigExample.createCriteria().andIsDelEqualTo(1);
-        List<CarChannelConfig> channelConfigList = carChannelConfigMapper.selectByExample(channelConfigExample);
-        channelConfigList.sort(Comparator.comparingInt(t -> t.getOrder()));
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
-        Boolean mark = Boolean.TRUE;
+        boolean mark = Boolean.TRUE;
         Long minId = null;
         while (mark) {
             List<CarClueInfo> carClueInfoList = carClueInfoMapper.selectCarClueByMinId(carClueApiCodes, CarClueDataStatusEnum.READY.getValue(), minId);
@@ -118,10 +187,9 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
-
     private void cleanClueList(List<CarClueInfo> carClueInfoList, List<CarChannelConfig> channelConfigList, List<CarClueProvincesInformation>
             carClueProvincesInfoList, List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList) {
-        Long start=System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         carClueInfoList.forEach(carClueInfo -> {
             try {
                 //清除错误信息
@@ -134,7 +202,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗异常，请关注"), e);
             }
         });
-        log.warn("车线索清洗单批次，耗时：{}ms",System.currentTimeMillis()-start);
-
+        log.warn("车线索清洗单批次，耗时：{}ms", System.currentTimeMillis() - start);
     }
+
 }

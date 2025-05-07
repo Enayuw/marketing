@@ -10,8 +10,8 @@ import lombok.Getter;
 @Getter
 public enum ExecuteClueStatusEnum {
     AWAIT_EXECUTE(0, "待执行"),
-    EXECUTE_ING(1, "执行中"),
-    EXECUTE_FINISH(2, "执行完成");
+    EXECUTE_FINISH(1, "执行完成"),
+    EXECUTE_ERROR(2, "执行失败");
 
 
     ExecuteClueStatusEnum(Integer value, String desc) {

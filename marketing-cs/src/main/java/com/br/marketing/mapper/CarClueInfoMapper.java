@@ -25,5 +25,5 @@ public interface CarClueInfoMapper extends CarClueInfoMapperBase {
 
     List<CarClueInfo> selectCarClueByMinId(@Param("apiCodeList")List<String> apiCodeList, @Param("status")Integer status, @Param("minId")Long minId);
 
-    List<CarClueInfo> queryList(@Param("carClueReportDTO")CarClueReportDTO carClueReportDTO);
+    List<CarClueInfo> queryList(@Param("carClueReportDTO")CarClueReportDTO carClueReportDTO, @Param("minId")Long minId);
 }

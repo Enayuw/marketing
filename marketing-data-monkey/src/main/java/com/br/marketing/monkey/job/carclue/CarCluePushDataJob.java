@@ -1,10 +1,6 @@
 package com.br.marketing.monkey.job.carclue;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
@@ -12,16 +8,13 @@ import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.*;;
 import com.br.marketing.mapper.CarClueExecuteRecordingMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
-import com.br.marketing.mapper.CarClueManageConfigMapper;
-import com.br.marketing.mapper.ClueFileRecordingMapper;
+import com.br.marketing.service.carclue.CarClueExecuteService;
 import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.clueenums.CarCluePushStatusEnum;
-import com.br.marketing.service.carclue.clueenums.ClueFileRecordingStatusEnum;
 import com.br.marketing.service.carclue.clueenums.ExecuteClueStatusEnum;
 import com.br.marketing.service.carclue.clueenums.ExecuteClueTypeEnum;
 import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
 import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -49,15 +41,11 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
     @Resource
     private CarClueInfoMapper carClueInfoMapper;
     @Resource
-    private ClueFileRecordingMapper clueFileRecordingMapper;
-    @Resource
-    private CarClueManageConfigMapper carClueManageConfigMapper;
-    @Resource
     private CarClueExecuteRecordingMapper carClueExecuteRecordingMapper;
     @Resource
     private CarClueService carClueService;
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
+    private CarClueExecuteService carClueExecuteService;
     @Autowired
     private ClueChannelConfigService clueChannelConfigService;
 
@@ -65,163 +53,152 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        log.warn(TITLE + "start");
-        long start = System.currentTimeMillis();
-        // 判断是否存在待清洗的文档记录
-        ClueFileRecordingExample clueFileRecordingExample = new ClueFileRecordingExample();
-        clueFileRecordingExample.createCriteria()
-                .andFileCleanStatusEqualTo(ClueFileRecordingStatusEnum.AWAIT_CLEAN.getValue())
-                .andIsDelEqualTo(Constants.DATA_VALID);
-        int i = clueFileRecordingMapper.countByExample(clueFileRecordingExample);
-        if(i > 0){
-            log.warn(TITLE + "存在待清洗的文件!");
+        log.warn("{}开始执行", TITLE);
+        long startTime = System.currentTimeMillis();
+
+        // 1. 获取车线索配置
+        Optional<CarClueManageConfig> configOpt = carClueExecuteService.getCarClueConfig();
+        if (!configOpt.isPresent()) {
+            log.warn("{}车线索配置为空！", TITLE);
             return;
         }
-        // 获取车线索配置 手动 or 自动
-        CarClueManageConfigExample carClueManageConfigExample = new CarClueManageConfigExample();
-        carClueManageConfigExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
-        List<CarClueManageConfig> carClueManageConfigs = carClueManageConfigMapper.selectByExample(carClueManageConfigExample);
-        if(CollectionUtil.isEmpty(carClueManageConfigs)){
-            log.warn(TITLE + "车线索配置为空！");
-            return;
-        }
-        CarClueManageConfig carClueManageConfig = carClueManageConfigs.get(0);
-        Integer pullType = carClueManageConfig.getPullType();
-        if(pullType == 0){
+
+        // 2.根据配置类型执行推送
+        CarClueManageConfig config = configOpt.get();
+        if (config.getPullType() == 0) {
             manualPushCarClue();
-        }else {
+        } else {
             autoPushCarClue();
         }
-        long end = System.currentTimeMillis();
-        log.warn(TITLE + "end, 耗时{}ms", end-start);
+
+        log.warn("{}执行完成, 耗时{}ms", TITLE, System.currentTimeMillis() - startTime);
     }
 
+    /**
+     * 手动执行
+     */
     private void manualPushCarClue() {
-        // 获取 待手动执行的推送数据
+        // 获取待手动执行的推送数据
         CarClueExecuteRecordingExample example = new CarClueExecuteRecordingExample();
-        example.createCriteria().andExecuteTypeEqualTo(ExecuteClueTypeEnum.PUSH.getValue())
+        example.createCriteria()
+                .andExecuteTypeEqualTo(ExecuteClueTypeEnum.PUSH.getValue())
                 .andExecuteStatusEqualTo(ExecuteClueStatusEnum.AWAIT_EXECUTE.getValue())
                 .andIsDelEqualTo(Constants.DATA_VALID);
-        List<CarClueExecuteRecording> carClueExecuteRecordings = carClueExecuteRecordingMapper.selectByExample(example);
-        if(CollectionUtil.isEmpty(carClueExecuteRecordings)){
-            log.warn(TITLE + "手动待执行记录为空！");
+        List<CarClueExecuteRecording> recordings = carClueExecuteRecordingMapper.selectByExample(example);
+
+        if (CollectionUtil.isEmpty(recordings)) {
+            log.warn("{}手动待执行记录为空！", TITLE);
             return;
         }
+        recordings.forEach(this::processSingleRecording);
+    }
 
-        for (CarClueExecuteRecording carClueExecuteRecording : carClueExecuteRecordings){
-            String clueIds = carClueExecuteRecording.getClueIds();
-            List<CarClueInfo> carClueInfoList;
-            if(!StringUtils.isEmpty(clueIds)){
-                List<Long> list = new ArrayList<>();
-                String[] split = clueIds.split(",");
-                for (String s : split){
-                    list.add(Long.valueOf(s));
-                }
-                CarClueInfoExample carClueInfoExample = new CarClueInfoExample();
-                carClueInfoExample.createCriteria().andIdIn(list).andCluePushStatusEqualTo(CarCluePushStatusEnum.READY.getValue());
-                carClueInfoList = carClueInfoMapper.selectByExample(carClueInfoExample);
-            }else {
-                String clueRange = carClueExecuteRecording.getClueRange();
-                if(StringUtils.isBlank(clueRange)){
-                    log.warn(TITLE + "线索查询条件为空！");
-                    continue;
-                }
-                CarClueReportDTO carClueReportDTO = JSONObject.parseObject(clueRange, CarClueReportDTO.class);
-                if (ObjectUtil.isNotEmpty(carClueReportDTO.getCluePushChannel())) {
-                    List<String> cluePushChannel = getValueByKey(carClueReportDTO.getCluePushChannel());
-                    if (cluePushChannel.contains("fail")) {
-                        carClueReportDTO.setCluePushChannel(null);
-                    } else {
-                        carClueReportDTO.setCluePushChannel(cluePushChannel.get(0));
+    private void processSingleRecording(CarClueExecuteRecording recording) {
+        try {
+            if (StringUtils.isNotBlank(recording.getClueIds())) {
+                List<CarClueInfo> carClueInfos = carClueExecuteService.processClueByIds(recording.getClueIds());
+                pushCluesByChannel(carClueInfos);
+            } else if (StringUtils.isNotBlank(recording.getClueRange())) {
+                CarClueReportDTO carClueReportDTO = carClueExecuteService.processClueByRange(recording.getClueRange());
+                Long minId = null;
+                while (true) {
+                    List<CarClueInfo> clues = carClueInfoMapper.queryList(carClueReportDTO, minId);
+                    if (CollectionUtil.isEmpty(clues)) {
+                        break;
                     }
+                    minId = clues.get(clues.size() - 1).getId();
+                    pushCluesByChannel(clues);
                 }
-                carClueInfoList = carClueInfoMapper.queryList(carClueReportDTO);
+
+            } else {
+                log.warn("{}线索查询条件为空！记录ID:{}", TITLE, recording.getId());
             }
-            Map<String, List<CarClueInfo>> groupedByChannel = carClueInfoList.stream()
-                    .collect(Collectors.groupingBy(CarClueInfo::getCluePushChannel));
-
-            groupedByChannel.forEach((channel, clues) -> {
-                AbstractClueChannelPush channelPushImpl = clueChannelConfigService.getChannelPushImpl(channel);
-                carClueService.pushCarClueHandler(clues, channelPushImpl);
-            });
-
-            //修改状态为 执行完成
-            CarClueExecuteRecording recording = new CarClueExecuteRecording();
-            recording.setId(carClueExecuteRecording.getId());
-            recording.setExecuteStatus(ExecuteClueStatusEnum.EXECUTE_FINISH.getValue());
-            carClueExecuteRecordingMapper.updateByPrimaryKeySelective(recording);
+            updateRecordingStatus(recording.getId(), ExecuteClueStatusEnum.EXECUTE_FINISH.getValue());
+        } catch (Exception e) {
+            log.error("{}处理推送记录失败, ID:{}", TITLE, recording.getId(), e);
+            updateRecordingStatus(recording.getId(), ExecuteClueStatusEnum.EXECUTE_ERROR.getValue());
         }
-
     }
 
-    private void autoPushCarClue() {
+    private void pushCluesByChannel(List<CarClueInfo> clues) {
+        clues.stream()
+                .filter(clue -> Objects.equals(clue.getCluePushStatus(), CarCluePushStatusEnum.READY.getValue()))
+                .collect(Collectors.groupingBy(CarClueInfo::getCluePushChannel))
+                .forEach((channel, channelClues) -> {
+                    AbstractClueChannelPush pusher = clueChannelConfigService.getChannelPushImpl(channel);
+                    if (pusher != null) {
+                        carClueService.pushCarClueHandler(channelClues, pusher);
+                    }
+                });
+    }
 
+    private void updateRecordingStatus(Long id, Integer status) {
+        CarClueExecuteRecording update = new CarClueExecuteRecording();
+        update.setId(id);
+        update.setExecuteStatus(status);
+        carClueExecuteRecordingMapper.updateByPrimaryKeySelective(update);
+    }
+
+    /**
+     * 自动执行
+     */
+    private void autoPushCarClue() {
         List<String> channels = carClueInfoMapper.queryApiCodes(CarCluePushStatusEnum.READY.getValue());
-        if(CollectionUtil.isEmpty(channels)){
+        if (CollectionUtil.isEmpty(channels)) {
+            return;
+        }
+        ThreadPoolExecutor pushCarClueThread = BrExecutors.getThreadPool(5, 5);
+        try {
+            channels.forEach(channel -> processChannelClues(channel, pushCarClueThread));
+        } finally {
+            shutdownExecutor(pushCarClueThread);
+        }
+    }
+
+    private void processChannelClues(String channel, ExecutorService executor) {
+        AbstractClueChannelPush pusher = clueChannelConfigService.getChannelPushImpl(channel);
+        if (pusher == null) {
+            log.warn("{}未找到推送实现，channel：{}", TITLE, channel);
             return;
         }
 
-        ThreadPoolExecutor pushCarClueThread =
-                BrExecutors.getThreadPool(5, 5);
-
-        for (String channel : channels) {
-
-            AbstractClueChannelPush channelPushImpl = clueChannelConfigService.getChannelPushImpl(channel);
-
-            if(channelPushImpl == null){
-                log.warn(TITLE + "未找到推送实现，channel：{}", channel);
-                continue;
+        Long minId = null;
+        while (true) {
+            List<CarClueInfo> clues = fetchCluesByChannel(channel, minId, 2000);
+            if (CollectionUtil.isEmpty(clues)) {
+                break;
             }
 
-            Long minId = null;
-            boolean isContiue = Boolean.TRUE;
-            while (isContiue) {
-                CarClueInfoExample carClueInfoExample = new CarClueInfoExample();
-                carClueInfoExample.setOrderByClause("id limit 2000");
-
-                CarClueInfoExample.Criteria criteria = carClueInfoExample.createCriteria()
-                        .andCluePushChannelEqualTo(channel)
-                        .andCluePushStatusEqualTo(CarCluePushStatusEnum.READY.getValue());
-
-                if (minId != null) {
-                    criteria.andIdGreaterThan(minId);
-                }
-
-                List<CarClueInfo> carClueInfoList = carClueInfoMapper.selectByExample(carClueInfoExample);
-                if (CollectionUtil.isEmpty(carClueInfoList)) {
-                    isContiue = Boolean.FALSE;
-                    continue;
-                }
-                minId = carClueInfoList.get(carClueInfoList.size() - 1).getId();
-                pushCarClueThread.submit(() -> carClueService.pushCarClueHandler(carClueInfoList, channelPushImpl));
-            }
-        }
-        pushCarClueThread.shutdown();
-        try {
-            while (!pushCarClueThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.warn("推送车线索线程池关闭");
-            }
-        } catch (InterruptedException ex) {
-            pushCarClueThread.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), "推送车线索线程池关闭！异常"), ex);
-            Thread.currentThread().interrupt();
+            minId = clues.get(clues.size() - 1).getId();
+            executor.submit(() -> carClueService.pushCarClueHandler(clues, pusher));
         }
     }
 
-    public List<String>  getValueByKey(String key) {
+    private List<CarClueInfo> fetchCluesByChannel(String channel, Long minId, int limit) {
+        CarClueInfoExample example = new CarClueInfoExample();
+        example.setOrderByClause("id limit " + limit);
+
+        CarClueInfoExample.Criteria criteria = example.createCriteria()
+                .andCluePushChannelEqualTo(channel)
+                .andCluePushStatusEqualTo(CarCluePushStatusEnum.READY.getValue());
+
+        if (minId != null) {
+            criteria.andIdGreaterThan(minId);
+        }
+
+        return carClueInfoMapper.selectByExample(example);
+    }
+
+    private void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown();
         try {
-            Map<String, Object> carClueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
-            Map<String, List> channel = (Map<String, List>) carClueApiCodeMapping.get("channel");
-            if (ObjectUtil.isEmpty(channel)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                        "渠道不存在！"));
+            if (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
             }
-            List<String> carClueApiCodes = channel.get(key);
-            return ObjectUtil.isNotEmpty(carClueApiCodes) ? carClueApiCodes : new ArrayList<>();
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    "获取推送渠道映射失败！错误信息：" + e.getMessage()), e);
-            return new ArrayList<>();
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+            log.warn("{}推送车线索线程池关闭异常", TITLE, e);
         }
     }
 

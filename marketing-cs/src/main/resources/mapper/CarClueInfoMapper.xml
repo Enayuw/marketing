@@ -227,7 +227,11 @@
                 or clue_match_series like concat("%", #{search},"%")
                 or clue_match_city like concat("%", #{search},"%"))
             </if>
+            <if test="minId != null and minId >0">
+                and `id` > #{minId}
+            </if>
         </where>
+        order by `id` asc limit 2000
     </select>
 
 </mapper>
