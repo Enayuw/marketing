@@ -91,7 +91,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             }
             //文件下载
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-            String dirPath = getPath() +"tongcheng_customize_upload_data"+yyyyMMdd+"/";
+            String dirPath = getPath() +"tongcheng_customize_upload_data/"+yyyyMMdd+"/";
             String gzFileName= "tcyr_"+syncRecord.getBatchNo()+".csv.gz";
             String gzFilePath = dirPath.concat(gzFileName);
             Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
