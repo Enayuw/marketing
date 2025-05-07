@@ -460,4 +460,6 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getUserByCell(@Param("apiCode") String apiCode, @Param("appletDates") List<String> appletDates, @Param("cell") String cell);
 
+    List<String> getCustNumsByCusBatchtikv_(@Param("apiCode") String apiCode, @Param("cusBatch") String cusBatch);
+
 }

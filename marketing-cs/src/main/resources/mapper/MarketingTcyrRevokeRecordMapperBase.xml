@@ -9,6 +9,8 @@
     <result column="data" property="data" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="msg" property="msg" jdbcType="VARCHAR" />
+    <result column="is_clean" property="isClean" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -71,7 +73,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time
+    id, api_code, request_no, batch_no, `data`, `status`, msg, is_clean, is_del, create_time,
+    update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrRevokeRecordExample" >
     select
@@ -88,7 +91,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_tcyr_revoke_record
     where id = #{id,jdbcType=BIGINT}
@@ -107,12 +110,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_revoke_record (api_code, request_no, batch_no, 
-      `data`, `status`, msg, 
-      create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
-      #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_marketing_tcyr_revoke_record (api_code, request_no, batch_no,
+    `data`, `status`, msg,
+    is_clean, is_del, create_time,
+    update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR},
+    #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR},
+    #{isClean,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrRevokeRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -137,6 +142,12 @@
       </if>
       <if test="msg != null" >
         msg,
+      </if>
+      <if test="isClean != null" >
+        is_clean,
+      </if>
+      <if test="isDel != null" >
+        is_del,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -163,6 +174,12 @@
       </if>
       <if test="msg != null" >
         #{msg,jdbcType=VARCHAR},
+      </if>
+      <if test="isClean != null" >
+        #{isClean,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -202,6 +219,12 @@
       <if test="record.msg != null" >
         msg = #{record.msg,jdbcType=VARCHAR},
       </if>
+      <if test="record.isClean != null" >
+        is_clean = #{record.isClean,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
@@ -216,14 +239,16 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_tcyr_revoke_record
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      request_no = #{record.requestNo,jdbcType=VARCHAR},
-      batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      `data` = #{record.data,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=INTEGER},
-      msg = #{record.msg,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    request_no = #{record.requestNo,jdbcType=VARCHAR},
+    batch_no = #{record.batchNo,jdbcType=VARCHAR},
+    `data` = #{record.data,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
+    msg = #{record.msg,jdbcType=VARCHAR},
+    is_clean = #{record.isClean,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -249,6 +274,12 @@
       <if test="msg != null" >
         msg = #{msg,jdbcType=VARCHAR},
       </if>
+      <if test="isClean != null" >
+        is_clean = #{isClean,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -261,13 +292,15 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrRevokeRecord" >
     update b_marketing_tcyr_revoke_record
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      request_no = #{requestNo,jdbcType=VARCHAR},
-      batch_no = #{batchNo,jdbcType=VARCHAR},
-      `data` = #{data,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=INTEGER},
-      msg = #{msg,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        request_no = #{requestNo,jdbcType=VARCHAR},
+        batch_no = #{batchNo,jdbcType=VARCHAR},
+        `data` = #{data,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=INTEGER},
+        msg = #{msg,jdbcType=VARCHAR},
+        is_clean = #{isClean,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

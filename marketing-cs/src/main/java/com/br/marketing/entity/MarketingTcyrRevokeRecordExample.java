@@ -575,6 +575,126 @@ public class MarketingTcyrRevokeRecordExample {
             return (Criteria) this;
         }
 
+        public Criteria andIsCleanIsNull() {
+            addCriterion("is_clean is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanIsNotNull() {
+            addCriterion("is_clean is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanEqualTo(Integer value) {
+            addCriterion("is_clean =", value, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanNotEqualTo(Integer value) {
+            addCriterion("is_clean <>", value, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanGreaterThan(Integer value) {
+            addCriterion("is_clean >", value, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_clean >=", value, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanLessThan(Integer value) {
+            addCriterion("is_clean <", value, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanLessThanOrEqualTo(Integer value) {
+            addCriterion("is_clean <=", value, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanIn(List<Integer> values) {
+            addCriterion("is_clean in", values, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanNotIn(List<Integer> values) {
+            addCriterion("is_clean not in", values, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanBetween(Integer value1, Integer value2) {
+            addCriterion("is_clean between", value1, value2, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsCleanNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_clean not between", value1, value2, "isClean");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelIsNull() {
+            addCriterion("is_del is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelIsNotNull() {
+            addCriterion("is_del is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelEqualTo(Integer value) {
+            addCriterion("is_del =", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelNotEqualTo(Integer value) {
+            addCriterion("is_del <>", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelGreaterThan(Integer value) {
+            addCriterion("is_del >", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_del >=", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelLessThan(Integer value) {
+            addCriterion("is_del <", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelLessThanOrEqualTo(Integer value) {
+            addCriterion("is_del <=", value, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelIn(List<Integer> values) {
+            addCriterion("is_del in", values, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelNotIn(List<Integer> values) {
+            addCriterion("is_del not in", values, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelBetween(Integer value1, Integer value2) {
+            addCriterion("is_del between", value1, value2, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDelNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_del not between", value1, value2, "isDel");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;
