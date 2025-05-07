@@ -1,10 +1,12 @@
 package com.br.marketing.service.ruleCleaning.impl;
 
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
-import com.br.marketing.entity.MarketingDataCleanGeneralConfigExample;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
@@ -38,6 +40,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingJsonNodeParseMapper jsonNodeParseMapper;
+
+    @Resource
+    private MarketingSyncInfoMapper syncInfoMapper;
 
     /**
      * 规则列表查询
@@ -87,9 +92,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Override
     public boolean saveOrUpdateRule(MarketingDataCleanGeneralConfig config) {
         try {
+            MarketingUserDetail user = ThreadContextInfo.getUser();
+            Long userId = Long.valueOf(user.getId());
+            String userName = user.getUserName();
+            config.setOptUserId(userId);
+            config.setOptUserName(userName);
             // 设置默认参数
             config.setIsDel(1);
-            
+
             Date now = new Date();
             
             // 判断是新增还是修改
