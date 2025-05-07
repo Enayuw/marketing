@@ -52,7 +52,6 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
                 batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
                         ? jsonObject.getString("batchNumber")
                         : (appletDate + "_" + apiCode);
-
             }
             String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
                     ? jsonObject.getString("strategyCode")
@@ -124,6 +123,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        cusNameOfJo(syncUser.getName(),jsonObject);
         return jsonObject;
     }
 
@@ -151,6 +151,16 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
             return StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
         }
         return null;
+    }
+
+    private void cusNameOfJo(String name,JSONObject jo){
+        if(StringUtils.isBlank(name)){
+            return;
+        }
+        if(ObjectUtil.isEmpty(jo)){
+            return;
+        }
+        jo.put("cusName",BrCipherMaker.getInstance().decode(name));
     }
 
 }
