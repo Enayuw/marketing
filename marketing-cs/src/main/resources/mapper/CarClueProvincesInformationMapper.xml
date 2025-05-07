@@ -35,4 +35,11 @@
         where is_del = 1
 
     </select>
+
+    <select id="getGroupByApiCodeCount" resultType="java.util.Map">
+        select api_code,count(1) from b_car_clue_provinces_information
+        where applet_date = curdate()
+        group by api_code
+    </select>
+
 </mapper>

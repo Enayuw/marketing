@@ -59,16 +59,19 @@ public class ChannelRelationalJob extends AbstractSimpleElasticJob {
             return;
         }
 
-        log.warn(TITLE + "start");
-        long start = System.currentTimeMillis();
-        //获取当天的 易车KA 外采初始配置
-        channelRelationalService.getInitMapping();
-        //获取省市/车辆信息
+        // 获取省市/车辆信息
         channelRelationalService.getProvinceAndCity();
-        //维护外采渠道商信息
+
+        // 处理当天的 易车KA 外采初始配置
+        channelRelationalService.getInitMapping();
+
+        // 处理待清洗文档的 外采初始配置
+        channelRelationalService.getFileInitMapping();
+
+        // 维护外采渠道商映射信息
         channelRelationalService.relationalMapping();
-        long end = System.currentTimeMillis();
-        log.warn(TITLE + "end, 耗时{}ms", end-start);
+
 
     }
+
 }

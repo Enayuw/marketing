@@ -168,7 +168,7 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
             ClueFileRecording clueFileRecording = new ClueFileRecording();
             clueFileRecording.setUpdateScope(String.join(",", scope));
             clueFileRecording.setFileName(fileName);
-            clueFileRecording.setFileAdress(filePath);
+            clueFileRecording.setFileAdress(descPath);
             clueFileRecording.setFileCleanStatus(ClueFileRecordingStatusEnum.AWAIT_CLEAN.getValue());
             clueFileRecording.setAppletDate(LocalDate.now().toString());
             clueFileRecording.setCreateTime(new Date());
