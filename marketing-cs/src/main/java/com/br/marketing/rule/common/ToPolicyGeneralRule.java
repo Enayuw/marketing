@@ -160,7 +160,10 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         if(ObjectUtil.isEmpty(jo)){
             return;
         }
-        jo.put("cusName",BrCipherMaker.getInstance().decode(name));
+        String cusName = jo.getString("cusName");
+        if(StringUtils.isBlank(cusName)){
+            jo.put("cusName",BrCipherMaker.getInstance().decode(name));
+        }
     }
 
 }
