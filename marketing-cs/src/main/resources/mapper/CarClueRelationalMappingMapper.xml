@@ -82,12 +82,12 @@
             </if>
             <if test="search !=null and search!=''">
                 and (
-                brand_name like concat("%", #{search},"%")
-                or series_name like concat("%", #{search},"%")
-                or satisfy_province_name like concat("%", #{search},"%")
-                or satisfy_city_name like concat("%", #{search},"%")
-                or exclude_province_name like concat("%", #{search},"%")
-                or exclude_city_name like concat("%", #{search},"%")
+                brand_name like concat('%', #{search},'%')
+                or series_name like concat('%', #{search},'%')
+                or satisfy_province_name like concat('%', #{search},'%')
+                or satisfy_city_name like concat('%', #{search},'%')
+                or exclude_province_name like concat('%', #{search},'%')
+                or exclude_city_name like concat('%', #{search},'%')
                 )
             </if>
         </where>
