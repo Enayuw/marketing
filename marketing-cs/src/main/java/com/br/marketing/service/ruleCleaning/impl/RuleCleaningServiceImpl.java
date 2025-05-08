@@ -1,5 +1,6 @@
 package com.br.marketing.service.ruleCleaning.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -474,7 +475,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         Date now = new Date();
 
         // 计算清洗结果预览
-        String resultPreview = calculateResultPreview(configDTO.getFieldSample(), configDTO.getMappingRule());
+        String resultPreview = calculateResultPreview(configDTO.getFieldSample(), configDTO);
 
         // 查询是否已存在该映射字段的规则
         MarketingDataCleanGeneralRuleConfigExample example = new MarketingDataCleanGeneralRuleConfigExample();
@@ -525,22 +526,25 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * 计算清洗结果预览
      *
      * @param fieldSample 字段样例值
-     * @param mappingRule 映射规则
+     * @param configDTO 映射规则
      * @return 清洗结果预览
      */
-    private String calculateResultPreview(String fieldSample, String mappingRule) {
-        if (StringUtils.isBlank(fieldSample) || StringUtils.isBlank(mappingRule)) {
+    private String calculateResultPreview(String fieldSample, FieldCleaningConfigDTO configDTO) {
+        if (StringUtils.isBlank(fieldSample) || ObjectUtil.isEmpty(configDTO)) {
             return "";
         }
 
-        try {
-            // 直接调用预览方法
-            Object result = previewFieldCleaning(fieldSample, mappingRule);
-            return result != null ? result.toString() : "";
-        } catch (Exception e) {
-            log.error("计算清洗结果预览失败: fieldSample={}, mappingRule={}", fieldSample, mappingRule, e);
-            return "";
+        if (configDTO.getIsMapping()) {
+            try {
+                // 直接调用预览方法
+                Object result = previewFieldCleaning(fieldSample, configDTO.getMappingRule());
+                return result != null ? result.toString() : "";
+            } catch (Exception e) {
+                log.error("计算清洗结果预览失败: fieldSample={}, mappingRule={}", fieldSample, configDTO.getMappingRule(), e);
+                return "";
+            }
         }
+        return fieldSample;
     }
     
     /**
@@ -589,6 +593,21 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
     }
+
+    private Object executeCleaningRule(MarketingJsonNodeParse nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule) {
+        String nodeValue = nodeParse.getNodeValue();
+        Boolean isMapping = cleaningRule.getIsMapping();
+        Integer isDel = cleaningRule.getIsDel();
+        if ("9".equals(isDel)) {
+            return "";
+        }
+        if (isMapping) {
+            Object result = executeSingleRule(nodeValue, cleaningRule.getMappingRule());
+            return result;
+        }
+        return "";
+    }
+
     
     /**
      * 执行单个清洗规则
