@@ -9,6 +9,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.dto.tc.TcRevokeDto;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTcyrRevokeRecord;
 import com.br.marketing.entity.MarketingTcyrRevokeRecordExample;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -25,10 +26,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -75,60 +73,143 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
      */
     private void action(String apiCode) throws IOException {
         while (true) {
-            //1.查询待撤销数据
-            MarketingTcyrRevokeRecordExample recordExample = new MarketingTcyrRevokeRecordExample();
-            recordExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode)
-                    .andStatusEqualTo(1)
-                    .andIsCleanEqualTo(0)
-                    .andIsDelEqualTo(1);
-            recordExample.setOrderByClause("create_time desc limit 1");
-            List<MarketingTcyrRevokeRecord> records = marketingTcyrRevokeRecordMapper.selectByExample(recordExample);
-            if (CollectionUtils.isEmpty(records)) {
+            // 1.查询待撤销数据
+            MarketingTcyrRevokeRecord record = fetchNextRevokeRecord(apiCode);
+            if (record == null) {
                 break;
             }
-            //2.组装数据
-            MarketingTcyrRevokeRecord record = records.get(0);
+            // 2.处理记录
+            processRevokeRecord(apiCode, record);
+            // 适当休眠避免CPU过载
+            sleepSafely(1000);
+        }
+    }
+
+    /**
+     * @description 查询单条撤销记录
+     * @param apiCode
+     * @return
+     * @author hedongshuo
+     * @date 2025/5/8 14:45
+     **/
+    private MarketingTcyrRevokeRecord fetchNextRevokeRecord(String apiCode) {
+        MarketingTcyrRevokeRecordExample example = new MarketingTcyrRevokeRecordExample();
+        example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andStatusEqualTo(1)
+                .andIsCleanEqualTo(0)
+                .andIsDelEqualTo(1);
+        example.setOrderByClause("create_time desc limit 1");
+        List<MarketingTcyrRevokeRecord> records = marketingTcyrRevokeRecordMapper.selectByExample(example);
+        return CollectionUtils.isEmpty(records) ? null : records.get(0);
+    }
+
+    //处理单条记录
+    private void processRevokeRecord(String apiCode, MarketingTcyrRevokeRecord record) {
+        MarketingTcyrRevokeRecord updateRecord = new MarketingTcyrRevokeRecord();
+        updateRecord.setId(record.getId());
+        try {
             String batchNo = record.getBatchNo();
             TcRevokeDto tcRevokeDto = objectMapper.readValue(record.getData(), TcRevokeDto.class);
-            List<String> userKeyList = Optional.ofNullable(tcRevokeDto.getUserKeyList())
-                    .filter(list -> !list.isEmpty())
-                    .orElseGet(() -> marketingSyncUserMapper.getCustNumsByCusBatchtikv_(apiCode, batchNo));
-            List<JSONObject> jsonObjects = userKeyList.stream()
-                    .map(userKey -> new JSONObject().fluentPut("userKey", userKey))
-                    .collect(Collectors.toList());
-            List<List<JSONObject>> partitions = ListUtils.partition(jsonObjects, 1000);
-            //3.调用接口
-            MarketingTcyrRevokeRecord updateRecord = new MarketingTcyrRevokeRecord();
-            updateRecord.setId(record.getId());
-            for (List<JSONObject> partition : partitions) {
-                try {
-                    Result result = generalDataCleanService.transferClean(partition, apiCode, "revoke");
-                    if (result != null && result.isSuccess()) {
-                        List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) result.getData();
-                        PushTransferDataDetailDTO dto = initTransferData(apiCode, transferDataItemDTOS);
-                        Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
-                        if (pushResult == null || !pushResult.isSuccess()) {
-                          log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                                  TITLE + "-数据id：" + record.getId() + "调用pushTransferByRetry方法失败"));
-                          updateRecord.setIsClean(3);
-                          break;
-                        }
-                    } else {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                                TITLE + "-数据id：" + record.getId() + "调用transferClean方法失败"));
-                        updateRecord.setIsClean(2);
-                        break;
-                    }
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                            TITLE + "-数据id：" + record.getId() + "清洗+转化出现异常"), e);
-                    updateRecord.setIsClean(4);
-                    break;
-                }
+            if (CollectionUtils.isNotEmpty(tcRevokeDto.getUserKeyList())) {
+                processUserKeyList(apiCode, batchNo, tcRevokeDto.getUserKeyList(), updateRecord, record.getId());
+            } else {
+                processUserKeyListFromDB(apiCode, batchNo, updateRecord, record.getId());
             }
-            updateRecord.setIsClean(1);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    TITLE + "-数据id：" + record.getId() + "外层处理撤销记录异常"), e);
+            updateRecord.setIsClean(4);
             marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+        }
+    }
+
+    // 处理记录中上送的userKeyList
+    private void processUserKeyList(String apiCode, String batchNo, List<String> userKeyList,
+                                    MarketingTcyrRevokeRecord updateRecord, Long recordId) {
+        List<List<String>> partitions = ListUtils.partition(userKeyList, 1000);
+        processPartitions(apiCode, batchNo, partitions, updateRecord, recordId);
+    }
+
+    // 记录中无userKeyList，从DB中获取并处理
+    private void processUserKeyListFromDB(String apiCode, String batchNo,
+                                          MarketingTcyrRevokeRecord updateRecord, Long recordId) {
+        Long minId = null;
+        Integer pageSize = marketingCommonConfig.getTcRevokePageSize();
+        while (true) {
+            List<MarketingSyncUser> syncUsers = marketingSyncUserMapper.getCustNumsByCusBatchtikv_(
+                    apiCode, batchNo, minId, pageSize);
+            if (CollectionUtils.isEmpty(syncUsers)) {
+                break;
+            }
+            minId = syncUsers.get(syncUsers.size() - 1).getId();
+            List<String> userKeyList = syncUsers.stream()
+                    .map(MarketingSyncUser::getCustNum)
+                    .distinct()
+                    .collect(Collectors.toList());
+            List<List<String>> partitions = ListUtils.partition(userKeyList, 1000);
+            processPartitions(apiCode, batchNo, partitions, updateRecord, recordId);
+        }
+    }
+
+    // 抽取方法：处理分区数据
+    private void processPartitions(String apiCode, String batchNo, List<List<String>> partitions,
+                                   MarketingTcyrRevokeRecord updateRecord, Long recordId) {
+        for (List<String> partition : partitions) {
+            List<JSONObject> jsonObjects = partition.stream()
+                    .map(userKey -> new JSONObject()
+                            .fluentPut("userKey", userKey)
+                            .fluentPut("batchNo", batchNo))
+                    .collect(Collectors.toList());
+            try {
+                if (!processTransferClean(apiCode, jsonObjects, updateRecord, recordId)) {
+                    return;
+                }
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                        TITLE + "-数据id：" + recordId + "处理撤销记录异常"), e);
+                updateRecord.setIsClean(4);
+                marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+            }
+        }
+        updateRecord.setIsClean(1);
+        marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+    }
+
+    // 清洗+调用转化接口
+    private boolean processTransferClean(String apiCode, List<JSONObject> jsonObjects,
+                                         MarketingTcyrRevokeRecord updateRecord, Long recordId) {
+        //清洗
+        Result result = generalDataCleanService.transferClean(jsonObjects, apiCode, "revoke");
+        if (result == null || !result.isSuccess()) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    TITLE + "-数据id：" + recordId + "调用transferClean方法失败"));
+            updateRecord.setIsClean(2);
+            marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+            return false;
+        }
+        List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) result.getData();
+
+        //调用转化接口
+        PushTransferDataDetailDTO dto = initTransferData(apiCode, transferDataItemDTOS);
+        Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+        if (pushResult == null || !pushResult.isSuccess()) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    TITLE + "-数据id：" + recordId + "调用pushTransferByRetry方法失败"));
+            updateRecord.setIsClean(3);
+            marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+            return false;
+        }
+        return true;
+    }
+
+    // 安全休眠方法
+    private void sleepSafely(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("线程休眠被中断");
         }
     }
 

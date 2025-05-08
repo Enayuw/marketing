@@ -1146,11 +1146,15 @@
     </select>
 
     <select id="getCustNumsByCusBatchtikv_" resultType="java.lang.String">
-        select distinct cust_num
+        select id, cust_num
         from b_marketing_sync_${apiCode}
         where cus_batch = #{cusBatch}
-        and status=1
+        and status = 1
         and is_repeat in (1,2)
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by id limit #{pageSize}
     </select>
 
 
