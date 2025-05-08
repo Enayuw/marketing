@@ -20,4 +20,7 @@ public interface MarketingDataCleanGeneralConfigMapper extends MarketingDataClea
      * @return 规则数量
      */
     long countRuleList(MarketingDataCleanGeneralConfig param);
+
+
+    MarketingDataCleanGeneralConfig getCustomUploadConfig(String apiCode);
 }

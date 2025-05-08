@@ -2585,6 +2585,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         long l = System.currentTimeMillis();
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
+        //查询清洗规则配置
+        Map<String, String>configRule = dataCleanService.getConfigRule(apiCode,DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
+                DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {

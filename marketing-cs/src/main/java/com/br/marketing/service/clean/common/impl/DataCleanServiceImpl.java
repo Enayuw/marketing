@@ -3,29 +3,36 @@ package com.br.marketing.service.clean.common.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
-import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
-import com.br.marketing.entity.MarketingJsonNodeParse;
-import com.br.marketing.entity.MarketingJsonNodeParseExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
+import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
+import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.DataCleanService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -41,6 +48,19 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Resource
     private RedisChgService redisChgService;
+
+
+    @Resource
+    MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+
+    @Resource
+    PushInfoService pushInfoService;
+
+    private static final String TITLE = "【定制上传数据清洗】";
 
     @Override
     public Result<Boolean> customerDataJsonParse(String message) {
@@ -64,7 +84,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         mqDataJsonParse.getDataType(),
                         mqDataJsonParse.getAcceptType(),
                         "",
-                        "$",
+                        "",
                         jsonObject,
                         0,
                         false
@@ -117,7 +137,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             // 构建新的父路径
             String newParentPath = parentPath;
             if (!nodeName.isEmpty()) {
-                newParentPath = parentPath + "." + nodeName;
+                newParentPath = parentPath.isEmpty() ? nodeName : parentPath + "." + nodeName;
             }
 
             // 递归处理对象的每个字段
@@ -138,7 +158,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             // 构建新的父路径
             String newParentPath = parentPath;
             if (!nodeName.isEmpty()) {
-                newParentPath = parentPath + "." + nodeName;
+                newParentPath = parentPath.isEmpty() ? nodeName : parentPath + "." + nodeName;
             }
 
             // 检查数组是否为空
@@ -230,7 +250,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         Map<String, String> config = new HashMap<>();
         ruleConfigList.forEach(rule -> {
-            config.put(rule.getMappingField(), rule.getMappingRule());
+            config.put(rule.getMappingField(), JSON.toJSONString(rule));
 
         });
         redisChgService.hmset(redisKey, config);
@@ -249,4 +269,128 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
 
+    @Override
+    public void customUploadDataClean(MarketingDataCleanGeneralConfig config, List<String> appletDateList) {
+        String apiCode = config.getApiCode();
+        //查询规则
+        MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+        ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(config.getId());
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+        // Pool
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 50);
+        appletDateList.forEach(appletDate -> {
+            Long indexId = null;
+            while (true) {
+                // 循环获取条件数据，每次pageSize条
+                List<MarketingCustomerOriginalData> pageList = marketingCustomerOriginalDataMapper.getCustomUploadData(
+                        apiCode, appletDate, indexId);
+                if (CollectionUtils.isEmpty(pageList)) {
+                    break;
+                }
+                indexId = pageList.get(pageList.size() - 1).getId();
+                modifyCorePoolSize(pool);
+                pageList.forEach(originalData ->
+                        pool.submit(() -> processData(originalData, ruleConfigList))
+                );
+            }
+        });
+        // 关闭线程池
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "定制上传数据清洗线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+
+    private void processData(MarketingCustomerOriginalData originalData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+        String jsonData = originalData.getJsonData();
+        String apiCode = originalData.getApiCode();
+        String levelField = null;
+        if (!CollectionUtils.isEmpty(marketingCommonConfig.getCustomUploadCleanLevelField())) {
+            levelField = marketingCommonConfig.getCustomUploadCleanLevelField().get(apiCode);
+        }
+        //层级字段处理
+        List<JSONObject> jsonObjectList = new ArrayList<>();
+        if (StringUtils.isNotEmpty(levelField)) {
+            jsonObjectList = JsonParseUtils.parseJsonArrayToMultipleObjects(jsonData, levelField);
+        } else {
+            jsonObjectList.add(JSON.parseObject(jsonData));
+        }
+        //根据规则进行清洗处理
+        List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+        jsonObjectList.forEach(jsonObject -> {
+            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+            ruleConfigList.forEach(ruleConfig -> {
+                Object result = getCleanResult(jsonObject, JSON.toJSONString(ruleConfig));
+                switch (ruleConfig.getMappingField()) {
+                    case "name":
+                        marketingPreUserDetailDTO.setName((String) result);
+                        break;
+                    case "cell":
+                        marketingPreUserDetailDTO.setCell((String) result);
+                        break;
+                    case "id":
+                        marketingPreUserDetailDTO.setId((String) result);
+                        break;
+                    case "groupType":
+                        marketingPreUserDetailDTO.setGroupType((String) result);
+                        break;
+                    case "custNum":
+                        marketingPreUserDetailDTO.setCustNum((String) result);
+                        break;
+                    case "operateType":
+                        marketingPreUserDetailDTO.setOperateType((String) result);
+                        break;
+                    default:
+                        marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(), ruleConfig.getMappingField(), result));
+
+                }
+
+            });
+            syncUsers.add(marketingPreUserDetailDTO);
+        });
+        //写入到info表
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        //TODO taskId赋值
+        marketingPreUserDTO.setTaskId("1");
+        marketingPreUserDTO.setRequestId(originalData.getRequestId());
+        marketingPreUserDTO.setDataItems(syncUsers);
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+        uploadDataDTO.setApiCode(apiCode);
+        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+        pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+        originalData.setCleanStatus(1);
+        marketingCustomerOriginalDataMapper.updateByPrimaryKeySelective(originalData);
+    }
+
+
+    private String setExtendField(String reserveField1, String field, Object result) {
+        JSONObject jsonObject;
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(reserveField1)) {
+            jsonObject = JSONObject.parseObject(reserveField1);
+        } else {
+            jsonObject = new JSONObject();
+        }
+        jsonObject.put(field, result);
+        return jsonObject.toString();
+    }
+
+
+    private void modifyCorePoolSize(ThreadPoolExecutor pool) {
+        Integer threadNum =
+                marketingCommonConfig.getCustomUploadCleanThreadNum();
+        if (!Objects.isNull(threadNum)) {
+            pool.setCorePoolSize(threadNum);
+            pool.setMaximumPoolSize(threadNum);
+        }
+        log.warn(TITLE + "处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+    }
 }
+
+
+

@@ -332,11 +332,16 @@ public class RedisKeyConstant {
     /**
      * 原始数据JSON结构
      */
-    public static final String ORIGINAL_DATA_JSON_PARSE = prefix.concat("datajsonparse");
+    public static final String ORIGINAL_DATA_JSON_PARSE = prefix.concat("data:jsonparse");
 
     /**
-     * 原始数据JSON结构
+     * 数据清洗配置
      */
     public static final String DATA_CLEAN_CONFIG_RULE = prefix.concat("dataclean:ruleconfig");
+
+    /**
+     * 数据清洗任务锁
+     */
+    public static final String DATA_CLEAN_TASK_LOCK = prefix.concat("dataclean:task:lock");
 
 }

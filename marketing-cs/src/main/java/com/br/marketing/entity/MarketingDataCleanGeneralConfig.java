@@ -36,6 +36,11 @@ public class MarketingDataCleanGeneralConfig implements Serializable {
     private Integer acceptType;
 
     /**
+     * 定制清洗配置运行状态：0:未运行,1:运行中
+     */
+    private Integer customRunStatus;
+
+    /**
      * 是否删除：1-正常；9-删除
      */
     private Integer isDel;

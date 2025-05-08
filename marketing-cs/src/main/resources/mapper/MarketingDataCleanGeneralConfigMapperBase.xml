@@ -7,6 +7,7 @@
     <result column="account_type" jdbcType="VARCHAR" property="accountType" />
     <result column="data_type" jdbcType="INTEGER" property="dataType" />
     <result column="accept_type" jdbcType="INTEGER" property="acceptType" />
+    <result column="custom_run_status" jdbcType="INTEGER" property="customRunStatus" />
     <result column="is_del" jdbcType="INTEGER" property="isDel" />
     <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
     <result column="opt_user_name" jdbcType="VARCHAR" property="optUserName" />
@@ -72,8 +73,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, account_type, data_type, accept_type, is_del, opt_user_id, opt_user_name, 
-    create_time, update_time
+    id, api_code, account_type, data_type, accept_type, custom_run_status, is_del, opt_user_id, 
+    opt_user_name, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" resultMap="BaseResultMap">
     select
@@ -107,13 +108,13 @@
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_config (api_code, account_type, data_type, 
-      accept_type, is_del, opt_user_id, 
-      opt_user_name, create_time, update_time
-      )
+      accept_type, custom_run_status, is_del, 
+      opt_user_id, opt_user_name, create_time, 
+      update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{accountType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, 
-      #{acceptType,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, 
-      #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{acceptType,jdbcType=INTEGER}, #{customRunStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_config
@@ -129,6 +130,9 @@
       </if>
       <if test="acceptType != null">
         accept_type,
+      </if>
+      <if test="customRunStatus != null">
+        custom_run_status,
       </if>
       <if test="isDel != null">
         is_del,
@@ -158,6 +162,9 @@
       </if>
       <if test="acceptType != null">
         #{acceptType,jdbcType=INTEGER},
+      </if>
+      <if test="customRunStatus != null">
+        #{customRunStatus,jdbcType=INTEGER},
       </if>
       <if test="isDel != null">
         #{isDel,jdbcType=INTEGER},
@@ -200,6 +207,9 @@
       <if test="record.acceptType != null">
         accept_type = #{record.acceptType,jdbcType=INTEGER},
       </if>
+      <if test="record.customRunStatus != null">
+        custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
+      </if>
       <if test="record.isDel != null">
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
@@ -227,6 +237,7 @@
       account_type = #{record.accountType,jdbcType=VARCHAR},
       data_type = #{record.dataType,jdbcType=INTEGER},
       accept_type = #{record.acceptType,jdbcType=INTEGER},
+      custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
       is_del = #{record.isDel,jdbcType=INTEGER},
       opt_user_id = #{record.optUserId,jdbcType=BIGINT},
       opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
@@ -250,6 +261,9 @@
       </if>
       <if test="acceptType != null">
         accept_type = #{acceptType,jdbcType=INTEGER},
+      </if>
+      <if test="customRunStatus != null">
+        custom_run_status = #{customRunStatus,jdbcType=INTEGER},
       </if>
       <if test="isDel != null">
         is_del = #{isDel,jdbcType=INTEGER},
@@ -275,6 +289,7 @@
       account_type = #{accountType,jdbcType=VARCHAR},
       data_type = #{dataType,jdbcType=INTEGER},
       accept_type = #{acceptType,jdbcType=INTEGER},
+      custom_run_status = #{customRunStatus,jdbcType=INTEGER},
       is_del = #{isDel,jdbcType=INTEGER},
       opt_user_id = #{optUserId,jdbcType=BIGINT},
       opt_user_name = #{optUserName,jdbcType=VARCHAR},

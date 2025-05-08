@@ -425,6 +425,66 @@ public class MarketingDataCleanGeneralConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andCustomRunStatusIsNull() {
+            addCriterion("custom_run_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusIsNotNull() {
+            addCriterion("custom_run_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusEqualTo(Integer value) {
+            addCriterion("custom_run_status =", value, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusNotEqualTo(Integer value) {
+            addCriterion("custom_run_status <>", value, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusGreaterThan(Integer value) {
+            addCriterion("custom_run_status >", value, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("custom_run_status >=", value, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusLessThan(Integer value) {
+            addCriterion("custom_run_status <", value, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("custom_run_status <=", value, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusIn(List<Integer> values) {
+            addCriterion("custom_run_status in", values, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusNotIn(List<Integer> values) {
+            addCriterion("custom_run_status not in", values, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusBetween(Integer value1, Integer value2) {
+            addCriterion("custom_run_status between", value1, value2, "customRunStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomRunStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("custom_run_status not between", value1, value2, "customRunStatus");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

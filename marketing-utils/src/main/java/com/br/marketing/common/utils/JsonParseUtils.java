@@ -1,8 +1,12 @@
 package com.br.marketing.common.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class JsonParseUtils {
@@ -104,6 +108,75 @@ public class JsonParseUtils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+
+    /**
+     * 解析JSON结构，将数组对象解析为多个新的JSON结构
+     * @param jsonStr 原始JSON字符串
+     * @param arrayPath 数组在JSON中的路径，例如 "data.items"
+     * @return 解析后的多个JSON对象集合
+     */
+    public static List<JSONObject> parseJsonArrayToMultipleObjects(String jsonStr, String arrayPath) {
+        List<JSONObject> resultList = new ArrayList<>();
+
+        try {
+
+            // 正常处理：解析原始JSON字符串
+            JSONObject originalJson = JSON.parseObject(jsonStr);
+
+            // 获取数组路径
+            // 支持简单路径，不需要使用点分隔符
+            String[] pathSegments = arrayPath.contains(".") ? arrayPath.split("\\.") : new String[]{arrayPath};
+
+            JSONObject currentObj = originalJson;
+
+            // 遍历路径定位到数组
+            for (int i = 0; i < pathSegments.length - 1; i++) {
+                currentObj = currentObj.getJSONObject(pathSegments[i]);
+                if (currentObj == null) {
+                    return resultList; // 路径无效，返回空列表
+                }
+            }
+
+            // 获取最终数组路径的最后一个部分（即数组的键名）
+            String arrayKey = pathSegments[pathSegments.length - 1];
+
+            // 获取最终数组
+            JSONArray dataArray = currentObj.getJSONArray(arrayKey);
+            if (dataArray == null || dataArray.isEmpty()) {
+                return resultList; // 数组为空，返回空列表
+            }
+
+            // 遍历数组中的每个元素
+            for (int i = 0; i < dataArray.size(); i++) {
+                // 获取数组中的元素，通常是JSONObject
+                Object item = dataArray.get(i);
+                if (item instanceof JSONObject) {
+                    // 创建新的JSON结构
+                    JSONObject newJson = new JSONObject();
+
+                    // 将原始JSON的基本信息复制到新JSON中
+                    // 复制除了数组路径以外的所有属性
+                    for (String key : originalJson.keySet()) {
+                        if (!key.equals(pathSegments[0])) {
+                            newJson.put(key, originalJson.get(key));
+                        }
+                    }
+
+                    // 在新JSON中添加数组元素的内容，使用原始数组的键名
+                    newJson.put(arrayKey, item);
+
+                    // 将新的JSON对象添加到结果列表
+                    resultList.add(newJson);
+                }
+            }
+        } catch (Exception e) {
+            // 日志记录异常
+            log.error("解析JSON数组出错: {}", e.getMessage(), e);
+        }
+
+        return resultList;
     }
 
 }

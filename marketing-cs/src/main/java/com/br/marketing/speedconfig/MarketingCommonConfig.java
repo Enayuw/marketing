@@ -2934,5 +2934,16 @@ public class MarketingCommonConfig {
      */
     private Integer  tcPageSearchSize;
 
+
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer customUploadCleanThreadNum;
+
+    /**
+     * 定制上传数据清洗层级字段配置
+     */
+    private Map<String,String> customUploadCleanLevelField;
+
 }
 
