@@ -29,6 +29,11 @@ public class WubaCollidingDataDelayLoopCycle {
     private Date releaseTime;
 
     /**
+     * 最近一次撞库时间
+     */
+    private Date pushTime;
+
+    /**
      * 清洗状态 清洗状态 0-待清洗 1-清洗中，2-已完成
      */
     private Integer cleanStatus;
@@ -96,6 +101,14 @@ public class WubaCollidingDataDelayLoopCycle {
 
     public void setReleaseTime(Date releaseTime) {
         this.releaseTime = releaseTime;
+    }
+
+    public Date getPushTime() {
+        return pushTime;
+    }
+
+    public void setPushTime(Date pushTime) {
+        this.pushTime = pushTime;
     }
 
     public Integer getCleanStatus() {
