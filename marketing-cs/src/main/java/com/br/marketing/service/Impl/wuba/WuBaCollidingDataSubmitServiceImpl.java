@@ -19,6 +19,7 @@ import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaCollidingConfigMapper;
+import com.br.marketing.mapper.WubaCollidingDataDelayLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
@@ -58,6 +59,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     public static final String J = "J";
     public static final String Q = "Q";
     public static final String K = "K";
+    public static final String D = "D";
     @Resource
     WuBaServiceClient wuBaServiceClient;
     @Autowired
@@ -68,6 +70,8 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     WubaCollidingDataLoopCycleMapper wubaCollidingDataLoopCycleMapper;
     @Resource
     WubaCollidingDataSecondLoopCycleMapper wubaCollidingDataSecondLoopCycleMapper;
+    @Resource
+    WubaCollidingDataDelayLoopCycleMapper wubaCollidingDataDelayLoopCycleMapper;
     @Resource
     WubaCollidingBatchNoMapper wubaCollidingBatchNoMapper;
     @Resource
@@ -161,6 +165,10 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             wubaCollidingBatchNoMapper.saveDataByBatchNo(batchNo, 1, apiCode, sourceType);
 
             switch (sourceType) {
+                case D:
+                    // 更新延期表pushTime
+                    wubaCollidingDataDelayLoopCycleMapper.batchUpdatePushTimeById(collidingData);
+                    break;
                 case T:
                     // 更新周期场景1表pushTime
                     wubaCollidingDataLoopCycleMapper.batchUpdatePushTimeById(collidingData);

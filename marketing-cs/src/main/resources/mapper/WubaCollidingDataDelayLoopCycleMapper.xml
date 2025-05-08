@@ -10,4 +10,12 @@
             #{cell}
         </foreach>
     </select>
+
+    <update id="batchUpdatePushTimeById">
+        update b_wuba_colliding_data_delay_loop_cycle set push_time = now()
+        where id in
+        <foreach collection="datas" item="data" open="(" close=")" separator=",">
+            #{data.id}
+        </foreach>
+    </update>
 </mapper>
