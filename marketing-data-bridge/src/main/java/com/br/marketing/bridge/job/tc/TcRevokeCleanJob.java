@@ -136,11 +136,9 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
         PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
         TransferDataDTO transferDataDTO = new TransferDataDTO();
         transferDataDTO.setDataItems(transferDataItems);
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String taskId =  yyyyMMdd.concat("_").concat(apiCode);
         Random random = new Random();
         int randomNumber = 10000 + random.nextInt(90000);
-        String requestId = apiCode+"_"+taskId+"_"+System.currentTimeMillis()+"_"+randomNumber;
+        String requestId = apiCode+"_"+System.currentTimeMillis()+"_"+randomNumber;
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
