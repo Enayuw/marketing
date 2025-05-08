@@ -16,6 +16,11 @@ public class FieldSampleDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 清洗配置ID
+     */
+    private Long cleanConfigId;
+
+    /**
      * 字段名称
      */
     private String fieldName;
@@ -39,4 +44,9 @@ public class FieldSampleDTO implements Serializable {
      * 是否需要清洗
      */
     private Boolean needCleaning;
+
+    /**
+     * 清洗结果预览
+     */
+    private String resultPreview;
 } 

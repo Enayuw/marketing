@@ -155,7 +155,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 log.warn("API编码配置不存在：apiCode={}, dataType={}, acceptType={}", apiCode, dataType, acceptType);
                 return result;
             }
-
+            MarketingDataCleanGeneralConfig generalConfig = configs.get(0);
+            Long generalConfigId = generalConfig.getId();
             // 2. 查询营销客户数据json结构表，获取字段列表
             MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
             nodeExample.createCriteria()
@@ -176,14 +177,27 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     return result;
                 }
                 FieldSampleDTO dto = new FieldSampleDTO();
-
+                dto.setCleanConfigId(generalConfigId);
                 // 设置字段名称
                 dto.setFieldName(node.getNodeName());
 
                 // 设置初始值
                 dto.setFieldSample(node.getNodeValue());
                 dto.setFirstUploadTime(node.getCreateTime());
-                dto.setNeedCleaning(Boolean.FALSE);
+                // 查询是否需要清洗
+                MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+                ruleConfigExample.createCriteria()
+                       .andApiCodeEqualTo(apiCode)
+                       .andCleanConfigIdEqualTo(generalConfigId)
+                        .andCleanFieldsEqualTo(node.getNodeName())
+                        .andIsDelEqualTo(1);
+                List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = cleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+                if (ruleConfigs == null || ruleConfigs.isEmpty()) {
+                    dto.setNeedCleaning(Boolean.FALSE);
+                    dto.setResultPreview("");
+                }
+                Boolean isMapping = ruleConfigs.get(0).getIsMapping();
+                dto.setNeedCleaning(isMapping);
 
                 // 4. 如果node_value为空，则需要去客户上传数据明细表查询
                 if (StringUtils.isBlank(node.getNodeValue())) {
@@ -218,6 +232,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                                     if (StringUtils.isNotBlank(fieldValue)) {
                                         dto.setFieldSample(fieldValue);
+                                        if (isMapping) {
+                                            String resultPreview = ruleConfigs.get(0).getResultPreview();
+                                            dto.setResultPreview(resultPreview);
+                                        } else {
+                                            dto.setResultPreview(fieldValue);
+                                        }
                                         dto.setFirstUploadTime(createTime);
 
                                         // 更新JSON结构表
@@ -247,6 +267,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                                     if (StringUtils.isNotBlank(fieldValue)) {
                                         dto.setFieldSample(fieldValue);
+                                        if (isMapping) {
+                                            String resultPreview = ruleConfigs.get(0).getResultPreview();
+                                            dto.setResultPreview(resultPreview);
+                                        } else {
+                                            dto.setResultPreview(fieldValue);
+                                        }
                                         dto.setFirstUploadTime(createTime);
 
                                         // 更新JSON结构表
@@ -275,6 +301,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                                         if (StringUtils.isNotBlank(fieldValue)) {
                                             dto.setFieldSample(fieldValue);
+                                            if (isMapping) {
+                                                String resultPreview = ruleConfigs.get(0).getResultPreview();
+                                                dto.setResultPreview(resultPreview);
+                                            } else {
+                                                dto.setResultPreview(fieldValue);
+                                            }
                                             dto.setFirstUploadTime(createTime);
 
                                             // 更新JSON结构表

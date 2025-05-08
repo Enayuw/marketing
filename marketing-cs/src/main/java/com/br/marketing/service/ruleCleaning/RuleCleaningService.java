@@ -16,11 +16,11 @@ public interface RuleCleaningService {
 
     /**
      * 规则列表查询
-     * @param current 当前页
-     * @param size 每页条数
-     * @param apiCode API编码
+     * @param current     当前页
+     * @param size        每页条数
+     * @param apiCode     API编码
      * @param accountType 账号类型
-     * @param acceptType 接口类型
+     * @param acceptType  接口类型
      * @return 分页查询结果
      */
     PageResultReturn getRuleList(int current, int size, String apiCode, String accountType, Integer acceptType);
@@ -32,11 +32,11 @@ public interface RuleCleaningService {
      */
     boolean saveOrUpdateRule(MarketingDataCleanGeneralConfig config);
 
-    
+
     /**
      * 字段样例查询
-     * @param apiCode API编码
-     * @param dataType 数据类型：0上传，1转化
+     * @param apiCode    API编码
+     * @param dataType   数据类型：0上传，1转化
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
@@ -48,10 +48,10 @@ public interface RuleCleaningService {
      * @return 操作结果
      */
     boolean saveFieldCleaningConfig(FieldCleaningConfigDTO configDTO);
-    
+
     /**
      * 预览字段清洗结果
-     * @param fieldSample 字段样例数据
+     * @param fieldSample  字段样例数据
      * @param cleaningRule 清洗规则（JSON格式）
      * @return 清洗后的数据值
      */
