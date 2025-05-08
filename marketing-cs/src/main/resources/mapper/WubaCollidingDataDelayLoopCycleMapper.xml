@@ -18,4 +18,12 @@
             #{data.id}
         </foreach>
     </update>
+
+    <update id="batchDeleteByCell">
+        update b_wuba_colliding_data_delay_loop_cycle set is_deleted = 1
+        where api_code = #{apiCode} and cell in
+        <foreach collection="cells" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </update>
 </mapper>

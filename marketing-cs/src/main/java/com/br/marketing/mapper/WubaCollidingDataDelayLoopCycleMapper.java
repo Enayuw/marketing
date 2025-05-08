@@ -8,4 +8,6 @@ public interface WubaCollidingDataDelayLoopCycleMapper extends WubaCollidingData
     List<String> selectDuplicateData(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);
 
     void batchUpdatePushTimeById(@Param("datas") List<WubaCollidingData> data);
+
+    void batchDeleteByCell(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);
 }
