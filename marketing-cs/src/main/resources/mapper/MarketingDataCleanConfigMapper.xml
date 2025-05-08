@@ -14,6 +14,7 @@
       config.date_transform_pattern,
       config.decimal_reserve_type,
       config.decimal_reserve_precision,
+      config.decimal_unit_ratio,
       config.mapping_condition,
       config.mapping_out_value
     from

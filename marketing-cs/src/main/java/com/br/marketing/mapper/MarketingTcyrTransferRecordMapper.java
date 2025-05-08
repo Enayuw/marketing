@@ -9,5 +9,5 @@ public interface MarketingTcyrTransferRecordMapper extends MarketingTcyrTransfer
 
     List<MarketingTcyrTransferRecord> selectTcyrTransforRecordList(@Param("apiCode") String apiCode, @Param("status") Integer status, @Param("lastSearchId")Long lastSearchId, @Param("searchSize") Integer searchSize);
 
-    Integer updateStatus(@Param("idList") List<Long> idList, @Param("status") Integer status);
+    Integer updateCleanStatus(@Param("idList")List<Long> idList, @Param("cleanStatus")Integer cleanStatus);
 }

@@ -775,52 +775,62 @@ public class MarketingDataCleanConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeEqualTo(String value) {
             addCriterion("decimal_reserve_type =", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeNotEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeNotEqualTo(String value) {
             addCriterion("decimal_reserve_type <>", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeGreaterThan(Integer value) {
+        public Criteria andDecimalReserveTypeGreaterThan(String value) {
             addCriterion("decimal_reserve_type >", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeGreaterThanOrEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeGreaterThanOrEqualTo(String value) {
             addCriterion("decimal_reserve_type >=", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeLessThan(Integer value) {
+        public Criteria andDecimalReserveTypeLessThan(String value) {
             addCriterion("decimal_reserve_type <", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeLessThanOrEqualTo(Integer value) {
+        public Criteria andDecimalReserveTypeLessThanOrEqualTo(String value) {
             addCriterion("decimal_reserve_type <=", value, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeIn(List<Integer> values) {
+        public Criteria andDecimalReserveTypeLike(String value) {
+            addCriterion("decimal_reserve_type like", value, "decimalReserveType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalReserveTypeNotLike(String value) {
+            addCriterion("decimal_reserve_type not like", value, "decimalReserveType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalReserveTypeIn(List<String> values) {
             addCriterion("decimal_reserve_type in", values, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeNotIn(List<Integer> values) {
+        public Criteria andDecimalReserveTypeNotIn(List<String> values) {
             addCriterion("decimal_reserve_type not in", values, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeBetween(Integer value1, Integer value2) {
+        public Criteria andDecimalReserveTypeBetween(String value1, String value2) {
             addCriterion("decimal_reserve_type between", value1, value2, "decimalReserveType");
             return (Criteria) this;
         }
 
-        public Criteria andDecimalReserveTypeNotBetween(Integer value1, Integer value2) {
+        public Criteria andDecimalReserveTypeNotBetween(String value1, String value2) {
             addCriterion("decimal_reserve_type not between", value1, value2, "decimalReserveType");
             return (Criteria) this;
         }
@@ -882,6 +892,76 @@ public class MarketingDataCleanConfigExample {
 
         public Criteria andDecimalReservePrecisionNotBetween(Integer value1, Integer value2) {
             addCriterion("decimal_reserve_precision not between", value1, value2, "decimalReservePrecision");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioIsNull() {
+            addCriterion("decimal_unit_ratio is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioIsNotNull() {
+            addCriterion("decimal_unit_ratio is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioEqualTo(String value) {
+            addCriterion("decimal_unit_ratio =", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotEqualTo(String value) {
+            addCriterion("decimal_unit_ratio <>", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioGreaterThan(String value) {
+            addCriterion("decimal_unit_ratio >", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioGreaterThanOrEqualTo(String value) {
+            addCriterion("decimal_unit_ratio >=", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioLessThan(String value) {
+            addCriterion("decimal_unit_ratio <", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioLessThanOrEqualTo(String value) {
+            addCriterion("decimal_unit_ratio <=", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioLike(String value) {
+            addCriterion("decimal_unit_ratio like", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotLike(String value) {
+            addCriterion("decimal_unit_ratio not like", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioIn(List<String> values) {
+            addCriterion("decimal_unit_ratio in", values, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotIn(List<String> values) {
+            addCriterion("decimal_unit_ratio not in", values, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioBetween(String value1, String value2) {
+            addCriterion("decimal_unit_ratio between", value1, value2, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotBetween(String value1, String value2) {
+            addCriterion("decimal_unit_ratio not between", value1, value2, "decimalUnitRatio");
             return (Criteria) this;
         }
 

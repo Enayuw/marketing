@@ -2,9 +2,9 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingTcyrTransferRecord{
+public class MarketingTcyrTransferRecord {
     /**
-     * id
+     * 
      */
     private Long id;
 
@@ -47,6 +47,16 @@ public class MarketingTcyrTransferRecord{
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 清洗状态 0-待清洗；1-清洗完成2:上传清洗失败 3:推送清洗失败 4:整体推送异常
+     */
+    private Integer isClean;
+
+    /**
+     * 删除状态 1-可用 9-删除
+     */
+    private Integer isDel;
 
     public Long getId() {
         return id;
@@ -118,5 +128,21 @@ public class MarketingTcyrTransferRecord{
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getIsClean() {
+        return isClean;
+    }
+
+    public void setIsClean(Integer isClean) {
+        this.isClean = isClean;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
     }
 }

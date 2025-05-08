@@ -9,6 +9,7 @@
             AND status = 1
             AND batch_no = #{batchNo}
             AND is_clean = #{cleanStatus}
+            AND is_del = 1
         ORDER BY id ASC
         LIMIT #{searchSize}
     </select>
@@ -20,6 +21,7 @@
         WHERE id > #{lastSearchId}
         AND is_match is NULL
         AND status = 1
+        AND is_del = 1
         ORDER BY id ASC
         LIMIT #{searchSize}
     </select>
