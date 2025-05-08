@@ -895,6 +895,76 @@ public class MarketingDataCleanConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andDecimalUnitRatioIsNull() {
+            addCriterion("decimal_unit_ratio is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioIsNotNull() {
+            addCriterion("decimal_unit_ratio is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioEqualTo(String value) {
+            addCriterion("decimal_unit_ratio =", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotEqualTo(String value) {
+            addCriterion("decimal_unit_ratio <>", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioGreaterThan(String value) {
+            addCriterion("decimal_unit_ratio >", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioGreaterThanOrEqualTo(String value) {
+            addCriterion("decimal_unit_ratio >=", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioLessThan(String value) {
+            addCriterion("decimal_unit_ratio <", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioLessThanOrEqualTo(String value) {
+            addCriterion("decimal_unit_ratio <=", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioLike(String value) {
+            addCriterion("decimal_unit_ratio like", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotLike(String value) {
+            addCriterion("decimal_unit_ratio not like", value, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioIn(List<String> values) {
+            addCriterion("decimal_unit_ratio in", values, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotIn(List<String> values) {
+            addCriterion("decimal_unit_ratio not in", values, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioBetween(String value1, String value2) {
+            addCriterion("decimal_unit_ratio between", value1, value2, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
+        public Criteria andDecimalUnitRatioNotBetween(String value1, String value2) {
+            addCriterion("decimal_unit_ratio not between", value1, value2, "decimalUnitRatio");
+            return (Criteria) this;
+        }
+
         public Criteria andMappingConditionIsNull() {
             addCriterion("mapping_condition is null");
             return (Criteria) this;

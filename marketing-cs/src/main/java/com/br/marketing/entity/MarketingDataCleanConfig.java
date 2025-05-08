@@ -64,6 +64,11 @@ public class MarketingDataCleanConfig {
     private Integer decimalReservePrecision;
 
     /**
+     * 单位转换比率
+     */
+    private String decimalUnitRatio;
+
+    /**
      * 组合条件
      */
     private String mappingCondition;
@@ -182,6 +187,14 @@ public class MarketingDataCleanConfig {
 
     public void setDecimalReservePrecision(Integer decimalReservePrecision) {
         this.decimalReservePrecision = decimalReservePrecision;
+    }
+
+    public String getDecimalUnitRatio() {
+        return decimalUnitRatio;
+    }
+
+    public void setDecimalUnitRatio(String decimalUnitRatio) {
+        this.decimalUnitRatio = decimalUnitRatio == null ? null : decimalUnitRatio.trim();
     }
 
     public String getMappingCondition() {

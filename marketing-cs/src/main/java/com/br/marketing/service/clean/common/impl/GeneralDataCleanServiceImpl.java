@@ -112,7 +112,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                     }).collect(Collectors.toList());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(dtos);
         } catch (Exception e) {
-            log.warn("通用上传清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
+            log.warn("通用转化清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("上传清洗流程出现异常");
         }
     }
@@ -244,11 +244,14 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                 return TimeUtils.getFormatterValue(fieldValue.toString(), config.getDateTransformPattern());
             }
             if (config.getDecimalReserveType() != null && config.getDecimalReservePrecision() != null) {
-                BigDecimal bigDecimalValue = new BigDecimal(fieldValue.toString());
-                return bigDecimalValue.setScale(config.getDecimalReservePrecision(), RoundingMode.valueOf(config.getDecimalReserveType()));
+                BigDecimal decimalValue = new BigDecimal(fieldValue.toString());
+                BigDecimal decimalUnitRatio = config.getDecimalUnitRatio() == null
+                        ? new BigDecimal(1) : new BigDecimal(config.getDecimalUnitRatio());
+                return decimalValue.multiply(decimalUnitRatio)
+                        .setScale(config.getDecimalReservePrecision(), RoundingMode.valueOf(config.getDecimalReserveType()));
             }
         } catch(Exception e){
-            
+            log.warn("通用清洗赋值格式化异常，配置id={}", config.getId(), e);
         }
         return fieldValue;
     }
