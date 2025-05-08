@@ -126,55 +126,10 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 totalSuccess += successLine;
             }
             result = result.success().setDate(totalSuccess);
-//            log.warn("{},apiCode:{},batchNo:{},csv文件解析入库完成，开始sftp上传任务",TITLE,syncRecord.getApiCode(),syncRecord.getBatchNo());
-//            //TODO 05-07 sftp remoteFilePath路径
-//            String remoteFilePath ="/tongcheng_customize/upload_data"+yyyyMMdd+"/";
-//            syncFileToSFTP(syncRecord.getBatchNo(),remoteFilePath,dirPath,gzFileName);
         }catch (Exception e){
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
         return result;
-    }
-
-    /**
-     * csv数据解析完成后 上传gz文件到sftp服务器
-     * @param batchNo
-     * @param remoteFilePath
-     * @param localFilePath
-     * @param localFileName
-     */
-    private void syncFileToSFTP(String batchNo,String remoteFilePath, String localFilePath, String localFileName) {
-        SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
-        try {
-            sftpClient.connect();
-            log.warn("push file to sftp, batchNo:{},remoteFilePath:{},fileName:{}", batchNo,remoteFilePath,localFileName);
-            boolean uploadFileFlag = sftpClient.uploadFileWithResume(remoteFilePath, localFileName, localFilePath+localFileName);
-            if (uploadFileFlag) {
-                String successFileName = localFileName + ".success";
-                File successFile = new File(localFilePath , successFileName);
-                if (!successFile.exists()) {
-                    successFile.createNewFile();
-                }
-                log.warn("push successFile to sftp, batchNo:{},successFileName:{}", batchNo,successFileName);
-                boolean successFileFlag = sftpClient.uploadFile(remoteFilePath, successFileName, successFile.getAbsolutePath());
-                if(!successFileFlag){
-                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_PUSHFILETOSFTP.getCode(),
-                            "同程推送success文件到SFTP异常，batchNo："+batchNo));
-                }
-            }else {
-                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_PUSHFILETOSFTP.getCode(),
-                        "同程推送文件到SFTP异常，batchNo："+batchNo));
-            }
-        }catch (Exception e){
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_PUSHFILETOSFTP.getCode(),e.getMessage(), TITLE), e);
-        }finally {
-            try {
-                sftpClient.disconnect();
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
-                        TITLE + "文件推送SFTP关闭连接异常，batchNo:" +batchNo), e);
-            }
-        }
     }
 
     /**
@@ -361,8 +316,4 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
         return tcPullGzFileMapper.updageTcyrRecordDownStatus(batchNo,status);
     }
 
-    @Override
-    public void syncToSFTP(String remotePath, String localFilePath, String localFileName) {
-        syncFileToSFTP("123",remotePath,localFilePath,localFileName);
-    }
 }
