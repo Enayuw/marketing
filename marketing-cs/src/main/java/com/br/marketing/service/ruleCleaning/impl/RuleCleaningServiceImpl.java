@@ -1,5 +1,8 @@
 package com.br.marketing.service.ruleCleaning.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
@@ -20,9 +23,12 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 规则数据清洗接口实现
@@ -496,21 +502,511 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         try {
-            // TODO: 根据映射规则和字段样例计算清洗结果预览
-            // 这里是一个框架，具体的计算逻辑可以后续实现
-
-            // 示例：如果没有具体的清洗规则，则返回原样例值
-            return fieldSample;
-
-            /*
-             * 未来可能的实现：
-             * 1. 解析映射规则的JSON格式
-             * 2. 根据规则类型执行不同的清洗逻辑
-             * 3. 返回清洗后的结果
-             */
+            // 直接调用预览方法
+            Object result = previewFieldCleaning(fieldSample, mappingRule);
+            return result != null ? result.toString() : "";
         } catch (Exception e) {
             log.error("计算清洗结果预览失败: fieldSample={}, mappingRule={}", fieldSample, mappingRule, e);
             return "";
+        }
+    }
+    
+    /**
+     * 预览字段清洗结果
+     *
+     * @param fieldSample 字段样例数据
+     * @param cleaningRule 清洗规则（JSON格式）
+     * @return 清洗后的数据值
+     */
+    @Override
+    public Object previewFieldCleaning(String fieldSample, String cleaningRule) {
+        if (StringUtils.isBlank(fieldSample) || StringUtils.isBlank(cleaningRule)) {
+            return fieldSample;
+        }
+
+        try {
+            log.info("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
+            
+            // 尝试解析为规则列表（支持多规则按顺序执行）
+            try {
+                JSONArray jsonArray = JSON.parseArray(cleaningRule);
+                if (jsonArray != null && !jsonArray.isEmpty()) {
+                    String result = fieldSample;
+                    // 按顺序执行每条规则
+                    for (int i = 0; i < jsonArray.size(); i++) {
+                        JSONObject ruleConfig = jsonArray.getJSONObject(i);
+                        if (ruleConfig.containsKey("order") && ruleConfig.containsKey("expression")) {
+                            // 提取表达式执行
+                            Object expression = ruleConfig.get("expression");
+                            String expressionJson = JSON.toJSONString(expression);
+                            result = String.valueOf(executeSingleRule(result, expressionJson));
+                        }
+                    }
+                    log.info("多规则执行完成，最终结果: {}", result);
+                    return result;
+                }
+            } catch (Exception e) {
+                // 解析为规则列表失败，尝试解析为单个规则
+                log.debug("解析为规则列表失败，尝试解析为单个规则");
+            }
+            
+            // 单个规则处理
+            return executeSingleRule(fieldSample, cleaningRule);
+        } catch (Exception e) {
+            log.error("字段清洗预览处理失败", e);
+            return fieldSample;
+        }
+    }
+    
+    /**
+     * 执行单个清洗规则
+     */
+    private Object executeSingleRule(String fieldSample, String cleaningRule) {
+        Map<String, Object> ruleMap = null;
+        try {
+            ruleMap = JSON.parseObject(cleaningRule, Map.class);
+        } catch (Exception e) {
+            log.error("解析清洗规则失败: {}", cleaningRule, e);
+            return fieldSample;
+        }
+        
+        if (ruleMap == null || ruleMap.isEmpty()) {
+            return fieldSample;
+        }
+        
+        // 获取操作类型
+        String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
+        if (StringUtils.isBlank(operator)) {
+            return fieldSample;
+        }
+        
+        // 根据操作类型执行不同的清洗逻辑
+        Object result = fieldSample;
+        try {
+            switch (operator) {
+                case "add":
+                case "subtract":
+                case "multiply":
+                case "divide":
+                case "percentage":
+                    // 数学运算
+                    result = handleMathOperation(fieldSample, ruleMap);
+                    break;
+                case "remove":
+                case "retain":
+                    // 去除或保留关键字
+                    result = handleKeywordOperation(fieldSample, ruleMap);
+                    break;
+                case "replace":
+                    // 映射关键字
+                    result = handleReplaceOperation(fieldSample, ruleMap);
+                    break;
+                case "default":
+                    // 字段默认值
+                    result = handleDefaultValueOperation(fieldSample, ruleMap);
+                    break;
+                case "substring":
+                    // 保留截取部分
+                    result = handleSubstringOperation(fieldSample, ruleMap);
+                    break;
+                case "retainformat":
+                    // 保留格式
+                    result = handleRetainFormatOperation(fieldSample, ruleMap);
+                    break;
+                case "priority":
+                    // 字段优先级
+                    result = handlePriorityOperation(fieldSample, ruleMap);
+                    break;
+                default:
+                    log.warn("未知的操作类型: {}", operator);
+                    break;
+            }
+            
+            log.info("字段清洗预览结果: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("执行清洗规则操作失败: operator={}", operator, e);
+            return fieldSample;
+        }
+    }
+    
+    /**
+     * 处理数学运算
+     */
+    private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap) {
+        // 字段运算逻辑处理
+        String operator = String.valueOf(ruleMap.get("operator"));
+        List<Map<String, Object>> operands = (List<Map<String, Object>>) ruleMap.get("operands");
+        
+        if (operands == null || operands.isEmpty()) {
+            return fieldSample;
+        }
+        
+        // 计算所有操作数
+        List<Double> values = new ArrayList<>();
+        for (Map<String, Object> operand : operands) {
+            String type = String.valueOf(operand.get("type"));
+            Object value = null;
+            
+            if ("field".equals(type)) {
+                // 字段类型，获取字段值
+                value = operand.get("fieldValue");
+            } else if ("constant".equals(type)) {
+                // 常量类型，直接获取值
+                value = operand.get("value");
+            } else if ("expression".equals(type)) {
+                // 表达式类型，递归计算
+                Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
+                value = handleMathOperation("0", expression);
+            }
+            
+            if (value != null) {
+                try {
+                    values.add(Double.parseDouble(String.valueOf(value)));
+                } catch (NumberFormatException e) {
+                    log.error("无法将值转换为数字: {}", value, e);
+                }
+            }
+        }
+        
+        if (values.isEmpty()) {
+            return fieldSample;
+        }
+        
+        // 执行运算
+        double result = values.get(0);
+        for (int i = 1; i < values.size(); i++) {
+            switch (operator) {
+                case "add":
+                    result += values.get(i);
+                    break;
+                case "subtract":
+                    result -= values.get(i);
+                    break;
+                case "multiply":
+                    result *= values.get(i);
+                    break;
+                case "divide":
+                    if (values.get(i) != 0) {
+                        result /= values.get(i);
+                    } else {
+                        log.warn("除法运算中遇到除数为0的情况");
+                    }
+                    break;
+                case "percentage":
+                    result = result * values.get(i) / 100;
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        // 检查结果是否为整数
+        if (result == Math.floor(result)) {
+            return String.valueOf((int) result);
+        } else {
+            return String.valueOf(result);
+        }
+    }
+    
+    /**
+     * 处理关键字操作（去除或保留）
+     */
+    private Object handleKeywordOperation(String fieldSample, Map<String, Object> ruleMap) {
+        String operator = String.valueOf(ruleMap.get("operator"));
+        String patternField = String.valueOf(ruleMap.get("patternField"));
+        
+        if (StringUtils.isBlank(patternField) || StringUtils.isBlank(fieldSample)) {
+            return fieldSample;
+        }
+        
+        if ("remove".equals(operator)) {
+            // 去除关键字
+            return fieldSample.replace(patternField, "");
+        } else if ("retain".equals(operator)) {
+            // 保留关键字，去除其他内容
+            StringBuilder result = new StringBuilder();
+            int index = 0;
+            while ((index = fieldSample.indexOf(patternField, index)) >= 0) {
+                result.append(patternField);
+                index += patternField.length();
+            }
+            return result.toString();
+        }
+        
+        return fieldSample;
+    }
+    
+    /**
+     * 处理替换操作（映射关键字）
+     */
+    private Object handleReplaceOperation(String fieldSample, Map<String, Object> ruleMap) {
+        String oldValue = String.valueOf(ruleMap.get("oldValue"));
+        String newValue = String.valueOf(ruleMap.get("newValue"));
+        
+        if (StringUtils.isBlank(oldValue) || StringUtils.isBlank(fieldSample)) {
+            return fieldSample;
+        }
+        
+        return fieldSample.replace(oldValue, newValue);
+    }
+    
+    /**
+     * 处理默认值操作
+     */
+    private Object handleDefaultValueOperation(String fieldSample, Map<String, Object> ruleMap) {
+        String defaultValue = String.valueOf(ruleMap.get("defaultValue"));
+        
+        if (StringUtils.isBlank(fieldSample)) {
+            return defaultValue;
+        }
+        
+        return defaultValue;
+    }
+    
+    /**
+     * 处理截取操作（保留截取部分）
+     */
+    private Object handleSubstringOperation(String fieldSample, Map<String, Object> ruleMap) {
+        if (StringUtils.isBlank(fieldSample)) {
+            return fieldSample;
+        }
+        
+        int startIndex = 0;
+        int endIndex = fieldSample.length();
+        String startLocation = "left";
+        
+        if (ruleMap.containsKey("startIndex")) {
+            startIndex = Integer.parseInt(String.valueOf(ruleMap.get("startIndex")));
+        }
+        
+        if (ruleMap.containsKey("endIndex")) {
+            endIndex = Integer.parseInt(String.valueOf(ruleMap.get("endIndex")));
+        }
+        
+        if (ruleMap.containsKey("startLocation")) {
+            startLocation = String.valueOf(ruleMap.get("startLocation"));
+        }
+        
+        if ("right".equals(startLocation)) {
+            // 从右侧开始计算
+            startIndex = fieldSample.length() - startIndex;
+            endIndex = fieldSample.length() - (fieldSample.length() - endIndex);
+        }
+        
+        // 确保索引有效
+        startIndex = Math.max(0, Math.min(startIndex, fieldSample.length()));
+        endIndex = Math.max(startIndex, Math.min(endIndex, fieldSample.length()));
+        
+        return fieldSample.substring(startIndex, endIndex);
+    }
+    
+    /**
+     * 处理格式保留操作
+     */
+    private Object handleRetainFormatOperation(String fieldSample, Map<String, Object> ruleMap) {
+        if (StringUtils.isBlank(fieldSample)) {
+            return fieldSample;
+        }
+        
+        String format = String.valueOf(ruleMap.get("format"));
+        
+        if ("number".equals(format)) {
+            // 保留数字格式
+            StringBuilder result = new StringBuilder();
+            for (char c : fieldSample.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    result.append(c);
+                }
+            }
+            return result.toString();
+        } else if ("price".equals(format)) {
+            // 保留价格格式（数字和小数点）
+            StringBuilder result = new StringBuilder();
+            boolean hasDecimalPoint = false;
+            
+            for (char c : fieldSample.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    result.append(c);
+                } else if (c == '.' && !hasDecimalPoint) {
+                    result.append(c);
+                    hasDecimalPoint = true;
+                }
+            }
+            
+            // 如果是有效数字，尝试格式化为价格格式
+            try {
+                double price = Double.parseDouble(result.toString());
+                return String.format("%.2f", price);
+            } catch (NumberFormatException e) {
+                return result.toString();
+            }
+        } else if ("date".equals(format)) {
+            // 保留日期格式（尝试识别常见日期格式）
+            // 这里只实现简单的日期格式识别，实际项目中可能需要更复杂的逻辑
+            String datePattern = "\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}";
+            Pattern pattern = Pattern.compile(datePattern);
+            Matcher matcher = pattern.matcher(fieldSample);
+            
+            if (matcher.find()) {
+                return matcher.group(0);
+            }
+        }
+        
+        return fieldSample;
+    }
+    
+    /**
+     * 处理优先级操作
+     */
+    private Object handlePriorityOperation(String fieldSample, Map<String, Object> ruleMap) {
+        // 如果字段值是列表类型
+        if (!"List".equals(ruleMap.get("fieldType")) || !ruleMap.containsKey("fieldValue")) {
+            return fieldSample;
+        }
+        
+        List<String> fieldValues = (List<String>) ruleMap.get("fieldValue");
+        if (fieldValues == null || fieldValues.isEmpty()) {
+            // 如果有默认值则返回默认值
+            if (ruleMap.containsKey("defaultValue")) {
+                return ruleMap.get("defaultValue");
+            }
+            return fieldSample;
+        }
+        
+        // 获取优先级条件
+        List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
+        if (conditions == null || conditions.isEmpty()) {
+            // 没有条件，返回第一个值
+            return fieldValues.get(0);
+        }
+        
+        // 优先级排序后的结果
+        List<String> processedValues = new ArrayList<>(fieldValues);
+        
+        // 按照优先级顺序处理
+        for (Map<String, Object> condition : conditions) {
+            int priorityOrder = Integer.parseInt(String.valueOf(condition.get("priorityOrder")));
+            String priorityType = String.valueOf(condition.get("priorityType"));
+            
+            if ("number".equals(priorityType)) {
+                // 按数字排序
+                String sort = condition.containsKey("sort") ? String.valueOf(condition.get("sort")) : "desc";
+                
+                // 处理包含数字和非数字的情况
+                List<NumberStringPair> pairs = new ArrayList<>();
+                for (String value : processedValues) {
+                    pairs.add(new NumberStringPair(value));
+                }
+                
+                // 根据数字大小排序
+                if ("desc".equals(sort)) {
+                    // 降序（从大到小）
+                    Collections.sort(pairs, (p1, p2) -> Double.compare(p2.getNumber(), p1.getNumber()));
+                } else {
+                    // 升序（从小到大）
+                    Collections.sort(pairs, (p1, p2) -> Double.compare(p1.getNumber(), p2.getNumber()));
+                }
+                
+                // 获取数值相同的第一组
+                if (!pairs.isEmpty()) {
+                    double firstNumber = pairs.get(0).getNumber();
+                    List<String> sameNumberGroup = new ArrayList<>();
+                    
+                    for (NumberStringPair pair : pairs) {
+                        if (pair.getNumber() == firstNumber) {
+                            sameNumberGroup.add(pair.getOriginalString());
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // 如果只有一个值，直接返回结果
+                    if (sameNumberGroup.size() == 1) {
+                        return sameNumberGroup.get(0);
+                    }
+                    
+                    // 更新待处理的值列表，只保留数值相同的组
+                    processedValues = sameNumberGroup;
+                }
+            } else if ("keyword".equals(priorityType)) {
+                // 按关键字过滤
+                String keyword = String.valueOf(condition.get("keywordValue"));
+                
+                List<String> keywordMatches = new ArrayList<>();
+                for (String value : processedValues) {
+                    if (value.contains(keyword)) {
+                        keywordMatches.add(value);
+                    }
+                }
+                
+                // 如果有匹配关键字的值，则只保留这些值
+                if (!keywordMatches.isEmpty()) {
+                    // 如果只有一个值，直接返回结果
+                    if (keywordMatches.size() == 1) {
+                        return keywordMatches.get(0);
+                    }
+                    
+                    processedValues = keywordMatches;
+                }
+            }
+        }
+        
+        // 如果处理后还有值，返回第一个
+        if (!processedValues.isEmpty()) {
+            return processedValues.get(0);
+        }
+        
+        // 如果都不匹配，返回默认值
+        if (ruleMap.containsKey("defaultValue")) {
+            return ruleMap.get("defaultValue");
+        }
+        
+        return fieldSample;
+    }
+    
+    /**
+     * 辅助类：用于解析和排序包含数字的字符串
+     */
+    private static class NumberStringPair {
+        private final String originalString;
+        private final double number;
+        
+        public NumberStringPair(String str) {
+            this.originalString = str;
+            this.number = extractNumber(str);
+        }
+        
+        public String getOriginalString() {
+            return originalString;
+        }
+        
+        public double getNumber() {
+            return number;
+        }
+        
+        private double extractNumber(String str) {
+            StringBuilder sb = new StringBuilder();
+            boolean hasDecimalPoint = false;
+            
+            for (char c : str.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    sb.append(c);
+                } else if (c == '.' && !hasDecimalPoint && sb.length() > 0) {
+                    sb.append(c);
+                    hasDecimalPoint = true;
+                }
+            }
+            
+            if (sb.length() > 0) {
+                try {
+                    return Double.parseDouble(sb.toString());
+                } catch (NumberFormatException e) {
+                    // 忽略错误，返回0
+                }
+            }
+            
+            return 0;
         }
     }
 }

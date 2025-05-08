@@ -48,4 +48,12 @@ public interface RuleCleaningService {
      * @return 操作结果
      */
     boolean saveFieldCleaningConfig(FieldCleaningConfigDTO configDTO);
+    
+    /**
+     * 预览字段清洗结果
+     * @param fieldSample 字段样例数据
+     * @param cleaningRule 清洗规则（JSON格式）
+     * @return 清洗后的数据值
+     */
+    Object previewFieldCleaning(String fieldSample, String cleaningRule);
 }

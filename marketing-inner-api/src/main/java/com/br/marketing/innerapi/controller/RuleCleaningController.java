@@ -1,6 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
+import com.br.marketing.client.rulecleaning.FieldCleaningPreviewDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
@@ -91,15 +92,15 @@ public class RuleCleaningController {
         return new ApiResult<Boolean>().success(result);
     }
 
-    // 字段运算清洗结果预览接口
 
-
-    // 字符串处理清洗结果预览接口
-
-
-    // 优先级清洗结果预览接口
-
-
-
+    @PostMapping("/previewFieldCleaning")
+    @ApiOperation(value = "字段清洗结果预览", notes = "预览字段清洗规则应用后的结果", httpMethod = "POST")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
+    public ApiResult<Object> previewFieldCleaning(
+            @RequestBody @ApiParam(value = "预览请求参数", required = true) FieldCleaningPreviewDTO previewDTO) {
+        log.info("接收到字段清洗预览请求: {}", previewDTO);
+        Object cleanedData = ruleCleaningService.previewFieldCleaning(previewDTO.getFieldSample(), previewDTO.getCleaningRule());
+        return new ApiResult<Object>().success(cleanedData);
+    }
 
 }
