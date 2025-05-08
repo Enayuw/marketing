@@ -17,6 +17,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,10 +67,17 @@ public class CarClueChannelController {
     }
 
     @ApiOperation(value = "更新初始外采信息", notes = "更新初始外采信息")
-    @PostMapping("/updateInitMapping")
-    public ApiResult<Boolean> updateInitMapping(@RequestParam("scope") List<String> scope, @RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/updateInitMapping", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResult<Boolean> updateInitMapping(@RequestParam(value = "scope", required = false) List<String> scope,
+                                                @RequestPart(value = "multipartFile", required = false) MultipartFile multipartFile) {
         try {
-            return carClueChannelService.updateInitMapping(scope,file);
+            if (scope == null || scope.isEmpty()) {
+                return new ApiResult<Boolean>().fail("scope参数不能为空");
+            }
+            if (multipartFile == null || multipartFile.isEmpty()) {
+                return new ApiResult<Boolean>().fail("文件不能为空");
+            }
+            return carClueChannelService.updateInitMapping(scope,multipartFile);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "判断是否存在待清洗的文档记录接口错误！错误信息：" + ex.getMessage()), ex);

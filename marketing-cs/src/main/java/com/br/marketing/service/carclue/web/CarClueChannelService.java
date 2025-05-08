@@ -21,7 +21,7 @@ public interface CarClueChannelService {
 
     ApiResult<Boolean> checkCleanFile();
 
-    ApiResult<Boolean> updateInitMapping(List<String> scope, MultipartFile file);
+    ApiResult<Boolean> updateInitMapping(List<String> scope, MultipartFile multipartFile);
 
     List<CarClueManageConfig> getChannelConfig();
 
