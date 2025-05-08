@@ -62,7 +62,7 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
             action(marketingCommonConfig.getTcyrApiCode());
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
     }
@@ -128,7 +128,10 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     private void processUserKeyList(String apiCode, String batchNo, List<String> userKeyList,
                                     MarketingTcyrRevokeRecord updateRecord, Long recordId) {
         List<List<String>> partitions = ListUtils.partition(userKeyList, 1000);
-        processPartitions(apiCode, batchNo, partitions, updateRecord, recordId);
+        if (processPartitions(apiCode, batchNo, partitions, updateRecord, recordId)) {
+            updateRecord.setIsClean(1);
+            marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+        }
     }
 
     // 记录中无userKeyList，从DB中获取并处理
@@ -148,12 +151,16 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
                     .distinct()
                     .collect(Collectors.toList());
             List<List<String>> partitions = ListUtils.partition(userKeyList, 1000);
-            processPartitions(apiCode, batchNo, partitions, updateRecord, recordId);
+            if (!processPartitions(apiCode, batchNo, partitions, updateRecord, recordId)) {
+                return;
+            }
         }
+        updateRecord.setIsClean(1);
+        marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
     }
 
     // 抽取方法：处理分区数据
-    private void processPartitions(String apiCode, String batchNo, List<List<String>> partitions,
+    private boolean processPartitions(String apiCode, String batchNo, List<List<String>> partitions,
                                    MarketingTcyrRevokeRecord updateRecord, Long recordId) {
         for (List<String> partition : partitions) {
             List<JSONObject> jsonObjects = partition.stream()
@@ -163,17 +170,17 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
                     .collect(Collectors.toList());
             try {
                 if (!processTransferClean(apiCode, jsonObjects, updateRecord, recordId)) {
-                    return;
+                    return false;
                 }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                         TITLE + "-数据id：" + recordId + "处理撤销记录异常"), e);
                 updateRecord.setIsClean(4);
                 marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+                return false;
             }
         }
-        updateRecord.setIsClean(1);
-        marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
+        return true;
     }
 
     // 清洗+调用转化接口
