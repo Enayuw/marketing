@@ -71,7 +71,7 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
      * 主方法
      * @param apiCode
      */
-    private void action(String apiCode) throws IOException {
+    private void action(String apiCode) {
         while (true) {
             // 1.查询待撤销数据
             MarketingTcyrRevokeRecord record = fetchNextRevokeRecord(apiCode);
