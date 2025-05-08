@@ -416,7 +416,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             //每日文档下载
             if(downloadFile(ycKaUrl, filePath)){
                 //解析文档
-                parseFile(filePath, apiCode);
+                parseKAFile(filePath, apiCode);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
@@ -471,7 +471,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         return Boolean.TRUE;
     }
 
-    public void parseFile(String filePath, String apiCode) {
+    public void parseKAFile(String filePath, String apiCode) {
         String sql = "";
         try {
             FileInputStream file = new FileInputStream(filePath);
@@ -552,36 +552,215 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      */
     @Override
     public void getFileInitMapping() {
+        // 1. 获取待清洗文件记录
+        Optional<ClueFileRecording> fileRecordingOpt = getPendingCleanFile();
+        if (!fileRecordingOpt.isPresent()) {
+            return;
+        }
 
+        // 2. 处理文件
+        ClueFileRecording recording = fileRecordingOpt.get();
+        processFile(recording.getFileAdress().concat(recording.getFileName()),
+                recording.getUpdateScope());
+    }
+
+    /**
+     * 获取待清洗文件记录
+     */
+    private Optional<ClueFileRecording> getPendingCleanFile() {
         ClueFileRecordingExample example = new ClueFileRecordingExample();
         example.createCriteria()
                 .andFileCleanStatusEqualTo(ClueFileRecordingStatusEnum.AWAIT_CLEAN.getValue())
                 .andIsDelEqualTo(Constants.DATA_VALID);
 
-        List<ClueFileRecording> clueFileRecordings = clueFileRecordingMapper.selectByExample(example);
-        if(CollectionUtils.isEmpty(clueFileRecordings)){
-            log.warn(TITL + "待清洗文档为空！");
-            return;
+        List<ClueFileRecording> recordings = clueFileRecordingMapper.selectByExample(example);
+
+        if (CollectionUtils.isEmpty(recordings)) {
+            log.warn("{}待清洗文档为空！", TITL);
+            return Optional.empty();
         }
 
-        if(clueFileRecordings.size() > 1){
-            List<Long> ids = clueFileRecordings.stream()
+        if (recordings.size() > 1) {
+            List<Long> ids = recordings.stream()
                     .map(ClueFileRecording::getId)
                     .collect(Collectors.toList());
-            log.warn(TITL + "待清洗文档有多个，id：{}", ids);
-            return;
-        }
-        ClueFileRecording clueFileRecording = clueFileRecordings.get(0);
-        String fileName = clueFileRecording.getFileName();
-        String fileAdress = clueFileRecording.getFileAdress();
-        String updateScope = clueFileRecording.getUpdateScope();
-
-        File file = new File(fileAdress);
-        if(!file.exists()){
-            log.warn(TITL + "待清洗文档路径不存在：{}", fileAdress);
-            return;
+            log.warn("{}待清洗文档有多个，id：{}", TITL, ids);
+            return Optional.empty();
         }
 
+        // 检查文件是否存在
+        ClueFileRecording recording = recordings.get(0);
+        File file = new File(recording.getFileAdress().concat(recording.getFileName()));
+        if (!file.exists()) {
+            log.warn("{}待清洗文档路径不存在：{}", TITL, recording.getFileAdress().concat(recording.getFileName()));
+            return Optional.empty();
+        }
+
+        return Optional.of(recordings.get(0));
+    }
+
+    /**
+     * 处理Excel文件
+     */
+    private void processFile(String filePath, String updateScope) {
+        try (FileInputStream file = new FileInputStream(filePath);
+             Workbook workbook = new XSSFWorkbook(file)) {
+
+            String[] channels = updateScope.split(",");
+            for (String channel : channels) {
+                switch (channel.trim()) {
+                    case "汽车之家":
+                        processZjChannel(workbook);
+                        break;
+                    case "易车会员":
+                        processYcMemberChannel(workbook);
+                        break;
+                    default:
+                        log.warn("{}不支持的渠道类型：{}", TITL, channel);
+                }
+            }
+        } catch (Exception e) {
+            log.error("{}处理文件异常，文件路径：{}", TITL, filePath, e);
+        }
+    }
+
+    /**
+     * 处理汽车之家渠道数据
+     */
+    private void processZjChannel(Workbook workbook) {
+        Sheet sheet = workbook.getSheetAt(0);
+        if (sheet == null) {
+            log.warn("{}汽车之家Sheet页不存在", TITL);
+            return;
+        }
+
+        Optional<String> apiCodeOpt = getChannelApiCode("%之家%");
+        if (!apiCodeOpt.isPresent()) {
+            return;
+        }
+        //删除今日已生成的数据
+        String apiCode = apiCodeOpt.get();
+        deleteData(apiCode);
+
+        List<String> valueList = parseSheetData(sheet, apiCode, false);
+        executeBatchInsert(valueList);
+    }
+
+    /**
+     * 处理易车会员渠道数据
+     */
+    private void processYcMemberChannel(Workbook workbook) {
+        Sheet sheet = workbook.getSheetAt(1);
+        if (sheet == null) {
+            log.warn("{}易车会员Sheet页不存在", TITL);
+            return;
+        }
+
+        Optional<String> apiCodeOpt = getChannelApiCode("%会员%");
+        if (!apiCodeOpt.isPresent()) {
+            return;
+        }
+        //删除今日已生成的数据
+        String apiCode = apiCodeOpt.get();
+        deleteData(apiCode);
+
+        List<String> valueList = parseSheetData(sheet, apiCodeOpt.get(), true);
+        executeBatchInsert(valueList);
+    }
+
+    /**
+     * 获取渠道API代码
+     */
+    private Optional<String> getChannelApiCode(String namePattern) {
+        CarChannelConfigExample example = new CarChannelConfigExample();
+        example.createCriteria()
+                .andIsDelEqualTo(Constants.DATA_VALID)
+                .andNameLike(namePattern);
+
+        List<CarChannelConfig> configs = carChannelConfigMapper.selectByExample(example);
+
+        if (CollectionUtils.isEmpty(configs)) {
+            log.warn("{}缺少渠道配置，pattern：{}", TITL, namePattern);
+            return Optional.empty();
+        }
+
+        return Optional.of(configs.get(0).getApiCode());
+    }
+
+    /**
+     * 删除今日已生成的数据
+     */
+    private void deleteData(String apiCode) {
+        String date = LocalTime.now().toString();
+        try {
+            //删除当天已经生成的数据
+            CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
+            carClueInitMappingExample.createCriteria().andAppletDateEqualTo(date).andApiCodeEqualTo(apiCode);
+            carClueInitMappingMapper.deleteByExample(carClueInitMappingExample);
+        }catch (Exception e){
+            log.error("{}删除历史数据有误，apiCode:{}，date:{}", TITL,apiCode,date);
+        }
+    }
+
+    /**
+     * 解析Sheet数据
+     */
+    private List<String> parseSheetData(Sheet sheet, String apiCode, boolean includeDemandId) {
+        List<String> valueList = new ArrayList<>();
+
+        for (Row row : sheet) {
+            // 跳过标题行
+            if (row.getRowNum() == 0) continue;
+
+            String brand = getCellValue(row, 0);
+            String series = getCellValue(row, 1);
+            String nation = getCellValue(row, 2);
+            String satisfyProvince = getCellValue(row, 3);
+            String satisfyCity = getCellValue(row, 4);
+            String excludeProvince = getCellValue(row, 5);
+            String excludeCity = getCellValue(row, 6);
+
+            String valueStatement;
+            if (includeDemandId) {
+                String demandId = getCellValue(row, 7);
+                valueStatement = String.format(
+                        "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', curdate(), now(), now(), 1, null, '%s')",
+                        apiCode, escapeSql(brand), escapeSql(series), escapeSql(nation),
+                        escapeSql(satisfyProvince), escapeSql(satisfyCity),
+                        escapeSql(excludeProvince), escapeSql(excludeCity), escapeSql(demandId)
+                );
+            } else {
+                valueStatement = String.format(
+                        "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', curdate(), now(), now(), 1, null, null)",
+                        apiCode, escapeSql(brand), escapeSql(series), escapeSql(nation),
+                        escapeSql(satisfyProvince), escapeSql(satisfyCity),
+                        escapeSql(excludeProvince), escapeSql(excludeCity)
+                );
+            }
+
+            valueList.add(valueStatement);
+        }
+
+        return valueList;
+    }
+
+    /**
+     * 执行批量插入
+     */
+    private void executeBatchInsert(List<String> valueList) {
+        if (CollectionUtils.isEmpty(valueList)) {
+            log.warn("{}无有效数据可插入", TITL);
+            return;
+        }
+
+        String sql = "INSERT INTO marketing.b_car_clue_init_mapping " +
+                "(api_code, brand_name, series_name, nation, satisfy_province_name, " +
+                "satisfy_city_name, exclude_province_name, exclude_city_name, applet_date, " +
+                "create_time, update_time, is_del, daily_limited, demand_id) " +
+                "VALUES " + String.join(", ", valueList) + ";";
+
+        log.debug("{}批量插入SQL：{}", TITL, sql);
+        carClueRelationalMappingMapper.insertSql(sql);
     }
 
     /**
