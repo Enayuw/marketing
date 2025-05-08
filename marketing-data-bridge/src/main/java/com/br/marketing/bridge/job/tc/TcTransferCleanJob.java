@@ -10,6 +10,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
+import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrTransferRecord;
 import com.br.marketing.enums.TcTransferRecordStatusEnum;
 import com.br.marketing.service.PushInfoService;
@@ -19,6 +20,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -120,37 +122,39 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
 
     private Result processData(String apiCode,List<MarketingTcyrTransferRecord> tcyrTransferRecordList) {
         Result result = new Result().failure();
-        List<Long> idList = tcyrTransferRecordList.stream().map(MarketingTcyrTransferRecord::getId).collect(Collectors.toList());
-        try {
-            List<JSONObject> jsonObjectList = tcyrTransferRecordList.stream().map(
-                    m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
-            Result transferResult = generalDataCleanService.transferClean(jsonObjectList,apiCode);
-            log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,transferResult.getCode(),transferResult.isSuccess(),transferResult.getMessage());
-            if (transferResult !=null && transferResult.isSuccess()) {
-                List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
-                if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
-                    return result.success();
-                }
-                PushTransferDataDetailDTO dto = initTransferData(apiCode,transferDataItemDTOS);
-                Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
-                log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
-                if (pushResult!=null && pushResult.isSuccess()) {
-                    tcTransferRecordService.updateCleanStatus(idList,1);
-                     result = result.success().setDate(tcyrTransferRecordList.size());
+        List<List<MarketingTcyrTransferRecord>> partitionList = ListUtils.partition(tcyrTransferRecordList, 1000);
+        for (List<MarketingTcyrTransferRecord> tcyrSyncItemList : partitionList) {
+            List<Long> idList = tcyrSyncItemList.stream().map(MarketingTcyrTransferRecord::getId).collect(Collectors.toList());
+            try {
+                List<JSONObject> jsonObjectList = tcyrSyncItemList.stream().map(
+                        m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
+                Result transferResult = generalDataCleanService.transferClean(jsonObjectList,apiCode);
+                log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,transferResult.getCode(),transferResult.isSuccess(),transferResult.getMessage());
+                if (transferResult !=null && transferResult.isSuccess()) {
+                    List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
+                    if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
+                        return result.success();
+                    }
+                    PushTransferDataDetailDTO dto = initTransferData(apiCode,transferDataItemDTOS);
+                    Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+                    log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
+                    if (pushResult!=null && pushResult.isSuccess()) {
+                        tcTransferRecordService.updateCleanStatus(idList,1);
+                    }else {
+                        tcTransferRecordService.updateCleanStatus(idList,3);
+                        return result.failure();
+                    }
                 }else {
-                    tcTransferRecordService.updateCleanStatus(idList,3);
+                    tcTransferRecordService.updateCleanStatus(idList,2);
                     return result.failure();
                 }
-            }else {
-                tcTransferRecordService.updateCleanStatus(idList,2);
+            }catch (Exception e) {
+                tcTransferRecordService.updateCleanStatus(idList,4);
+                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
                 return result.failure();
             }
-        }catch (Exception e) {
-            tcTransferRecordService.updateCleanStatus(idList,4);
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
-            return result.failure();
         }
-        return result;
+        return result.success().setDate(tcyrTransferRecordList.size());
     }
 
     private PushTransferDataDetailDTO initTransferData(String apiCode, List<TransferDataItemDTO> transferDataItems) {
