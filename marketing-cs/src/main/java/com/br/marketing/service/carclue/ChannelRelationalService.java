@@ -13,6 +13,4 @@ public interface ChannelRelationalService {
 
     void getFileInitMapping();
 
-    void relationalMapping();
-
 }

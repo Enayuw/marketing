@@ -59,7 +59,7 @@ public class CarClueExecuteServiceImpl implements CarClueExecuteService {
             return Optional.empty();
         }
 
-        // 2. 获取车线索配置
+        // 2. 获取车线索管理配置
         CarClueManageConfigExample carClueManageConfigExample = new CarClueManageConfigExample();
         example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
         List<CarClueManageConfig> configs = carClueManageConfigMapper.selectByExample(carClueManageConfigExample);

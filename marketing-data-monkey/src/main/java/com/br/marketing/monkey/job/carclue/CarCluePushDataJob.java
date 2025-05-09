@@ -5,7 +5,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.CarClueReportDTO;
-import com.br.marketing.entity.*;;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CarClueExecuteRecordingMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.carclue.CarClueExecuteService;
@@ -22,11 +22,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+;
 
 /**
  * @ClassName CarCluePushDataJob
@@ -56,10 +61,10 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
         log.warn("{}开始执行", TITLE);
         long startTime = System.currentTimeMillis();
 
-        // 1. 获取车线索配置
+        // 1. 获取车线索管理配置
         Optional<CarClueManageConfig> configOpt = carClueExecuteService.getCarClueConfig();
         if (!configOpt.isPresent()) {
-            log.warn("{}车线索配置为空！", TITLE);
+            log.warn("{}车线索管理配置为空！", TITLE);
             return;
         }
 
@@ -121,15 +126,18 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
     }
 
     private void pushCluesByChannel(List<CarClueInfo> clues) {
-        clues.stream()
+        // 筛选出待推送的数据
+        Map<String, List<CarClueInfo>> collect = clues.stream()
                 .filter(clue -> Objects.equals(clue.getCluePushStatus(), CarCluePushStatusEnum.READY.getValue()))
-                .collect(Collectors.groupingBy(CarClueInfo::getCluePushChannel))
-                .forEach((channel, channelClues) -> {
-                    AbstractClueChannelPush pusher = clueChannelConfigService.getChannelPushImpl(channel);
-                    if (pusher != null) {
-                        carClueService.pushCarClueHandler(channelClues, pusher);
-                    }
-                });
+                .collect(Collectors.groupingBy(CarClueInfo::getCluePushChannel));
+
+        // 不同渠道推送
+        collect.forEach((channel, carClueInfoList) -> {
+            AbstractClueChannelPush channelPushImpl = clueChannelConfigService.getChannelPushImpl(channel);
+            if (channelPushImpl != null) {
+                carClueService.pushCarClueHandler(carClueInfoList, channelPushImpl);
+            }
+        });
     }
 
     private void updateRecordingStatus(Long id, Integer status) {

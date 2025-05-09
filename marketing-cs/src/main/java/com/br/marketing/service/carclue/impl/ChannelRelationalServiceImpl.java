@@ -1,25 +1,10 @@
 package com.br.marketing.service.carclue.impl;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.carclue.CarClueClient;
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -32,14 +17,13 @@ import com.br.marketing.service.carclue.clueenums.CarInformationTypeEnum;
 import com.br.marketing.service.carclue.clueenums.ChannelRule;
 import com.br.marketing.service.carclue.clueenums.ClueFileRecordingStatusEnum;
 import com.br.marketing.service.carclue.clueenums.ProvinceTypeEnum;
+import com.br.marketing.service.carclue.config.AbstractClueChannelConfig;
+import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
 import com.br.marketing.service.carclue.web.impl.CarClueReportServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -50,6 +34,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName ChannelRelationalServiceImpl
@@ -87,6 +78,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     ClueFileRecordingMapper clueFileRecordingMapper;
     @Resource
     CarClueReportServiceImpl carClueReportServiceImpl;
+    @Autowired
+    ClueChannelConfigService clueChannelConfigService;
     @Autowired
     SyncConfigService syncConfigService;
     @Autowired
@@ -128,29 +121,35 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     }
 
     /**
-     * 检查是否已存在该渠道的省市信息
+     * 检查今日是否已存在该渠道的省市信息
      */
     private boolean hasProvinceInfo(String apiCode) {
-        Map<String, Integer> provinceCountMap = carClueProvincesInformationMapper.getGroupByApiCodeCount();
-        return provinceCountMap.getOrDefault(apiCode, 0) > 0;
+        CarClueProvincesInformationExample example = new CarClueProvincesInformationExample();
+        example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andAppletDateEqualTo(LocalDate.now().toString());
+        return carClueProvincesInformationMapper.countByExample(example) > 0;
     }
 
     /**
-     * 检查是否已存在该渠道的车辆信息
+     * 检查今日是否已存在该渠道的车辆信息
      */
     private boolean hasCarInfo(String apiCode) {
-        Map<String, Integer> carCountMap = carClueSeriesInformationMapper.getGroupByApiCodeCount();
-        return carCountMap.getOrDefault(apiCode, 0) > 0;
+        CarClueSeriesInformationExample example = new CarClueSeriesInformationExample();
+        example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andAppletDateEqualTo(LocalDate.now().toString());
+        return carClueSeriesInformationMapper.countByExample(example) > 0;
     }
 
     /**
      * 构建省市信息
      */
     private void buildProvinceInfo(CarChannelConfig config) {
-        String channelName = config.getName();
-        if (channelName.contains("%之家%")) {
+        String strategyConfigInfo = config.getStrategyConfigInfo();
+        if (ChannelRule.ConfigChannelRuleEnum.ZJ_CONFIG.getLabel().equals(strategyConfigInfo)) {
             buildZjCity();
-        } else if (channelName.contains("%KA%")) {
+        } else if (ChannelRule.ConfigChannelRuleEnum.YC_KA_CONFIG.getLabel().equals(strategyConfigInfo)) {
             buildYcCity(YCKATASK, ChannelRule.MatchChannelRuleEnum.YC_KA.getLabel());
         } else {
             buildYcCity(YCMEMBERTASK, ChannelRule.MatchChannelRuleEnum.YC_MEMBER.getLabel());
@@ -161,10 +160,10 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      * 构建车辆信息
      */
     private void buildCarInfo(CarChannelConfig config) {
-        String channelName = config.getName();
-        if (channelName.contains("%之家%")) {
+        String strategyConfigInfo = config.getStrategyConfigInfo();
+        if (ChannelRule.ConfigChannelRuleEnum.ZJ_CONFIG.getLabel().equals(strategyConfigInfo)) {
             buildZjCar();
-        } else if (channelName.contains("%KA%")) {
+        } else if (ChannelRule.ConfigChannelRuleEnum.YC_KA_CONFIG.getLabel().equals(strategyConfigInfo)) {
             buildYcCar(YCKATASK, ChannelRule.MatchChannelRuleEnum.YC_KA.getLabel());
         } else {
             buildYcCar(YCMEMBERTASK, ChannelRule.MatchChannelRuleEnum.YC_MEMBER.getLabel());
@@ -176,7 +175,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         if (!ResultCode.SUCCESS.getValue().equals(zjCityResult.getCode())) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    TITL + "之家，省市调用异常, result：" +  zjCityResult.getMessage()));
+                    TITL + "之家，省市调用异常, result：" + zjCityResult.getMessage()));
             return;
         }
         JSONArray jsonArray = zjCityResult.getData();
@@ -222,12 +221,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         if (!ResultCode.SUCCESS.getValue().equals(ycCityResult.getCode())) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    TITL + "易车，省市调用异常, provincesType:" + provincesType +", result:"+ ycCityResult.getMessage()));
+                    TITL + "易车，省市调用异常, provincesType:" + provincesType + ", result:" + ycCityResult.getMessage()));
             return;
         }
         JSONArray jsonArray = ycCityResult.getData();
         if (jsonArray == null || jsonArray.isEmpty()) {
-            log.warn(TITL + "易车，省市调用异常，返回数据为空  provincesType = {},",provincesType);
+            log.warn(TITL + "易车，省市调用异常，返回数据为空  provincesType = {},", provincesType);
             return;
         }
         List<String> apiCodes = carClueReportServiceImpl.getValueByKey(provincesType);
@@ -259,7 +258,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         if (!ResultCode.SUCCESS.getValue().equals(zjCarResult.getCode())) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    TITL + "之家，车辆信息获取异常, result：" +  zjCarResult.getMessage()));
+                    TITL + "之家，车辆信息获取异常, result：" + zjCarResult.getMessage()));
             return;
         }
         JSONArray jsonArray = zjCarResult.getData();
@@ -356,10 +355,11 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         // 1. 判断今日是否已经生成易车KA初始配置
         CarChannelConfigExample example = new CarChannelConfigExample();
-        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andNameLike("%KA%");
+        example.createCriteria()
+                .andStrategyConfigInfoEqualTo(ChannelRule.ConfigChannelRuleEnum.YC_KA_CONFIG.getLabel());
         List<CarChannelConfig> carChannelConfigs = carChannelConfigMapper.selectByExample(example);
 
-        if(CollectionUtils.isEmpty(carChannelConfigs)){
+        if (CollectionUtils.isEmpty(carChannelConfigs)) {
             log.warn(TITL + "缺少易车KA配置");
             return;
         }
@@ -372,7 +372,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                 .andIsDelEqualTo(Constants.DATA_VALID);
 
         int i = carClueInitMappingMapper.countByExample(carClueInitMappingExample);
-        if(i > 0){
+        if (i > 0) {
             log.warn(TITL + "今日易车KA配置已更新");
             return;
         }
@@ -381,14 +381,14 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         carClueManageConfigExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
 
         List<CarClueManageConfig> configs = carClueManageConfigMapper.selectByExample(carClueManageConfigExample);
-        if(CollectionUtils.isEmpty(configs)){
+        if (CollectionUtils.isEmpty(configs)) {
             log.warn(TITL + "车线索配置管理为空！");
             return;
         }
 
         CarClueManageConfig config = configs.get(0);
         String pullDate = config.getPullDate();
-        if(StringUtils.isEmpty(pullDate)){
+        if (StringUtils.isEmpty(pullDate)) {
             log.warn(TITL + "未配置易车KA拉取时间！");
             return;
         }
@@ -399,7 +399,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             LocalTime now = LocalTime.now();
             // 执行时间大于当前时间
             if (pullTime.isAfter(now)) {
-                log.warn(TITL + "配置易车KA拉取每日文档时间还未到，拉取时间: {}，当前时间: {}", pullTime,now);
+                log.warn(TITL + "配置易车KA拉取每日文档时间还未到，拉取时间: {}，当前时间: {}", pullTime, now);
                 return;
             }
         } catch (Exception e) {
@@ -414,9 +414,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         String filePath = descPath.concat(fileName);
         try {
             //每日文档下载
-            if(downloadFile(ycKaUrl, filePath)){
+            if (downloadFile(ycKaUrl, filePath)) {
                 //解析文档
                 parseKAFile(filePath, apiCode);
+
+                //解析初始配置并清洗至映射表
+                relationalMapping(apiCode);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
@@ -428,13 +431,13 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         HttpResponse response = httpProxyClient.downloadFile(fileUrl, isProxy);
 
-        if(response == null){
+        if (response == null) {
             return Boolean.FALSE;
         }
         // 检查响应码
         if (response.getStatusLine().getStatusCode() != 200) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    TITL + "线上文档拉取异常，返回响应：" +  response.getStatusLine().getStatusCode()));
+                    TITL + "线上文档拉取异常，返回响应：" + response.getStatusLine().getStatusCode()));
             return Boolean.FALSE;
         }
 
@@ -447,7 +450,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             parentDir.mkdirs();
         }
         // 下载文件
-        log.warn(TITL + "下载文件目录："+filePath);
+        log.warn(TITL + "下载文件目录：" + filePath);
         try (InputStream in = entity.getContent();
              FileOutputStream out = new FileOutputStream(filePath)) {
             byte[] buffer = new byte[1024];
@@ -455,9 +458,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             while ((bytesRead = in.read(buffer)) != -1) {
                 out.write(buffer, 0, bytesRead);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    TITL + "下载文件异常，返回响应：" +  response.getStatusLine().getStatusCode()));
+                    TITL + "下载文件异常，返回响应：" + response.getStatusLine().getStatusCode()));
             return Boolean.FALSE;
         } finally {
             // 释放连接
@@ -526,6 +529,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     /**
      * 获取单元格值并处理空值
+     *
      * @param row
      * @param cellIndex
      * @return
@@ -540,6 +544,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     /**
      * 转义SQL中的特殊字符（如单引号）
+     *
      * @param input
      * @return
      */
@@ -560,8 +565,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         // 2. 处理文件
         ClueFileRecording recording = fileRecordingOpt.get();
-        processFile(recording.getFileAdress().concat(recording.getFileName()),
-                recording.getUpdateScope());
+        if(StringUtils.isEmpty(recording.getUpdateScope())){
+            log.warn("{}待清洗文档配置缺少更新范围", TITL);
+            return;
+        }
+
+        processFile(recording.getFileAdress(), recording.getUpdateScope());
     }
 
     /**
@@ -590,9 +599,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         // 检查文件是否存在
         ClueFileRecording recording = recordings.get(0);
-        File file = new File(recording.getFileAdress().concat(recording.getFileName()));
+        File file = new File(recording.getFileAdress());
         if (!file.exists()) {
-            log.warn("{}待清洗文档路径不存在：{}", TITL, recording.getFileAdress().concat(recording.getFileName()));
+            log.warn("{}待清洗文档路径不存在：{}", TITL, recording.getFileAdress());
             return Optional.empty();
         }
 
@@ -601,6 +610,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     /**
      * 处理Excel文件
+     * filePath:文件路径
+     * updateScope:清洗范围
      */
     private void processFile(String filePath, String updateScope) {
         try (FileInputStream file = new FileInputStream(filePath);
@@ -634,16 +645,15 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             return;
         }
 
-        Optional<String> apiCodeOpt = getChannelApiCode("%之家%");
+        Optional<String> apiCodeOpt = getChannelApiCode(ChannelRule.ConfigChannelRuleEnum.ZJ_CONFIG.getLabel());
         if (!apiCodeOpt.isPresent()) {
             return;
         }
-        //删除今日已生成的数据
+        // 解析文档数据 并 新增初始外采数据
         String apiCode = apiCodeOpt.get();
-        deleteData(apiCode);
-
-        List<String> valueList = parseSheetData(sheet, apiCode, false);
-        executeBatchInsert(valueList);
+        parseSheetData(sheet, apiCode, false);
+        // 解析初始外采数据 并 清洗至映射表
+        relationalMapping(apiCode);
     }
 
     /**
@@ -656,31 +666,30 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             return;
         }
 
-        Optional<String> apiCodeOpt = getChannelApiCode("%会员%");
+        Optional<String> apiCodeOpt = getChannelApiCode(ChannelRule.ConfigChannelRuleEnum.YC_MEMBER_CONFIG.getLabel());
         if (!apiCodeOpt.isPresent()) {
             return;
         }
-        //删除今日已生成的数据
-        String apiCode = apiCodeOpt.get();
-        deleteData(apiCode);
 
-        List<String> valueList = parseSheetData(sheet, apiCodeOpt.get(), true);
-        executeBatchInsert(valueList);
+        // 解析文档数据 并 新增初始外采数据
+        String apiCode = apiCodeOpt.get();
+        parseSheetData(sheet, apiCode, true);
+        // 解析初始外采数据 并 清洗至映射表
+        relationalMapping(apiCode);
     }
 
     /**
      * 获取渠道API代码
      */
-    private Optional<String> getChannelApiCode(String namePattern) {
+    private Optional<String> getChannelApiCode(String strategyConfigInfo) {
         CarChannelConfigExample example = new CarChannelConfigExample();
         example.createCriteria()
-                .andIsDelEqualTo(Constants.DATA_VALID)
-                .andNameLike(namePattern);
+                .andStrategyConfigInfoEqualTo(strategyConfigInfo);
 
         List<CarChannelConfig> configs = carChannelConfigMapper.selectByExample(example);
 
         if (CollectionUtils.isEmpty(configs)) {
-            log.warn("{}缺少渠道配置，pattern：{}", TITL, namePattern);
+            log.warn("{}缺少渠道配置，strategyConfigInfo：{}", TITL, strategyConfigInfo);
             return Optional.empty();
         }
 
@@ -688,24 +697,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     }
 
     /**
-     * 删除今日已生成的数据
-     */
-    private void deleteData(String apiCode) {
-        String date = LocalTime.now().toString();
-        try {
-            //删除当天已经生成的数据
-            CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
-            carClueInitMappingExample.createCriteria().andAppletDateEqualTo(date).andApiCodeEqualTo(apiCode);
-            carClueInitMappingMapper.deleteByExample(carClueInitMappingExample);
-        }catch (Exception e){
-            log.error("{}删除历史数据有误，apiCode:{}，date:{}", TITL,apiCode,date);
-        }
-    }
-
-    /**
      * 解析Sheet数据
      */
-    private List<String> parseSheetData(Sheet sheet, String apiCode, boolean includeDemandId) {
+    private void parseSheetData(Sheet sheet, String apiCode, boolean includeDemandId) {
+        //删除今日已生成的数据
+        deleteInitData(apiCode);
+
         List<String> valueList = new ArrayList<>();
 
         for (Row row : sheet) {
@@ -740,8 +737,24 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
             valueList.add(valueStatement);
         }
+        executeBatchInsert(valueList);
+    }
 
-        return valueList;
+    /**
+     * 删除今日已生成的 外采初始数据
+     */
+    private void deleteInitData(String apiCode) {
+        String date = LocalTime.now().toString();
+        try {
+            //删除当天已经生成的数据
+            CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
+            carClueInitMappingExample.createCriteria()
+                    .andAppletDateEqualTo(date)
+                    .andApiCodeEqualTo(apiCode);
+            carClueInitMappingMapper.deleteByExample(carClueInitMappingExample);
+        } catch (Exception e) {
+            log.error("{}删除历史外采初始数据有误，apiCode:{}，date:{}", TITL, apiCode, date);
+        }
     }
 
     /**
@@ -766,10 +779,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     /**
      * ============================== 维护外采渠道商映射信息 ==============================
      */
-    @Override
-    public void relationalMapping() {
+    public void relationalMapping(String apiCode) {
         try {
-            //获取最新日期
+            // 删除今日生成的外采映射数据
+            deleteRelationalData(apiCode);
+
+            // 获取最新日期
             String proviceCleanDate = carClueProvincesInformationMapper.getMaxCleanDate();
             String seriesCleanDate = carClueSeriesInformationMapper.getMaxCleanDate();
             String carClueInitDate = carClueInitMappingMapper.getMaxCleanDate();
@@ -777,110 +792,122 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             //获取省市集合
             CarClueProvincesInformationExample carClueProvincesInformationExample = new CarClueProvincesInformationExample();
             carClueProvincesInformationExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode)
                     .andAppletDateEqualTo(proviceCleanDate)
                     .andIsDelEqualTo(Constants.DATA_VALID);
-            List<CarClueProvincesInformation> list = carClueProvincesInformationMapper.selectByExample(carClueProvincesInformationExample);
-            Map<String, List<CarClueProvincesInformation>> groupByProvinces = list.stream()
-                    .collect(Collectors.groupingBy(CarClueProvincesInformation::getApiCode));
+            List<CarClueProvincesInformation> carClueProvincesInformations = carClueProvincesInformationMapper.selectByExample(carClueProvincesInformationExample);
 
             //获取品牌车系集合
             CarClueSeriesInformationExample carClueSeriesInformationExample = new CarClueSeriesInformationExample();
             carClueSeriesInformationExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode)
                     .andAppletDateEqualTo(seriesCleanDate)
                     .andIsDelEqualTo(Constants.DATA_VALID);
-            List<CarClueSeriesInformation> list1 = carClueSeriesInformationMapper.selectByExample(carClueSeriesInformationExample);
-            Map<String, List<CarClueSeriesInformation>> groupBySeries = list1.stream()
-                    .collect(Collectors.groupingBy(CarClueSeriesInformation::getApiCode));
+            List<CarClueSeriesInformation> carClueSeriesInformations = carClueSeriesInformationMapper.selectByExample(carClueSeriesInformationExample);
 
             //获取外采初始信息
             CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
             carClueInitMappingExample.createCriteria()
                     .andAppletDateEqualTo(carClueInitDate)
+                    .andApiCodeEqualTo(apiCode)
                     .andIsDelEqualTo(Constants.DATA_VALID);
             List<CarClueInitMapping> carClueInitMappingList = carClueInitMappingMapper.selectByExample(carClueInitMappingExample);
-            Map<String, List<CarClueInitMapping>> carClueInitMappingMap = carClueInitMappingList.stream()
-                    .collect(Collectors.groupingBy(CarClueInitMapping::getApiCode));
 
-            carClueInitMappingMap.forEach((apiCode, v) -> {
 
-                List<CarClueProvincesInformation> carClueProvincesInformations = groupByProvinces.get(apiCode);
-                List<CarClueSeriesInformation> carClueSeriesInformations = groupBySeries.get(apiCode);
+            Map<String, List<CarClueProvincesInformation>> provinceNameMap = carClueProvincesInformations.stream()
+                    .collect(Collectors.groupingBy(CarClueProvincesInformation::getProvinceName));
 
-                Map<String, List<CarClueProvincesInformation>> provinceNameMap = carClueProvincesInformations.stream()
-                        .collect(Collectors.groupingBy(CarClueProvincesInformation::getProvinceName));
+            Map<String, List<CarClueProvincesInformation>> cityNameMap = carClueProvincesInformations.stream()
+                    .collect(Collectors.groupingBy(CarClueProvincesInformation::getCityName));
 
-                Map<String, List<CarClueProvincesInformation>> cityNameMap = carClueProvincesInformations.stream()
-                        .collect(Collectors.groupingBy(CarClueProvincesInformation::getCityName));
+            Map<String, List<CarClueSeriesInformation>> brandNameMap = carClueSeriesInformations.stream()
+                    .collect(Collectors.groupingBy(CarClueSeriesInformation::getBrandName));
 
-                Map<String, List<CarClueSeriesInformation>> brandNameMap = carClueSeriesInformations.stream()
-                        .collect(Collectors.groupingBy(CarClueSeriesInformation::getBrandName));
+            Map<String, List<CarClueSeriesInformation>> subBrandNameMap = carClueSeriesInformations.stream()
+                    .collect(Collectors.groupingBy(CarClueSeriesInformation::getSubBrandName));
 
-                Map<String, List<CarClueSeriesInformation>> seriesNameMap = carClueSeriesInformations.stream()
-                        .collect(Collectors.groupingBy(CarClueSeriesInformation::getSeriesName));
+            Map<String, List<CarClueSeriesInformation>> seriesNameMap = carClueSeriesInformations.stream()
+                    .collect(Collectors.groupingBy(CarClueSeriesInformation::getSeriesName));
 
-                //匹配初始信息
-                List<CarClueRelationalMapping> carClueRelationalMappings = new ArrayList<>();
-                for (CarClueInitMapping carClueInitMapping : v) {
-                    CarClueRelationalMapping carClueRelationalMapping = new CarClueRelationalMapping();
-                    carClueRelationalMapping.setMatchingType(0);
-                    carClueRelationalMapping.setApiCode(carClueInitMapping.getApiCode());
-                    carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
-                    carClueRelationalMapping.setDailyLimited(carClueInitMapping.getDailyLimited());
-                    carClueRelationalMapping.setMatchDailyLimited(0);
-                    carClueRelationalMapping.setDemandId(carClueInitMapping.getDemandId());
+            AbstractClueChannelConfig channelConfig = clueChannelConfigService.getChannelConfigImpl(apiCode);
+            //匹配初始信息
+            List<CarClueRelationalMapping> carClueRelationalMappings = new ArrayList<>();
+            for (CarClueInitMapping carClueInitMapping : carClueInitMappingList) {
+                CarClueRelationalMapping carClueRelationalMapping = new CarClueRelationalMapping();
+                carClueRelationalMapping.setMatchingType(0);
+                carClueRelationalMapping.setApiCode(carClueInitMapping.getApiCode());
+                carClueRelationalMapping.setBrandName(carClueInitMapping.getBrandName());
+                carClueRelationalMapping.setDailyLimited(carClueInitMapping.getDailyLimited());
+                carClueRelationalMapping.setMatchDailyLimited(0);
+                carClueRelationalMapping.setDemandId(carClueInitMapping.getDemandId());
 
-                    //校验初始外采信息是否能匹配
-                    StringBuilder stringBuilder = new StringBuilder();
-                    verifyCarClueInit(stringBuilder,carClueRelationalMapping,
-                            carClueInitMapping,provinceNameMap,cityNameMap,brandNameMap);
+                // 处理初始外采品牌信息
+                StringBuilder stringBuilder = new StringBuilder();
+                channelConfig.verifyCarClueInit(stringBuilder, carClueRelationalMapping,
+                        carClueInitMapping, provinceNameMap, cityNameMap, brandNameMap, subBrandNameMap);
 
-                    //匹配省市类型
-                    matchProvincesType(carClueInitMapping,carClueRelationalMapping);
+                // 匹配省市类型
+                matchProvincesType(carClueInitMapping, carClueRelationalMapping);
 
-                    //处理车系信息
-                    String seriesName = carClueInitMapping.getSeriesName();
-                    if(seriesName == null){
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                                "未找到车系名称! apiCode：" + carClueInitMapping.getApiCode() + "，品牌：" + carClueInitMapping.getBrandName()));
-                    }
-                    //是否为全系
-                    if(ALL_SERVIES.equals(seriesName)){
-                        carClueRelationalMapping.setSeriesName(seriesName);
-                        carClueRelationalMapping.setMatchingCause(stringBuilder.toString());
-                        carClueRelationalMappings.add(carClueRelationalMapping);
-                        continue;
-                    }
-                    // 多车系处理
-                    Arrays.stream(seriesName.split(","))
-                            .forEach(singleSeries ->
-                                    processSingleSeriesMatch(apiCode, singleSeries,
-                                            carClueRelationalMapping, seriesNameMap, carClueRelationalMappings,
-                                            stringBuilder));
+                // 处理车系信息
+                String seriesName = carClueInitMapping.getSeriesName();
+                if (seriesName == null) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                            "未找到车系名称! apiCode：" + carClueInitMapping.getApiCode() + "，品牌：" + carClueInitMapping.getBrandName()));
+                }
+                // 是否为全系
+                if (ALL_SERVIES.equals(seriesName)) {
+                    carClueRelationalMapping.setSeriesName(seriesName);
+                    carClueRelationalMapping.setMatchingCause(stringBuilder.toString());
+                    carClueRelationalMappings.add(carClueRelationalMapping);
+                    continue;
+                }
+                // 多车系处理
+                Arrays.stream(seriesName.split(","))
+                        .forEach(singleSeries ->
+                                processSingleSeriesMatch(apiCode, singleSeries,
+                                        carClueRelationalMapping, seriesNameMap, carClueRelationalMappings,
+                                        stringBuilder));
 
-                    if(!CollectionUtils.isEmpty(carClueRelationalMappings)){
-                        CarClueRelationalMapping mapping = carClueRelationalMappings.get(carClueRelationalMappings.size() - 1);
+                if (!CollectionUtils.isEmpty(carClueRelationalMappings)) {
+                    CarClueRelationalMapping mapping = carClueRelationalMappings.get(carClueRelationalMappings.size() - 1);
 
-                        //品牌未匹配到，但车系反找到品牌，则需要增加映射记录
-                        if (carClueRelationalMapping.getMatchingType() == 1 && mapping.getMatchingType() == 0) {
-                            updateBrandSupplementMapping(apiCode,carClueRelationalMapping.getBrandName(),mapping.getBrandName());
-                        }
-                    }
-
-                    if (carClueRelationalMappings.size() >= 500) {
-                        carClueRelationalMappingMapper.batchInsert(carClueRelationalMappings);
-                        carClueRelationalMappings.clear();
+                    // 品牌未匹配到，但车系反找到品牌，则需要增加映射记录
+                    if (carClueRelationalMapping.getMatchingType() == 1 && mapping.getMatchingType() == 0) {
+                        updateBrandSupplementMapping(apiCode, carClueRelationalMapping.getBrandName(), mapping.getBrandName());
                     }
                 }
-                // 插入剩余的数据
-                if (!carClueRelationalMappings.isEmpty()) {
+
+                if (carClueRelationalMappings.size() >= 500) {
                     carClueRelationalMappingMapper.batchInsert(carClueRelationalMappings);
+                    carClueRelationalMappings.clear();
                 }
-
-            });
-        }catch (Exception e){
+            }
+            // 插入剩余的数据
+            if (!carClueRelationalMappings.isEmpty()) {
+                carClueRelationalMappingMapper.batchInsert(carClueRelationalMappings);
+            }
+            ;
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "维护外采渠道商信息异常"), e);
+        }
+    }
+
+    /**
+     * 删除今日已生成的 外采映射数据
+     */
+    private void deleteRelationalData(String apiCode) {
+        String date = LocalTime.now().toString();
+        try {
+            CarClueRelationalMappingExample example = new CarClueRelationalMappingExample();
+            example.createCriteria()
+                    .andAppletDateEqualTo(date)
+                    .andApiCodeEqualTo(apiCode);
+            carClueRelationalMappingMapper.deleteByExample(example);
+        } catch (Exception e) {
+            log.error("{}删除历史外采映射数据有误，apiCode:{}，date:{}", TITL, apiCode, date);
         }
     }
 
@@ -1023,6 +1050,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
     /**
      * 匹配省市类型
+     *
      * @param carClueInitMapping
      * @param carClueRelationalMapping
      */
@@ -1039,136 +1067,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         }
     }
 
-    /**
-     * 校验省市车辆信息是否匹配
-     * @param stringBuilder
-     * @param carClueRelationalMapping
-     * @param carClueInitMapping
-     * @param provinceNameMap
-     * @param cityNameMap
-     * @param brandNameMap
-     */
-    private void verifyCarClueInit(StringBuilder stringBuilder, CarClueRelationalMapping carClueRelationalMapping,
-                                   CarClueInitMapping carClueInitMapping, Map<String, List<CarClueProvincesInformation>> provinceNameMap,
-                                   Map<String, List<CarClueProvincesInformation>> cityNameMap, Map<String, List<CarClueSeriesInformation>> brandNameMap) {
-
-        // 处理省份和城市
-        String satisfyProvinceName = carClueInitMapping.getSatisfyProvinceName();
-        if (satisfyProvinceName != null) {
-            String processedNames = processRegionNames(satisfyProvinceName, provinceNameMap, "未匹配到该省：", stringBuilder);
-            carClueRelationalMapping.setSatisfyProvinceName(processedNames);
-        }
-
-        String excludeProvinceName = carClueInitMapping.getExcludeProvinceName();
-        if (excludeProvinceName != null) {
-            String processedNames = processRegionNames(excludeProvinceName, provinceNameMap, "未匹配到该省(排除)：", stringBuilder);
-            carClueRelationalMapping.setExcludeProvinceName(processedNames);
-        }
-
-        String satisfyCityName = carClueInitMapping.getSatisfyCityName();
-        if (satisfyCityName != null) {
-            String processedNames = processRegionNames(satisfyCityName, cityNameMap, "未匹配到该城市：", stringBuilder);
-            carClueRelationalMapping.setSatisfyCityName(processedNames);
-        }
-
-        String excludeCityName = carClueInitMapping.getExcludeCityName();
-        if (excludeCityName != null) {
-            String processedNames = processRegionNames(excludeCityName, cityNameMap, "未匹配到该城市(排除)：", stringBuilder);
-            carClueRelationalMapping.setExcludeCityName(processedNames);
-        }
-
-        // 从品牌映射中获取品牌信息列表
-        List<CarClueSeriesInformation> brandInfoList = brandNameMap.get(carClueInitMapping.getBrandName());
-
-        // 品牌映射中直接找到匹配项
-        if (!CollectionUtils.isEmpty(brandInfoList)) {
-            carClueRelationalMapping.setBrandId(brandInfoList.get(0).getBrandId());
-            return;
-        }
-        // 未直接匹配时，查询补充数据表
-        List<CarClueSupplement> supplements = queryClueSupplement(carClueRelationalMapping.getApiCode(),
-                carClueInitMapping.getBrandName(), CarInformationTypeEnum.BRAND.getValue());
-
-        // 补充表中无匹配记录
-        if (CollectionUtils.isEmpty(supplements)) {
-            stringBuilder.append("未匹配到该品牌：").append(carClueInitMapping.getBrandName()).append(" | ");
-            carClueRelationalMapping.setMatchingType(1);
-            return;
-        }
-
-        // 从补充表中获取新品牌名并再次查询
-        String alternativeBrandName = supplements.get(0).getNewName();
-        List<CarClueSeriesInformation> alternativeBrandInfo = brandNameMap.get(alternativeBrandName);
-
-        // 补充品牌名也无匹配
-        if (CollectionUtils.isEmpty(alternativeBrandInfo)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
-                    "未匹配到该品牌(补充)! apiCode：" + carClueInitMapping.getApiCode() + "，品牌：" + alternativeBrandName));
-            stringBuilder.append("未匹配到该品牌(补充)：").append(alternativeBrandName).append(" | ");
-            carClueRelationalMapping.setMatchingType(1);
-            return;
-        }
-        // 补充品牌名匹配成功
-        carClueRelationalMapping.setBrandName(alternativeBrandInfo.get(0).getBrandName());
-        carClueRelationalMapping.setBrandId(alternativeBrandInfo.get(0).getBrandId());
-    }
-
-    /**
-     * 处理省份或城市名称（包含或排除）
-     *
-     * @param rawNames       原始名称字符串（如："北京,上海,广东"）
-     * @param nameMap        省份或城市的映射表（Map<String, List<CarClueProvincesInformation>>）
-     * @param errorPrefix    未匹配时的错误前缀（如："未匹配到该省"）
-     * @return 处理后的名称字符串（如："北京,上海"）
-     */
-    private String processRegionNames(String rawNames, Map<String, List<CarClueProvincesInformation>> nameMap,
-                                      String errorPrefix, StringBuilder stringBuilder) {
-        if (rawNames == null || rawNames.isEmpty()) {
-            return "";
-        }
-
-        String[] names = rawNames.split(",");
-        StringBuilder filteredNames = new StringBuilder();
-        boolean isFirst = true;
-
-        for (String name : names) {
-            String searchKey = name.trim().replaceAll("市$", "");
-            String matchedKey = findMatchedKey(searchKey, nameMap);
-
-            if (nameMap.containsKey(matchedKey) && !CollectionUtils.isEmpty(nameMap.get(matchedKey))) {
-                if (!isFirst) {
-                    filteredNames.append(",");
-                } else {
-                    isFirst = false;
-                }
-                filteredNames.append(matchedKey);
-            } else {
-                stringBuilder.append(errorPrefix).append(searchKey).append(" | ");
-            }
-        }
-
-        return filteredNames.toString();
-    }
-
-    /**
-     * 在Map中查找匹配的Key（支持模糊匹配）
-     *
-     * @param searchKey 待匹配的关键字（如："广东"）
-     * @param nameMap   省份或城市的映射表
-     * @return 匹配到的Key（如："广东省"），若未匹配则返回原Key
-     */
-    private String findMatchedKey(String searchKey, Map<String, List<CarClueProvincesInformation>> nameMap) {
-        for (String key : nameMap.keySet()) {
-            if (key.contains(searchKey)) {
-                // 返回匹配到的标准Key（如："广东省"）
-                return key;
-            }
-        }
-        // 未匹配时返回原Key
-        return searchKey;
-    }
-
-    private List<CarClueSupplement> queryClueSupplement(String apiCode, String oldName,Integer type){
+    private List<CarClueSupplement> queryClueSupplement(String apiCode, String oldName, Integer type) {
         // 未直接匹配时，查询补充数据表
         CarClueSupplementExample supplementExample = new CarClueSupplementExample();
         supplementExample.createCriteria()

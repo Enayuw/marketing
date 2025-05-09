@@ -8,10 +8,13 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.CarClueExecuteRecordingMapper;
+import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.carclue.CarClueExecuteService;
 import com.br.marketing.service.carclue.CarClueService;
-import com.br.marketing.service.carclue.clueenums.*;
+import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
+import com.br.marketing.service.carclue.clueenums.ExecuteClueStatusEnum;
+import com.br.marketing.service.carclue.clueenums.ExecuteClueTypeEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -20,7 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -53,16 +59,16 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
-        // 1. 获取车线索配置
+        // 1. 获取车线索管理配置
         Optional<CarClueManageConfig> configOpt = carClueExecuteService.getCarClueConfig();
         if (!configOpt.isPresent()) {
-            log.warn("{}车线索配置为空！", TITLE);
+            log.warn("{}车线索管理配置为空！", TITLE);
             return;
         }
 
         // 2. 根据配置类型执行清洗
         CarClueManageConfig config = configOpt.get();
-        if (config.getPullType() == 0) {
+        if (config.getCleanType() == 0) {
             manualCleanCarClue();
         } else {
             autoCleanCarClue();
