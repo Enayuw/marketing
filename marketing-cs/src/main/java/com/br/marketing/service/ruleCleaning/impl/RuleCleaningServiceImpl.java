@@ -608,13 +608,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if ("9".equals(isDel)) {
             return "";
         }
+        String firstValueByKey = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields).toString();
         if (isMapping) {
             String mappingRule = cleaningRule.getMappingRule();
-            String firstValueByKey = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields).toString();
             Object result = executeSingleRule(firstValueByKey, mappingRule, nodeParse);
             return result;
         }
-        return "";
+        return firstValueByKey;
     }
 
     
