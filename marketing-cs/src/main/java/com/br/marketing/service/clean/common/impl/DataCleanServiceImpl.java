@@ -23,6 +23,7 @@ import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.DataCleanService;
+import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -59,6 +62,10 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Resource
     PushInfoService pushInfoService;
+
+
+    @Resource
+    private RuleCleaningService ruleCleaningService;
 
     private static final String TITLE = "【定制上传数据清洗】";
 
@@ -233,13 +240,13 @@ public class DataCleanServiceImpl implements DataCleanService {
 
 
     @Override
-    public Map<String, String> getConfigRule(String apiCode, Integer dataType, Integer acceptType) {
+    public Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType) {
         String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode).concat(":").concat(dataType.toString()).concat(":").concat(acceptType.toString());
         Map<String, Object> ruleMap = redisChgService.hgetall(redisKey);
         if (!CollectionUtils.isEmpty(ruleMap)) {
-            Map<String, String> resultMap = new HashMap<>();
+            Map<String, MarketingDataCleanGeneralRuleConfig> resultMap = new HashMap<>();
             ruleMap.forEach((key, value) -> {
-                resultMap.put(key, value != null ? value.toString() : null);
+                resultMap.put(key, (MarketingDataCleanGeneralRuleConfig) value);
             });
             return resultMap;
         }
@@ -248,13 +255,14 @@ public class DataCleanServiceImpl implements DataCleanService {
         if (CollectionUtils.isEmpty(ruleConfigList)) {
             return null;
         }
-        Map<String, String> config = new HashMap<>();
+        Map<String, String> redisConfig = new HashMap<>();
+        Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfig = new HashMap<>();
         ruleConfigList.forEach(rule -> {
-            config.put(rule.getMappingField(), JSON.toJSONString(rule));
-
+            redisConfig.put(rule.getMappingField(), JSON.toJSONString(rule));
+            ruleConfig.put(rule.getMappingField(), rule);
         });
-        redisChgService.hmset(redisKey, config);
-        return config;
+        redisChgService.hmset(redisKey, redisConfig);
+        return ruleConfig;
     }
 
 
@@ -262,10 +270,8 @@ public class DataCleanServiceImpl implements DataCleanService {
      * 获取数据清洗结果
      */
     @Override
-    public Object getCleanResult(JSONObject jsonObject, String rule) {
-
-
-        return null;
+    public Object getCleanResult(JSONObject jsonObject, MarketingDataCleanGeneralRuleConfig ruleConfig) {
+        return ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
     }
 
 
@@ -308,7 +314,7 @@ public class DataCleanServiceImpl implements DataCleanService {
 
 
     private void processData(MarketingCustomerOriginalData originalData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
-        String jsonData = originalData.getJsonData();
+        JSONObject jsonData = JSON.parseObject(originalData.getJsonData());
         String apiCode = originalData.getApiCode();
         String levelField = null;
         if (!CollectionUtils.isEmpty(marketingCommonConfig.getCustomUploadCleanLevelField())) {
@@ -319,46 +325,34 @@ public class DataCleanServiceImpl implements DataCleanService {
         if (StringUtils.isNotEmpty(levelField)) {
             jsonObjectList = JsonParseUtils.parseJsonArrayToMultipleObjects(jsonData, levelField);
         } else {
-            jsonObjectList.add(JSON.parseObject(jsonData));
+            jsonObjectList.add(jsonData);
         }
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        //taskId清洗
+        List<MarketingDataCleanGeneralRuleConfig> taskConfigList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("taskId")).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(taskConfigList)) {
+            marketingPreUserDTO.setTaskId(originalData.getApiCode().concat("_").concat(LocalDate.now().toString()));
+        } else {
+            marketingPreUserDTO.setTaskId((String) ruleCleaningService.executeCleaningRule(jsonData, taskConfigList.get(0)));
+        }
+        //requestId清洗
+        List<MarketingDataCleanGeneralRuleConfig> requestIdConfigList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("requestId")).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(requestIdConfigList)) {
+            marketingPreUserDTO.setTaskId(originalData.getApiCode().concat("_").concat(LocalDate.now().toString()).concat(UUID.randomUUID().toString()));
+        } else {
+            marketingPreUserDTO.setRequestId((String) ruleCleaningService.executeCleaningRule(jsonData, requestIdConfigList.get(0)));
+        }
+        //剔除taskId，requestId
+        ruleConfigList.removeIf(config -> config.getMappingField().equals("requestId") || config.getMappingField().equals("taskId"));
         //根据规则进行清洗处理
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         jsonObjectList.forEach(jsonObject -> {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-            ruleConfigList.forEach(ruleConfig -> {
-                Object result = getCleanResult(jsonObject, JSON.toJSONString(ruleConfig));
-                switch (ruleConfig.getMappingField()) {
-                    case "name":
-                        marketingPreUserDetailDTO.setName((String) result);
-                        break;
-                    case "cell":
-                        marketingPreUserDetailDTO.setCell((String) result);
-                        break;
-                    case "id":
-                        marketingPreUserDetailDTO.setId((String) result);
-                        break;
-                    case "groupType":
-                        marketingPreUserDetailDTO.setGroupType((String) result);
-                        break;
-                    case "custNum":
-                        marketingPreUserDetailDTO.setCustNum((String) result);
-                        break;
-                    case "operateType":
-                        marketingPreUserDetailDTO.setOperateType((String) result);
-                        break;
-                    default:
-                        marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(), ruleConfig.getMappingField(), result));
-
-                }
-
-            });
+            //数据清洗
+            dataCleanHandler(jsonObject, ruleConfigList, marketingPreUserDetailDTO);
             syncUsers.add(marketingPreUserDetailDTO);
         });
         //写入到info表
-        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-        //TODO taskId赋值
-        marketingPreUserDTO.setTaskId("1");
-        marketingPreUserDTO.setRequestId(originalData.getRequestId());
         marketingPreUserDTO.setDataItems(syncUsers);
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
@@ -368,10 +362,41 @@ public class DataCleanServiceImpl implements DataCleanService {
         marketingCustomerOriginalDataMapper.updateByPrimaryKeySelective(originalData);
     }
 
+    @Override
+    public void dataCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDetailDTO marketingPreUserDetailDTO) {
+        ruleConfigList.forEach(ruleConfig -> {
+            //数据清洗
+            Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+            switch (ruleConfig.getMappingField()) {
+                case "name":
+                    marketingPreUserDetailDTO.setName((String) result);
+                    break;
+                case "cell":
+                    marketingPreUserDetailDTO.setCell((String) result);
+                    break;
+                case "id":
+                    marketingPreUserDetailDTO.setId((String) result);
+                    break;
+                case "userType":
+                    marketingPreUserDetailDTO.setGroupType((String) result);
+                    break;
+                case "custNum":
+                    marketingPreUserDetailDTO.setCustNum((String) result);
+                    break;
+                case "operateType":
+                    marketingPreUserDetailDTO.setOperateType((String) result);
+                    break;
+                default:
+                    marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(), ruleConfig.getMappingField(), result));
+
+            }
+        });
+    }
+
 
     private String setExtendField(String reserveField1, String field, Object result) {
         JSONObject jsonObject;
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(reserveField1)) {
+        if (StringUtils.isNotEmpty(reserveField1)) {
             jsonObject = JSONObject.parseObject(reserveField1);
         } else {
             jsonObject = new JSONObject();

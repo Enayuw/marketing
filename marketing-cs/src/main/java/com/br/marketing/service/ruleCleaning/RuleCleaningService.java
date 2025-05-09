@@ -1,10 +1,12 @@
 package com.br.marketing.service.ruleCleaning;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
+import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 
 import java.util.List;
@@ -63,4 +65,7 @@ public interface RuleCleaningService {
     MarketingDataCleanGeneralFieldConfig getFieldConfg(String apiCode, Integer dataType, Integer acceptType);
 
     boolean fieldSaveOrUpdate(CleanFieldConfigVO fieldConfigVO);
+
+
+    Object executeCleaningRule(JSONObject nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule);
 }

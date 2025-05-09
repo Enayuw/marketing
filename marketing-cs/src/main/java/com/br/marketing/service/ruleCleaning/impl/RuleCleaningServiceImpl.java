@@ -601,7 +601,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
     }
 
-    private Object executeCleaningRule(Object nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule) {
+    @Override
+    public Object executeCleaningRule(JSONObject nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule) {
         Boolean isMapping = cleaningRule.getIsMapping();
         String cleanFields = cleaningRule.getCleanFields();
         Integer isDel = cleaningRule.getIsDel();

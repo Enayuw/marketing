@@ -1271,4 +1271,19 @@
                 sharding-offset="1"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
+
+    <job:simple id="CustomUploadDataCleanJob"
+                class="com.br.marketing.check.job.dataclean.CustomUploadDataCleanJob"
+                cron="0 0/2 * * * ? "
+                description="定制上传数据清洗"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

@@ -46,6 +46,7 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
+import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
@@ -72,6 +73,7 @@ import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
@@ -242,6 +244,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private DataCleanService dataCleanService;
+
+    @Resource
+    private RuleCleaningService ruleCleaningService;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -2449,6 +2454,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
+        //发送Json解析消息
+        MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+        mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
+        mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+        mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
     }
 
     @Override
@@ -2586,7 +2597,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         long l = System.currentTimeMillis();
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         //查询清洗规则配置
-        Map<String, String>configRule = dataCleanService.getConfigRule(apiCode,DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
+        Map<String, MarketingDataCleanGeneralRuleConfig>configRule = dataCleanService.getConfigRule(apiCode,DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
                 DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
@@ -2883,36 +2894,12 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param marketingPreUserDetailDTO
      * @Date 2025/05/06 14:48
      */
-    private Boolean handlerDataClean(MarketingPreUserDetailDTO marketingPreUserDetailDTO, Map<String, String> configRule) {
+    private Boolean handlerDataClean(MarketingPreUserDetailDTO marketingPreUserDetailDTO, Map<String, MarketingDataCleanGeneralRuleConfig> configRule) {
         Boolean isSuccess = Boolean.FALSE;
         try {
-            configRule.forEach((field, rule) -> {
-                JSONObject jsonObject = (JSONObject) JSONObject.toJSON(marketingPreUserDetailDTO);
-                Object result = dataCleanService.getCleanResult(jsonObject, configRule.get(field));
-                switch (field) {
-                    case "name":
-                        marketingPreUserDetailDTO.setName((String) result);
-                        break;
-                    case "cell":
-                        marketingPreUserDetailDTO.setCell((String) result);
-                        break;
-                    case "id":
-                        marketingPreUserDetailDTO.setId((String) result);
-                        break;
-                    case "groupType":
-                        marketingPreUserDetailDTO.setGroupType((String) result);
-                        break;
-                    case "custNum":
-                        marketingPreUserDetailDTO.setCustNum((String) result);
-                        break;
-                    case "operateType":
-                        marketingPreUserDetailDTO.setOperateType((String) result);
-                        break;
-                    default:
-                        marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(), field, result));
-
-                }
-            });
+            JSONObject jsonObject = (JSONObject) JSONObject.toJSON(marketingPreUserDetailDTO);
+            //数据清洗
+            dataCleanService.dataCleanHandler(jsonObject,configRule.values(),marketingPreUserDetailDTO);
             isSuccess = Boolean.TRUE;
         } catch (Exception e) {
             log.error("上传数据清洗过程异常，custNum= {}", marketingPreUserDetailDTO.getCustNum(), e);

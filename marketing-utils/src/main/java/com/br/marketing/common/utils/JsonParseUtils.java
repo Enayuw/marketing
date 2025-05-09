@@ -117,16 +117,11 @@ public class JsonParseUtils {
      * @param arrayPath 数组在JSON中的路径，例如 "data.items"
      * @return 解析后的多个JSON对象集合
      */
-    public static List<JSONObject> parseJsonArrayToMultipleObjects(String jsonStr, String arrayPath) {
+    public static List<JSONObject> parseJsonArrayToMultipleObjects(JSONObject originalJson, String arrayPath) {
         List<JSONObject> resultList = new ArrayList<>();
 
         try {
-
-            // 正常处理：解析原始JSON字符串
-            JSONObject originalJson = JSON.parseObject(jsonStr);
-
-            // 获取数组路径
-            // 支持简单路径，不需要使用点分隔符
+            // 获取数组路径(支持简单路径，不需要使用点分隔符)
             String[] pathSegments = arrayPath.contains(".") ? arrayPath.split("\\.") : new String[]{arrayPath};
 
             JSONObject currentObj = originalJson;
