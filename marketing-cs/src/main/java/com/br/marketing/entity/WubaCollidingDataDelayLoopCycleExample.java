@@ -435,6 +435,66 @@ public class WubaCollidingDataDelayLoopCycleExample {
             return (Criteria) this;
         }
 
+        public Criteria andLastPushTimeIsNull() {
+            addCriterion("last_push_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeIsNotNull() {
+            addCriterion("last_push_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeEqualTo(Date value) {
+            addCriterion("last_push_time =", value, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeNotEqualTo(Date value) {
+            addCriterion("last_push_time <>", value, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeGreaterThan(Date value) {
+            addCriterion("last_push_time >", value, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("last_push_time >=", value, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeLessThan(Date value) {
+            addCriterion("last_push_time <", value, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeLessThanOrEqualTo(Date value) {
+            addCriterion("last_push_time <=", value, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeIn(List<Date> values) {
+            addCriterion("last_push_time in", values, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeNotIn(List<Date> values) {
+            addCriterion("last_push_time not in", values, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeBetween(Date value1, Date value2) {
+            addCriterion("last_push_time between", value1, value2, "lastPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPushTimeNotBetween(Date value1, Date value2) {
+            addCriterion("last_push_time not between", value1, value2, "lastPushTime");
+            return (Criteria) this;
+        }
+
         public Criteria andPushTimeIsNull() {
             addCriterion("push_time is null");
             return (Criteria) this;

@@ -24,9 +24,14 @@ public class WubaCollidingDataDelayLoopCycle {
     private String batchNo;
 
     /**
-     * 最新释放时间
+     * 最新释放时间（客户返回）
      */
     private Date releaseTime;
+
+    /**
+     * 原撞库时间（客户返回）
+     */
+    private Date lastPushTime;
 
     /**
      * 最近一次撞库时间
@@ -101,6 +106,14 @@ public class WubaCollidingDataDelayLoopCycle {
 
     public void setReleaseTime(Date releaseTime) {
         this.releaseTime = releaseTime;
+    }
+
+    public Date getLastPushTime() {
+        return lastPushTime;
+    }
+
+    public void setLastPushTime(Date lastPushTime) {
+        this.lastPushTime = lastPushTime;
     }
 
     public Date getPushTime() {

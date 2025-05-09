@@ -190,6 +190,8 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                 delayLoopCycle.setBatchNo(dataList.get(headerConfig.get("batchNo")).trim());
                 delayLoopCycle.setReleaseTime(DateUtil.parse(dataList.get(headerConfig.get("releaseTime")).trim(),
                         DatePattern.NORM_DATETIME_PATTERN));
+                delayLoopCycle.setLastPushTime(DateUtil.parse(dataList.get(headerConfig.get("lastPushTime")).trim(),
+                        DatePattern.NORM_DATETIME_PATTERN));
                 delayLoopCycle.setExtend(dataLine);
                 delayLoopCycle.setCleanStatus(0);
                 delayLoopCycle.setApiCode(apiCode);
