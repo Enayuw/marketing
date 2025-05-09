@@ -18,7 +18,7 @@ public class JsonParseUtils {
      * @param targetKey 目标键名
      * @return 找到的第一个匹配值，未找到则返回null
      */
-    public Object findFirstValueByKey(Object obj, String targetKey) {
+    public static Object findFirstValueByKey(Object obj, String targetKey) {
         if (obj instanceof JSONObject) {
             JSONObject jsonObj = (JSONObject) obj;
 
@@ -95,7 +95,7 @@ public class JsonParseUtils {
      * @param str 待检查的字符串
      * @return 是否为JSON对象
      */
-    private boolean isJsonObject(String str) {
+    public static boolean isJsonObject(String str) {
         if (StringUtils.isBlank(str)) {
             return false;
         }

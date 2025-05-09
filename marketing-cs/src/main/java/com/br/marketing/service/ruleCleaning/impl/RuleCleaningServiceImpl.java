@@ -46,8 +46,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Resource
     private MarketingDataCleanGeneralConfigMapper cleanGeneralConfigMapper;
 
-    @Resource
-    private JsonParseUtils jsonParseUtils;
 
     @Resource
     private MarketingDataCleanGeneralRuleConfigMapper cleanGeneralRuleConfigMapper;
@@ -627,10 +625,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 if (OPERATIONS.contains(operator)) {
 
                 } else {
-                    firstValueByKey = jsonParseUtils.findFirstValueByKey(nodeParse, split[0]).toString();
+                    firstValueByKey = JsonParseUtils.findFirstValueByKey(nodeParse, split[0]).toString();
                 }
             } else {
-                firstValueByKey = jsonParseUtils.findFirstValueByKey(nodeParse, cleanFields).toString();
+                firstValueByKey = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields).toString();
             }
             Object result = executeSingleRule(firstValueByKey, mappingRule);
             return result;
