@@ -582,7 +582,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             // 提取表达式执行
                             Object expression = ruleConfig.get("expression");
                             String expressionJson = JSON.toJSONString(expression);
-                            result = String.valueOf(executeSingleRule(result, expressionJson));
+                            result = String.valueOf(executeSingleRule(result, expressionJson, null));
                         }
                     }
                     log.info("多规则执行完成，最终结果: {}", result);
@@ -594,7 +594,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             
             // 单个规则处理
-            return executeSingleRule(fieldSample, cleaningRule);
+            return executeSingleRule(fieldSample, cleaningRule, null);
         } catch (Exception e) {
             log.error("字段清洗预览处理失败", e);
             return fieldSample;
@@ -610,27 +610,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         if (isMapping) {
             String mappingRule = cleaningRule.getMappingRule();
-            String firstValueByKey = null;
-            Map<String, Object> ruleMap = null;
-            try {
-                ruleMap = JSON.parseObject(mappingRule, Map.class);
-            } catch (Exception e) {
-                log.error("解析清洗规则失败: {}", mappingRule, e);
-            }
-            // 获取操作类型
-            String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
-            //todo 只有计算才需要多字段
-            if (cleanFields.contains(",")) {
-                String[] split = cleanFields.split(",");
-                if (OPERATIONS.contains(operator)) {
-
-                } else {
-                    firstValueByKey = JsonParseUtils.findFirstValueByKey(nodeParse, split[0]).toString();
-                }
-            } else {
-                firstValueByKey = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields).toString();
-            }
-            Object result = executeSingleRule(firstValueByKey, mappingRule);
+            String firstValueByKey = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields).toString();
+            Object result = executeSingleRule(firstValueByKey, mappingRule, nodeParse);
             return result;
         }
         return "";
@@ -640,7 +621,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 执行单个清洗规则
      */
-    private Object executeSingleRule(String fieldSample, String cleaningRule) {
+    private Object executeSingleRule(String fieldSample, String cleaningRule, Object nodeParse) {
         Map<String, Object> ruleMap = null;
         try {
             ruleMap = JSON.parseObject(cleaningRule, Map.class);
@@ -658,7 +639,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (StringUtils.isBlank(operator)) {
             return fieldSample;
         }
-        
+
         // 根据操作类型执行不同的清洗逻辑
         Object result = fieldSample;
         try {
@@ -669,7 +650,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 case "divide":
                 case "percentage":
                     // 数学运算
-                    result = handleMathOperation(fieldSample, ruleMap);
+                    if (ObjectUtil.isNotEmpty(nodeParse)){
+                        result = handleMathOperation(fieldSample, ruleMap, nodeParse);
+                    } else {
+                        result = handleMathOperation(fieldSample, ruleMap);
+                    }
                     break;
                 case "remove":
                 case "retain":
@@ -710,9 +695,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
     
     /**
-     * 处理数学运算
+     * 处理数学运算（不使用nodeParse）
      */
     private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap) {
+        return handleMathOperation(fieldSample, ruleMap, null);
+    }
+    
+    /**
+     * 处理数学运算（支持从nodeParse中获取值）
+     */
+    private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
         // 字段运算逻辑处理
         String operator = String.valueOf(ruleMap.get("operator"));
         List<Map<String, Object>> operands = (List<Map<String, Object>>) ruleMap.get("operands");
@@ -728,15 +720,22 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             Object value = null;
             
             if ("field".equals(type)) {
-                // 字段类型，获取字段值
-                value = operand.get("fieldValue");
+                // 字段类型，从nodeParse中获取对应字段的值
+                String fieldName = String.valueOf(operand.get("fieldName"));
+                if (nodeParse != null) {
+                    // 从nodeParse中获取实际值
+                    value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                } else {
+                    // 如果没有nodeParse，则使用规则中的预设值
+                    value = operand.get("fieldValue");
+                }
             } else if ("constant".equals(type)) {
                 // 常量类型，直接获取值
                 value = operand.get("value");
             } else if ("expression".equals(type)) {
                 // 表达式类型，递归计算
                 Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
-                value = handleMathOperation("0", expression);
+                value = handleMathOperation("0", expression, nodeParse);
             }
             
             if (value != null) {
