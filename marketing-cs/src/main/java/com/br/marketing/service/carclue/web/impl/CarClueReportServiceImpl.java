@@ -2,6 +2,7 @@ package com.br.marketing.service.carclue.web.impl;
 import java.util.Date;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.ApiResult;
@@ -176,10 +177,10 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         carClueExecuteRecording.setIsDel(Constants.DATA_VALID);
 
         List<Long> ids = dto.getClueIds();
-        if(CollectionUtils.isEmpty(ids)){
-            carClueExecuteRecording.setClueRange(String.valueOf(dto.getClueRange()));
-        }else {
+        if(!CollectionUtils.isEmpty(ids)){
             carClueExecuteRecording.setClueIds(dto.getClueIds().toString());
+        }else {
+            carClueExecuteRecording.setClueRange(JSONObject.toJSONString(dto.getClueRange()));
         }
         carClueExecuteRecordingMapper.insertSelective(carClueExecuteRecording);
         return new ApiResult<Boolean>().success(true);

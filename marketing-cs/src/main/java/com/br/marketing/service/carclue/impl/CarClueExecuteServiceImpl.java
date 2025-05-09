@@ -86,7 +86,12 @@ public class CarClueExecuteServiceImpl implements CarClueExecuteService {
 
     @Override
     public List<CarClueInfo> processClueByIds(String clueIds) {
-        List<Long> idList = Arrays.stream(clueIds.split(","))
+
+        // 移除方括号并按逗号分割
+        String[] idsArray = clueIds.replace("[", "").replace("]", "").split(",\\s*");
+
+        List<Long> idList = Arrays.stream(idsArray)
+                .map(String::trim)
                 .map(Long::valueOf)
                 .collect(Collectors.toList());
 
