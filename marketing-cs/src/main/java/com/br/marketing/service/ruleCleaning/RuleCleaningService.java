@@ -4,6 +4,8 @@ import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
+import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
+import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 
 import java.util.List;
 
@@ -56,4 +58,9 @@ public interface RuleCleaningService {
      * @return 清洗后的数据值
      */
     Object previewFieldCleaning(String fieldSample, String cleaningRule);
+
+
+    MarketingDataCleanGeneralFieldConfig getFieldConfg(String apiCode, Integer dataType, Integer acceptType);
+
+    boolean fieldSaveOrUpdate(CleanFieldConfigVO fieldConfigVO);
 }

@@ -5,8 +5,10 @@ import com.br.marketing.client.rulecleaning.FieldCleaningPreviewDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
+import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
+import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import java.util.List;
 
 /**
  * 规则数据清洗
+ *
  * @author guangxiu.li
  * @date 2025/5/6
  */
@@ -44,7 +47,7 @@ public class RuleCleaningController {
             @RequestParam(required = false) String apiCode,
             @RequestParam(required = false) String accountType,
             @RequestParam(required = false) Integer acceptType) {
-        
+
         PageResultReturn pageResultReturn = ruleCleaningService.getRuleList(current, size, apiCode, accountType, acceptType);
         return new ApiResult<PageResultReturn>().success(pageResultReturn);
     }
@@ -59,7 +62,7 @@ public class RuleCleaningController {
         } else {
             config.setAccountType("正式");
         }
-        
+
         boolean result = ruleCleaningService.saveOrUpdateRule(config);
         return new ApiResult<Boolean>().success(result);
     }
@@ -77,7 +80,7 @@ public class RuleCleaningController {
             @RequestParam String apiCode,
             @RequestParam Integer dataType,
             @RequestParam Integer acceptType) {
-        
+
         List<FieldSampleDTO> fieldSamples = ruleCleaningService.getFieldSamples(apiCode, dataType, acceptType);
         return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
     }
@@ -101,6 +104,32 @@ public class RuleCleaningController {
         log.info("接收到字段清洗预览请求: {}", previewDTO);
         Object cleanedData = ruleCleaningService.previewFieldCleaning(previewDTO.getFieldSample(), previewDTO.getCleaningRule());
         return new ApiResult<Object>().success(cleanedData);
+    }
+
+
+    @PostMapping("/field/saveOrUpdate")
+    @ApiOperation(value = "模版字段配置保存更新", notes = "模版字段配置保存更新", httpMethod = "POST")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
+    public ApiResult<Boolean> fieldSaveOrUpdate(@RequestBody CleanFieldConfigVO fieldConfigVO) {
+        boolean result = ruleCleaningService.fieldSaveOrUpdate(fieldConfigVO);
+        return new ApiResult<Boolean>().success(result);
+    }
+
+
+    @GetMapping("/field/getFieldConfg")
+    @ApiOperation(value = "模版字段配置查询", notes = "模版字段配置查询", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
+            @ApiImplicitParam(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
+            @ApiImplicitParam(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true)
+    })
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
+    public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam String apiCode,
+                                                                         @RequestParam Integer dataType,
+                                                                         @RequestParam Integer acceptType) {
+
+        MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(apiCode, dataType, acceptType);
+        return new ApiResult<MarketingDataCleanGeneralFieldConfig>().success(fieldConfg);
     }
 
 }

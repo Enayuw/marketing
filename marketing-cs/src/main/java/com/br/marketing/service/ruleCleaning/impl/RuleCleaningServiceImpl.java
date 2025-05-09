@@ -10,17 +10,23 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
+import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralFieldConfigMapper;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
+import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.util.StringUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -51,6 +57,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    private MarketingDataCleanGeneralFieldConfigMapper marketingDataCleanGeneralFieldConfigMapper;
+
+
 
     public static final List<String> OPERATIONS = Collections.unmodifiableList(Arrays.asList("add", "subtract", "multiply", "divide", "percentage"));
 
@@ -1078,6 +1089,51 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             return 0;
         }
+    }
+
+    @Override
+    public MarketingDataCleanGeneralFieldConfig getFieldConfg(String apiCode, Integer dataType, Integer acceptType) {
+        MarketingDataCleanGeneralFieldConfigExample fieldConfigExample = new MarketingDataCleanGeneralFieldConfigExample();
+        fieldConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(dataType).andAcceptTypeEqualTo(acceptType);
+        List<MarketingDataCleanGeneralFieldConfig> fieldConfigList = marketingDataCleanGeneralFieldConfigMapper.selectByExample(fieldConfigExample);
+        if (CollectionUtils.isEmpty(fieldConfigList)) {
+            return null;
+        }
+        return fieldConfigList.get(0);
+    }
+
+    @Override
+    public boolean fieldSaveOrUpdate(CleanFieldConfigVO fieldConfigVO) {
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        String fieldStr = fieldConfigVO.getFieldCollect();
+        List<String> fieldList = Arrays.asList(fieldStr.split(","));
+        Set<String> baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType");
+        if (fieldConfigVO.getAcceptType().equals(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode())) {
+            baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType", "taskId", "requestId");
+        }
+        baseField.addAll(fieldList);
+        String fieldCollect = String.join(", ", baseField);
+        if (Objects.isNull(fieldConfigVO.getId())) {
+            //插入
+            MarketingDataCleanGeneralFieldConfig fieldConfig = new MarketingDataCleanGeneralFieldConfig();
+            BeanUtils.copyProperties(fieldConfigVO, fieldConfig);
+            fieldConfig.setFieldCollect(fieldCollect);
+            fieldConfig.setOptUserId(Long.valueOf(user.getId()));
+            fieldConfig.setOptUserName(user.getUserName());
+            marketingDataCleanGeneralFieldConfigMapper.insertSelective(fieldConfig);
+
+        } else {
+            //更新
+            MarketingDataCleanGeneralFieldConfig update = marketingDataCleanGeneralFieldConfigMapper.selectByPrimaryKey(fieldConfigVO.getId());
+            BeanUtils.copyProperties(fieldConfigVO, update);
+            update.setFieldCollect(fieldCollect);
+            update.setOptUserId(Long.valueOf(user.getId()));
+            update.setOptUserName(user.getUserName());
+            update.setUpdateTime(new Date());
+            marketingDataCleanGeneralFieldConfigMapper.updateByPrimaryKeySelective(update);
+        }
+        return Boolean.TRUE;
+
     }
 }
 
