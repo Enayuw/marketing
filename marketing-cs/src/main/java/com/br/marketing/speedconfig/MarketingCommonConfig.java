@@ -2405,13 +2405,6 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, String> biReportScenePrefixConfig;
 
-    /**
-     * 你我贷转化规则过滤配置
-     */
-    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
-
-    /**
-
      /**
      * 携程促活数据处理线程数
      */
