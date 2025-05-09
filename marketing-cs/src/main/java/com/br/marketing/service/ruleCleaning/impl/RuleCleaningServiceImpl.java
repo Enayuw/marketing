@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
+import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.*;
@@ -12,7 +13,6 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
-import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
@@ -23,11 +23,7 @@ import org.apache.poi.util.StringUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +41,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private MarketingDataCleanGeneralConfigMapper cleanGeneralConfigMapper;
 
     @Resource
-    private MarketingCustomerOriginalDataMapper customerOriginalDataMapper;
+    private JsonParseUtils jsonParseUtils;
 
     @Resource
     private MarketingDataCleanGeneralRuleConfigMapper cleanGeneralRuleConfigMapper;
@@ -55,6 +51,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    public static final List<String> OPERATIONS = Collections.unmodifiableList(Arrays.asList("add", "subtract", "multiply", "divide", "percentage"));
 
     /**
      * 规则列表查询
@@ -594,15 +592,36 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
     }
 
-    private Object executeCleaningRule(MarketingJsonNodeParse nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule) {
-        String nodeValue = nodeParse.getNodeValue();
+    private Object executeCleaningRule(Object nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule) {
         Boolean isMapping = cleaningRule.getIsMapping();
+        String cleanFields = cleaningRule.getCleanFields();
         Integer isDel = cleaningRule.getIsDel();
         if ("9".equals(isDel)) {
             return "";
         }
         if (isMapping) {
-            Object result = executeSingleRule(nodeValue, cleaningRule.getMappingRule());
+            String mappingRule = cleaningRule.getMappingRule();
+            String firstValueByKey = null;
+            Map<String, Object> ruleMap = null;
+            try {
+                ruleMap = JSON.parseObject(mappingRule, Map.class);
+            } catch (Exception e) {
+                log.error("解析清洗规则失败: {}", mappingRule, e);
+            }
+            // 获取操作类型
+            String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
+            //todo 只有计算才需要多字段
+            if (cleanFields.contains(",")) {
+                String[] split = cleanFields.split(",");
+                if (OPERATIONS.contains(operator)) {
+
+                } else {
+                    firstValueByKey = jsonParseUtils.findFirstValueByKey(nodeParse, split[0]).toString();
+                }
+            } else {
+                firstValueByKey = jsonParseUtils.findFirstValueByKey(nodeParse, cleanFields).toString();
+            }
+            Object result = executeSingleRule(firstValueByKey, mappingRule);
             return result;
         }
         return "";
