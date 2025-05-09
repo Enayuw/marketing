@@ -72,7 +72,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
         }
         String finalCollectDate = collectDate;
         marketingCommonConfig.getWubaCollidingApiCodes().forEach((String apiCode) -> {
-            File[] files = getFiles(finalCollectDate);
+            File[] files = callWuBaServiceAndGetFiles(finalCollectDate);
             if (files == null) {
                 String msg = TITLE + "解压csv文件不存在";
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
@@ -146,7 +146,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
         });
     }
 
-    private File[] getFiles(String finalCollectDate) {
+    private File[] callWuBaServiceAndGetFiles(String finalCollectDate) {
         File[] files;
         String dirPath = marketingCommonConfig.getWuBaQueryDelayZipResultFilePath();
         String zipFileName = "extend_bairongkj_" + finalCollectDate + ".csv.zip";
