@@ -26,4 +26,49 @@
             #{cell}
         </foreach>
     </update>
+
+    <update id="batchUpdateReleaseTimeByCell">
+        UPDATE b_wuba_colliding_data_delay_loop_cycle
+        SET
+        push_time = null,
+        clean_status = 0,
+        task_id = null,
+        batch_no = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.batchNo}
+        </foreach>
+        ELSE batch_no
+        END,
+        release_time = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.releaseTime}
+        </foreach>
+        ELSE release_time
+        END,
+        api_code = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.apiCode}
+        </foreach>
+        ELSE api_code
+        END,
+        extend = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.extend}
+        </foreach>
+        ELSE extend
+        END
+        WHERE cell IN (
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item.cell}
+        </foreach>
+        )
+    </update>
+
+    <insert id="batchSaveData">
+        INSERT INTO b_wuba_colliding_data_delay_loop_cycle (api_code,cell,batch_no,release_time,push_time,task_id,extend)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.apiCode},#{item.cell},#{item.batchNo},#{item.releaseTime},#{item.pushTime},#{item.taskId},#{item.extend})
+        </foreach>
+    </insert>
 </mapper>

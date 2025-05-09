@@ -1994,6 +1994,22 @@ public class MarketingCommonConfig {
      * 58查询撞库结果等待时长（分钟）
      */
     private Integer wuBaCollidingQueryResultWaitMinutes;
+
+    /**
+     * 58查询非金融延期zip接口参数配置
+     */
+    private Map<String, String> wuBaQueryDelayZipResultUrlConfig;
+
+    /**
+     * 58查询延期撞库数据-文件路径
+     */
+    private String wuBaQueryDelayZipResultFilePath;
+
+    /**
+     * 58查询非金融延期zip文件表头配置
+     */
+    private Map<String, Integer> wuBaQueryDelayZipHeaderConfig;
+
     /**
      * 苏商推送通话明细apiCode
      */
