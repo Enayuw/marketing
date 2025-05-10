@@ -237,10 +237,10 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
     private void sendEliminateDataToMq(Long batchNoId) {
         try {
-            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingWuBaConstants.TAG_MARKETING_WUBA_COLLIDING_ELIMINATE)){
+            if (rocketMqSwitch.rocketMQSwitchFlag(null, MarketingWuBaConstants.TAG_MARKETING_WUBA_COLLIDING_ELIMINATE)) {
                 rocketMqSwitch.syncSend(MarketingWuBaConstants.TOPIC
                         , MarketingWuBaConstants.TAG_MARKETING_WUBA_COLLIDING_ELIMINATE, String.valueOf(batchNoId));
-            }else{
+            } else {
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WUBA_COLLIDING_ELIMINATE, String.valueOf(batchNoId));
             }
             log.warn("58查询撞库结果作业 status-1发送mq，batchNoId:{}", batchNoId);

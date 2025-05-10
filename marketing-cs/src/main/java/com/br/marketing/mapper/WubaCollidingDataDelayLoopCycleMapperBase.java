@@ -21,7 +21,8 @@ public interface WubaCollidingDataDelayLoopCycleMapperBase {
 
     WubaCollidingDataDelayLoopCycle selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") WubaCollidingDataDelayLoopCycle record, @Param("example") WubaCollidingDataDelayLoopCycleExample example);
+    int updateByExampleSelective(@Param("record") WubaCollidingDataDelayLoopCycle record,
+                                 @Param("example") WubaCollidingDataDelayLoopCycleExample example);
 
     int updateByExample(@Param("record") WubaCollidingDataDelayLoopCycle record, @Param("example") WubaCollidingDataDelayLoopCycleExample example);
 
