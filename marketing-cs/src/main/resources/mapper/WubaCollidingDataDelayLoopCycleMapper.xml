@@ -45,6 +45,12 @@
         </foreach>
         ELSE release_time
         END,
+        last_push_time = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.lastPushTime}
+        </foreach>
+        ELSE last_push_time
+        END,
         api_code = CASE cell
         <foreach collection="list" item="item">
             WHEN #{item.cell} THEN #{item.apiCode}
@@ -58,7 +64,7 @@
         ELSE extend
         END
         WHERE cell IN (
-        <foreach collection="list" item="item" separator="," open="(" close=")">
+        <foreach collection="list" item="item" separator=",">
             #{item.cell}
         </foreach>
         )

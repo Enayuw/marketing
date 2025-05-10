@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.wuba;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
@@ -157,6 +158,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
             String msg = TITLE + "下载zip包失败";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , TITLE));
+            return null;
         }
         log.warn(TITLE + "下载zip包成功");
 
@@ -166,6 +168,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
             String msg = TITLE + "zip文件不存在";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , TITLE));
+            return null;
         }
 
         String csvDirPath = dirPath + "csv/" + finalCollectDate + "/";
@@ -193,7 +196,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                         DatePattern.NORM_DATETIME_PATTERN));
                 delayLoopCycle.setLastPushTime(DateUtil.parse(dataList.get(headerConfig.get("lastPushTime")).trim(),
                         DatePattern.NORM_DATETIME_PATTERN));
-                delayLoopCycle.setExtend(dataLine);
+                delayLoopCycle.setExtend(JSON.toJSONString(dataLine));
                 delayLoopCycle.setCleanStatus(0);
                 delayLoopCycle.setApiCode(apiCode);
 
