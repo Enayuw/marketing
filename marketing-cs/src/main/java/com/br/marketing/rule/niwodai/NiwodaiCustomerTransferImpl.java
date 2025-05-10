@@ -134,7 +134,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
         if ((Optional.ofNullable(reserveField1.getInteger("C")).isPresent()
                 && reserveField1.getInteger("C") == 1)
                 && (Optional.ofNullable(reserveField1.getInteger("D")).isPresent()
-                && reserveField1.getInteger("D") == 0 && userType.equals("20"))) {
+                && reserveField1.getInteger("D") == 0) && userType.equals("20")) {
             return inversionStatus;
         }
         if (Optional.ofNullable(reserveField1.getInteger("H")).isPresent()
