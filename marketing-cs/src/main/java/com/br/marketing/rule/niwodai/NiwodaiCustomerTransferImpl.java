@@ -119,20 +119,26 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
      */
     private String getInversionStatus(String userType, JSONObject reserveField1) {
         String inversionStatus = "0";
-        if (reserveField1.getInteger("F") == 1) {
+        if (Optional.ofNullable(reserveField1.getInteger("F")).isPresent() &&
+                reserveField1.getInteger("F") == 1) {
             return inversionStatus;
         }
-        if ((Optional.ofNullable(reserveField1.getInteger("B")).isPresent()
-                && reserveField1.getInteger("B") != 0) && USER_TYPES.contains(userType)) {
+        if (Optional.ofNullable(reserveField1.getInteger("B")).isPresent()
+                && reserveField1.getInteger("B") != 0 && USER_TYPES.contains(userType)) {
             return inversionStatus;
         }
-        if (reserveField1.getInteger("C") == 1 && USER_TYPES.contains(userType)) {
+        if (Optional.ofNullable(reserveField1.getInteger("C")).isPresent() &&
+                reserveField1.getInteger("C") == 1 && USER_TYPES.contains(userType)) {
             return inversionStatus;
         }
-        if (reserveField1.getInteger("C") == 1 && reserveField1.getInteger("D") == 0 && userType.equals("20")) {
+        if ((Optional.ofNullable(reserveField1.getInteger("C")).isPresent()
+                && reserveField1.getInteger("C") == 1)
+                && (Optional.ofNullable(reserveField1.getInteger("D")).isPresent()
+                && reserveField1.getInteger("D") == 0 && userType.equals("20"))) {
             return inversionStatus;
         }
-        if (reserveField1.getInteger("H") == 1) {
+        if (Optional.ofNullable(reserveField1.getInteger("H")).isPresent()
+                && reserveField1.getInteger("H") == 1) {
             return inversionStatus;
         }
         inversionStatus = "";
