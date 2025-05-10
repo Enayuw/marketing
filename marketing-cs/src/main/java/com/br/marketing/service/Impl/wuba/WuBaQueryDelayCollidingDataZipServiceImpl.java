@@ -20,6 +20,7 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
@@ -111,11 +112,11 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                     String dataLine;
                     List<CompletableFuture<Void>> futures = new ArrayList<>();
                     while ((dataLine = reader.readLine()) != null) {
-                        threadPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-                        threadPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-
                         batchData.add(dataLine);
                         if (batchData.size() == BATCH_SIZE) {
+                            threadPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+                            threadPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+
                             ArrayList<String> subList = new ArrayList<>(batchData);
                             futures.add(CompletableFuture.runAsync(() -> deleteFromLoopCycleAndInsertToDelay(subList, apiCode, headerConfig)
                                     , threadPool));
@@ -200,6 +201,10 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
             }
 
             List<String> cells = delayLoopCycleList.stream().map(WubaCollidingDataDelayLoopCycle::getCell).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(cells)) {
+                return;
+            }
+
             // 从非金融周期表删除
             loopCycleMapper.batchDeleteByCell(cells, apiCode);
 
@@ -211,12 +216,16 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                     delayLoopCycleList.stream().filter(t -> existCells.contains(t.getCell())).collect(Collectors.toList());
 
             // 延期表已存在，则更新释放时间
-            delayLoopCycleMapper.batchUpdateReleaseTimeByCell(updateDelayLoopCycles);
+            if (!CollectionUtils.isEmpty(updateDelayLoopCycles)) {
+                delayLoopCycleMapper.batchUpdateReleaseTimeByCell(updateDelayLoopCycles);
+            }
 
             // 延期表不存在，则插入
             List<WubaCollidingDataDelayLoopCycle> newDelayLoopCycles =
                     delayLoopCycleList.stream().filter(t -> !existCells.contains(t.getCell())).collect(Collectors.toList());
-            delayLoopCycleMapper.batchSaveData(newDelayLoopCycles);
+            if (!CollectionUtils.isEmpty(newDelayLoopCycles)) {
+                delayLoopCycleMapper.batchSaveData(newDelayLoopCycles);
+            }
         } catch (Exception e) {
             String msg = TITLE + "子线程处理异常";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
