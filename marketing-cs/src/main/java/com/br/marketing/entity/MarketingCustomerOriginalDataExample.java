@@ -12,7 +12,7 @@ public class MarketingCustomerOriginalDataExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingCustomerOriginalDataExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingCustomerOriginalDataExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -302,6 +302,76 @@ public class MarketingCustomerOriginalDataExample {
 
         public Criteria andRequestIdNotBetween(String value1, String value2) {
             addCriterion("request_id not between", value1, value2, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIsNull() {
+            addCriterion("json_data is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIsNotNull() {
+            addCriterion("json_data is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataEqualTo(String value) {
+            addCriterion("json_data =", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotEqualTo(String value) {
+            addCriterion("json_data <>", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataGreaterThan(String value) {
+            addCriterion("json_data >", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataGreaterThanOrEqualTo(String value) {
+            addCriterion("json_data >=", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLessThan(String value) {
+            addCriterion("json_data <", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLessThanOrEqualTo(String value) {
+            addCriterion("json_data <=", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLike(String value) {
+            addCriterion("json_data like", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotLike(String value) {
+            addCriterion("json_data not like", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIn(List<String> values) {
+            addCriterion("json_data in", values, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotIn(List<String> values) {
+            addCriterion("json_data not in", values, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataBetween(String value1, String value2) {
+            addCriterion("json_data between", value1, value2, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotBetween(String value1, String value2) {
+            addCriterion("json_data not between", value1, value2, "jsonData");
             return (Criteria) this;
         }
 
@@ -866,8 +936,9 @@ public class MarketingCustomerOriginalDataExample {
         }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

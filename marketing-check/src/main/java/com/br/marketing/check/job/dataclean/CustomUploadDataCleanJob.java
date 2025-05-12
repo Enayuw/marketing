@@ -62,16 +62,15 @@ public class CustomUploadDataCleanJob extends AbstractSimpleElasticJob {
             appletDateList.add(LocalDate.now().toString());
             appletDateList.add(LocalDate.now().minusDays(1).toString());
         }
-        while (true) {
-            MarketingDataCleanGeneralConfig config = getCleanDataTask(apiCode, appletDateList);
-            if (Objects.isNull(config)) {
-                break;
-            }
-            dataCleanService.customUploadDataClean(config, appletDateList);
-            //TODO 更新配置状态
-            config.setCustomRunStatus(0);
-            marketingDataCleanGeneralConfigMapper.updateByPrimaryKeySelective(config);
+        MarketingDataCleanGeneralConfig config = getCleanDataTask(apiCode, appletDateList);
+        if (Objects.isNull(config)) {
+            return;
         }
+        dataCleanService.customUploadDataClean(config, appletDateList);
+        //TODO 更新配置状态
+        config.setCustomRunStatus(0);
+        marketingDataCleanGeneralConfigMapper.updateByPrimaryKeySelective(config);
+
 
     }
 

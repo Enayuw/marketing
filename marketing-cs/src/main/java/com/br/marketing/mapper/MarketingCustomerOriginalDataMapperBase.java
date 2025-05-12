@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface MarketingCustomerOriginalDataMapperBase {
-    int countByExample(MarketingCustomerOriginalDataExample example);
+    long countByExample(MarketingCustomerOriginalDataExample example);
 
     int deleteByExample(MarketingCustomerOriginalDataExample example);
 
@@ -16,21 +16,15 @@ public interface MarketingCustomerOriginalDataMapperBase {
 
     int insertSelective(MarketingCustomerOriginalData record);
 
-    List<MarketingCustomerOriginalData> selectByExampleWithBLOBs(MarketingCustomerOriginalDataExample example);
-
     List<MarketingCustomerOriginalData> selectByExample(MarketingCustomerOriginalDataExample example);
 
     MarketingCustomerOriginalData selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingCustomerOriginalData record, @Param("example") MarketingCustomerOriginalDataExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") MarketingCustomerOriginalData record, @Param("example") MarketingCustomerOriginalDataExample example);
-
     int updateByExample(@Param("record") MarketingCustomerOriginalData record, @Param("example") MarketingCustomerOriginalDataExample example);
 
     int updateByPrimaryKeySelective(MarketingCustomerOriginalData record);
-
-    int updateByPrimaryKeyWithBLOBs(MarketingCustomerOriginalData record);
 
     int updateByPrimaryKey(MarketingCustomerOriginalData record);
 }

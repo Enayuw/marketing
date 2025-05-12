@@ -1,8 +1,15 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
-public class MarketingCustomerOriginalData {
+/**
+ * b_marketing_customer_original_data
+ * @author 
+ */
+@Data
+public class MarketingCustomerOriginalData implements Serializable {
     /**
      * 主键ID
      */
@@ -17,6 +24,11 @@ public class MarketingCustomerOriginalData {
      * 请求流水号
      */
     private String requestId;
+
+    /**
+     * 数据
+     */
+    private String jsonData;
 
     /**
      * 数据类型：0:上传，1:转化
@@ -63,112 +75,5 @@ public class MarketingCustomerOriginalData {
      */
     private Date updateTime;
 
-    /**
-     * 数据
-     */
-    private String jsonData;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(String requestId) {
-        this.requestId = requestId == null ? null : requestId.trim();
-    }
-
-    public Integer getDataType() {
-        return dataType;
-    }
-
-    public void setDataType(Integer dataType) {
-        this.dataType = dataType;
-    }
-
-    public Integer getAcceptType() {
-        return acceptType;
-    }
-
-    public void setAcceptType(Integer acceptType) {
-        this.acceptType = acceptType;
-    }
-
-    public Integer getActualNum() {
-        return actualNum;
-    }
-
-    public void setActualNum(Integer actualNum) {
-        this.actualNum = actualNum;
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Integer getCleanStatus() {
-        return cleanStatus;
-    }
-
-    public void setCleanStatus(Integer cleanStatus) {
-        this.cleanStatus = cleanStatus;
-    }
-
-    public String getReceiveDate() {
-        return receiveDate;
-    }
-
-    public void setReceiveDate(String receiveDate) {
-        this.receiveDate = receiveDate == null ? null : receiveDate.trim();
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getJsonData() {
-        return jsonData;
-    }
-
-    public void setJsonData(String jsonData) {
-        this.jsonData = jsonData == null ? null : jsonData.trim();
-    }
+    private static final long serialVersionUID = 1L;
 }

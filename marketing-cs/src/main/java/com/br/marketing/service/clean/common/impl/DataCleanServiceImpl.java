@@ -277,6 +277,8 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Override
     public void customUploadDataClean(MarketingDataCleanGeneralConfig config, List<String> appletDateList) {
+        log.warn(TITLE + "apiCode={} 开始清洗", config.getApiCode());
+        Long start = System.currentTimeMillis();
         String apiCode = config.getApiCode();
         //查询规则
         MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
@@ -310,56 +312,63 @@ public class DataCleanServiceImpl implements DataCleanService {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "定制上传数据清洗线程池停止异常！"), ex);
             Thread.currentThread().interrupt();
         }
+        log.warn(TITLE + "apiCode={}清洗结束,耗时：{}ms", config.getApiCode(), System.currentTimeMillis() - start);
     }
 
 
     private void processData(MarketingCustomerOriginalData originalData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
-        JSONObject jsonData = JSON.parseObject(originalData.getJsonData());
-        String apiCode = originalData.getApiCode();
-        String levelField = null;
-        if (!CollectionUtils.isEmpty(marketingCommonConfig.getCustomUploadCleanLevelField())) {
-            levelField = marketingCommonConfig.getCustomUploadCleanLevelField().get(apiCode);
+        try {
+            JSONObject jsonData = JSON.parseObject(originalData.getJsonData());
+            String apiCode = originalData.getApiCode();
+            String levelField = null;
+            if (!CollectionUtils.isEmpty(marketingCommonConfig.getCustomUploadCleanLevelField())) {
+                levelField = marketingCommonConfig.getCustomUploadCleanLevelField().get(apiCode);
+            }
+            //层级字段处理
+            List<JSONObject> jsonObjectList = new ArrayList<>();
+            if (StringUtils.isNotEmpty(levelField)) {
+                jsonObjectList = JsonParseUtils.parseJsonArrayToMultipleObjects(jsonData, levelField);
+            } else {
+                jsonObjectList.add(jsonData);
+            }
+            MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+            //taskId清洗
+            List<MarketingDataCleanGeneralRuleConfig> taskConfigList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("taskId")).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(taskConfigList)) {
+                marketingPreUserDTO.setTaskId(originalData.getApiCode().concat("_").concat(LocalDate.now().toString()));
+            } else {
+                marketingPreUserDTO.setTaskId((String) ruleCleaningService.executeCleaningRule(jsonData, taskConfigList.get(0)));
+            }
+            //requestId清洗
+            List<MarketingDataCleanGeneralRuleConfig> requestIdConfigList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("requestId")).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(requestIdConfigList)) {
+                marketingPreUserDTO.setRequestId(originalData.getApiCode().concat("_").concat(LocalDate.now().toString()).concat(UUID.randomUUID().toString()));
+            } else {
+                marketingPreUserDTO.setRequestId((String) ruleCleaningService.executeCleaningRule(jsonData, requestIdConfigList.get(0)));
+            }
+            //剔除taskId，requestId
+            ruleConfigList.removeIf(config -> config.getMappingField().equals("requestId") || config.getMappingField().equals("taskId"));
+            //根据规则进行清洗处理
+            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+            jsonObjectList.forEach(jsonObject -> {
+                MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+                //数据清洗
+                dataCleanHandler(jsonObject, ruleConfigList, marketingPreUserDetailDTO);
+                syncUsers.add(marketingPreUserDetailDTO);
+            });
+            //写入到info表
+            marketingPreUserDTO.setDataItems(syncUsers);
+            UploadDataDTO uploadDataDTO = new UploadDataDTO();
+            uploadDataDTO.setApiCode(apiCode);
+            uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+            pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+            MarketingCustomerOriginalData update = new MarketingCustomerOriginalData();
+            update.setCleanStatus(2);
+            update.setId(originalData.getId());
+            marketingCustomerOriginalDataMapper.updateByPrimaryKeySelective(update);
+        } catch (Exception e) {
+            log.error(TITLE + "清洗处理异常", e);
         }
-        //层级字段处理
-        List<JSONObject> jsonObjectList = new ArrayList<>();
-        if (StringUtils.isNotEmpty(levelField)) {
-            jsonObjectList = JsonParseUtils.parseJsonArrayToMultipleObjects(jsonData, levelField);
-        } else {
-            jsonObjectList.add(jsonData);
-        }
-        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-        //taskId清洗
-        List<MarketingDataCleanGeneralRuleConfig> taskConfigList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("taskId")).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(taskConfigList)) {
-            marketingPreUserDTO.setTaskId(originalData.getApiCode().concat("_").concat(LocalDate.now().toString()));
-        } else {
-            marketingPreUserDTO.setTaskId((String) ruleCleaningService.executeCleaningRule(jsonData, taskConfigList.get(0)));
-        }
-        //requestId清洗
-        List<MarketingDataCleanGeneralRuleConfig> requestIdConfigList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("requestId")).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(requestIdConfigList)) {
-            marketingPreUserDTO.setTaskId(originalData.getApiCode().concat("_").concat(LocalDate.now().toString()).concat(UUID.randomUUID().toString()));
-        } else {
-            marketingPreUserDTO.setRequestId((String) ruleCleaningService.executeCleaningRule(jsonData, requestIdConfigList.get(0)));
-        }
-        //剔除taskId，requestId
-        ruleConfigList.removeIf(config -> config.getMappingField().equals("requestId") || config.getMappingField().equals("taskId"));
-        //根据规则进行清洗处理
-        List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
-        jsonObjectList.forEach(jsonObject -> {
-            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-            //数据清洗
-            dataCleanHandler(jsonObject, ruleConfigList, marketingPreUserDetailDTO);
-            syncUsers.add(marketingPreUserDetailDTO);
-        });
-        //写入到info表
-        marketingPreUserDTO.setDataItems(syncUsers);
-        UploadDataDTO uploadDataDTO = new UploadDataDTO();
-        uploadDataDTO.setApiCode(apiCode);
-        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-        pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-        originalData.setCleanStatus(1);
-        marketingCustomerOriginalDataMapper.updateByPrimaryKeySelective(originalData);
     }
 
     @Override
