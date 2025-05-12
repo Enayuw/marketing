@@ -8,6 +8,7 @@ import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
+import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -53,18 +54,47 @@ public class RuleCleaningController {
     }
 
     @PostMapping("/saveOrUpdateRule")
-    @ApiOperation(value = "保存或更新规则", notes = "保存或更新规则接口", httpMethod = "POST")
+    @ApiOperation(value = "保存或更新规则及清洗配置", notes = "先保存或更新规则，然后保存清洗配置", httpMethod = "POST")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
-    public ApiResult<Boolean> saveOrUpdateRule(@RequestBody MarketingDataCleanGeneralConfig config) {
+    public ApiResult<Boolean> saveOrUpdateRule(@RequestBody RuleCleaningConfigDTO configDTO) {
+        log.info("接收到保存或更新规则及清洗配置请求: {}", configDTO);
+        
+        // 构建规则配置对象
+        MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
+        config.setApiCode(configDTO.getApiCode());
+        config.setDataType(configDTO.getDataType());
+        config.setAcceptType(configDTO.getAcceptType());
+        
         // 处理账号类型：以7开头的均为测试账号
         if (config.getApiCode() != null && config.getApiCode().startsWith("7")) {
             config.setAccountType("测试");
         } else {
             config.setAccountType("正式");
         }
-
-        boolean result = ruleCleaningService.saveOrUpdateRule(config);
-        return new ApiResult<Boolean>().success(result);
+        
+        // 先保存或更新规则
+        boolean ruleResult = ruleCleaningService.saveOrUpdateRule(config);
+        
+        // 保存字段清洗配置
+        boolean cleaningResult = true;
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
+            for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
+                // 设置API编码信息
+                fieldConfig.setApiCode(configDTO.getApiCode());
+                fieldConfig.setDataType(configDTO.getDataType());
+                fieldConfig.setAcceptType(configDTO.getAcceptType());
+                
+                log.info("保存字段清洗配置: {}", fieldConfig);
+                boolean singleResult = ruleCleaningService.saveFieldCleaningConfig(fieldConfig);
+                if (!singleResult) {
+                    cleaningResult = false;
+                    log.error("保存字段清洗配置失败: {}", fieldConfig);
+                }
+            }
+        }
+        
+        return new ApiResult<Boolean>().success(ruleResult && cleaningResult);
     }
 
 
@@ -85,15 +115,15 @@ public class RuleCleaningController {
         return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
     }
 
-
-    @PostMapping("/saveFieldCleaningConfig")
-    @ApiOperation(value = "保存字段清洗配置", notes = "保存字段与清洗规则的映射关系", httpMethod = "POST")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
-    public ApiResult<Boolean> saveFieldCleaningConfig(@RequestBody FieldCleaningConfigDTO configDTO) {
-        log.info("接收到字段清洗配置请求: {}", configDTO);
-        boolean result = ruleCleaningService.saveFieldCleaningConfig(configDTO);
-        return new ApiResult<Boolean>().success(result);
-    }
+//
+//    @PostMapping("/saveFieldCleaningConfig")
+//    @ApiOperation(value = "保存字段清洗配置", notes = "保存字段与清洗规则的映射关系", httpMethod = "POST")
+//    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
+//    public ApiResult<Boolean> saveFieldCleaningConfig(@RequestBody FieldCleaningConfigDTO configDTO) {
+//        log.info("接收到字段清洗配置请求: {}", configDTO);
+//        boolean result = ruleCleaningService.saveFieldCleaningConfig(configDTO);
+//        return new ApiResult<Boolean>().success(result);
+//    }
 
 
     @PostMapping("/previewFieldCleaning")

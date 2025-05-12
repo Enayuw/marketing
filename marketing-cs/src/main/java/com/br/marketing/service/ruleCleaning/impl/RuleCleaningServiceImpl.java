@@ -200,14 +200,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         .andCleanFieldsEqualTo(node.getNodeName())
                         .andIsDelEqualTo(1);
                 List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = cleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+                MarketingDataCleanGeneralRuleConfig ruleConfig = new MarketingDataCleanGeneralRuleConfig();
                 if (ruleConfigs == null || ruleConfigs.isEmpty()) {
                     dto.setNeedCleaning(Boolean.FALSE);
                     dto.setResultPreview(node.getNodeValue());
+                    dto.setMappingRule("");
                 } else {
-                    Boolean isMapping = ruleConfigs.get(0).getIsMapping();
+                    ruleConfig = ruleConfigs.get(0);
+                    Boolean isMapping = ruleConfig.getIsMapping();
                     dto.setNeedCleaning(isMapping);
+                    dto.setMappingRule(ruleConfig.getMappingRule());
                     if (isMapping) {
-                        String resultPreview = ruleConfigs.get(0).getResultPreview();
+                        String resultPreview = ruleConfig.getResultPreview();
                         dto.setResultPreview(resultPreview);
                     } else {
                         dto.setResultPreview(node.getNodeValue());
@@ -248,7 +252,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                                     if (StringUtils.isNotBlank(fieldValue)) {
                                         dto.setFieldSample(fieldValue);
                                         if (dto.getNeedCleaning()) {
-                                            String resultPreview = ruleConfigs.get(0).getResultPreview();
+                                            String resultPreview = ruleConfig.getResultPreview();
                                             dto.setResultPreview(resultPreview);
                                         } else {
                                             dto.setResultPreview(fieldValue);
@@ -283,7 +287,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                                     if (StringUtils.isNotBlank(fieldValue)) {
                                         dto.setFieldSample(fieldValue);
                                         if (dto.getNeedCleaning()) {
-                                            String resultPreview = ruleConfigs.get(0).getResultPreview();
+                                            String resultPreview = ruleConfig.getResultPreview();
                                             dto.setResultPreview(resultPreview);
                                         } else {
                                             dto.setResultPreview(fieldValue);
@@ -317,7 +321,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                                         if (StringUtils.isNotBlank(fieldValue)) {
                                             dto.setFieldSample(fieldValue);
                                             if (dto.getNeedCleaning()) {
-                                                String resultPreview = ruleConfigs.get(0).getResultPreview();
+                                                String resultPreview = ruleConfig.getResultPreview();
                                                 dto.setResultPreview(resultPreview);
                                             } else {
                                                 dto.setResultPreview(fieldValue);

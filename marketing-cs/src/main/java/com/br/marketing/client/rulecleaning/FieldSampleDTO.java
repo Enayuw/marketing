@@ -49,4 +49,9 @@ public class FieldSampleDTO implements Serializable {
      * 清洗结果预览
      */
     private String resultPreview;
+
+    /**
+     * 清洗规则
+     */
+    private String mappingRule;
 } 
