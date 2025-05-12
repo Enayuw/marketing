@@ -1,13 +1,8 @@
 package com.br.marketing.service.carclue.web.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -16,7 +11,10 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueChannelConfigDTO;
 import com.br.marketing.dto.CarClueChannelDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.CarClueManageConfig;
+import com.br.marketing.entity.CarClueManageConfigExample;
+import com.br.marketing.entity.ClueFileRecording;
+import com.br.marketing.entity.ClueFileRecordingExample;
 import com.br.marketing.mapper.CarClueManageConfigMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.ClueFileRecordingMapper;
@@ -33,6 +31,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * @ClassName CarClueChannelServiceImpl
@@ -52,6 +54,8 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
     CarClueRelationalMappingMapper carClueRelationalMappingMapper;
     @Resource
     RedisChgService redisChgService;
+    @Resource
+    private FastDfsClient fastDfsClient;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Autowired
@@ -73,7 +77,7 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
         }
 
         PageHelper.startPage(current, size);
-        List<CarClueChannelVo> list = carClueRelationalMappingMapper.selectList(search,cluePushChannel);
+        List<CarClueChannelVo> list = carClueRelationalMappingMapper.selectList(search, cluePushChannel);
         return PageResultReturn.setPageResult(list, current, size);
     }
 
@@ -84,7 +88,7 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
                 .andFileCleanStatusEqualTo(ClueFileRecordingStatusEnum.AWAIT_CLEAN.getValue())
                 .andIsDelEqualTo(Constants.DATA_VALID);
         int i = clueFileRecordingMapper.countByExample(clueFileRecordingExample);
-        if(i > 0){
+        if (i > 0) {
             return new ApiResult<Boolean>().fail("存在待清洗的文件！");
         }
         return new ApiResult<Boolean>().success(true);
@@ -125,21 +129,19 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
     @Override
     public ApiResult<Boolean> updateInitMapping(List<String> scope, MultipartFile multipartFile) {
         // 1. 参数校验
-        if(CollectionUtils.isEmpty(scope)){
-            return new ApiResult<Boolean>().fail("外采更新范围为空！");
+        if (CollectionUtils.isEmpty(scope)) {
+            return new ApiResult<Boolean>().fail("scope参数不能为空！");
         }
         if (multipartFile.isEmpty()) {
-            return new ApiResult<Boolean>().fail("文件为空！");
+            return new ApiResult<Boolean>().fail("文件不能为空！");
         }
         String fileName = multipartFile.getOriginalFilename();
         if (!fileName.endsWith(".xls") && !fileName.endsWith(".xlsx")) {
             return new ApiResult<Boolean>().fail("仅支持Excel文件(.xls, .xlsx)！");
         }
 
-        // 2. 准备路径和锁
+        // 2. 准备锁
         final String syncDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        final String descPath = syncConfigService.getPath() + "channel/" + syncDate + "/";
-        final String filePath = descPath + fileName;
         final String key = RedisKeyConstant.updateInitMapping + ":" + syncDate;
         final String lockValue = UUID.randomUUID().toString();
 
@@ -149,26 +151,20 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
                 return new ApiResult<Boolean>().fail("加锁失败！");
             }
 
-            // 4. 创建目录并保存文件
-            File parentDir = new File(descPath);
-            if (!parentDir.exists() && !parentDir.mkdirs()) {
-                return new ApiResult<Boolean>().fail("无法创建目录");
-            }
-
-            try (InputStream in = multipartFile.getInputStream();
-                 FileOutputStream out = new FileOutputStream(filePath)) {
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, bytesRead);
-                }
+            // 4. 保存文件至fastDfs
+            String url;
+            try {
+                url = fastDfsClient.uploadFile(multipartFile);
+            } catch (IOException e) {
+                redisChgService.unlock(key, lockValue);
+                return new ApiResult<Boolean>().fail("保存文件至fastDfs失败！" + e);
             }
 
             // 5. 记录文件信息
             ClueFileRecording clueFileRecording = new ClueFileRecording();
             clueFileRecording.setUpdateScope(String.join(",", scope));
             clueFileRecording.setFileName(fileName);
-            clueFileRecording.setFileAdress(descPath);
+            clueFileRecording.setFileAdress(url);
             clueFileRecording.setFileCleanStatus(ClueFileRecordingStatusEnum.AWAIT_CLEAN.getValue());
             clueFileRecording.setAppletDate(LocalDate.now().toString());
             clueFileRecording.setCreateTime(new Date());
@@ -177,14 +173,14 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
             clueFileRecordingMapper.insertSelective(clueFileRecording);
             return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
-            return new ApiResult<Boolean>().fail("更新初始外采信息异常："+e.getMessage());
+            return new ApiResult<Boolean>().fail("更新初始外采信息异常：" + e.getMessage());
         } finally {
             // 6. 确保锁被释放
             redisChgService.unlock(key, lockValue);
         }
     }
 
-    public List<String>  getValueByKey(String key) {
+    public List<String> getValueByKey(String key) {
         try {
             Map<String, Object> carClueApiCodeMapping = marketingCommonConfig.getCarClueApiCodeMapping();
             Map<String, List> channel = (Map<String, List>) carClueApiCodeMapping.get("channel");

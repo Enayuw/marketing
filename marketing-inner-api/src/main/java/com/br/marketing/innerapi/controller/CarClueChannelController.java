@@ -71,12 +71,6 @@ public class CarClueChannelController {
     public ApiResult<Boolean> updateInitMapping(@RequestParam(value = "scope", required = false) List<String> scope,
                                                 @RequestPart(value = "multipartFile", required = false) MultipartFile multipartFile) {
         try {
-            if (scope == null || scope.isEmpty()) {
-                return new ApiResult<Boolean>().fail("scope参数不能为空");
-            }
-            if (multipartFile == null || multipartFile.isEmpty()) {
-                return new ApiResult<Boolean>().fail("文件不能为空");
-            }
             return carClueChannelService.updateInitMapping(scope,multipartFile);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
