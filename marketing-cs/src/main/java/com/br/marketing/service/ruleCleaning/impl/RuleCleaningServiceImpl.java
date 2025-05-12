@@ -165,185 +165,161 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             MarketingDataCleanGeneralConfig generalConfig = configs.get(0);
             Long generalConfigId = generalConfig.getId();
-            // 2. 查询营销客户数据json结构表，获取字段列表
-            MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
-            nodeExample.createCriteria()
+            MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+            generalRuleConfigExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
-                    .andDataTypeEqualTo(dataType)
-                    .andAcceptTypeEqualTo(acceptType);
-
-            List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
-
-            if (nodes == null || nodes.isEmpty()) {
-                log.warn("未找到相关的JSON结构定义：apiCode={}, dataType={}, acceptType={}", apiCode, dataType, acceptType);
+                    .andCleanConfigIdEqualTo(generalConfigId)
+                    .andIsDelEqualTo(1);
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
+            if (ruleConfigList == null || ruleConfigList.isEmpty()) {
+                log.warn("未找到相关的字段清洗配置：apiCode={}, dataType={}, acceptType={}", apiCode, dataType, acceptType);
                 return result;
-            }
-
-            // 3. 遍历节点，构建返回结果
-            for (MarketingJsonNodeParse node : nodes) {
-                if (StringUtil.isBlank(node.getNodeName())) {
-                    continue;
-                }
-                FieldSampleDTO dto = new FieldSampleDTO();
-                dto.setCleanConfigId(generalConfigId);
-                // 设置字段名称
-                dto.setFieldName(node.getNodeName());
-
-                // 设置初始值
-                dto.setFieldSample(node.getNodeValue());
-                dto.setFirstUploadTime(node.getCreateTime());
-                // 查询是否需要清洗
-                MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-                ruleConfigExample.createCriteria()
-                       .andApiCodeEqualTo(apiCode)
-                       .andCleanConfigIdEqualTo(generalConfigId)
-                        .andCleanFieldsEqualTo(node.getNodeName())
-                        .andIsDelEqualTo(1);
-                List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = cleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
-                MarketingDataCleanGeneralRuleConfig ruleConfig = new MarketingDataCleanGeneralRuleConfig();
-                if (ruleConfigs == null || ruleConfigs.isEmpty()) {
-                    dto.setFieldType(1);
-                    dto.setNeedCleaning(Boolean.FALSE);
-                    dto.setResultPreview(node.getNodeValue());
-                    dto.setMappingRule("");
-                } else {
-                    ruleConfig = ruleConfigs.get(0);
-                    dto.setFieldType(ruleConfig.getIsDerived());
+            } else {
+                for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+                    FieldSampleDTO dto = new FieldSampleDTO();
+                    String cleanFields = ruleConfig.getCleanFields();
                     Boolean isMapping = ruleConfig.getIsMapping();
-                    dto.setNeedCleaning(isMapping);
-                    dto.setMappingRule(ruleConfig.getMappingRule());
-                    if (isMapping) {
-                        String resultPreview = ruleConfig.getResultPreview();
-                        dto.setResultPreview(resultPreview);
-                    } else {
-                        dto.setResultPreview(node.getNodeValue());
+                    Integer isDerived = ruleConfig.getIsDerived();
+                    String fieldName = ruleConfig.getMappingField();
+                    String mappingRule = ruleConfig.getMappingRule();
+                    String resultPreview = ruleConfig.getResultPreview();
+                    MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+                    nodeExample.createCriteria()
+                            .andApiCodeEqualTo(apiCode)
+                            .andDataTypeEqualTo(dataType)
+                            .andAcceptTypeEqualTo(acceptType)
+                            .andNodeNameEqualTo(cleanFields);
+                    List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+                    if (nodes == null || nodes.isEmpty()) {
+                        log.warn("未找到相关的JSON结构定义：apiCode={}, dataType={}, acceptType={}, cleanFields={}", apiCode, dataType, acceptType, cleanFields);
+                        continue;
                     }
-                }
-
-                // 4. 如果node_value为空，则需要去客户上传数据明细表查询
-                if (StringUtils.isBlank(node.getNodeValue())) {
-                    try {
-                        String fieldName = node.getNodeName();
-
-                        // 检查表是否存在
-                        Integer existTable = marketingSyncUserMapper.existUploadTable("b_marketing_sync_" + apiCode);
-                        if (existTable != null && existTable > 0) {
-                            // 判断字段类型并获取样例值
-                            String baseFieldName = getBaseFieldName(fieldName);
-                            if (StringUtils.isNotBlank(baseFieldName)) {
-                                // 是基础字段，直接构建SQL查询该字段不为空的最近一条数据
-                                String sql = String.format(
-                                        "SELECT %s AS fieldValue, create_time AS createTime " +
-                                                "FROM b_marketing_sync_%s " +
-                                                "WHERE %s IS NOT NULL " +
-                                                "AND %s != '' " +
-                                                "AND status = 1 " +
-                                                "AND is_repeat IN (1, 2) " +
-                                                "ORDER BY create_time DESC " +
-                                                "LIMIT 1",
-                                        baseFieldName, apiCode, baseFieldName, baseFieldName
-                                );
-
-                                // 执行SQL查询
-                                Map<String, Object> fieldData = marketingSyncUserMapper.executeRawSql(sql);
-
-                                if (fieldData != null && fieldData.get("fieldValue") != null) {
-                                    String fieldValue = fieldData.get("fieldValue").toString();
-                                    Date createTime = (Date) fieldData.get("createTime");
-
-                                    if (StringUtils.isNotBlank(fieldValue)) {
-                                        dto.setFieldSample(fieldValue);
-                                        if (dto.getNeedCleaning()) {
-                                            String resultPreview = ruleConfig.getResultPreview();
-                                            dto.setResultPreview(resultPreview);
-                                        } else {
-                                            dto.setResultPreview(fieldValue);
-                                        }
-                                        dto.setFirstUploadTime(createTime);
-
-                                        // 更新JSON结构表
-                                        updateNodeValue(node.getId(), fieldValue);
-                                    }
-                                }
-                            } else {
-                                // 非基础字段，先构建SQL查询reserve_field1
-                                String sql1 = String.format(
-                                        "SELECT JSON_EXTRACT(reserve_field1, '$.%s') AS fieldValue, create_time AS createTime " +
-                                                "FROM b_marketing_sync_%s " +
-                                                "WHERE JSON_VALID(reserve_field1) = 1 " +
-                                                "AND JSON_EXTRACT(reserve_field1, '$.%s') IS NOT NULL " +
-                                                "AND JSON_EXTRACT(reserve_field1, '$.%s') != '' " +
-                                                "AND status = 1 " +
-                                                "ORDER BY create_time DESC " +
-                                                "LIMIT 1",
-                                        fieldName, apiCode, fieldName, fieldName
-                                );
-
-                                // 执行SQL查询
-                                Map<String, Object> jsonFieldData1 = marketingSyncUserMapper.executeRawSql(sql1);
-
-                                if (jsonFieldData1 != null && jsonFieldData1.get("fieldValue") != null) {
-                                    String fieldValue = jsonFieldData1.get("fieldValue").toString();
-                                    Date createTime = (Date) jsonFieldData1.get("createTime");
-
-                                    if (StringUtils.isNotBlank(fieldValue)) {
-                                        dto.setFieldSample(fieldValue);
-                                        if (dto.getNeedCleaning()) {
-                                            String resultPreview = ruleConfig.getResultPreview();
-                                            dto.setResultPreview(resultPreview);
-                                        } else {
-                                            dto.setResultPreview(fieldValue);
-                                        }
-                                        dto.setFirstUploadTime(createTime);
-
-                                        // 更新JSON结构表
-                                        updateNodeValue(node.getId(), fieldValue);
-                                    }
-                                } else {
-                                    // 如果reserve_field1中没有，再构建SQL查询reserve_field2
-                                    String sql2 = String.format(
-                                            "SELECT JSON_EXTRACT(reserve_field2, '$.%s') AS fieldValue, create_time AS createTime " +
+                    MarketingJsonNodeParse node = nodes.get(0);
+                    String nodeName = node.getNodeName();
+                    if (StringUtil.isBlank(node.getNodeName())) {
+                        continue;
+                    }
+                    String nodeValue = node.getNodeValue();
+                    // 4. 如果node_value为空，则需要去客户上传数据明细表查询
+                    if (StringUtils.isBlank(nodeValue)) {
+                        try {
+                            // 检查表是否存在
+                            Integer existTable = marketingSyncUserMapper.existUploadTable("b_marketing_sync_" + apiCode);
+                            if (existTable != null && existTable > 0) {
+                                // 判断字段类型并获取样例值
+                                String baseFieldName = getBaseFieldName(nodeName);
+                                if (StringUtils.isNotBlank(baseFieldName)) {
+                                    // 是基础字段，直接构建SQL查询该字段不为空的最近一条数据
+                                    String sql = String.format(
+                                            "SELECT %s AS fieldValue, create_time AS createTime " +
                                                     "FROM b_marketing_sync_%s " +
-                                                    "WHERE JSON_VALID(reserve_field2) = 1 " +
-                                                    "AND JSON_EXTRACT(reserve_field2, '$.%s') IS NOT NULL " +
-                                                    "AND JSON_EXTRACT(reserve_field2, '$.%s') != '' " +
+                                                    "WHERE %s IS NOT NULL " +
+                                                    "AND %s != '' " +
                                                     "AND status = 1 " +
+                                                    "AND is_repeat IN (1, 2) " +
                                                     "ORDER BY create_time DESC " +
                                                     "LIMIT 1",
-                                            fieldName, apiCode, fieldName, fieldName
+                                            baseFieldName, apiCode, baseFieldName, baseFieldName
                                     );
 
                                     // 执行SQL查询
-                                    Map<String, Object> jsonFieldData2 = marketingSyncUserMapper.executeRawSql(sql2);
+                                    Map<String, Object> fieldData = marketingSyncUserMapper.executeRawSql(sql);
 
-                                    if (jsonFieldData2 != null && jsonFieldData2.get("fieldValue") != null) {
-                                        String fieldValue = jsonFieldData2.get("fieldValue").toString();
-                                        Date createTime = (Date) jsonFieldData2.get("createTime");
+                                    if (fieldData != null && fieldData.get("fieldValue") != null) {
+                                        String fieldValue = fieldData.get("fieldValue").toString();
+                                        Date createTime = (Date) fieldData.get("createTime");
 
                                         if (StringUtils.isNotBlank(fieldValue)) {
                                             dto.setFieldSample(fieldValue);
-                                            if (dto.getNeedCleaning()) {
-                                                String resultPreview = ruleConfig.getResultPreview();
-                                                dto.setResultPreview(resultPreview);
-                                            } else {
-                                                dto.setResultPreview(fieldValue);
-                                            }
+                                            dto.setFirstUploadTime(createTime);
+                                            // 更新JSON结构表
+                                            updateNodeValue(node.getId(), fieldValue);
+                                        }
+                                    }
+                                } else {
+                                    // 非基础字段，先构建SQL查询reserve_field1
+                                    String sql1 = String.format(
+                                            "SELECT JSON_EXTRACT(reserve_field1, '$.%s') AS fieldValue, create_time AS createTime " +
+                                                    "FROM b_marketing_sync_%s " +
+                                                    "WHERE JSON_VALID(reserve_field1) = 1 " +
+                                                    "AND JSON_EXTRACT(reserve_field1, '$.%s') IS NOT NULL " +
+                                                    "AND JSON_EXTRACT(reserve_field1, '$.%s') != '' " +
+                                                    "AND status = 1 " +
+                                                    "ORDER BY create_time DESC " +
+                                                    "LIMIT 1",
+                                            nodeName, apiCode, nodeName, nodeName
+                                    );
+
+                                    // 执行SQL查询
+                                    Map<String, Object> jsonFieldData1 = marketingSyncUserMapper.executeRawSql(sql1);
+
+                                    if (jsonFieldData1 != null && jsonFieldData1.get("fieldValue") != null) {
+                                        String fieldValue = jsonFieldData1.get("fieldValue").toString();
+                                        Date createTime = (Date) jsonFieldData1.get("createTime");
+
+                                        if (StringUtils.isNotBlank(fieldValue)) {
+                                            dto.setFieldSample(fieldValue);
                                             dto.setFirstUploadTime(createTime);
 
                                             // 更新JSON结构表
                                             updateNodeValue(node.getId(), fieldValue);
                                         }
+                                    } else {
+                                        // 如果reserve_field1中没有，再构建SQL查询reserve_field2
+                                        String sql2 = String.format(
+                                                "SELECT JSON_EXTRACT(reserve_field2, '$.%s') AS fieldValue, create_time AS createTime " +
+                                                        "FROM b_marketing_sync_%s " +
+                                                        "WHERE JSON_VALID(reserve_field2) = 1 " +
+                                                        "AND JSON_EXTRACT(reserve_field2, '$.%s') IS NOT NULL " +
+                                                        "AND JSON_EXTRACT(reserve_field2, '$.%s') != '' " +
+                                                        "AND status = 1 " +
+                                                        "ORDER BY create_time DESC " +
+                                                        "LIMIT 1",
+                                                nodeName, apiCode, nodeName, nodeName
+                                        );
+
+                                        // 执行SQL查询
+                                        Map<String, Object> jsonFieldData2 = marketingSyncUserMapper.executeRawSql(sql2);
+
+                                        if (jsonFieldData2 != null && jsonFieldData2.get("fieldValue") != null) {
+                                            String fieldValue = jsonFieldData2.get("fieldValue").toString();
+                                            Date createTime = (Date) jsonFieldData2.get("createTime");
+
+                                            if (StringUtils.isNotBlank(fieldValue)) {
+                                                dto.setFieldSample(fieldValue);
+                                                dto.setFirstUploadTime(createTime);
+
+                                                // 更新JSON结构表
+                                                updateNodeValue(node.getId(), fieldValue);
+                                            }
+                                        }
                                     }
                                 }
                             }
+                        } catch (Exception e) {
+                            log.error("查询客户上传数据明细表失败：apiCode={}, field={}", apiCode, node.getNodeName(), e);
                         }
-                    } catch (Exception e) {
-                        log.error("查询客户上传数据明细表失败：apiCode={}, field={}", apiCode, node.getNodeName(), e);
                     }
-                }
 
-                // 添加到结果列表
-                result.add(dto);
+                    dto.setCleanConfigId(generalConfigId);
+                    // 设置字段名称
+                    dto.setFieldName(cleanFields);
+                    // 设置初始值
+                    dto.setFieldSample(nodeValue);
+                    dto.setFirstUploadTime(node.getCreateTime());
+                    dto.setFieldType(isDerived);
+                    dto.setNeedCleaning(isMapping);
+                    dto.setMappingRule(mappingRule);
+                    dto.setRelatedField(fieldName);
+                    if (isMapping) {
+                        dto.setResultPreview(resultPreview);
+                    } else {
+                        dto.setResultPreview(nodeValue);
+                    }
+
+                    // 添加到结果列表
+                    result.add(dto);
+                }
             }
 
         } catch (Exception e) {
@@ -351,6 +327,65 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         return result;
+    }
+
+    /**
+     * 字段样例查询
+     * @param apiCode API编码
+     * @param dataType 数据类型：0上传，1转化
+     * @param acceptType 接口类型：0通用,1定制,2FTP
+     * @return 字段样例列表
+     */
+    @Override
+    public String getpreviewField(String apiCode, Integer dataType, Integer acceptType) {
+
+        try {
+            // 1. 首先验证API编码配置是否存在
+            MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
+            configExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode)
+                    .andDataTypeEqualTo(dataType)
+                    .andAcceptTypeEqualTo(acceptType)
+                    .andIsDelEqualTo(1);
+            List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+
+            if (configs == null || configs.isEmpty()) {
+                log.warn("API编码配置不存在：apiCode={}, dataType={}, acceptType={}", apiCode, dataType, acceptType);
+                return "";
+            }
+            MarketingDataCleanGeneralConfig generalConfig = configs.get(0);
+            Long generalConfigId = generalConfig.getId();
+            MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+            generalRuleConfigExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode)
+                    .andCleanConfigIdEqualTo(generalConfigId)
+                    .andIsDelEqualTo(1);
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
+            if (ruleConfigList == null || ruleConfigList.isEmpty()) {
+                log.warn("未找到相关的字段清洗配置：apiCode={}, dataType={}, acceptType={}", apiCode, dataType, acceptType);
+                return "";
+            } else {
+                for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+                    MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+                    nodeExample.createCriteria()
+                            .andApiCodeEqualTo(apiCode)
+                            .andDataTypeEqualTo(dataType)
+                            .andAcceptTypeEqualTo(acceptType)
+                            .andLevelEqualTo(0);
+                    List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+                    if (nodes == null || nodes.isEmpty()) {
+                        log.warn("未找到相关的父节点JSON结构定义：apiCode={}, dataType={}, acceptType={}", apiCode, dataType, acceptType);
+                        continue;
+                    }
+                    MarketingJsonNodeParse node = nodes.get(0);
+                    return node.getNodeValue();
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("获取字段样例失败：apiCode={}, dataType={}, acceptType={}", apiCode, dataType, acceptType, e);
+        }
+        return "";
     }
 
     /**

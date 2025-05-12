@@ -47,6 +47,15 @@ public interface RuleCleaningService {
     List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType);
 
     /**
+     * 字段样例查询
+     * @param apiCode    API编码
+     * @param dataType   数据类型：0上传，1转化
+     * @param acceptType 接口类型：0通用,1定制,2FTP
+     * @return 字段样例列表
+     */
+    String getpreviewField(String apiCode, Integer dataType, Integer acceptType);
+
+    /**
      * 保存字段清洗配置
      * @param configDTO 字段清洗配置DTO
      * @return 操作结果

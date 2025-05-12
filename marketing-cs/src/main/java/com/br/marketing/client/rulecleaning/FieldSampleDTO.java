@@ -59,4 +59,9 @@ public class FieldSampleDTO implements Serializable {
      * 是否衍生：0:非衍生1:衍生
      */
     private Integer fieldType;
+
+    /**
+     * 节点层级
+     */
+    private Integer level;
 } 
