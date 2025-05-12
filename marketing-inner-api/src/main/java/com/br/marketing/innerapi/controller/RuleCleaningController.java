@@ -116,7 +116,7 @@ public class RuleCleaningController {
     }
 
 
-    @GetMapping("/field/getFieldConfg")
+    @GetMapping("/field/getFieldConfig")
     @ApiOperation(value = "模版字段配置查询", notes = "模版字段配置查询", httpMethod = "GET")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
