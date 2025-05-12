@@ -76,10 +76,10 @@
     </update>
 
     <insert id="batchSaveData">
-        INSERT INTO b_wuba_colliding_data_delay_loop_cycle (api_code,cell,batch_no,release_time,push_time,task_id,extend)
+        INSERT INTO b_wuba_colliding_data_delay_loop_cycle (api_code,cell,batch_no,release_time,last_push_time,push_time,task_id,extend)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.apiCode},#{item.cell},#{item.batchNo},#{item.releaseTime},#{item.pushTime},#{item.taskId},#{item.extend})
+            (#{item.apiCode},#{item.cell},#{item.batchNo},#{item.releaseTime},#{item.lastPushTime},#{item.pushTime},#{item.taskId},#{item.extend})
         </foreach>
     </insert>
 </mapper>
