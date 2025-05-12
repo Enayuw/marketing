@@ -1,5 +1,4 @@
 package com.br.marketing.service.carclue.web.impl;
-import java.util.Date;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -13,12 +12,15 @@ import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.dto.ExecuteCarClueDTO;
 import com.br.marketing.entity.CarClueExecuteRecording;
 import com.br.marketing.entity.CarClueInfo;
-import com.br.marketing.mapper.*;
+import com.br.marketing.entity.CarClueManageConfigExample;
+import com.br.marketing.mapper.CarClueExecuteRecordingMapper;
+import com.br.marketing.mapper.CarClueInfoMapper;
+import com.br.marketing.mapper.CarClueManageConfigMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
-import com.br.marketing.service.carclue.clueenums.ExecuteClueStatusEnum;
-import com.br.marketing.service.carclue.web.CarClueReportService;
 import com.br.marketing.service.carclue.clueenums.CarClueCompleteStatusEnum;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
+import com.br.marketing.service.carclue.clueenums.ExecuteClueStatusEnum;
+import com.br.marketing.service.carclue.web.CarClueReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
@@ -44,6 +46,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     CarClueInfoMapper carClueInfoMapper;
     @Resource
     CarClueExecuteRecordingMapper carClueExecuteRecordingMapper;
+    @Resource
+    CarClueManageConfigMapper carClueManageConfigMapper;
 
     @Resource
     EntityOptServiceImpl entityOptService;
@@ -169,6 +173,19 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         if(dto == null){
             return new ApiResult<Boolean>().fail("入参为空！");
         }
+
+        int executeType = dto.getExecuteType();
+        CarClueManageConfigExample example = new CarClueManageConfigExample();
+        if(executeType == 0){
+            example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andCleanTypeEqualTo(1);
+        }else {
+            example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andPullTypeEqualTo(1);
+        }
+        int i = carClueManageConfigMapper.countByExample(example);
+        if(i > 0){
+            return new ApiResult<Boolean>().fail("渠道商配置为自动执行，不能增加手动执行记录！");
+        }
+
         CarClueExecuteRecording carClueExecuteRecording = new CarClueExecuteRecording();
         carClueExecuteRecording.setExecuteType(dto.getExecuteType());
         carClueExecuteRecording.setExecuteStatus(ExecuteClueStatusEnum.AWAIT_EXECUTE.getValue());
