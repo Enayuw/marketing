@@ -206,7 +206,7 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" resultType="java.lang.Integer">
     select count(*) from b_marketing_sync_info
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />

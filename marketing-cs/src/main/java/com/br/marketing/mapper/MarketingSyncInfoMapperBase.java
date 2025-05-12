@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface MarketingSyncInfoMapperBase {
-    long countByExample(MarketingSyncInfoExample example);
+    int countByExample(MarketingSyncInfoExample example);
 
     int deleteByExample(MarketingSyncInfoExample example);
 
