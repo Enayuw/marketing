@@ -3041,7 +3041,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToRabbitMq(apiCode, syncInfoId);
+                sendToRabbitMq(apiCode, syncInfoId,0);
             }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
