@@ -357,10 +357,10 @@ public class DataCleanServiceImpl implements DataCleanService {
             });
             //写入到info表
             marketingPreUserDTO.setDataItems(syncUsers);
+            marketingPreUserDTO.setDataSourceType(1);
             UploadDataDTO uploadDataDTO = new UploadDataDTO();
             uploadDataDTO.setApiCode(apiCode);
             uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-            marketingPreUserDTO.setDataSourceType(1);
             pushInfoService.pushUploadByRetry(uploadDataDTO, null);
             MarketingCustomerOriginalData update = new MarketingCustomerOriginalData();
             update.setCleanStatus(2);
