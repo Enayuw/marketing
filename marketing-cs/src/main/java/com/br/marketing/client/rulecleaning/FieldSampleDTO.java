@@ -54,4 +54,9 @@ public class FieldSampleDTO implements Serializable {
      * 清洗规则
      */
     private String mappingRule;
+
+    /**
+     * 是否衍生：0:非衍生1:衍生
+     */
+    private Integer fieldType;
 } 

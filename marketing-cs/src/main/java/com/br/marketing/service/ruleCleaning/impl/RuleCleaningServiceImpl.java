@@ -202,11 +202,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = cleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
                 MarketingDataCleanGeneralRuleConfig ruleConfig = new MarketingDataCleanGeneralRuleConfig();
                 if (ruleConfigs == null || ruleConfigs.isEmpty()) {
+                    dto.setFieldType(1);
                     dto.setNeedCleaning(Boolean.FALSE);
                     dto.setResultPreview(node.getNodeValue());
                     dto.setMappingRule("");
                 } else {
                     ruleConfig = ruleConfigs.get(0);
+                    dto.setFieldType(ruleConfig.getIsDerived());
                     Boolean isMapping = ruleConfig.getIsMapping();
                     dto.setNeedCleaning(isMapping);
                     dto.setMappingRule(ruleConfig.getMappingRule());
@@ -514,6 +516,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             updateRule.setCleanFields(configDTO.getCleanField());
             updateRule.setIsMapping(configDTO.getIsMapping());
             updateRule.setMappingRule(configDTO.getMappingRule());
+            updateRule.setIsDerived(configDTO.getFieldType());
             updateRule.setResultPreview(resultPreview);
             updateRule.setUpdateTime(now);
 
@@ -530,6 +533,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             newRule.setIsMapping(configDTO.getIsMapping());
             newRule.setMappingRule(configDTO.getMappingRule());
             newRule.setResultPreview(resultPreview);
+            newRule.setIsDerived(configDTO.getFieldType());
             newRule.setIsDel(1);
             newRule.setCreateTime(now);
             newRule.setUpdateTime(now);
