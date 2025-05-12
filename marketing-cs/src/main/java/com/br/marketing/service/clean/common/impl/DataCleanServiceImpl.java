@@ -71,7 +71,7 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Override
     public Result<Boolean> customerDataJsonParse(String message) {
-        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
 
         try {
             MqDataJsonParse mqDataJsonParse = JSON.parseObject(message, MqDataJsonParse.class);
@@ -97,7 +97,6 @@ public class DataCleanServiceImpl implements DataCleanService {
                         false
                 );
 
-                result.setDate(true);
             } else {
                 log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
             }
