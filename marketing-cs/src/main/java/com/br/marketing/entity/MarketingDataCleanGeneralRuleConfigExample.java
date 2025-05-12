@@ -495,6 +495,66 @@ public class MarketingDataCleanGeneralRuleConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andIsDerivedIsNull() {
+            addCriterion("is_derived is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedIsNotNull() {
+            addCriterion("is_derived is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedEqualTo(Integer value) {
+            addCriterion("is_derived =", value, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedNotEqualTo(Integer value) {
+            addCriterion("is_derived <>", value, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedGreaterThan(Integer value) {
+            addCriterion("is_derived >", value, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_derived >=", value, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedLessThan(Integer value) {
+            addCriterion("is_derived <", value, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedLessThanOrEqualTo(Integer value) {
+            addCriterion("is_derived <=", value, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedIn(List<Integer> values) {
+            addCriterion("is_derived in", values, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedNotIn(List<Integer> values) {
+            addCriterion("is_derived not in", values, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedBetween(Integer value1, Integer value2) {
+            addCriterion("is_derived between", value1, value2, "isDerived");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsDerivedNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_derived not between", value1, value2, "isDerived");
+            return (Criteria) this;
+        }
+
         public Criteria andMappingRuleIsNull() {
             addCriterion("mapping_rule is null");
             return (Criteria) this;

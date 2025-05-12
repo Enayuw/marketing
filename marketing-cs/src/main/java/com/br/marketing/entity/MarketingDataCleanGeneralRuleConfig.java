@@ -41,6 +41,11 @@ public class MarketingDataCleanGeneralRuleConfig implements Serializable {
     private Boolean isMapping;
 
     /**
+     * 是否衍生：0:非衍生1:衍生
+     */
+    private Integer isDerived;
+
+    /**
      * 映射规则
      */
     private String mappingRule;

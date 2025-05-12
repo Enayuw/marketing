@@ -8,6 +8,7 @@
     <result column="mapping_field" jdbcType="VARCHAR" property="mappingField" />
     <result column="clean_fields" jdbcType="VARCHAR" property="cleanFields" />
     <result column="is_mapping" jdbcType="BOOLEAN" property="isMapping" />
+    <result column="is_derived" jdbcType="INTEGER" property="isDerived" />
     <result column="mapping_rule" jdbcType="VARCHAR" property="mappingRule" />
     <result column="result_preview" jdbcType="VARCHAR" property="resultPreview" />
     <result column="is_del" jdbcType="INTEGER" property="isDel" />
@@ -73,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, clean_config_id, api_code, mapping_field, clean_fields, is_mapping, mapping_rule, 
-    result_preview, is_del, create_time, update_time
+    id, clean_config_id, api_code, mapping_field, clean_fields, is_mapping, is_derived, 
+    mapping_rule, result_preview, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfigExample" resultMap="BaseResultMap">
     select
@@ -108,13 +109,13 @@
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_rule_config (clean_config_id, api_code, mapping_field, 
-      clean_fields, is_mapping, mapping_rule, 
-      result_preview, is_del, create_time, 
-      update_time)
+      clean_fields, is_mapping, is_derived, 
+      mapping_rule, result_preview, is_del, 
+      create_time, update_time)
     values (#{cleanConfigId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{mappingField,jdbcType=VARCHAR}, 
-      #{cleanFields,jdbcType=VARCHAR}, #{isMapping,jdbcType=BOOLEAN}, #{mappingRule,jdbcType=VARCHAR}, 
-      #{resultPreview,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{cleanFields,jdbcType=VARCHAR}, #{isMapping,jdbcType=BOOLEAN}, #{isDerived,jdbcType=INTEGER}, 
+      #{mappingRule,jdbcType=VARCHAR}, #{resultPreview,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_rule_config
@@ -133,6 +134,9 @@
       </if>
       <if test="isMapping != null">
         is_mapping,
+      </if>
+      <if test="isDerived != null">
+        is_derived,
       </if>
       <if test="mappingRule != null">
         mapping_rule,
@@ -165,6 +169,9 @@
       </if>
       <if test="isMapping != null">
         #{isMapping,jdbcType=BOOLEAN},
+      </if>
+      <if test="isDerived != null">
+        #{isDerived,jdbcType=INTEGER},
       </if>
       <if test="mappingRule != null">
         #{mappingRule,jdbcType=VARCHAR},
@@ -210,6 +217,9 @@
       <if test="record.isMapping != null">
         is_mapping = #{record.isMapping,jdbcType=BOOLEAN},
       </if>
+      <if test="record.isDerived != null">
+        is_derived = #{record.isDerived,jdbcType=INTEGER},
+      </if>
       <if test="record.mappingRule != null">
         mapping_rule = #{record.mappingRule,jdbcType=VARCHAR},
       </if>
@@ -238,6 +248,7 @@
       mapping_field = #{record.mappingField,jdbcType=VARCHAR},
       clean_fields = #{record.cleanFields,jdbcType=VARCHAR},
       is_mapping = #{record.isMapping,jdbcType=BOOLEAN},
+      is_derived = #{record.isDerived,jdbcType=INTEGER},
       mapping_rule = #{record.mappingRule,jdbcType=VARCHAR},
       result_preview = #{record.resultPreview,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
@@ -265,6 +276,9 @@
       <if test="isMapping != null">
         is_mapping = #{isMapping,jdbcType=BOOLEAN},
       </if>
+      <if test="isDerived != null">
+        is_derived = #{isDerived,jdbcType=INTEGER},
+      </if>
       <if test="mappingRule != null">
         mapping_rule = #{mappingRule,jdbcType=VARCHAR},
       </if>
@@ -290,6 +304,7 @@
       mapping_field = #{mappingField,jdbcType=VARCHAR},
       clean_fields = #{cleanFields,jdbcType=VARCHAR},
       is_mapping = #{isMapping,jdbcType=BOOLEAN},
+      is_derived = #{isDerived,jdbcType=INTEGER},
       mapping_rule = #{mappingRule,jdbcType=VARCHAR},
       result_preview = #{resultPreview,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},

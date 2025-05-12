@@ -360,6 +360,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             UploadDataDTO uploadDataDTO = new UploadDataDTO();
             uploadDataDTO.setApiCode(apiCode);
             uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+            marketingPreUserDTO.setDataSourceType(1);
             pushInfoService.pushUploadByRetry(uploadDataDTO, null);
             MarketingCustomerOriginalData update = new MarketingCustomerOriginalData();
             update.setCleanStatus(2);

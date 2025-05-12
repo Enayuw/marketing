@@ -2374,6 +2374,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String uploadKey = RedisKeyConstant.uploadKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String syncInfoId = "";
         Boolean dbException = Boolean.FALSE;
+        Integer dataSourceType = dto.getJsonData().getDataSourceType();
         //region 数据入库
         try {
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -2385,6 +2386,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
+            if (Objects.isNull(dto.getJsonData().getDataSourceType())) {
+                syncInfo.setDataSourceType(dto.getJsonData().getDataSourceType());
+            }
             mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
@@ -2432,7 +2436,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToRabbitMq(apiCode, syncInfoId);
+                sendToRabbitMq(apiCode,syncInfoId, dataSourceType);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
@@ -2444,7 +2448,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      * @param syncInfoId
      */
-    private void sendToRabbitMq(String apiCode, String syncInfoId) {
+    private void sendToRabbitMq(String apiCode, String syncInfoId,Integer dataSourceType) {
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
             String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
             String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
@@ -2454,7 +2458,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
-        //发送Json解析消息
+        //发送Json解析消息,定制清洗不在发送MQ
+        if (1 == dataSourceType) {
+            return;
+        }
         MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
         mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
         mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
@@ -2596,18 +2603,22 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         long l = System.currentTimeMillis();
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
-        //查询清洗规则配置
-        Map<String, MarketingDataCleanGeneralRuleConfig>configRule = dataCleanService.getConfigRule(apiCode,DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
-                DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+        //通用调用,查询清洗规则配置
+        Map<String, MarketingDataCleanGeneralRuleConfig> configRule = new HashMap<>();
+        if (0 == marketingSyncInfo.getDataSourceType()) {
+            configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
+                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+        }
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             Integer finalIsCheck = isCheck;
+            Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
             list.add(() -> {
                 //数据清洗处理
-                if (!CollectionUtils.isEmpty(configRule)) {
-                    Boolean cleanResult = handlerDataClean(marketingPreUserDetailDTO, configRule);
+                if (!CollectionUtils.isEmpty(finalConfigRule)) {
+                    Boolean cleanResult = handlerDataClean(marketingPreUserDetailDTO, finalConfigRule);
                     if (!cleanResult) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                         errorDetailVO.setErrorCode("1007");
