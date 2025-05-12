@@ -182,7 +182,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 3. 遍历节点，构建返回结果
             for (MarketingJsonNodeParse node : nodes) {
                 if (StringUtil.isBlank(node.getNodeName())) {
-                    return result;
+                    continue;
                 }
                 FieldSampleDTO dto = new FieldSampleDTO();
                 dto.setCleanConfigId(generalConfigId);
@@ -202,10 +202,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = cleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
                 if (ruleConfigs == null || ruleConfigs.isEmpty()) {
                     dto.setNeedCleaning(Boolean.FALSE);
-                    dto.setResultPreview("");
+                    dto.setResultPreview(node.getNodeValue());
+                } else {
+                    Boolean isMapping = ruleConfigs.get(0).getIsMapping();
+                    dto.setNeedCleaning(isMapping);
+                    if (isMapping) {
+                        String resultPreview = ruleConfigs.get(0).getResultPreview();
+                        dto.setResultPreview(resultPreview);
+                    } else {
+                        dto.setResultPreview(node.getNodeValue());
+                    }
                 }
-                Boolean isMapping = ruleConfigs.get(0).getIsMapping();
-                dto.setNeedCleaning(isMapping);
 
                 // 4. 如果node_value为空，则需要去客户上传数据明细表查询
                 if (StringUtils.isBlank(node.getNodeValue())) {
@@ -240,7 +247,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                                     if (StringUtils.isNotBlank(fieldValue)) {
                                         dto.setFieldSample(fieldValue);
-                                        if (isMapping) {
+                                        if (dto.getNeedCleaning()) {
                                             String resultPreview = ruleConfigs.get(0).getResultPreview();
                                             dto.setResultPreview(resultPreview);
                                         } else {
@@ -275,7 +282,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                                     if (StringUtils.isNotBlank(fieldValue)) {
                                         dto.setFieldSample(fieldValue);
-                                        if (isMapping) {
+                                        if (dto.getNeedCleaning()) {
                                             String resultPreview = ruleConfigs.get(0).getResultPreview();
                                             dto.setResultPreview(resultPreview);
                                         } else {
@@ -309,7 +316,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                                         if (StringUtils.isNotBlank(fieldValue)) {
                                             dto.setFieldSample(fieldValue);
-                                            if (isMapping) {
+                                            if (dto.getNeedCleaning()) {
                                                 String resultPreview = ruleConfigs.get(0).getResultPreview();
                                                 dto.setResultPreview(resultPreview);
                                             } else {
