@@ -597,7 +597,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             } catch (Exception e) {
                 // 解析为规则列表失败，尝试解析为单个规则
-                log.debug("解析为规则列表失败，尝试解析为单个规则");
+                log.warn("解析为规则列表失败，尝试解析为单个规则");
             }
             
             // 单个规则处理
@@ -693,7 +693,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     log.warn("未知的操作类型: {}", operator);
                     break;
             }
-            
+
             log.info("字段清洗预览结果: {}", result);
             return result;
         } catch (Exception e) {
@@ -701,14 +701,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
     }
-    
+
     /**
      * 处理数学运算（不使用nodeParse）
      */
     private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap) {
         return handleMathOperation(fieldSample, ruleMap, null);
     }
-    
+
     /**
      * 处理数学运算（支持从nodeParse中获取值）
      */
@@ -716,17 +716,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 字段运算逻辑处理
         String operator = String.valueOf(ruleMap.get("operator"));
         List<Map<String, Object>> operands = (List<Map<String, Object>>) ruleMap.get("operands");
-        
+
         if (operands == null || operands.isEmpty()) {
             return fieldSample;
         }
-        
+
         // 计算所有操作数
         List<Double> values = new ArrayList<>();
         for (Map<String, Object> operand : operands) {
             String type = String.valueOf(operand.get("type"));
             Object value = null;
-            
+
             if ("field".equals(type)) {
                 // 字段类型，从nodeParse中获取对应字段的值
                 String fieldName = String.valueOf(operand.get("fieldName"));
@@ -744,8 +744,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 表达式类型，递归计算
                 Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
                 value = handleMathOperation("0", expression, nodeParse);
+                // 确保表达式结果被正确处理
+                log.warn("嵌套表达式计算结果: {}", value);
             }
-            
+
             if (value != null) {
                 try {
                     values.add(Double.parseDouble(String.valueOf(value)));
@@ -754,11 +756,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         }
-        
+
         if (values.isEmpty()) {
             return fieldSample;
         }
-        
+
         // 执行运算
         double result = values.get(0);
         for (int i = 1; i < values.size(); i++) {
@@ -773,11 +775,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     result *= values.get(i);
                     break;
                 case "divide":
-                    if (values.get(i) != 0) {
-                        result /= values.get(i);
-                    } else {
-                        log.warn("除法运算中遇到除数为0的情况");
+                    // 检查除数是否接近零
+                    if (Math.abs(values.get(i)) < 0.000001) {
+                        log.warn("除法运算中遇到除数为0的情况，返回被除数: {}", result);
+                        // 返回被除数作为结果
+                        return String.valueOf(result);
                     }
+                    result /= values.get(i);
                     break;
                 case "percentage":
                     result = result * values.get(i) / 100;
@@ -786,7 +790,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     break;
             }
         }
-        
+
         // 检查结果是否为整数
         if (result == Math.floor(result)) {
             return String.valueOf((int) result);
@@ -794,18 +798,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return String.valueOf(result);
         }
     }
-    
+
     /**
      * 处理关键字操作（去除或保留）
      */
     private Object handleKeywordOperation(String fieldSample, Map<String, Object> ruleMap) {
         String operator = String.valueOf(ruleMap.get("operator"));
         String patternField = String.valueOf(ruleMap.get("patternField"));
-        
+
         if (StringUtils.isBlank(patternField) || StringUtils.isBlank(fieldSample)) {
             return fieldSample;
         }
-        
+
         if ("remove".equals(operator)) {
             // 去除关键字
             return fieldSample.replace(patternField, "");
@@ -819,37 +823,37 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return result.toString();
         }
-        
+
         return fieldSample;
     }
-    
+
     /**
      * 处理替换操作（映射关键字）
      */
     private Object handleReplaceOperation(String fieldSample, Map<String, Object> ruleMap) {
         String oldValue = String.valueOf(ruleMap.get("oldValue"));
         String newValue = String.valueOf(ruleMap.get("newValue"));
-        
+
         if (StringUtils.isBlank(oldValue) || StringUtils.isBlank(fieldSample)) {
             return fieldSample;
         }
-        
+
         return fieldSample.replace(oldValue, newValue);
     }
-    
+
     /**
      * 处理默认值操作
      */
     private Object handleDefaultValueOperation(String fieldSample, Map<String, Object> ruleMap) {
         String defaultValue = String.valueOf(ruleMap.get("defaultValue"));
-        
+
         if (StringUtils.isBlank(fieldSample)) {
             return defaultValue;
         }
-        
+
         return defaultValue;
     }
-    
+
     /**
      * 处理截取操作（保留截取部分）
      */
@@ -857,36 +861,50 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (StringUtils.isBlank(fieldSample)) {
             return fieldSample;
         }
-        
+
         int startIndex = 0;
         int endIndex = fieldSample.length();
+        // 默认从左侧开始
         String startLocation = "left";
-        
+
         if (ruleMap.containsKey("startIndex")) {
             startIndex = Integer.parseInt(String.valueOf(ruleMap.get("startIndex")));
         }
-        
+
         if (ruleMap.containsKey("endIndex")) {
             endIndex = Integer.parseInt(String.valueOf(ruleMap.get("endIndex")));
         }
-        
+
         if (ruleMap.containsKey("startLocation")) {
             startLocation = String.valueOf(ruleMap.get("startLocation"));
         }
-        
+
+        int length = fieldSample.length();
+        log.warn("截取操作: 原始值='{}', 长度={}, 开始索引={}, 结束索引={}, 方向={}",
+                fieldSample, length, startIndex, endIndex, startLocation);
+
         if ("right".equals(startLocation)) {
             // 从右侧开始计算
-            startIndex = fieldSample.length() - startIndex;
-            endIndex = fieldSample.length() - (fieldSample.length() - endIndex);
+            int rightStartIndex = Math.max(0, length - startIndex);
+            int rightEndIndex = Math.min(length, length - (length - endIndex));
+
+            log.warn("右侧截取转换: 开始索引={}, 结束索引={}", rightStartIndex, rightEndIndex);
+
+            startIndex = rightStartIndex;
+            endIndex = rightEndIndex;
         }
-        
+
         // 确保索引有效
-        startIndex = Math.max(0, Math.min(startIndex, fieldSample.length()));
-        endIndex = Math.max(startIndex, Math.min(endIndex, fieldSample.length()));
-        
-        return fieldSample.substring(startIndex, endIndex);
+        startIndex = Math.max(0, Math.min(startIndex, length));
+        endIndex = Math.max(startIndex, Math.min(endIndex, length));
+
+        log.warn("最终截取索引: 开始={}, 结束={}", startIndex, endIndex);
+        String result = fieldSample.substring(startIndex, endIndex);
+        log.warn("截取结果: '{}'", result);
+
+        return result;
     }
-    
+
     /**
      * 处理格式保留操作
      */
@@ -894,9 +912,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (StringUtils.isBlank(fieldSample)) {
             return fieldSample;
         }
-        
+
         String format = String.valueOf(ruleMap.get("format"));
-        
+        log.warn("格式保留处理: 格式={}, 原始值={}", format, fieldSample);
+
         if ("number".equals(format)) {
             // 保留数字格式
             StringBuilder result = new StringBuilder();
@@ -905,12 +924,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     result.append(c);
                 }
             }
-            return result.toString();
+            String numberStr = result.toString();
+            log.warn("保留数字格式结果: '{}'", numberStr);
+            return numberStr;
         } else if ("price".equals(format)) {
             // 保留价格格式（数字和小数点）
             StringBuilder result = new StringBuilder();
             boolean hasDecimalPoint = false;
-            
+
             for (char c : fieldSample.toCharArray()) {
                 if (Character.isDigit(c)) {
                     result.append(c);
@@ -919,29 +940,34 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     hasDecimalPoint = true;
                 }
             }
-            
+
             // 如果是有效数字，尝试格式化为价格格式
             try {
                 double price = Double.parseDouble(result.toString());
-                return String.format("%.2f", price);
+                String formattedPrice = String.format("%.2f", price);
+                log.warn("保留价格格式结果: '{}'", formattedPrice);
+                return formattedPrice;
             } catch (NumberFormatException e) {
+                log.warn("价格转换失败，返回原始提取值: '{}'", result.toString());
                 return result.toString();
             }
         } else if ("date".equals(format)) {
             // 保留日期格式（尝试识别常见日期格式）
-            // 这里只实现简单的日期格式识别，实际项目中可能需要更复杂的逻辑
             String datePattern = "\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}";
             Pattern pattern = Pattern.compile(datePattern);
             Matcher matcher = pattern.matcher(fieldSample);
-            
+
             if (matcher.find()) {
-                return matcher.group(0);
+                String dateStr = matcher.group(0);
+                log.warn("保留日期格式结果: '{}'", dateStr);
+                return dateStr;
             }
         }
-        
+
+        log.warn("无匹配格式，返回原值");
         return fieldSample;
     }
-    
+
     /**
      * 处理优先级操作
      */
@@ -950,7 +976,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (!"List".equals(ruleMap.get("fieldType")) || !ruleMap.containsKey("fieldValue")) {
             return fieldSample;
         }
-        
+
         List<String> fieldValues = (List<String>) ruleMap.get("fieldValue");
         if (fieldValues == null || fieldValues.isEmpty()) {
             // 如果有默认值则返回默认值
@@ -959,32 +985,36 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return fieldSample;
         }
-        
+
         // 获取优先级条件
         List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
         if (conditions == null || conditions.isEmpty()) {
             // 没有条件，返回第一个值
             return fieldValues.get(0);
         }
-        
+
         // 优先级排序后的结果
         List<String> processedValues = new ArrayList<>(fieldValues);
-        
+        log.warn("初始字段值列表: {}", processedValues);
+
         // 按照优先级顺序处理
-        for (Map<String, Object> condition : conditions) {
+        for (int conditionIndex = 0; conditionIndex < conditions.size(); conditionIndex++) {
+            Map<String, Object> condition = conditions.get(conditionIndex);
             int priorityOrder = Integer.parseInt(String.valueOf(condition.get("priorityOrder")));
             String priorityType = String.valueOf(condition.get("priorityType"));
-            
+
+            log.warn("处理优先级条件 {}: 类型={}, 当前值列表={}", priorityOrder, priorityType, processedValues);
+
             if ("number".equals(priorityType)) {
                 // 按数字排序
                 String sort = condition.containsKey("sort") ? String.valueOf(condition.get("sort")) : "desc";
-                
+
                 // 处理包含数字和非数字的情况
                 List<NumberStringPair> pairs = new ArrayList<>();
                 for (String value : processedValues) {
                     pairs.add(new NumberStringPair(value));
                 }
-                
+
                 // 根据数字大小排序
                 if ("desc".equals(sort)) {
                     // 降序（从大到小）
@@ -993,61 +1023,73 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     // 升序（从小到大）
                     Collections.sort(pairs, (p1, p2) -> Double.compare(p1.getNumber(), p2.getNumber()));
                 }
-                
+
+                log.warn("数字排序后: {}", pairs.stream()
+                        .map(p -> p.getOriginalString() + "(" + p.getNumber() + ")")
+                        .collect(java.util.stream.Collectors.joining(", ")));
+
                 // 获取数值相同的第一组
                 if (!pairs.isEmpty()) {
                     double firstNumber = pairs.get(0).getNumber();
                     List<String> sameNumberGroup = new ArrayList<>();
-                    
+
                     for (NumberStringPair pair : pairs) {
-                        if (pair.getNumber() == firstNumber) {
+                        if (Math.abs(pair.getNumber() - firstNumber) < 0.000001) { // 浮点数比较用接近零
                             sameNumberGroup.add(pair.getOriginalString());
                         } else {
                             break;
                         }
                     }
-                    
-                    // 如果只有一个值，直接返回结果
-                    if (sameNumberGroup.size() == 1) {
+
+                    log.warn("相同数字组: {}", sameNumberGroup);
+
+                    // 如果只有一个值，且没有后续条件，直接返回结果
+                    if (sameNumberGroup.size() == 1 && conditionIndex == conditions.size() - 1) {
+                        log.warn("找到唯一数字结果: {}", sameNumberGroup.get(0));
                         return sameNumberGroup.get(0);
                     }
-                    
+
                     // 更新待处理的值列表，只保留数值相同的组
                     processedValues = sameNumberGroup;
                 }
             } else if ("keyword".equals(priorityType)) {
                 // 按关键字过滤
                 String keyword = String.valueOf(condition.get("keywordValue"));
-                
+
                 List<String> keywordMatches = new ArrayList<>();
                 for (String value : processedValues) {
                     if (value.contains(keyword)) {
                         keywordMatches.add(value);
                     }
                 }
-                
+
+                log.warn("关键字 '{}' 匹配结果: {}", keyword, keywordMatches);
+
                 // 如果有匹配关键字的值，则只保留这些值
                 if (!keywordMatches.isEmpty()) {
-                    // 如果只有一个值，直接返回结果
-                    if (keywordMatches.size() == 1) {
+                    // 如果只有一个值且没有后续条件，直接返回结果
+                    if (keywordMatches.size() == 1 && conditionIndex == conditions.size() - 1) {
+                        log.warn("找到唯一关键字结果: {}", keywordMatches.get(0));
                         return keywordMatches.get(0);
                     }
-                    
+
                     processedValues = keywordMatches;
                 }
             }
         }
-        
+
         // 如果处理后还有值，返回第一个
         if (!processedValues.isEmpty()) {
+            log.warn("最终处理后返回第一个值: {}", processedValues.get(0));
             return processedValues.get(0);
         }
-        
+
         // 如果都不匹配，返回默认值
         if (ruleMap.containsKey("defaultValue")) {
+            log.warn("使用默认值: {}", ruleMap.get("defaultValue"));
             return ruleMap.get("defaultValue");
         }
-        
+
         return fieldSample;
     }
     
