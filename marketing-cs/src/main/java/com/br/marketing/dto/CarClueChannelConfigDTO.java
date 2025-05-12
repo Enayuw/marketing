@@ -18,7 +18,7 @@ public class CarClueChannelConfigDTO {
     @ApiModelProperty(value = "易车KA拉取时间")
     private String pullDate;
     @ApiModelProperty(value = "外呼意向等级配置")
-    private String intentionConfig;
+    private Object intentionConfig;
     @ApiModelProperty(value = "数据清洗类型 0-手动执行 1-自动执行")
     private int cleanType;
     @ApiModelProperty(value = "数据推送类型 0-手动执行 1-自动执行")

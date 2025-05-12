@@ -19,9 +19,12 @@ import javax.annotation.Resource;
 public class ChannelRelationalJob extends AbstractSimpleElasticJob {
     @Resource
     private ChannelRelationalService channelRelationalService;
+    private static final String TITLE = "【车线索外采数据相关-】";
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        log.warn("{}开始执行", TITLE);
+        long startTime = System.currentTimeMillis();
 
         // 获取省市/车辆 字典信息
         channelRelationalService.getProvinceAndCity();
@@ -32,6 +35,7 @@ public class ChannelRelationalJob extends AbstractSimpleElasticJob {
         // 处理待清洗文档 外采初始配置
         channelRelationalService.getFileInitMapping();
 
+        log.warn("{}执行完成, 耗时{}ms", TITLE, System.currentTimeMillis() - startTime);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.br.marketing.service.carclue.web.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.client.RedisChgService;
@@ -108,7 +109,7 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
         }
         CarClueManageConfig carClueManageConfig = new CarClueManageConfig();
         carClueManageConfig.setPullDate(dto.getPullDate());
-        carClueManageConfig.setIntentionConfig(dto.getIntentionConfig());
+        carClueManageConfig.setIntentionConfig(JSONObject.toJSONString(dto.getIntentionConfig()));
         carClueManageConfig.setCleanType(dto.getCleanType());
         carClueManageConfig.setPullType(dto.getPullType());
         carClueManageConfig.setOptUserId(dto.getOptUserId());

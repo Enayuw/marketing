@@ -3,6 +3,7 @@ package com.br.marketing.service.carclue.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.carclue.CarClueClient;
 import com.br.marketing.common.commondto.Result;
@@ -76,6 +77,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     CarClueManageConfigMapper carClueManageConfigMapper;
     @Resource
     ClueFileRecordingMapper clueFileRecordingMapper;
+    @Resource
+    private FastDfsClient fastDfsClient;
     @Resource
     CarClueReportServiceImpl carClueReportServiceImpl;
     @Autowired
@@ -570,7 +573,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             return;
         }
 
-        processFile(recording.getFileAdress(), recording.getUpdateScope());
+        ClueFileRecording clueFileRecording = new ClueFileRecording();
+        clueFileRecording.setId(recording.getId());
+        clueFileRecording.setFileCleanStatus(ClueFileRecordingStatusEnum.CLEAN_ING.getValue());
+        clueFileRecordingMapper.updateByPrimaryKeySelective(clueFileRecording);
+
+        processFile(recording);
     }
 
     /**
@@ -596,42 +604,43 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             log.warn("{}待清洗文档有多个，id：{}", TITL, ids);
             return Optional.empty();
         }
-
-        // 检查文件是否存在
-        ClueFileRecording recording = recordings.get(0);
-        File file = new File(recording.getFileAdress());
-        if (!file.exists()) {
-            log.warn("{}待清洗文档路径不存在：{}", TITL, recording.getFileAdress());
-            return Optional.empty();
-        }
-
         return Optional.of(recordings.get(0));
     }
 
     /**
      * 处理Excel文件
-     * filePath:文件路径
+     * url: FastDFS文件路径
      * updateScope:清洗范围
      */
-    private void processFile(String filePath, String updateScope) {
-        try (FileInputStream file = new FileInputStream(filePath);
-             Workbook workbook = new XSSFWorkbook(file)) {
+    private void processFile(ClueFileRecording recording) {
+        String url = recording.getFileAdress();
+        String updateScope = recording.getUpdateScope();
 
-            String[] channels = updateScope.split(",");
-            for (String channel : channels) {
-                switch (channel.trim()) {
-                    case "汽车之家":
-                        processZjChannel(workbook);
-                        break;
-                    case "易车会员":
-                        processYcMemberChannel(workbook);
-                        break;
-                    default:
-                        log.warn("{}不支持的渠道类型：{}", TITL, channel);
+        try {
+            // 从FastDFS获取文件流
+            byte[] bytes = fastDfsClient.downloadFile(url);
+            // 从字节数组输出流创建Workbook
+            try (Workbook workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
+                String[] channels = updateScope.split(",");
+                for (String channel : channels) {
+                    switch (channel.trim()) {
+                        case "汽车之家":
+                            processZjChannel(workbook);
+                            break;
+                        case "易车会员":
+                            processYcMemberChannel(workbook);
+                            break;
+                        default:
+                            log.warn("{}不支持的渠道类型：{}", TITL, channel);
+                    }
                 }
             }
+            ClueFileRecording clueFileRecording = new ClueFileRecording();
+            clueFileRecording.setId(recording.getId());
+            clueFileRecording.setFileCleanStatus(ClueFileRecordingStatusEnum.CLEAN_FINISH.getValue());
+            clueFileRecordingMapper.updateByPrimaryKeySelective(clueFileRecording);
         } catch (Exception e) {
-            log.error("{}处理文件异常，文件路径：{}", TITL, filePath, e);
+            log.error("{}处理文件异常，文件路径：{}", TITL, url, e);
         }
     }
 
@@ -710,7 +719,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             if (row.getRowNum() == 0) continue;
 
             String brand = getCellValue(row, 0);
-            String series = getCellValue(row, 1);
+            String series = getCellValue(row, 1).replaceAll("\\r?\\n", ",");
             String nation = getCellValue(row, 2);
             String satisfyProvince = getCellValue(row, 3);
             String satisfyCity = getCellValue(row, 4);
@@ -744,7 +753,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      * 删除今日已生成的 外采初始数据
      */
     private void deleteInitData(String apiCode) {
-        String date = LocalTime.now().toString();
+        String date = LocalDate.now().toString();
         try {
             //删除当天已经生成的数据
             CarClueInitMappingExample carClueInitMappingExample = new CarClueInitMappingExample();
@@ -815,16 +824,21 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
 
             Map<String, List<CarClueProvincesInformation>> provinceNameMap = carClueProvincesInformations.stream()
+                    .filter(item -> item.getProvinceName() != null)
                     .collect(Collectors.groupingBy(CarClueProvincesInformation::getProvinceName));
 
             Map<String, List<CarClueProvincesInformation>> cityNameMap = carClueProvincesInformations.stream()
+                    .filter(item -> item.getCityName() != null)
                     .collect(Collectors.groupingBy(CarClueProvincesInformation::getCityName));
 
             Map<String, List<CarClueSeriesInformation>> brandNameMap = carClueSeriesInformations.stream()
+                    .filter(item -> item.getBrandName() != null)
                     .collect(Collectors.groupingBy(CarClueSeriesInformation::getBrandName));
 
             Map<String, List<CarClueSeriesInformation>> subBrandNameMap = carClueSeriesInformations.stream()
+                    .filter(item -> item.getSubBrandName() != null)
                     .collect(Collectors.groupingBy(CarClueSeriesInformation::getSubBrandName));
+
 
             Map<String, List<CarClueSeriesInformation>> seriesNameMap = carClueSeriesInformations.stream()
                     .collect(Collectors.groupingBy(CarClueSeriesInformation::getSeriesName));
@@ -899,7 +913,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      * 删除今日已生成的 外采映射数据
      */
     private void deleteRelationalData(String apiCode) {
-        String date = LocalTime.now().toString();
+        String date = LocalDate.now().toString();
         try {
             CarClueRelationalMappingExample example = new CarClueRelationalMappingExample();
             example.createCriteria()
