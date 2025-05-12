@@ -115,11 +115,11 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                     while ((dataLine = reader.readLine()) != null) {
                         batchData.add(dataLine);
                         if (batchData.size() == BATCH_SIZE) {
-                            threadPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-                            threadPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+                            threadPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryDelayZipThreadNum());
+                            threadPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryDelayZipThreadNum());
 
                             ArrayList<String> subList = new ArrayList<>(batchData);
-                            futures.add(CompletableFuture.runAsync(() -> deleteFromLoopCycleAndInsertToDelay(subList, apiCode, headerConfig)
+                            futures.add(CompletableFuture.runAsync(() -> deleteLoopCycleAndSaveDelay(subList, apiCode, headerConfig)
                                     , threadPool));
                             batchData.clear();
                         }
@@ -128,7 +128,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
 
                     // 主线程处理尾量数据
                     if (!batchData.isEmpty()) {
-                        deleteFromLoopCycleAndInsertToDelay(new ArrayList<>(batchData), apiCode, headerConfig);
+                        deleteLoopCycleAndSaveDelay(new ArrayList<>(batchData), apiCode, headerConfig);
                     }
                 } catch (Exception e) {
                     String msg = TITLE + "csv文件处理异常";
@@ -181,7 +181,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
         return files;
     }
 
-    private void deleteFromLoopCycleAndInsertToDelay(List<String> batchData, String apiCode, Map<String, Integer> headerConfig) {
+    private void deleteLoopCycleAndSaveDelay(List<String> batchData, String apiCode, Map<String, Integer> headerConfig) {
         try {
             List<String> dataList;
             List<WubaCollidingDataDelayLoopCycle> delayLoopCycleList = new ArrayList<>();

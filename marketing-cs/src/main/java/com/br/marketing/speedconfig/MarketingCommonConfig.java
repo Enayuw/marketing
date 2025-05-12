@@ -2933,5 +2933,10 @@ public class MarketingCommonConfig {
      * 58查询非金融延期zip文件表头配置
      */
     private Map<String, Integer> wuBaQueryDelayZipHeaderConfig;
+
+    /**
+     * 58查询延期撞库数据线程
+     */
+    private Integer wuBaQueryDelayZipThreadNum;
 }
 
