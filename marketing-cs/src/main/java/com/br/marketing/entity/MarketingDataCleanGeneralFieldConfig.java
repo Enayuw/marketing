@@ -16,19 +16,9 @@ public class MarketingDataCleanGeneralFieldConfig implements Serializable {
     private Long id;
 
     /**
-     * API编码
-     */
-    private String apiCode;
-
-    /**
      * 数据类型：0:上传，1:转化
      */
     private Integer dataType;
-
-    /**
-     * 接收类型：0:通用,1:定制,2:FTP
-     */
-    private Integer acceptType;
 
     /**
      * 字段集合，多个字段用,分割

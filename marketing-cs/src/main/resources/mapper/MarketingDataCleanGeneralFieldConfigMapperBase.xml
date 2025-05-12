@@ -3,9 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingDataCleanGeneralFieldConfigMapperBase">
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig">
     <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
     <result column="data_type" jdbcType="INTEGER" property="dataType" />
-    <result column="accept_type" jdbcType="INTEGER" property="acceptType" />
     <result column="field_collect" jdbcType="VARCHAR" property="fieldCollect" />
     <result column="is_del" jdbcType="INTEGER" property="isDel" />
     <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
@@ -72,8 +70,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, data_type, accept_type, field_collect, is_del, opt_user_id, opt_user_name, 
-    create_time, update_time
+    id, data_type, field_collect, is_del, opt_user_id, opt_user_name, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfigExample" resultMap="BaseResultMap">
     select
@@ -106,26 +103,18 @@
     </if>
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig" useGeneratedKeys="true">
-    insert into b_marketing_data_clean_general_field_config (api_code, data_type, accept_type, 
-      field_collect, is_del, opt_user_id, 
-      opt_user_name, create_time, update_time
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{acceptType,jdbcType=INTEGER}, 
-      #{fieldCollect,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, 
-      #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into b_marketing_data_clean_general_field_config (data_type, field_collect, is_del, 
+      opt_user_id, opt_user_name, create_time, 
+      update_time)
+    values (#{dataType,jdbcType=INTEGER}, #{fieldCollect,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
+      #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_field_config
     <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
-        api_code,
-      </if>
       <if test="dataType != null">
         data_type,
-      </if>
-      <if test="acceptType != null">
-        accept_type,
       </if>
       <if test="fieldCollect != null">
         field_collect,
@@ -147,14 +136,8 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
-        #{apiCode,jdbcType=VARCHAR},
-      </if>
       <if test="dataType != null">
         #{dataType,jdbcType=INTEGER},
-      </if>
-      <if test="acceptType != null">
-        #{acceptType,jdbcType=INTEGER},
       </if>
       <if test="fieldCollect != null">
         #{fieldCollect,jdbcType=VARCHAR},
@@ -188,14 +171,8 @@
       <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null">
-        api_code = #{record.apiCode,jdbcType=VARCHAR},
-      </if>
       <if test="record.dataType != null">
         data_type = #{record.dataType,jdbcType=INTEGER},
-      </if>
-      <if test="record.acceptType != null">
-        accept_type = #{record.acceptType,jdbcType=INTEGER},
       </if>
       <if test="record.fieldCollect != null">
         field_collect = #{record.fieldCollect,jdbcType=VARCHAR},
@@ -223,9 +200,7 @@
   <update id="updateByExample" parameterType="map">
     update b_marketing_data_clean_general_field_config
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
       data_type = #{record.dataType,jdbcType=INTEGER},
-      accept_type = #{record.acceptType,jdbcType=INTEGER},
       field_collect = #{record.fieldCollect,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       opt_user_id = #{record.optUserId,jdbcType=BIGINT},
@@ -239,14 +214,8 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig">
     update b_marketing_data_clean_general_field_config
     <set>
-      <if test="apiCode != null">
-        api_code = #{apiCode,jdbcType=VARCHAR},
-      </if>
       <if test="dataType != null">
         data_type = #{dataType,jdbcType=INTEGER},
-      </if>
-      <if test="acceptType != null">
-        accept_type = #{acceptType,jdbcType=INTEGER},
       </if>
       <if test="fieldCollect != null">
         field_collect = #{fieldCollect,jdbcType=VARCHAR},
@@ -271,9 +240,7 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig">
     update b_marketing_data_clean_general_field_config
-    set api_code = #{apiCode,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=INTEGER},
-      accept_type = #{acceptType,jdbcType=INTEGER},
+    set data_type = #{dataType,jdbcType=INTEGER},
       field_collect = #{fieldCollect,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       opt_user_id = #{optUserId,jdbcType=BIGINT},

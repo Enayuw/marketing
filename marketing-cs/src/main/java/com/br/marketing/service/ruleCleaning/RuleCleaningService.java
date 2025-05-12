@@ -62,7 +62,7 @@ public interface RuleCleaningService {
     Object previewFieldCleaning(String fieldSample, String cleaningRule);
 
 
-    MarketingDataCleanGeneralFieldConfig getFieldConfg(String apiCode, Integer dataType, Integer acceptType);
+    MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType);
 
     boolean fieldSaveOrUpdate(CleanFieldConfigVO fieldConfigVO);
 

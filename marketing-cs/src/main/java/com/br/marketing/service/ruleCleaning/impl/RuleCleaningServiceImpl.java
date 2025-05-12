@@ -1097,14 +1097,21 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     @Override
-    public MarketingDataCleanGeneralFieldConfig getFieldConfg(String apiCode, Integer dataType, Integer acceptType) {
+    public MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType) {
         MarketingDataCleanGeneralFieldConfigExample fieldConfigExample = new MarketingDataCleanGeneralFieldConfigExample();
-        fieldConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(dataType).andAcceptTypeEqualTo(acceptType);
+        fieldConfigExample.createCriteria().andDataTypeEqualTo(dataType);
         List<MarketingDataCleanGeneralFieldConfig> fieldConfigList = marketingDataCleanGeneralFieldConfigMapper.selectByExample(fieldConfigExample);
         if (CollectionUtils.isEmpty(fieldConfigList)) {
             return null;
         }
-        return fieldConfigList.get(0);
+        MarketingDataCleanGeneralFieldConfig fieldConfig = fieldConfigList.get(0);
+        //通用接口去掉taskd,requestId
+        if (DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)) {
+            List<String> fieldList = Arrays.asList(fieldConfig.getFieldCollect().split(","));
+            fieldList.removeIf(field -> field.equals("taskId") || field.equals("requestId"));
+            fieldConfig.setFieldCollect(String.join(", ", fieldList));
+        }
+        return fieldConfig;
     }
 
     @Override
@@ -1112,10 +1119,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingUserDetail user = ThreadContextInfo.getUser();
         String fieldStr = fieldConfigVO.getFieldCollect();
         List<String> fieldList = Arrays.asList(fieldStr.split(","));
-        Set<String> baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType");
+        /*Set<String> baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType");
         if (fieldConfigVO.getAcceptType().equals(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode())) {
             baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType", "taskId", "requestId");
-        }
+        }*/
+        Set<String> baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType", "taskId", "requestId");
         baseField.addAll(fieldList);
         String fieldCollect = String.join(", ", baseField);
         if (Objects.isNull(fieldConfigVO.getId())) {

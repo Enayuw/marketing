@@ -12,11 +12,6 @@ public class CleanFieldConfigVO {
     @ApiModelProperty(value = "id")
     private Long id;
 
-    /**
-     * API编码
-     */
-    @ApiModelProperty(value = "apiCode")
-    private String apiCode;
 
     /**
      * 数据类型：0:上传，1:转化

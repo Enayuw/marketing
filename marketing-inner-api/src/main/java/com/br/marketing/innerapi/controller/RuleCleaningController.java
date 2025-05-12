@@ -119,16 +119,14 @@ public class RuleCleaningController {
     @GetMapping("/field/getFieldConfg")
     @ApiOperation(value = "模版字段配置查询", notes = "模版字段配置查询", httpMethod = "GET")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
             @ApiImplicitParam(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
             @ApiImplicitParam(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true)
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR")})
-    public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam String apiCode,
-                                                                         @RequestParam Integer dataType,
-                                                                         @RequestParam Integer acceptType) {
+    public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam(required = true) Integer dataType,
+                                                                         @RequestParam(required = false) Integer acceptType) {
 
-        MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(apiCode, dataType, acceptType);
+        MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(dataType, acceptType);
         return new ApiResult<MarketingDataCleanGeneralFieldConfig>().success(fieldConfg);
     }
 
