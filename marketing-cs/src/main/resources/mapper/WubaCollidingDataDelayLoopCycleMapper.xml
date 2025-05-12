@@ -31,8 +31,13 @@
         UPDATE b_wuba_colliding_data_delay_loop_cycle
         SET
         push_time = null,
-        clean_status = 0,
-        task_id = null,
+        clean_status = 0, update_time = now(),
+        task_id = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.taskId}
+        </foreach>
+        ELSE task_id
+        END,
         batch_no = CASE cell
         <foreach collection="list" item="item">
             WHEN #{item.cell} THEN #{item.batchNo}

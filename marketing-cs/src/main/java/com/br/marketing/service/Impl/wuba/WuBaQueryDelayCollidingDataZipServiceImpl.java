@@ -119,7 +119,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                             threadPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryDelayZipThreadNum());
 
                             ArrayList<String> subList = new ArrayList<>(batchData);
-                            futures.add(CompletableFuture.runAsync(() -> deleteLoopCycleAndSaveDelay(subList, apiCode, headerConfig)
+                            futures.add(CompletableFuture.runAsync(() -> deleteLoopCycleAndSaveDelay(subList, apiCode, headerConfig, taskId)
                                     , threadPool));
                             batchData.clear();
                         }
@@ -128,7 +128,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
 
                     // 主线程处理尾量数据
                     if (!batchData.isEmpty()) {
-                        deleteLoopCycleAndSaveDelay(new ArrayList<>(batchData), apiCode, headerConfig);
+                        deleteLoopCycleAndSaveDelay(new ArrayList<>(batchData), apiCode, headerConfig, taskId);
                     }
                 } catch (Exception e) {
                     String msg = TITLE + "csv文件处理异常";
@@ -181,7 +181,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
         return files;
     }
 
-    private void deleteLoopCycleAndSaveDelay(List<String> batchData, String apiCode, Map<String, Integer> headerConfig) {
+    private void deleteLoopCycleAndSaveDelay(List<String> batchData, String apiCode, Map<String, Integer> headerConfig, Long taskId) {
         try {
             List<String> dataList;
             List<WubaCollidingDataDelayLoopCycle> delayLoopCycleList = new ArrayList<>();
@@ -199,6 +199,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                 delayLoopCycle.setExtend(JSON.toJSONString(dataLine));
                 delayLoopCycle.setCleanStatus(0);
                 delayLoopCycle.setApiCode(apiCode);
+                delayLoopCycle.setTaskId(taskId);
 
                 delayLoopCycleList.add(delayLoopCycle);
             }
