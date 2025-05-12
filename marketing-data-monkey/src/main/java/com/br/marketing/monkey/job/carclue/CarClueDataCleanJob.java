@@ -165,8 +165,10 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
         List<CarClueRelationalMapping> carClueRelationalMappingList = carClueExecuteService.getRelationalMapping();
         List<CarChannelConfig> channelConfigList = carClueExecuteService.getChannelConfig();
         // 通话明细apiCode
-        Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
-        List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
+        Map<String, String> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
+        // 提取所有 apiCode
+        List<String> carClueApiCodes = new ArrayList<>(carClueStorageConfig.values());
+
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
         boolean mark = Boolean.TRUE;
         Long minId = null;

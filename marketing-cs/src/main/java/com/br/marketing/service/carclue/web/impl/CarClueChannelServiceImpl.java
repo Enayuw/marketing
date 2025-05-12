@@ -109,7 +109,7 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
         }
         CarClueManageConfig carClueManageConfig = new CarClueManageConfig();
         carClueManageConfig.setPullDate(dto.getPullDate());
-        carClueManageConfig.setIntentionConfig(JSONObject.toJSONString(dto.getIntentionConfig()));
+        carClueManageConfig.setIntentionConfig(dto.getIntentionConfig());
         carClueManageConfig.setCleanType(dto.getCleanType());
         carClueManageConfig.setPullType(dto.getPullType());
         carClueManageConfig.setOptUserId(dto.getOptUserId());

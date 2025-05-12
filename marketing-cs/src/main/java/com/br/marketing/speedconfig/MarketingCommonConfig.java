@@ -2630,9 +2630,9 @@ public class MarketingCommonConfig {
 
     /**
      * 车线索入库配置
-     * {"carClueApiCodes":["7410733"],"carClueIntentionGrades":["A","B","a","b"]}
+     * {"yiZhi":"7410733","ziYan":"7410737"}
      */
-    private Map<String, List<String>> carClueStorageConfig;
+    private Map<String, String> carClueStorageConfig;
 
     /**
      * 车线索数据清洗配置
