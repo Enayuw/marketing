@@ -49,7 +49,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Resource
     private MarketingDataCleanGeneralConfigMapper cleanGeneralConfigMapper;
 
-
     @Resource
     private MarketingDataCleanGeneralRuleConfigMapper cleanGeneralRuleConfigMapper;
 
@@ -242,6 +241,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             .andApiCodeEqualTo(apiCode)
                             .andDataTypeEqualTo(dataType)
                             .andAcceptTypeEqualTo(acceptType)
+                            .andNodeTypeEqualTo("primitive")
                             .andNodeNameEqualTo(cleanFields);
                     List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
                     if (nodes == null || nodes.isEmpty()) {
@@ -407,50 +407,23 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (acceptType == null) {
                 throw new BusinessException("接口类型不能为空");
             }
-            
-            // 1. 首先验证API编码配置是否存在
-            MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-            configExample.createCriteria()
+
+            MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+            nodeExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
                     .andDataTypeEqualTo(dataType)
                     .andAcceptTypeEqualTo(acceptType)
-                    .andIsDelEqualTo(1);
-            List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
-
-            if (configs == null || configs.isEmpty()) {
-                throw new BusinessException("API编码配置不存在：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
+                    .andLevelEqualTo(0);
+            List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+            if (nodes == null || nodes.isEmpty()) {
+                throw new BusinessException("未找到相关的父节点JSON结构定义：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
             }
-            MarketingDataCleanGeneralConfig generalConfig = configs.get(0);
-            Long generalConfigId = generalConfig.getId();
-            MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-            generalRuleConfigExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode)
-                    .andCleanConfigIdEqualTo(generalConfigId)
-                    .andIsDelEqualTo(1);
-            List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
-            if (ruleConfigList == null || ruleConfigList.isEmpty()) {
-                throw new BusinessException("未找到相关的字段清洗配置：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
-            } else {
-                for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
-                    MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
-                    nodeExample.createCriteria()
-                            .andApiCodeEqualTo(apiCode)
-                            .andDataTypeEqualTo(dataType)
-                            .andAcceptTypeEqualTo(acceptType)
-                            .andLevelEqualTo(0);
-                    List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
-                    if (nodes == null || nodes.isEmpty()) {
-                        throw new BusinessException("未找到相关的父节点JSON结构定义：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
-                    }
-                    MarketingJsonNodeParse node = nodes.get(0);
-                    return node.getNodeValue();
-                }
-            }
+            MarketingJsonNodeParse node = nodes.get(0);
+            return node.getNodeValue();
 
         } catch (Exception e) {
             throw new BusinessException("获取字段样例失败: " + e.getMessage());
         }
-        return "";
     }
 
     /**
@@ -835,6 +808,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         result = handleMathOperation(fieldSample, ruleMap);
                     }
                     break;
+                case "round":
+                    // 取整操作
+                    result = handleRoundOperation(fieldSample, ruleMap);
+                    break;
                 case "remove":
                 case "retain":
                     // 去除或保留关键字
@@ -969,6 +946,40 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return String.valueOf((int) result);
         } else {
             return String.valueOf(result);
+        }
+    }
+
+    /**
+     * 处理取整操作
+     */
+    private Object handleRoundOperation(String fieldSample, Map<String, Object> ruleMap) {
+        if (StringUtils.isBlank(fieldSample)) {
+            return fieldSample;
+        }
+
+        try {
+            // 尝试将字符串转换为数字
+            double value = Double.parseDouble(fieldSample);
+
+            // 默认取整方式是四舍五入
+            String roundType = ruleMap.containsKey("roundType") ? String.valueOf(ruleMap.get("roundType")) : "round";
+
+            switch (roundType) {
+                case "ceiling":
+                    // 向上取整
+                    return String.valueOf((int) Math.ceil(value));
+                case "floor":
+                    // 向下取整
+                    return String.valueOf((int) Math.floor(value));
+                case "round":
+                default:
+                    // 四舍五入
+                    return String.valueOf(Math.round(value));
+            }
+        } catch (NumberFormatException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "执行取整操作失败，无法将值转换为数字: " + fieldSample + "错误信息：" + e.getMessage()), e);
+            return fieldSample;
         }
     }
 
