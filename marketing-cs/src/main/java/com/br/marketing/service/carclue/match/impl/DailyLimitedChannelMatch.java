@@ -79,7 +79,9 @@ public class DailyLimitedChannelMatch extends AbstractClueChannelMatch {
                 carClueInfo.setClueCompleteStatus(CarClueCompleteStatusEnum.NORMAL_COMPLETE.getValue());
             }
         } else {
+            //精确匹配失败
             if (!culeFuzzyMatch(carClueInfo, brandConfig, seriesInfoConfig)) {
+                //模糊匹配失败
                 carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("品牌车系匹配失败"),
                         CarClueDataStatusEnum.ABNORMAL_CLUE.getValue());
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);

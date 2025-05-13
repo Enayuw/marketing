@@ -13,6 +13,7 @@ import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.carclue.CarClueExecuteService;
 import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
+import com.br.marketing.service.carclue.clueenums.CarClueManageConfigTypeEnum;
 import com.br.marketing.service.carclue.clueenums.ExecuteClueStatusEnum;
 import com.br.marketing.service.carclue.clueenums.ExecuteClueTypeEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -23,12 +24,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * 车线索数据清洗作业job
@@ -58,6 +57,8 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        log.warn("{}开始执行", TITLE);
+        long startTime = System.currentTimeMillis();
 
         // 1. 获取车线索管理配置
         Optional<CarClueManageConfig> configOpt = carClueExecuteService.getCarClueConfig();
@@ -68,11 +69,13 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
 
         // 2. 根据配置类型执行清洗
         CarClueManageConfig config = configOpt.get();
-        if (config.getCleanType() == 0) {
+        if (Objects.equals(config.getCleanType(), CarClueManageConfigTypeEnum.PERFORMED_MANUALLY.getValue())) {
             manualCleanCarClue();
         } else {
             autoCleanCarClue();
         }
+
+        log.warn("{}执行完成, 耗时{}ms", TITLE, System.currentTimeMillis() - startTime);
     }
 
     /**
@@ -142,7 +145,12 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
                                     List<CarClueSeriesInformation> carClueSeriesInfoList, List<CarClueRelationalMapping> carClueRelationalMappingList,
                                     List<CarChannelConfig> channelConfigList) {
         try {
-            cleanClueList(carClueInfoList, channelConfigList, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList);
+            //筛选出待清洗的数据
+            List<CarClueInfo> readyClueList = carClueInfoList.stream()
+                    .filter(clue -> CarClueDataStatusEnum.READY.getValue().equals(clue.getClueDataStatus()))
+                    .collect(Collectors.toList());
+
+            cleanClueList(readyClueList, channelConfigList, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(), "车线索清洗线程处理异常，请关注"), e);
         }
@@ -202,8 +210,7 @@ public class CarClueDataCleanJob extends AbstractSimpleElasticJob {
             try {
                 //清除错误信息
                 carClueInfo.setClueErrorReason("");
-                List<CarChannelConfig> configList = new ArrayList<>();
-                configList.addAll(channelConfigList);
+                List<CarChannelConfig> configList = new ArrayList<>(channelConfigList);
                 carClueService.carClueCleanHandler(carClueInfo, carClueProvincesInfoList, carClueSeriesInfoList, carClueRelationalMappingList,
                         configList);
             } catch (Exception e) {

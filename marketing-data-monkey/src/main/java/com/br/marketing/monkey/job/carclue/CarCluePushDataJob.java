@@ -10,6 +10,7 @@ import com.br.marketing.mapper.CarClueExecuteRecordingMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.carclue.CarClueExecuteService;
 import com.br.marketing.service.carclue.CarClueService;
+import com.br.marketing.service.carclue.clueenums.CarClueManageConfigTypeEnum;
 import com.br.marketing.service.carclue.clueenums.CarCluePushStatusEnum;
 import com.br.marketing.service.carclue.clueenums.ExecuteClueStatusEnum;
 import com.br.marketing.service.carclue.clueenums.ExecuteClueTypeEnum;
@@ -70,7 +71,7 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
 
         // 2.根据配置类型执行推送
         CarClueManageConfig config = configOpt.get();
-        if (config.getPullType() == 0) {
+        if (Objects.equals(config.getPullType(), CarClueManageConfigTypeEnum.PERFORMED_MANUALLY.getValue())) {
             manualPushCarClue();
         } else {
             autoPushCarClue();
