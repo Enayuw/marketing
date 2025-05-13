@@ -1187,10 +1187,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         log.warn("执行截取操作 - 原始输入: '{}'", fieldSample);
 
-        // 默认值
-        int startIndex = 0;
-        int endIndex = fieldSample.length();
-        String startLocation = "left"; // 默认从左侧开始
+        // 默认值 - 索引从1开始计算
+        // 默认从第1个字符开始
+        int startIndex = 1;
+        // 默认到最后一个字符
+        int endIndex = fieldSample.length() + 1;
+        // 默认从左侧开始
+        String startLocation = "left";
 
         // 读取配置参数
         if (ruleMap.containsKey("startIndex")) {
@@ -1206,21 +1209,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         int length = fieldSample.length();
-        log.warn("截取参数: 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
+        log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
                 length, startIndex, endIndex, startLocation);
+        
+        // 转换为Java的0基索引
+        int javaStartIndex = startIndex - 1;
+        int javaEndIndex = endIndex - 1;
+        
+        log.warn("转换为Java的0基索引: 开始索引={}, 结束索引={}", javaStartIndex, javaEndIndex);
 
         if ("right".equals(startLocation)) {
             // 从右侧开始计算
             // 例如，对于字符串"12345"，长度为5
-            // 如果startIndex=1, endIndex=3，那么从右侧算就是取从右侧第1个字符到右侧第3个字符之间的内容
-            // 也就是取index=4到index=2之间的内容，即"345"
+            // 如果从右侧开始算，startIndex=1表示倒数第1个字符(索引4)，endIndex=3表示倒数第3个字符(索引2)
             int rightStartIndex = Math.max(0, length - startIndex);
             int rightEndIndex = Math.max(0, length - endIndex);
             
-            log.warn("右侧起算: 右侧开始索引={} (length - startIndex), 右侧结束索引={} (length - endIndex)",
+            log.warn("右侧起算(从1开始): 右侧开始索引={} (length - startIndex), 右侧结束索引={} (length - endIndex)",
                     rightStartIndex, rightEndIndex);
             
-            // 交换，确保startIndex <= endIndex
+            // 交换，确保startIndex <= endIndex用于substring
             if (rightStartIndex < rightEndIndex) {
                 int temp = rightStartIndex;
                 rightStartIndex = rightEndIndex;
@@ -1228,23 +1236,23 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 log.warn("右侧索引交换: 新右侧开始={}, 新右侧结束={}", rightStartIndex, rightEndIndex);
             }
             
-            startIndex = rightEndIndex;
-            endIndex = rightStartIndex;
+            javaStartIndex = rightEndIndex;
+            javaEndIndex = rightStartIndex;
         }
 
         // 确保索引有效
-        startIndex = Math.max(0, Math.min(startIndex, length));
-        endIndex = Math.max(startIndex, Math.min(endIndex, length));
+        javaStartIndex = Math.max(0, Math.min(javaStartIndex, length));
+        javaEndIndex = Math.max(javaStartIndex, Math.min(javaEndIndex, length));
         
-        log.warn("截取的实际索引: startIndex={}, endIndex={}", startIndex, endIndex);
+        log.warn("最终Java索引: startIndex={}, endIndex={}", javaStartIndex, javaEndIndex);
         
         // 如果开始和结束索引相同，返回空字符串
-        if (startIndex == endIndex) {
+        if (javaStartIndex == javaEndIndex) {
             log.warn("开始索引等于结束索引，返回空字符串");
             return "";
         }
 
-        String result = fieldSample.substring(startIndex, endIndex);
+        String result = fieldSample.substring(javaStartIndex, javaEndIndex);
         log.warn("截取结果: '{}'", result);
 
         return result;
