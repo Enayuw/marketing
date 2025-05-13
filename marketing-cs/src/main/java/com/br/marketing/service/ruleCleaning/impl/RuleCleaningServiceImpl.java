@@ -1353,7 +1353,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Override
     public boolean fieldSaveOrUpdate(CleanFieldConfigVO fieldConfigVO) {
-        try {
             // 参数验证
             if (fieldConfigVO == null) {
                 throw new BusinessException("字段配置不能为空");
@@ -1361,10 +1360,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             if (fieldConfigVO.getDataType() == null) {
                 throw new BusinessException("数据类型不能为空");
-            }
-            
-            if (fieldConfigVO.getAcceptType() == null) {
-                throw new BusinessException("接口类型不能为空");
             }
             
             if (StringUtils.isBlank(fieldConfigVO.getFieldCollect())) {
@@ -1408,9 +1403,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
             return true;
-        } catch (Exception e) {
-            throw new BusinessException("模版字段配置保存更新失败: " + e.getMessage());
-        }
     }
 }
 
