@@ -25,10 +25,9 @@ public class MrpMqFact {
     private Integer source;
 
     /**
-     * 数据需要执行的规则，非静置数据该字段为空
+     * 编排的规则名称
      */
-
-    private Set<String> includeRules;
+    private String ruleScene;
 
     /**
      * mq中消息内容
