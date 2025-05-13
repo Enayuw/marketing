@@ -1411,7 +1411,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             Set<String> baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType", "taskId", "requestId");
             baseField.addAll(fieldList);
-            String fieldCollect = String.join(", ", baseField);
+            String fieldCollect = String.join(",", baseField);
             
             if (Objects.isNull(fieldConfigVO.getId())) {
                 //插入
