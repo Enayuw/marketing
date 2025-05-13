@@ -1126,23 +1126,32 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         if ("remove".equals(operator)) {
-            // 去除关键字
-            return fieldSample.replace(patternField, "");
+            // 去除关键字（忽略大小写）
+            String regex = "(?i)" + Pattern.quote(patternField);
+            String result = fieldSample.replaceAll(regex, "");
+            log.warn("去除关键字操作（忽略大小写）：原值 '{}' 去除关键字 '{}' 结果为 '{}'", fieldSample, patternField, result);
+            return result;
         } else if ("retain".equals(operator)) {
-            // 保留关键字，去除其他内容
-            // 首先检查原字符串是否包含关键字
-            if (!fieldSample.contains(patternField)) {
-                log.warn("保留关键字操作：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
+            // 保留关键字，去除其他内容（忽略大小写）
+            // 首先检查原字符串是否包含关键字（不区分大小写）
+            Pattern pattern = Pattern.compile(Pattern.quote(patternField), Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(fieldSample);
+            
+            if (!matcher.find()) {
+                log.warn("保留关键字操作（忽略大小写）：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
                 return fieldSample;
             }
             
+            // 重置匹配器，重新开始查找
+            matcher.reset();
+            
+            // 收集所有匹配项
             StringBuilder result = new StringBuilder();
-            int index = 0;
-            while ((index = fieldSample.indexOf(patternField, index)) >= 0) {
-                result.append(patternField);
-                index += patternField.length();
+            while (matcher.find()) {
+                result.append(matcher.group());
             }
-            log.warn("保留关键字操作：原值 '{}' 提取关键字 '{}' 结果为 '{}'", fieldSample, patternField, result.toString());
+            
+            log.warn("保留关键字操作（忽略大小写）：原值 '{}' 提取关键字 '{}' 结果为 '{}'", fieldSample, patternField, result.toString());
             return result.toString();
         }
 
@@ -1160,7 +1169,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
 
-        return fieldSample.replace(oldValue, newValue);
+        // 使用正则表达式进行忽略大小写的替换
+        String regex = "(?i)" + Pattern.quote(oldValue);
+        String result = fieldSample.replaceAll(regex, newValue);
+        log.warn("替换操作（忽略大小写）：原值 '{}' 替换 '{}' 为 '{}' 结果是 '{}'", fieldSample, oldValue, newValue, result);
+        
+        return result;
     }
 
     /**
@@ -1407,17 +1421,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     processedValues = sameNumberGroup;
                 }
             } else if ("keyword".equals(priorityType)) {
-                // 按关键字过滤
+                // 按关键字过滤（忽略大小写）
                 String keyword = String.valueOf(condition.get("keywordValue"));
 
                 List<String> keywordMatches = new ArrayList<>();
                 for (String value : processedValues) {
-                    if (value.contains(keyword)) {
+                    // 使用不区分大小写的包含检查
+                    if (value.toLowerCase().contains(keyword.toLowerCase())) {
                         keywordMatches.add(value);
                     }
                 }
 
-                log.warn("关键字 '{}' 匹配结果: {}", keyword, keywordMatches);
+                log.warn("关键字 '{}' 匹配结果（忽略大小写）: {}", keyword, keywordMatches);
 
                 // 如果有匹配关键字的值，则只保留这些值
                 if (!keywordMatches.isEmpty()) {
