@@ -544,7 +544,7 @@
 
     <job:simple id="【monkey】-ChannelRelationalJob"
                 class="com.br.marketing.monkey.job.carclue.ChannelRelationalJob"
-                cron="0 30 10 * * ? "
+                cron="0 0/10 * * * ? "
                 description="外采渠道商信息维护"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

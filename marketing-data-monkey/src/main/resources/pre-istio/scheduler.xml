@@ -558,7 +558,7 @@
 
     <job:simple id="【monkey】-CarClueDataCleanJob"
                 class="com.br.marketing.monkey.job.carclue.CarClueDataCleanJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2099-2099"
                 description="车线索清洗"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
