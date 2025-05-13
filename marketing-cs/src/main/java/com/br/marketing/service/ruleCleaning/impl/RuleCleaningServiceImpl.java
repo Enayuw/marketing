@@ -214,7 +214,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
 
         if (configs == null || configs.isEmpty()) {
-            throw new BusinessException("API编码配置不存在：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
+//            throw new BusinessException("API编码配置不存在：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
+            return result;
         }
         MarketingDataCleanGeneralConfig generalConfig = configs.get(0);
         Long generalConfigId = generalConfig.getId();
@@ -225,7 +226,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
         if (ruleConfigList == null || ruleConfigList.isEmpty()) {
-            throw new BusinessException("未找到相关的字段清洗配置：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
+//            throw new BusinessException("未找到相关的字段清洗配置：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
+            return result;
         } else {
             for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
                 FieldSampleDTO dto = new FieldSampleDTO();
@@ -678,7 +680,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 尝试解析为规则列表（支持多规则按顺序执行）
         try {
             JSONArray jsonArray = JSON.parseArray(cleaningRule);
-            if (jsonArray != null && !jsonArray.isEmpty() && jsonArray.size() > 1) {
+            if (jsonArray != null && !jsonArray.isEmpty()) {
                 String result = fieldSample;
                 // 按顺序执行每条规则
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -692,9 +694,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
                 log.info("多规则执行完成，最终结果: {}", result);
                 return result;
-            } else if (jsonArray.size() == 1) {
-                String rule = jsonArray.get(0).toString();
-                return executeSingleRule(fieldSample, rule, null);
             }
         } catch (Exception e) {
             // 解析为规则列表失败，尝试解析为单个规则
