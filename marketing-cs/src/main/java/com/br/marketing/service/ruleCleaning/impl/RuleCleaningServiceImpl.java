@@ -815,7 +815,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     }
                 }
                 log.warn("多规则处理完成，最终结果: {}", currentValue);
-                return currentValue; // 返回最终处理结果
+                // 返回最终处理结果
+                return currentValue;
             }
         } catch (Exception e) {
             // 解析为规则列表失败，尝试解析为单个规则
@@ -1129,13 +1130,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample.replace(patternField, "");
         } else if ("retain".equals(operator)) {
             // 保留关键字，去除其他内容
-            // todo 如果没有这个关键字需要返回原值
+            // 首先检查原字符串是否包含关键字
+            if (!fieldSample.contains(patternField)) {
+                log.warn("保留关键字操作：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
+                return fieldSample;
+            }
+            
             StringBuilder result = new StringBuilder();
             int index = 0;
             while ((index = fieldSample.indexOf(patternField, index)) >= 0) {
                 result.append(patternField);
                 index += patternField.length();
             }
+            log.warn("保留关键字操作：原值 '{}' 提取关键字 '{}' 结果为 '{}'", fieldSample, patternField, result.toString());
             return result.toString();
         }
 
