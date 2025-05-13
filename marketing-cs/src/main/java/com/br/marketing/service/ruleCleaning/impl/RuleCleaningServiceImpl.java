@@ -134,11 +134,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("接口类型不能为空");
         }
 
-            MarketingUserDetail user = ThreadContextInfo.getUser();
-            Long userId = Long.valueOf(user.getId());
-            String userName = user.getUserName();
-            config.setOptUserId(userId);
-            config.setOptUserName(userName);
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        Long userId = Long.valueOf(user.getId());
+        String userName = user.getUserName();
+        config.setOptUserId(userId);
+        config.setOptUserName(userName);
         // 设置默认参数
         config.setIsDel(1);
 
@@ -162,12 +162,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return true;
         } else {
-            // 修改
-            config.setUpdateTime(now);
-            int rows = cleanGeneralConfigMapper.updateByPrimaryKeySelective(config);
-            if (rows <= 0) {
-                throw new BusinessException("更新规则配置失败，可能规则不存在");
-            }
+            // 不允许修改
             return true;
         }
     }
@@ -675,32 +670,46 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("清洗规则不能为空");
         }
 
-        log.info("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
+        log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
 
         // 尝试解析为规则列表（支持多规则按顺序执行）
         try {
             JSONArray jsonArray = JSON.parseArray(cleaningRule);
             if (jsonArray != null && !jsonArray.isEmpty()) {
-                String result = fieldSample;
+                // 初始化结果为输入值，这是关键点
+                String currentValue = fieldSample;
+                log.warn("进入多规则处理流程，规则数量: {}, 初始值: {}", jsonArray.size(), currentValue);
+                
                 // 按顺序执行每条规则
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject ruleConfig = jsonArray.getJSONObject(i);
-                    if (ruleConfig.containsKey("order") && ruleConfig.containsKey("expression")) {
+                    // 输出当前规则配置，便于调试
+                    log.warn("规则#{} 配置: {}", i+1, ruleConfig);
+                    
+                    if (ruleConfig.containsKey("expression")) {
                         // 提取表达式执行
                         Object expression = ruleConfig.get("expression");
                         String expressionJson = JSON.toJSONString(expression);
-                        result = String.valueOf(executeSingleRule(result, expressionJson, null));
+                        
+                        log.warn("规则#{} 处理前的值: {}, 表达式: {}", i+1, currentValue, expressionJson);
+                        
+                        // 关键：使用当前值作为输入，执行规则
+                        Object stepResult = executeSingleRule(currentValue, expressionJson, null);
+                        currentValue = String.valueOf(stepResult);
+                        
+                        log.warn("规则#{} 处理后的值: {}", i+1, currentValue);
                     }
                 }
-                log.info("多规则执行完成，最终结果: {}", result);
-                return result;
+                log.warn("多规则处理完成，最终结果: {}", currentValue);
+                return currentValue; // 返回最终处理结果
             }
         } catch (Exception e) {
             // 解析为规则列表失败，尝试解析为单个规则
-            log.warn("解析为规则列表失败，尝试解析为单个规则");
+            log.warn("解析为规则列表失败: {}", e.getMessage(), e);
         }
 
         // 单个规则处理
+        log.warn("使用单规则处理: {}", cleaningRule);
         return executeSingleRule(fieldSample, cleaningRule, null);
     }
 
@@ -757,6 +766,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * 执行单个清洗规则
      */
     private Object executeSingleRule(String fieldSample, String cleaningRule, Object nodeParse) {
+        log.warn("执行单个规则 - 输入值: {}, 规则: {}", fieldSample, cleaningRule);
+        
         Map<String, Object> ruleMap = null;
         try {
             ruleMap = JSON.parseObject(cleaningRule, Map.class);
@@ -767,15 +778,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         
         if (ruleMap == null || ruleMap.isEmpty()) {
+            log.warn("规则映射为空，返回原值");
             return fieldSample;
         }
         
         // 获取操作类型
         String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
         if (StringUtils.isBlank(operator)) {
+            log.warn("操作类型为空，返回原值");
             return fieldSample;
         }
 
+        log.warn("操作类型: {}", operator);
+        
         // 根据操作类型执行不同的清洗逻辑
         Object result = fieldSample;
         try {
@@ -826,7 +841,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     break;
             }
 
-            log.info("字段清洗预览结果: {}", result);
+            log.warn("单个规则处理结果: {}", result);
             return result;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
@@ -836,19 +851,21 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     /**
-     * 处理数学运算（不使用nodeParse）
+     * 处理数学运算（不使用nodeParse版本）
      */
     private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap) {
         return handleMathOperation(fieldSample, ruleMap, null);
     }
 
     /**
-     * 处理数学运算（支持从nodeParse中获取值）
+     * 支持从nodeParse中获取值的数学运算方法
      */
     private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
         // 字段运算逻辑处理
         String operator = String.valueOf(ruleMap.get("operator"));
         List<Map<String, Object>> operands = (List<Map<String, Object>>) ruleMap.get("operands");
+
+        log.warn("处理数学运算(带nodeParse) - 输入值: {}, 操作符: {}", fieldSample, operator);
 
         if (operands == null || operands.isEmpty()) {
             return fieldSample;
@@ -856,37 +873,48 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         // 计算所有操作数
         List<Double> values = new ArrayList<>();
+        boolean firstFieldProcessed = false;
+        
         for (Map<String, Object> operand : operands) {
             String type = String.valueOf(operand.get("type"));
             Object value = null;
 
             if ("field".equals(type)) {
-                // 字段类型，从nodeParse中获取对应字段的值
-                String fieldName = String.valueOf(operand.get("fieldName"));
                 if (nodeParse != null) {
                     // 从nodeParse中获取实际值
+                    String fieldName = String.valueOf(operand.get("fieldName"));
                     value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
                 } else {
-                    // 如果没有nodeParse，则使用规则中的预设值
-                    value = operand.get("fieldValue");
+                    // 如果是第一个字段类型操作数，使用输入值
+                    if (!firstFieldProcessed) {
+                        value = fieldSample;
+                        firstFieldProcessed = true;
+                        log.warn("使用当前输入值作为第一个字段操作数: {}", value);
+                    } else {
+                        // 其他情况使用规则中的预设值
+                        value = operand.get("fieldValue");
+                        log.warn("使用规则中预设的字段值: {}", value);
+                    }
                 }
             } else if ("constant".equals(type)) {
                 // 常量类型，直接获取值
                 value = operand.get("value");
+                log.warn("使用常量值: {}", value);
             } else if ("expression".equals(type)) {
                 // 表达式类型，递归计算
                 Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
                 value = handleMathOperation("0", expression, nodeParse);
-                // 确保表达式结果被正确处理
                 log.warn("嵌套表达式计算结果: {}", value);
             }
 
             if (value != null) {
                 try {
-                    values.add(Double.parseDouble(String.valueOf(value)));
+                    double numValue = Double.parseDouble(String.valueOf(value));
+                    values.add(numValue);
                 } catch (NumberFormatException e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                            "无法将值转换为数字:  " + value + "错误信息：" + e.getMessage()), e);
+                            "无法将值转换为数字: " + value + "错误信息：" + e.getMessage()), e);
                 }
             }
         }
@@ -898,36 +926,40 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 执行运算
         double result = values.get(0);
         for (int i = 1; i < values.size(); i++) {
+            Double value = values.get(i);
             switch (operator) {
                 case "add":
-                    result += values.get(i);
+                    result += value;
                     break;
                 case "subtract":
-                    result -= values.get(i);
+                    result -= value;
                     break;
                 case "multiply":
-                    result *= values.get(i);
+                    result *= value;
                     break;
                 case "divide":
-                    // 检查除数是否接近零
-                    if (Math.abs(values.get(i)) < 0.000001) {
-                        log.warn("除法运算中遇到除数为0的情况，返回被除数: {}", result);
-                        // 返回被除数作为结果
-                        return String.valueOf(result);
+                    if (value != 0) {
+                        result /= value;
                     }
-                    result /= values.get(i);
                     break;
                 case "percentage":
-                    result = result * values.get(i) / 100;
+                    result = result * value / 100;
                     break;
                 default:
                     break;
             }
         }
 
+        return formatNumberResult(result);
+    }
+
+    /**
+     * 格式化数字结果：如果是整数则返回整数字符串，否则返回浮点数字符串
+     */
+    private String formatNumberResult(Double result) {
         // 检查结果是否为整数
         if (result == Math.floor(result)) {
-            return String.valueOf((int) result);
+            return String.valueOf(result.intValue());
         } else {
             return String.valueOf(result);
         }
@@ -1027,14 +1059,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      */
     private Object handleSubstringOperation(String fieldSample, Map<String, Object> ruleMap) {
         if (StringUtils.isBlank(fieldSample)) {
+            log.warn("截取操作输入为空");
             return fieldSample;
         }
 
+        log.warn("执行截取操作 - 原始输入: '{}'", fieldSample);
+
+        // 默认值
         int startIndex = 0;
         int endIndex = fieldSample.length();
-        // 默认从左侧开始
-        String startLocation = "left";
+        String startLocation = "left"; // 默认从左侧开始
 
+        // 读取配置参数
         if (ruleMap.containsKey("startIndex")) {
             startIndex = Integer.parseInt(String.valueOf(ruleMap.get("startIndex")));
         }
@@ -1048,25 +1084,44 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         int length = fieldSample.length();
-        log.warn("截取操作: 原始值='{}', 长度={}, 开始索引={}, 结束索引={}, 方向={}",
-                fieldSample, length, startIndex, endIndex, startLocation);
+        log.warn("截取参数: 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
+                length, startIndex, endIndex, startLocation);
 
         if ("right".equals(startLocation)) {
             // 从右侧开始计算
+            // 例如，对于字符串"12345"，长度为5
+            // 如果startIndex=1, endIndex=3，那么从右侧算就是取从右侧第1个字符到右侧第3个字符之间的内容
+            // 也就是取index=4到index=2之间的内容，即"345"
             int rightStartIndex = Math.max(0, length - startIndex);
-            int rightEndIndex = Math.min(length, length - (length - endIndex));
-
-            log.warn("右侧截取转换: 开始索引={}, 结束索引={}", rightStartIndex, rightEndIndex);
-
-            startIndex = rightStartIndex;
-            endIndex = rightEndIndex;
+            int rightEndIndex = Math.max(0, length - endIndex);
+            
+            log.warn("右侧起算: 右侧开始索引={} (length - startIndex), 右侧结束索引={} (length - endIndex)",
+                    rightStartIndex, rightEndIndex);
+            
+            // 交换，确保startIndex <= endIndex
+            if (rightStartIndex < rightEndIndex) {
+                int temp = rightStartIndex;
+                rightStartIndex = rightEndIndex;
+                rightEndIndex = temp;
+                log.warn("右侧索引交换: 新右侧开始={}, 新右侧结束={}", rightStartIndex, rightEndIndex);
+            }
+            
+            startIndex = rightEndIndex;
+            endIndex = rightStartIndex;
         }
 
         // 确保索引有效
         startIndex = Math.max(0, Math.min(startIndex, length));
         endIndex = Math.max(startIndex, Math.min(endIndex, length));
+        
+        log.warn("截取的实际索引: startIndex={}, endIndex={}", startIndex, endIndex);
+        
+        // 如果开始和结束索引相同，返回空字符串
+        if (startIndex == endIndex) {
+            log.warn("开始索引等于结束索引，返回空字符串");
+            return "";
+        }
 
-        log.warn("最终截取索引: 开始={}, 结束={}", startIndex, endIndex);
         String result = fieldSample.substring(startIndex, endIndex);
         log.warn("截取结果: '{}'", result);
 
