@@ -168,6 +168,120 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     /**
+     * 新增配置字段样例查询
+     * @param apiCode API编码
+     * @param dataType 数据类型：0上传，1转化
+     * @param acceptType 接口类型：0通用,1定制,2FTP
+     * @return 字段样例列表
+     */
+    @Override
+    public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
+        List<FieldSampleDTO> result = new ArrayList<>();
+        // 参数验证
+        if (StringUtils.isBlank(apiCode)) {
+            throw new BusinessException("API编码不能为空");
+        }
+
+        if (dataType == null) {
+            throw new BusinessException("数据类型不能为空");
+        }
+
+        if (dataType != 0 && dataType != 1) {
+            throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
+        }
+
+        if (acceptType == null) {
+            throw new BusinessException("接口类型不能为空");
+        }
+
+        if (acceptType != 0 && acceptType != 1 && acceptType != 2) {
+            throw new BusinessException("接口类型无效，应为0(通用)、1(定制)或2(FTP)");
+        }
+
+        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
+        configExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType)
+                .andIsDelEqualTo(1);
+        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+        Long generalConfigId = null;
+        if (ObjectUtil.isNotEmpty(configs)) {
+            generalConfigId = configs.get(0).getId();
+        }
+
+        MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+        nodeExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType)
+                .andNodeTypeEqualTo("primitive");
+        List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+        if (nodes == null || nodes.isEmpty()) {
+            log.warn("未找到相关的JSON结构定义：apiCode=" + apiCode + ", dataType="
+                    + dataType + ", acceptType=" + acceptType);
+            return result;
+        } else {
+            for (MarketingJsonNodeParse node : nodes) {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                String nodeName = node.getNodeName();
+                Boolean isMapping = false;
+                Integer isDerived = 0;
+                String fieldName = "";
+                String mappingRule = "";
+                String resultPreview = "";
+                String cleanFields = "";
+
+                String nodeValue = node.getNodeValue();
+                Date createTime = node.getCreateTime();
+                if (StringUtil.isBlank(nodeName)) {
+                    continue;
+                }
+
+                if (ObjectUtil.isNotEmpty(generalConfigId)) {
+                    MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+                    generalRuleConfigExample.createCriteria()
+                            .andApiCodeEqualTo(apiCode)
+                            .andCleanConfigIdEqualTo(generalConfigId)
+                            .andCleanFieldsEqualTo(nodeName)
+                            .andIsDelEqualTo(1);
+                    List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
+                    if (ObjectUtil.isNotEmpty(ruleConfigList)) {
+                        MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.get(0);
+                        cleanFields = ruleConfig.getCleanFields();
+                        isDerived = ruleConfig.getIsDerived();
+                        isMapping = ruleConfig.getIsMapping();
+                        mappingRule = ruleConfig.getMappingRule();
+                        fieldName = ruleConfig.getMappingField();
+                        resultPreview = ruleConfig.getResultPreview();
+                    }
+                }
+
+                dto.setCleanConfigId(generalConfigId);
+                // 设置字段名称
+                dto.setFieldName(cleanFields);
+                // 设置初始值
+                dto.setFieldSample(nodeValue);
+                dto.setFirstUploadTime(createTime);
+                dto.setFieldType(isDerived);
+                dto.setNeedCleaning(isMapping);
+                dto.setMappingRule(mappingRule);
+                dto.setRelatedField(fieldName);
+                if (isMapping) {
+                    dto.setResultPreview(resultPreview);
+                } else {
+                    dto.setResultPreview(nodeValue);
+                }
+
+                // 添加到结果列表
+                result.add(dto);
+            }
+
+        }
+        return result;
+    }
+
+    /**
      * 字段样例查询
      * @param apiCode API编码
      * @param dataType 数据类型：0上传，1转化
@@ -1015,6 +1129,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample.replace(patternField, "");
         } else if ("retain".equals(operator)) {
             // 保留关键字，去除其他内容
+            // todo 如果没有这个关键字需要返回原值
             StringBuilder result = new StringBuilder();
             int index = 0;
             while ((index = fieldSample.indexOf(patternField, index)) >= 0) {
