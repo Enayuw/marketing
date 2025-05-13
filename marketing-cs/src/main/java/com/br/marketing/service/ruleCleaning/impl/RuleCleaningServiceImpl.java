@@ -134,11 +134,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("接口类型不能为空");
         }
 
-//            MarketingUserDetail user = ThreadContextInfo.getUser();
-//            Long userId = Long.valueOf(user.getId());
-//            String userName = user.getUserName();
-//            config.setOptUserId(userId);
-//            config.setOptUserName(userName);
+            MarketingUserDetail user = ThreadContextInfo.getUser();
+            Long userId = Long.valueOf(user.getId());
+            String userName = user.getUserName();
+            config.setOptUserId(userId);
+            config.setOptUserName(userName);
         // 设置默认参数
         config.setIsDel(1);
 
