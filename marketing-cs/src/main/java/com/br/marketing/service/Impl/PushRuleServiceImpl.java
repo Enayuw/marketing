@@ -2375,6 +2375,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         String syncInfoId = "";
         Boolean dbException = Boolean.FALSE;
         Integer dataSourceType = dto.getJsonData().getDataSourceType();
+        if(Objects.isNull(dataSourceType)){
+            dataSourceType =0;
+        }
         log.warn("dataSourceType={}", dataSourceType);
         //region 数据入库
         try {
@@ -2387,9 +2390,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
-            if (!Objects.isNull(dataSourceType)) {
-                syncInfo.setDataSourceType(dataSourceType);
-            }
+            syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
