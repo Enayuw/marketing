@@ -678,7 +678,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 尝试解析为规则列表（支持多规则按顺序执行）
         try {
             JSONArray jsonArray = JSON.parseArray(cleaningRule);
-            if (jsonArray != null && !jsonArray.isEmpty()) {
+            if (jsonArray != null && !jsonArray.isEmpty() && jsonArray.size() > 1) {
                 String result = fieldSample;
                 // 按顺序执行每条规则
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -692,6 +692,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
                 log.info("多规则执行完成，最终结果: {}", result);
                 return result;
+            } else if (jsonArray.size() == 1) {
+                String rule = jsonArray.get(0).toString();
+                return executeSingleRule(fieldSample, rule, null);
             }
         } catch (Exception e) {
             // 解析为规则列表失败，尝试解析为单个规则
