@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper">
-    
+
     <!-- 根据条件查询规则列表 -->
-    <select id="selectRuleList" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" resultMap="com.br.marketing.mapper.MarketingDataCleanGeneralConfigMapperBase.BaseResultMap">
-        SELECT 
-            a.*
-        FROM 
-            b_marketing_data_clean_general_config a
-        WHERE 
-            a.is_del = 1
+    <select id="selectRuleList" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig"
+            resultMap="com.br.marketing.mapper.MarketingDataCleanGeneralConfigMapperBase.BaseResultMap">
+        SELECT
+        a.*
+        FROM
+        b_marketing_data_clean_general_config a
+        WHERE
+        a.is_del = 1
         <if test="apiCode != null and apiCode != ''">
             AND a.api_code = #{apiCode,jdbcType=VARCHAR}
         </if>
@@ -21,15 +22,15 @@
         </if>
         ORDER BY a.update_time DESC
     </select>
-    
+
     <!-- 统计符合条件的规则数量 -->
     <select id="countRuleList" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" resultType="java.lang.Long">
-        SELECT 
-            COUNT(1)
-        FROM 
-            b_marketing_data_clean_general_config a
-        WHERE 
-            a.is_del = 1
+        SELECT
+        COUNT(1)
+        FROM
+        b_marketing_data_clean_general_config a
+        WHERE
+        a.is_del = 1
         <if test="apiCode != null and apiCode != ''">
             AND a.api_code = #{apiCode,jdbcType=VARCHAR}
         </if>
@@ -43,13 +44,13 @@
 
     <select id="getCustomUploadConfig" resultType="com.br.marketing.entity.MarketingDataCleanGeneralConfig">
 
-        select config.* from b_marketing_data_clean_general_config config
-        inner join b_marketing_data_clean_general_rule_config rule on rule.clean_config_id = config.id
-        and data_type = 0 and accept_type =1 and custom_run_status =0
+        select * from b_marketing_data_clean_general_config config
+        where
+        data_type = 0 and accept_type =1 and custom_run_status =0 and is_del = 1
         <if test="apiCode != null">
             and config.api_code = #{apiCode}
         </if>
-        where rule.id is not null order by config.update_time desc limit 1
+        order by config.update_time desc
 
     </select>
 

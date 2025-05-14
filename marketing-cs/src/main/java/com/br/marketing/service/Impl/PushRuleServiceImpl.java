@@ -2450,7 +2450,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      * @param syncInfoId
      */
-    private void sendToRabbitMq(String apiCode, String syncInfoId,Integer dataSourceType) {
+    private void sendToRabbitMq(String apiCode, String syncInfoId, Integer dataSourceType) {
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
             String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
             String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
@@ -2464,11 +2464,22 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (1 == dataSourceType) {
             return;
         }
-        MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
-        mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
-        mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
-        mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+        try {
+            //一个apiCode，一天只发送一条消息进行json结构解析
+            String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString()).concat(":")
+                    .concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString()).concat(":").concat(LocalDate.now().toString());
+            boolean exists = redisChgService.exists(redisKey);
+            if (exists) {
+                return;
+            }
+            MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+            mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
+            mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+            mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(), "上传数据清洗-发送JSON结构解析消息异常"), e);
+        }
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.br.marketing.common.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -113,7 +112,7 @@ public class JsonParseUtils {
 
     /**
      * 解析JSON结构，将数组对象解析为多个新的JSON结构
-     * @param jsonStr 原始JSON字符串
+     * @param originalJson 原始JSON字符串
      * @param arrayPath 数组在JSON中的路径，例如 "data.items"
      * @return 解析后的多个JSON对象集合
      */
@@ -172,6 +171,105 @@ public class JsonParseUtils {
         }
 
         return resultList;
+    }
+
+
+    /**
+     * 解析JSON结构，将数组对象解析为多个新的JSON结构
+     * 该方法支持直接指定数组名称，会自动在JSON结构中查找该数组
+     *
+     * @param originalJson 原始JSON对象
+     * @param arrayName 数组名称，例如 "items"（无需指定完整路径如"data.items"）
+     * @return 解析后的多个JSON对象集合
+     */
+    public static List<JSONObject> parseJsonArrayByName(JSONObject originalJson, String arrayName) {
+        List<JSONObject> resultList = new ArrayList<>();
+
+        try {
+            // 递归查找指定名称的数组
+            Object arrayObj = findFirstValueByKey(originalJson, arrayName);
+            if (!(arrayObj instanceof JSONArray)) {
+                return resultList; // 未找到数组或找到的不是数组类型，返回空列表
+            }
+
+            JSONArray dataArray = (JSONArray) arrayObj;
+            if (dataArray.isEmpty()) {
+                return resultList; // 数组为空，返回空列表
+            }
+
+            // 遍历数组中的每个元素
+            for (int i = 0; i < dataArray.size(); i++) {
+                // 获取数组中的元素，通常是JSONObject
+                Object item = dataArray.get(i);
+                if (item instanceof JSONObject) {
+                    // 创建新的JSON结构
+                    JSONObject newJson = new JSONObject();
+
+                    // 将原始JSON的基本信息复制到新JSON中
+                    // 复制所有属性(排除可能包含该数组的属性)
+                    for (String key : originalJson.keySet()) {
+                        Object value = originalJson.get(key);
+                        // 如果当前属性包含目标数组，则跳过
+                        if (!(containsArray(value, arrayName))) {
+                            newJson.put(key, value);
+                        }
+                    }
+
+                    // 在新JSON中添加数组元素的内容，使用原始数组的键名
+                    newJson.put(arrayName, item);
+
+                    // 将新的JSON对象添加到结果列表
+                    resultList.add(newJson);
+                }
+            }
+        } catch (Exception e) {
+            // 日志记录异常
+            log.error("根据数组名称解析JSON出错: {}", e.getMessage(), e);
+        }
+
+        return resultList;
+    }
+
+    /**
+     * 检查JSON对象或数组是否包含指定名称的数组
+     *
+     * @param obj JSON对象或数组
+     * @param arrayName 要查找的数组名称
+     * @return 是否包含指定数组
+     */
+    private static boolean containsArray(Object obj, String arrayName) {
+        if (obj instanceof JSONObject) {
+            JSONObject jsonObj = (JSONObject) obj;
+
+            // 检查当前对象是否包含目标数组
+            if (jsonObj.containsKey(arrayName) && jsonObj.get(arrayName) instanceof JSONArray) {
+                return true;
+            }
+
+            // 递归检查所有值
+            for (String key : jsonObj.keySet()) {
+                Object value = jsonObj.get(key);
+                if (value instanceof JSONObject || value instanceof JSONArray) {
+                    if (containsArray(value, arrayName)) {
+                        return true;
+                    }
+                }
+            }
+        } else if (obj instanceof JSONArray) {
+            JSONArray jsonArray = (JSONArray) obj;
+
+            // 递归检查数组中的每个元素
+            for (int i = 0; i < jsonArray.size(); i++) {
+                Object item = jsonArray.get(i);
+                if (item instanceof JSONObject || item instanceof JSONArray) {
+                    if (containsArray(item, arrayName)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
 }

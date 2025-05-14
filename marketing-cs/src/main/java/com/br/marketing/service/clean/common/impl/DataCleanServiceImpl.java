@@ -7,10 +7,12 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
@@ -26,6 +28,7 @@ import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -100,6 +103,13 @@ public class DataCleanServiceImpl implements DataCleanService {
 
             } else {
                 log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
+            }
+            //存入当日记录
+            String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode).concat(":").concat(mqDataJsonParse.getDataType().toString()).concat(":")
+                    .concat(mqDataJsonParse.getAcceptType().toString()).concat(":").concat(LocalDate.now().toString());
+            boolean exists = redisChgService.exists(redisKey);
+            if (!exists) {
+                redisChgService.setnx(redisKey, apiCode, TimeUtils.getRemainSecondsOneDay(new Date()));
             }
         } catch (Exception e) {
             log.error("客户数据JSON结构解析异常 mq:{} 失败 -- ", message, e);
@@ -301,7 +311,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 indexId = pageList.get(pageList.size() - 1).getId();
                 modifyCorePoolSize(pool);
                 pageList.forEach(originalData ->
-                        pool.submit(() ->processData(originalData, ruleConfigList))
+                        pool.submit(() -> processData(originalData, ruleConfigList))
                 );
             }
         });
@@ -323,14 +333,16 @@ public class DataCleanServiceImpl implements DataCleanService {
         try {
             JSONObject jsonData = JSON.parseObject(originalData.getJsonData());
             String apiCode = originalData.getApiCode();
-            String levelField = null;
-            if (!CollectionUtils.isEmpty(marketingCommonConfig.getCustomUploadCleanLevelField())) {
-                levelField = marketingCommonConfig.getCustomUploadCleanLevelField().get(apiCode);
-            }
             //层级字段处理
+            String levelField = null;
+            List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("dataItems")).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(dataItemList)) {
+                levelField = dataItemList.get(0).getMappingField();
+                ruleConfigList.removeIf(config -> config.getMappingField().equals("dataItems"));
+            }
             List<JSONObject> jsonObjectList = new ArrayList<>();
             if (StringUtils.isNotEmpty(levelField)) {
-                jsonObjectList = JsonParseUtils.parseJsonArrayToMultipleObjects(jsonData, levelField);
+                jsonObjectList = JsonParseUtils.parseJsonArrayByName(jsonData, levelField);
             } else {
                 jsonObjectList.add(jsonData);
             }
