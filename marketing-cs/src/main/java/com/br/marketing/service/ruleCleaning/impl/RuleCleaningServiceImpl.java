@@ -205,9 +205,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andAcceptTypeEqualTo(acceptType)
                 .andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
-        Long generalConfigId = null;
         if (ObjectUtil.isNotEmpty(configs)) {
-            generalConfigId = configs.get(0).getId();
+            throw new BusinessException("该用户清洗配置已存在");
         }
 
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
@@ -225,12 +224,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (MarketingJsonNodeParse node : nodes) {
                 FieldSampleDTO dto = new FieldSampleDTO();
                 String nodeName = node.getNodeName();
-                Boolean isMapping = false;
-                Integer isDerived = 0;
-                String fieldName = "";
-                String mappingRule = "";
-                String resultPreview = "";
-                String cleanFields = "";
 
                 String nodeValue = node.getNodeValue();
                 Date createTime = node.getCreateTime();
@@ -238,40 +231,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     continue;
                 }
 
-                if (ObjectUtil.isNotEmpty(generalConfigId)) {
-                    MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-                    generalRuleConfigExample.createCriteria()
-                            .andApiCodeEqualTo(apiCode)
-                            .andCleanConfigIdEqualTo(generalConfigId)
-                            .andCleanFieldsEqualTo(nodeName)
-                            .andIsDelEqualTo(1);
-                    List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
-                    if (ObjectUtil.isNotEmpty(ruleConfigList)) {
-                        MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.get(0);
-                        cleanFields = ruleConfig.getCleanFields();
-                        isDerived = ruleConfig.getIsDerived();
-                        isMapping = ruleConfig.getIsMapping();
-                        mappingRule = ruleConfig.getMappingRule();
-                        fieldName = ruleConfig.getMappingField();
-                        resultPreview = ruleConfig.getResultPreview();
-                    }
-                }
-
-                dto.setCleanConfigId(generalConfigId);
+                dto.setCleanConfigId(null);
                 // 设置字段名称
-                dto.setFieldName(cleanFields);
+                dto.setFieldName(nodeName);
                 // 设置初始值
                 dto.setFieldSample(nodeValue);
                 dto.setFirstUploadTime(createTime);
-                dto.setFieldType(isDerived);
-                dto.setNeedCleaning(isMapping);
-                dto.setMappingRule(mappingRule);
-                dto.setRelatedField(fieldName);
-                if (isMapping) {
-                    dto.setResultPreview(resultPreview);
-                } else {
-                    dto.setResultPreview(nodeValue);
-                }
+                dto.setFieldType(0);
+                dto.setNeedCleaning(false);
+                dto.setMappingRule("");
+                dto.setRelatedField("");
+                dto.setResultPreview(nodeValue);
 
                 // 添加到结果列表
                 result.add(dto);
@@ -311,7 +281,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (acceptType != 0 && acceptType != 1 && acceptType != 2) {
             throw new BusinessException("接口类型无效，应为0(通用)、1(定制)或2(FTP)");
         }
-
 
         // 1. 首先验证API编码配置是否存在
         MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
