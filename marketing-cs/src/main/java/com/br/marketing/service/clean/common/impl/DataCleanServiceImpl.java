@@ -3,6 +3,7 @@ package com.br.marketing.service.clean.common.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
@@ -245,7 +246,10 @@ public class DataCleanServiceImpl implements DataCleanService {
         if (!CollectionUtils.isEmpty(ruleMap)) {
             Map<String, MarketingDataCleanGeneralRuleConfig> resultMap = new HashMap<>();
             ruleMap.forEach((key, value) -> {
-                resultMap.put(key, (MarketingDataCleanGeneralRuleConfig) value);
+                MarketingDataCleanGeneralRuleConfig ruleConfig = JSONObject.parseObject((String) value
+                        , new TypeReference<MarketingDataCleanGeneralRuleConfig>() {
+                        });
+                resultMap.put(key, ruleConfig);
             });
             return resultMap;
         }
@@ -297,7 +301,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 indexId = pageList.get(pageList.size() - 1).getId();
                 modifyCorePoolSize(pool);
                 pageList.forEach(originalData ->
-                        pool.submit(() -> processData(originalData, ruleConfigList))
+                        pool.submit(() ->processData(originalData, ruleConfigList))
                 );
             }
         });
