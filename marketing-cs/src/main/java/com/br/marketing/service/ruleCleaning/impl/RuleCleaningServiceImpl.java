@@ -323,7 +323,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
 
         if (configs == null || configs.isEmpty()) {
-//            throw new BusinessException("API编码配置不存在：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
             return result;
         }
         MarketingDataCleanGeneralConfig generalConfig = configs.get(0);
@@ -335,7 +334,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
         if (ruleConfigList == null || ruleConfigList.isEmpty()) {
-//            throw new BusinessException("未找到相关的字段清洗配置：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
             return result;
         } else {
             for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
@@ -496,37 +494,31 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      */
     @Override
     public String getpreviewField(String apiCode, Integer dataType, Integer acceptType) {
-
-        try {
-            // 参数验证
-            if (StringUtils.isBlank(apiCode)) {
-                throw new BusinessException("API编码不能为空");
-            }
-            
-            if (dataType == null) {
-                throw new BusinessException("数据类型不能为空");
-            }
-            
-            if (acceptType == null) {
-                throw new BusinessException("接口类型不能为空");
-            }
-
-            MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
-            nodeExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode)
-                    .andDataTypeEqualTo(dataType)
-                    .andAcceptTypeEqualTo(acceptType)
-                    .andLevelEqualTo(0);
-            List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
-            if (nodes == null || nodes.isEmpty()) {
-                throw new BusinessException("未找到相关的父节点JSON结构定义：apiCode=" + apiCode + ", dataType=" + dataType + ", acceptType=" + acceptType);
-            }
-            MarketingJsonNodeParse node = nodes.get(0);
-            return node.getNodeValue();
-
-        } catch (Exception e) {
-            throw new BusinessException("获取字段样例失败: " + e.getMessage());
+        // 参数验证
+        if (StringUtils.isBlank(apiCode)) {
+            throw new BusinessException("API编码不能为空");
         }
+
+        if (dataType == null) {
+            throw new BusinessException("数据类型不能为空");
+        }
+
+        if (acceptType == null) {
+            throw new BusinessException("接口类型不能为空");
+        }
+
+        MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+        nodeExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType)
+                .andLevelEqualTo(0);
+        List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+        if (nodes == null || nodes.isEmpty()) {
+            return "";
+        }
+        MarketingJsonNodeParse node = nodes.get(0);
+        return node.getNodeValue();
     }
 
     /**
