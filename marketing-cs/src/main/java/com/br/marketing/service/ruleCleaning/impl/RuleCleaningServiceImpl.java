@@ -858,7 +858,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     return firstValueByKey;
                 }
                 
-                Object result = executeSingleRule(firstValueByKey, mappingRule, nodeParse);
+                Object result = previewFieldCleaning(firstValueByKey, mappingRule);
                 return result;
             }
             
