@@ -625,6 +625,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         Long reavedPackageId = getReavedPackageIdFromSpeed(sourceType);
         switch (sourceType) {
             case "D":
+                Long reavedDelayPackageId = getReavedPackageIdFromSpeed("T");
                 futures.addAll(batchHandleBusinessAsync(nonFinancialDatas,
                         (List<WubaCollidingData> data) -> delayToNonFinancialBusiness(data, apiCode, batchNo, taskId),
                         "延期数据转为非金融场景，并保存到清洗表"));
@@ -632,7 +633,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                         (List<WubaCollidingData> data) -> delayToFinancialBusiness(data, apiCode, batchNo, taskId),
                         "延期数据转为金融场景，并保存到清洗表"));
                 futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
-                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteDelayAndSaveReavedIntoRob(data, apiCode, reavedPackageId),
+                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteDelayAndSaveReavedIntoRob(data, apiCode, reavedDelayPackageId),
                         "延期数据撞回status=-2，保存到非金融-2包"));
                 futures.addAll(batchHandleFalseBusinessAsync(otherFalseCells,
                         (List<String> data) -> wuBaCollidingDataBusinessService.deleteDelayAndSaveRob(data, apiCode), "延期场景未撞得业务"));
