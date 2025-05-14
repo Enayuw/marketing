@@ -78,6 +78,8 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     WubaCollidingDataLogMapper wubaCollidingDataLogMapper;
     @Resource
     WubaCollidingConfigMapper wubaCollidingConfigMapper;
+    @Resource
+    WuBaCollidingDataSynchronismService wuBaCollidingDataSynchronismService;
     @Autowired
     RedisChgService redisChgService;
     private final static int PARTATION_SIZE = 50;
@@ -260,10 +262,11 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
      * @return
      */
     private Pair<WubaCollidingConfig, List<WubaCollidingData>> getCollidingDatas(String apiCode, Integer limit) {
-        List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
-        String highValueFileNames =
-                CollectionUtils.isEmpty(highValueFiles) ? "\"\"" :
-                        Joiner.on(",").join(highValueFiles.stream().map(file -> "\"" + file + "\"").collect(Collectors.toList()));
+        List<Long> highValueIdList = wuBaCollidingDataSynchronismService.getHighValueFileIds(apiCode);
+        String highValueIds =
+                CollectionUtils.isEmpty(highValueIdList) ? "\"\"" :
+                        Joiner.on(",").join(highValueIdList.stream().map(id -> "\"" + id + "\"").collect(Collectors.toList()));
+        log.warn("58提交撞库，高价值文件id：{}", highValueIds);
         List<WubaCollidingConfig> configs = wubaCollidingConfigMapper.queryWuBaCollidingConfigByPriority();
         if (CollectionUtils.isEmpty(configs)) {
             return new Pair<>(null, null);
@@ -271,7 +274,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
 
         for (WubaCollidingConfig config : configs) {
             String configSql = config.getQuerySql();
-            String replaceSql = configSql.replace("#{apiCode}", apiCode).replace("#{fileNames}", highValueFileNames);
+            String replaceSql = configSql.replace("#{apiCode}", "\"" + apiCode + "\"").replace("#{highValueIds}", highValueIds);
             String completeSql = replaceSql.concat(" limit " + limit);
             List<WubaCollidingData> collidingData = wubaCollidingConfigMapper.queryCollidingDataByConfigSql(completeSql);
             if (CollectionUtils.isEmpty(collidingData)) {
