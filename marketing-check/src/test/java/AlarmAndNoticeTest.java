@@ -7,10 +7,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.ScorePushCustomerConfig;
-import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -25,6 +22,7 @@ import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
+import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
@@ -778,5 +776,24 @@ public class AlarmAndNoticeTest {
         scorePushCustomerConfig3.setResourceConfig("{\"pushCustomerDataPageNumber\":50}");
         Integer pushCustomerResource3 = pushCustomerService.getPushCustomerResource(scorePushCustomerConfig3, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
         System.out.println("测试3"+pushCustomerResource3);
+    }
+
+
+    @Resource
+    private RuleCleaningService ruleCleaningService;
+
+    @Test
+    public void testRuleCleaning(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject = JSONObject.parseObject("{\"batchNo\":\"E000932_6635568777882767361\",\"retryCall\":\"Y\"," +
+                "\"templateNo\":\"睡眠借条-原CASTR0321218\",\"callTimeRange\":\"09:00-20:00\",\"dataList\":[{\"gender\":\"M\",\"surname\":\"王\",\"phoneNoMd5\":\"c7a25c24e9cf98ea7caa11756a1270b3\",\"serialNo\":\"RB6635584322132770817\"},{\"gender\":\"M\",\"surname\":\"孙\",\"phoneNoMd5\":\"80a8ee96150bf49c953a3fed83a1abbe\",\"serialNo\":\"RB6635584322132770818\"},{\"gender\":\"M\",\"surname\":\"姚\",\"phoneNoMd5\":\"bec08a8e0091922f3be08d6f9a6dec60\",\"serialNo\":\"RB6635584322132770819\"},{\"gender\":\"M\",\"surname\":\"李\",\"phoneNoMd5\":\"942ef6b8f1fd49b58338b5270d23f479\",\"serialNo\":\"RB6635584322132770820\"},{\"gender\":\"F\",\"surname\":\"李\",\"phoneNoMd5\":\"ad9985f249da68a2a59dcfcc998fdf91\",\"serialNo\":\"RB6635584322132770821\"},{\"gender\":\"F\",\"surname\":\"马\",\"phoneNoMd5\":\"dc54284c3b13c4ab711ade9232b10667\",\"serialNo\":\"RB6635584322132770822\"}],\"flowNo\":\"RF6635584322132770816\",\"sendMsg\":\"N\",\"callType\":\"AI\",\"operateScene\":\"loan\"}");
+        MarketingDataCleanGeneralRuleConfig ruleConfig = new MarketingDataCleanGeneralRuleConfig();
+        ruleConfig.setIsDel(1);
+        ruleConfig.setIsMapping(true);
+        ruleConfig.setCleanFields("callType");
+        ruleConfig.setMappingField("userType");
+        ruleConfig.setMappingRule("[{\"order\":1,\"operateType\":\"string\",\"expression\":{\"operator\":\"default\",\"defaultValue\":\"1\"}}]");
+        Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+        System.err.println(result);
     }
 }
