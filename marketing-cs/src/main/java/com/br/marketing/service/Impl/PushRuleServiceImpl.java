@@ -3356,14 +3356,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.sendToUniversalTransferQueue(mrpMqFact);
             }
         }
-
-        if (!CollectionUtils.isEmpty(mrpUniversalProcessApiCode) && mrpUniversalProcessApiCode.contains(transferInfo.getApiCode())) {
-            MrpMqFact mrpMqFact = new MrpMqFact();
-            mrpMqFact.setSourceId(id);
-            mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-            mrpMqFact.setApiCode(transferInfo.getApiCode());
-            producter.sendToUniversalTransferQueue(mrpMqFact);
-        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 

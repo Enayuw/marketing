@@ -660,7 +660,7 @@
 
     <job:simple id="ValidPeriodResendJob"
                 class="com.br.marketing.check.job.ValidPeriodResendJob"
-                cron="0 */30 * ? * *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="有效期任务变更重推任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

@@ -24,7 +24,7 @@ public class MarketingTcyrSync {
     private String userKey;
 
     /**
-     * 终端 0-APP；1-小程序
+     * 终端 0-APP；1-小程序 -1:空值 -2:特殊字符串解析异常
      */
     private Integer terminal;
 
@@ -39,7 +39,7 @@ public class MarketingTcyrSync {
     private Integer isMatch;
 
     /**
-     * 清洗状态 0-待清洗；1-清洗完成2:上传清洗失败 3:推送清洗失败
+     * 清洗状态 0-待清洗；1-清洗完成2:上传清洗失败 3:推送清洗失败 4:整体推送异常
      */
     private Integer isClean;
 
@@ -57,6 +57,11 @@ public class MarketingTcyrSync {
      *  0:异常数据 1:正常数据
      */
     private Integer status;
+
+    /**
+     * 删除状态 1-可用 9-删除
+     */
+    private Integer isDel;
 
     public Long getId() {
         return id;
@@ -144,5 +149,13 @@ public class MarketingTcyrSync {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
     }
 }

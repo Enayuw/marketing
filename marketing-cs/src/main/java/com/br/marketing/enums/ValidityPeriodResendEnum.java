@@ -24,7 +24,10 @@ public enum ValidityPeriodResendEnum {
     UNIVERSAL_TRANSFER_PROCESS_OFFSET_DAY_RESEND(2),
 
     CUSTOMIZE_TRANSFER_PROCESS_RESEND(3),
-
+    /**
+     * 重推通用转化数据至规则编排通用分发队列
+     */
+    MRP_UNIVERSAL_TRANSFER_PROCESS_RESEND(4)
     ;
 
     private final Integer code;

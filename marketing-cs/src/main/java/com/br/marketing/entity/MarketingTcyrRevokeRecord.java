@@ -2,9 +2,9 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingTcyrRevokeRecord{
+public class MarketingTcyrRevokeRecord {
     /**
-     * id
+     * 
      */
     private Long id;
 
@@ -37,6 +37,16 @@ public class MarketingTcyrRevokeRecord{
      * 错误信息
      */
     private String msg;
+
+    /**
+     * 清洗状态 0-待清洗；1-清洗完成2:转化清洗失败 3:推送清洗失败 4:整体推送异常
+     */
+    private Integer isClean;
+
+    /**
+     * 删除状态 1-可用 9-删除
+     */
+    private Integer isDel;
 
     /**
      * 创建时间
@@ -102,6 +112,22 @@ public class MarketingTcyrRevokeRecord{
 
     public void setMsg(String msg) {
         this.msg = msg == null ? null : msg.trim();
+    }
+
+    public Integer getIsClean() {
+        return isClean;
+    }
+
+    public void setIsClean(Integer isClean) {
+        this.isClean = isClean;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
     }
 
     public Date getCreateTime() {

@@ -59,9 +59,7 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
      *      <3>下载文件
      *      <4>判断匹配
      *      <5>基础数据入库
-     *      <6> TODO 上传SFTP服务器
-     *      <7>修改batchNo 对应记录为MATTCH_COMPELTED
-     *
+     *      <7>修改batchNo 对应记录为down_status:2 下载完成
      *      downStatus: 0未下载 1下载中 2下载完成
      * @param apiCode
      */

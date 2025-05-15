@@ -2920,6 +2920,11 @@ public class MarketingCommonConfig {
     private Integer  tcPageSearchSize;
 
     /**
+     * 同城易融-撤销清洗job每页查询条数
+     */
+    private Integer tcRevokePageSize;
+
+    /**
      * 58查询非金融延期zip接口参数配置
      */
     private Map<String, String> wuBaQueryDelayZipResultUrlConfig;

@@ -18,9 +18,12 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -109,12 +112,12 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                     }).collect(Collectors.toList());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(dtos);
         } catch (Exception e) {
-            log.warn("通用上传清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
+            log.warn("通用转化清洗异常，apiCode={}，bizAction={}，e={}", apiCode, bizAction, e);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("上传清洗流程出现异常");
         }
     }
 
-    private static Map<String, Field> getStringFieldMap(List<MarketingDataCleanConfig> configs) throws NoSuchFieldException {
+    private static <T> Map<String, Field> getStringFieldMap(List<MarketingDataCleanConfig> configs, Class<T> dtoClass) throws NoSuchFieldException {
         //1.基础字段集合
         Set<String> basicTargetNames = configs.stream()
                 .filter(config -> config.getTargetType() == TARGET_TYPE_BASIC)
@@ -122,7 +125,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
                 .collect(Collectors.toSet());
         Map<String, Field> fieldMap = new HashMap<>();
         for (String basicTargetName : basicTargetNames) {
-            Field declaredField = MarketingPreUserDetailDTO.class.getDeclaredField(basicTargetName);
+            Field declaredField = dtoClass.getDeclaredField(basicTargetName);
             declaredField.setAccessible(true);
             fieldMap.put(basicTargetName, declaredField);
         }
@@ -130,7 +133,7 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
     }
 
     private <T> List<Pair<T, JSONObject>> processData(List<JSONObject> data, List<MarketingDataCleanConfig> configs, Class<T> dtoClass) throws NoSuchFieldException {
-        Map<String, Field> fieldMap = getStringFieldMap(configs);
+        Map<String, Field> fieldMap = getStringFieldMap(configs, dtoClass);
         Map<String, List<MarketingDataCleanConfig>> configsGroup = configs.stream()
                 .collect(Collectors.groupingBy(MarketingDataCleanConfig::getTargetName));
         return data.parallelStream()
@@ -232,15 +235,23 @@ public class GeneralDataCleanServiceImpl implements GeneralDataCleanService {
         if(fieldValue == null) {
             return null;
         }
-        if (StringUtils.isNotBlank(config.getConversion())) {
-            JSONObject conversion = JSONObject.parseObject(config.getConversion());
-            return conversion.get(fieldValue.toString());
-        }
-        if (StringUtils.isNotBlank(config.getDateTransformPattern())) {
-            return TimeUtils.getFormatterValue(fieldValue.toString(), config.getDateTransformPattern());
-        }
-        if (config.getDecimalReserveType() != null) {
-
+        try {
+            if (StringUtils.isNotBlank(config.getConversion())) {
+                JSONObject conversion = JSONObject.parseObject(config.getConversion());
+                return conversion.get(fieldValue.toString());
+            }
+            if (StringUtils.isNotBlank(config.getDateTransformPattern())) {
+                return TimeUtils.getFormatterValue(fieldValue.toString(), config.getDateTransformPattern());
+            }
+            if (config.getDecimalReserveType() != null && config.getDecimalReservePrecision() != null) {
+                BigDecimal decimalValue = new BigDecimal(fieldValue.toString());
+                BigDecimal decimalUnitRatio = config.getDecimalUnitRatio() == null
+                        ? new BigDecimal(1) : new BigDecimal(config.getDecimalUnitRatio());
+                return decimalValue.multiply(decimalUnitRatio)
+                        .setScale(config.getDecimalReservePrecision(), RoundingMode.valueOf(config.getDecimalReserveType()));
+            }
+        } catch(Exception e){
+            log.warn("通用清洗赋值格式化异常，配置id={}", config.getId(), e);
         }
         return fieldValue;
     }
