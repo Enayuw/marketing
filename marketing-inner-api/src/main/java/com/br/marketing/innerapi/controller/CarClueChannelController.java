@@ -7,9 +7,9 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueChannelConfigDTO;
 import com.br.marketing.dto.CarClueChannelDTO;
-import com.br.marketing.entity.CarClueManageConfig;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.carclue.web.CarClueChannelService;
+import com.br.marketing.vo.CarClueChannelConfigVO;
 import com.br.marketing.vo.CarClueChannelVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -71,7 +71,7 @@ public class CarClueChannelController {
     public ApiResult<Boolean> updateInitMapping(@RequestParam(value = "scope", required = false) List<String> scope,
                                                 @RequestPart(value = "multipartFile", required = false) MultipartFile multipartFile) {
         try {
-            return carClueChannelService.updateInitMapping(scope,multipartFile);
+            return carClueChannelService.updateInitMapping(scope, multipartFile);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "判断是否存在待清洗的文档记录接口错误！错误信息：" + ex.getMessage()), ex);
@@ -82,12 +82,14 @@ public class CarClueChannelController {
     @PostMapping("/getChannelConfig")
     @ApiOperation(value = "获取渠道商配置", notes = "获取渠道商配置")
     @AddDataAuthBusiness
-    public ApiResult<List<CarClueManageConfig>> getChannelConfig() {
-        List<CarClueManageConfig> channelConfig = carClueChannelService.getChannelConfig();
-        if (channelConfig != null) {
-            return new ApiResult<List<CarClueManageConfig>>().success(channelConfig);
+    public ApiResult<CarClueChannelConfigVO> getChannelConfig() {
+        try {
+            return carClueChannelService.getChannelConfig();
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "获取渠道商配置接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<CarClueChannelConfigVO>().fail();
         }
-        return new ApiResult<List<CarClueManageConfig>>().fail(ServiceResultEnum.FAILED);
     }
 
     @ApiOperation(value = "新增修改渠道商配置", notes = "新增修改渠道商配置")

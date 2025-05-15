@@ -23,6 +23,7 @@ import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.carclue.clueenums.ClueFileRecordingStatusEnum;
 import com.br.marketing.service.carclue.web.CarClueChannelService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.CarClueChannelConfigVO;
 import com.br.marketing.vo.CarClueChannelVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -96,10 +97,29 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
     }
 
     @Override
-    public List<CarClueManageConfig> getChannelConfig() {
+    public ApiResult<CarClueChannelConfigVO> getChannelConfig() {
+
         CarClueManageConfigExample carClueManageConfigExample = new CarClueManageConfigExample();
         carClueManageConfigExample.createCriteria().andIsDelEqualTo(1);
-        return carClueManageConfigMapper.selectByExample(carClueManageConfigExample);
+        List<CarClueManageConfig> carClueManageConfigs = carClueManageConfigMapper.selectByExample(carClueManageConfigExample);
+
+        if (CollectionUtils.isEmpty(carClueManageConfigs)) {
+            return new ApiResult<CarClueChannelConfigVO>().fail("渠道商配置为空！");
+        }
+        CarClueManageConfig carClueManageConfig = carClueManageConfigs.get(0);
+
+        CarClueChannelConfigVO carClueChannelConfigVO = new CarClueChannelConfigVO();
+        carClueChannelConfigVO.setId(carClueManageConfig.getId());
+        carClueChannelConfigVO.setPullDate(carClueManageConfig.getPullDate());
+        carClueChannelConfigVO.setIntentionConfig(JSONObject.parseObject(carClueManageConfig.getIntentionConfig()));
+        carClueChannelConfigVO.setCleanType(carClueManageConfig.getCleanType());
+        carClueChannelConfigVO.setPullType(carClueManageConfig.getPullType());
+        carClueChannelConfigVO.setOptUserId(carClueManageConfig.getOptUserId());
+        carClueChannelConfigVO.setOptUserName(carClueManageConfig.getOptUserName());
+        carClueChannelConfigVO.setCreateTime(carClueManageConfig.getCreateTime());
+        carClueChannelConfigVO.setUpdateTime(carClueManageConfig.getUpdateTime());
+        carClueChannelConfigVO.setIsDel(carClueManageConfig.getIsDel());
+        return new ApiResult<CarClueChannelConfigVO>().success(carClueChannelConfigVO);
     }
 
     @Override
@@ -109,7 +129,7 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
         }
         CarClueManageConfig carClueManageConfig = new CarClueManageConfig();
         carClueManageConfig.setPullDate(dto.getPullDate());
-        carClueManageConfig.setIntentionConfig(dto.getIntentionConfig());
+        carClueManageConfig.setIntentionConfig(JSONObject.toJSONString(dto.getIntentionConfig()));
         carClueManageConfig.setCleanType(dto.getCleanType());
         carClueManageConfig.setPullType(dto.getPullType());
         carClueManageConfig.setOptUserId(dto.getOptUserId());

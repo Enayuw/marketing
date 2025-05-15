@@ -4,7 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueChannelConfigDTO;
 import com.br.marketing.dto.CarClueChannelDTO;
-import com.br.marketing.entity.CarClueManageConfig;
+import com.br.marketing.vo.CarClueChannelConfigVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public interface CarClueChannelService {
 
     ApiResult<Boolean> updateInitMapping(List<String> scope, MultipartFile multipartFile);
 
-    List<CarClueManageConfig> getChannelConfig();
+    ApiResult<CarClueChannelConfigVO> getChannelConfig();
 
     ApiResult<Boolean> updateChannelConfig(CarClueChannelConfigDTO dto);
 
