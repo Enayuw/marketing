@@ -2,6 +2,7 @@ package com.br.marketing.rule.ai;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -9,12 +10,14 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@Slf4j
 public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Autowired
@@ -77,6 +80,8 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         }
         buildJson(jsonObject, syncUser);
         pushData.setVariables(jsonObject);
+
+        log.warn("AI自动化推决策_操作类型4,apiCode:{}", apiCode);
         return pushData;
     }
 
@@ -118,10 +123,25 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        cusNameOfJo(syncUser.getName(), jsonObject);
         return jsonObject;
     }
 
     private String emptyDefault(String value) {
         return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
     }
+
+    private void cusNameOfJo(String name, JSONObject jo) {
+        if (StringUtils.isBlank(name)) {
+            return;
+        }
+        if (ObjectUtil.isEmpty(jo)) {
+            return;
+        }
+        String cusName = jo.getString("cusName");
+        if (StringUtils.isBlank(cusName)) {
+            jo.put("cusName", BrCipherMaker.getInstance().decode(name));
+        }
+    }
 }
+
