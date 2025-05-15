@@ -20,21 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MarketingCommonConfig {
 
     /**
-     * 线程池动态配置服务端URL
-     */
-    private String tpDynamicServiceUrl;
-
-    /**
-     * 线程池动态配置停用开关(true:停用（不可恢复）)
-     */
-    private Boolean tpDynamicServiceDisableSwitch;
-
-    /**
-     * 线程池动态配置暂停开关(true:暂停（可恢复）)
-     */
-    private Boolean tpDynamicServicePauseSwitch;
-
-    /**
      * 推送客服
      */
     private List<String> apiCodeOfpushCustomer;
@@ -2405,6 +2390,13 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, String> biReportScenePrefixConfig;
 
+    /**
+     * 你我贷转化规则过滤配置
+     */
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+
+    /**
+
      /**
      * 携程促活数据处理线程数
      */
@@ -2932,5 +2924,24 @@ public class MarketingCommonConfig {
      */
     private Integer tcRevokePageSize;
 
+    /**
+     * 58查询非金融延期zip接口参数配置
+     */
+    private Map<String, String> wuBaQueryDelayZipResultUrlConfig;
+
+    /**
+     * 58查询延期撞库数据-文件路径
+     */
+    private String wuBaQueryDelayZipResultFilePath;
+
+    /**
+     * 58查询非金融延期zip文件表头配置
+     */
+    private Map<String, Integer> wuBaQueryDelayZipHeaderConfig;
+
+    /**
+     * 58查询延期撞库数据线程
+     */
+    private Integer wuBaQueryDelayZipThreadNum;
 }
 

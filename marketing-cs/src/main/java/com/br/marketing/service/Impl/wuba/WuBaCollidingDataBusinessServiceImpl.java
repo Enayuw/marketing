@@ -5,6 +5,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.WubaCollidingDataFront;
 import com.br.marketing.entity.WubaCollidingDataFrontExample;
+import com.br.marketing.mapper.WubaCollidingDataDelayLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
@@ -35,6 +36,8 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     WubaCollidingDataLoopCycleMapper wubaCollidingDataLoopCycleMapper;
     @Resource
     WubaCollidingDataSecondLoopCycleMapper wubaCollidingDataSecondLoopCycleMapper;
+    @Resource
+    WubaCollidingDataDelayLoopCycleMapper wubaCollidingDataDelayLoopCycleMapper;
     @Resource
     WuBaCollidingDataSynchronismService wuBaCollidingDataSynchronismService;
 
@@ -74,6 +77,18 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
         wubaCollidingDataSecondLoopCycleMapper.batchDeleteByCell(cells, apiCode);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void saveSecondLoopAnddeleteDelay(List<String> cells, String apiCode) {
+        wubaCollidingDataSecondLoopCycleMapper.batchSaveData(cells, apiCode, "D");
+        wubaCollidingDataDelayLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveLoopAnddeleteDelay(List<String> cells, String apiCode) {
+        wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode, "D");
+        wubaCollidingDataDelayLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+    }
+
     /**
      * 不可营销数据从非金融周期表删除，并保存到非周期表
      */
@@ -81,6 +96,15 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     public void deleteLoopAndSaveRob(List<String> cells, String apiCode) {
         wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
         wubaCollidingDataRobMapper.batchSaveTrueToFalseData(cells, apiCode, "T");
+    }
+
+    /**
+     * 不可营销数据从延期表删除，并保存到非周期表
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteDelayAndSaveRob(List<String> cells, String apiCode) {
+        wubaCollidingDataDelayLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+        wubaCollidingDataRobMapper.batchSaveTrueToFalseData(cells, apiCode, "D");
     }
 
     /**
@@ -102,6 +126,18 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
             return;
         }
         wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "T", packageId);
+    }
+
+    /**
+     * 撞回status=-2数据从延期表删除，并保存到非金融-2撞库包
+     */
+    public void deleteDelayAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId) {
+        wubaCollidingDataDelayLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+        List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, cells);
+        if (CollectionUtils.isEmpty(reavedCellsExcludeHighValue)) {
+            return;
+        }
+        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "D", packageId);
     }
 
     /**
