@@ -5,9 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -47,9 +45,6 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 public class RuleCleaningServiceImpl implements RuleCleaningService {
-
-    @Resource
-    private RedisChgService redisChgService;
 
     @Resource
     private MarketingDataCleanGeneralConfigMapper cleanGeneralConfigMapper;
@@ -156,6 +151,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andAcceptTypeEqualTo(config.getAcceptType())
                 .andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+
         // 判断是新增还是修改
         if (configs == null || configs.isEmpty()) {
             // 新增
@@ -167,6 +163,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return true;
         } else {
+            for (MarketingDataCleanGeneralConfig ruleConfig : configs) {
+                MarketingDataCleanGeneralRuleConfigExample example = new MarketingDataCleanGeneralRuleConfigExample();
+                example.createCriteria()
+                        .andCleanConfigIdEqualTo(ruleConfig.getId())
+                        .andApiCodeEqualTo(config.getApiCode())
+                        .andIsDelEqualTo(1);
+                cleanGeneralRuleConfigMapper.deleteByExample(example);
+            }
             // 不允许修改
             return true;
         }
@@ -595,10 +599,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         // 2. 保存字段清洗规则
         saveFieldCleaningRule(cleanConfigId, configDTO);
-        String redisKey =
-                RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(configDTO.getApiCode()).concat(":").concat(configDTO.getDataType().toString()).concat(
-                        ":").concat(configDTO.getAcceptType().toString());
-        redisChgService.del(redisKey);
 
         log.info("字段清洗配置保存成功: apiCode={}, cleanConfigId={}", configDTO.getApiCode(), cleanConfigId);
         return true;
@@ -685,7 +685,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             updateRule.setIsDerived(configDTO.getFieldType());
             updateRule.setResultPreview(resultPreview);
             updateRule.setUpdateTime(now);
-            updateRule.setIsDel(configDTO.getIsDel());
 
             cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
             log.info("更新字段清洗规则: apiCode={}, mappingField={}, isMapping={}",
