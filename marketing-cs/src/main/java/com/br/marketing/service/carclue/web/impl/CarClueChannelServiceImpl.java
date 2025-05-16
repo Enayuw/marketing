@@ -78,8 +78,9 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
             cluePushChannel = cluePushChannels.get(0);
         }
 
+        String maxDate = carClueRelationalMappingMapper.getMaxCleanDateByApiCode(cluePushChannel);
         PageHelper.startPage(current, size);
-        List<CarClueChannelVo> list = carClueRelationalMappingMapper.selectList(search, cluePushChannel);
+        List<CarClueChannelVo> list = carClueRelationalMappingMapper.selectList(search, cluePushChannel, maxDate);
         return PageResultReturn.setPageResult(list, current, size);
     }
 

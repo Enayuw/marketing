@@ -76,7 +76,10 @@
         create_time as createTime
         from b_car_clue_relational_mapping
         <where>
-            applet_date = curdate()
+            is_del = 1
+            <if test="maxDate !=null and maxDate!=''">
+                and applet_date = #{maxDate}
+            </if>
             <if test="cluePushChannel !=null and cluePushChannel!=''">
                 and api_code = #{cluePushChannel}
             </if>
@@ -92,6 +95,15 @@
             </if>
         </where>
         order by create_time desc
+    </select>
+
+    <select id="getMaxCleanDateByApiCode" resultType="java.lang.String">
+        select max(applet_date)
+        from b_car_clue_relational_mapping
+        where is_del = 1
+        <if test="cluePushChannel !=null and cluePushChannel!=''">
+            and api_code = #{cluePushChannel}
+        </if>
     </select>
 
 </mapper>

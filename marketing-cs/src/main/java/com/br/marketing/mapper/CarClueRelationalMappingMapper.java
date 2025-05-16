@@ -14,6 +14,8 @@ public interface CarClueRelationalMappingMapper extends CarClueRelationalMapping
 
     void insertSql(@Param("querySql") String querySql);
 
-    List<CarClueChannelVo> selectList(@Param("search") String search, @Param("cluePushChannel") String cluePushChannel);
+    List<CarClueChannelVo> selectList(@Param("search") String search, @Param("cluePushChannel") String cluePushChannel, @Param("maxDate") String maxDate);
+
+    String getMaxCleanDateByApiCode(@Param("cluePushChannel") String cluePushChannel);
 
 }
