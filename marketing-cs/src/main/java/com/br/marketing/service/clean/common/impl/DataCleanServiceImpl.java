@@ -337,7 +337,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             String levelField = null;
             List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigList.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("dataItems")).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(dataItemList)) {
-                levelField = dataItemList.get(0).getMappingField();
+                levelField = dataItemList.get(0).getCleanFields();
                 ruleConfigList.removeIf(config -> config.getMappingField().equals("dataItems"));
             }
             List<JSONObject> jsonObjectList = new ArrayList<>();

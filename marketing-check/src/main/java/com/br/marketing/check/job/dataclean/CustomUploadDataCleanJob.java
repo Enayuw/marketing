@@ -68,7 +68,7 @@ public class CustomUploadDataCleanJob extends AbstractSimpleElasticJob {
         configList.forEach(config -> {
                     //获取未运行的清洗任务
                     MarketingDataCleanGeneralConfig cleanDataTask = getCleanDataTask(config, appletDateList);
-                    if (Objects.isNull(config)) {
+                    if (Objects.isNull(cleanDataTask)) {
                         return;
                     }
                     dataCleanService.customUploadDataClean(cleanDataTask, appletDateList);
