@@ -1,9 +1,11 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.client.rulecleaning.FieldCleaningPreviewDTO;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
@@ -35,6 +37,9 @@ public class RuleCleaningController {
 
     @Resource
     private RuleCleaningService ruleCleaningService;
+
+    @Resource
+    private RedisChgService redisChgService;
 
     @GetMapping("/getRuleList")
     @ApiOperation(value = "规则列表查询", notes = "规则列表查询接口", httpMethod = "GET")
@@ -85,7 +90,7 @@ public class RuleCleaningController {
                 config.setAccountType("正式");
             }
             
-            // 先保存或更新规则
+            // 先保存或更新规则，并删除原有清洗配置
             boolean ruleResult = ruleCleaningService.saveOrUpdateRule(config);
             
             // 保存字段清洗配置
@@ -106,6 +111,11 @@ public class RuleCleaningController {
                     }
                 }
             }
+
+            String redisKey =
+                    RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(configDTO.getApiCode()).concat(":").concat(configDTO.getDataType().toString()).concat(
+                            ":").concat(configDTO.getAcceptType().toString());
+            redisChgService.del(redisKey);
             
             return new ApiResult<Boolean>().success(ruleResult && cleaningResult);
         } catch (BusinessException be) {
