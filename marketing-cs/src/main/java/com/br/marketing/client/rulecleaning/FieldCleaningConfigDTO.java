@@ -43,4 +43,7 @@ public class FieldCleaningConfigDTO implements Serializable {
 
     @ApiModelProperty(value = "映射规则（清洗规则）")
     private String mappingRule;
+
+    @ApiModelProperty(value = "是否删除(默认1，9是删除)")
+    private Integer isDel;
 }
