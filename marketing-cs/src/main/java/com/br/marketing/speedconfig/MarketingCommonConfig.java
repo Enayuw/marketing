@@ -2943,5 +2943,12 @@ public class MarketingCommonConfig {
      * 58查询延期撞库数据线程
      */
     private Integer wuBaQueryDelayZipThreadNum;
+
+    /**
+     * 动态切换消息队列定时任务开关
+     */
+    private Boolean isEnableMqSwitch;
+
+    
 }
 

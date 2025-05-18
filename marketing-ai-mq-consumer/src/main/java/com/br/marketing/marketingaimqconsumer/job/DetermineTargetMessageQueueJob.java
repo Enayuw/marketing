@@ -8,9 +8,8 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.marketingaimqconsumer.config.ClusterEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
-import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import com.rabbitmq.client.AMQP;
@@ -18,6 +17,8 @@ import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -32,67 +33,93 @@ import java.util.Map;
  */
 @Component
 @Slf4j
-public class DetermineTargetMessageQueueJob extends AbstractSimpleElasticJob {
+public class DetermineTargetMessageQueueJob {
     @Autowired
-    RedisChgService redisChgService;
+    private RedisChgService redisChgService;
 
     @Qualifier("connectionFactoryChannel")
     @Autowired
-    Channel channel;
+    private Channel channel;
 
     @Autowired
-    MarketingCommonConfig marketingCommonConfig;
+    private MarketingCommonConfig marketingCommonConfig;
 
-    TpDynamicExecutor threadPoolExecutor = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.SWITCH_MESSAGE_QUEUE.getName(), 10,
-            10);
+    @Value("${cluster.flag}")
+    private String clusterConfig;
 
-    @Override
-    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+    private final TpDynamicExecutor threadPoolExecutor = TpDynamicExecutorFactory.getThreadPool(
+            ThreadPoolNameEnum.SWITCH_MESSAGE_QUEUE.getName(), 10, 10);
+
+    @Scheduled(cron = "0 0/5 * * * ?")
+    public void executeTask() {
+        // 增加开关控制逻辑
+        if (!marketingCommonConfig.getIsEnableMqSwitch()) {
+            log.info("动态切换消息队列任务开关已关闭，跳过执行");
+            return;
+        }
+
+        // 直接在任务执行时判断环境
+        String environment;
+        String enumName = ClusterEnum.CLUSTER_PROD_C.getName();
+        if (StringUtils.isNotBlank(clusterConfig) && enumName.equals(clusterConfig)) {
+            environment = "yz";
+        } else {
+            environment = "zw";
+        }
 
         long start = System.currentTimeMillis();
+        String redisKey = "zw".equals(environment) ?
+                RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":zw" :
+                RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":yz";
+
+        log.info("当前环境为: {}，使用Redis Key: {}", environment, redisKey);
+
         for (SwitchMessageQueueEnum switchMessageQueueEnum : SwitchMessageQueueEnum.values()) {
-            threadPoolExecutor.submit(() -> {
-                try {
-                    String currentRoutingKey = redisChgService.hget(RedisKeyConstant.SWITCH_MESSAGE_QUEUE,
-                            switchMessageQueueEnum.name());
-
-                    if (StringUtils.isEmpty(currentRoutingKey)) {
-                        redisChgService.hset(RedisKeyConstant.SWITCH_MESSAGE_QUEUE, switchMessageQueueEnum.name(),
-                                switchMessageQueueEnum.getDefault_route_key());
-                        return;
-                    }
-
-                    String currentQueueName = switchMessageQueueEnum.getQueueAndRoutingKeyMap().get(currentRoutingKey);
-                    AMQP.Queue.DeclareOk declareOk = channel.queueDeclarePassive(currentQueueName);
-                    int currentMsgCount = declareOk.getMessageCount();
-                    if (currentMsgCount <= marketingCommonConfig.getSwitchMqMaxMsgCount()) {
-                        return;
-                    }
-
-                    Map<String, Integer> routingKeyAndMsgCountMap = new HashMap<>();
-                    Map<String, String> queueAndRoutingKeyMap = switchMessageQueueEnum.getQueueAndRoutingKeyMap();
-                    for (String key : queueAndRoutingKeyMap.keySet()) {
-                        routingKeyAndMsgCountMap.put(key, channel.queueDeclarePassive(queueAndRoutingKeyMap.get(key)).getMessageCount());
-                    }
-
-                    log.warn("动态切换消息队列作业，各队列消息积压情况：{}", JSON.toJSONString(routingKeyAndMsgCountMap));
-                    String winnerRoutingKey =
-                            routingKeyAndMsgCountMap.entrySet().stream()
-                                    .min(Comparator.comparingInt(Map.Entry::getValue))
-                                    .map(Map.Entry::getKey).orElse(currentRoutingKey);
-
-                    if (currentRoutingKey.equals(winnerRoutingKey)) {
-                        return;
-                    }
-
-                    redisChgService.hset(RedisKeyConstant.SWITCH_MESSAGE_QUEUE, switchMessageQueueEnum.name(), winnerRoutingKey);
-                    log.warn("动态切换消息队列作业，当前消费队列路由键：{}，切换到最小压力队列路由键：{}", currentRoutingKey, winnerRoutingKey);
-                } catch (IOException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                            , "动态切换消息队列作业，队列切换异常"), e);
-                }
-            });
+            threadPoolExecutor.submit(() -> processQueueSwitch(switchMessageQueueEnum, redisKey, environment));
         }
+
         log.warn("动态切换消息队列作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+    }
+
+    private void processQueueSwitch(SwitchMessageQueueEnum switchMessageQueueEnum, String redisKey, String environment) {
+        try {
+            String currentRoutingKey = redisChgService.hget(redisKey, switchMessageQueueEnum.name());
+
+            if (StringUtils.isEmpty(currentRoutingKey)) {
+                redisChgService.hset(redisKey, switchMessageQueueEnum.name(),
+                        switchMessageQueueEnum.getDefault_route_key());
+                return;
+            }
+
+            String currentQueueName = switchMessageQueueEnum.getQueueAndRoutingKeyMap().get(currentRoutingKey);
+            AMQP.Queue.DeclareOk declareOk = channel.queueDeclarePassive(currentQueueName);
+            int currentMsgCount = declareOk.getMessageCount();
+            if (currentMsgCount <= marketingCommonConfig.getSwitchMqMaxMsgCount()) {
+                return;
+            }
+
+            Map<String, Integer> routingKeyAndMsgCountMap = new HashMap<>();
+            Map<String, String> queueAndRoutingKeyMap = switchMessageQueueEnum.getQueueAndRoutingKeyMap();
+            for (String key : queueAndRoutingKeyMap.keySet()) {
+                routingKeyAndMsgCountMap.put(key, channel.queueDeclarePassive(queueAndRoutingKeyMap.get(key)).getMessageCount());
+            }
+
+            log.warn("动态切换消息队列作业[{}]，各队列消息积压情况：{}", environment, JSON.toJSONString(routingKeyAndMsgCountMap));
+            String winnerRoutingKey =
+                    routingKeyAndMsgCountMap.entrySet().stream()
+                            .min(Comparator.comparingInt(Map.Entry::getValue))
+                            .map(Map.Entry::getKey).orElse(currentRoutingKey);
+
+            if (currentRoutingKey.equals(winnerRoutingKey)) {
+                return;
+            }
+
+            redisChgService.hset(redisKey, switchMessageQueueEnum.name(), winnerRoutingKey);
+            log.warn("动态切换消息队列作业[{}]，当前消费队列路由键：{}，切换到最小压力队列路由键：{}",
+                    environment, currentRoutingKey, winnerRoutingKey);
+        } catch (IOException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(),
+                    "动态切换消息队列作业[" + environment + "]，队列切换异常"), e);
+        }
     }
 }

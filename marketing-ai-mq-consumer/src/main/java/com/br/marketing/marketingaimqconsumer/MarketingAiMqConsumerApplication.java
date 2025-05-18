@@ -17,7 +17,7 @@ import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
@@ -30,6 +30,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_ai_mq_consumer")
+@EnableScheduling
 public class MarketingAiMqConsumerApplication {
 
     public static void main(String[] args) {
