@@ -2845,7 +2845,7 @@ public class MarketingCommonConfig {
     /**
      * 携程队列apiCode 集合
      */
-    private List<String> xieChengQueueApiCodes;
+    private JSONObject xieChengQueueApiCodes;
 
 
     /**

@@ -1814,7 +1814,7 @@ public class PushDataServiceImpl implements PushDataService {
                 //endregion
                 xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                 redisChgService.unlock(key, value);
-            }catch (Exception e){
+                }catch (Exception e){
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                         "携程上报异常，id="+xieChengData.getId()+"，localId="+ xieChengData.getLocalId()+ "errorMessage=" + e.getMessage()), e);
                 redisChgService.unlock(key, value);

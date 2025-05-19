@@ -1,0 +1,56 @@
+package com.br.marketing.chain.xiecheng;
+
+import com.br.marketing.context.XieChengReportContext;
+import com.br.marketing.entity.XieChengData;
+import com.br.marketing.mapper.XieChengDataMapper;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.stereotype.Component;
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
+public class XiChengReportIsPushHandler extends AbstractXieChengReportHandler {
+
+    @Resource
+    private XieChengDataMapper xieChengDataMapper;
+
+    @Override
+    void process(XieChengReportContext context) {
+        Boolean isPush;
+        Boolean isDelete = false;
+        if (context.getPushConfig().getOffRepeatByPeriod()) {
+            List<Integer> pushStatusList =
+                    xieChengDataMapper.getReportPushStatusInPeriod(context.getSha256Tel(), context.getCallRecord().getApiCode());
+            if (CollectionUtils.isEmpty(pushStatusList)) {
+                isPush = false;
+                isDelete = true;
+            } else {
+                Integer pushCount = pushStatusList.stream().filter(pushStatus -> pushStatus == 2)
+                        .collect(Collectors.toList()).size();
+                isPush = pushCount < context.getPushConfig().getOffRepeatCount();
+            }
+        } else {
+            List<XieChengData> xieChengRepeatDatalist =
+                    xieChengDataMapper.getByCellToday(context.getSha256Tel(),context.getPushConfig().getSoleCellApiCodes());
+            isPush = CollectionUtils.isEmpty(xieChengRepeatDatalist);
+        }
+        if (!isPush) {
+            String message;
+            if (context.getPushConfig().getOffRepeatByPeriod()) {
+                if (isDelete) {
+                    message = "数据不在锁定期内，不可推送";
+                } else {
+                    message = "数据在锁定期内已推送过" + context.getPushConfig().getOffRepeatCount() + "次";
+                }
+            } else {
+                message = "数据重复未推送";
+            }
+            context.setError(message);
+        }
+    }
+
+    public XiChengReportIsPushHandler() {
+        super(5);
+    }
+}

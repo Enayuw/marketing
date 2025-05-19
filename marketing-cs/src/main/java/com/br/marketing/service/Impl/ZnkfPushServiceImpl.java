@@ -9,6 +9,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -159,12 +160,21 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                         producter.sendToUniversalTransferQueue(mqFact);
                     }
                 }
-                if(marketingCommonConfig.getXieChengQueueApiCodes().contains(apiCode)){
-                    //推mq
-                    final MqFact mqFact = new MqFact();
-                    mqFact.setSourceId(callRecord.getId());
-                    mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
-                    producter.sendToXieChengUniversalTransferQueue(mqFact);
+                if(marketingCommonConfig.getXieChengQueueApiCodes().containsKey(apiCode)){
+                    if (marketingCommonConfig.getXieChengQueueApiCodes().getBoolean(apiCode)
+                            && rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT)) {
+                        //rocket
+                        rocketMqSwitch.syncSend(
+                                MarketingXieChengConstants.TOPIC,
+                                MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
+                                callRecord.getId().toString());
+                    } else {
+                        //rabbit
+                        final MqFact mqFact = new MqFact();
+                        mqFact.setSourceId(callRecord.getId());
+                        mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                        producter.sendToXieChengUniversalTransferQueue(mqFact);
+                    }
                 }
                 List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
                 if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
