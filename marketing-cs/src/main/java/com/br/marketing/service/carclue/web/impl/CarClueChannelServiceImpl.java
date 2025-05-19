@@ -16,9 +16,11 @@ import com.br.marketing.entity.CarClueManageConfig;
 import com.br.marketing.entity.CarClueManageConfigExample;
 import com.br.marketing.entity.ClueFileRecording;
 import com.br.marketing.entity.ClueFileRecordingExample;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.CarClueManageConfigMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.ClueFileRecordingMapper;
+import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.carclue.clueenums.ClueFileRecordingStatusEnum;
 import com.br.marketing.service.carclue.web.CarClueChannelService;
@@ -58,6 +60,8 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
     RedisChgService redisChgService;
     @Resource
     private FastDfsClient fastDfsClient;
+    @Resource
+    EntityOptServiceImpl entityOptService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Autowired
@@ -124,27 +128,35 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
     }
 
     @Override
-    public ApiResult<Boolean> updateChannelConfig(CarClueChannelConfigDTO dto) {
+    public ApiResult<Boolean> updateChannelConfig(CarClueChannelConfigDTO dto,MarketingUserDetail user) {
         if (dto == null) {
             return new ApiResult<Boolean>().fail("入参为空！");
         }
+        Long userId = Long.valueOf(user.getId());
+        String userName = user.getUserName();
+
         CarClueManageConfig carClueManageConfig = new CarClueManageConfig();
         carClueManageConfig.setPullDate(dto.getPullDate());
         carClueManageConfig.setIntentionConfig(JSONObject.toJSONString(dto.getIntentionConfig()));
         carClueManageConfig.setCleanType(dto.getCleanType());
         carClueManageConfig.setPullType(dto.getPullType());
-        carClueManageConfig.setOptUserId(dto.getOptUserId());
-        carClueManageConfig.setOptUserName(dto.getOptUserName());
+        carClueManageConfig.setOptUserId(userId);
+        carClueManageConfig.setOptUserName(userName);
         carClueManageConfig.setUpdateTime(new Date());
         carClueManageConfig.setIsDel(Constants.DATA_VALID);
-
         if (dto.getId() != null) {
+            CarClueManageConfig carClueOld = carClueManageConfigMapper.selectByPrimaryKey(dto.getId());
             carClueManageConfig.setId(dto.getId());
             carClueManageConfigMapper.updateByPrimaryKeySelective(carClueManageConfig);
+            //增加日志
+            entityOptService.writeOptLog(dto.getId(), carClueManageConfig, carClueOld);
         } else {
             carClueManageConfig.setCreateTime(new Date());
             carClueManageConfigMapper.insertSelective(carClueManageConfig);
+            //增加日志
+            entityOptService.writeOptLog(carClueManageConfig.getId(), carClueManageConfig, null);
         }
+
         return new ApiResult<Boolean>().success(true);
     }
 
@@ -193,6 +205,9 @@ public class CarClueChannelServiceImpl implements CarClueChannelService {
             clueFileRecording.setUpdateTime(new Date());
             clueFileRecording.setIsDel(Constants.DATA_VALID);
             clueFileRecordingMapper.insertSelective(clueFileRecording);
+            //增加日志
+            Long id = clueFileRecording.getId();
+            entityOptService.writeOptLog(id, clueFileRecording, null);
             return new ApiResult<Boolean>().success(true);
         } catch (Exception e) {
             return new ApiResult<Boolean>().fail("更新初始外采信息异常：" + e.getMessage());

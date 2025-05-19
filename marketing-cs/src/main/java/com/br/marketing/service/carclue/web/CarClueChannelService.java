@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueChannelConfigDTO;
 import com.br.marketing.dto.CarClueChannelDTO;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.CarClueChannelConfigVO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,7 +26,7 @@ public interface CarClueChannelService {
 
     ApiResult<CarClueChannelConfigVO> getChannelConfig();
 
-    ApiResult<Boolean> updateChannelConfig(CarClueChannelConfigDTO dto);
+    ApiResult<Boolean> updateChannelConfig(CarClueChannelConfigDTO dto, MarketingUserDetail user);
 
 
 }

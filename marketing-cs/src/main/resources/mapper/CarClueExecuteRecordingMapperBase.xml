@@ -7,6 +7,8 @@
     <result column="clue_range" property="clueRange" jdbcType="VARCHAR" />
     <result column="execute_type" property="executeType" jdbcType="INTEGER" />
     <result column="execute_status" property="executeStatus" jdbcType="INTEGER" />
+    <result column="opt_user_id" property="optUserId" jdbcType="BIGINT" />
+    <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -70,8 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, clue_ids, clue_range, execute_type, execute_status, create_time, update_time, 
-    is_del
+    id, clue_ids, clue_range, execute_type, execute_status, opt_user_id, opt_user_name, 
+    create_time, update_time, is_del
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CarClueExecuteRecordingExample" >
     select
@@ -108,11 +110,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_car_clue_execute_recording (clue_ids, clue_range, execute_type, 
-      execute_status, create_time, update_time, 
-      is_del)
+      execute_status, opt_user_id, opt_user_name, 
+      create_time, update_time, is_del
+      )
     values (#{clueIds,jdbcType=VARCHAR}, #{clueRange,jdbcType=VARCHAR}, #{executeType,jdbcType=INTEGER}, 
-      #{executeStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{isDel,jdbcType=INTEGER})
+      #{executeStatus,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CarClueExecuteRecording" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -131,6 +135,12 @@
       </if>
       <if test="executeStatus != null" >
         execute_status,
+      </if>
+      <if test="optUserId != null" >
+        opt_user_id,
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -154,6 +164,12 @@
       </if>
       <if test="executeStatus != null" >
         #{executeStatus,jdbcType=INTEGER},
+      </if>
+      <if test="optUserId != null" >
+        #{optUserId,jdbcType=BIGINT},
+      </if>
+      <if test="optUserName != null" >
+        #{optUserName,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -190,6 +206,12 @@
       <if test="record.executeStatus != null" >
         execute_status = #{record.executeStatus,jdbcType=INTEGER},
       </if>
+      <if test="record.optUserId != null" >
+        opt_user_id = #{record.optUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.optUserName != null" >
+        opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
@@ -211,6 +233,8 @@
       clue_range = #{record.clueRange,jdbcType=VARCHAR},
       execute_type = #{record.executeType,jdbcType=INTEGER},
       execute_status = #{record.executeStatus,jdbcType=INTEGER},
+      opt_user_id = #{record.optUserId,jdbcType=BIGINT},
+      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_del = #{record.isDel,jdbcType=INTEGER}
@@ -233,6 +257,12 @@
       <if test="executeStatus != null" >
         execute_status = #{executeStatus,jdbcType=INTEGER},
       </if>
+      <if test="optUserId != null" >
+        opt_user_id = #{optUserId,jdbcType=BIGINT},
+      </if>
+      <if test="optUserName != null" >
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -251,6 +281,8 @@
       clue_range = #{clueRange,jdbcType=VARCHAR},
       execute_type = #{executeType,jdbcType=INTEGER},
       execute_status = #{executeStatus,jdbcType=INTEGER},
+      opt_user_id = #{optUserId,jdbcType=BIGINT},
+      opt_user_name = #{optUserName,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_del = #{isDel,jdbcType=INTEGER}

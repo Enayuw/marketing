@@ -8,6 +8,7 @@ import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CarClueExecuteRecordingMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
+import com.br.marketing.mapper.CarClueManageConfigMapper;
 import com.br.marketing.service.carclue.CarClueExecuteService;
 import com.br.marketing.service.carclue.CarClueService;
 import com.br.marketing.service.carclue.clueenums.CarClueManageConfigTypeEnum;
@@ -52,6 +53,8 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
     private CarClueService carClueService;
     @Resource
     private CarClueExecuteService carClueExecuteService;
+    @Resource
+    private CarClueManageConfigMapper carClueManageConfigMapper;
     @Autowired
     private ClueChannelConfigService clueChannelConfigService;
 
@@ -63,14 +66,17 @@ public class CarCluePushDataJob extends AbstractSimpleElasticJob {
         long startTime = System.currentTimeMillis();
 
         // 1. 获取车线索管理配置
-        Optional<CarClueManageConfig> configOpt = carClueExecuteService.getCarClueConfig();
-        if (!configOpt.isPresent()) {
+        CarClueManageConfigExample carClueManageConfigExample = new CarClueManageConfigExample();
+        carClueManageConfigExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarClueManageConfig> configs = carClueManageConfigMapper.selectByExample(carClueManageConfigExample);
+
+        if (CollectionUtil.isEmpty(configs)) {
             log.warn("{}车线索管理配置为空！", TITLE);
             return;
         }
 
         // 2.根据配置类型执行推送
-        CarClueManageConfig config = configOpt.get();
+        CarClueManageConfig config = configs.get(0);
         if (Objects.equals(config.getPullType(), CarClueManageConfigTypeEnum.PERFORMED_MANUALLY.getValue())) {
             manualPushCarClue();
         } else {

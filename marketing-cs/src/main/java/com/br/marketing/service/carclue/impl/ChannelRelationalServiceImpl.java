@@ -22,6 +22,7 @@ import com.br.marketing.service.carclue.config.AbstractClueChannelConfig;
 import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
 import com.br.marketing.service.carclue.web.impl.CarClueReportServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -648,7 +649,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      * 处理汽车之家渠道数据
      */
     private void processZjChannel(Workbook workbook) {
-        Sheet sheet = workbook.getSheetAt(0);
+        Sheet sheet = workbook.getSheet("汽车之家");
         if (sheet == null) {
             log.warn("{}汽车之家Sheet页不存在", TITL);
             return;
@@ -669,7 +670,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      * 处理易车会员渠道数据
      */
     private void processYcMemberChannel(Workbook workbook) {
-        Sheet sheet = workbook.getSheetAt(1);
+        Sheet sheet = workbook.getSheet("易车会员");
         if (sheet == null) {
             log.warn("{}易车会员Sheet页不存在", TITL);
             return;
@@ -712,6 +713,12 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         //删除今日已生成的数据
         deleteInitData(apiCode);
 
+        // 验证表头
+        if (!validateSheetHeaders(sheet, includeDemandId)) {
+            log.warn(TITL + "Excel表头不符合要求，跳过处理");
+            return;
+        }
+
         List<String> valueList = new ArrayList<>();
 
         for (Row row : sheet) {
@@ -747,6 +754,38 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             valueList.add(valueStatement);
         }
         executeBatchInsert(valueList);
+    }
+
+    /**
+     * 验证表头是否符合要求
+     * @param sheet Excel工作表
+     * @param includeDemandId 是否包含需求ID列
+     * @return 验证结果
+     */
+    private boolean validateSheetHeaders(Sheet sheet, boolean includeDemandId) {
+        // 获取第一行作为表头
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null) {
+            log.warn(TITL + "Excel文件缺少表头行");
+            return false;
+        }
+
+        // 定义预期的表头列
+        String[] expectedHeaders = {"品牌", "车系", "全国", "省份", "城市", "排除省份", "排除城市"};
+        if (includeDemandId) {
+            expectedHeaders = ArrayUtils.add(expectedHeaders, "会员ID");
+        }
+
+        // 验证每列的表头文本
+        for (int i = 0; i < expectedHeaders.length; i++) {
+            String cellValue = getCellValue(headerRow, i);
+            if (!expectedHeaders[i].equals(cellValue)) {
+                log.warn(TITL+"第{}列表头不符合要求，预期:'{}'，实际:'{}'",
+                        i + 1, expectedHeaders[i], cellValue);
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

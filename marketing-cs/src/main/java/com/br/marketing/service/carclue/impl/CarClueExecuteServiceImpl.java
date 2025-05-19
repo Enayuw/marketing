@@ -50,8 +50,13 @@ public class CarClueExecuteServiceImpl implements CarClueExecuteService {
     public Optional<CarClueManageConfig> getCarClueConfig() {
         // 1. 检查是否有待清洗文件
         ClueFileRecordingExample example = new ClueFileRecordingExample();
+
+        List<Integer> list = new ArrayList<>();
+        list.add(ClueFileRecordingStatusEnum.AWAIT_CLEAN.getValue());
+        list.add(ClueFileRecordingStatusEnum.CLEAN_ING.getValue());
+
         example.createCriteria()
-                .andFileCleanStatusEqualTo(ClueFileRecordingStatusEnum.AWAIT_CLEAN.getValue())
+                .andFileCleanStatusIn(list)
                 .andIsDelEqualTo(Constants.DATA_VALID);
 
         if(clueFileRecordingMapper.countByExample(example) > 0){
@@ -61,7 +66,7 @@ public class CarClueExecuteServiceImpl implements CarClueExecuteService {
 
         // 2. 获取车线索管理配置
         CarClueManageConfigExample carClueManageConfigExample = new CarClueManageConfigExample();
-        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        carClueManageConfigExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
         List<CarClueManageConfig> configs = carClueManageConfigMapper.selectByExample(carClueManageConfigExample);
         return CollectionUtil.isEmpty(configs) ? Optional.empty() : Optional.of(configs.get(0));
     }

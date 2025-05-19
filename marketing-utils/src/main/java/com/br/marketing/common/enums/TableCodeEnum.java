@@ -23,7 +23,11 @@ public enum TableCodeEnum {
     SAVE_OR_UPDATE_DATA_VALID_CONFIG_DEFAULT("07","b_marketing_data_valid_config_default","MarketingDataValidConfigDefault"),
     SAVE_OR_UPDATE_DATA_VARIABLE_ALLOCATION("08","variable_allocation","VariableAllocation"),
     SAVE_OR_UPDATE_CAR_CLUE_INFO("09","b_car_clue_info", "CarClueInfo"),
-    SAVE_OR_UPDATE_TAG_INFO("10","t_tag_data_rule", "TagDataRule");
+    SAVE_OR_UPDATE_TAG_INFO("10","t_tag_data_rule", "TagDataRule"),
+    SAVE_OR_UPDATE_CLUE_FILE_RECORDING("11","b_car_clue_file_recording", "ClueFileRecording"),
+    SAVE_OR_UPDATE_CLUE_EXECUTE_RECORDING("12","b_car_clue_execute_recording", "CarClueExecuteRecording"),
+    SAVE_OR_UPDATE_MANAGE_CONFIG("13","b_car_clue_manage_config", "CarClueManageConfig")
+    ;
 
     /**
      * 表对应的码值

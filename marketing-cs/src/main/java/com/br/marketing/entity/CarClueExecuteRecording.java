@@ -29,6 +29,16 @@ public class CarClueExecuteRecording {
     private Integer executeStatus;
 
     /**
+     * 操作人id
+     */
+    private Long optUserId;
+
+    /**
+     * 操作人账户名
+     */
+    private String optUserName;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -81,6 +91,22 @@ public class CarClueExecuteRecording {
 
     public void setExecuteStatus(Integer executeStatus) {
         this.executeStatus = executeStatus;
+    }
+
+    public Long getOptUserId() {
+        return optUserId;
+    }
+
+    public void setOptUserId(Long optUserId) {
+        this.optUserId = optUserId;
+    }
+
+    public String getOptUserName() {
+        return optUserName;
+    }
+
+    public void setOptUserName(String optUserName) {
+        this.optUserName = optUserName == null ? null : optUserName.trim();
     }
 
     public Date getCreateTime() {

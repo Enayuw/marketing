@@ -5,8 +5,10 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.CarClueChannelConfigDTO;
 import com.br.marketing.dto.CarClueChannelDTO;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.carclue.web.CarClueChannelService;
 import com.br.marketing.vo.CarClueChannelConfigVO;
@@ -96,7 +98,8 @@ public class CarClueChannelController {
     @PostMapping("/updateChannelConfig")
     public ApiResult<Boolean> updateChannelConfig(@RequestBody @Validated CarClueChannelConfigDTO dto) {
         try {
-            return carClueChannelService.updateChannelConfig(dto);
+            MarketingUserDetail user = ThreadContextInfo.getUser();
+            return carClueChannelService.updateChannelConfig(dto,user);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "新增修改渠道商配置接口错误！错误信息：" + ex.getMessage()), ex);
