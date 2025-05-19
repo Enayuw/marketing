@@ -33,6 +33,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1005,14 +1007,112 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         String operator = String.valueOf(ruleMap.get("operator"));
         List<Map<String, Object>> operands = (List<Map<String, Object>>) ruleMap.get("operands");
 
-        log.warn("处理数学运算(带nodeParse) - 输入值: {}, 操作符: {}", fieldSample, operator);
+        log.warn("处理数学运算 - 输入值: {}, 操作符: {}", fieldSample, operator);
 
         if (operands == null || operands.isEmpty()) {
             return fieldSample;
         }
+        
+        // 对于超长数字，使用字符串操作处理加减法
+        if (("add".equals(operator) || "subtract".equals(operator)) && 
+            fieldSample != null && fieldSample.length() > 15) {
+            try {
+                log.warn("检测到超长数值，使用专用处理: {}", fieldSample);
+                
+                // 提取数字部分
+                StringBuilder digitsOnly = new StringBuilder();
+                for (char c : fieldSample.toCharArray()) {
+                    if (Character.isDigit(c)) {
+                        digitsOnly.append(c);
+                    }
+                }
+                
+                if (digitsOnly.length() > 0) {
+                    int valueToApply = 0;
+                    // 获取要加减的值
+                    for (int i = 1; i < operands.size(); i++) {
+                        Map<String, Object> operand = operands.get(i);
+                        String type = String.valueOf(operand.get("type"));
+                        if ("constant".equals(type) && operand.containsKey("value")) {
+                            try {
+                                valueToApply = Integer.parseInt(String.valueOf(operand.get("value")));
+                                break;
+                            } catch (NumberFormatException e) {
+                                log.warn("无法将常量转换为整数: {}", operand.get("value"));
+                            }
+                        }
+                    }
+                    
+                    // 如果数字超过19位(BigDecimal最大安全长度)，使用字符串算法
+                    if (digitsOnly.length() > 19) {
+                        // 只修改最后几位数字
+                        int lastPos = digitsOnly.length() - 1;
+                        int modValue = Math.abs(valueToApply);
+                        
+                        // 处理各位数的变化
+                        if ("subtract".equals(operator)) {
+                            valueToApply = -valueToApply;
+                        }
+                        
+                        // 从个位开始处理
+                        int carry = 0;
+                        for (int i = 0; i < Math.min(String.valueOf(modValue).length() + 1, digitsOnly.length()); i++) {
+                            int pos = lastPos - i;
+                            if (pos < 0) break;
+                            
+                            int digit = Character.getNumericValue(digitsOnly.charAt(pos));
+                            
+                            int newDigit;
+                            if (i == 0) {
+                                // 个位直接加
+                                newDigit = digit + valueToApply % 10 + carry;
+                            } else {
+                                // 高位加上一次的进位
+                                modValue /= 10;
+                                newDigit = digit + (valueToApply < 0 ? -modValue % 10 : modValue % 10) + carry;
+                            }
+                            
+                            if (newDigit < 0) {
+                                newDigit += 10;
+                                carry = -1;
+                            } else if (newDigit >= 10) {
+                                newDigit -= 10;
+                                carry = 1;
+                            } else {
+                                carry = 0;
+                            }
+                            
+                            digitsOnly.setCharAt(pos, Character.forDigit(newDigit, 10));
+                            
+                            if (modValue == 0 && carry == 0) break;
+                        }
+                        
+                        log.warn("超长数值字符串处理结果: {}", digitsOnly.toString());
+                        return digitsOnly.toString();
+                    } else {
+                        // 使用BigDecimal处理大数值
+                        BigDecimal numValue = new BigDecimal(digitsOnly.toString());
+                        BigDecimal delta = new BigDecimal(valueToApply);
+                        BigDecimal result;
+                        
+                        if ("add".equals(operator)) {
+                            result = numValue.add(delta);
+                        } else {
+                            result = numValue.subtract(delta);
+                        }
+                        
+                        log.warn("BigDecimal处理结果: {} {} {} = {}", 
+                             numValue, operator.equals("add") ? "+" : "-", delta, result);
+                        return result.toString();
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("特殊处理失败，回退到标准处理: {}", e.getMessage());
+            }
+        }
 
         // 计算所有操作数
-        List<Double> values = new ArrayList<>();
+        List<BigDecimal> values = new ArrayList<>();
         boolean firstFieldProcessed = false;
         
         for (Map<String, Object> operand : operands) {
@@ -1050,7 +1150,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             if (value != null) {
                 try {
-                    double numValue = Double.parseDouble(String.valueOf(value));
+                    BigDecimal numValue = new BigDecimal(String.valueOf(value));
                     values.add(numValue);
                 } catch (NumberFormatException e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
@@ -1064,26 +1164,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         // 执行运算
-        double result = values.get(0);
+        BigDecimal result = values.get(0);
         for (int i = 1; i < values.size(); i++) {
-            Double value = values.get(i);
+            BigDecimal value = values.get(i);
             switch (operator) {
                 case "add":
-                    result += value;
+                    result = result.add(value);
                     break;
                 case "subtract":
-                    result -= value;
+                    result = result.subtract(value);
                     break;
                 case "multiply":
-                    result *= value;
+                    result = result.multiply(value);
                     break;
                 case "divide":
-                    if (value != 0) {
-                        result /= value;
+                    if (value.compareTo(BigDecimal.ZERO) != 0) {
+                        result = result.divide(value, 10, RoundingMode.HALF_UP);
                     }
                     break;
                 case "percentage":
-                    result = result * value / 100;
+                    result = result.multiply(value).divide(new BigDecimal(100), 10, RoundingMode.HALF_UP);
                     break;
                 default:
                     break;
@@ -1096,12 +1196,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 格式化数字结果：如果是整数则返回整数字符串，否则返回浮点数字符串
      */
-    private String formatNumberResult(Double result) {
-        // 检查结果是否为整数
-        if (result == Math.floor(result)) {
-            return String.valueOf(result.intValue());
+    private String formatNumberResult(BigDecimal result) {
+        // 移除尾部的0
+        result = result.stripTrailingZeros();
+        
+        // 检查是否为整数
+        if (result.scale() <= 0) {
+            return result.toBigInteger().toString();
         } else {
-            return String.valueOf(result);
+            return result.toPlainString();
         }
     }
 
@@ -1253,18 +1356,20 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         
         // 转换为Java的0基索引
         int javaStartIndex = startIndex - 1;
-        int javaEndIndex = endIndex - 1;
+        // endIndex就表示要包含的字符数
+        int javaEndIndex = endIndex;
         
         log.warn("转换为Java的0基索引: 开始索引={}, 结束索引={}", javaStartIndex, javaEndIndex);
 
         if ("right".equals(startLocation)) {
             // 从右侧开始计算
             // 例如，对于字符串"12345"，长度为5
-            // 如果从右侧开始算，startIndex=1表示倒数第1个字符(索引4)，endIndex=3表示倒数第3个字符(索引2)
+            // 如果从右侧开始算，startIndex=1表示倒数第1个字符(索引4)，endIndex=3表示到倒数第3个字符
             int rightStartIndex = Math.max(0, length - startIndex);
-            int rightEndIndex = Math.max(0, length - endIndex);
+            // 修改：从右侧计算时，endIndex直接是要截取的字符数
+            int rightEndIndex = Math.max(0, length - endIndex + 1);  
             
-            log.warn("右侧起算(从1开始): 右侧开始索引={} (length - startIndex), 右侧结束索引={} (length - endIndex)",
+            log.warn("右侧起算: 右侧开始索引={}, 右侧结束索引={}",
                     rightStartIndex, rightEndIndex);
             
             // 交换，确保startIndex <= endIndex用于substring
@@ -1276,7 +1381,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             
             javaStartIndex = rightEndIndex;
-            javaEndIndex = rightStartIndex;
+            javaEndIndex = rightStartIndex + 1;  // +1因为substring是左闭右开
         }
 
         // 确保索引有效
