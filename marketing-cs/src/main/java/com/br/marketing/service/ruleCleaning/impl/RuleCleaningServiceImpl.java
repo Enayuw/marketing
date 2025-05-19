@@ -396,6 +396,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         continue;
                     }
                     nodeValue = node.getNodeValue();
+                    createTime = node.getCreateTime();
                     // 4. 如果node_value为空，则需要去客户上传数据明细表查询
                     if (StringUtils.isBlank(nodeValue)) {
                         try {
