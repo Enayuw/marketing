@@ -612,14 +612,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("字段清洗配置不能为空");
         }
 
-        if (StringUtils.isBlank(configDTO.getCleanField())) {
-            throw new BusinessException("清洗字段不能为空");
-        }
-
-        if (StringUtils.isBlank(configDTO.getMappingField())) {
-            throw new BusinessException("映射字段不能为空");
-        }
-
         log.info("开始保存字段清洗配置: apiCode={}, dataType={}, acceptType={}",
                 configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
 
