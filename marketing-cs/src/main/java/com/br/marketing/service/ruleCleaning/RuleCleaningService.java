@@ -8,6 +8,7 @@ import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public interface RuleCleaningService {
      * @param acceptType  接口类型
      * @return 分页查询结果
      */
-    PageResultReturn getRuleList(int current, int size, String apiCode, String accountType, Integer acceptType);
+    PageResultReturn getRuleList(@Validated int current, @Validated int size,  String apiCode, String accountType,  Integer acceptType);
 
     /**
      * 保存或更新规则
@@ -51,7 +52,8 @@ public interface RuleCleaningService {
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
-    List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer dataType, Integer acceptType);
+    List<FieldSampleDTO> getPreviewFieldSamples(@Validated String apiCode, @Validated Integer dataType,
+                                                 @Validated Integer acceptType);
 
 
     /**
@@ -61,7 +63,7 @@ public interface RuleCleaningService {
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
-    List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType);
+    List<FieldSampleDTO> getFieldSamples(@Validated String apiCode, @Validated Integer dataType, @Validated Integer acceptType);
 
     /**
      * 字段样例查询
@@ -70,14 +72,14 @@ public interface RuleCleaningService {
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
-    String getpreviewField(String apiCode, Integer dataType, Integer acceptType);
+    String getpreviewField(@Validated String apiCode, @Validated Integer dataType, @Validated Integer acceptType);
 
     /**
      * 保存字段清洗配置
      * @param configDTO 字段清洗配置DTO
      * @return 操作结果
      */
-    boolean saveFieldCleaningConfig(FieldCleaningConfigDTO configDTO);
+    boolean saveFieldCleaningConfig(@Validated FieldCleaningConfigDTO configDTO);
 
     /**
      * 预览字段清洗结果
@@ -85,7 +87,7 @@ public interface RuleCleaningService {
      * @param cleaningRule 清洗规则（JSON格式）
      * @return 清洗后的数据值
      */
-    Object previewFieldCleaning(String fieldSample, String cleaningRule);
+    Object previewFieldCleaning(@Validated String fieldSample, @Validated String cleaningRule);
 
 
     MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType);

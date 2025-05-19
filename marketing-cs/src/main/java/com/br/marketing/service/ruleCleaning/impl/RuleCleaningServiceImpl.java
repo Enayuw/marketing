@@ -128,18 +128,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("规则配置不能为空");
         }
 
-        if (StringUtils.isBlank(config.getApiCode())) {
-            throw new BusinessException("API编码不能为空");
-        }
-
-        if (config.getDataType() == null) {
-            throw new BusinessException("数据类型不能为空");
-        }
-
-        if (config.getAcceptType() == null) {
-            throw new BusinessException("接口类型不能为空");
-        }
-
         MarketingUserDetail user = ThreadContextInfo.getUser();
         Long userId = Long.valueOf(user.getId());
         String userName = user.getUserName();
@@ -622,18 +610,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 参数验证
         if (configDTO == null) {
             throw new BusinessException("字段清洗配置不能为空");
-        }
-
-        if (StringUtils.isBlank(configDTO.getApiCode())) {
-            throw new BusinessException("API编码不能为空");
-        }
-
-        if (configDTO.getDataType() == null) {
-            throw new BusinessException("数据类型不能为空");
-        }
-
-        if (configDTO.getAcceptType() == null) {
-            throw new BusinessException("接口类型不能为空");
         }
 
         if (StringUtils.isBlank(configDTO.getCleanField())) {

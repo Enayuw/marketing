@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -18,12 +19,15 @@ public class FieldCleaningConfigDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "API编码")
+    @NotNull(message = "API编码不能为空")
     private String apiCode;
 
     @ApiModelProperty(value = "数据类型：0上传，1转化")
+    @NotNull(message = "数据类型不能为空")
     private Integer dataType;
 
     @ApiModelProperty(value = "接口类型：0通用,1定制,2FTP")
+    @NotNull(message = "接口类型不能为空")
     private Integer acceptType;
 
     @ApiModelProperty(value = "字段类型：0-请求层字段，1-衍生字段")

@@ -18,6 +18,7 @@ import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -75,7 +76,7 @@ public class RuleCleaningController {
     @PostMapping("/saveOrUpdateRule")
     @ApiOperation(value = "保存或更新规则及清洗配置", notes = "先保存或更新规则，然后保存清洗配置", httpMethod = "POST")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
-    public ApiResult<Boolean> saveOrUpdateRule(@RequestBody RuleCleaningConfigDTO configDTO) {
+    public ApiResult<Boolean> saveOrUpdateRule(@RequestBody @Validated RuleCleaningConfigDTO configDTO) {
         try {
             log.info("接收到保存或更新规则及清洗配置请求: {}", configDTO);
             
@@ -98,12 +99,13 @@ public class RuleCleaningController {
             // 保存字段清洗配置
             boolean cleaningResult = true;
             List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
-            List<String> cleanFields = cleaningConfigs.stream()
-                    .map(FieldCleaningConfigDTO::getCleanField)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            ruleCleaningService.deleteRule(config, cleanFields);
+
             if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
+                List<String> cleanFields = cleaningConfigs.stream()
+                        .map(FieldCleaningConfigDTO::getCleanField)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                ruleCleaningService.deleteRule(config, cleanFields);
                 for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
                     // 设置API编码信息
                     fieldConfig.setApiCode(configDTO.getApiCode());
@@ -212,15 +214,6 @@ public class RuleCleaningController {
         }
     }
 
-//
-//    @PostMapping("/saveFieldCleaningConfig")
-//    @ApiOperation(value = "保存字段清洗配置", notes = "保存字段与清洗规则的映射关系", httpMethod = "POST")
-//    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
-//    public ApiResult<Boolean> saveFieldCleaningConfig(@RequestBody FieldCleaningConfigDTO configDTO) {
-//        log.info("接收到字段清洗配置请求: {}", configDTO);
-//        boolean result = ruleCleaningService.saveFieldCleaningConfig(configDTO);
-//        return new ApiResult<Boolean>().success(result);
-//    }
 
 
     @PostMapping("/previewFieldCleaning")
