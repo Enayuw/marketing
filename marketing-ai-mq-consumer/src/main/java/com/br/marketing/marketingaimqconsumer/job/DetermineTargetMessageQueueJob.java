@@ -8,7 +8,6 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.marketingaimqconsumer.config.ClusterEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -17,7 +16,6 @@ import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +35,10 @@ public class DetermineTargetMessageQueueJob {
     @Autowired
     private RedisChgService redisChgService;
 
+    @Autowired
+    @Qualifier("clusterEnvironment")
+    private String clusterEnvironment;
+
     @Qualifier("connectionFactoryChannel")
     @Autowired
     private Channel channel;
@@ -44,38 +46,23 @@ public class DetermineTargetMessageQueueJob {
     @Autowired
     private MarketingCommonConfig marketingCommonConfig;
 
-    @Value("${cluster.flag}")
-    private String clusterConfig;
-
     private final TpDynamicExecutor threadPoolExecutor = TpDynamicExecutorFactory.getThreadPool(
             ThreadPoolNameEnum.SWITCH_MESSAGE_QUEUE.getName(), 10, 10);
 
-    @Scheduled(cron = "0 0/5 * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void executeTask() {
+        long start = System.currentTimeMillis();
         // 增加开关控制逻辑
         if (!marketingCommonConfig.getIsEnableMqSwitch()) {
-            log.info("动态切换消息队列任务开关已关闭，跳过执行");
+            log.warn("动态切换消息队列任务开关已关闭，跳过执行");
             return;
         }
 
-        // 直接在任务执行时判断环境
-        String environment;
-        String enumName = ClusterEnum.CLUSTER_PROD_C.getName();
-        if (StringUtils.isNotBlank(clusterConfig) && enumName.equals(clusterConfig)) {
-            environment = "yz";
-        } else {
-            environment = "zw";
-        }
-
-        long start = System.currentTimeMillis();
-        String redisKey = "zw".equals(environment) ?
-                RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":zw" :
-                RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":yz";
-
-        log.info("当前环境为: {}，使用Redis Key: {}", environment, redisKey);
+        String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":" + clusterEnvironment;
+        log.info("当前环境为: {}，使用Redis Key: {}", clusterEnvironment, redisKey);
 
         for (SwitchMessageQueueEnum switchMessageQueueEnum : SwitchMessageQueueEnum.values()) {
-            threadPoolExecutor.submit(() -> processQueueSwitch(switchMessageQueueEnum, redisKey, environment));
+            threadPoolExecutor.submit(() -> processQueueSwitch(switchMessageQueueEnum, redisKey, clusterEnvironment));
         }
 
         log.warn("动态切换消息队列作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);

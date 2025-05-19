@@ -235,6 +235,10 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
 
+    @Autowired
+    @Qualifier("clusterEnvironment")
+    private String clusterEnvironment;
+
     private static final String TITLE = "【通用跑分文件推决策】";
 
 
@@ -2433,9 +2437,9 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     private void sendToRabbitMq(String apiCode, String syncInfoId) {
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
+            String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":" + clusterEnvironment;
             String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
-            String aiQueueRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_PRE_USER_RECEIVE;
+            String aiQueueRoutingKey = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getDefault_route_key();
             String routingKeyFromRedis = getRoutingKeyFromRedis(redisKey, field, aiQueueRoutingKey);
             producter.send(routingKeyFromRedis, syncInfoId);
         } else {

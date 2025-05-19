@@ -16,6 +16,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -37,6 +38,9 @@ public class RabbitMqProducter {
     @Autowired
     PushRuleService pushRuleService;
 
+    @Autowired
+    @Qualifier("clusterEnvironment")
+    private String clusterEnvironment;
 
     @PostConstruct
     void init(){
@@ -157,9 +161,9 @@ public class RabbitMqProducter {
         String message = JSON.toJSONString(mqFact);
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
 
-        String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
+        String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":" + clusterEnvironment;
         String field = SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.name();
-        String aiUniversalRoutingKey = AiMQConstants.ROUTING_KEY_MARKETING_AI_UNIVERSAL_RECEIVE;
+        String aiUniversalRoutingKey = SwitchMessageQueueEnum.MARKETING_AI_UNIVERSAL_RECEIVE.getDefault_route_key();
         String routingKeyFromRedis = pushRuleService.getRoutingKeyFromRedis(redisKey, field, aiUniversalRoutingKey);
 
         rabbitTemplate.convertAndSend(exchange, routingKeyFromRedis, message, arg0 -> {
