@@ -37,6 +37,14 @@ public interface RuleCleaningService {
     boolean saveOrUpdateRule(MarketingDataCleanGeneralConfig config);
 
     /**
+     * 删除不用的清洗规则
+     * @param config 规则配置信息
+     * @param cleanFields 要删除的清洗字段列表
+     * @return 操作结果
+     */
+    boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> cleanFields);
+
+    /**
      * 字段样例查询
      * @param apiCode    API编码
      * @param dataType   数据类型：0上传，1转化

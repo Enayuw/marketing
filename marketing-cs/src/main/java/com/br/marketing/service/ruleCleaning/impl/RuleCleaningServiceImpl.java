@@ -19,6 +19,7 @@ import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralFieldConfigMapper;
+import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
@@ -35,6 +36,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 规则数据清洗接口实现
@@ -60,6 +62,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingDataCleanGeneralFieldConfigMapper marketingDataCleanGeneralFieldConfigMapper;
+
+    @Resource
+    EntityOptServiceImpl entityOptService;
 
     /**
      * 规则列表查询
@@ -163,17 +168,60 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return true;
         } else {
-            for (MarketingDataCleanGeneralConfig ruleConfig : configs) {
-                MarketingDataCleanGeneralRuleConfigExample example = new MarketingDataCleanGeneralRuleConfigExample();
-                example.createCriteria()
-                        .andCleanConfigIdEqualTo(ruleConfig.getId())
-                        .andApiCodeEqualTo(config.getApiCode())
-                        .andIsDelEqualTo(1);
-                cleanGeneralRuleConfigMapper.deleteByExample(example);
-            }
             // 不允许修改
             return true;
         }
+    }
+
+    /**
+     * 删除规则
+     * @param config 规则配置信息
+     * @param cleanFields 要删除的清洗字段列表
+     * @return 操作结果
+     */
+    @Override
+    public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> cleanFields) {
+        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
+        configExample.createCriteria()
+                .andApiCodeEqualTo(config.getApiCode())
+                .andDataTypeEqualTo(config.getDataType())
+                .andAcceptTypeEqualTo(config.getAcceptType())
+                .andIsDelEqualTo(1);
+        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+        if (configs == null || configs.isEmpty()) {
+            return false;
+        }
+        Long id = configs.get(0).getId();
+        // 查询是否已存在该映射字段的规则
+        MarketingDataCleanGeneralRuleConfigExample example = new MarketingDataCleanGeneralRuleConfigExample();
+        example.createCriteria()
+                .andCleanConfigIdEqualTo(id)
+                .andApiCodeEqualTo(config.getApiCode())
+                .andIsDelEqualTo(1);
+
+        List<MarketingDataCleanGeneralRuleConfig> existingRules = cleanGeneralRuleConfigMapper.selectByExample(example);
+
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : existingRules) {
+            String ruleConfigCleanFields = ruleConfig.getCleanFields();
+            if (!cleanFields.contains(ruleConfigCleanFields)) {
+
+                MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
+                updateRule.setId(ruleConfig.getId());
+                updateRule.setIsDel(9);
+                updateRule.setUpdateTime(new Date());
+
+                // 执行更新操作
+                int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
+                if (rows > 0) {
+                    entityOptService.writeOptLog(ruleConfig.getId(), updateRule, ruleConfig);
+                    return true;
+                } else {
+                    throw new BusinessException("删除规则字段失败！规则字段：" + ruleConfigCleanFields);
+                }
+            }
+
+        }
+        return false;
     }
 
     /**
@@ -687,6 +735,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             updateRule.setUpdateTime(now);
 
             cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
+            entityOptService.writeOptLog(existingRule.getId(), updateRule, existingRule);
             log.info("更新字段清洗规则: apiCode={}, mappingField={}, isMapping={}",
                     configDTO.getApiCode(), configDTO.getMappingField(), configDTO.getIsMapping());
         } else {

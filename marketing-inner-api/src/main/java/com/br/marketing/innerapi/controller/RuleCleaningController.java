@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 规则数据清洗
@@ -96,6 +98,11 @@ public class RuleCleaningController {
             // 保存字段清洗配置
             boolean cleaningResult = true;
             List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+            List<String> cleanFields = cleaningConfigs.stream()
+                    .map(FieldCleaningConfigDTO::getCleanField)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            ruleCleaningService.deleteRule(config, cleanFields);
             if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
                 for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
                     // 设置API编码信息
