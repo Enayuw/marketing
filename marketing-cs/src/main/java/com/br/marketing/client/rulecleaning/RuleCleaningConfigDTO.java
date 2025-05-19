@@ -1,6 +1,5 @@
 package com.br.marketing.client.rulecleaning;
 
-import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

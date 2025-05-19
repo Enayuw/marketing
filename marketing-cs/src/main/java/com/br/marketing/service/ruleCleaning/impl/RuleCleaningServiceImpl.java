@@ -36,7 +36,6 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * 规则数据清洗接口实现
@@ -139,11 +138,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("接口类型不能为空");
         }
 
-        MarketingUserDetail user = ThreadContextInfo.getUser();
-        Long userId = Long.valueOf(user.getId());
-        String userName = user.getUserName();
-        config.setOptUserId(userId);
-        config.setOptUserName(userName);
+//        MarketingUserDetail user = ThreadContextInfo.getUser();
+//        Long userId = Long.valueOf(user.getId());
+//        String userName = user.getUserName();
+//        config.setOptUserId(userId);
+//        config.setOptUserName(userName);
         // 设置默认参数
         config.setIsDel(1);
 
@@ -168,6 +167,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return true;
         } else {
+            config.setId(configs.get(0).getId());
             config.setUpdateTime(now);
             int rows = cleanGeneralConfigMapper.updateByPrimaryKeySelective(config);
             if (rows <= 0) {
