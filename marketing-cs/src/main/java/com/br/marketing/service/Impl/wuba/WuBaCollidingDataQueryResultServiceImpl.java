@@ -237,10 +237,10 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
     private void sendEliminateDataToMq(Long batchNoId) {
         try {
-            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingWuBaConstants.TAG_MARKETING_WUBA_COLLIDING_ELIMINATE)){
+            if (rocketMqSwitch.rocketMQSwitchFlag(null, MarketingWuBaConstants.TAG_MARKETING_WUBA_COLLIDING_ELIMINATE)) {
                 rocketMqSwitch.syncSend(MarketingWuBaConstants.TOPIC
                         , MarketingWuBaConstants.TAG_MARKETING_WUBA_COLLIDING_ELIMINATE, String.valueOf(batchNoId));
-            }else{
+            } else {
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WUBA_COLLIDING_ELIMINATE, String.valueOf(batchNoId));
             }
             log.warn("58查询撞库结果作业 status-1发送mq，batchNoId:{}", batchNoId);
@@ -433,6 +433,24 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         wubaCollidingDataSyncCleanMapper.batchSaveData(nonFinancialDatas, batchNo, apiCode, taskId);
     }
 
+    private void delayToFinancialBusiness(List<WubaCollidingData> financialDatas, String apiCode, String batchNo, Long taskId) {
+        // 撞得金融场景从延期表删除，并保存到金融场景周期表
+        List<String> financialCells = financialDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
+        wuBaCollidingDataBusinessService.saveSecondLoopAnddeleteDelay(financialCells, apiCode);
+
+        // 保存到上传清洗表
+        wubaCollidingDataSyncCleanMapper.batchSaveData(financialDatas, batchNo, apiCode, taskId);
+    }
+
+    private void delayToNonFinancialBusiness(List<WubaCollidingData> nonFinancialDatas, String apiCode, String batchNo, Long taskId) {
+        // 撞得非金融场景从延期表删除，并保存到非金融场景周期表
+        List<String> nonFinancialCells = nonFinancialDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
+        wuBaCollidingDataBusinessService.saveLoopAnddeleteDelay(nonFinancialCells, apiCode);
+
+        // 保存到上传清洗表
+        wubaCollidingDataSyncCleanMapper.batchSaveData(nonFinancialDatas, batchNo, apiCode, taskId);
+    }
+
     private void batchSaveEliminateAndDeleteRob(List<String> data, String apiCode, Long batchNoId) {
         wubaCollidingDataEliminateMapper.batchSaveDataByBatchNoAndPushTime(data, apiCode, batchNoId);
         wubaCollidingDataRobMapper.batchDeleteByCell(data, apiCode);
@@ -559,6 +577,9 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
         String customNameType = "";
         switch (sourceType) {
+            case "D":
+                customNameType = "delay";
+                break;
             case "T":
             case "S":
                 customNameType = "period";
@@ -603,6 +624,20 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         // 根据sourceType获取-2包id，结果可为空
         Long reavedPackageId = getReavedPackageIdFromSpeed(sourceType);
         switch (sourceType) {
+            case "D":
+                Long reavedDelayPackageId = getReavedPackageIdFromSpeed("T");
+                futures.addAll(batchHandleBusinessAsync(nonFinancialDatas,
+                        (List<WubaCollidingData> data) -> delayToNonFinancialBusiness(data, apiCode, batchNo, taskId),
+                        "延期数据转为非金融场景，并保存到清洗表"));
+                futures.addAll(batchHandleBusinessAsync(financialDatas,
+                        (List<WubaCollidingData> data) -> delayToFinancialBusiness(data, apiCode, batchNo, taskId),
+                        "延期数据转为金融场景，并保存到清洗表"));
+                futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
+                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteDelayAndSaveReavedIntoRob(data, apiCode, reavedDelayPackageId),
+                        "延期数据撞回status=-2，保存到非金融-2包"));
+                futures.addAll(batchHandleFalseBusinessAsync(otherFalseCells,
+                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteDelayAndSaveRob(data, apiCode), "延期场景未撞得业务"));
+                break;
             case "T":
                 futures.addAll(batchHandleBusinessAsync(financialDatas,
                         (List<WubaCollidingData> data) -> nonFinancialToFinancialBusiness(data, apiCode, batchNo, taskId),

@@ -176,6 +176,9 @@ public enum AlarmSendCodeEnum {
     TONGCHENG_SERVICEERROR("6017001", "同程业务异常"),
     //同程接口调用失败,阶梯推送
     TONGCHENG_INTERFACEERROR("6017002", "同程接口调用失败"),
+    //同程推送文件到SFTP失败
+    TONGCHENG_PUSHFILETOSFTP("6017003", "同程文件推送SFTP失败"),
+
 
     //你我贷业务异常,立即推送
     NIWODAI_SERVICEERROR("6018001", "你我贷业务异常"),

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaCollidingDataDelayLoopCycleMapper">
+    <select id="selectDuplicateData" resultType="java.lang.String">
+        SELECT cell
+        FROM b_wuba_colliding_data_delay_loop_cycle
+        WHERE api_code = #{apiCode} AND is_deleted = 0
+        AND cell in
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <update id="batchUpdatePushTimeById">
+        update b_wuba_colliding_data_delay_loop_cycle set push_time = now()
+        where id in
+        <foreach collection="datas" item="data" open="(" close=")" separator=",">
+            #{data.id}
+        </foreach>
+    </update>
+
+    <update id="batchDeleteByCell">
+        update b_wuba_colliding_data_delay_loop_cycle set is_deleted = 1
+        where api_code = #{apiCode} and cell in
+        <foreach collection="cells" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateReleaseTimeByCell">
+        UPDATE b_wuba_colliding_data_delay_loop_cycle
+        SET
+        push_time = null,
+        clean_status = 0, update_time = now(),
+        task_id = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.taskId}
+        </foreach>
+        ELSE task_id
+        END,
+        batch_no = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.batchNo}
+        </foreach>
+        ELSE batch_no
+        END,
+        release_time = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.releaseTime}
+        </foreach>
+        ELSE release_time
+        END,
+        last_push_time = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.lastPushTime}
+        </foreach>
+        ELSE last_push_time
+        END,
+        api_code = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.apiCode}
+        </foreach>
+        ELSE api_code
+        END,
+        extend = CASE cell
+        <foreach collection="list" item="item">
+            WHEN #{item.cell} THEN #{item.extend}
+        </foreach>
+        ELSE extend
+        END
+        WHERE cell IN (
+        <foreach collection="list" item="item" separator=",">
+            #{item.cell}
+        </foreach>
+        )
+    </update>
+
+    <insert id="batchSaveData">
+        INSERT INTO b_wuba_colliding_data_delay_loop_cycle (api_code,cell,batch_no,release_time,last_push_time,push_time,task_id,extend)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.apiCode},#{item.cell},#{item.batchNo},#{item.releaseTime},#{item.lastPushTime},#{item.pushTime},#{item.taskId},#{item.extend})
+        </foreach>
+    </insert>
+</mapper>

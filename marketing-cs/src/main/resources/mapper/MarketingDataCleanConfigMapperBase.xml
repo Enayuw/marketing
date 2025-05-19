@@ -12,8 +12,9 @@
     <result column="conversion" property="conversion" jdbcType="VARCHAR" />
     <result column="default_value" property="defaultValue" jdbcType="VARCHAR" />
     <result column="date_transform_pattern" property="dateTransformPattern" jdbcType="VARCHAR" />
-    <result column="decimal_reserve_type" property="decimalReserveType" jdbcType="INTEGER" />
+    <result column="decimal_reserve_type" property="decimalReserveType" jdbcType="VARCHAR" />
     <result column="decimal_reserve_precision" property="decimalReservePrecision" jdbcType="INTEGER" />
+    <result column="decimal_unit_ratio" property="decimalUnitRatio" jdbcType="VARCHAR" />
     <result column="mapping_condition" property="mappingCondition" jdbcType="VARCHAR" />
     <result column="mapping_out_value" property="mappingOutValue" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -79,9 +80,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, rule_id, mapping_mode, origin_type, target_type, origin_name, target_name, `conversion`, 
-    default_value, date_transform_pattern, decimal_reserve_type, decimal_reserve_precision, 
-    mapping_condition, mapping_out_value, is_del, create_time, update_time
+    id, rule_id, mapping_mode, origin_type, target_type, origin_name, target_name, `conversion`,
+    default_value, date_transform_pattern, decimal_reserve_type, decimal_reserve_precision,
+    decimal_unit_ratio, mapping_condition, mapping_out_value, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataCleanConfigExample" >
     select
@@ -98,7 +99,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_data_clean_config
     where id = #{id,jdbcType=BIGINT}
@@ -117,18 +118,20 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_data_clean_config (rule_id, mapping_mode, origin_type, 
-      target_type, origin_name, target_name, 
-      `conversion`, default_value, date_transform_pattern, 
-      decimal_reserve_type, decimal_reserve_precision, 
-      mapping_condition, mapping_out_value, is_del, 
-      create_time, update_time)
-    values (#{ruleId,jdbcType=VARCHAR}, #{mappingMode,jdbcType=INTEGER}, #{originType,jdbcType=INTEGER}, 
-      #{targetType,jdbcType=INTEGER}, #{originName,jdbcType=VARCHAR}, #{targetName,jdbcType=VARCHAR}, 
-      #{conversion,jdbcType=VARCHAR}, #{defaultValue,jdbcType=VARCHAR}, #{dateTransformPattern,jdbcType=VARCHAR}, 
-      #{decimalReserveType,jdbcType=INTEGER}, #{decimalReservePrecision,jdbcType=INTEGER}, 
-      #{mappingCondition,jdbcType=VARCHAR}, #{mappingOutValue,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_marketing_data_clean_config (rule_id, mapping_mode, origin_type,
+    target_type, origin_name, target_name,
+    `conversion`, default_value, date_transform_pattern,
+    decimal_reserve_type, decimal_reserve_precision,
+    decimal_unit_ratio, mapping_condition, mapping_out_value,
+    is_del, create_time, update_time
+    )
+    values (#{ruleId,jdbcType=VARCHAR}, #{mappingMode,jdbcType=INTEGER}, #{originType,jdbcType=INTEGER},
+    #{targetType,jdbcType=INTEGER}, #{originName,jdbcType=VARCHAR}, #{targetName,jdbcType=VARCHAR},
+    #{conversion,jdbcType=VARCHAR}, #{defaultValue,jdbcType=VARCHAR}, #{dateTransformPattern,jdbcType=VARCHAR},
+    #{decimalReserveType,jdbcType=VARCHAR}, #{decimalReservePrecision,jdbcType=INTEGER},
+    #{decimalUnitRatio,jdbcType=VARCHAR}, #{mappingCondition,jdbcType=VARCHAR}, #{mappingOutValue,jdbcType=VARCHAR},
+    #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataCleanConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -168,6 +171,9 @@
       </if>
       <if test="decimalReservePrecision != null" >
         decimal_reserve_precision,
+      </if>
+      <if test="decimalUnitRatio != null" >
+        decimal_unit_ratio,
       </if>
       <if test="mappingCondition != null" >
         mapping_condition,
@@ -214,10 +220,13 @@
         #{dateTransformPattern,jdbcType=VARCHAR},
       </if>
       <if test="decimalReserveType != null" >
-        #{decimalReserveType,jdbcType=INTEGER},
+        #{decimalReserveType,jdbcType=VARCHAR},
       </if>
       <if test="decimalReservePrecision != null" >
         #{decimalReservePrecision,jdbcType=INTEGER},
+      </if>
+      <if test="decimalUnitRatio != null" >
+        #{decimalUnitRatio,jdbcType=VARCHAR},
       </if>
       <if test="mappingCondition != null" >
         #{mappingCondition,jdbcType=VARCHAR},
@@ -276,10 +285,13 @@
         date_transform_pattern = #{record.dateTransformPattern,jdbcType=VARCHAR},
       </if>
       <if test="record.decimalReserveType != null" >
-        decimal_reserve_type = #{record.decimalReserveType,jdbcType=INTEGER},
+        decimal_reserve_type = #{record.decimalReserveType,jdbcType=VARCHAR},
       </if>
       <if test="record.decimalReservePrecision != null" >
         decimal_reserve_precision = #{record.decimalReservePrecision,jdbcType=INTEGER},
+      </if>
+      <if test="record.decimalUnitRatio != null" >
+        decimal_unit_ratio = #{record.decimalUnitRatio,jdbcType=VARCHAR},
       </if>
       <if test="record.mappingCondition != null" >
         mapping_condition = #{record.mappingCondition,jdbcType=VARCHAR},
@@ -304,22 +316,23 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_data_clean_config
     set id = #{record.id,jdbcType=BIGINT},
-      rule_id = #{record.ruleId,jdbcType=VARCHAR},
-      mapping_mode = #{record.mappingMode,jdbcType=INTEGER},
-      origin_type = #{record.originType,jdbcType=INTEGER},
-      target_type = #{record.targetType,jdbcType=INTEGER},
-      origin_name = #{record.originName,jdbcType=VARCHAR},
-      target_name = #{record.targetName,jdbcType=VARCHAR},
-      `conversion` = #{record.conversion,jdbcType=VARCHAR},
-      default_value = #{record.defaultValue,jdbcType=VARCHAR},
-      date_transform_pattern = #{record.dateTransformPattern,jdbcType=VARCHAR},
-      decimal_reserve_type = #{record.decimalReserveType,jdbcType=INTEGER},
-      decimal_reserve_precision = #{record.decimalReservePrecision,jdbcType=INTEGER},
-      mapping_condition = #{record.mappingCondition,jdbcType=VARCHAR},
-      mapping_out_value = #{record.mappingOutValue,jdbcType=VARCHAR},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    rule_id = #{record.ruleId,jdbcType=VARCHAR},
+    mapping_mode = #{record.mappingMode,jdbcType=INTEGER},
+    origin_type = #{record.originType,jdbcType=INTEGER},
+    target_type = #{record.targetType,jdbcType=INTEGER},
+    origin_name = #{record.originName,jdbcType=VARCHAR},
+    target_name = #{record.targetName,jdbcType=VARCHAR},
+    `conversion` = #{record.conversion,jdbcType=VARCHAR},
+    default_value = #{record.defaultValue,jdbcType=VARCHAR},
+    date_transform_pattern = #{record.dateTransformPattern,jdbcType=VARCHAR},
+    decimal_reserve_type = #{record.decimalReserveType,jdbcType=VARCHAR},
+    decimal_reserve_precision = #{record.decimalReservePrecision,jdbcType=INTEGER},
+    decimal_unit_ratio = #{record.decimalUnitRatio,jdbcType=VARCHAR},
+    mapping_condition = #{record.mappingCondition,jdbcType=VARCHAR},
+    mapping_out_value = #{record.mappingOutValue,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -355,10 +368,13 @@
         date_transform_pattern = #{dateTransformPattern,jdbcType=VARCHAR},
       </if>
       <if test="decimalReserveType != null" >
-        decimal_reserve_type = #{decimalReserveType,jdbcType=INTEGER},
+        decimal_reserve_type = #{decimalReserveType,jdbcType=VARCHAR},
       </if>
       <if test="decimalReservePrecision != null" >
         decimal_reserve_precision = #{decimalReservePrecision,jdbcType=INTEGER},
+      </if>
+      <if test="decimalUnitRatio != null" >
+        decimal_unit_ratio = #{decimalUnitRatio,jdbcType=VARCHAR},
       </if>
       <if test="mappingCondition != null" >
         mapping_condition = #{mappingCondition,jdbcType=VARCHAR},
@@ -381,21 +397,22 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataCleanConfig" >
     update b_marketing_data_clean_config
     set rule_id = #{ruleId,jdbcType=VARCHAR},
-      mapping_mode = #{mappingMode,jdbcType=INTEGER},
-      origin_type = #{originType,jdbcType=INTEGER},
-      target_type = #{targetType,jdbcType=INTEGER},
-      origin_name = #{originName,jdbcType=VARCHAR},
-      target_name = #{targetName,jdbcType=VARCHAR},
-      `conversion` = #{conversion,jdbcType=VARCHAR},
-      default_value = #{defaultValue,jdbcType=VARCHAR},
-      date_transform_pattern = #{dateTransformPattern,jdbcType=VARCHAR},
-      decimal_reserve_type = #{decimalReserveType,jdbcType=INTEGER},
-      decimal_reserve_precision = #{decimalReservePrecision,jdbcType=INTEGER},
-      mapping_condition = #{mappingCondition,jdbcType=VARCHAR},
-      mapping_out_value = #{mappingOutValue,jdbcType=VARCHAR},
-      is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        mapping_mode = #{mappingMode,jdbcType=INTEGER},
+        origin_type = #{originType,jdbcType=INTEGER},
+        target_type = #{targetType,jdbcType=INTEGER},
+        origin_name = #{originName,jdbcType=VARCHAR},
+        target_name = #{targetName,jdbcType=VARCHAR},
+        `conversion` = #{conversion,jdbcType=VARCHAR},
+        default_value = #{defaultValue,jdbcType=VARCHAR},
+        date_transform_pattern = #{dateTransformPattern,jdbcType=VARCHAR},
+        decimal_reserve_type = #{decimalReserveType,jdbcType=VARCHAR},
+        decimal_reserve_precision = #{decimalReservePrecision,jdbcType=INTEGER},
+        decimal_unit_ratio = #{decimalUnitRatio,jdbcType=VARCHAR},
+        mapping_condition = #{mappingCondition,jdbcType=VARCHAR},
+        mapping_out_value = #{mappingOutValue,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -1,13 +1,13 @@
 package com.br.marketing.client;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.SyncConfig;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -419,6 +419,7 @@ public class SftpClient extends BaseFtpClient{
         }
         return success;
     }
+
 
     @Override
     public void uploadFileAndMk(InputStream inputStream, String path, String fileName) throws Exception {

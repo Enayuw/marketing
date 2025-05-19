@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 同城易融拉取文件入库-Service实现
+ * 同城易融-转化上传
  *
  * @author zhiyong.zhang
  * @date 2024/04/21
@@ -31,7 +31,8 @@ public class TcTransferRecordServiceImpl implements TcTransferRecordService {
     }
 
     @Override
-    public Integer updateStatus(List<Long> idList, Integer status) {
-        return tcyrTransferRecordMapper.updateStatus(idList,status);
+    public Integer updateCleanStatus(List<Long> idList, Integer cleanStatus) {
+        return tcyrTransferRecordMapper.updateCleanStatus(idList,cleanStatus);
+
     }
 }

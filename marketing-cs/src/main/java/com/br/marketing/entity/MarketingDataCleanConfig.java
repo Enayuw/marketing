@@ -54,14 +54,19 @@ public class MarketingDataCleanConfig {
     private String dateTransformPattern;
 
     /**
-     * 保留类型 0：四舍五入；1：舍位
+     * RoundingMode
      */
-    private Integer decimalReserveType;
+    private String decimalReserveType;
 
     /**
      * 保留位数
      */
     private Integer decimalReservePrecision;
+
+    /**
+     * 单位转换比率
+     */
+    private String decimalUnitRatio;
 
     /**
      * 组合条件
@@ -168,12 +173,12 @@ public class MarketingDataCleanConfig {
         this.dateTransformPattern = dateTransformPattern == null ? null : dateTransformPattern.trim();
     }
 
-    public Integer getDecimalReserveType() {
+    public String getDecimalReserveType() {
         return decimalReserveType;
     }
 
-    public void setDecimalReserveType(Integer decimalReserveType) {
-        this.decimalReserveType = decimalReserveType;
+    public void setDecimalReserveType(String decimalReserveType) {
+        this.decimalReserveType = decimalReserveType == null ? null : decimalReserveType.trim();
     }
 
     public Integer getDecimalReservePrecision() {
@@ -182,6 +187,14 @@ public class MarketingDataCleanConfig {
 
     public void setDecimalReservePrecision(Integer decimalReservePrecision) {
         this.decimalReservePrecision = decimalReservePrecision;
+    }
+
+    public String getDecimalUnitRatio() {
+        return decimalUnitRatio;
+    }
+
+    public void setDecimalUnitRatio(String decimalUnitRatio) {
+        this.decimalUnitRatio = decimalUnitRatio == null ? null : decimalUnitRatio.trim();
     }
 
     public String getMappingCondition() {

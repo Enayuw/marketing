@@ -120,6 +120,7 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        cusNameOfJo(syncUser.getName(),jsonObject);
         return jsonObject;
     }
 
@@ -149,4 +150,16 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         return null;
     }
 
+    private void cusNameOfJo(String name,JSONObject jo){
+        if(StringUtils.isBlank(name)){
+            return;
+        }
+        if(ObjectUtil.isEmpty(jo)){
+            return;
+        }
+        String cusName = jo.getString("cusName");
+        if(StringUtils.isBlank(cusName)){
+            jo.put("cusName",BrCipherMaker.getInstance().decode(name));
+        }
+    }
 }

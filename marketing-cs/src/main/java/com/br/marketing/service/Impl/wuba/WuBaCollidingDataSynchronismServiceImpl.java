@@ -14,6 +14,7 @@ import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper;
+import com.br.marketing.mapper.WubaCollidingDataDelayLoopCycleMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Joiner;
@@ -62,6 +63,8 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     WubaCollidingDataRobMapper wubaCollidingDataRobMapper;
     @Resource
     WuBaCollidingDataBusinessService wuBaCollidingDataBusinessService;
+    @Resource
+    private WubaCollidingDataDelayLoopCycleMapper wubaCollidingDataDelayLoopCycleMapper;
 
     private final static int PARTATION_SIZE = 500;
 
@@ -171,19 +174,28 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     }
 
     /**
-     * 1.与周期非金融数据去重
-     * 2.与周期金融数据去重
-     * 3.与status=-1历史数据去重
-     * 4.与周期非金融status=-2包去重、与周期金融status=-2包去重、与补包status=-2包去重
-     * 5.与高价值数据去重
-     * 6.与当天已入库数据去重
+     * 1.与延期有效数据去重
+     * 2.与周期非金融数据去重
+     * 3.与周期金融数据去重
+     * 4.与status=-1历史数据去重
+     * 5.与周期非金融status=-2包去重、与周期金融status=-2包去重、与补包status=-2包去重
+     * 6.与高价值数据去重
+     * 7.与当天已入库数据去重
      * @param list
      * @param apiCode
      */
     private List<WubaCollidingDataFront> removeDuplicateData(List<WubaCollidingDataFront> list, String apiCode) {
         try {
             List<String> cells = list.stream().map(WubaCollidingDataFront::getCell).collect(Collectors.toList());
-            // 与周期非金融数据去重
+
+            // 1.与延期有效数据去重
+            List<String> delayLoopCycleData = wubaCollidingDataDelayLoopCycleMapper.selectDuplicateData(cells, apiCode);
+            cells.removeAll(delayLoopCycleData);
+            if (CollectionUtils.isEmpty(cells)) {
+                return new ArrayList<>();
+            }
+
+            // 2.与周期非金融数据去重
             if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(T)) {
                 List<String> loopCycleData = wubaCollidingDataLoopCycleMapper.selectDuplicateData(cells, apiCode);
                 cells.removeAll(loopCycleData);
@@ -192,7 +204,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
                 return new ArrayList<>();
             }
 
-            // 与周期金融数据去重
+            // 3.与周期金融数据去重
             if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
                 List<String> secondCycleData = wubaCollidingDataSecondLoopCycleMapper.selectDuplicateData(cells, apiCode);
                 cells.removeAll(secondCycleData);
@@ -201,14 +213,14 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
                 return new ArrayList<>();
             }
 
-            // 与status=-1历史数据去重
+            // 4.与status=-1历史数据去重
             List<String> secondCycleData = wubaCollidingDataEliminateMapper.selectDuplicateData(cells);
             cells.removeAll(secondCycleData);
             if (CollectionUtils.isEmpty(cells)) {
                 return new ArrayList<>();
             }
 
-            // 与周期非金融status=-2包去重、与周期金融status=-2包去重、与补包status=-2包去重、与高价值数据去重
+            // 5.与周期非金融status=-2包去重、与周期金融status=-2包去重、与补包status=-2包去重、与高价值数据去重
             List<Long> fileIds = new ArrayList<>();
             HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
             for (Map.Entry<String, JSONObject> mapEntry : map.entrySet()) {
@@ -232,7 +244,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
                 return new ArrayList<>();
             }
 
-            // 与当天已入库数据去重
+            // 6.与当天已入库数据去重
             Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
             List<String> duplicateDataByCreateTime = wubaCollidingDataRobMapper.selectDuplicateDataByCreateTime(cells, apiCode, today, tomorrow);

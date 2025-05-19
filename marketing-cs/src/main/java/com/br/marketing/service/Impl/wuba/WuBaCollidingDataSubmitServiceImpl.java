@@ -19,6 +19,7 @@ import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaCollidingConfigMapper;
+import com.br.marketing.mapper.WubaCollidingDataDelayLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
@@ -58,6 +59,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     public static final String J = "J";
     public static final String Q = "Q";
     public static final String K = "K";
+    public static final String D = "D";
     @Resource
     WuBaServiceClient wuBaServiceClient;
     @Autowired
@@ -69,11 +71,15 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     @Resource
     WubaCollidingDataSecondLoopCycleMapper wubaCollidingDataSecondLoopCycleMapper;
     @Resource
+    WubaCollidingDataDelayLoopCycleMapper wubaCollidingDataDelayLoopCycleMapper;
+    @Resource
     WubaCollidingBatchNoMapper wubaCollidingBatchNoMapper;
     @Resource
     WubaCollidingDataLogMapper wubaCollidingDataLogMapper;
     @Resource
     WubaCollidingConfigMapper wubaCollidingConfigMapper;
+    @Resource
+    WuBaCollidingDataSynchronismService wuBaCollidingDataSynchronismService;
     @Autowired
     RedisChgService redisChgService;
     private final static int PARTATION_SIZE = 50;
@@ -161,6 +167,10 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             wubaCollidingBatchNoMapper.saveDataByBatchNo(batchNo, 1, apiCode, sourceType);
 
             switch (sourceType) {
+                case D:
+                    // 更新延期表pushTime
+                    wubaCollidingDataDelayLoopCycleMapper.batchUpdatePushTimeById(collidingData);
+                    break;
                 case T:
                     // 更新周期场景1表pushTime
                     wubaCollidingDataLoopCycleMapper.batchUpdatePushTimeById(collidingData);
@@ -252,10 +262,11 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
      * @return
      */
     private Pair<WubaCollidingConfig, List<WubaCollidingData>> getCollidingDatas(String apiCode, Integer limit) {
-        List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
-        String highValueFileNames =
-                CollectionUtils.isEmpty(highValueFiles) ? "\"\"" :
-                        Joiner.on(",").join(highValueFiles.stream().map(file -> "\"" + file + "\"").collect(Collectors.toList()));
+        List<Long> highValueIdList = wuBaCollidingDataSynchronismService.getHighValueFileIds(apiCode);
+        String highValueIds =
+                CollectionUtils.isEmpty(highValueIdList) ? "\"\"" :
+                        Joiner.on(",").join(highValueIdList.stream().map(id -> "\"" + id + "\"").collect(Collectors.toList()));
+        log.warn("58提交撞库，高价值文件id：{}", highValueIds);
         List<WubaCollidingConfig> configs = wubaCollidingConfigMapper.queryWuBaCollidingConfigByPriority();
         if (CollectionUtils.isEmpty(configs)) {
             return new Pair<>(null, null);
@@ -263,7 +274,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
 
         for (WubaCollidingConfig config : configs) {
             String configSql = config.getQuerySql();
-            String replaceSql = configSql.replace("#{apiCode}", apiCode).replace("#{fileNames}", highValueFileNames);
+            String replaceSql = configSql.replace("#{apiCode}", "\"" + apiCode + "\"").replace("#{highValueIds}", highValueIds);
             String completeSql = replaceSql.concat(" limit " + limit);
             List<WubaCollidingData> collidingData = wubaCollidingConfigMapper.queryCollidingDataByConfigSql(completeSql);
             if (CollectionUtils.isEmpty(collidingData)) {

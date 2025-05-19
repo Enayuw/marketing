@@ -1,7 +1,6 @@
 package com.br.marketing.rule.niwodai;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
@@ -28,12 +27,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * D20230314你我贷自动化过滤-3710064 业务
@@ -48,6 +42,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
             DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+    private static final List<String> USER_TYPES = Arrays.asList("0", "1", "3", "7", "9");
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -106,7 +101,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
                     return false;
                 }
                 //2.规则过滤并赋值inversionStatus
-                String inversionStatus = getInversionStatus(context.getApiCode(), transfer.getUserType(), jsonObject);
+                String inversionStatus = getInversionStatus(transfer.getUserType(), jsonObject);
                 if (StringUtils.isEmpty(inversionStatus)) {
                     return false;
                 }
@@ -119,38 +114,35 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
 
     /**
      * 过滤规则，获得inversionStatus
-     * @param apiCode
      * @param userType
      * @param reserveField1
      */
-    private String getInversionStatus(String apiCode, String userType, JSONObject reserveField1) {
-        String inversionStatus = "";
-        Map<String, JSONArray> youMeLoanTransferFilterConfig = marketingCommonConfig.getYouMeLoanTransferFilterConfig();
-        JSONArray config = youMeLoanTransferFilterConfig.get(apiCode);
-        if (config != null) {
-            List<Map> congfigList = config.toJavaList(Map.class);
-            tagGroup:
-            for (Map map : congfigList) {
-                //1.tag匹配
-                List<Map<String, String>> tagList = (List<Map<String, String>>) map.get("tag");
-                for (Map<String, String> tag : tagList) {
-                    if (!tag.get("tagValue").equals(reserveField1.getString(tag.get("tagKey")))) {
-                        continue tagGroup;
-                    }
-                }
-                //2.userType匹配
-                String userTypeString = (String) map.get("userType");
-                if (StringUtils.isNotEmpty(userTypeString)) {
-                    List<String> userTypes = Arrays.stream(userTypeString.split(",")).collect(Collectors.toList());
-                    if (!userTypes.contains(userType)) {
-                        continue;
-                    }
-                }
-                //3.匹配通过后，赋值inversionStatus
-                inversionStatus = (String) map.get("inversionStatus");
-                break;
-            }
+    private String getInversionStatus(String userType, JSONObject reserveField1) {
+        String inversionStatus = "0";
+        if (Optional.ofNullable(reserveField1.getInteger("F")).isPresent() &&
+                reserveField1.getInteger("F") == 1) {
+            return inversionStatus;
         }
+        if (Optional.ofNullable(reserveField1.getInteger("B")).isPresent()
+                && reserveField1.getInteger("B") != 0 && USER_TYPES.contains(userType)) {
+            return inversionStatus;
+        }
+        if (Optional.ofNullable(reserveField1.getInteger("C")).isPresent() &&
+                reserveField1.getInteger("C") == 1 && USER_TYPES.contains(userType)) {
+            return inversionStatus;
+        }
+        if ((Optional.ofNullable(reserveField1.getInteger("C")).isPresent()
+                && reserveField1.getInteger("C") == 1)
+                && (Optional.ofNullable(reserveField1.getInteger("D")).isPresent()
+                && reserveField1.getInteger("D") == 0) && userType.equals("20")) {
+            return inversionStatus;
+        }
+        if (Optional.ofNullable(reserveField1.getInteger("H")).isPresent()
+                && reserveField1.getInteger("H") == 1) {
+            inversionStatus = "2";
+            return inversionStatus ;
+        }
+        inversionStatus = "";
         return inversionStatus;
     }
 
