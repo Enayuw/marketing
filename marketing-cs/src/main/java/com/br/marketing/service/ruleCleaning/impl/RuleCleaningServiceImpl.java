@@ -168,6 +168,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return true;
         } else {
+            config.setUpdateTime(now);
+            int rows = cleanGeneralConfigMapper.updateByPrimaryKeySelective(config);
+            if (rows <= 0) {
+                throw new BusinessException("更新规则配置失败，可能规则不存在");
+            }
             // 不允许修改
             return true;
         }
