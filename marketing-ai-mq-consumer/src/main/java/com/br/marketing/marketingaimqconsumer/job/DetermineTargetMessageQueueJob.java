@@ -59,7 +59,7 @@ public class DetermineTargetMessageQueueJob {
         }
 
         String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":" + clusterEnvironment;
-        log.info("当前环境为: {}，使用Redis Key: {}", clusterEnvironment, redisKey);
+        log.warn("动态切换消息队列作业,当前环境为: {}，使用Redis Key: {}", clusterEnvironment, redisKey);
 
         for (SwitchMessageQueueEnum switchMessageQueueEnum : SwitchMessageQueueEnum.values()) {
             threadPoolExecutor.submit(() -> processQueueSwitch(switchMessageQueueEnum, redisKey, clusterEnvironment));
