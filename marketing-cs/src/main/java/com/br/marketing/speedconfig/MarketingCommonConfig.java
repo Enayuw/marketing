@@ -2860,7 +2860,7 @@ public class MarketingCommonConfig {
     /**
      * 转化文件提取到marketingBI的配置
      */
-    private List<String> transFileExtractionApiCodesConfig;
+    private List<JSONObject> transFileExtractionApiCodesConfig;
     /**
      * 转化文件提取到BI线程数
      */
