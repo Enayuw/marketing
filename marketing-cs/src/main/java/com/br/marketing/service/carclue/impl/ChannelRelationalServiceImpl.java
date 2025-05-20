@@ -715,7 +715,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
 
         // 验证表头
         if (!validateSheetHeaders(sheet, includeDemandId)) {
-            log.warn(TITL + "Excel表头不符合要求，跳过处理");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    TITL + "Excel表头不符合要求，跳过处理"));
             return;
         }
 
@@ -820,7 +821,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                 "create_time, update_time, is_del, daily_limited, demand_id) " +
                 "VALUES " + String.join(", ", valueList) + ";";
 
-        log.debug("{}批量插入SQL：{}", TITL, sql);
+        log.warn("{}批量插入SQL：{}", TITL, sql);
         carClueRelationalMappingMapper.insertSql(sql);
     }
 
