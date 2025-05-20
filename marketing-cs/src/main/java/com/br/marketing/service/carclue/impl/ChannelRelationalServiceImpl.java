@@ -501,6 +501,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
                 // E列：需求ID
                 String demandId = getCellValue(row, 4);
 
+                if(StringUtils.isEmpty(brand) && StringUtils.isEmpty(series)){
+                    continue;
+                }
                 // 构建VALUES部分
                 String valueStatement = String.format(
                         "('%s', '%s', '%s', null, null, '%s', null, null, curdate(), now(), now(), 1, %s, '%s')",
@@ -741,7 +744,9 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             String satisfyCity = getCellValue(row, 4);
             String excludeProvince = getCellValue(row, 5);
             String excludeCity = getCellValue(row, 6);
-
+            if(StringUtils.isEmpty(brand) && StringUtils.isEmpty(series)){
+                continue;
+            }
             String valueStatement;
             if (includeDemandId) {
                 String demandId = getCellValue(row, 7);
