@@ -20,4 +20,9 @@
           and rule.is_del = '1'
           and customer.status = '1'
     </select>
+
+    <insert id="saveCustomerRuleMapping">
+        insert into b_marketing_customer_rule_mapping (api_code, create_time, rule_id) values
+        (#{apiCode}, now(), select id from b_marketing_customer_rule where rule_label = #{ruleLabel})
+    </insert>
 </mapper>
