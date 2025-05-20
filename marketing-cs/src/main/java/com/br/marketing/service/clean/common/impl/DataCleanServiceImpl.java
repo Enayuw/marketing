@@ -310,8 +310,11 @@ public class DataCleanServiceImpl implements DataCleanService {
                 }
                 indexId = pageList.get(pageList.size() - 1).getId();
                 modifyCorePoolSize(pool);
-                pageList.forEach(originalData ->
-                        pool.submit(() -> processData(originalData, ruleConfigList))
+                pageList.forEach(originalData -> {
+                            List<MarketingDataCleanGeneralRuleConfig> ruleList = new ArrayList<>();
+                            ruleList.addAll(ruleConfigList);
+                            pool.submit(() -> processData(originalData, ruleList));
+                        }
                 );
             }
         });
