@@ -230,20 +230,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
-        if (StringUtils.isBlank(apiCode)) {
-            throw new BusinessException("API编码不能为空");
-        }
-
-        if (dataType == null) {
-            throw new BusinessException("数据类型不能为空");
-        }
-
         if (dataType != 0 && dataType != 1) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
-        }
-
-        if (acceptType == null) {
-            throw new BusinessException("接口类型不能为空");
         }
 
         if (acceptType != 0 && acceptType != 1 && acceptType != 2) {
@@ -265,8 +253,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andDataTypeEqualTo(dataType)
-                .andAcceptTypeEqualTo(acceptType)
-                .andNodeTypeEqualTo("primitive");
+                .andAcceptTypeEqualTo(acceptType);
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
         if (nodes == null || nodes.isEmpty()) {
             log.warn("未找到相关的JSON结构定义：apiCode=" + apiCode + ", dataType="
@@ -274,9 +261,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return result;
         } else {
             for (MarketingJsonNodeParse node : nodes) {
-                FieldSampleDTO dto = new FieldSampleDTO();
                 String nodeName = node.getNodeName();
-
+                Integer level = node.getLevel();
+                if (level == 0) {
+                    continue;
+                }
+                if (acceptType == 0){
+                    if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
+                        continue;
+                    }
+                }
+                FieldSampleDTO dto = new FieldSampleDTO();
                 String nodeValue = node.getNodeValue();
                 Date createTime = node.getCreateTime();
                 if (StringUtil.isBlank(nodeName)) {
@@ -314,20 +309,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
-        if (StringUtils.isBlank(apiCode)) {
-            throw new BusinessException("API编码不能为空");
-        }
-
-        if (dataType == null) {
-            throw new BusinessException("数据类型不能为空");
-        }
-
         if (dataType != 0 && dataType != 1) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
-        }
-
-        if (acceptType == null) {
-            throw new BusinessException("接口类型不能为空");
         }
 
         if (acceptType != 0 && acceptType != 1 && acceptType != 2) {
@@ -373,7 +356,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         .andApiCodeEqualTo(apiCode)
                         .andDataTypeEqualTo(dataType)
                         .andAcceptTypeEqualTo(acceptType)
-                        .andNodeTypeEqualTo("primitive")
+                        .andLevelNotEqualTo(0)
                         .andNodeNameEqualTo(cleanFields);
                 List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
                 if (nodes == null || nodes.isEmpty()) {
@@ -516,19 +499,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      */
     @Override
     public String getpreviewField(String apiCode, Integer dataType, Integer acceptType) {
-        // 参数验证
-        if (StringUtils.isBlank(apiCode)) {
-            throw new BusinessException("API编码不能为空");
-        }
-
-        if (dataType == null) {
-            throw new BusinessException("数据类型不能为空");
-        }
-
-        if (acceptType == null) {
-            throw new BusinessException("接口类型不能为空");
-        }
-
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -771,14 +741,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      */
     @Override
     public Object previewFieldCleaning(String fieldSample, String cleaningRule) {
-        if (StringUtils.isBlank(fieldSample)) {
-            throw new BusinessException("字段样例不能为空");
-        }
-
-        if (StringUtils.isBlank(cleaningRule)) {
-            throw new BusinessException("清洗规则不能为空");
-        }
-
         log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
 
         // 尝试解析为规则列表（支持多规则按顺序执行）
