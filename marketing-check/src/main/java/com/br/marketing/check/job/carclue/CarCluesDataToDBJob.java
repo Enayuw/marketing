@@ -1,5 +1,6 @@
 package com.br.marketing.check.job.carclue;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.service.carclue.todb.CarCluesDataToDBService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +31,10 @@ public class CarCluesDataToDBJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         // 通话明细apiCode
-        Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
-        List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
+        Map<String, String> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
+        // 提取所有 apiCode
+        List<String> carClueApiCodes = new ArrayList<>(carClueStorageConfig.values());
+
         String date = LocalDate.now().minusDays(1).toString();
         log.warn("车线索数据入库清洗开始");
         long start = System.currentTimeMillis();
