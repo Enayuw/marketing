@@ -94,7 +94,7 @@
                 )
             </if>
         </where>
-        order by create_time desc
+        order by id desc
     </select>
 
     <select id="getMaxCleanDateByApiCode" resultType="java.lang.String">

@@ -540,10 +540,18 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      */
     private static String getCellValue(Row row, int cellIndex) {
         Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+
         if (cell.getCellType() == CellType.NUMERIC) {
             return String.valueOf((int) cell.getNumericCellValue());
         }
-        return cell.getStringCellValue().trim();
+
+        // 获取单元格值并处理多行文本
+        String value = cell.getStringCellValue().trim();
+
+        // 替换换行符为逗号（可根据需要调整）
+        value = value.replaceAll("\\r?\\n", ",");
+
+        return value;
     }
 
     /**
@@ -727,7 +735,7 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
             if (row.getRowNum() == 0) continue;
 
             String brand = getCellValue(row, 0);
-            String series = getCellValue(row, 1).replaceAll("\\r?\\n", ",");
+            String series = getCellValue(row, 1);
             String nation = getCellValue(row, 2);
             String satisfyProvince = getCellValue(row, 3);
             String satisfyCity = getCellValue(row, 4);
@@ -1109,14 +1117,18 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
      * @param carClueRelationalMapping
      */
     private void matchProvincesType(CarClueInitMapping carClueInitMapping, CarClueRelationalMapping carClueRelationalMapping) {
-        if (carClueInitMapping.getNation() != null &&
-                carClueInitMapping.getExcludeProvinceName() == null &&
-                carClueInitMapping.getExcludeCityName() == null) {
+        if (StringUtils.isNotEmpty(carClueInitMapping.getNation())
+                && StringUtils.isEmpty(carClueInitMapping.getExcludeProvinceName())
+                && StringUtils.isEmpty(carClueInitMapping.getExcludeCityName()))
+        {
             carClueRelationalMapping.setProvinceType(ProvinceTypeEnum.NATIONWIDE.getValue());
-        } else if (carClueInitMapping.getSatisfyProvinceName() != null ||
-                carClueInitMapping.getSatisfyCityName() != null) {
+        }
+        else if (StringUtils.isNotEmpty(carClueInitMapping.getSatisfyProvinceName()) ||
+                StringUtils.isNotEmpty(carClueInitMapping.getSatisfyCityName()))
+        {
             carClueRelationalMapping.setProvinceType(ProvinceTypeEnum.FIXED.getValue());
-        } else {
+        } else
+        {
             carClueRelationalMapping.setProvinceType(ProvinceTypeEnum.EXCLUDE.getValue());
         }
     }
