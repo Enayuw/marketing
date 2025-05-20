@@ -1,14 +1,17 @@
 package com.br.marketing.bridge.job.clean;
 
+import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.FtpClient;
-import com.br.marketing.client.SftpClient;
+import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.entity.TransferActionFront;
@@ -18,6 +21,7 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.Impl.JobManager;
+import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.TimeUtils;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -27,21 +31,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 /**
  * @ClassName HaiErFileCleanTransferDateJob
@@ -54,15 +55,13 @@ import java.util.concurrent.TimeUnit;
 public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-    @Resource
     private TransferActionFrontMapper transferActionFrontMapper;
     @Resource
     private JobManager jobManager;
     @Resource
-    MarketingSyncUserMapper marketingSyncUserMapper;
-    @Resource
     SyncConfigMapper syncConfigMapper;
+    @Resource
+    private PushInfoService pushInfoService;
 
     private static final String TITLE = "【海尔转化数据每日清洗】";
 
@@ -115,15 +114,15 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
         }
         SyncConfig syncConfig = syncConfigs.get(0);
         // 文件处理逻辑
-        processFile(syncConfig, transferActionFront);
+        processFile(apiCode, syncConfig, transferActionFront);
     }
 
-    private void processFile(SyncConfig syncConfig, TransferActionFront transferActionFront) {
+    private void processFile(String apiCode, SyncConfig syncConfig, TransferActionFront transferActionFront) {
 
         String date = LocalDate.now().toString();
         String srcPath = syncConfig.getSrcPath();
         String targetPath = syncConfig.getTargetPath();
-        String fileName = "BR202501_result_"+ date + "20250430.csv";
+        String fileName = "BR202501_result_"+ date + ".csv";
 
         //源文件逻辑处理
         if (srcPath.contains("yyyy-MM-dd")) {
@@ -149,7 +148,7 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
         //文件处理
         TransferActionFront front = transferActionFrontMapper.selectByPrimaryKey(transferActionFront.getId());
         if(flag && front.getStatus() == 3){
-            workWithFiles(syncConfig, fileName, transferActionFront.getId());
+            workWithFiles(apiCode, syncConfig, fileName, transferActionFront.getId());
         }
     }
 
@@ -223,18 +222,119 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
     }
 
 
-    private void workWithFiles(SyncConfig syncConfig, String fileName, Long jobId) {
+    private void workWithFiles(String apiCode, SyncConfig syncConfig, String fileName, Long jobId) {
         String targetPath = syncConfig.getTargetPath();
+        String path = targetPath.concat(fileName);
+
         //判断文件是否存在
-        File tmpFile = new File(targetPath.concat(fileName));
+        File tmpFile = new File(path);
         if (!tmpFile.exists()) {
             tmpFile.mkdirs();
         }
-        //文件集合
-        File[] temFiles = tmpFile.listFiles();
+        //读取文件并写入数据库
+        try (InputStreamReader fReader = new InputStreamReader(Files.newInputStream(Paths.get(path)), StandardCharsets.UTF_8);
+             BufferedReader reader = new BufferedReader(fReader)) {
+            String params;
+            List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
+            while ((params = reader.readLine()) != null) {
+                if (StringUtils.isNotBlank(params)) {
+                    if (params.contains("登陆日期")) {
+                        log.warn(TITLE + "过滤表头params:{}", params);
+                        continue;
+                    }
+                    // 解析数据
+                    String[] split = params.split(",");
+                    if(split.length < 12){
+                        log.warn(TITLE + "列少于12列:{}", split);
+                        return;
+                    }
+                    // UUID,登陆日期,完件日期,是否申请授信,Usertype(场景类型),申请授信日期,授信金额区间,是否授信通过,是否申请提现,申请提现时间,是否提现成功,提现金额区间,
+                    String custNum = split[0];
+                    //登陆日期
+                    String loginTime = split[1];
+                    //完件日期
+                    String auditTime = split[2];
+                    //是否申请授信 1是0否
+                    String ifApply = split[3];
+                    //Usertype(场景类型)
+                    String userType = split[4];
+                    //申请授信日期 yyyy-mm-dd hh:mm:ss
+                    String applyDt = split[5];
+                    //授信金额区间
+                    String auditAmount = split[6];
+                    //是否授信通过 1是0否
+                    String applyResult = split[7];
+                    //是否申请提现 1是0否
+                    String applyLoan = split[8];
+                    //申请提现时间
+                    String applyLoanTime = split[9];
+                    //是否提现成功 1是0否
+                    String ifLent = split[10];
+                    //提现金额区间
+                    String applyLoanAmount = split[11];
+
+
+                    TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
+                    transferDataItemDTO.setApiCode(apiCode);
+                    transferDataItemDTO.setRequestId(apiCode.concat(UUID.randomUUID().toString()));
+                    //transferDataItemDTO.setOrgName("");
+                    transferDataItemDTO.setCustNum(custNum);
+                    //transferDataItemDTO.setSource("");
+                    transferDataItemDTO.setUserType(userType);
+                    //transferDataItemDTO.setType("");
+                    //transferDataItemDTO.setCustomName("");
+                    //transferDataItemDTO.setIfRegister("");
+                    //transferDataItemDTO.setRegisterTime("");
+                    //transferDataItemDTO.setIfLogin("");
+                    transferDataItemDTO.setLoginTime(loginTime);
+                    transferDataItemDTO.setIfApply(ifApply);
+                    transferDataItemDTO.setApplyDt(applyDt);
+                    //transferDataItemDTO.setApplyTime("");
+                    transferDataItemDTO.setApplyResult(applyResult);
+                    //transferDataItemDTO.setRefuseTime("");
+                    transferDataItemDTO.setAuditTime(auditTime);
+                    transferDataItemDTO.setAuditAmount(auditAmount);
+                    transferDataItemDTO.setIfLent(ifLent);
+                    //transferDataItemDTO.setLentTime("");
+                    //transferDataItemDTO.setLentAmount("");
+                    //transferDataItemDTO.setUnlentAmount("");
+                    //transferDataItemDTO.setIfSettle("");
+                    //transferDataItemDTO.setSettleTime("");
+                    //transferDataItemDTO.setActivity("");
+                    //transferDataItemDTO.setCaseStatus("");
+                    //transferDataItemDTO.setCaseEffective("");
+                    //transferDataItemDTO.setIfTransform("");
+                    //transferDataItemDTO.setTransformTime("");
+                    //transferDataItemDTO.setInsertTime("");
+                    transferDataItemDTO.setReserveField1("");
+                    //transferDataItemDTO.setReserveField2("");
+
+                    transferDataItemDTOS.add(transferDataItemDTO);
+
+                }
+            }
+            if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
+                return;
+            }
+            PushTransferDataDetailDTO dto = initTransferData(apiCode,transferDataItemDTOS);
+            Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+            log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
+        } catch (Exception e) {
+            log.error(TITLE + "处理出错", e);
+        }
     }
 
-
-
+    private PushTransferDataDetailDTO initTransferData(String apiCode, List<TransferDataItemDTO> transferDataItems) {
+        PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
+        TransferDataDTO transferDataDTO = new TransferDataDTO();
+        transferDataDTO.setDataItems(transferDataItems);
+        Random random = new Random();
+        int randomNumber = 10000 + random.nextInt(90000);
+        String requestId = apiCode+"_"+System.currentTimeMillis()+"_"+randomNumber;
+        transferDataDTO.setRequestId(requestId);
+        dto.setApiCode(apiCode);
+        dto.setJsonData(JSON.toJSONString(transferDataDTO));
+        return dto;
+    }
 
 }
