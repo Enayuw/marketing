@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AlarmAppender<E> extends RollingFileAppender<E>  {
     @Override
     protected void subAppend(E eventObject) {
-
         super.subAppend(eventObject);
         if(eventObject instanceof LoggingEvent){
             ThrowableProxy throwableProxy = (ThrowableProxy)((LoggingEvent)eventObject).getThrowableProxy();

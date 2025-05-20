@@ -93,7 +93,7 @@ public class XieChengReportServiceImpl implements XieChengReportService{
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                    "携程上报异常,errorMessage=" + e.getMessage()), e);
+                    "携程上报外层异常，sourceId=" + sourceId + ",errorMessage=" + e.getMessage()), e);
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
