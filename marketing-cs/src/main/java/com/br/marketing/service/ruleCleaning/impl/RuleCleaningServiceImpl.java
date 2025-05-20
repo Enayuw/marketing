@@ -1293,25 +1293,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         if ("right".equals(startLocation)) {
             // 从右侧开始计算
-            // 例如，对于字符串"12345"，长度为5
-            // 如果从右侧开始算，startIndex=1表示倒数第1个字符(索引4)，endIndex=3表示到倒数第3个字符
-            int rightStartIndex = Math.max(0, length - startIndex);
-            // 修改：从右侧计算时，endIndex直接是要截取的字符数
-            int rightEndIndex = Math.max(0, length - endIndex + 1);  
+            // 从右数第endIndex个字符在原字符串中的位置
+            int rightStartIndex = length - endIndex;
+            // 从右数第startIndex个字符再+1(substring右开)
+            int rightEndIndex = length - startIndex + 1;
             
-            log.warn("右侧起算: 右侧开始索引={}, 右侧结束索引={}",
+            log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
                     rightStartIndex, rightEndIndex);
             
-            // 交换，确保startIndex <= endIndex用于substring
-            if (rightStartIndex < rightEndIndex) {
-                int temp = rightStartIndex;
-                rightStartIndex = rightEndIndex;
-                rightEndIndex = temp;
-                log.warn("右侧索引交换: 新右侧开始={}, 新右侧结束={}", rightStartIndex, rightEndIndex);
-            }
-            
-            javaStartIndex = rightEndIndex;
-            javaEndIndex = rightStartIndex + 1;  // +1因为substring是左闭右开
+            // 不需要交换，只需要确保索引有效
+            javaStartIndex = Math.max(0, rightStartIndex);
+            javaEndIndex = Math.min(length, rightEndIndex);
         }
 
         // 确保索引有效
