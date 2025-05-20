@@ -21,5 +21,8 @@ public interface CustomerRuleMapper extends CustomerRuleMapperBase{
 
     List<HashMap<String,Object>> getCustomerAndUserType(@Param("ruleId") Long ruleId);
 
-    void saveCustomerRuleMapping(@Param("apiCode") String apiCode, @Param("ruleLabel") String ruleLabel);
+    void saveCustomerRuleMapping(@Param("apiCode") String apiCode, @Param("ruleId") Long ruleId);
+
+    Long selectIdByRuleLabel(@Param("ruleLabel") String ruleLabel);
+
 }

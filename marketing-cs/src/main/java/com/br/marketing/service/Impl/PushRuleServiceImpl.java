@@ -2463,7 +2463,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (isHasOperateType(apiCode, jsonData, "\"operateType\":\"3\"", TO_POLICY_GENERAL)
-                || isHasOperateType(apiCode, jsonData, "\"operateType\":\"4\"", AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)) {
+                || isHasOperateType(apiCode, jsonData, "\"operateType\":\"4\"", AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
+                || isHasOperateType(apiCode, jsonData, "\"operateType\": \"3\"", TO_POLICY_GENERAL)
+                || isHasOperateType(apiCode, jsonData, "\"operateType\": \"4\"", AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
             getRoutingKeyAndSendToAiMq(syncInfoId);
@@ -2476,13 +2478,20 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private boolean isHasOperateType(String apiCode, String jsonData, String judCondition, String ruleLabel) {
         if (jsonData.contains(judCondition)) {
+            Long ruleId = customerRuleMapper.selectIdByRuleLabel(ruleLabel);
+            if (null == ruleId) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "查询规则失败！"
+                        , "Ai客户，自动配置规则映射"));
+                return false;
+            }
+
             try {
-                customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleLabel);
+                customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
             } catch (DuplicateKeyException e) {
                 log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
             } catch (Exception e) {
                 try {
-                    customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleLabel);
+                    customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
                 } catch (DuplicateKeyException ee) {
                     log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
                 } catch (Exception ee) {
@@ -2490,7 +2499,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     String msg;
                     title = "Ai客户，自动配置规则映射，入库再次异常！！！";
                     msg = title + " 需要立即检查规则是否存在，b_marketing_customer_rule_mapping,apiCode："
-                                    + apiCode + "，规则标签：" + ruleLabel + "，异常内容" + ee.getMessage();
+                            + apiCode + "，规则标签：" + ruleLabel + "，异常内容" + ee.getMessage();
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg
                             , title));
                     wuBaServiceClient.sendDingDingAlert(title, msg);
