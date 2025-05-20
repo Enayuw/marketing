@@ -2378,7 +2378,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(Objects.isNull(dataSourceType)){
             dataSourceType =0;
         }
-        log.warn("dataSourceType={}", dataSourceType);
         //region 数据入库
         try {
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -2618,7 +2617,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         //通用调用,查询清洗规则配置
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = new HashMap<>();
-        if (0 == marketingSyncInfo.getDataSourceType()) {
+        if (Objects.nonNull(marketingSyncInfo.getDataSourceType()) && (0 == marketingSyncInfo.getDataSourceType())) {
             configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
                     DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
         }
@@ -2929,17 +2928,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("上传数据清洗过程异常，custNum= {}", marketingPreUserDetailDTO.getCustNum(), e);
         }
         return isSuccess;
-    }
-
-    private String setExtendField(String reserveField1, String field, Object result) {
-        JSONObject jsonObject;
-        if (StringUtils.isNotEmpty(reserveField1)) {
-            jsonObject = JSONObject.parseObject(reserveField1);
-        } else {
-            jsonObject = new JSONObject();
-        }
-        jsonObject.put(field, result);
-        return jsonObject.toString();
     }
 
     /**
