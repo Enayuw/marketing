@@ -298,4 +298,18 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+    <job:simple id="【bridge】-HaiErFileCleanTransferDateJob"
+                class="com.br.marketing.bridge.job.clean.HaiErFileCleanTransferDateJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="海尔转化数据每日清洗"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

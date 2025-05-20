@@ -1,11 +1,13 @@
 package com.br.marketing.bridge.job.clean;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;
@@ -17,12 +19,10 @@ import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
 import com.br.marketing.enums.TransferActionFrontActionTypeEnum;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.PushInfoService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.TimeUtils;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -31,9 +31,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -46,7 +48,7 @@ import java.util.*;
 
 /**
  * @ClassName HaiErFileCleanTransferDateJob
- * @Description 海尔转化数据每日清洗(sftp->api)-3710018 https://c.100credit.cn/pages/viewpage.action?pageId=204927045
+ * @Description 海尔转化数据每日清洗(sftp - > api)-3710018 https://c.100credit.cn/pages/viewpage.action?pageId=204927045
  * @Author kongbx
  * @Date 2025/5/19 16:12
  */
@@ -88,17 +90,22 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
                 .andApiCodeEqualTo(apiCode)
                 .andActionDataEqualTo(LocalDate.now().toString())
                 .andActionTypeEqualTo(TransferActionFrontActionTypeEnum.ONE.getValue())
-                .andStatusEqualTo(2)
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
 
-        if (!CollectionUtils.isEmpty(transferActionFronts)) {
-            log.warn(TITLE + "今日已执行！");
-            return;
+        TransferActionFront transferActionFront = new TransferActionFront();
+
+        if(CollectionUtils.isEmpty(transferActionFronts)){
+            // 新增执行记录 任务状态 1-未执行；2-执行结束；3-本地文件已生成
+            transferActionFront = jobManager.saveFront(apiCode, LocalDate.now().toString(), TransferActionFrontActionTypeEnum.ONE.getValue());
+        }else {
+            transferActionFront = transferActionFronts.get(0);
+            if(transferActionFront.getStatus() == 2){
+                log.warn(TITLE + "今日已执行！");
+                return;
+            }
         }
 
-        // 新增执行记录 setStatus 任务状态 1-未执行；2-执行结束；3-本地文件已生成
-        TransferActionFront transferActionFront = jobManager.saveFront(apiCode, LocalDate.now().toString(), TransferActionFrontActionTypeEnum.ONE.getValue());
         // 获取SFTP配置
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria()
@@ -119,47 +126,54 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
 
     private void processFile(String apiCode, SyncConfig syncConfig, TransferActionFront transferActionFront) {
 
-        String date = LocalDate.now().toString();
-        String srcPath = syncConfig.getSrcPath();
-        String targetPath = syncConfig.getTargetPath();
-        String fileName = "BR202501_result_"+ date + ".csv";
+        // 1. 准备日期相关路径
+        // yyyy-MM-dd
+        String formattedDate = TimeUtils.getNowDate(TimeUtils.DATE_FORMAT);
+        // yyyyMMdd
+        String compactDate = TimeUtils.getNowDate(TimeUtils.DATE_STRING);
 
-        //源文件逻辑处理
-        if (srcPath.contains("yyyy-MM-dd")) {
-            srcPath = srcPath.replace("yyyy-MM-dd", TimeUtils.getNowDate(TimeUtils.DATE_FORMAT));
-        }else if(srcPath.contains("yyyyMMdd")){
-            srcPath = srcPath.replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
-        }
+        // 2. 处理源路径和目标路径中的日期占位符
+        String srcPath = replaceDatePlaceholders(syncConfig.getSrcPath(), formattedDate, compactDate);
+        String targetPath = replaceDatePlaceholders(syncConfig.getTargetPath(), formattedDate, compactDate);
 
-        if (targetPath.contains("yyyy-MM-dd")) {
-            targetPath = targetPath.replace("yyyy-MM-dd", TimeUtils.getNowDate(TimeUtils.DATE_FORMAT));
-        }else if(targetPath.contains("yyyyMMdd")){
-            targetPath = targetPath.replace("yyyyMMdd", TimeUtils.getNowDate(TimeUtils.DATE_STRING));
-        }
-
+        String fileName = "BR202501_result_" + compactDate + ".csv";
         syncConfig.setSrcPath(srcPath);
         syncConfig.setTargetPath(targetPath);
 
         Boolean flag = Boolean.TRUE;
-        if(transferActionFront.getStatus() == 1){
+        if (transferActionFront.getStatus() == 1) {
             FtpClient ftpClient = new FtpClient(syncConfig, true);
             flag = ftpFileList(ftpClient, syncConfig, fileName, transferActionFront);
         }
         //文件处理
         TransferActionFront front = transferActionFrontMapper.selectByPrimaryKey(transferActionFront.getId());
-        if(flag && front.getStatus() == 3){
+        if (flag && front.getStatus() == 3) {
             workWithFiles(apiCode, syncConfig, fileName, transferActionFront.getId());
         }
     }
 
-    private Boolean ftpFileList(FtpClient ftpClient, SyncConfig syncConfig, String fileName,TransferActionFront transferActionFront) {
+    /**
+     * 替换路径中的日期占位符
+     */
+    private String replaceDatePlaceholders(String path, String formattedDate, String compactDate) {
+        if (path == null) return path;
+
+        if (path.contains("yyyy-MM-dd")) {
+            return path.replace("yyyy-MM-dd", formattedDate);
+        } else if (path.contains("yyyyMMdd")) {
+            return path.replace("yyyyMMdd", compactDate);
+        }
+        return path;
+    }
+
+    private Boolean ftpFileList(FtpClient ftpClient, SyncConfig syncConfig, String fileName, TransferActionFront transferActionFront) {
         String srcPath = syncConfig.getSrcPath();
         String targetPath = syncConfig.getTargetPath();
         try {
             ftpClient.connect();
             boolean fileExists = ftpClient.isExistFile(srcPath.concat(fileName));
             if (!fileExists) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HAIER_SERVICEERROR.getCode(), TITLE + "文件不存在："+srcPath.concat(fileName)));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HAIER_SERVICEERROR.getCode(), TITLE + "文件不存在：" + srcPath.concat(fileName)));
                 return Boolean.FALSE;
             }
             // 判断文件创建时间是否超过1分钟
@@ -187,7 +201,7 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
                     successFile.createNewFile();
                 }
 
-                log.warn(TITLE + "ftpClient推送success文件本地目录:{},远程目录:{}", targetPathConcat,srcPath+successName);
+                log.warn(TITLE + "ftpClient推送success文件本地目录:{},远程目录:{}", targetPathConcat, srcPath + successName);
                 ftpClient.uploadFile(Files.newInputStream(Paths.get(targetPathConcat)), srcPath, successName);
                 return Boolean.FALSE;
             }
@@ -217,124 +231,140 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
                 log.error(TITLE + "文件检查任务关闭FTP客户端异常", e);
             }
         }
-        jobManager.updateFrontDataStatus(transferActionFront.getId(),3);
+        jobManager.updateFrontDataStatus(transferActionFront.getId(), 3);
         return Boolean.TRUE;
     }
 
-
     private void workWithFiles(String apiCode, SyncConfig syncConfig, String fileName, Long jobId) {
-        String targetPath = syncConfig.getTargetPath();
-        String path = targetPath.concat(fileName);
 
-        //判断文件是否存在
-        File tmpFile = new File(path);
-        if (!tmpFile.exists()) {
-            tmpFile.mkdirs();
+        // 构建完整文件路径
+        String path = Paths.get(syncConfig.getTargetPath(), fileName).toString();
+
+        // 验证文件是否存在且可读
+        File dataFile = new File(path);
+        if (!dataFile.exists() || !dataFile.isFile()) {
+            dataFile.mkdirs();
         }
-        //读取文件并写入数据库
-        try (InputStreamReader fReader = new InputStreamReader(Files.newInputStream(Paths.get(path)), StandardCharsets.UTF_8);
+
+        // 读取并处理文件内容
+        try (InputStreamReader fReader = new InputStreamReader(Files.newInputStream(dataFile.toPath()), StandardCharsets.UTF_8);
              BufferedReader reader = new BufferedReader(fReader)) {
-            String params;
-            List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
-            while ((params = reader.readLine()) != null) {
-                if (StringUtils.isNotBlank(params)) {
-                    if (params.contains("登陆日期")) {
-                        log.warn(TITLE + "过滤表头params:{}", params);
-                        continue;
+
+            List<TransferDataItemDTO> transferDataItems = new ArrayList<>();
+            String line;
+            int lineNumber = 0;
+            int skippedLines = 0;
+
+            while ((line = reader.readLine()) != null) {
+                lineNumber++;
+
+                // 跳过空行和标题行
+                if (StringUtils.isBlank(line) || line.contains("登陆日期")) {
+                    if (line.contains("登陆日期")) {
+                        log.warn("{} 跳过表头 (第{}行): {}", TITLE, lineNumber, line);
                     }
-                    // 解析数据
-                    String[] split = params.split(",");
-                    if(split.length < 12){
-                        log.warn(TITLE + "列少于12列:{}", split);
-                        return;
-                    }
-                    // UUID,登陆日期,完件日期,是否申请授信,Usertype(场景类型),申请授信日期,授信金额区间,是否授信通过,是否申请提现,申请提现时间,是否提现成功,提现金额区间,
-                    String custNum = split[0];
-                    //登陆日期
-                    String loginTime = split[1];
-                    //完件日期
-                    String auditTime = split[2];
-                    //是否申请授信 1是0否
-                    String ifApply = split[3];
-                    //Usertype(场景类型)
-                    String userType = split[4];
-                    //申请授信日期 yyyy-mm-dd hh:mm:ss
-                    String applyDt = split[5];
-                    //授信金额区间
-                    String auditAmount = split[6];
-                    //是否授信通过 1是0否
-                    String applyResult = split[7];
-                    //是否申请提现 1是0否
-                    String applyLoan = split[8];
-                    //申请提现时间
-                    String applyLoanTime = split[9];
-                    //是否提现成功 1是0否
-                    String ifLent = split[10];
-                    //提现金额区间
-                    String applyLoanAmount = split[11];
-
-
-                    TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
-                    transferDataItemDTO.setApiCode(apiCode);
-                    transferDataItemDTO.setRequestId(apiCode.concat(UUID.randomUUID().toString()));
-                    //transferDataItemDTO.setOrgName("");
-                    transferDataItemDTO.setCustNum(custNum);
-                    //transferDataItemDTO.setSource("");
-                    transferDataItemDTO.setUserType(userType);
-                    //transferDataItemDTO.setType("");
-                    //transferDataItemDTO.setCustomName("");
-                    //transferDataItemDTO.setIfRegister("");
-                    //transferDataItemDTO.setRegisterTime("");
-                    //transferDataItemDTO.setIfLogin("");
-                    transferDataItemDTO.setLoginTime(loginTime);
-                    transferDataItemDTO.setIfApply(ifApply);
-                    transferDataItemDTO.setApplyDt(applyDt);
-                    //transferDataItemDTO.setApplyTime("");
-                    transferDataItemDTO.setApplyResult(applyResult);
-                    //transferDataItemDTO.setRefuseTime("");
-                    transferDataItemDTO.setAuditTime(auditTime);
-                    transferDataItemDTO.setAuditAmount(auditAmount);
-                    transferDataItemDTO.setIfLent(ifLent);
-                    //transferDataItemDTO.setLentTime("");
-                    //transferDataItemDTO.setLentAmount("");
-                    //transferDataItemDTO.setUnlentAmount("");
-                    //transferDataItemDTO.setIfSettle("");
-                    //transferDataItemDTO.setSettleTime("");
-                    //transferDataItemDTO.setActivity("");
-                    //transferDataItemDTO.setCaseStatus("");
-                    //transferDataItemDTO.setCaseEffective("");
-                    //transferDataItemDTO.setIfTransform("");
-                    //transferDataItemDTO.setTransformTime("");
-                    //transferDataItemDTO.setInsertTime("");
-                    transferDataItemDTO.setReserveField1("");
-                    //transferDataItemDTO.setReserveField2("");
-
-                    transferDataItemDTOS.add(transferDataItemDTO);
-
+                    skippedLines++;
+                    continue;
+                }
+                // 解析CSV行数据
+                String[] fields = line.split(",", -1); // 保留空字段
+                // 数据验证
+                if (fields.length < 12) {
+                    log.warn("{} 数据列不足12列 (第{}行): {}", TITLE, lineNumber, line);
+                    skippedLines++;
+                    continue;
+                }
+                try {
+                    TransferDataItemDTO item = buildTransferDataItem(apiCode, fields);
+                    transferDataItems.add(item);
+                } catch (Exception e) {
+                    log.warn("{} 解析数据失败 (第{}行): {}. 错误: {}", TITLE, lineNumber, line, e.getMessage());
+                    skippedLines++;
                 }
             }
-            if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
+
+            // 处理结果统计
+            log.warn("{} 处理完成 - 总行数: {}, 成功: {}, 跳过: {}", TITLE, lineNumber, transferDataItems.size(), skippedLines);
+
+            if (transferDataItems.isEmpty()) {
+                log.warn("{} 没有有效数据", TITLE);
+                jobManager.updateFrontDataStatus(jobId, 2);
                 return;
             }
-            PushTransferDataDetailDTO dto = initTransferData(apiCode,transferDataItemDTOS);
+
+            // 推送数据
+            PushTransferDataDetailDTO dto = buildTransferDataDTO(apiCode, transferDataItems);
             Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
-            log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
+
+            log.warn("{} 推送结果 - 状态码: {}, 成功: {}, 消息: {}",
+                    TITLE, pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
+
+            // 更新任务状态
+            if (ResultCode.SUCCESS.getValue().equals(pushResult.getCode())) {
+                jobManager.updateFrontDataStatus(jobId, 2);
+            }
+
+        } catch (IOException e) {
+            log.error("{} 文件读取错误: {}", TITLE, e.getMessage(), e);
         } catch (Exception e) {
-            log.error(TITLE + "处理出错", e);
+            log.error("{} 处理过程中发生未知错误", TITLE, e);
         }
     }
 
-    private PushTransferDataDetailDTO initTransferData(String apiCode, List<TransferDataItemDTO> transferDataItems) {
-        PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
+    /**
+     * 构建传输数据项DTO
+     */
+    private TransferDataItemDTO buildTransferDataItem(String apiCode, String[] fields) {
+        TransferDataItemDTO item = new TransferDataItemDTO();
+
+        // 设置基本字段
+        item.setApiCode(apiCode);
+        item.setCustNum(StringUtils.trimToNull(fields[0]));
+        item.setLoginTime(StringUtils.trimToNull(fields[1]));
+        item.setAuditTime(StringUtils.trimToNull(fields[2]));
+        item.setIfApply(validateBooleanField(fields[3]));
+        item.setUserType(StringUtils.trimToNull(fields[4]));
+        item.setApplyDt(StringUtils.trimToNull(fields[5]));
+        item.setAuditAmount(StringUtils.trimToNull(fields[6]));
+        item.setApplyResult(validateBooleanField(fields[7]));
+        item.setIfLent(validateBooleanField(fields[10]));
+
+        // 设置保留字段(JSON格式)
+        JSONObject reserveData = new JSONObject();
+        reserveData.put("applyLoan", validateBooleanField(fields[8]));
+        reserveData.put("applyLoanTime", StringUtils.trimToNull(fields[9]));
+        reserveData.put("applyLoanAmount", StringUtils.trimToNull(fields[11]));
+        item.setReserveField1(reserveData.toJSONString());
+
+        return item;
+    }
+
+    /**
+     * 构建传输数据DTO
+     */
+    private PushTransferDataDetailDTO buildTransferDataDTO(String apiCode, List<TransferDataItemDTO> transferDataItems) {
         TransferDataDTO transferDataDTO = new TransferDataDTO();
         transferDataDTO.setDataItems(transferDataItems);
         Random random = new Random();
         int randomNumber = 10000 + random.nextInt(90000);
-        String requestId = apiCode+"_"+System.currentTimeMillis()+"_"+randomNumber;
+        String requestId = apiCode + "_" + System.currentTimeMillis() + "_" + randomNumber;
         transferDataDTO.setRequestId(requestId);
+
+        PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
         return dto;
+    }
+
+    /**
+     * 验证布尔类型字段(1/0)
+     */
+    private String validateBooleanField(String value) {
+        value = StringUtils.trimToNull(value);
+        if (value == null) {
+            return value;
+        }
+        return "是".equals(value) ? "1" : "0";
     }
 
 }
