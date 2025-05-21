@@ -19,6 +19,7 @@ import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralFieldConfigMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
@@ -79,7 +80,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
-    private RedisChgService redisChgService;
+    private DataCleanServiceImpl dataCleanService;
 
     /**
      * 规则列表查询
@@ -1305,13 +1306,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 获取优先级条件
         List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
         if (conditions == null || conditions.isEmpty()) {
-            // 没有条件，返回第一个值
-            return fieldValues.get(0);
+            // 没有条件，返回所有值，按原始顺序用逗号连接
+            return String.join(",", fieldValues);
         }
 
         // 优先级排序后的结果
         List<String> processedValues = new ArrayList<>(fieldValues);
         log.warn("初始字段值列表: {}", processedValues);
+        
+        // 记录是否有条件匹配
+        boolean anyConditionMatched = false;
 
         // 按照优先级顺序处理
         for (int conditionIndex = 0; conditionIndex < conditions.size(); conditionIndex++) {
@@ -1344,31 +1348,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         .map(p -> p.getOriginalString() + "(" + p.getNumber() + ")")
                         .collect(java.util.stream.Collectors.joining(", ")));
 
-                // 获取数值相同的第一组
-                if (!pairs.isEmpty()) {
-                    double firstNumber = pairs.get(0).getNumber();
-                    List<String> sameNumberGroup = new ArrayList<>();
-
-                    for (NumberStringPair pair : pairs) {
-                        // 浮点数比较用接近零
-                        if (Math.abs(pair.getNumber() - firstNumber) < 0.000001) {
-                            sameNumberGroup.add(pair.getOriginalString());
-                        } else {
-                            break;
-                        }
-                    }
-
-                    log.warn("相同数字组: {}", sameNumberGroup);
-
-                    // 如果只有一个值，且没有后续条件，直接返回结果
-                    if (sameNumberGroup.size() == 1 && conditionIndex == conditions.size() - 1) {
-                        log.warn("找到唯一数字结果: {}", sameNumberGroup.get(0));
-                        return sameNumberGroup.get(0);
-                    }
-
-                    // 更新待处理的值列表，只保留数值相同的组
-                    processedValues = sameNumberGroup;
+                // 更新处理后的值列表
+                processedValues.clear();
+                for (NumberStringPair pair : pairs) {
+                    processedValues.add(pair.getOriginalString());
                 }
+                anyConditionMatched = true;
+                
             } else if ("keyword".equals(priorityType)) {
                 // 按关键字过滤（忽略大小写）
                 String keyword = String.valueOf(condition.get("keywordValue"));
@@ -1385,32 +1371,38 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                 // 如果有匹配关键字的值，则只保留这些值
                 if (!keywordMatches.isEmpty()) {
-                    // 如果只有一个值且没有后续条件，直接返回结果
-                    if (keywordMatches.size() == 1 && conditionIndex == conditions.size() - 1) {
-                        log.warn("找到唯一关键字结果: {}", keywordMatches.get(0));
-                        return keywordMatches.get(0);
-                    }
-
                     processedValues = keywordMatches;
+                    anyConditionMatched = true;
                 }
             }
         }
 
-        // 如果处理后还有值，返回默认
-        if (!processedValues.isEmpty()) {
-            // 如果都不匹配，返回默认值
-            if (ruleMap.containsKey("defaultValue")) {
-                log.warn("使用默认值: {}", ruleMap.get("defaultValue"));
-                String value = ruleMap.get("defaultValue").toString();
-                if (value != null && !value.isEmpty()) {
-                    Integer defaultValue = Integer.valueOf(value) - 1;
-                    return processedValues.get(defaultValue);
+        // 如果处理后有值且条件匹配成功，返回排序后的所有结果，用逗号分隔
+        if (!processedValues.isEmpty() && anyConditionMatched) {
+            log.warn("条件匹配成功，返回处理后的值: {}", String.join(",", processedValues));
+            return String.join(",", processedValues);
+        }
+        
+        // 如果没有条件匹配，使用defaultValue作为索引从原始列表中选择
+        if (ruleMap.containsKey("defaultValue")) {
+            try {
+                // 获取defaultValue值(从1开始计数)
+                int defaultIdx = Integer.parseInt(String.valueOf(ruleMap.get("defaultValue")));
+                // 转换为0基索引
+                defaultIdx = defaultIdx - 1;
+                // 确保索引在有效范围内
+                if (defaultIdx >= 0 && defaultIdx < fieldValues.size()) {
+                    log.warn("使用默认索引值 {} 选择: {}", defaultIdx+1, fieldValues.get(defaultIdx));
+                    return fieldValues.get(defaultIdx);
+                } else {
+                    log.warn("默认索引值 {} 超出范围 [1-{}], 返回原值", defaultIdx+1, fieldValues.size());
                 }
+            } catch (NumberFormatException e) {
+                log.warn("默认值解析为索引失败: {}", ruleMap.get("defaultValue"));
             }
-            log.warn("最终处理后返回第一个值: {}", processedValues.get(0));
-            return processedValues.get(0);
         }
 
+        // 如果前面的处理都没有返回结果，返回原始样例
         return fieldSample;
     }
     
@@ -1620,15 +1612,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         }
-
-        // 清理Redis缓存
-        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE
-                .concat(configDTO.getApiCode())
-                .concat(":")
-                .concat(configDTO.getDataType().toString())
-                .concat(":")
-                .concat(configDTO.getAcceptType().toString());
-        redisChgService.del(redisKey);
+        dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
 
         return ruleResult && cleaningResult;
     }
