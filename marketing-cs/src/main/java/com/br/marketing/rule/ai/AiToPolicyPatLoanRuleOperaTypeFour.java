@@ -8,6 +8,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
@@ -105,7 +106,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
 
     @Override
     public String label() {
-        return "AI_To_Policy_PatLoan_OperaType_Four";
+        return CommonRuleLabelEnum.AI_To_Policy_PatLoan_OperaType_Four.getCode();
     }
 
     @Override
