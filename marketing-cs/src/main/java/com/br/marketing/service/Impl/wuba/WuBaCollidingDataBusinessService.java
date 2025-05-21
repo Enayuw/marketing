@@ -23,11 +23,25 @@ public interface WuBaCollidingDataBusinessService {
     void saveLoopAnddeleteSecondLoop(List<String> cells, String apiCode);
 
     /**
+     * 延期数据进入非金融周期表
+     * @param cells
+     * @param apiCode
+     */
+    void saveLoopAnddeleteDelay(List<String> cells, String apiCode);
+
+    /**
      * 非金融数据进入非周期
      * @param data
      * @param apiCode
      */
     void deleteLoopAndSaveRob(List<String> data, String apiCode);
+
+    /**
+     * 延期数据进入非周期
+     * @param data
+     * @param apiCode
+     */
+    void deleteDelayAndSaveRob(List<String> data, String apiCode);
 
     /**
      * 非周期数据进入金融
@@ -44,6 +58,13 @@ public interface WuBaCollidingDataBusinessService {
     void saveSecondLoopAnddeleteLoop(List<String> cells, String apiCode);
 
     /**
+     * 延期数据进入金融
+     * @param cells
+     * @param apiCode
+     */
+    void saveSecondLoopAnddeleteDelay(List<String> cells, String apiCode);
+
+    /**
      * 非金融数据进入非周期
      * @param data
      * @param apiCode
@@ -57,6 +78,14 @@ public interface WuBaCollidingDataBusinessService {
      * @param packageId
      */
     void deleteLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId);
+
+    /**
+     * 延期数据进入非金融status=-2撞库包
+     * @param cells
+     * @param apiCode
+     * @param packageId
+     */
+    void deleteDelayAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId);
 
     /**
      * 金融数据进入金融status=-2撞库包

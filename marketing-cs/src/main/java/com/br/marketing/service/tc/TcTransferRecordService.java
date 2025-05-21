@@ -16,7 +16,5 @@ public interface TcTransferRecordService {
 
     List<MarketingTcyrTransferRecord> selectTcyrTransforRecordList(String apiCode, Integer status, Long lastSearchId, Integer searchSize);
 
-    Integer updateStatus(List<Long> idList, Integer status);
-
-
+    Integer updateCleanStatus(List<Long> idList, Integer value);
 }

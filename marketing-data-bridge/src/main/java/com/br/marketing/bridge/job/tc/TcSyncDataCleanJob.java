@@ -69,9 +69,9 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
      * 2、单个批次号batchNo任务执行操作:
      *    (1)查询 b_marketing_tcyr_sync_record 接入成功的数据
      *    (2)查找 b_marketing_tcyr_sync (batch_no = record.data.batchNo，is_clean = 0，limit 1000)
-     *    (3)调用接口uploadClean(List<Object>, apiCode),
-     *    (4)uploadClean成功，修改b_marketing_tcyr_syn is_clean=1
-     *    (5)修改batchNo 对应 b_marketing_tcyr_sync_record 状态 ->清洗完成
+     *    (3)调用uploadClean方法(List<Object>, apiCode)
+     *    (4)调用定制化上传接口
+     *    (5) 3、4都成功后，修改b_marketing_tcyr_syn is_clean=1
      * @param apiCode
      */
     private void atciton(String apiCode) {
@@ -145,7 +145,8 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
             try {
                     List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncItemList), JSONObject.class);
                     Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
-                    log.warn("{},apiCode:{},batchNo:{},syncDataClen调用uploadClean结果:{}", TITLE,apiCode,batchNo,JSONObject.toJSONString(callResult));
+                    log.warn("{},apiCode:{},batchNo:{},syncDataClen调用uploadClean结果 code:{},isSuccess:{},msg:{}",
+                            TITLE,apiCode,batchNo,callResult.getCode(),callResult.isSuccess(),callResult.getMessage());
                     if (callResult!=null && callResult.isSuccess()) {
                         //调用定制化上传接口
                         List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
@@ -155,11 +156,15 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
                         if (pushResult != null && pushResult.isSuccess()) {
                             // 修改状态为已清洗
                             tcSyncDataCleanService.updateCleanStatus(idList,1);
+                            result = result.success().setDate(tcyrSyncList.size());
                         }else {
                             tcSyncDataCleanService.updateCleanStatus(idList,3);
+                            result =  result.failure();
                         }
                     }else {
                         tcSyncDataCleanService.updateCleanStatus(idList,2);
+                        result =  result.failure();
+
                     }
             } catch (Exception e) {
                 tcSyncDataCleanService.updateCleanStatus(idList,4);
@@ -168,7 +173,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
             }
         }
         log.warn("{},batchNo:{} sycnDataClean成功,successLine:{}",TITLE,batchNo,tcyrSyncList.size());
-        return result.success().setDate(tcyrSyncList.size());
+        return result;
     }
 
     /**

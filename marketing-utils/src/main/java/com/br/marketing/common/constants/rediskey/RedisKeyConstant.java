@@ -344,4 +344,9 @@ public class RedisKeyConstant {
      */
     public static final String DATA_CLEAN_TASK_LOCK = prefix.concat("dataclean:task:lock");
 
+    /**
+     * 车线索外采渠道文件上传锁
+     */
+    public static final String updateInitMapping = prefix.concat("updateInitMapping");
+
 }

@@ -468,4 +468,9 @@ public interface MarketingSyncUserMapper {
      */
     Map<String, Object> executeRawSql(@Param("sql") String sql);
 
+    List<MarketingSyncUser> getCustNumsByCusBatchtikv_(
+            @Param("apiCode") String apiCode,
+            @Param("cusBatch") String cusBatch,
+            @Param("minId") Long minId,
+            @Param("pageSize") Integer pageSize);
 }
