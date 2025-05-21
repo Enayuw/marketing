@@ -732,8 +732,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 清洗结果预览
      */
     private String calculateResultPreview(String fieldSample, FieldCleaningConfigDTO configDTO) {
-        if (StringUtils.isBlank(fieldSample) || ObjectUtil.isEmpty(configDTO)) {
-            return "";
+        if (configDTO.getFieldType() == 1) {
+            if (ObjectUtil.isEmpty(configDTO)) {
+                return "";
+            }
+            fieldSample = extractFieldValueFromMappingRule(configDTO.getMappingRule());
+        } else {
+            if (StringUtils.isBlank(fieldSample) || ObjectUtil.isEmpty(configDTO)) {
+                return "";
+            }
         }
 
         if (configDTO.getIsMapping()) {
@@ -1746,6 +1753,61 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         
         return null;
+    }
+
+    /**
+     * 从清洗规则JSON字符串中提取fieldValue值
+     *
+     * @param mappingRule 清洗规则JSON字符串
+     * @return 提取到的fieldValue值，如果未找到则返回空字符串
+     */
+    public String extractFieldValueFromMappingRule(String mappingRule) {
+        if (StringUtils.isBlank(mappingRule)) {
+            return "";
+        }
+        
+        try {
+            // 尝试解析JSON数组格式的规则
+            if (mappingRule.trim().startsWith("[")) {
+                JSONArray jsonArray = JSON.parseArray(mappingRule);
+                // 遍历数组中的所有规则
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JSONObject ruleObj = jsonArray.getJSONObject(i);
+                    // 检查是否包含expression对象
+                    if (ruleObj.containsKey("expression")) {
+                        JSONObject expression = ruleObj.getJSONObject("expression");
+                        // 从expression中提取fieldValue
+                        if (expression.containsKey("fieldValue")) {
+                            return expression.getString("fieldValue");
+                        }
+                    }
+                }
+            } 
+            // 尝试解析单个JSON对象格式的规则
+            else if (mappingRule.trim().startsWith("{")) {
+                JSONObject jsonObj = JSON.parseObject(mappingRule);
+                // 检查是否直接包含expression对象
+                if (jsonObj.containsKey("expression")) {
+                    JSONObject expression = jsonObj.getJSONObject("expression");
+                    // 从expression中提取fieldValue
+                    if (expression.containsKey("fieldValue")) {
+                        return expression.getString("fieldValue");
+                    }
+                } 
+                // 检查是否本身就是一个expression对象
+                else if (jsonObj.containsKey("fieldValue")) {
+                    return jsonObj.getString("fieldValue");
+                }
+            }
+            
+            // 记录未找到的情况
+            log.warn("在清洗规则中未找到fieldValue: {}", mappingRule);
+            
+        } catch (Exception e) {
+            log.warn("解析清洗规则提取fieldValue失败: {}, 错误: {}", mappingRule, e.getMessage());
+        }
+        
+        return "";
     }
 }
 
