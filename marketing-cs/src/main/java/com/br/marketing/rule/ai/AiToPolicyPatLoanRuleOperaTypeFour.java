@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.HashMap;
+
 
 @Service
 @Slf4j
@@ -44,6 +46,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
+        customizFieldMapping(context,jsonObject);
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
             String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
@@ -118,6 +121,22 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
     public Integer ruleDataCollection() {
         return null;
     }
+
+    private void customizFieldMapping(ProcessHandlerContext context, JSONObject jsonObject) {
+        HashMap<String, JSONObject> fieldKeyMapping = marketingCommonConfig.getFieldKeyMapping();
+        JSONObject mapping = fieldKeyMapping.get(context.getApiCode());
+        if (ObjectUtil.isNotEmpty(mapping)) {
+            for (String s : mapping.keySet()) {
+                String toKey = mapping.getString(s);
+                String oldV = jsonObject.getString(toKey);
+                String newV = jsonObject.getString(s);
+                if (StringUtils.isBlank(oldV) && StringUtils.isNotBlank(newV)) {
+                    jsonObject.put(toKey, newV);
+                }
+            }
+        }
+    }
+
 
     private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
