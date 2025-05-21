@@ -861,7 +861,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 case "subtract":
                 case "multiply":
                 case "divide":
-                case "percentage":
                     // 数学运算
                     if (ObjectUtil.isNotEmpty(nodeParse)){
                         result = handleMathOperation(fieldSample, ruleMap, nodeParse);
@@ -869,8 +868,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         result = handleMathOperation(fieldSample, ruleMap);
                     }
                     break;
+                case "percentage":
+                    // 百分比操作 - 直接在数值后附加百分比符号
+                    result = handlePercentageOperation(fieldSample);
+                    break;
                 case "round":
-                    // 取整操作
+                    // 取整操作 - 只保留整数部分，截断小数
                     result = handleRoundOperation(fieldSample, ruleMap);
                     break;
                 case "remove":
@@ -1012,9 +1015,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             result = result.divide(value, 10, RoundingMode.HALF_UP);
                         }
                         break;
-                    case "percentage":
-                        result = result.multiply(value).divide(new BigDecimal(100), 10, RoundingMode.HALF_UP);
-                        break;
+//                    case "percentage":
+//                        result = result.multiply(value).divide(new BigDecimal(100), 10, RoundingMode.HALF_UP);
+//                        break;
                     default:
                         break;
                 }
@@ -1065,7 +1068,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     /**
-     * 处理取整操作
+     * 处理取整操作 - 只保留整数部分，截断小数
      */
     private Object handleRoundOperation(String fieldSample, Map<String, Object> ruleMap) {
         if (StringUtils.isBlank(fieldSample)) {
@@ -1079,21 +1082,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 使用BigDecimal处理数值，避免溢出
             BigDecimal value = new BigDecimal(cleanedStr);
 
-            // 默认取整方式是四舍五入
-            String roundType = ruleMap.containsKey("roundType") ? String.valueOf(ruleMap.get("roundType")) : "round";
-
-            switch (roundType) {
-                case "ceiling":
-                    // 向上取整
-                    return value.setScale(0, RoundingMode.CEILING).toPlainString();
-                case "floor":
-                    // 向下取整
-                    return value.setScale(0, RoundingMode.FLOOR).toPlainString();
-                case "round":
-                default:
-                    // 四舍五入
-                    return value.setScale(0, RoundingMode.HALF_UP).toPlainString();
-            }
+            // 不管roundType是什么，始终只保留整数部分(截断小数部分)
+            return value.setScale(0, RoundingMode.DOWN).toPlainString();
         } catch (NumberFormatException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "执行取整操作失败，无法将值转换为数字: " + fieldSample + "错误信息：" + e.getMessage()), e);
@@ -1486,6 +1476,32 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             
             return 0;
+        }
+    }
+
+    /**
+     * 处理百分比操作 - 直接在数值后附加百分比符号
+     * @param fieldSample 字段样例值
+     * @return 附加百分比符号的结果
+     */
+    private Object handlePercentageOperation(String fieldSample) {
+        if (StringUtils.isBlank(fieldSample)) {
+            return fieldSample;
+        }
+        
+        try {
+            // 清理数字字符串，确保能被正确解析
+            String cleanedStr = cleanNumericString(fieldSample);
+            
+            // 使用BigDecimal解析确保是有效数字
+            BigDecimal value = new BigDecimal(cleanedStr);
+            
+            // 直接在原始值后附加百分比符号
+            return value.toPlainString() + "%";
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "执行百分比操作失败: " + fieldSample + "错误信息：" + e.getMessage()), e);
+            return fieldSample;
         }
     }
 
