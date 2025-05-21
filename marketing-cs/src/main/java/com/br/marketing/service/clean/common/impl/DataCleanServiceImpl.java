@@ -20,7 +20,9 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
@@ -30,6 +32,7 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -104,15 +107,9 @@ public class DataCleanServiceImpl implements DataCleanService {
             } else {
                 log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
             }
-            //存入当日记录
-            String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode).concat(":").concat(mqDataJsonParse.getDataType().toString()).concat(":")
-                    .concat(mqDataJsonParse.getAcceptType().toString()).concat(":").concat(LocalDate.now().toString());
-            boolean exists = redisChgService.exists(redisKey);
-            if (!exists) {
-                redisChgService.setnx(redisKey, apiCode, TimeUtils.getRemainSecondsOneDay(new Date()));
-            }
         } catch (Exception e) {
-            log.error("客户数据JSON结构解析异常 mq:{} 失败 -- ", message, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "客户数据JSON结构解析异常mq=" + message), e);
         }
         return result;
     }
@@ -229,23 +226,29 @@ public class DataCleanServiceImpl implements DataCleanService {
         jsonNodeParseExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(dataType).andAcceptTypeEqualTo(acceptType)
                 .andParentPathEqualTo(parentPath).andNodeNameEqualTo(nodeName);
         List<MarketingJsonNodeParse> jsonNodeParseList = marketingJsonNodeParseMapper.selectByExample(jsonNodeParseExample);
-        if (CollectionUtils.isEmpty(jsonNodeParseList)) {
-            MarketingJsonNodeParse jsonNodeParse = new MarketingJsonNodeParse();
-            jsonNodeParse.setApiCode(apiCode);
-            jsonNodeParse.setDataType(dataType);
-            jsonNodeParse.setAcceptType(acceptType);
-            jsonNodeParse.setParentPath(parentPath);
-            jsonNodeParse.setNodeName(nodeName);
-            jsonNodeParse.setNodeType(nodeType);
-            jsonNodeParse.setIsArrayItem(isArrayItem);
-            jsonNodeParse.setLevel(level);
-            jsonNodeParse.setNodeValue(nodeValue);
-            jsonNodeParse.setCreateTime(new Date());
-            jsonNodeParse.setUpdateTime(new Date());
-            marketingJsonNodeParseMapper.insertSelective(jsonNodeParse);
+        try {
+            if (CollectionUtils.isEmpty(jsonNodeParseList)) {
+                MarketingJsonNodeParse jsonNodeParse = new MarketingJsonNodeParse();
+                jsonNodeParse.setApiCode(apiCode);
+                jsonNodeParse.setDataType(dataType);
+                jsonNodeParse.setAcceptType(acceptType);
+                jsonNodeParse.setParentPath(parentPath);
+                jsonNodeParse.setNodeName(nodeName);
+                jsonNodeParse.setNodeType(nodeType);
+                jsonNodeParse.setIsArrayItem(isArrayItem);
+                jsonNodeParse.setLevel(level);
+                jsonNodeParse.setNodeValue(nodeValue);
+                jsonNodeParse.setCreateTime(new Date());
+                jsonNodeParse.setUpdateTime(new Date());
+                marketingJsonNodeParseMapper.insertSelective(jsonNodeParse);
+            }
+            //写入缓存
+            redisChgService.saddMember(redisKey, nodeName);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "数据清洗json解析入库异常" + e.getMessage()), e);
+
         }
-        //写入缓存
-        redisChgService.saddMember(redisKey, nodeName);
     }
 
 
@@ -275,7 +278,19 @@ public class DataCleanServiceImpl implements DataCleanService {
             ruleConfig.put(rule.getMappingField(), rule);
         });
         redisChgService.hmset(redisKey, redisConfig);
+        //规则缓存24小时
+        redisChgService.expire(redisKey, 60 * 60 * 24);
         return ruleConfig;
+    }
+
+
+    public Long delConfigRule(String apiCode, Integer dataType, Integer acceptType) {
+
+        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode).concat(":").concat(dataType.toString()).concat(":").concat(acceptType.toString());
+        if (redisChgService.exists(redisKey)) {
+            return redisChgService.del(redisKey);
+        }
+        return null;
     }
 
 
@@ -376,13 +391,17 @@ public class DataCleanServiceImpl implements DataCleanService {
             });
             //写入到info表
             marketingPreUserDTO.setDataItems(syncUsers);
-            marketingPreUserDTO.setDataSourceType(1);
+            marketingPreUserDTO.setDataSourceType(DataSourceTypeEnum.ORIGINAL_INTERFACE.getCode());
             UploadDataDTO uploadDataDTO = new UploadDataDTO();
             uploadDataDTO.setApiCode(apiCode);
             uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
             pushInfoService.pushUploadByRetry(uploadDataDTO, null);
             MarketingCustomerOriginalData update = new MarketingCustomerOriginalData();
-            update.setCleanStatus(2);
+            //回写requestId
+            if (StringUtils.isEmpty(update.getRequestId())) {
+                update.setRequestId(marketingPreUserDTO.getRequestId());
+            }
+            update.setCleanStatus(DataCleanStatusEnum.COMPLETE.getCode());
             update.setId(originalData.getId());
             marketingCustomerOriginalDataMapper.updateByPrimaryKeySelective(update);
         } catch (Exception e) {
@@ -404,9 +423,6 @@ public class DataCleanServiceImpl implements DataCleanService {
                     break;
                 case "id":
                     marketingPreUserDetailDTO.setId((String) result);
-                    break;
-                case "userType":
-                    marketingPreUserDetailDTO.setGroupType((String) result);
                     break;
                 case "custNum":
                     marketingPreUserDetailDTO.setCustNum((String) result);

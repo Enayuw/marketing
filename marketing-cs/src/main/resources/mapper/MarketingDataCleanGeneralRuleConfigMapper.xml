@@ -10,5 +10,6 @@
         where config.api_code = #{apiCode}
           and config.data_type = #{dataType}
           and config.accept_type = #{acceptType}
+          and rule.is_del = 1
     </select>
 </mapper>
