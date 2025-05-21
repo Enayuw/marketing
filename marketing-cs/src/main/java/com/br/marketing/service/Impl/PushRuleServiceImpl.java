@@ -64,6 +64,7 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
+import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
@@ -129,8 +130,8 @@ import java.util.stream.Collectors;
 public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = "AI_To_Policy_PatLoan_OperaType_Four";
-    public static final String TO_POLICY_GENERAL = "To_Policy_General";
+    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = CommonRuleLabelEnum.AI_To_Policy_PatLoan_OperaType_Four.getCode();
+    public static final String TO_POLICY_GENERAL = CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode();
 
     private static HashMap<String, String> errorCodeHm;
 
@@ -2455,7 +2456,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return;
         }
 
-        // 没配置init和ai
+        // 没配置成init和ai客户
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
         if (customerRules.contains(TO_POLICY_GENERAL)
                 && (jsonData.contains("\"operateType\":\"3\"")
