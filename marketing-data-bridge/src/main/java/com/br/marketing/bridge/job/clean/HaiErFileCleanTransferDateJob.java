@@ -31,12 +31,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-
+import com.opencsv.CSVReader;
+import java.io.StringReader;
 import javax.annotation.Resource;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -267,9 +265,17 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
                     continue;
                 }
                 // 解析CSV行数据
-                String[] fields = line.split(",", -1); // 保留空字段
+                String[] fields;
+                try (CSVReader csvReader = new CSVReader(new StringReader(line))) {
+                    fields = csvReader.readNext();
+                } catch (Exception e) {
+                    log.warn("{} 解析CSV行数据失败 (第{}行): {}. 错误: {}", TITLE, lineNumber, line, e.getMessage());
+                    skippedLines++;
+                    continue;
+                }
+
                 // 数据验证
-                if (fields.length < 12) {
+                if (fields == null || fields.length < 12) {
                     log.warn("{} 数据列不足12列 (第{}行): {}", TITLE, lineNumber, line);
                     skippedLines++;
                     continue;
