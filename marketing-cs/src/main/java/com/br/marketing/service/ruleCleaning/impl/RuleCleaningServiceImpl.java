@@ -1085,9 +1085,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * 格式化数字结果：如果是整数则返回整数字符串，否则返回浮点数字符串
      */
     private String formatNumberResult(BigDecimal result) {
-        // 移除尾部的0
-        result = result.stripTrailingZeros();
-        
         // 检查是否为整数
         if (result.scale() <= 0) {
             return result.toBigInteger().toString();
@@ -1105,8 +1102,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         try {
-            // 尝试将字符串转换为数字
-            double value = Double.parseDouble(fieldSample);
+            // 清理数字字符串，确保能被正确解析
+            String cleanedStr = cleanNumericString(fieldSample);
+            
+            // 使用BigDecimal处理数值，避免溢出
+            BigDecimal value = new BigDecimal(cleanedStr);
 
             // 默认取整方式是四舍五入
             String roundType = ruleMap.containsKey("roundType") ? String.valueOf(ruleMap.get("roundType")) : "round";
@@ -1114,14 +1114,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             switch (roundType) {
                 case "ceiling":
                     // 向上取整
-                    return String.valueOf((int) Math.ceil(value));
+                    return value.setScale(0, RoundingMode.CEILING).toPlainString();
                 case "floor":
                     // 向下取整
-                    return String.valueOf((int) Math.floor(value));
+                    return value.setScale(0, RoundingMode.FLOOR).toPlainString();
                 case "round":
                 default:
                     // 四舍五入
-                    return String.valueOf(Math.round(value));
+                    return value.setScale(0, RoundingMode.HALF_UP).toPlainString();
             }
         } catch (NumberFormatException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
