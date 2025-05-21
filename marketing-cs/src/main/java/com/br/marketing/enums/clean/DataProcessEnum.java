@@ -63,7 +63,21 @@ public enum DataProcessEnum {
     @AllArgsConstructor
     public enum AcceptTypeEnum {
         GENERAL(0, "通用"),
-        CUSTOM(1, "定制");
+        CUSTOM(1, "定制"),
+        FTP(2, "FTP");
+
+        private  Integer code;
+        private  String desc;
+    }
+
+    /**
+     * accountType type enum: GENERAL(0), CUSTOM(1)
+     */
+    @Getter
+    @AllArgsConstructor
+    public enum AccountTypeEnum {
+        GENERAL(0, "测试"),
+        CUSTOM(1, "正式");
 
         private  Integer code;
         private  String desc;

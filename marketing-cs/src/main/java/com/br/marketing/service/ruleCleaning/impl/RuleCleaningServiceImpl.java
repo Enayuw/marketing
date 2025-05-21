@@ -147,9 +147,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
         Integer accountType = customers.get(0).getAccountType();
-        if (accountType != null && accountType == 1) {
+        if (accountType != null && accountType == DataProcessEnum.AccountTypeEnum.CUSTOM.getCode()) {
             config.setAccountType("正式");
-        } else if (accountType != null && accountType == 0) {
+        } else if (accountType != null && accountType == DataProcessEnum.AccountTypeEnum.GENERAL.getCode()) {
             config.setAccountType("测试");
         } else {
             config.setAccountType("未知");
@@ -267,11 +267,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
-        if (dataType != 0 && dataType != 1) {
+        if (dataType != DataProcessEnum.DataTypeEnum.UPLOAD.getCode() && dataType != DataProcessEnum.DataTypeEnum.TRANSFORM.getCode()) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
 
-        if (acceptType != 0 && acceptType != 1 && acceptType != 2) {
+        if (acceptType != DataProcessEnum.AcceptTypeEnum.GENERAL.getCode()
+                && acceptType != DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode()
+                && acceptType != DataProcessEnum.AcceptTypeEnum.FTP.getCode()) {
             throw new BusinessException("接口类型无效，应为0(通用)、1(定制)或2(FTP)");
         }
 
@@ -303,7 +305,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 if (level == 0) {
                     continue;
                 }
-                if (acceptType == 0){
+                if (acceptType == DataProcessEnum.AcceptTypeEnum.GENERAL.getCode()){
                     if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
                         continue;
                     }
@@ -346,11 +348,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
-        if (dataType != 0 && dataType != 1) {
+        if (dataType != DataProcessEnum.DataTypeEnum.UPLOAD.getCode() && dataType != DataProcessEnum.DataTypeEnum.TRANSFORM.getCode()) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
 
-        if (acceptType != 0 && acceptType != 1 && acceptType != 2) {
+        if (acceptType != DataProcessEnum.AcceptTypeEnum.GENERAL.getCode()
+                && acceptType != DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode()
+                && acceptType != DataProcessEnum.AcceptTypeEnum.FTP.getCode()) {
             throw new BusinessException("接口类型无效，应为0(通用)、1(定制)或2(FTP)");
         }
 
@@ -546,46 +550,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
     }
 
-    /**
-     * 判断字段是否为基础字段，如果是则返回字段名，否则返回null
-     * @param fieldName 字段名
-     * @return 基础字段名或null
-     */
-    private String getBaseFieldName(String fieldName) {
-        if (StringUtils.isBlank(fieldName)) {
-            return null;
-        }
-
-        switch (fieldName) {
-            case "api_code":
-            case "cus_batch":
-            case "request_batch":
-            case "cust_num":
-            case "id_card":
-            case "name":
-            case "cell":
-            case "cell_md5":
-            case "cell_sha256":
-            case "group_type":
-            case "user_type":
-            case "operate_type":
-            case "register_date":
-            case "reserve_field1":
-            case "reserve_field2":
-            case "create_time":
-            case "update_time":
-            case "applet_date":
-            case "status":
-            case "fail_type":
-            case "applet_time":
-            case "is_task":
-            case "task_time":
-            case "is_repeat":
-                return fieldName;
-            default:
-                return null;
-        }
-    }
 
     @Override
     public boolean saveFieldCleaningConfig(FieldCleaningConfigDTO configDTO) {
@@ -647,9 +611,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
         List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
         Integer accountType = customers.get(0).getAccountType();
-        if (accountType != null && accountType == 1) {
+        if (accountType != null && accountType == DataProcessEnum.AccountTypeEnum.CUSTOM.getCode()) {
             config.setAccountType("正式");
-        } else if (accountType != null && accountType == 0) {
+        } else if (accountType != null && accountType == DataProcessEnum.AccountTypeEnum.GENERAL.getCode()) {
             config.setAccountType("测试");
         } else {
             config.setAccountType("未知");
