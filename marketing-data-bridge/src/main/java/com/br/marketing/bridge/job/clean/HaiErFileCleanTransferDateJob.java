@@ -259,8 +259,8 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
                 lineNumber++;
 
                 // 跳过空行和标题行
-                if (StringUtils.isBlank(line) || line.contains("登陆日期")) {
-                    if (line.contains("登陆日期")) {
+                if (StringUtils.isBlank(line) || line.contains("UUID")) {
+                    if (line.contains("UUID")) {
                         log.warn("{} 跳过表头 (第{}行): {}", TITLE, lineNumber, line);
                     }
                     skippedLines++;
