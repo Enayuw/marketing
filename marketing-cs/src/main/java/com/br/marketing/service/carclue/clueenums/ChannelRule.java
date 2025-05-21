@@ -42,4 +42,14 @@ public class ChannelRule {
         ZJ_CALLBACK("zj-callback");
         private String label;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public enum ConfigChannelRuleEnum {
+        YC_KA_CONFIG("yc-ka-config"),
+        YC_MEMBER_CONFIG("yc-member-config"),
+        ZJ_CONFIG("zj-config");
+        private String label;
+    }
+
 }

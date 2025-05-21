@@ -3,7 +3,9 @@ package com.br.marketing.service.carclue.web;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.dto.ExecuteCarClueDTO;
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 
 import java.util.List;
 
@@ -34,4 +36,5 @@ public interface CarClueReportService {
     ApiResult<Boolean> editCarClues(List<CarClueInfo> voList);
 
 
+    ApiResult<Boolean> executeClueData(ExecuteCarClueDTO dto, MarketingUserDetail user);
 }

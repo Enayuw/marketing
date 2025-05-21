@@ -11,6 +11,4 @@ public interface CarClueProvincesInformationMapper  extends CarClueProvincesInfo
     String getMaxCleanDate();
 
     int batchInsert(@Param("list") List<CarClueProvincesInformation> list);
-
-
 }

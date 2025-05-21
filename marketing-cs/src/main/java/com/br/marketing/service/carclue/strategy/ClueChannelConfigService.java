@@ -2,6 +2,7 @@ package com.br.marketing.service.carclue.strategy;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
+import com.br.marketing.service.carclue.config.AbstractClueChannelConfig;
 import com.br.marketing.service.carclue.filter.AbstractClueChannelFilter;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
 import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
@@ -55,6 +56,13 @@ public interface ClueChannelConfigService {
      * @return
      */
     AbstractClueChannelMatch getChannelMatchImpl(String apiCodeChannel);
+
+    /**
+     * 获取指定渠道商的配置实现
+     * @param apiCodeChannel
+     * @return
+     */
+    AbstractClueChannelConfig getChannelConfigImpl(String apiCodeChannel);
 
 
     /**
