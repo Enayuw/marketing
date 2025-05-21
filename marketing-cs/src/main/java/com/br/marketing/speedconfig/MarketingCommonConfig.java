@@ -2778,6 +2778,11 @@ public class MarketingCommonConfig {
      * 通用上传推送决策特殊客户
      */
     private List<String> apiCodeOfpushPolicy;
+
+    /**
+     * 字段映射 样例{"apiCode":{"customName":"cusName"}}
+     */
+    private HashMap<String,HashMap<String,String>> fieldKeyMapping;
     /**
      * 众安AI 通话明细名单推送时间
      */
