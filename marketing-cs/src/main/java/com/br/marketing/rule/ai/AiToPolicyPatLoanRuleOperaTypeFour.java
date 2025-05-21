@@ -109,7 +109,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
 
     @Override
     public String label() {
-        return CommonRuleLabelEnum.AI_To_Policy_PatLoan_OperaType_Four.getCode();
+        return CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
     }
 
     @Override
