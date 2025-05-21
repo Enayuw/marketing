@@ -2782,7 +2782,7 @@ public class MarketingCommonConfig {
     /**
      * 字段映射 样例{"apiCode":{"customName":"cusName"}}
      */
-    private HashMap<String,HashMap<String,String>> fieldKeyMapping;
+    private HashMap<String,JSONObject> fieldKeyMapping;
     /**
      * 众安AI 通话明细名单推送时间
      */

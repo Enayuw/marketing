@@ -122,11 +122,11 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
     }
 
     private void customizFieldMapping(ProcessHandlerContext context, JSONObject jsonObject) {
-        HashMap<String, HashMap<String, String>> fieldKeyMapping = marketingCommonConfig.getFieldKeyMapping();
-        HashMap<String, String> map = fieldKeyMapping.get(context.getApiCode());
-        if (ObjectUtil.isNotEmpty(map)) {
-            for (String s : map.keySet()) {
-                String toKey = map.get(s);
+        HashMap<String, JSONObject> fieldKeyMapping = marketingCommonConfig.getFieldKeyMapping();
+        JSONObject mapping = fieldKeyMapping.get(context.getApiCode());
+        if (ObjectUtil.isNotEmpty(mapping)) {
+            for (String s : mapping.keySet()) {
+                String toKey = mapping.getString(s);
                 String oldV = jsonObject.getString(toKey);
                 String newV = jsonObject.getString(s);
                 if (StringUtils.isBlank(oldV) && StringUtils.isNotBlank(newV)) {
