@@ -372,6 +372,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     createTime = node.getCreateTime();
                     // 4. 如果node_value为空，则需要去客户上传数据明细表查询
                     if (StringUtils.isBlank(nodeValue)) {
+                        // todo 数据查询 通用差info，定制原始表
                         try {
                             // 检查表是否存在
                             Integer existTable = marketingSyncUserMapper.existUploadTable("b_marketing_sync_" + apiCode);
@@ -943,184 +944,123 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
         
-        // 对于超长数字，使用字符串操作处理加减法
-        if (("add".equals(operator) || "subtract".equals(operator)) && 
-            fieldSample != null && fieldSample.length() > 15) {
-            try {
-                log.warn("检测到超长数值，使用专用处理: {}", fieldSample);
-                
-                // 提取数字部分
-                StringBuilder digitsOnly = new StringBuilder();
-                for (char c : fieldSample.toCharArray()) {
-                    if (Character.isDigit(c)) {
-                        digitsOnly.append(c);
-                    }
-                }
-                
-                if (digitsOnly.length() > 0) {
-                    int valueToApply = 0;
-                    // 获取要加减的值
-                    for (int i = 1; i < operands.size(); i++) {
-                        Map<String, Object> operand = operands.get(i);
-                        String type = String.valueOf(operand.get("type"));
-                        if ("constant".equals(type) && operand.containsKey("value")) {
-                            try {
-                                valueToApply = Integer.parseInt(String.valueOf(operand.get("value")));
-                                break;
-                            } catch (NumberFormatException e) {
-                                log.warn("无法将常量转换为整数: {}", operand.get("value"));
-                            }
-                        }
-                    }
-                    
-                    // 如果数字超过19位(BigDecimal最大安全长度)，使用字符串算法
-                    if (digitsOnly.length() > 19) {
-                        // 只修改最后几位数字
-                        int lastPos = digitsOnly.length() - 1;
-                        int modValue = Math.abs(valueToApply);
-                        
-                        // 处理各位数的变化
-                        if ("subtract".equals(operator)) {
-                            valueToApply = -valueToApply;
-                        }
-                        
-                        // 从个位开始处理
-                        int carry = 0;
-                        for (int i = 0; i < Math.min(String.valueOf(modValue).length() + 1, digitsOnly.length()); i++) {
-                            int pos = lastPos - i;
-                            if (pos < 0) break;
-                            
-                            int digit = Character.getNumericValue(digitsOnly.charAt(pos));
-                            
-                            int newDigit;
-                            if (i == 0) {
-                                // 个位直接加
-                                newDigit = digit + valueToApply % 10 + carry;
-                            } else {
-                                // 高位加上一次的进位
-                                modValue /= 10;
-                                newDigit = digit + (valueToApply < 0 ? -modValue % 10 : modValue % 10) + carry;
-                            }
-                            
-                            if (newDigit < 0) {
-                                newDigit += 10;
-                                carry = -1;
-                            } else if (newDigit >= 10) {
-                                newDigit -= 10;
-                                carry = 1;
-                            } else {
-                                carry = 0;
-                            }
-                            
-                            digitsOnly.setCharAt(pos, Character.forDigit(newDigit, 10));
-                            
-                            if (modValue == 0 && carry == 0) break;
-                        }
-                        
-                        log.warn("超长数值字符串处理结果: {}", digitsOnly.toString());
-                        return digitsOnly.toString();
-                    } else {
-                        // 使用BigDecimal处理大数值
-                        BigDecimal numValue = new BigDecimal(digitsOnly.toString());
-                        BigDecimal delta = new BigDecimal(valueToApply);
-                        BigDecimal result;
-                        
-                        if ("add".equals(operator)) {
-                            result = numValue.add(delta);
-                        } else {
-                            result = numValue.subtract(delta);
-                        }
-                        
-                        log.warn("BigDecimal处理结果: {} {} {} = {}", 
-                             numValue, operator.equals("add") ? "+" : "-", delta, result);
-                        return result.toString();
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("特殊处理失败，回退到标准处理: {}", e.getMessage());
-            }
-        }
-
         // 计算所有操作数
         List<BigDecimal> values = new ArrayList<>();
         boolean firstFieldProcessed = false;
         
-        for (Map<String, Object> operand : operands) {
-            String type = String.valueOf(operand.get("type"));
-            Object value = null;
-
-            if ("field".equals(type)) {
-                if (nodeParse != null) {
-                    // 从nodeParse中获取实际值
-                    String fieldName = String.valueOf(operand.get("fieldName"));
-                    value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
-                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
-                } else {
-                    // 如果是第一个字段类型操作数，使用输入值
-                    if (!firstFieldProcessed) {
-                        value = fieldSample;
-                        firstFieldProcessed = true;
-                        log.warn("使用当前输入值作为第一个字段操作数: {}", value);
+        try {
+            for (Map<String, Object> operand : operands) {
+                String type = String.valueOf(operand.get("type"));
+                Object value = null;
+        
+                if ("field".equals(type)) {
+                    if (nodeParse != null) {
+                        // 从nodeParse中获取实际值
+                        String fieldName = String.valueOf(operand.get("fieldName"));
+                        value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                        log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
                     } else {
-                        // 其他情况使用规则中的预设值
-                        value = operand.get("fieldValue");
-                        log.warn("使用规则中预设的字段值: {}", value);
+                        // 如果是第一个字段类型操作数，使用输入值
+                        if (!firstFieldProcessed) {
+                            value = fieldSample;
+                            firstFieldProcessed = true;
+                            log.warn("使用当前输入值作为第一个字段操作数: {}", value);
+                        } else {
+                            // 其他情况使用规则中的预设值
+                            value = operand.get("fieldValue");
+                            log.warn("使用规则中预设的字段值: {}", value);
+                        }
+                    }
+                } else if ("constant".equals(type)) {
+                    // 常量类型，直接获取值
+                    value = operand.get("value");
+                    log.warn("使用常量值: {}", value);
+                } else if ("expression".equals(type)) {
+                    // 表达式类型，递归计算
+                    Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
+                    value = handleMathOperation("0", expression, nodeParse);
+                    log.warn("嵌套表达式计算结果: {}", value);
+                }
+        
+                if (value != null) {
+                    try {
+                        // 清理数字字符串，移除常见非数字格式(货币符号、千位分隔符等)
+                        String cleanedStr = cleanNumericString(String.valueOf(value));
+                        BigDecimal numValue = new BigDecimal(cleanedStr);
+                        values.add(numValue);
+                        log.warn("转换为BigDecimal: {} -> {}", value, numValue);
+                    } catch (NumberFormatException e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                                "无法将值转换为数字: " + value + "错误信息：" + e.getMessage()), e);
+                        // 如果是第一个值转换失败，直接返回原值
+                        if (values.isEmpty()) {
+                            return fieldSample;
+                        }
                     }
                 }
-            } else if ("constant".equals(type)) {
-                // 常量类型，直接获取值
-                value = operand.get("value");
-                log.warn("使用常量值: {}", value);
-            } else if ("expression".equals(type)) {
-                // 表达式类型，递归计算
-                Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
-                value = handleMathOperation("0", expression, nodeParse);
-                log.warn("嵌套表达式计算结果: {}", value);
             }
-
-            if (value != null) {
-                try {
-                    BigDecimal numValue = new BigDecimal(String.valueOf(value));
-                    values.add(numValue);
-                } catch (NumberFormatException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                            "无法将值转换为数字: " + value + "错误信息：" + e.getMessage()), e);
+        
+            if (values.isEmpty()) {
+                return fieldSample;
+            }
+        
+            // 执行运算
+            BigDecimal result = values.get(0);
+            for (int i = 1; i < values.size(); i++) {
+                BigDecimal value = values.get(i);
+                switch (operator) {
+                    case "add":
+                        result = result.add(value);
+                        break;
+                    case "subtract":
+                        result = result.subtract(value);
+                        break;
+                    case "multiply":
+                        result = result.multiply(value);
+                        break;
+                    case "divide":
+                        if (value.compareTo(BigDecimal.ZERO) != 0) {
+                            result = result.divide(value, 10, RoundingMode.HALF_UP);
+                        }
+                        break;
+                    case "percentage":
+                        result = result.multiply(value).divide(new BigDecimal(100), 10, RoundingMode.HALF_UP);
+                        break;
+                    default:
+                        break;
                 }
             }
-        }
-
-        if (values.isEmpty()) {
+        
+            return formatNumberResult(result);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "数学运算处理失败: " + e.getMessage()), e);
             return fieldSample;
         }
+    }
 
-        // 执行运算
-        BigDecimal result = values.get(0);
-        for (int i = 1; i < values.size(); i++) {
-            BigDecimal value = values.get(i);
-            switch (operator) {
-                case "add":
-                    result = result.add(value);
-                    break;
-                case "subtract":
-                    result = result.subtract(value);
-                    break;
-                case "multiply":
-                    result = result.multiply(value);
-                    break;
-                case "divide":
-                    if (value.compareTo(BigDecimal.ZERO) != 0) {
-                        result = result.divide(value, 10, RoundingMode.HALF_UP);
-                    }
-                    break;
-                case "percentage":
-                    result = result.multiply(value).divide(new BigDecimal(100), 10, RoundingMode.HALF_UP);
-                    break;
-                default:
-                    break;
+    /**
+     * 清理数字字符串，移除货币符号、千位分隔符等，保留数字和小数点
+     */
+    private String cleanNumericString(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        
+        // 移除所有非数字和非小数点字符
+        StringBuilder result = new StringBuilder();
+        boolean hasDecimalPoint = false;
+        
+        for (char c : str.toCharArray()) {
+            if (Character.isDigit(c)) {
+                result.append(c);
+            } else if (c == '.' && !hasDecimalPoint) {
+                result.append(c);
+                hasDecimalPoint = true;
             }
         }
-
-        return formatNumberResult(result);
+        
+        return result.toString();
     }
 
     /**
