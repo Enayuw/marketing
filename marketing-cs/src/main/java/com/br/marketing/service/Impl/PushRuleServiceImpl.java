@@ -2457,7 +2457,16 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         // 没配置init和ai
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
+        if (customerRules.contains(TO_POLICY_GENERAL)
+                && (jsonData.contains("\"operateType\":\"3\"")
+                || jsonData.contains("\"operateType\": \"3\""))) {
+            getRoutingKeyAndSendToAiMq(syncInfoId);
+            return;
+        }
+
+        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
+                && (jsonData.contains("\"operateType\":\"4\"")
+                || jsonData.contains("\"operateType\": \"4\""))) {
             getRoutingKeyAndSendToAiMq(syncInfoId);
             return;
         }
@@ -2469,6 +2478,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
             getRoutingKeyAndSendToAiMq(syncInfoId);
+            return;
+        }
+
+        if (jsonData.contains("\"operateType\"")) {
+            String title;
+            String msg;
+            title = "Ai客户，自动配置规则映射，operateType传参异常，需要联系客户修复";
+            msg = title + " jsonData:" + jsonData;
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg
+                    , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
             return;
         }
 
