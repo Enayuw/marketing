@@ -14,6 +14,7 @@ import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -65,7 +66,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private MarketingDataCleanGeneralFieldConfigMapper marketingDataCleanGeneralFieldConfigMapper;
 
     @Resource
-    EntityOptServiceImpl entityOptService;
+    private EntityOptServiceImpl entityOptService;
+
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
 
     /**
      * 规则列表查询
@@ -126,6 +130,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 参数验证
         if (config == null) {
             throw new BusinessException("规则配置不能为空");
+        }
+        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+        MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
+        criteria.andApiCodeEqualTo(config.getApiCode());
+        marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
+        List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+        Integer accountType = customers.get(0).getAccountType();
+        if (accountType != null && accountType == 1) {
+            config.setAccountType("正式");
+        } else if (accountType != null && accountType == 0) {
+            config.setAccountType("测试");
+        } else {
+            config.setAccountType("未知");
         }
 
         MarketingUserDetail user = ThreadContextInfo.getUser();
@@ -630,11 +647,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         config.setAcceptType(acceptType);
         config.setIsDel(1);
 
-        // 根据API编码判断账号类型
-        if (apiCode != null && apiCode.startsWith("7")) {
+        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+        MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
+        criteria.andApiCodeEqualTo(apiCode);
+        marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
+        List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+        Integer accountType = customers.get(0).getAccountType();
+        if (accountType != null && accountType == 1) {
+            config.setAccountType("正式");
+        } else if (accountType != null && accountType == 0) {
             config.setAccountType("测试");
         } else {
-            config.setAccountType("正式");
+            config.setAccountType("未知");
         }
 
         Date now = new Date();

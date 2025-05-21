@@ -86,13 +86,6 @@ public class RuleCleaningController {
             config.setDataType(configDTO.getDataType());
             config.setAcceptType(configDTO.getAcceptType());
             
-            // 处理账号类型：以7开头的均为测试账号
-            if (config.getApiCode() != null && config.getApiCode().startsWith("7")) {
-                config.setAccountType("测试");
-            } else {
-                config.setAccountType("正式");
-            }
-            
             // 先保存或更新规则，并删除原有清洗配置
             boolean ruleResult = ruleCleaningService.saveOrUpdateRule(config);
             
