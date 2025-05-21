@@ -310,7 +310,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         String apiCode = config.getApiCode();
         //查询规则
         MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-        ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(config.getId());
+        ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(config.getId()).andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
         // Pool
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 50);
