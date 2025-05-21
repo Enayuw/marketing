@@ -461,13 +461,6 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getUserByCell(@Param("apiCode") String apiCode, @Param("appletDates") List<String> appletDates, @Param("cell") String cell);
 
-    /**
-     * 执行原生SQL查询
-     * @param sql SQL语句
-     * @return 查询结果Map
-     */
-    Map<String, Object> executeRawSql(@Param("sql") String sql);
-
     List<MarketingSyncUser> getCustNumsByCusBatchtikv_(
             @Param("apiCode") String apiCode,
             @Param("cusBatch") String cusBatch,

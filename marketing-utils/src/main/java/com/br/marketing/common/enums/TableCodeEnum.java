@@ -25,8 +25,6 @@ public enum TableCodeEnum {
     SAVE_OR_UPDATE_CAR_CLUE_INFO("09","b_car_clue_info", "CarClueInfo"),
     SAVE_OR_UPDATE_TAG_INFO("10","t_tag_data_rule", "TagDataRule"),
     SAVE_OR_UPDATE_DATA_CLEANING_INFO("11","b_marketing_data_clean_general_rule_config", "MarketingDataCleanGeneralRuleConfig"),
-    SAVE_OR_UPDATE_TAG_INFO("10","t_tag_data_rule", "TagDataRule"),
-    SAVE_OR_UPDATE_DATA_CLEANING_INFO("11","b_marketing_data_clean_general_rule_config", "MarketingDataCleanGeneralRuleConfig"),
     SAVE_OR_UPDATE_CLUE_FILE_RECORDING("12","b_car_clue_file_recording", "ClueFileRecording"),
     SAVE_OR_UPDATE_CLUE_EXECUTE_RECORDING("13","b_car_clue_execute_recording", "CarClueExecuteRecording"),
     SAVE_OR_UPDATE_MANAGE_CONFIG("14","b_car_clue_manage_config", "CarClueManageConfig")

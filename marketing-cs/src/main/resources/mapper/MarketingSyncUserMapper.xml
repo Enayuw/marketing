@@ -1145,9 +1145,6 @@
         and is_repeat in (1,2)
     </select>
 
-    <select id="executeRawSql" resultType="java.util.Map">
-        ${sql}
-    </select>
 
     <select id="getCustNumsByCusBatchtikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
         select id, cust_num
