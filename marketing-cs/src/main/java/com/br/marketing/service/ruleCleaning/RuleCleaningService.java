@@ -2,9 +2,10 @@ package com.br.marketing.service.ruleCleaning;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
+import com.br.marketing.client.rulecleaning.FieldSampleDTO;
+import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
-import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
@@ -96,4 +97,11 @@ public interface RuleCleaningService {
 
 
     Object executeCleaningRule(JSONObject nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule);
+
+    /**
+     * 保存规则及其清洗配置
+     * @param configDTO 包含规则和清洗配置的DTO
+     * @return 操作结果
+     */
+    boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO);
 }

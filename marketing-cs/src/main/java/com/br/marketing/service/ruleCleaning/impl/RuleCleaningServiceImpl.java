@@ -39,6 +39,11 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 
 /**
  * 规则数据清洗接口实现
@@ -70,6 +75,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
+    private RedisChgService redisChgService;
 
     /**
      * 规则列表查询
@@ -193,47 +201,57 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      */
     @Override
     public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> cleanFields) {
-        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(config.getApiCode())
-                .andDataTypeEqualTo(config.getDataType())
-                .andAcceptTypeEqualTo(config.getAcceptType())
-                .andIsDelEqualTo(1);
-        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
-        if (configs == null || configs.isEmpty()) {
-            return false;
-        }
-        Long id = configs.get(0).getId();
-        // 查询是否已存在该映射字段的规则
-        MarketingDataCleanGeneralRuleConfigExample example = new MarketingDataCleanGeneralRuleConfigExample();
-        example.createCriteria()
-                .andCleanConfigIdEqualTo(id)
-                .andApiCodeEqualTo(config.getApiCode())
-                .andIsDelEqualTo(1);
-
-        List<MarketingDataCleanGeneralRuleConfig> existingRules = cleanGeneralRuleConfigMapper.selectByExample(example);
-
-        for (MarketingDataCleanGeneralRuleConfig ruleConfig : existingRules) {
-            String ruleConfigCleanFields = ruleConfig.getCleanFields();
-            if (!cleanFields.contains(ruleConfigCleanFields)) {
-
-                MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
-                updateRule.setId(ruleConfig.getId());
-                updateRule.setIsDel(9);
-                updateRule.setUpdateTime(new Date());
-
-                // 执行更新操作
-                int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
-                if (rows > 0) {
-                    entityOptService.writeOptLog(ruleConfig.getId(), updateRule, ruleConfig);
-                    return true;
-                } else {
-                    throw new BusinessException("删除规则字段失败！规则字段：" + ruleConfigCleanFields);
+        try {
+            // 查询已存在的规则配置
+            MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
+            configExample.createCriteria()
+                    .andApiCodeEqualTo(config.getApiCode())
+                    .andDataTypeEqualTo(config.getDataType())
+                    .andAcceptTypeEqualTo(config.getAcceptType())
+                    .andIsDelEqualTo(1);
+            List<MarketingDataCleanGeneralConfig> existingConfigs = cleanGeneralConfigMapper.selectByExample(configExample);
+            
+            if (existingConfigs == null || existingConfigs.isEmpty()) {
+                return true;
+            }
+            
+            Long configId = existingConfigs.get(0).getId();
+            
+            // 查询已存在的规则字段配置
+            MarketingDataCleanGeneralRuleConfigExample ruleExample = new MarketingDataCleanGeneralRuleConfigExample();
+            ruleExample.createCriteria()
+                    .andCleanConfigIdEqualTo(configId)
+                    .andApiCodeEqualTo(config.getApiCode())
+                    .andIsDelEqualTo(1);
+            List<MarketingDataCleanGeneralRuleConfig> existingRules = cleanGeneralRuleConfigMapper.selectByExample(ruleExample);
+            
+            if (existingRules == null || existingRules.isEmpty()) {
+                return true;
+            }
+            
+            // 标记不在当前配置中的规则为删除状态
+            for (MarketingDataCleanGeneralRuleConfig rule : existingRules) {
+                String cleanField = rule.getCleanFields();
+                if (!cleanFields.contains(cleanField)) {
+                    MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
+                    updateRule.setId(rule.getId());
+                    updateRule.setIsDel(9);
+                    updateRule.setUpdateTime(new Date());
+                    
+                    int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
+                    if (rows > 0) {
+                        log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), cleanField);
+                    } else {
+                        log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), cleanField);
+                    }
                 }
             }
-
+            return true;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "删除规则配置失败: " + e.getMessage()), e);
+            throw new BusinessException("删除规则配置失败: " + e.getMessage());
         }
-        return false;
     }
 
     /**
@@ -1603,6 +1621,75 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
             return true;
+    }
+
+    /**
+     * 保存规则及其清洗配置
+     * @param configDTO 包含规则和清洗配置的DTO
+     * @return 操作结果
+     */
+    @Override
+    public boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO) {
+        if (configDTO == null) {
+            throw new BusinessException("规则配置不能为空");
+        }
+
+        log.info("开始保存规则及清洗配置: {}", configDTO);
+
+        // 构建规则配置对象
+        MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
+        config.setApiCode(configDTO.getApiCode());
+        config.setDataType(configDTO.getDataType());
+        config.setAcceptType(configDTO.getAcceptType());
+
+        // 先保存或更新规则
+        boolean ruleResult = saveOrUpdateRule(config);
+
+        // 保存字段清洗配置
+        boolean cleaningResult = true;
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+
+        if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
+            // 提取所有清洗字段
+            List<String> cleanFields = cleaningConfigs.stream()
+                    .map(FieldCleaningConfigDTO::getCleanField)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            // 删除不在当前配置中的规则
+            boolean deleteResult = deleteRule(config, cleanFields);
+            if (!deleteResult) {
+                // 继续处理，不要因为删除失败而中断整个流程
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                        "删除不在当前配置中的规则失败！"));
+            }
+
+            // 保存清洗配置
+            for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
+                // 设置API编码信息
+                fieldConfig.setApiCode(configDTO.getApiCode());
+                fieldConfig.setDataType(configDTO.getDataType());
+                fieldConfig.setAcceptType(configDTO.getAcceptType());
+
+                log.info("保存字段清洗配置: {}", fieldConfig);
+                boolean singleResult = saveFieldCleaningConfig(fieldConfig);
+                if (!singleResult) {
+                    cleaningResult = false;
+                    log.warn("保存字段清洗配置失败: {}", fieldConfig);
+                }
+            }
+        }
+
+        // 清理Redis缓存
+        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE
+                .concat(configDTO.getApiCode())
+                .concat(":")
+                .concat(configDTO.getDataType().toString())
+                .concat(":")
+                .concat(configDTO.getAcceptType().toString());
+        redisChgService.del(redisKey);
+
+        return ruleResult && cleaningResult;
     }
 }
 

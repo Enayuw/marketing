@@ -80,46 +80,10 @@ public class RuleCleaningController {
         try {
             log.info("接收到保存或更新规则及清洗配置请求: {}", configDTO);
             
-            // 构建规则配置对象
-            MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
-            config.setApiCode(configDTO.getApiCode());
-            config.setDataType(configDTO.getDataType());
-            config.setAcceptType(configDTO.getAcceptType());
+            // 调用Service处理业务逻辑
+            boolean result = ruleCleaningService.saveRuleWithConfigs(configDTO);
             
-            // 先保存或更新规则，并删除原有清洗配置
-            boolean ruleResult = ruleCleaningService.saveOrUpdateRule(config);
-            
-            // 保存字段清洗配置
-            boolean cleaningResult = true;
-            List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
-
-            if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
-                List<String> cleanFields = cleaningConfigs.stream()
-                        .map(FieldCleaningConfigDTO::getCleanField)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                ruleCleaningService.deleteRule(config, cleanFields);
-                for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
-                    // 设置API编码信息
-                    fieldConfig.setApiCode(configDTO.getApiCode());
-                    fieldConfig.setDataType(configDTO.getDataType());
-                    fieldConfig.setAcceptType(configDTO.getAcceptType());
-                    
-                    log.info("保存字段清洗配置: {}", fieldConfig);
-                    boolean singleResult = ruleCleaningService.saveFieldCleaningConfig(fieldConfig);
-                    if (!singleResult) {
-                        cleaningResult = false;
-                        log.warn("保存字段清洗配置失败: {}", fieldConfig);
-                    }
-                }
-            }
-
-            String redisKey =
-                    RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(configDTO.getApiCode()).concat(":").concat(configDTO.getDataType().toString()).concat(
-                            ":").concat(configDTO.getAcceptType().toString());
-            redisChgService.del(redisKey);
-            
-            return new ApiResult<Boolean>().success(ruleResult && cleaningResult);
+            return new ApiResult<Boolean>().success(result);
         } catch (BusinessException be) {
             return new ApiResult<Boolean>().fail(false, be.getMsg());
         } catch (Exception e) {
