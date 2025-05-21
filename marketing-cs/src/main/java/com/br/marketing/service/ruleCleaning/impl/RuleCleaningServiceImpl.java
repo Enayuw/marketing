@@ -32,6 +32,7 @@ import org.apache.poi.util.StringUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -1629,6 +1630,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 操作结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO) {
         if (configDTO == null) {
             throw new BusinessException("规则配置不能为空");
