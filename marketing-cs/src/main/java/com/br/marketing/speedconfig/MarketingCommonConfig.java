@@ -2845,8 +2845,12 @@ public class MarketingCommonConfig {
     /**
      * 携程队列apiCode 集合
      */
-    private JSONObject xieChengQueueApiCodes;
+    private List<String> xieChengQueueApiCodes;
 
+    /**
+     * 携程上报消息开关
+     */
+    private JSONObject xieChengReportMqConfig;
 
     /**
      * 携程定制转化清洗apicode
