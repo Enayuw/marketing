@@ -2955,5 +2955,12 @@ public class MarketingCommonConfig {
     private Integer customUploadCleanThreadNum;
 
 
+
+    /**
+     * 动态切换消息队列定时任务开关
+     */
+    private Boolean isEnableMqSwitch;
+
+
 }
 
