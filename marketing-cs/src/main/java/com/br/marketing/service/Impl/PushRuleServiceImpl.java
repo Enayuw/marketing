@@ -2677,6 +2677,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 没配置成init和ai客户
         boolean hasOperateType3 = containsOperateType(jsonData, "3");
         boolean hasOperateType4 = containsOperateType(jsonData, "4");
+
+        // jsonData中没有3也没有4
+        if (!hasOperateType3 && !hasOperateType4) {
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            return;
+        }
+
+        // jsonData包含3或者4，查db
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
 
         boolean hasType3Rule = customerRules.contains(TO_POLICY_GENERAL) && hasOperateType3;
