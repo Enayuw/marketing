@@ -2778,6 +2778,11 @@ public class MarketingCommonConfig {
      * 通用上传推送决策特殊客户
      */
     private List<String> apiCodeOfpushPolicy;
+
+    /**
+     * 字段映射 样例{"apiCode":{"customName":"cusName"}}
+     */
+    private HashMap<String,JSONObject> fieldKeyMapping;
     /**
      * 众安AI 通话明细名单推送时间
      */
@@ -2860,7 +2865,7 @@ public class MarketingCommonConfig {
     /**
      * 转化文件提取到marketingBI的配置
      */
-    private List<String> transFileExtractionApiCodesConfig;
+    private List<JSONObject> transFileExtractionApiCodesConfig;
     /**
      * 转化文件提取到BI线程数
      */

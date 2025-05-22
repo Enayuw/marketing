@@ -4,11 +4,9 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.BFileBiConfig;
-import com.br.marketing.entity.BFileBiConfigExample;
-import com.br.marketing.entity.TransferFileTask;
-import com.br.marketing.entity.TransferFileTaskExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.BFileBiConfigMapper;
+import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
 import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.TransFileToMarketingBiService;
@@ -51,22 +49,36 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
     @Resource
     private BFileBiConfigMapper bFileBiConfigMapper;
 
+    @Autowired
+    private NfsFileTOBiRecordMapper nfsFileTOBiRecordMapper;
+
     private static final int BATCH_SIZE = 50;
 
     @Override
     public void transFileToMarketingBiProcess(String jobParam) {
-        marketingCommonConfig.getTransFileExtractionApiCodesConfig().forEach(apiCode -> {
+        marketingCommonConfig.getTransFileExtractionApiCodesConfig().forEach(obj -> {
+            String apiCode = obj.getString("apiCode");
+            Integer fileType = obj.getInteger("fileType");
+
             String date = StringUtils.isNotEmpty(jobParam) ? jobParam : LocalDate.now().toString().replace("-", "");
             List<String> dateList = Arrays.asList(date.split(","));
-            dateList.forEach(dateItem -> {
+            for (int i = 0; i < dateList.size(); i++) {
+                String dateItem = dateList.get(i);
+
                 //按照日期执行
                 TransferFileTaskExample taskExample = new TransferFileTaskExample();
                 taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateItem)
-                        .andFileTypeEqualTo(1).andStatusGreaterThanOrEqualTo(2);
+                        .andFileTypeEqualTo(fileType).andStatusGreaterThanOrEqualTo(2);
                 List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
                 if (CollectionUtils.isNotEmpty(transferFileTasks)) {
                     TransferFileTask transferFileTask = transferFileTasks.get(0);
-                    String filePath = transferFileTask.getFilePath().concat(transferFileTask.getFileName());
+
+                    NfsFileTOBiRecordExample nfsExample = new NfsFileTOBiRecordExample();
+                    nfsExample.createCriteria().andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType).andTaskIdEqualTo(transferFileTask.getId());
+                    List<NfsFileTOBiRecord> nfsFileTOBiRecordList = nfsFileTOBiRecordMapper.selectByExample(nfsExample);
+                    if (CollectionUtils.isNotEmpty(nfsFileTOBiRecordList)) {
+                        continue;
+                    }
 
                     BFileBiConfigExample example = new BFileBiConfigExample();
                     example.createCriteria().andApiCodeEqualTo(apiCode).andBusTypeEqualTo("1");
@@ -75,16 +87,17 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
                         String errMsg = "apiCode: " + apiCode + " nfs转化提取文件落库到marketingBI没有找到对应的配置信息";
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
                     }
-                    processTransferFile(filePath, bFileBiConfigs.get(0), dateItem);
+                    processTransferFile(transferFileTask, bFileBiConfigs.get(0), dateItem, apiCode, fileType);
                 }
-            });
+            }
         });
     }
 
-    void processTransferFile(String filePath, BFileBiConfig bFileBiConfig, String dateItem) {
+    void processTransferFile(TransferFileTask transferFileTask, BFileBiConfig bFileBiConfig, String dateItem, String apiCode, Integer fileType) {
         //修改自己的配置
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getTransFileExtractionBIThread()
                 , marketingCommonConfig.getTransFileExtractionBIThread());
+        String filePath = transferFileTask.getFilePath().concat(transferFileTask.getFileName());
         File file = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             // 获取文件表头
@@ -107,6 +120,14 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
             if (!batchData.isEmpty()) {
                 writeFileDataToTidb(bFileBiConfig.getDbName(), columns, new ArrayList<>(batchData), dateItem);
             }
+            NfsFileTOBiRecord record = new NfsFileTOBiRecord();
+            record.setApiCode(apiCode);
+            record.setFileType(fileType);
+            record.setFilePath(filePath);
+            record.setFileName(filePath);
+            record.setTaskId(transferFileTask.getId());
+            nfsFileTOBiRecordMapper.insertSelective(record);
+
             threadPoolShutDown(threadPool);
         } catch (Exception e) {
             String errMsg = "nfs转化提取文件读取入库异常path: " + filePath + " Exception: " + e.getMessage();
