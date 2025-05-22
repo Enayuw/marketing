@@ -26,15 +26,18 @@ import com.br.marketing.service.PushInfoService;
 import com.br.marketing.util.TimeUtils;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.opencsv.CSVReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import com.opencsv.CSVReader;
-import java.io.StringReader;
+
 import javax.annotation.Resource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -93,12 +96,12 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
 
         TransferActionFront transferActionFront = new TransferActionFront();
 
-        if(CollectionUtils.isEmpty(transferActionFronts)){
+        if (CollectionUtils.isEmpty(transferActionFronts)) {
             // 新增执行记录 任务状态 1-未执行；2-执行结束；3-本地文件已生成
             transferActionFront = jobManager.saveFront(apiCode, LocalDate.now().toString(), TransferActionFrontActionTypeEnum.ONE.getValue());
-        }else {
+        } else {
             transferActionFront = transferActionFronts.get(0);
-            if(transferActionFront.getStatus() == 2){
+            if (transferActionFront.getStatus() == 2) {
                 log.warn(TITLE + "今日已执行！");
                 return;
             }
@@ -310,10 +313,8 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
                 jobManager.updateFrontDataStatus(jobId, 2);
             }
 
-        } catch (IOException e) {
-            log.error("{} 文件读取错误: {}", TITLE, e.getMessage(), e);
         } catch (Exception e) {
-            log.error("{} 处理过程中发生未知错误", TITLE, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HAIER_SERVICEERROR.getCode(), TITLE + "文件解析异常：" + e.getMessage()));
         }
     }
 
