@@ -1,11 +1,15 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
-public class MarketingSyncInfo {
-    /**
-     * 
-     */
+/**
+ * b_marketing_sync_info
+ * @author 
+ */
+@Data
+public class MarketingSyncInfo implements Serializable {
     private Long id;
 
     /**
@@ -40,6 +44,16 @@ public class MarketingSyncInfo {
     private Integer status;
 
     /**
+     * 0:通用调用1:定制接口清洗后调用
+     */
+    private Integer dataSourceType;
+
+    /**
+     * 数据
+     */
+    private String jsonData;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -64,112 +78,5 @@ public class MarketingSyncInfo {
      */
     private Integer isUpload;
 
-    /**
-     * 数据
-     */
-    private String jsonData;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getCusBatch() {
-        return cusBatch;
-    }
-
-    public void setCusBatch(String cusBatch) {
-        this.cusBatch = cusBatch == null ? null : cusBatch.trim();
-    }
-
-    public String getRequestBatch() {
-        return requestBatch;
-    }
-
-    public void setRequestBatch(String requestBatch) {
-        this.requestBatch = requestBatch == null ? null : requestBatch.trim();
-    }
-
-    public Byte getLast() {
-        return last;
-    }
-
-    public void setLast(Byte last) {
-        this.last = last;
-    }
-
-    public Long getTotal() {
-        return total;
-    }
-
-    public void setTotal(Long total) {
-        this.total = total;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Long getErrorId() {
-        return errorId;
-    }
-
-    public void setErrorId(Long errorId) {
-        this.errorId = errorId;
-    }
-
-    public Integer getActualNum() {
-        return actualNum;
-    }
-
-    public void setActualNum(Integer actualNum) {
-        this.actualNum = actualNum;
-    }
-
-    public Integer getIsUpload() {
-        return isUpload;
-    }
-
-    public void setIsUpload(Integer isUpload) {
-        this.isUpload = isUpload;
-    }
-
-    public String getJsonData() {
-        return jsonData;
-    }
-
-    public void setJsonData(String jsonData) {
-        this.jsonData = jsonData == null ? null : jsonData.trim();
-    }
+    private static final long serialVersionUID = 1L;
 }

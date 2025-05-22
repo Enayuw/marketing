@@ -43,6 +43,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/controlGroup/**")
                 .addPathPatterns("/xiecheng/**")
                 .addPathPatterns("/car/**")
+                .addPathPatterns("/ruleCleaning/**")
                 .addPathPatterns("/carChannel/**")
                 .addPathPatterns("/tag/**");
         registry.addInterceptor(authInterceptor)
@@ -58,6 +59,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/controlGroup/**")
                 .addPathPatterns("/xiecheng/**")
                 .addPathPatterns("/car/**")
+                .addPathPatterns("/ruleCleaning/**")
                 .addPathPatterns("/carChannel/**")
                 .addPathPatterns("/tag/**");
         super.addInterceptors(registry);

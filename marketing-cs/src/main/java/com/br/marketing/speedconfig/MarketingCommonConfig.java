@@ -2865,7 +2865,7 @@ public class MarketingCommonConfig {
     /**
      * 转化文件提取到marketingBI的配置
      */
-    private List<String> transFileExtractionApiCodesConfig;
+    private List<JSONObject> transFileExtractionApiCodesConfig;
     /**
      * 转化文件提取到BI线程数
      */
@@ -2950,10 +2950,17 @@ public class MarketingCommonConfig {
     private Integer wuBaQueryDelayZipThreadNum;
 
     /**
+     * 上传数据清洗线程数
+     */
+    private Integer customUploadCleanThreadNum;
+
+
+
+    /**
      * 动态切换消息队列定时任务开关
      */
     private Boolean isEnableMqSwitch;
 
-    
+
 }
 

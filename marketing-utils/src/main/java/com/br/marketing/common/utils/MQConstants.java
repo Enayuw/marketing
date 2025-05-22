@@ -113,6 +113,9 @@ public class MQConstants {
 
     public static final String MARKETING_WUBA_OLD_COLLIDING_ELIMINATE_QUEUE = "marketing_wuba_old_colliding_eliminate_queue";
 
+    //客户原始数据json解析 队列
+    public static final String MARKETING_CUSTOMER_DATA_JSON_PARSE_QUEUE = "Marketing_Customer_Data_Json_Parse_Queue";
+
     /**
      * routingkey
      */
@@ -221,4 +224,8 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE = "marketing.wuba.old.colliding.eliminate";
     // PP榕树打标生成清洗任务
     public static final String ROUTING_KEY_PP_RONGSHU_MARK_CREATE_CLEAN_TASK = "Marketing.pp.rongshu.mark.create.clean.task";
+
+    //客户原始数据json解析路由key
+    public static final String ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE = "Marketing.Customer.Data.Json.Parse";
+
 }

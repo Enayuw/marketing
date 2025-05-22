@@ -1145,6 +1145,7 @@
         and is_repeat in (1,2)
     </select>
 
+
     <select id="getCustNumsByCusBatchtikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
         select id, cust_num
         from b_marketing_sync_${apiCode}

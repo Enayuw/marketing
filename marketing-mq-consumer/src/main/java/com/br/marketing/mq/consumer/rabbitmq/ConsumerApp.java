@@ -10,6 +10,7 @@ import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.wuba.WuBaCollidingDataQueryResultService;
 import com.br.marketing.service.Impl.wuba.WuBaOldCollidingDataQueryResultService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
+import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.clean.guomei.GuoMeiDataCleanService;
 import com.br.marketing.service.clean.hengchang.HengChangDataCleanService;
 import com.br.marketing.service.clean.weiju.WeiJuDataCleanService;
@@ -77,6 +78,9 @@ public class ConsumerApp {
     private PpRonShuMarkService ppRonShuMarkService;
     @Resource
     private WuBaOldCollidingDataQueryResultService wuBaOldCollidingDataQueryResultService;
+
+    @Resource
+    private DataCleanService dataCleanService;
 
 
     /**
@@ -413,4 +417,21 @@ public class ConsumerApp {
         String batchIdStr = new String(message.getBody(), StandardCharsets.UTF_8);
         consumerService.consumerRun(channel, message, wuBaOldCollidingDataQueryResultService::buildEliminateAndPushToRobot, batchIdStr, null);
     }
+
+    /**
+     * 消费 客户原始数据json解析
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_CUSTOMER_DATA_JSON_PARSE_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE)}, containerFactory = "fiveDataContainerFactory")
+    public void consumerCustomerDataJsonParse(Channel channel, Message message) {
+
+        String msg = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, dataCleanService::customerDataJsonParse, msg, null);
+    }
+
+
 }
