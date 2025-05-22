@@ -41,9 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 
 /**
  * 规则数据清洗接口实现
@@ -252,7 +250,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return true;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "删除规则配置失败: " + e), e);
+                    "删除规则配置失败: " + e.getMessage()), e);
             throw new BusinessException("删除规则配置失败: " + e);
         }
     }
@@ -477,7 +475,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             }
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                                    "查询数据表获取字段值失败: apiCode=" + apiCode + ", field=" + nodeName + ", 错误信息: " + e), e);
+                                    "查询数据表获取字段值失败: apiCode=" + apiCode + ", field=" + nodeName + ", 错误信息: " + e.getMessage()),
+                                    e);
                         }
                     }
                 }
@@ -547,7 +546,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             jsonNodeParseMapper.updateByPrimaryKeySelective(updateNode);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "更新节点值失败：nodeId= " + nodeId + ", nodeValue= " + nodeValue + "错误信息：" + e), e);
+                    "更新节点值失败：nodeId= " + nodeId + ", nodeValue= " + nodeValue + "错误信息：" + e.getMessage()), e);
         }
     }
 
@@ -716,7 +715,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                         "计算清洗结果预览失败: fieldSample= " + fieldSample + ", mappingRule= " + configDTO.getMappingRule()
-                                + "错误信息：" + e), e);
+                                + "错误信息：" + e.getMessage()), e);
                 return "";
             }
         }
