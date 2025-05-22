@@ -41,9 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 
 /**
  * 规则数据清洗接口实现
@@ -253,7 +251,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "删除规则配置失败: " + e.getMessage()), e);
-            throw new BusinessException("删除规则配置失败: " + e.getMessage());
+            throw new BusinessException("删除规则配置失败: " + e);
         }
     }
 
@@ -477,7 +475,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             }
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                                    "查询数据表获取字段值失败: apiCode=" + apiCode + ", field=" + nodeName + ", 错误信息: " + e.getMessage()), e);
+                                    "查询数据表获取字段值失败: apiCode=" + apiCode + ", field=" + nodeName + ", 错误信息: " + e.getMessage()),
+                                    e);
                         }
                     }
                 }
@@ -817,7 +816,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             return firstValueByKey;
         } catch (Exception e) {
-            throw new BusinessException("执行清洗规则失败: " + e.getMessage());
+            throw new BusinessException("执行清洗规则失败: " + e);
         }
     }
 
@@ -1294,8 +1293,70 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
 
-        List<String> fieldValues = (List<String>) ruleMap.get("fieldValue");
-        if (fieldValues == null || fieldValues.isEmpty()) {
+        // 获取并处理fieldValue，支持多种格式
+        List<String> fieldValues = new ArrayList<>();
+        Object rawFieldValue = ruleMap.get("fieldValue");
+        
+        if (rawFieldValue instanceof List) {
+            // 已经是列表，直接使用
+            List<?> rawList = (List<?>) rawFieldValue;
+            for (Object item : rawList) {
+                if (item instanceof String) {
+                    fieldValues.add((String) item);
+                } else if (item instanceof Map) {
+                    // 如果是Map对象，尝试获取名称字段(通常是name, couponName等)
+                    Map<?, ?> mapItem = (Map<?, ?>) item;
+                    if (mapItem.containsKey("couponName")) {
+                        fieldValues.add(String.valueOf(mapItem.get("couponName")));
+                    } else if (mapItem.containsKey("name")) {
+                        fieldValues.add(String.valueOf(mapItem.get("name")));
+                    } else {
+                        // 如果没有特定字段，使用整个对象的字符串表示
+                        fieldValues.add(JSON.toJSONString(mapItem));
+                    }
+                } else {
+                    fieldValues.add(String.valueOf(item));
+                }
+            }
+        } else if (rawFieldValue instanceof String) {
+            String strValue = (String) rawFieldValue;
+            
+            // 尝试判断是否为JSON数组格式
+            if (strValue.startsWith("[") && strValue.endsWith("]")) {
+                try {
+                    // 尝试解析为JSON数组
+                    JSONArray jsonArray = JSON.parseArray(strValue);
+                    for (int i = 0; i < jsonArray.size(); i++) {
+                        Object item = jsonArray.get(i);
+                        if (item instanceof JSONObject) {
+                            JSONObject jsonObj = (JSONObject) item;
+                            // 优先尝试获取couponName字段
+                            if (jsonObj.containsKey("couponName")) {
+                                fieldValues.add(jsonObj.getString("couponName"));
+                            } else if (jsonObj.containsKey("name")) {
+                                fieldValues.add(jsonObj.getString("name"));
+                            } else {
+                                // 没有特定字段，使用整个对象
+                                fieldValues.add(jsonObj.toJSONString());
+                            }
+                        } else {
+                            fieldValues.add(String.valueOf(item));
+                        }
+                    }
+                } catch (Exception e) {
+                    // JSON解析失败，按逗号分隔字符串处理
+                    log.warn("无法解析JSON数组，按逗号分隔处理: {}", e);
+                    fieldValues.addAll(Arrays.asList(strValue.split(",")));
+                }
+            } else {
+                // 按逗号分隔的字符串
+                fieldValues.addAll(Arrays.asList(strValue.split(",")));
+            }
+        }
+        
+        log.warn("解析fieldValue得到的值列表: {}", fieldValues);
+        
+        if (fieldValues.isEmpty() || fieldValues.size() == 1) {
             // 如果有默认值则返回默认值
             if (ruleMap.containsKey("defaultValue")) {
                 return ruleMap.get("defaultValue");
@@ -1306,8 +1367,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 获取优先级条件
         List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
         if (conditions == null || conditions.isEmpty()) {
-            // 没有条件，返回所有值，按原始顺序用逗号连接
-            return String.join(",", fieldValues);
+            // 没有条件，返回列表中的第一个值
+            log.warn("没有优先级条件，返回列表中的第一个值: {}", fieldValues.get(0));
+            return fieldValues.get(0);
         }
 
         // 优先级排序后的结果
@@ -1377,10 +1439,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         }
 
-        // 如果处理后有值且条件匹配成功，返回排序后的所有结果，用逗号分隔
+        // 如果处理后有值且条件匹配成功，返回排序后的第一个值
         if (!processedValues.isEmpty() && anyConditionMatched) {
-            log.warn("条件匹配成功，返回处理后的值: {}", String.join(",", processedValues));
-            return String.join(",", processedValues);
+            log.warn("条件匹配成功，返回排序后的第一个值: {}", processedValues.get(0));
+            return processedValues.get(0);
         }
         
         // 如果没有条件匹配，使用defaultValue作为索引从原始列表中选择
@@ -1497,7 +1559,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return fieldConfig;
         } catch (Exception e) {
-            throw new BusinessException("获取模版字段配置失败: " + e.getMessage());
+            throw new BusinessException("获取模版字段配置失败: " + e);
         }
     }
 
@@ -1644,7 +1706,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         } catch (Exception e) {
-            log.warn("JSON解析失败: " + e.getMessage());
+            log.warn("JSON解析失败: " + e);
         }
         
         return null;
@@ -1745,7 +1807,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("在清洗规则中未找到fieldValue: {}", mappingRule);
             
         } catch (Exception e) {
-            log.warn("解析清洗规则提取fieldValue失败: {}, 错误: {}", mappingRule, e.getMessage());
+            log.warn("解析清洗规则提取fieldValue失败: {}, 错误: {}", mappingRule, e);
         }
         
         return "";
