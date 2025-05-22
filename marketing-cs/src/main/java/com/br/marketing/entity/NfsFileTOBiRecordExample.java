@@ -434,73 +434,63 @@ public class NfsFileTOBiRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andStartDateIsNull() {
-            addCriterion("start_date is null");
+        public Criteria andTaskIdIsNull() {
+            addCriterion("task_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateIsNotNull() {
-            addCriterion("start_date is not null");
+        public Criteria andTaskIdIsNotNull() {
+            addCriterion("task_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateEqualTo(String value) {
-            addCriterion("start_date =", value, "startDate");
+        public Criteria andTaskIdEqualTo(Long value) {
+            addCriterion("task_id =", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateNotEqualTo(String value) {
-            addCriterion("start_date <>", value, "startDate");
+        public Criteria andTaskIdNotEqualTo(Long value) {
+            addCriterion("task_id <>", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateGreaterThan(String value) {
-            addCriterion("start_date >", value, "startDate");
+        public Criteria andTaskIdGreaterThan(Long value) {
+            addCriterion("task_id >", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateGreaterThanOrEqualTo(String value) {
-            addCriterion("start_date >=", value, "startDate");
+        public Criteria andTaskIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("task_id >=", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateLessThan(String value) {
-            addCriterion("start_date <", value, "startDate");
+        public Criteria andTaskIdLessThan(Long value) {
+            addCriterion("task_id <", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateLessThanOrEqualTo(String value) {
-            addCriterion("start_date <=", value, "startDate");
+        public Criteria andTaskIdLessThanOrEqualTo(Long value) {
+            addCriterion("task_id <=", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateLike(String value) {
-            addCriterion("start_date like", value, "startDate");
+        public Criteria andTaskIdIn(List<Long> values) {
+            addCriterion("task_id in", values, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateNotLike(String value) {
-            addCriterion("start_date not like", value, "startDate");
+        public Criteria andTaskIdNotIn(List<Long> values) {
+            addCriterion("task_id not in", values, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateIn(List<String> values) {
-            addCriterion("start_date in", values, "startDate");
+        public Criteria andTaskIdBetween(Long value1, Long value2) {
+            addCriterion("task_id between", value1, value2, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andStartDateNotIn(List<String> values) {
-            addCriterion("start_date not in", values, "startDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andStartDateBetween(String value1, String value2) {
-            addCriterion("start_date between", value1, value2, "startDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andStartDateNotBetween(String value1, String value2) {
-            addCriterion("start_date not between", value1, value2, "startDate");
+        public Criteria andTaskIdNotBetween(Long value1, Long value2) {
+            addCriterion("task_id not between", value1, value2, "taskId");
             return (Criteria) this;
         }
     }

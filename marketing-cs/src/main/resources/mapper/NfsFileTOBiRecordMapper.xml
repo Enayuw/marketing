@@ -7,7 +7,7 @@
     <result column="file_type" property="fileType" jdbcType="INTEGER" />
     <result column="file_name" property="fileName" jdbcType="VARCHAR" />
     <result column="file_path" property="filePath" jdbcType="VARCHAR" />
-    <result column="start_date" property="startDate" jdbcType="VARCHAR" />
+    <result column="task_id" property="taskId" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -68,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_type, file_name, file_path, start_date
+    id, api_code, file_type, file_name, file_path, task_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.NfsFileTOBiRecordExample" >
     select
@@ -105,9 +105,9 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_nfsfile_bi_record (api_code, file_type, file_name, 
-      file_path, start_date)
+      file_path, task_id)
     values (#{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR}, 
-      #{filePath,jdbcType=VARCHAR}, #{startDate,jdbcType=VARCHAR})
+      #{filePath,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.NfsFileTOBiRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -127,8 +127,8 @@
       <if test="filePath != null" >
         file_path,
       </if>
-      <if test="startDate != null" >
-        start_date,
+      <if test="taskId != null" >
+        task_id,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -144,8 +144,8 @@
       <if test="filePath != null" >
         #{filePath,jdbcType=VARCHAR},
       </if>
-      <if test="startDate != null" >
-        #{startDate,jdbcType=VARCHAR},
+      <if test="taskId != null" >
+        #{taskId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -173,8 +173,8 @@
       <if test="record.filePath != null" >
         file_path = #{record.filePath,jdbcType=VARCHAR},
       </if>
-      <if test="record.startDate != null" >
-        start_date = #{record.startDate,jdbcType=VARCHAR},
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=BIGINT},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -188,7 +188,7 @@
       file_type = #{record.fileType,jdbcType=INTEGER},
       file_name = #{record.fileName,jdbcType=VARCHAR},
       file_path = #{record.filePath,jdbcType=VARCHAR},
-      start_date = #{record.startDate,jdbcType=VARCHAR}
+      task_id = #{record.taskId,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -208,8 +208,8 @@
       <if test="filePath != null" >
         file_path = #{filePath,jdbcType=VARCHAR},
       </if>
-      <if test="startDate != null" >
-        start_date = #{startDate,jdbcType=VARCHAR},
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=BIGINT},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -220,7 +220,7 @@
       file_type = #{fileType,jdbcType=INTEGER},
       file_name = #{fileName,jdbcType=VARCHAR},
       file_path = #{filePath,jdbcType=VARCHAR},
-      start_date = #{startDate,jdbcType=VARCHAR}
+      task_id = #{taskId,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

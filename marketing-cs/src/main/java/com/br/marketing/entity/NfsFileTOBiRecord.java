@@ -27,9 +27,9 @@ public class NfsFileTOBiRecord {
     private String filePath;
 
     /**
-     * 数据日期
+     * b_transfer_file_task任务表id
      */
-    private String startDate;
+    private Long taskId;
 
     public Long getId() {
         return id;
@@ -71,11 +71,11 @@ public class NfsFileTOBiRecord {
         this.filePath = filePath == null ? null : filePath.trim();
     }
 
-    public String getStartDate() {
-        return startDate;
+    public Long getTaskId() {
+        return taskId;
     }
 
-    public void setStartDate(String startDate) {
-        this.startDate = startDate == null ? null : startDate.trim();
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 }
