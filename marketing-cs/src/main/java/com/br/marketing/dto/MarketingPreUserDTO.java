@@ -36,4 +36,10 @@ public class MarketingPreUserDTO implements Serializable {
      * 客户数据
      */
     private List<MarketingPreUserDetailDTO> dataItems;
+
+    /**
+     * 0:通用调用 1:定制接口清洗后调用
+     * 默认为0
+     */
+    private Integer dataSourceType;
 }

@@ -2948,5 +2948,12 @@ public class MarketingCommonConfig {
      * 58查询延期撞库数据线程
      */
     private Integer wuBaQueryDelayZipThreadNum;
+
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer customUploadCleanThreadNum;
+
+
 }
 

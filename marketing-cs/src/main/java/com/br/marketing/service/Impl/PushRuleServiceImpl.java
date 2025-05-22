@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+
 import java.io.IOException;
 import java.sql.*;
 import java.util.Date;
@@ -29,6 +30,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.PulsarTopic;
+import com.br.marketing.common.constants.cache.CaffeineCacheKeyConstant;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rocketmq.*;
@@ -45,11 +47,13 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
+import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
+import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.es.bean.ESQueryRequest;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -66,9 +70,11 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
+import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
@@ -142,6 +148,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1004", "重复电话");
         errorCodeHm.put("1005", "入库异常");
         errorCodeHm.put("1006", "参数过长");
+        errorCodeHm.put("1007", "清洗异常");
+
     }
 
     @Resource
@@ -234,6 +242,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     TagDataDetailMapper tagDataDetailMapper;
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
+
+    @Resource
+    private DataCleanService dataCleanService;
+
+    @Resource
+    private RuleCleaningService ruleCleaningService;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -2361,6 +2375,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         String uploadKey = RedisKeyConstant.uploadKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String syncInfoId = "";
         Boolean dbException = Boolean.FALSE;
+        Integer dataSourceType = dto.getJsonData().getDataSourceType();
+        if(Objects.isNull(dataSourceType)){
+            dataSourceType =0;
+        }
         //region 数据入库
         try {
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -2372,6 +2390,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
+            syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
@@ -2419,10 +2438,43 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToRabbitMq(apiCode, syncInfoId);
+                sendToRabbitMq(apiCode,syncInfoId, dataSourceType);
+                sendJsonParseMq(apiCode,syncInfoId,dataSourceType);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    /**
+     * 发送json解析MQ
+     *
+     * @param apiCode
+     * @param syncInfoId
+     */
+    private void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType) {
+        //发送Json解析消息,定制清洗不在发送MQ
+        if (1 == dataSourceType) {
+            return;
+        }
+        try {
+            //使用caffeineCache存储 mq发送标识
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
+                    .concat(":").concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString());
+            boolean exists = caffeineCache.hasIdentifier(cacheKey);
+            if (exists) {
+                return;
+            }
+            MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+            mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
+            mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+            mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+            //存储标识
+            caffeineCache.storeIdentifier(cacheKey, Boolean.TRUE.toString());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(), "上传数据清洗-发送JSON结构解析消息异常"), e);
+        }
+
     }
 
     /**
@@ -2431,7 +2483,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      * @param syncInfoId
      */
-    private void sendToRabbitMq(String apiCode, String syncInfoId) {
+    private void sendToRabbitMq(String apiCode, String syncInfoId, Integer dataSourceType) {
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
             String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE;
             String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
@@ -2440,6 +2492,26 @@ public class PushRuleServiceImpl implements PushRuleService {
             producter.send(routingKeyFromRedis, syncInfoId);
         } else {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+        }
+        //发送Json解析消息,定制清洗不在发送MQ
+        if (1 == dataSourceType) {
+            return;
+        }
+        try {
+            //一个apiCode，一天只发送一条消息进行json结构解析
+            String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString()).concat(":")
+                    .concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString()).concat(":").concat(LocalDate.now().toString());
+            boolean exists = redisChgService.exists(redisKey);
+            if (exists) {
+                return;
+            }
+            MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+            mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
+            mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+            mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(), "上传数据清洗-发送JSON结构解析消息异常"), e);
         }
     }
 
@@ -2577,38 +2649,60 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         long l = System.currentTimeMillis();
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
+        //通用调用,查询清洗规则配置
+        Map<String, MarketingDataCleanGeneralRuleConfig> configRule = new HashMap<>();
+        if (Objects.nonNull(marketingSyncInfo.getDataSourceType()) && (0 == marketingSyncInfo.getDataSourceType())) {
+            configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
+                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+            if (!CollectionUtils.isEmpty(configRule)) {
+                //剔除规则中的基础字段
+                List<String> generalFields = Lists.newArrayList("taskId", "dataItems", "requestId", "item", "reserveField1", "reserveField2");
+                configRule.keySet().removeIf(key -> generalFields.contains(key));
+            }
+        }
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
-            //此处会处理三种场景的数据
-            //1 数禾、萨摩耶：只有groupType
-            //2 宜信：既有groupType,又有userType
-            //3 未来客户：只有userType
-            String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
-            ReserveField1DTO reserveField1 = null;
-            JSONObject reserveFileld1Json = null;
-            if (StringUtils.isBlank(reserveField1Str)) {
-                reserveField1 = new ReserveField1DTO();
-                reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
-            } else {
-                try {
-                    reserveField1 = JSON.parseObject(reserveField1Str, new TypeReference<ReserveField1DTO>() {
-                    }.getType());
-                    if (StringUtils.isBlank(reserveField1.getUserType())) {
-                        reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+            Integer finalIsCheck = isCheck;
+            Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
+            list.add(() -> {
+                //数据清洗处理
+                if (!CollectionUtils.isEmpty(finalConfigRule)) {
+                    Boolean cleanResult = handlerDataClean(marketingPreUserDetailDTO, finalConfigRule);
+                    if (!cleanResult) {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setErrorCode("1007");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1007"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
                     }
-                    reserveFileld1Json = JSON.parseObject(reserveField1Str);
-                } catch (JSONException ex) {
+                }
+                //此处会处理三种场景的数据
+                //1 数禾、萨摩耶：只有groupType
+                //2 宜信：既有groupType,又有userType
+                //3 未来客户：只有userType
+                String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
+                ReserveField1DTO reserveField1 = null;
+                JSONObject reserveFileld1Json = null;
+                if (StringUtils.isBlank(reserveField1Str)) {
                     reserveField1 = new ReserveField1DTO();
                     reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
-                    reserveField1.setExtStr(reserveField1Str);
+                } else {
+                    try {
+                        reserveField1 = JSON.parseObject(reserveField1Str, new TypeReference<ReserveField1DTO>() {
+                        }.getType());
+                        if (StringUtils.isBlank(reserveField1.getUserType())) {
+                            reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+                        }
+                        reserveFileld1Json = JSON.parseObject(reserveField1Str);
+                    } catch (JSONException ex) {
+                        reserveField1 = new ReserveField1DTO();
+                        reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
+                        reserveField1.setExtStr(reserveField1Str);
+                    }
                 }
-            }
-            Integer finalIsCheck = isCheck;
-            ReserveField1DTO finalReserveField = reserveField1;
-            JSONObject finalReserveFileld1Json = reserveFileld1Json;
-            list.add(() -> {
+                ReserveField1DTO finalReserveField = reserveField1;
+                JSONObject finalReserveFileld1Json = reserveFileld1Json;
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setErrorCode("1001");
@@ -2737,7 +2831,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
+        if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)) {
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);
@@ -2747,8 +2841,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 dataInfoDTO.setArgList(collections);
                 dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
                 return dataInfoDTO.addUploadMsgSource();
-            },MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION);
-        }else{
+            }, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION);
+        } else {
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);
@@ -2803,25 +2897,25 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(infoId);
             mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
-            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+            if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
-            }else{
+            } else {
                 producter.sendToUniversalTransferQueue(mqFact);
             }
         }
         List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
-        if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)){
+        if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)) {
             MrpMqFact mrpMqFact = new MrpMqFact();
             mrpMqFact.setSourceId(infoId);
             mrpMqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
             mrpMqFact.setApiCode(apiCode);
-            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
+            if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mrpMqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
-            }else{
+            } else {
                 producter.sendToUniversalTransferQueue(mrpMqFact);
             }
         }
@@ -2858,22 +2952,41 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
+     * 根据清洗配置进行数据清洗
+     * @param marketingPreUserDetailDTO
+     * @Date 2025/05/06 14:48
+     */
+    private Boolean handlerDataClean(MarketingPreUserDetailDTO marketingPreUserDetailDTO, Map<String, MarketingDataCleanGeneralRuleConfig> configRule) {
+        Boolean isSuccess = Boolean.FALSE;
+        try {
+            JSONObject jsonObject = (JSONObject) JSONObject.toJSON(marketingPreUserDetailDTO);
+            //数据清洗
+            dataCleanService.dataCleanHandler(jsonObject,configRule.values(),marketingPreUserDetailDTO);
+            isSuccess = Boolean.TRUE;
+        } catch (Exception e) {
+            log.error("上传数据清洗过程异常，custNum= {}", marketingPreUserDetailDTO.getCustNum(), e);
+        }
+        return isSuccess;
+    }
+
+    /**
      * （RocketMQ使用）上传数据发送场景消息到收集队列
-     * @Date 2024/8/22 17:09
+     *
      * @param localUserTypeCache
      * @param function
      * @param topic
      * @param tag
+     * @Date 2024/8/22 17:09
      */
     private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache
             , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function
-            ,String topic, String tag) {
+            , String topic, String tag) {
         String msg = "";
         try {
             msg = JSONObject.toJSONString(function.apply(localUserTypeCache));
             rocketMqSwitch.syncSend(topic, tag, msg);
         } catch (Exception e) {
-            log.error("推送场景信息到队列失败,topic[{}]tag[{}]msg[{}]异常信息:",topic, tag, msg, e);
+            log.error("推送场景信息到队列失败,topic[{}]tag[{}]msg[{}]异常信息:", topic, tag, msg, e);
         } finally {
             // 辅助gc
             localUserTypeCache.clear();
@@ -2968,7 +3081,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
-                sendToRabbitMq(apiCode, syncInfoId);
+                sendToRabbitMq(apiCode, syncInfoId,0);
             }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());

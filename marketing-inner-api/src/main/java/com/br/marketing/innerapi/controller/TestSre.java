@@ -1,25 +1,43 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.aspect.LogAnnotation;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.ApiNoDataResult;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.BrCipherJsonUtils;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.context.RuntimeDataContext;
+import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
+import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.entity.RequestLog;
+import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.br.marketing.strategy.InterfaceHandlerService;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.rocketmq.client.producer.SendResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * 后面遇到架构升级不方便测试或自测的时候可以在这里提供调用的入口
@@ -40,6 +58,16 @@ public class TestSre {
 
     @Autowired
     InterfaceHandlerService interfaceHandlerService;
+
+    @Resource
+    MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
+
+    @Autowired
+    RedisChgService redisChgService;
+
+
+    @Autowired
+    RabbitMqProducter producter;
 
     @GetMapping("/testToPolicy")
     public void testToPolicy(String msg){
@@ -119,6 +147,43 @@ public class TestSre {
             return "log";
         }
         return "null";
+    }
+
+
+    /**
+     * 智能营销定制数据落库接口
+     *
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
+    @ApiOperation(value = "定制接入营销数据")
+    @PostMapping("/receiveMarketingData")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ApiNoDataResult receiveMarketingData(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        Result result = new Result().setCode(ResultCode.SUCCESS.getValue());
+        MarketingCustomerOriginalData originalData = new MarketingCustomerOriginalData();
+        originalData.setApiCode(apiCode);
+        originalData.setRequestId(UUID.randomUUID().toString());
+        originalData.setJsonData(jsonData);
+        originalData.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+        originalData.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
+        originalData.setReceiveDate(LocalDate.now().toString());
+        marketingCustomerOriginalDataMapper.insertSelective(originalData);
+        //发送消息
+        //一个apiCode，一天只发送一条消息进行json结构解析
+        String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString()).concat(":")
+                .concat(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode().toString()).concat(":").concat(LocalDate.now().toString());
+        boolean exists = redisChgService.exists(redisKey);
+        if (exists) {
+            return new ApiNoDataResult().fromResult(result);
+        }
+        MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+        mqDataJsonParse.setDataId(originalData.getId());
+        mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+        mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
+        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+        return new ApiNoDataResult().fromResult(result);
     }
 
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper">
+
+    <select id="getCustomUploadDataNum" resultType="java.lang.Long">
+        select count(id) from b_marketing_customer_original_data
+        where api_code = #{apiCode} and data_type =0 and accept_type =1 and clean_status = 0
+        and receive_date in
+        <foreach collection="list" item="appletDate" open="(" close=")" separator=",">
+            #{appletDate}
+        </foreach>
+    </select>
+
+
+    <select id="getCustomUploadData" resultType="com.br.marketing.entity.MarketingCustomerOriginalData">
+        select
+        *
+        from b_marketing_customer_original_data
+        where api_code =#{apiCode}
+        AND data_type = 0
+        AND accept_type = 1
+        AND clean_status = 0
+        AND receive_date = #{appletDate}
+        <if test="indexId !=null and indexId >0">
+            and id > #{indexId}
+        </if>
+        order by id asc
+        limit 2000
+
+    </select>
+</mapper>
