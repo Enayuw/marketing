@@ -2607,11 +2607,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 根据apiCode，区分AI与非AI客户，发送到不同MQ
      * 使用范围：上传数据入库mq队列、pulsar队列
-     * @param apiCode
-     * @param syncInfoId
+     * @param apiCode    API代码
+     * @param syncInfoId 同步信息ID
+     * @param jsonData   JSON数据
      */
     private void sendToRabbitMq(String apiCode, String syncInfoId, String jsonData) {
-        if (marketingCommonConfig.getInitDataPushRule().contains(apiCode)) {
+        if (StringUtils.isEmpty(jsonData) || marketingCommonConfig.getInitDataPushRule().contains(apiCode)) {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             return;
         }
@@ -2622,39 +2623,35 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         // 没配置成init和ai客户
+        boolean hasOperateType3 = containsOperateType(jsonData, "3");
+        boolean hasOperateType4 = containsOperateType(jsonData, "4");
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-        if (customerRules.contains(TO_POLICY_GENERAL)
-                && (jsonData.contains("\"operateType\":\"3\"")
-                || jsonData.contains("\"operateType\": \"3\""))) {
+
+        boolean hasType3Rule = customerRules.contains(TO_POLICY_GENERAL) && hasOperateType3;
+        boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
+
+        if (hasType3Rule && hasType4Rule) {
             getRoutingKeyAndSendToAiMq(syncInfoId);
             return;
         }
 
-        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
-                && (jsonData.contains("\"operateType\":\"4\"")
-                || jsonData.contains("\"operateType\": \"4\""))) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
-            return;
+        boolean ruleAdded = false;
+        // 缓存中没有3
+        if (!hasType3Rule && hasOperateType3
+                && isHasOperateType(apiCode, jsonData, TO_POLICY_GENERAL)) {
+            ruleAdded = true;
         }
 
-        if (isHasOperateType(apiCode, jsonData, "\"operateType\":\"3\"", TO_POLICY_GENERAL)
-                || isHasOperateType(apiCode, jsonData, "\"operateType\":\"4\"", AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
-                || isHasOperateType(apiCode, jsonData, "\"operateType\": \"3\"", TO_POLICY_GENERAL)
-                || isHasOperateType(apiCode, jsonData, "\"operateType\": \"4\"", AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)) {
+        // 缓存中没有4
+        if (!hasType4Rule && hasOperateType4
+                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)) {
+            ruleAdded = true;
+        }
+
+        if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
             getRoutingKeyAndSendToAiMq(syncInfoId);
-            return;
-        }
-
-        if (jsonData.contains("\"operateType\"")) {
-            String title;
-            String msg;
-            title = "Ai客户，自动配置规则映射，operateType传参异常，需要联系客户修复";
-            msg = title + " jsonData:" + jsonData;
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg
-                    , title));
-            wuBaServiceClient.sendDingDingAlert(title, msg);
             return;
         }
 
@@ -2662,40 +2659,46 @@ public class PushRuleServiceImpl implements PushRuleService {
         sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
     }
 
-    private boolean isHasOperateType(String apiCode, String jsonData, String judCondition, String ruleLabel) {
-        if (jsonData.contains(judCondition)) {
-            Long ruleId = customerRuleMapper.selectIdByRuleLabel(ruleLabel);
-            if (null == ruleId) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "查询规则失败！"
-                        , "Ai客户，自动配置规则映射"));
-                return false;
-            }
+    /**
+     * 检查JSON数据是否包含指定的操作类型
+     */
+    private boolean containsOperateType(String jsonData, String operateType) {
+        return jsonData.contains("\"operateType\":\"" + operateType + "\"") ||
+                jsonData.contains("\"operateType\": \"" + operateType + "\"");
+    }
 
-            try {
-                customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
-            } catch (DuplicateKeyException e) {
-                log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
-            } catch (Exception e) {
-                try {
-                    customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
-                } catch (DuplicateKeyException ee) {
-                    log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
-                } catch (Exception ee) {
-                    String title;
-                    String msg;
-                    title = "Ai客户，自动配置规则映射，入库再次异常！！！";
-                    msg = title + " 需要立即检查规则是否存在，b_marketing_customer_rule_mapping,apiCode："
-                            + apiCode + "，规则标签：" + ruleLabel + "，异常内容" + ee.getMessage();
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg
-                            , title));
-                    wuBaServiceClient.sendDingDingAlert(title, msg);
-                }
-            }
-
-            return true;
+    /**
+     * 检查并添加操作类型对应的规则标签
+     */
+    private boolean isHasOperateType(String apiCode, String jsonData, String ruleLabel) {
+        Long ruleId = customerRuleMapper.selectIdByRuleLabel(ruleLabel);
+        if (null == ruleId) {
+            String title = "Ai客户，查询规则失败！";
+            String msg = title + " jsonData:" + jsonData + "ruleLabel:" + ruleLabel;
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg, title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
+            return false;
         }
 
-        return false;
+        try {
+            customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
+        } catch (DuplicateKeyException e) {
+            log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
+        } catch (Exception e) {
+            try {
+                customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
+            } catch (DuplicateKeyException ee) {
+                log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
+            } catch (Exception ee) {
+                String title = "Ai客户，自动配置规则映射，入库再次异常！！！";
+                String msg = title + " 需要立即检查规则是否存在，b_marketing_customer_rule_mapping,apiCode："
+                        + apiCode + "，规则标签：" + ruleLabel + "，异常内容" + ee.getMessage();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg, title));
+                wuBaServiceClient.sendDingDingAlert(title, msg);
+            }
+        }
+
+        return true;
     }
 
     private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
