@@ -252,8 +252,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return true;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "删除规则配置失败: " + e.getMessage()), e);
-            throw new BusinessException("删除规则配置失败: " + e.getMessage());
+                    "删除规则配置失败: " + e), e);
+            throw new BusinessException("删除规则配置失败: " + e);
         }
     }
 
@@ -477,7 +477,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             }
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                                    "查询数据表获取字段值失败: apiCode=" + apiCode + ", field=" + nodeName + ", 错误信息: " + e.getMessage()), e);
+                                    "查询数据表获取字段值失败: apiCode=" + apiCode + ", field=" + nodeName + ", 错误信息: " + e), e);
                         }
                     }
                 }
@@ -547,7 +547,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             jsonNodeParseMapper.updateByPrimaryKeySelective(updateNode);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "更新节点值失败：nodeId= " + nodeId + ", nodeValue= " + nodeValue + "错误信息：" + e.getMessage()), e);
+                    "更新节点值失败：nodeId= " + nodeId + ", nodeValue= " + nodeValue + "错误信息：" + e), e);
         }
     }
 
@@ -716,7 +716,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                         "计算清洗结果预览失败: fieldSample= " + fieldSample + ", mappingRule= " + configDTO.getMappingRule()
-                                + "错误信息：" + e.getMessage()), e);
+                                + "错误信息：" + e), e);
                 return "";
             }
         }
@@ -817,7 +817,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             return firstValueByKey;
         } catch (Exception e) {
-            throw new BusinessException("执行清洗规则失败: " + e.getMessage());
+            throw new BusinessException("执行清洗规则失败: " + e);
         }
     }
 
@@ -1346,7 +1346,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     }
                 } catch (Exception e) {
                     // JSON解析失败，按逗号分隔字符串处理
-                    log.warn("无法解析JSON数组，按逗号分隔处理: {}", e.getMessage());
+                    log.warn("无法解析JSON数组，按逗号分隔处理: {}", e);
                     fieldValues.addAll(Arrays.asList(strValue.split(",")));
                 }
             } else {
@@ -1560,7 +1560,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             return fieldConfig;
         } catch (Exception e) {
-            throw new BusinessException("获取模版字段配置失败: " + e.getMessage());
+            throw new BusinessException("获取模版字段配置失败: " + e);
         }
     }
 
@@ -1707,7 +1707,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         } catch (Exception e) {
-            log.warn("JSON解析失败: " + e.getMessage());
+            log.warn("JSON解析失败: " + e);
         }
         
         return null;
@@ -1808,7 +1808,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("在清洗规则中未找到fieldValue: {}", mappingRule);
             
         } catch (Exception e) {
-            log.warn("解析清洗规则提取fieldValue失败: {}, 错误: {}", mappingRule, e.getMessage());
+            log.warn("解析清洗规则提取fieldValue失败: {}, 错误: {}", mappingRule, e);
         }
         
         return "";
