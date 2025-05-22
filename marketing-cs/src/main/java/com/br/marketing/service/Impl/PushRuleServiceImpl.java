@@ -2648,6 +2648,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             ruleAdded = true;
         }
 
+        // 缓存和数据中都有
+        if (hasType3Rule || hasType4Rule) {
+            getRoutingKeyAndSendToAiMq(syncInfoId);
+            return;
+        }
+
         if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
