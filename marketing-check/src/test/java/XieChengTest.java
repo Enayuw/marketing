@@ -201,6 +201,8 @@ public class XieChengTest {
                 deviceInfo.toString()
         );
 
+        thirdAdOuterReq.setMktMode("CPS");
+
 
 
         Map<String, Object> retMap = Maps.newHashMap();

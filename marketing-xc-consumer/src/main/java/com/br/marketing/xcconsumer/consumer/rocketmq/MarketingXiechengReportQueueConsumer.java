@@ -8,9 +8,11 @@ import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengReportService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
@@ -21,8 +23,8 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
         consumerGroup = MarketingXieChengConstants.MARKETING_XIECHENG_REPORT,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-        consumeThreadNumber = 1, consumeThreadMax = 1)
-public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+        consumeThreadNumber = 20, consumeThreadMax = 64, awaitTerminationMillisWhenShutdown = 10000)
+public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> , RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -66,5 +68,12 @@ public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener 
     @Override
     public void onMessage(MessageExt messageExt) {
         super.dispatchMessage(messageExt);
+    }
+
+
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(32);
     }
 }
