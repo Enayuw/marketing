@@ -35,25 +35,25 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//        String sessionId = request.getParameter("sessionId");
-//        if (!StringUtils.hasText(sessionId)) {
-//            sessionId = request.getHeader("sessionId");
-//        }
-//        if (sessionId != null) {
-//            MarketingUserDetail userDetail = this.getCacheAuthUser(sessionId, request);
-//            if (userDetail == null) {
-//                checkFailedResult(response);
-//                return false;
-//            } else {
-//                ThreadContextInfo.setUser(userDetail);
-//                optUser.setUserDetail(userDetail);
+        String sessionId = request.getParameter("sessionId");
+        if (!StringUtils.hasText(sessionId)) {
+            sessionId = request.getHeader("sessionId");
+        }
+        if (sessionId != null) {
+            MarketingUserDetail userDetail = this.getCacheAuthUser(sessionId, request);
+            if (userDetail == null) {
+                checkFailedResult(response);
+                return false;
+            } else {
+                ThreadContextInfo.setUser(userDetail);
+                optUser.setUserDetail(userDetail);
                 return super.preHandle(request, response, handler);
-//            }
-//        } else {
-//            log.warn("【session校验失败】sessionId 为空");
-//            checkFailedResult(response);
-//            return false;
-//        }
+            }
+        } else {
+            log.warn("【session校验失败】sessionId 为空");
+            checkFailedResult(response);
+            return false;
+        }
     }
 
     private void checkFailedResult(HttpServletResponse response) throws IOException {
