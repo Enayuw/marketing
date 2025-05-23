@@ -18,6 +18,7 @@ import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.RsTransferServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.Impl.qifu.QiFuServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
@@ -795,5 +796,15 @@ public class AlarmAndNoticeTest {
         ruleConfig.setMappingRule("[{\"order\":1,\"operateType\":\"string\",\"expression\":{\"operator\":\"default\",\"defaultValue\":\"1\"}}]");
         Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
         System.err.println(result);
+    }
+
+
+    @Resource
+    private QiFuServiceImpl qiFuService;
+
+    @Test
+    public void testProcessCouponInfo(){
+        String couponDerived = qiFuService.processCouponInfo("[{\"couponName\":\"1期免息券\"},{\"couponName\":\"最高600元智信免息\"},{\"couponName\":\"28天周转金\"}]");
+        System.err.println(couponDerived);
     }
 }

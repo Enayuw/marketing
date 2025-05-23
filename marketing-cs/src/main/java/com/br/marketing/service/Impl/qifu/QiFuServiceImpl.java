@@ -10,6 +10,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.CouponInfo;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.qifu.UpLoadCleanDTO;
@@ -20,6 +21,7 @@ import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.mapper.Log360aiMapper;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuSyncStatusEnum;
+import com.br.marketing.service.Impl.qifu.enums.CouponType;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -376,7 +378,7 @@ public class QiFuServiceImpl implements IQiFuService {
         reserField1.put("coupon_derived", couponDerived);
     }
 
-    private String processCouponInfo(String rCouponInfo) {
+    public String processCouponInfo(String rCouponInfo) {
         if (StringUtils.isBlank(rCouponInfo)) {
             return "";
         }
@@ -387,73 +389,153 @@ public class QiFuServiceImpl implements IQiFuService {
                 return "";
             }
 
-            String[] keywordsToClean = {"智信", "超级会员", "专属"};
-
-            List<String> couponNames = new ArrayList<>();
+            // 第一步：清洗字段 + 第二步：券分类
+            List<CouponInfo> couponInfos = new ArrayList<>();
             for (int i = 0; i < coupons.size(); i++) {
                 String couponName = coupons.getJSONObject(i).getString("couponName");
-                couponNames.add(cleanCouponName(couponName, keywordsToClean));
+                String cleanedName = cleanCouponName(couponName);
+                CouponInfo couponInfo = classifyCoupon(cleanedName, i);
+                couponInfos.add(couponInfo);
             }
 
-            if (couponNames.size() == 1) {
-                return couponNames.get(0);
+            // 如果只有一个券，直接返回清洗后的名称
+            if (couponInfos.size() == 1) {
+                return couponInfos.get(0).getCleanedName();
             }
 
-            Map<String, Integer> priorityMap = getCouponPriorityMap();
+            // 第三步：券优先级 + 第四步：返回结果
+            return selectBestCoupon(couponInfos);
 
-            String selectedCoupon = "";
-            int highestPriority = Integer.MAX_VALUE;
-
-            for (String couponName : couponNames) {
-                int priority = priorityMap.getOrDefault(couponName, Integer.MAX_VALUE);
-                if (priority < highestPriority) {
-                    highestPriority = priority;
-                    selectedCoupon = couponName;
-                }
-            }
-
-            if (highestPriority == Integer.MAX_VALUE) {
-                return couponNames.get(0);
-            }
-
-            return selectedCoupon;
         } catch (Exception e) {
             log.warn("处理优惠券信息时发生错误：", e);
             return "";
         }
     }
 
-    private Map<String, Integer> getCouponPriorityMap() {
-        Map<String, Integer> priorityMap = new LinkedHashMap<>();
-        String[] priorities = {
-                "6期免息券", "3期免息券", "3期600元免息券", "最高300元6期免息券", "3期300元免息券",
-                "3期免息最高减360", "3期150元免息券", "1期免息券", "1800元免息券", "1500元免息券",
-                "最高900元免息券", "720元免息券", "600元免息券", "最高600元优惠券", "最高600元免息",
-                "28天周转金", "7天周转金", "最高8折免息券", "最高8.3折免息券", "最高8.5折免息券",
-                "最高8.8折免息券", "最高9折免息券", "最高9.2折免息券", "588元免息券", "最高500元免息券",
-                "最高350元免息券", "最高320元免息券", "最高300元免息券", "最高300元分期免息券",
-                "288元免息券", "最高240元免息券", "最高210元免息券", "最高200元免息券",
-                "最高180元免息券", "限时最高180元免息", "最高150元免息券", "最高150元优惠",
-                "最高100元免息券", "88元免息券", "最高60元免息券", "最高30元免息券", "免息优惠券"
-        };
-
-        for (int i = 0; i < priorities.length; i++) {
-            priorityMap.put(priorities[i], i + 1);
-        }
-        return priorityMap;
-    }
-
-
-    private String cleanCouponName(String couponName, String[] keywordsToClean) {
+    /**
+     * 第一步：清洗字段
+     * 清除"智信"、"超级会员"、"专属"字眼
+     */
+    private String cleanCouponName(String couponName) {
         if (StringUtils.isBlank(couponName)) {
             return "";
         }
 
+        String[] keywordsToClean = {"智信", "超级会员", "专属"};
         String cleanedName = couponName;
         for (String keyword : keywordsToClean) {
             cleanedName = cleanedName.replace(keyword, "");
         }
         return cleanedName.trim();
+    }
+
+    /**
+     * 第二步：券分类
+     */
+    private CouponInfo classifyCoupon(String cleanedName, int originalIndex) {
+        if (StringUtils.isBlank(cleanedName)) {
+            return new CouponInfo("", cleanedName, CouponType.COMMON, 0, originalIndex);
+        }
+
+        // 提取数字
+        double extractedValue = extractNumber(cleanedName);
+
+        // 分期券：券名称带"期"字
+        if (cleanedName.contains("期")) {
+            return new CouponInfo("", cleanedName, CouponType.INSTALLMENT, extractedValue, originalIndex);
+        }
+
+        // 周转金：券名称带"周转金"字
+        if (cleanedName.contains("周转金")) {
+            return new CouponInfo("", cleanedName, CouponType.TURNOVER, extractedValue, originalIndex);
+        }
+
+        // 折扣券：券名称带"折"字
+        if (cleanedName.contains("折")) {
+            return new CouponInfo("", cleanedName, CouponType.DISCOUNT, extractedValue, originalIndex);
+        }
+
+        // 大额直减券和小额直减券：券名称带"元"字
+        if (cleanedName.contains("元")) {
+            if (extractedValue >= 600) {
+                return new CouponInfo("", cleanedName, CouponType.LARGE_REDUCTION, extractedValue, originalIndex);
+            } else {
+                return new CouponInfo("", cleanedName, CouponType.SMALL_REDUCTION, extractedValue, originalIndex);
+            }
+        }
+
+        // 普通券：不符合以上规则
+        return new CouponInfo("", cleanedName, CouponType.COMMON, extractedValue, originalIndex);
+    }
+
+    /**
+     * 从券名称中提取数字
+     */
+    private double extractNumber(String couponName) {
+        if (StringUtils.isBlank(couponName)) {
+            return 0;
+        }
+
+        try {
+            // 匹配数字（包括小数）
+            Pattern pattern = Pattern.compile("(\\d+(?:\\.\\d+)?)");
+            Matcher matcher = pattern.matcher(couponName);
+
+            List<Double> numbers = new ArrayList<>();
+            while (matcher.find()) {
+                numbers.add(Double.parseDouble(matcher.group(1)));
+            }
+
+            if (numbers.isEmpty()) {
+                return 0;
+            }
+
+            // 对于折扣券，取最小值（折扣率）
+            if (couponName.contains("折")) {
+                return numbers.stream().mapToDouble(Double::doubleValue).min().orElse(0);
+            }
+
+            // 对于其他券，取最大值
+            return numbers.stream().mapToDouble(Double::doubleValue).max().orElse(0);
+
+        } catch (Exception e) {
+            log.warn("提取券名称中的数字时发生错误：{}", couponName, e);
+            return 0;
+        }
+    }
+
+    /**
+     * 第三步：券优先级选择
+     * 分期券>大额直减券>周转金>折扣券>小额直减券>普通券
+     */
+    private String selectBestCoupon(List<CouponInfo> couponInfos) {
+        if (couponInfos == null || couponInfos.isEmpty()) {
+            return "";
+        }
+
+        // 按类型优先级和数值优先级排序
+        couponInfos.sort((c1, c2) -> {
+            // 先按类型优先级排序
+            int typeComparison = Integer.compare(c1.getType().getPriority(), c2.getType().getPriority());
+            if (typeComparison != 0) {
+                return typeComparison;
+            }
+
+            // 同类型内按数值优先级排序
+            if (c1.getType() == CouponType.DISCOUNT) {
+                // 折扣券：数字越小优先级越高
+                return Double.compare(c1.getValue(), c2.getValue());
+            } else if (c1.getType() == CouponType.COMMON) {
+                // 普通券：按原始索引排序（取第一个）
+                return Integer.compare(c1.getOriginalIndex(), c2.getOriginalIndex());
+            } else {
+                // 其他券：数字越大优先级越高
+                return Double.compare(c2.getValue(), c1.getValue());
+            }
+        });
+
+        // 返回最优券的清洗后名称
+        return couponInfos.get(0).getCleanedName();
     }
 
     private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
