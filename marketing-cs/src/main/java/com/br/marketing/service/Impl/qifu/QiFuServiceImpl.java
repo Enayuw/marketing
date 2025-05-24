@@ -470,7 +470,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
     /**
      * 从券名称中提取数字
-     * 根据券类型使用不同的提取策略
+     * 根据券类型使用不同的提取策略，返回组合权重值
      */
     private double extractNumber(String couponName) {
         if (StringUtils.isBlank(couponName)) {
@@ -478,41 +478,91 @@ public class QiFuServiceImpl implements IQiFuService {
         }
 
         try {
-            // 对于分期券，优先提取期数（期字前面的数字）
+            // 对于分期券，组合期数和金额：期数 * 10000 + 金额
             if (couponName.contains("期")) {
+                double installmentPeriod = 0;
+                double amount = 0;
+                
+                // 提取期数
                 Pattern installmentPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)期");
                 Matcher installmentMatcher = installmentPattern.matcher(couponName);
                 if (installmentMatcher.find()) {
-                    return Double.parseDouble(installmentMatcher.group(1));
+                    installmentPeriod = Double.parseDouble(installmentMatcher.group(1));
                 }
+                
+                // 提取金额
+                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
+                Matcher amountMatcher = amountPattern.matcher(couponName);
+                if (amountMatcher.find()) {
+                    amount = Double.parseDouble(amountMatcher.group(1));
+                }
+                
+                // 期数优先，金额次要：期数 * 10000 + 金额
+                return installmentPeriod * 10000 + amount;
             }
 
-            // 对于折扣券，提取折扣率（折字前面的数字）
+            // 对于折扣券，组合折扣率和金额：(10 - 折扣率) * 10000 + 金额
+            // 注意：折扣率越小优先级越高，所以用(10 - 折扣率)让小折扣率得到大权重
             if (couponName.contains("折")) {
+                // 默认值，表示没有折扣
+                double discountRate = 10;
+                double amount = 0;
+                
+                // 提取折扣率
                 Pattern discountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)折");
                 Matcher discountMatcher = discountPattern.matcher(couponName);
                 if (discountMatcher.find()) {
-                    return Double.parseDouble(discountMatcher.group(1));
+                    discountRate = Double.parseDouble(discountMatcher.group(1));
                 }
+                
+                // 提取金额
+                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
+                Matcher amountMatcher = amountPattern.matcher(couponName);
+                if (amountMatcher.find()) {
+                    amount = Double.parseDouble(amountMatcher.group(1));
+                }
+                
+                // 折扣率优先（小的好），金额次要：(10 - 折扣率) * 10000 + 金额
+                return (10 - discountRate) * 10000 + amount;
             }
 
-            // 对于周转金，提取金额数字
+            // 对于周转金，组合天数和金额：天数 * 10000 + 金额
             if (couponName.contains("周转金")) {
-                // 优先匹配"数字+周转金"的模式
-                Pattern turnoverPattern1 = Pattern.compile("(\\d+(?:\\.\\d+)?)(?:元)?周转金");
-                Matcher turnoverMatcher1 = turnoverPattern1.matcher(couponName);
-                if (turnoverMatcher1.find()) {
-                    return Double.parseDouble(turnoverMatcher1.group(1));
+                double days = 0;
+                double amount = 0;
+                
+                // 提取天数
+                Pattern daysPattern1 = Pattern.compile("(\\d+(?:\\.\\d+)?)天周转金");
+                Matcher daysMatcher1 = daysPattern1.matcher(couponName);
+                if (daysMatcher1.find()) {
+                    days = Double.parseDouble(daysMatcher1.group(1));
+                } else {
+                    // 尝试其他模式
+                    Pattern daysPattern2 = Pattern.compile("(\\d+(?:\\.\\d+)?)(?:元)?周转金");
+                    Matcher daysMatcher2 = daysPattern2.matcher(couponName);
+                    if (daysMatcher2.find()) {
+                        days = Double.parseDouble(daysMatcher2.group(1));
+                    } else {
+                        Pattern daysPattern3 = Pattern.compile("周转金(\\d+(?:\\.\\d+)?)(?:天|元)?");
+                        Matcher daysMatcher3 = daysPattern3.matcher(couponName);
+                        if (daysMatcher3.find()) {
+                            days = Double.parseDouble(daysMatcher3.group(1));
+                        }
+                    }
                 }
-                // 如果没找到，再匹配"周转金+数字"的模式
-                Pattern turnoverPattern2 = Pattern.compile("周转金(\\d+(?:\\.\\d+)?)(?:元)?");
-                Matcher turnoverMatcher2 = turnoverPattern2.matcher(couponName);
-                if (turnoverMatcher2.find()) {
-                    return Double.parseDouble(turnoverMatcher2.group(1));
+                
+                // 提取金额（如果有的话）
+                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
+                Matcher amountMatcher = amountPattern.matcher(couponName);
+                if (amountMatcher.find()) {
+                    amount = Double.parseDouble(amountMatcher.group(1));
                 }
+                
+                // 天数优先，金额次要：天数 * 10000 + 金额
+                return days * 10000 + amount;
             }
 
-            // 对于直减券（带"元"字），提取金额数字（元字前面的数字）
+            // 对于直减券（带"元"字），直接提取金额
             if (couponName.contains("元")) {
                 Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
                 Matcher amountMatcher = amountPattern.matcher(couponName);
@@ -560,14 +610,12 @@ public class QiFuServiceImpl implements IQiFuService {
             }
 
             // 同类型内按数值优先级排序
-            if (c1.getType() == CouponType.DISCOUNT) {
-                // 折扣券：数字越小优先级越高
-                return Double.compare(c1.getValue(), c2.getValue());
-            } else if (c1.getType() == CouponType.COMMON) {
+            if (c1.getType() == CouponType.COMMON) {
                 // 普通券：按原始索引排序（取第一个）
                 return Integer.compare(c1.getOriginalIndex(), c2.getOriginalIndex());
             } else {
-                // 其他券：数字越大优先级越高
+                // 所有其他券类型（包括折扣券）：组合权重越大优先级越高
+                // 因为现在extractNumber返回的是组合权重，权重大的应该排在前面
                 return Double.compare(c2.getValue(), c1.getValue());
             }
         });

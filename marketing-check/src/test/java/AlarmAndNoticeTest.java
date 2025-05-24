@@ -804,26 +804,79 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void testProcessCouponInfo(){
-        // 准备所有测试数据
+        // 准备全面的测试数据 - 覆盖各种券类型和边界情况
         List<String> rCouponInfoList = Arrays.asList(
-            "[{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"最高300元6期免息券\"},{\"couponName\":\"最高300元5期免息券\"}]",
-            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减700元免息券\"},{\"couponName\":\"最高减500元免息券\"}]",
-            "[{\"couponName\":\"最高减150元免息券\"},{\"couponName\":\"最高减151元免息券\"},{\"couponName\":\"最高减149元免息券\"}]",
-            "[{\"couponName\":\"最高8.8折免息券\"},{\"couponName\":\"最高8.7折免息券\"},{\"couponName\":\"最高8.6折免息券\"}]",
+            // === 分期券测试 ===
+            "[{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"3期700元免息券\"},{\"couponName\":\"3期900元免息券\"}]",
+            "[{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"6期300元免息券\"},{\"couponName\":\"12期100元免息券\"}]",
+            "[{\"couponName\":\"最高300元6期免息券\"},{\"couponName\":\"最高500元3期免息券\"},{\"couponName\":\"最高200元12期免息券\"}]",
+            "[{\"couponName\":\"智信3期600元免息券\"},{\"couponName\":\"超级会员6期500元免息券\"},{\"couponName\":\"专属12期300元免息券\"}]",
+            
+            // === 折扣券测试 ===
+            "[{\"couponName\":\"最高8.8折免息券\"},{\"couponName\":\"最高8.6折免息券\"},{\"couponName\":\"最高9.2折免息券\"}]",
+            "[{\"couponName\":\"最高8.8折300元免息券\"},{\"couponName\":\"最高8.8折600元免息券\"},{\"couponName\":\"最高8.8折200元免息券\"}]",
+            "[{\"couponName\":\"专享7.5折最高1000元优惠券\"},{\"couponName\":\"智信8.0折最高500元券\"},{\"couponName\":\"会员6.8折最高800元券\"}]",
+            
+            // === 周转金测试 ===
             "[{\"couponName\":\"7天周转金\"},{\"couponName\":\"28天周转金\"},{\"couponName\":\"30天周转金\"}]",
-            "[{\"couponName\":\"免息优惠券3\"},{\"couponName\":\"免息优惠券1\"},{\"couponName\":\"免息优惠券2\"}]"
+            "[{\"couponName\":\"7天200元周转金\"},{\"couponName\":\"7天500元周转金\"},{\"couponName\":\"7天100元周转金\"}]",
+            "[{\"couponName\":\"500元周转金\"},{\"couponName\":\"周转金300元\"},{\"couponName\":\"1000周转金\"}]",
+            
+            // === 大额直减券测试 ===
+            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减800元免息券\"},{\"couponName\":\"最高减1000元免息券\"}]",
+            "[{\"couponName\":\"专属最高减700元大额券\"},{\"couponName\":\"智信最高减900元优惠券\"},{\"couponName\":\"会员最高减650元免息券\"}]",
+            
+            // === 小额直减券测试 ===
+            "[{\"couponName\":\"最高减150元免息券\"},{\"couponName\":\"最高减200元免息券\"},{\"couponName\":\"最高减99元免息券\"}]",
+            "[{\"couponName\":\"最高减599元免息券\"},{\"couponName\":\"最高减300元免息券\"},{\"couponName\":\"最高减100元免息券\"}]",
+            
+            // === 混合类型优先级测试 ===
+            "[{\"couponName\":\"最高减1000元免息券\"},{\"couponName\":\"3期100元免息券\"},{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"30天周转金\"}]",
+            "[{\"couponName\":\"最高减800元免息券\"},{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"30天周转金\"},{\"couponName\":\"最高减200元免息券\"}]",
+            "[{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"30天周转金\"},{\"couponName\":\"最高减200元免息券\"},{\"couponName\":\"免息优惠券1\"}]",
+            "[{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"最高减200元免息券\"},{\"couponName\":\"免息优惠券1\"}]",
+            
+            // === 边界和特殊情况测试 ===
+            "[{\"couponName\":\"智信专属6期500元免息券\"}]",
+            "[{\"couponName\":\"\"},{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"最高减500元免息券\"}]",
+            "[{\"couponName\":\"免息优惠券3\"},{\"couponName\":\"免息优惠券1\"},{\"couponName\":\"免息优惠券2\"}]",
+            "[{\"couponName\":\"最高1000元9.5折12期免息券\"},{\"couponName\":\"最高500元8.8折6期免息券\"}]",
+            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减599元免息券\"}]",
+            "[{\"couponName\":\"8.5折500元免息券\"},{\"couponName\":\"8.8折600元免息券\"},{\"couponName\":\"7.2折300元免息券\"}]",
+            "[{\"couponName\":\"智信超级会员专属3期600元免息券\"},{\"couponName\":\"智信专属最高减800元免息券\"},{\"couponName\":\"超级会员30天周转金\"}]",
+            
+            // === 真实业务场景测试 ===
+            "[{\"couponName\":\"智信3期600元免息券\"},{\"couponName\":\"最高300元6期免息券\"},{\"couponName\":\"最高300元5期免息券\"}]",
+            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减700元免息券\"},{\"couponName\":\"最高减500元免息券\"}]",
+            "[{\"couponName\":\"最高8.8折免息券\"},{\"couponName\":\"最高8.7折免息券\"},{\"couponName\":\"最高8.6折免息券\"}]"
         );
         
-        System.err.println("=== 开始测试processCouponInfo方法 ===");
+        // 期望结果对照表
+        List<String> expectedResults = Arrays.asList(
+            "3期900元免息券", "12期100元免息券", "最高200元12期免息券", "12期300元免息券",
+            "最高8.6折免息券", "最高8.8折600元免息券", "会员6.8折最高800元券",
+            "30天周转金", "7天500元周转金", "1000周转金",
+            "最高减1000元免息券", "最高减900元优惠券",
+            "最高减200元免息券", "最高减599元免息券",
+            "3期100元免息券", "最高减800元免息券", "30天周转金", "最高8.5折免息券",
+            "6期500元免息券", "3期600元免息券", "免息优惠券3", "最高1000元9.5折12期免息券",
+            "最高减600元免息券", "7.2折300元免息券", "3期600元免息券",
+            "最高300元6期免息券", "最高减700元免息券", "最高8.6折免息券"
+        );
+        
+        System.err.println("=== 开始测试processCouponInfo方法（全面测试）===");
         
         // 遍历测试所有数据
         for (int i = 0; i < rCouponInfoList.size(); i++) {
             String rCouponInfo = rCouponInfoList.get(i);
             String result = qiFuService.processCouponInfo(rCouponInfo);
+            String expected = i < expectedResults.size() ? expectedResults.get(i) : "未知";
             
-            System.err.println(String.format("第%d组测试:", i + 1));
-            System.err.println(String.format("  输入: %s", rCouponInfo));
-            System.err.println(String.format("  结果: %s", result));
+            System.err.println("=== 测试案例 " + (i + 1) + " ===");
+            System.err.println("输入: " + rCouponInfo);
+            System.err.println("实际结果: " + result);
+            System.err.println("期望结果: " + expected);
+            System.err.println("是否匹配: " + (result.equals(expected) ? "✅" : "❌"));
             System.err.println();
         }
         
