@@ -804,7 +804,29 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void testProcessCouponInfo(){
-        String couponDerived = qiFuService.processCouponInfo("[{\"couponName\":\"1期免息券\"},{\"couponName\":\"最高600元智信免息\"},{\"couponName\":\"28天周转金\"}]");
-        System.err.println(couponDerived);
+        // 准备所有测试数据
+        List<String> rCouponInfoList = Arrays.asList(
+            "[{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"最高300元6期免息券\"},{\"couponName\":\"最高300元5期免息券\"}]",
+            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减700元免息券\"},{\"couponName\":\"最高减500元免息券\"}]",
+            "[{\"couponName\":\"最高减150元免息券\"},{\"couponName\":\"最高减151元免息券\"},{\"couponName\":\"最高减149元免息券\"}]",
+            "[{\"couponName\":\"最高8.8折免息券\"},{\"couponName\":\"最高8.7折免息券\"},{\"couponName\":\"最高8.6折免息券\"}]",
+            "[{\"couponName\":\"7天周转金\"},{\"couponName\":\"28天周转金\"},{\"couponName\":\"30天周转金\"}]",
+            "[{\"couponName\":\"免息优惠券3\"},{\"couponName\":\"免息优惠券1\"},{\"couponName\":\"免息优惠券2\"}]"
+        );
+        
+        System.err.println("=== 开始测试processCouponInfo方法 ===");
+        
+        // 遍历测试所有数据
+        for (int i = 0; i < rCouponInfoList.size(); i++) {
+            String rCouponInfo = rCouponInfoList.get(i);
+            String result = qiFuService.processCouponInfo(rCouponInfo);
+            
+            System.err.println(String.format("第%d组测试:", i + 1));
+            System.err.println(String.format("  输入: %s", rCouponInfo));
+            System.err.println(String.format("  结果: %s", result));
+            System.err.println();
+        }
+        
+        System.err.println("=== 测试完成 ===");
     }
 }

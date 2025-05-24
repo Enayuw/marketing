@@ -440,7 +440,7 @@ public class QiFuServiceImpl implements IQiFuService {
         // 提取数字
         double extractedValue = extractNumber(cleanedName);
 
-        // 分期券：券名称带"期"字
+        // 分期券：券名称带"期"字，提取期数作为优先级比较值
         if (cleanedName.contains("期")) {
             return new CouponInfo("", cleanedName, CouponType.INSTALLMENT, extractedValue, originalIndex);
         }
@@ -470,6 +470,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
     /**
      * 从券名称中提取数字
+     * 根据券类型使用不同的提取策略
      */
     private double extractNumber(String couponName) {
         if (StringUtils.isBlank(couponName)) {
@@ -477,7 +478,50 @@ public class QiFuServiceImpl implements IQiFuService {
         }
 
         try {
-            // 匹配数字（包括小数）
+            // 对于分期券，优先提取期数（期字前面的数字）
+            if (couponName.contains("期")) {
+                Pattern installmentPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)期");
+                Matcher installmentMatcher = installmentPattern.matcher(couponName);
+                if (installmentMatcher.find()) {
+                    return Double.parseDouble(installmentMatcher.group(1));
+                }
+            }
+
+            // 对于折扣券，提取折扣率（折字前面的数字）
+            if (couponName.contains("折")) {
+                Pattern discountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)折");
+                Matcher discountMatcher = discountPattern.matcher(couponName);
+                if (discountMatcher.find()) {
+                    return Double.parseDouble(discountMatcher.group(1));
+                }
+            }
+
+            // 对于周转金，提取金额数字
+            if (couponName.contains("周转金")) {
+                // 优先匹配"数字+周转金"的模式
+                Pattern turnoverPattern1 = Pattern.compile("(\\d+(?:\\.\\d+)?)(?:元)?周转金");
+                Matcher turnoverMatcher1 = turnoverPattern1.matcher(couponName);
+                if (turnoverMatcher1.find()) {
+                    return Double.parseDouble(turnoverMatcher1.group(1));
+                }
+                // 如果没找到，再匹配"周转金+数字"的模式
+                Pattern turnoverPattern2 = Pattern.compile("周转金(\\d+(?:\\.\\d+)?)(?:元)?");
+                Matcher turnoverMatcher2 = turnoverPattern2.matcher(couponName);
+                if (turnoverMatcher2.find()) {
+                    return Double.parseDouble(turnoverMatcher2.group(1));
+                }
+            }
+
+            // 对于直减券（带"元"字），提取金额数字（元字前面的数字）
+            if (couponName.contains("元")) {
+                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
+                Matcher amountMatcher = amountPattern.matcher(couponName);
+                if (amountMatcher.find()) {
+                    return Double.parseDouble(amountMatcher.group(1));
+                }
+            }
+
+            // 兜底策略：提取所有数字并取最大值
             Pattern pattern = Pattern.compile("(\\d+(?:\\.\\d+)?)");
             Matcher matcher = pattern.matcher(couponName);
 
@@ -490,12 +534,6 @@ public class QiFuServiceImpl implements IQiFuService {
                 return 0;
             }
 
-            // 对于折扣券，取最小值（折扣率）
-            if (couponName.contains("折")) {
-                return numbers.stream().mapToDouble(Double::doubleValue).min().orElse(0);
-            }
-
-            // 对于其他券，取最大值
             return numbers.stream().mapToDouble(Double::doubleValue).max().orElse(0);
 
         } catch (Exception e) {
