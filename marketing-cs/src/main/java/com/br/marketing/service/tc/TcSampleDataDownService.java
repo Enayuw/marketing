@@ -75,7 +75,7 @@ public class TcSampleDataDownService {
                 //文件下载
                 String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
 
-                String dirPath = syncConfigService.getPath().concat(filePath).concat("/").concat(yyyyMMdd).concat("/");
+                String dirPath = syncConfigService.getPath().concat(filePath).concat(yyyyMMdd).concat("/");
                 String gzFileName = "tcyr_" + sampleRecord.getBatchNo() + ".csv.gz";
                 String gzFilePath = dirPath.concat(gzFileName);
                 Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl, gzFilePath);

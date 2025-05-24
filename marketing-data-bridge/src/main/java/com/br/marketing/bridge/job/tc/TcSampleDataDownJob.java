@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * @Description TcSampleDataDownJob
+ * @Description 同城易融正负样本数据下载
  * @Author hong.chen
  * @CreateTime 2025/05/23
  */
