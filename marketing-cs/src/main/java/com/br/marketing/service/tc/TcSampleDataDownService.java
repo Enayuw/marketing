@@ -55,8 +55,8 @@ public class TcSampleDataDownService {
         List<MarketingTcyrSampleRecord> sampleRecords = marketingTcyrSampleRecordMapper.searchTcyrSyncList(apiCode,
                 TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue(), getStartOfDay(), getEndOfDay());
 
-        String filePath = marketingCommonConfig.getTongChengSampleZipFilePath();
         for (MarketingTcyrSampleRecord sampleRecord : sampleRecords) {
+            String filePath = apiCode.concat(marketingCommonConfig.getTongChengSampleZipFilePath());
             // 状态置为下载中
             marketingTcyrSampleRecordMapper.updageTcyrSampleRecordDownStatus(sampleRecord.getBatchNo(), 1);
 
@@ -74,9 +74,8 @@ public class TcSampleDataDownService {
                 }
                 //文件下载
                 String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-
                 String dirPath = syncConfigService.getPath().concat(filePath).concat(yyyyMMdd).concat("/");
-                String gzFileName = "tcyr_" + sampleRecord.getBatchNo() + ".csv.gz";
+                String gzFileName = "tcyr_" + sampleRecord.getBatchNo() + ".csv.zip";
                 String gzFilePath = dirPath.concat(gzFileName);
                 Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl, gzFilePath);
                 if (callFileResult == null || !callFileResult.isSuccess()) {
@@ -87,8 +86,8 @@ public class TcSampleDataDownService {
 
 
                 File gzFile = new File(gzFilePath);
-                if (!gzFile.exists() || !gzFile.getName().contains(".gz")) {
-                    log.warn("{}_batchNo:{} 对应gz文件不存在", TITLE, sampleRecord.getBatchNo());
+                if (!gzFile.exists() || !gzFile.getName().contains(".zip")) {
+                    log.warn("{}_batchNo:{} 对应zip文件不存在", TITLE, sampleRecord.getBatchNo());
                     return;
                 }
 
