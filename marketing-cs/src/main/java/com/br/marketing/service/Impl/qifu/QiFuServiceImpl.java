@@ -407,7 +407,8 @@ public class QiFuServiceImpl implements IQiFuService {
             return selectBestCoupon(couponInfos);
 
         } catch (Exception e) {
-            log.warn("处理优惠券信息时发生错误：", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "处理优惠券信息时发生错误，错误信息：" + e.getMessage()), e);
             return "";
         }
     }
@@ -490,7 +491,8 @@ public class QiFuServiceImpl implements IQiFuService {
                 return Double.parseDouble(installmentMatcher.group(1));
             }
         } catch (Exception e) {
-            log.warn("提取分期券期数时发生错误：{}", couponName, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "提取分期券期数时发生错误: " + couponName + "，错误信息：" + e.getMessage()), e);
         }
         return 0;
     }
@@ -511,7 +513,8 @@ public class QiFuServiceImpl implements IQiFuService {
                 return Double.parseDouble(amountMatcher.group(1));
             }
         } catch (Exception e) {
-            log.warn("提取券金额时发生错误：{}", couponName, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "提取券金额时发生错误: " + couponName + "，错误信息：" + e.getMessage()), e);
         }
         return 0;
     }
@@ -545,7 +548,8 @@ public class QiFuServiceImpl implements IQiFuService {
                 }
             }
         } catch (Exception e) {
-            log.warn("提取周转金天数时发生错误：{}", couponName, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "提取周转金天数时发生错误: " + couponName + "，错误信息：" + e.getMessage()), e);
         }
         return 0;
     }
@@ -567,7 +571,8 @@ public class QiFuServiceImpl implements IQiFuService {
                 return Double.parseDouble(discountMatcher.group(1));
             }
         } catch (Exception e) {
-            log.warn("提取折扣率时发生错误：{}", couponName, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "提取折扣率时发生错误: " + couponName + "，错误信息：" + e.getMessage()), e);
         }
         // 默认值，表示没有折扣
         return 10;
@@ -599,7 +604,8 @@ public class QiFuServiceImpl implements IQiFuService {
             return numbers.stream().mapToDouble(Double::doubleValue).max().orElse(0);
 
         } catch (Exception e) {
-            log.warn("提取券名称中的数字时发生错误：{}", couponName, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "提取券名称中的数字时发生错误: " + couponName + "，错误信息：" + e.getMessage()), e);
             return 0;
         }
     }
@@ -738,7 +744,8 @@ public class QiFuServiceImpl implements IQiFuService {
             int upperBound = num * 1000;
             return "[" + lowerBound + " - " + upperBound + ")";
         } catch (NumberFormatException e) {
-            log.warn("奇富AI 额度计算发生错误！");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "奇富AI 额度计算发生错误！错误信息：" + e.getMessage()), e);
             return "";
         }
     }
@@ -798,7 +805,8 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return result > 0 ? String.valueOf(result) : "0";
         } catch (NumberFormatException e) {
-            log.warn("奇富AI提升额度计算发生错误！" );
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "奇富AI提升额度计算发生错误！错误信息：" + e.getMessage()), e);
             return "";
         }
     }
@@ -823,7 +831,8 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return String.valueOf(ChronoUnit.DAYS.between(today, expireDate));
         } catch (Exception e) {
-            log.warn("奇富AI额度到期日期计算发生错误！");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "奇富AI额度到期日期计算发生错误！错误信息：" + e.getMessage()), e);
             return "";
         }
     }
@@ -845,7 +854,8 @@ public class QiFuServiceImpl implements IQiFuService {
 
             return String.valueOf(result);
         } catch (NumberFormatException e) {
-            log.warn("奇富AI提额幅度计算发生错误！");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "奇富AI提额幅度计算发生错误！错误信息：" + e.getMessage()), e);
             return "";
         }
     }
