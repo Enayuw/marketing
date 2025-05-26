@@ -24,6 +24,7 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
 
     @Resource
     private AbstractTcCustomizeProcessor tcRevokeProcessor;
+
     @Resource
     private AbstractTcCustomizeProcessor TcSampleDataPushProcessor;
 
