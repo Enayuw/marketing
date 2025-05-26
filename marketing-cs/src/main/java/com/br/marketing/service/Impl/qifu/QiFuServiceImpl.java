@@ -434,38 +434,143 @@ public class QiFuServiceImpl implements IQiFuService {
      */
     private CouponInfo classifyCoupon(String cleanedName, int originalIndex) {
         if (StringUtils.isBlank(cleanedName)) {
-            return new CouponInfo("", cleanedName, CouponType.COMMON, 0, originalIndex);
+            return new CouponInfo("", cleanedName, CouponType.COMMON, 0, 0, originalIndex);
         }
 
-        // 提取数字
-        double extractedValue = extractNumber(cleanedName);
-
-        // 分期券：券名称带"期"字，提取期数作为优先级比较值
+        // 分期券：券名称带"期"字，分别提取期数和金额
         if (cleanedName.contains("期")) {
-            return new CouponInfo("", cleanedName, CouponType.INSTALLMENT, extractedValue, originalIndex);
+            double periods = extractInstallmentPeriods(cleanedName);
+            double amount = extractAmountFromString(cleanedName);
+            return new CouponInfo("", cleanedName, CouponType.INSTALLMENT, periods, amount, originalIndex);
         }
 
-        // 周转金：券名称带"周转金"字
+        // 周转金：券名称带"周转金"字，分别提取天数和金额
         if (cleanedName.contains("周转金")) {
-            return new CouponInfo("", cleanedName, CouponType.TURNOVER, extractedValue, originalIndex);
+            double days = extractTurnoverDays(cleanedName);
+            double amount = extractAmountFromString(cleanedName);
+            return new CouponInfo("", cleanedName, CouponType.TURNOVER, days, amount, originalIndex);
         }
 
-        // 折扣券：券名称带"折"字
+        // 折扣券：券名称带"折"字，分别提取折扣率和金额
         if (cleanedName.contains("折")) {
-            return new CouponInfo("", cleanedName, CouponType.DISCOUNT, extractedValue, originalIndex);
+            double discountRate = extractDiscountRate(cleanedName);
+            double amount = extractAmountFromString(cleanedName);
+            return new CouponInfo("", cleanedName, CouponType.DISCOUNT, discountRate, amount, originalIndex);
         }
 
         // 大额直减券和小额直减券：券名称带"元"字
         if (cleanedName.contains("元")) {
-            if (extractedValue >= 600) {
-                return new CouponInfo("", cleanedName, CouponType.LARGE_REDUCTION, extractedValue, originalIndex);
+            double amount = extractAmountFromString(cleanedName);
+            if (amount >= 600) {
+                return new CouponInfo("", cleanedName, CouponType.LARGE_REDUCTION, amount, amount, originalIndex);
             } else {
-                return new CouponInfo("", cleanedName, CouponType.SMALL_REDUCTION, extractedValue, originalIndex);
+                return new CouponInfo("", cleanedName, CouponType.SMALL_REDUCTION, amount, amount, originalIndex);
             }
         }
 
         // 普通券：不符合以上规则
-        return new CouponInfo("", cleanedName, CouponType.COMMON, extractedValue, originalIndex);
+        double extractedValue = extractNumber(cleanedName);
+        double amount = extractAmountFromString(cleanedName);
+        return new CouponInfo("", cleanedName, CouponType.COMMON, extractedValue, amount, originalIndex);
+    }
+
+    /**
+     * 提取分期券的期数
+     */
+    private double extractInstallmentPeriods(String couponName) {
+        if (StringUtils.isBlank(couponName)) {
+            return 0;
+        }
+
+        try {
+            // 提取期数
+            Pattern installmentPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)期");
+            Matcher installmentMatcher = installmentPattern.matcher(couponName);
+            if (installmentMatcher.find()) {
+                return Double.parseDouble(installmentMatcher.group(1));
+            }
+        } catch (Exception e) {
+            log.warn("提取分期券期数时发生错误：{}", couponName, e);
+        }
+        return 0;
+    }
+
+    /**
+     * 从券名称中提取金额
+     */
+    private double extractAmountFromString(String couponName) {
+        if (StringUtils.isBlank(couponName)) {
+            return 0;
+        }
+
+        try {
+            // 提取金额（带"元"字的）
+            Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
+            Matcher amountMatcher = amountPattern.matcher(couponName);
+            if (amountMatcher.find()) {
+                return Double.parseDouble(amountMatcher.group(1));
+            }
+        } catch (Exception e) {
+            log.warn("提取券金额时发生错误：{}", couponName, e);
+        }
+        return 0;
+    }
+
+    /**
+     * 提取周转金券的天数
+     */
+    private double extractTurnoverDays(String couponName) {
+        if (StringUtils.isBlank(couponName)) {
+            return 0;
+        }
+
+        try {
+            // 提取天数
+            Pattern daysPattern1 = Pattern.compile("(\\d+(?:\\.\\d+)?)天周转金");
+            Matcher daysMatcher1 = daysPattern1.matcher(couponName);
+            if (daysMatcher1.find()) {
+                return Double.parseDouble(daysMatcher1.group(1));
+            } else {
+                // 尝试其他模式
+                Pattern daysPattern2 = Pattern.compile("(\\d+(?:\\.\\d+)?)(?:元)?周转金");
+                Matcher daysMatcher2 = daysPattern2.matcher(couponName);
+                if (daysMatcher2.find()) {
+                    return Double.parseDouble(daysMatcher2.group(1));
+                } else {
+                    Pattern daysPattern3 = Pattern.compile("周转金(\\d+(?:\\.\\d+)?)(?:天|元)?");
+                    Matcher daysMatcher3 = daysPattern3.matcher(couponName);
+                    if (daysMatcher3.find()) {
+                        return Double.parseDouble(daysMatcher3.group(1));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("提取周转金天数时发生错误：{}", couponName, e);
+        }
+        return 0;
+    }
+
+    /**
+     * 提取折扣券的折扣率
+     */
+    private double extractDiscountRate(String couponName) {
+        if (StringUtils.isBlank(couponName)) {
+            // 默认值，表示没有折扣
+            return 10;
+        }
+
+        try {
+            // 提取折扣率
+            Pattern discountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)折");
+            Matcher discountMatcher = discountPattern.matcher(couponName);
+            if (discountMatcher.find()) {
+                return Double.parseDouble(discountMatcher.group(1));
+            }
+        } catch (Exception e) {
+            log.warn("提取折扣率时发生错误：{}", couponName, e);
+        }
+        // 默认值，表示没有折扣
+        return 10;
     }
 
     /**
@@ -478,100 +583,7 @@ public class QiFuServiceImpl implements IQiFuService {
         }
 
         try {
-            // 对于分期券，组合期数和金额：期数 * 10000 + 金额
-            if (couponName.contains("期")) {
-                double installmentPeriod = 0;
-                double amount = 0;
-                
-                // 提取期数
-                Pattern installmentPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)期");
-                Matcher installmentMatcher = installmentPattern.matcher(couponName);
-                if (installmentMatcher.find()) {
-                    installmentPeriod = Double.parseDouble(installmentMatcher.group(1));
-                }
-                
-                // 提取金额
-                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
-                Matcher amountMatcher = amountPattern.matcher(couponName);
-                if (amountMatcher.find()) {
-                    amount = Double.parseDouble(amountMatcher.group(1));
-                }
-                
-                // 期数优先，金额次要：期数 * 10000 + 金额
-                return installmentPeriod * 10000 + amount;
-            }
-
-            // 对于折扣券，组合折扣率和金额：(10 - 折扣率) * 10000 + 金额
-            // 注意：折扣率越小优先级越高，所以用(10 - 折扣率)让小折扣率得到大权重
-            if (couponName.contains("折")) {
-                // 默认值，表示没有折扣
-                double discountRate = 10;
-                double amount = 0;
-                
-                // 提取折扣率
-                Pattern discountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)折");
-                Matcher discountMatcher = discountPattern.matcher(couponName);
-                if (discountMatcher.find()) {
-                    discountRate = Double.parseDouble(discountMatcher.group(1));
-                }
-                
-                // 提取金额
-                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
-                Matcher amountMatcher = amountPattern.matcher(couponName);
-                if (amountMatcher.find()) {
-                    amount = Double.parseDouble(amountMatcher.group(1));
-                }
-                
-                // 折扣率优先（小的好），金额次要：(10 - 折扣率) * 10000 + 金额
-                return (10 - discountRate) * 10000 + amount;
-            }
-
-            // 对于周转金，组合天数和金额：天数 * 10000 + 金额
-            if (couponName.contains("周转金")) {
-                double days = 0;
-                double amount = 0;
-                
-                // 提取天数
-                Pattern daysPattern1 = Pattern.compile("(\\d+(?:\\.\\d+)?)天周转金");
-                Matcher daysMatcher1 = daysPattern1.matcher(couponName);
-                if (daysMatcher1.find()) {
-                    days = Double.parseDouble(daysMatcher1.group(1));
-                } else {
-                    // 尝试其他模式
-                    Pattern daysPattern2 = Pattern.compile("(\\d+(?:\\.\\d+)?)(?:元)?周转金");
-                    Matcher daysMatcher2 = daysPattern2.matcher(couponName);
-                    if (daysMatcher2.find()) {
-                        days = Double.parseDouble(daysMatcher2.group(1));
-                    } else {
-                        Pattern daysPattern3 = Pattern.compile("周转金(\\d+(?:\\.\\d+)?)(?:天|元)?");
-                        Matcher daysMatcher3 = daysPattern3.matcher(couponName);
-                        if (daysMatcher3.find()) {
-                            days = Double.parseDouble(daysMatcher3.group(1));
-                        }
-                    }
-                }
-                
-                // 提取金额（如果有的话）
-                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
-                Matcher amountMatcher = amountPattern.matcher(couponName);
-                if (amountMatcher.find()) {
-                    amount = Double.parseDouble(amountMatcher.group(1));
-                }
-                
-                // 天数优先，金额次要：天数 * 10000 + 金额
-                return days * 10000 + amount;
-            }
-
-            // 对于直减券（带"元"字），直接提取金额
-            if (couponName.contains("元")) {
-                Pattern amountPattern = Pattern.compile("(\\d+(?:\\.\\d+)?)元");
-                Matcher amountMatcher = amountPattern.matcher(couponName);
-                if (amountMatcher.find()) {
-                    return Double.parseDouble(amountMatcher.group(1));
-                }
-            }
-
-            // 兜底策略：提取所有数字并取最大值
+            // 提取所有数字并取最大值
             Pattern pattern = Pattern.compile("(\\d+(?:\\.\\d+)?)");
             Matcher matcher = pattern.matcher(couponName);
 
@@ -613,10 +625,40 @@ public class QiFuServiceImpl implements IQiFuService {
             if (c1.getType() == CouponType.COMMON) {
                 // 普通券：按原始索引排序（取第一个）
                 return Integer.compare(c1.getOriginalIndex(), c2.getOriginalIndex());
+            } else if (c1.getType() == CouponType.INSTALLMENT) {
+                // 分期券：先比较期数（期数越大优先级越高），期数相同时比较金额（金额越大优先级越高）
+                int periodComparison = Double.compare(c2.getValue(), c1.getValue());
+                if (periodComparison != 0) {
+                    return periodComparison;
+                }
+                // 期数相同时比较金额
+                return Double.compare(c2.getAmount(), c1.getAmount());
+            } else if (c1.getType() == CouponType.TURNOVER) {
+                // 周转金券：先比较天数（天数越大优先级越高），天数相同时比较金额（金额越大优先级越高）
+                int daysComparison = Double.compare(c2.getValue(), c1.getValue());
+                if (daysComparison != 0) {
+                    return daysComparison;
+                }
+                // 天数相同时比较金额
+                return Double.compare(c2.getAmount(), c1.getAmount());
+            } else if (c1.getType() == CouponType.DISCOUNT) {
+                // 折扣券：先比较折扣率（折扣率越小优先级越高），折扣率相同时比较金额（金额越大优先级越高）
+                // 注意：折扣率小的优先级高，所以c1和c2位置相反
+                int discountComparison = Double.compare(c1.getValue(), c2.getValue());
+                if (discountComparison != 0) {
+                    return discountComparison;
+                }
+                // 折扣率相同时比较金额
+                return Double.compare(c2.getAmount(), c1.getAmount());
             } else {
-                // 所有其他券类型（包括折扣券）：组合权重越大优先级越高
-                // 因为现在extractNumber返回的是组合权重，权重大的应该排在前面
-                return Double.compare(c2.getValue(), c1.getValue());
+                // 所有其他券类型：按amount排序（数值越大优先级越高）
+                if (c1.getType() == CouponType.LARGE_REDUCTION || c1.getType() == CouponType.SMALL_REDUCTION) {
+                    // 直减券按金额比较
+                    return Double.compare(c2.getAmount(), c1.getAmount());
+                } else {
+                    // 普通券等其他类型按value比较
+                    return Double.compare(c2.getValue(), c1.getValue());
+                }
             }
         });
 
