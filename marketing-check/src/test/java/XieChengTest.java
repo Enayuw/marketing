@@ -228,6 +228,74 @@ public class XieChengTest {
 
     }
 
+    /**
+     * 拨打上报 生产环境
+     */
+    @Test
+    public void pushXieChengData03() {
+
+        /**
+         * data 组装
+         */
+        JSONObject deviceInfo = new JSONObject();
+        deviceInfo.put("sha256Tel", "81329e4f587a7aed5655f3ea497f055b05bf79d8680c136ded0ccf219a0f73e9");
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        ThirdAdOuterReq thirdAdOuterReq = null;
+        String aid = "test002";
+        String aesKey = "f3df6f62f0527bf0";
+        String ivKey = "3b2dac323465b024";
+        String sKey = "95cc01ec07387a44";
+        String extendSource = "CPS_TEST";
+//            try {
+//                JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
+//                String sourceStr = extend.getString("source");
+//                if (StringUtils.isEmpty(sourceStr)) {
+//                    log.warn("携程广告上报接口，source为空:{}，置为默认值:{}", sourceStr, "BaiRong_C01");
+//                } else {
+//                    extendSource = sourceStr;
+//                }
+//            } catch (Exception e) {
+//                log.error("携程广告上报接口，source字段解析异常:{}", xieChengData.getExtend(), e);
+//            }
+
+        thirdAdOuterReq = new ThirdAdOuterReq(
+                timestemp,
+                "BaiRong_SME01",
+                System.currentTimeMillis() + getCode(5) + "81329e4f587a7aed5655f3ea497f055b05bf79d8680c136ded0ccf219a0f73e9",
+                "IVR",
+                deviceInfo.toString(),
+                "CPA",
+                "CTRIP",
+                "SME",
+                "bairong001"
+        );
+
+
+
+
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", "bairong001");
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", "commonOutAdMonitor");
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), aesKey , ivKey));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, sKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, "https://jr-ad.ctrip.com/ad/common/outAdMonitor.do", false, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq), true, false);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq), JSON.toJSONString(retMap));
+//            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        String content = resMap.get("content");
+
+        /*范围40到70的随机数*/
+//        int random = (int) (Math.random() * (70 - 40 + 1) + 40);
+//        ThreadUtil.sleep(70);
+//        String content = "{\"code\":0,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
+
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+
+    }
+
 //    @Test
 //    public void pushXieChengReport() {
 //
