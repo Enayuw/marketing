@@ -251,7 +251,7 @@ public class XieChengService {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengDataNew(AdReqDTO xieChengData) {
-        log.warn("携程上报新接口罗逻辑："+xieChengData.getSha256Tel());
+        log.warn("携程上报新接口逻辑："+xieChengData.getSha256Tel());
         // 1. 获取配置
         Map<String, JSONObject> configMap = marketingCommonConfig.getXieChengCpaAndCpsConfig();
         JSONObject config = "1".equals(xieChengData.getConditionKey()) ? configMap.get("cpa") : configMap.get("cps");
@@ -262,30 +262,35 @@ public class XieChengService {
         deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
 
         // 3. 处理扩展源
-        String extendSource = config.getString("source");
+        String source = null;
+        String mktProductNo = null;
         try {
             JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
-            String sourceStr = extend.getString("source");
-            if (StringUtils.isNotEmpty(sourceStr)) {
-                extendSource = sourceStr;
-            } else {
-                log.warn("携程广告上报接口，source为空，置为默认值:{}", extendSource);
+            String extendSource = extend.getString("source");
+            String extendMktProductNo = extend.getString("mktProductNo");
+            source = StringUtils.isNotEmpty(extendSource) ? extendSource : config.getString("source");
+            mktProductNo = StringUtils.isNotEmpty(extendMktProductNo) ? extendMktProductNo : config.getString("mktProductNo");
+            if (StringUtils.isEmpty(extendSource)) {
+                log.warn("携程广告上报接口，id:{}的xieChengData的source为空，置为默认值:{}", xieChengData.getId() , config.getString("source"));
+            }
+            if (StringUtils.isEmpty(extendMktProductNo)) {
+                log.warn("携程广告上报接口，id:{}的xieChengData的mktProductNo为空，置为默认值:{}", xieChengData.getId() , config.getString("mktProductNo"));
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程广告上报接口，source 解析异常"+xieChengData.getSha256Tel()));
+                    , "携程广告上报接口，source或mktProductNo解析异常"+xieChengData.getSha256Tel()));
         }
 
         // 4. 构建请求对象
         ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(
                 timestamp,
-                extendSource,
+                source,
                 xieChengData.getClickId(),
                 xieChengData.getActionType(),
                 deviceInfo.toString(),
                 config.getString("mktMode"),
                 xieChengData.getMktChannel(),
-                config.getString("mktProductNo"),
+                mktProductNo,
                 config.getString("appId")
         );
 
