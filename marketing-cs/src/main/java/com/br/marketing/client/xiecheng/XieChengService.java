@@ -262,23 +262,25 @@ public class XieChengService {
         deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
 
         // 3. 处理扩展源
-        String source = null;
-        String mktProductNo = null;
+        String source = config.getString("source");
+        String mktProductNo = config.getString("mktProductNo");
         try {
             JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
             String extendSource = extend.getString("source");
-            String extendMktProductNo = extend.getString("mktProductNo");
-            source = StringUtils.isNotEmpty(extendSource) ? extendSource : config.getString("source");
-            mktProductNo = StringUtils.isNotEmpty(extendMktProductNo) ? extendMktProductNo : config.getString("mktProductNo");
-            if (StringUtils.isEmpty(extendSource)) {
-                log.warn("携程广告上报接口，id:{}的xieChengData的source为空，置为默认值:{}", xieChengData.getId() , config.getString("source"));
+            if (StringUtils.isNotEmpty(extendSource)) {
+                source = extendSource;
+            } else {
+                log.warn("携程广告上报接口，id:{}的xieChengData的extend中source字段为空，置为默认值:{}", xieChengData.getId() , source);
             }
-            if (StringUtils.isEmpty(extendMktProductNo)) {
-                log.warn("携程广告上报接口，id:{}的xieChengData的mktProductNo为空，置为默认值:{}", xieChengData.getId() , config.getString("mktProductNo"));
+            String extendMktProductNo = extend.getString("mktProductNo");
+            if (StringUtils.isNotEmpty(extendMktProductNo)) {
+                mktProductNo = extendMktProductNo;
+            } else {
+                log.warn("携程广告上报接口，id:{}的xieChengData的extend中mktProductNo字段为空，置为默认值:{}", xieChengData.getId() , mktProductNo);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程广告上报接口，source或mktProductNo解析异常"+xieChengData.getSha256Tel()));
+                    , "携程广告上报接口，source或mktProductNo解析异常" + xieChengData.getSha256Tel()));
         }
 
         // 4. 构建请求对象
