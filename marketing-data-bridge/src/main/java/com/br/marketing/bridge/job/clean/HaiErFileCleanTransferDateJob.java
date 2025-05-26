@@ -255,6 +255,8 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
             String line;
             int lineNumber = 0;
             int skippedLines = 0;
+            // 每批处理1000条数据
+            int batchSize = 1000;
 
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
@@ -286,35 +288,51 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
                 try {
                     TransferDataItemDTO item = buildTransferDataItem(apiCode, fields);
                     transferDataItems.add(item);
+
+                    // 每积累1000条数据就推送一次
+                    if (transferDataItems.size() >= batchSize) {
+                        PushTransferDataDetailDTO dto = buildTransferDataDTO(apiCode, transferDataItems);
+                        Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+
+                        log.warn("{} 批量推送结果 - 状态码: {}, 成功: {}, 消息: {}",
+                                TITLE, pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
+
+                        if (!ResultCode.SUCCESS.getValue().equals(pushResult.getCode())) {
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HAIER_SERVICEERROR.getCode(),
+                                    TITLE + "推送失败结果：" + pushResult.getMessage()));
+                        }
+
+                        transferDataItems.clear(); // 清空当前批次
+                    }
                 } catch (Exception e) {
                     log.warn("{} 解析数据失败 (第{}行): {}. 错误: {}", TITLE, lineNumber, line, e.getMessage());
                     skippedLines++;
                 }
             }
 
+            // 处理最后不足1000条的剩余数据
+            if (!transferDataItems.isEmpty()) {
+                PushTransferDataDetailDTO dto = buildTransferDataDTO(apiCode, transferDataItems);
+                Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+
+                log.warn("{} 最后批次推送结果 - 状态码: {}, 成功: {}, 消息: {}",
+                        TITLE, pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
+
+                if (!ResultCode.SUCCESS.getValue().equals(pushResult.getCode())) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HAIER_SERVICEERROR.getCode(),
+                            TITLE + "推送失败结果：" + pushResult.getMessage()));
+                }
+            }
+
             // 处理结果统计
-            log.warn("{} 处理完成 - 总行数: {}, 成功: {}, 跳过: {}", TITLE, lineNumber, transferDataItems.size(), skippedLines);
-
-            if (transferDataItems.isEmpty()) {
-                log.warn("{} 没有有效数据", TITLE);
-                jobManager.updateFrontDataStatus(jobId, 2);
-                return;
-            }
-
-            // 推送数据
-            PushTransferDataDetailDTO dto = buildTransferDataDTO(apiCode, transferDataItems);
-            Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
-
-            log.warn("{} 推送结果 - 状态码: {}, 成功: {}, 消息: {}",
-                    TITLE, pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
-
+            int processedCount = lineNumber - skippedLines;
+            log.warn("{} 处理完成 - 总行数: {}, 成功处理: {}, 跳过: {}",
+                    TITLE, lineNumber, processedCount, skippedLines);
             // 更新任务状态
-            if (ResultCode.SUCCESS.getValue().equals(pushResult.getCode())) {
-                jobManager.updateFrontDataStatus(jobId, 2);
-            }
-
+            jobManager.updateFrontDataStatus(jobId, 2);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HAIER_SERVICEERROR.getCode(), TITLE + "文件解析异常：" + e.getMessage()));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HAIER_SERVICEERROR.getCode(),
+                    TITLE + "文件解析异常：" + e.getMessage()));
         }
     }
 
