@@ -6,15 +6,13 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="request_no" property="requestNo" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
+    <result column="data" property="data" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="msg" property="msg" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="down_status" property="downStatus" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingTcyrSampleRecord" extends="BaseResultMap" >
-    <result column="data" property="data" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -75,28 +73,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, request_no, batch_no, `status`, msg, create_time, update_time, down_status, 
-    is_del
+    id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,
+    down_status, is_del
   </sql>
-  <sql id="Blob_Column_List" >
-    `data`
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingTcyrSampleRecordExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_marketing_tcyr_sample_record
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSampleRecordExample" >
     select
     <if test="distinct" >
@@ -111,11 +90,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select 
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_marketing_tcyr_sample_record
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -133,14 +110,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_sample_record (api_code, request_no, batch_no, 
-      `status`, msg, create_time, 
-      update_time, down_status, is_del, 
-      `data`)
-    values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
-      #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{downStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
-      #{data,jdbcType=LONGVARCHAR})
+    insert into b_marketing_tcyr_sample_record (api_code, request_no, batch_no,
+    `data`, `status`, msg,
+    create_time, update_time, down_status,
+    is_del)
+    values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR},
+    #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{downStatus,jdbcType=INTEGER},
+    #{isDel,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrSampleRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -156,6 +133,9 @@
       </if>
       <if test="batchNo != null" >
         batch_no,
+      </if>
+      <if test="data != null" >
+        `data`,
       </if>
       <if test="status != null" >
         `status`,
@@ -175,9 +155,6 @@
       <if test="isDel != null" >
         is_del,
       </if>
-      <if test="data != null" >
-        `data`,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -188,6 +165,9 @@
       </if>
       <if test="batchNo != null" >
         #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="data != null" >
+        #{data,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -206,9 +186,6 @@
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
-      </if>
-      <if test="data != null" >
-        #{data,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -233,6 +210,9 @@
       <if test="record.batchNo != null" >
         batch_no = #{record.batchNo,jdbcType=VARCHAR},
       </if>
+      <if test="record.data != null" >
+        `data` = #{record.data,jdbcType=VARCHAR},
+      </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
@@ -251,27 +231,7 @@
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.data != null" >
-        `data` = #{record.data,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_marketing_tcyr_sample_record
-    set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      request_no = #{record.requestNo,jdbcType=VARCHAR},
-      batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=INTEGER},
-      msg = #{record.msg,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      down_status = #{record.downStatus,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      `data` = #{record.data,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -279,15 +239,16 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_tcyr_sample_record
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      request_no = #{record.requestNo,jdbcType=VARCHAR},
-      batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=INTEGER},
-      msg = #{record.msg,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      down_status = #{record.downStatus,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    request_no = #{record.requestNo,jdbcType=VARCHAR},
+    batch_no = #{record.batchNo,jdbcType=VARCHAR},
+    `data` = #{record.data,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
+    msg = #{record.msg,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    down_status = #{record.downStatus,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -303,6 +264,9 @@
       </if>
       <if test="batchNo != null" >
         batch_no = #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="data != null" >
+        `data` = #{data,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
@@ -322,37 +286,21 @@
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="data != null" >
-        `data` = #{data,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingTcyrSampleRecord" >
-    update b_marketing_tcyr_sample_record
-    set api_code = #{apiCode,jdbcType=VARCHAR},
-      request_no = #{requestNo,jdbcType=VARCHAR},
-      batch_no = #{batchNo,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=INTEGER},
-      msg = #{msg,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      down_status = #{downStatus,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER},
-      `data` = #{data,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrSampleRecord" >
     update b_marketing_tcyr_sample_record
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      request_no = #{requestNo,jdbcType=VARCHAR},
-      batch_no = #{batchNo,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=INTEGER},
-      msg = #{msg,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      down_status = #{downStatus,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER}
+        request_no = #{requestNo,jdbcType=VARCHAR},
+        batch_no = #{batchNo,jdbcType=VARCHAR},
+        `data` = #{data,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=INTEGER},
+        msg = #{msg,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        down_status = #{downStatus,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

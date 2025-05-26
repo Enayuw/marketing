@@ -24,6 +24,11 @@ public class MarketingTcyrSampleRecord {
     private String batchNo;
 
     /**
+     * 数据
+     */
+    private String data;
+
+    /**
      * 状态 0-接入中；1-接入成功；2-接入失败；
      */
     private Integer status;
@@ -52,11 +57,6 @@ public class MarketingTcyrSampleRecord {
      * 删除状态 1-可用 9-删除
      */
     private Integer isDel;
-
-    /**
-     * 数据
-     */
-    private String data;
 
     public Long getId() {
         return id;
@@ -88,6 +88,14 @@ public class MarketingTcyrSampleRecord {
 
     public void setBatchNo(String batchNo) {
         this.batchNo = batchNo == null ? null : batchNo.trim();
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data == null ? null : data.trim();
     }
 
     public Integer getStatus() {
@@ -136,13 +144,5 @@ public class MarketingTcyrSampleRecord {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data == null ? null : data.trim();
     }
 }

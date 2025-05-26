@@ -34,10 +34,12 @@ public class TcSampleDataPushProcessor extends AbstractTcCustomizeProcessor{
         record.setBatchNo(batchNo);
         record.setData(tcRequestDTO.getData());
         record.setStatus(0);
+        record.setDownStatus(0);
+        record.setIsDel(1);
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         try {
-            tcyrSampleRecordMapper.insert(record);
+            tcyrSampleRecordMapper.insertSelective(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警
