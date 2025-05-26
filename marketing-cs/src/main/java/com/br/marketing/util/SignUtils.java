@@ -12,7 +12,7 @@ import java.util.TreeSet;
  * @date 2025/5/21 15:12
  */
 public class SignUtils {
-    public static String yunKeSign(Map<String, String> paramMap, String appKey) {
+    public static String yunKeSign(Map<String, Object> paramMap, String appKey) {
         TreeSet<String> ordered = Sets.newTreeSet(paramMap.keySet());
         StringBuilder forSign = new StringBuilder();
         for (String key : ordered) {
