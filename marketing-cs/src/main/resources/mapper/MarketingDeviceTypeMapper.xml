@@ -308,4 +308,12 @@
         where cell_sha1 = #{checkElement,jdbcType=VARCHAR}
     </update>
 
+    <select id="getDeviceTypesByLogCells" parameterType="com.br.marketing.dto.LogEncryptionCellsDto"
+            resultType="com.br.marketing.vo.yunke.DeviceTypeVO">
+        select cell,device_type from b_marketing_device_type where cell in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item.logCell}
+        </foreach>
+    </select>
+
 </mapper>

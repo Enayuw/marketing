@@ -32,15 +32,15 @@ import java.util.Map;
 @Service
 @Slf4j
 public class YunKeClient {
-    @Value("${api.yunKe.baseUrl}")
+    @Value("${api.yunKe.baseUrl:00}")
     private String url;
-    @Value("${api.yunKe.appId}")
+    @Value("${api.yunKe.appId:00}")
     private String appId;
-    @Value("${api.yunKe.appKey}")
+    @Value("${api.yunKe.appKey:00}")
     private String appKey;
-    @Value("${api.yunKe.encryptionType}")
+    @Value("${api.yunKe.encryptionType:00}")
     private String encryptionType;
-    @Value("${api.yunKe.version}")
+    @Value("${api.yunKe.version:00}")
     private String version;
     @Autowired
     HttpProxyClient httpProxyClient;
@@ -57,7 +57,7 @@ public class YunKeClient {
         String sign = SignUtils.yunKeSign(paramMap, appKey);
         paramMap.put("sign", sign);
         paramMap.put("checkData", cells);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(paramMap, url, false,
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(paramMap, url, true,
                 MediaType.APPLICATION_JSON_UTF8_VALUE, null, true, false);
 
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
