@@ -1,0 +1,47 @@
+package com.br.marketing.service;
+
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.vo.FileToMarketingDataFieldVO;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @ClassName IFileToMarketingRuleTransferService
+ * @Description TODO
+ * @Author kongbx
+ * @Date 2025/5/26 18:18
+ */
+public interface IFileToMarketingRuleTransferService {
+
+    /**
+     * 是否剔除 true有效；false无效
+     * @return
+     */
+    default Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String, FileToMarketingDataFieldVO> voMaps){
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    /**
+     * 生成营销数据对象
+     * @return
+     */
+    default TransferDataDTO make(List<FileToMarketingDataFieldVO> vos){
+        return new TransferDataDTO();
+
+    }
+
+    /**
+     * 获取taskId
+     * @return
+     */
+    default String getTaskId(String apiCode,String fileNm){
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return apiCode.concat("_").concat(yyyyMMdd);
+    }
+
+}

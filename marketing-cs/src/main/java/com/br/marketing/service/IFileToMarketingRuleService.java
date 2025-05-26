@@ -8,6 +8,8 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -78,4 +80,15 @@ public interface IFileToMarketingRuleService {
         }
         return dto;
     }
+
+    /**
+     * 获取taskId
+     * @return
+     */
+    default String getTaskId(String apiCode,String fileNm){
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return apiCode.concat("_").concat(yyyyMMdd);
+    }
+
+
 }
