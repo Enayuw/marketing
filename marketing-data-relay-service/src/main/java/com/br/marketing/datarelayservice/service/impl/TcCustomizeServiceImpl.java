@@ -26,7 +26,7 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
     private AbstractTcCustomizeProcessor tcRevokeProcessor;
 
     @Resource
-    private AbstractTcCustomizeProcessor TcSampleDataPushProcessor;
+    private AbstractTcCustomizeProcessor tcSampleDataPushProcessor;
 
     /**
      * @param tcRequestDTO
@@ -77,6 +77,6 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
      **/
     @Override
     public TcResponseDTO sampleDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return TcSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class);
+        return tcSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class);
     }
 }
