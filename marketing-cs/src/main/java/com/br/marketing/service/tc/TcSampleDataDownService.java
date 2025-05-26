@@ -2,7 +2,7 @@ package com.br.marketing.service.tc;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.tc.TcServiceClient;
+import com.br.marketing.client.ZipFileClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
@@ -46,10 +46,10 @@ public class TcSampleDataDownService {
     MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TcServiceClient tcServiceClient;
+    SftpInnerServiceImpl sftpInnerService;
 
     @Resource
-    SftpInnerServiceImpl sftpInnerService;
+    private ZipFileClient zipFileClient;
 
     public void process(String apiCode) {
         List<MarketingTcyrSampleRecord> sampleRecords = marketingTcyrSampleRecordMapper.searchTcyrSyncList(apiCode,
@@ -77,7 +77,7 @@ public class TcSampleDataDownService {
                 String dirPath = syncConfigService.getPath().concat(filePath).concat(yyyyMMdd).concat("/");
                 String gzFileName = "tcyr_" + sampleRecord.getBatchNo() + ".csv.zip";
                 String gzFilePath = dirPath.concat(gzFileName);
-                Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl, gzFilePath);
+                Result callFileResult = zipFileClient.downloadFile(fileUrl, gzFilePath, true);
                 if (callFileResult == null || !callFileResult.isSuccess()) {
                     log.warn("{},batchNo:{} 下载gz包失败", TITLE, sampleRecord.getBatchNo());
                     return;
