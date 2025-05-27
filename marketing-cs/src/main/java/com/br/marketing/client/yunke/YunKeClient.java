@@ -13,6 +13,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.SignUtils;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,13 +58,21 @@ public class YunKeClient {
         String sign = SignUtils.yunKeSign(paramMap, appKey);
         paramMap.put("sign", sign);
         paramMap.put("checkData", cells);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(paramMap, url, true,
-                MediaType.APPLICATION_JSON_UTF8_VALUE, null, true, false);
-
+        HashMap<String, String> resMap = null;
+        //云客接口挡板
+        if (!marketingCommonConfig.getYunKeDeviceTypeApiSwitch()) {
+            log.warn("云客机型获取job挡板打开,任务暂停");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(buildResultDto());
+        } else {
+            resMap = httpProxyClient.sendByCodeWithLog(paramMap, url, true,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE, null, true, false);
+        }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YUNKE_SERVICEERROR.getCode(),
                     "云客机型获取接口请求异常!"));
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
+            log.warn("调用云客api获取机型异常! 参数:{},结果:{}", JSONObject.toJSONString(paramMap),
+                    JSONObject.toJSONString(resMap));
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(buildResultDto());
         }
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
@@ -72,9 +81,16 @@ public class YunKeClient {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YUNKE_SERVICEERROR.getCode(),
                     "云客机型获取接口返回错误!"));
             log.warn("云客机型获取接口返回错误结果:{}", content);
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(null));
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(buildResultDto());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.parseObject(content,
                 YunKeResponseDto.class));
+    }
+
+    YunKeResponseDto buildResultDto() {
+        YunKeResponseDto yunKeResponseDto = new YunKeResponseDto();
+        yunKeResponseDto.setCode("0");
+        yunKeResponseDto.setData(Lists.newArrayList());
+        return new YunKeResponseDto();
     }
 }

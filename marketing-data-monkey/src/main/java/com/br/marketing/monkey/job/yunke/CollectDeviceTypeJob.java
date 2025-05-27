@@ -23,11 +23,7 @@ public class CollectDeviceTypeJob extends AbstractSimpleElasticJob {
     MarketingCommonConfig marketingCommonConfig;
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        if(!marketingCommonConfig.getYunKeDeviceTypeApiSwitch()){
-            log.warn("云客机型获取job挡板打开,任务暂停");
-            return;
-        }
-        Long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         log.warn("云客机型获取job任务开始");
         yunKeService.getDeviceType();
         log.warn("云客机型获取job任务结束, 耗时:{}s", (System.currentTimeMillis() - start) / 1000);

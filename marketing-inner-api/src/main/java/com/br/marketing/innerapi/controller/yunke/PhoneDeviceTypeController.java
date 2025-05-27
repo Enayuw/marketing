@@ -1,15 +1,11 @@
 package com.br.marketing.innerapi.controller.yunke;
 
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.LogEncryptionCellsDto;
-import com.br.marketing.innerapi.controller.FastTaskRuleContronller;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.yunke.DeviceTypeService;
 import com.br.marketing.vo.CarClueInfoVo;
-import com.br.marketing.vo.FastTaskRuleDetailVO;
 import com.br.marketing.vo.yunke.DeviceTypeVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -41,6 +37,9 @@ public class PhoneDeviceTypeController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CarClueInfoVo.class)})
     @AddDataAuthBusiness
     public ApiResult<List<DeviceTypeVO>> getDeviceType(@RequestBody @Valid List<LogEncryptionCellsDto> request) {
+        if (request.size() > 2000) {
+            return new ApiResult<List<DeviceTypeVO>>().fail("请求量级不能超过2000");
+        }
         try {
             List<DeviceTypeVO> deviceTypeVOS = deviceTypeService.getDeviceTypeByLog(request);
             return new ApiResult<List<DeviceTypeVO>>().success(deviceTypeVOS);
