@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -627,14 +629,12 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         transferDataDTOS.add(make);
                     }
                 }
-                // 调用营销上传接口处理
+                // 调用营销转化接口处理
                 if (transferDataDTOS.size() == pushNum || (!isNotFinal && transferDataDTOS.size() > 0)) {
                     pushSum += transferDataDTOS.size();
                     TransferDataDTO transferDataDTO = new TransferDataDTO();
-                    transferDataDTO.setOrgName("");
-                    transferDataDTO.setLast("");
-                    transferDataDTO.setTotal(String.valueOf(transferDataDTOS.size()));
                     transferDataDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));
+                    transferDataDTO.setRequestId(apiCode.concat("_").concat(RandomStringUtils.randomNumeric(5)).concat("_").concat(String.valueOf(System.currentTimeMillis())));
                     transferDataDTO.setDataItems(transferDataDTOS);
                     PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
                     dto.setApiCode(apiCode);
