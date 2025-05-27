@@ -8,6 +8,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
@@ -18,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import java.util.HashMap;
 
 
 @Service
@@ -43,6 +46,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
+        customizFieldMapping(context,jsonObject);
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
             String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
@@ -105,7 +109,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
 
     @Override
     public String label() {
-        return "AI_To_Policy_PatLoan_OperaType_Four";
+        return CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
     }
 
     @Override
@@ -117,6 +121,22 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
     public Integer ruleDataCollection() {
         return null;
     }
+
+    private void customizFieldMapping(ProcessHandlerContext context, JSONObject jsonObject) {
+        HashMap<String, JSONObject> fieldKeyMapping = marketingCommonConfig.getFieldKeyMapping();
+        JSONObject mapping = fieldKeyMapping.get(context.getApiCode());
+        if (ObjectUtil.isNotEmpty(mapping)) {
+            for (String s : mapping.keySet()) {
+                String toKey = mapping.getString(s);
+                String oldV = jsonObject.getString(toKey);
+                String newV = jsonObject.getString(s);
+                if (StringUtils.isBlank(oldV) && StringUtils.isNotBlank(newV)) {
+                    jsonObject.put(toKey, newV);
+                }
+            }
+        }
+    }
+
 
     private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));

@@ -88,44 +88,39 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
                     getClueMatchBrand()).concat("未在外采配置中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
         }
-        //获取映射表中车系
-        List<CarClueRelationalMapping> allServies = relationBrand.stream().filter(relationalMapping -> relationalMapping.getSeriesName()
-                .equals(ALL_SERVIES)).collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(allServies)) {
-            //全系只有一条
-            clueRelationalMapping = relationBrand.get(0);
+
+        // 获取映射表中车系配置
+        Optional<CarClueRelationalMapping> allSeriesOpt = relationBrand.stream()
+                .filter(mapping -> ALL_SERVIES.equals(mapping.getSeriesName()))
+                .findFirst();
+
+        if (allSeriesOpt.isPresent()) {
+            clueRelationalMapping = allSeriesOpt.get();
         } else {
-            List<CarClueRelationalMapping> seriesConfig = relationBrand.stream().filter(relationalMapping -> relationalMapping.getSeriesName()
-                    .equals(carClueInfo.getClueMatchSeries())).collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(seriesConfig)) {
-                carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("车系=").concat(
-                        carClueInfo.getClueMatchSeries()).concat("未在外采配置中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
-                return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
+            // 查找具体车系配置
+            List<CarClueRelationalMapping> seriesMappings = relationBrand.stream()
+                    .filter(mapping -> carClueInfo.getClueMatchSeries().equals(mapping.getSeriesName()))
+                    .collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(seriesMappings)) {
+                return buildErrorResult(carClueInfo, config, configApiCode,
+                        "车系=" + carClueInfo.getClueMatchSeries() + "未在外采配置中",
+                        CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE);
             }
-            clueRelationalMapping = seriesConfig.get(0);
-        }
-        Set<String> relationCityList = new HashSet<>();
-        Set<String> relationNotCityList = new HashSet<>();
-        if (clueRelationalMapping.getProvinceType().equals(ProvinceTypeEnum.FIXED.getValue())) {
-            getCityByProvince(relationCityList, clueRelationalMapping.getSatisfyProvinceName(), clueRelationalMapping.getSatisfyCityName(),
-                    provincesInfoConfig);
-            //不在映射城市中
-            if (!relationCityList.contains(cityMatch)) {
-                carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("城市=").concat(cityMatch).
-                        concat("未在外采配置中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
-                return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
+
+            // 查找城市匹配的配置
+            Optional<CarClueRelationalMapping> cityMatchOpt = seriesMappings.stream()
+                    .filter(mapping -> isCityValid(mapping, cityMatch, provincesInfoConfig))
+                    .findFirst();
+
+            if (!cityMatchOpt.isPresent()) {
+                return buildErrorResult(carClueInfo, config, configApiCode,
+                        "城市=" + cityMatch + "未在外采配置中",
+                        CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE);
             }
+            clueRelationalMapping = cityMatchOpt.get();
         }
-        if (clueRelationalMapping.getProvinceType().equals(ProvinceTypeEnum.EXCLUDE.getValue())) {
-            getCityByProvince(relationNotCityList, clueRelationalMapping.getExcludeProvinceName(), clueRelationalMapping.getExcludeCityName(),
-                    provincesInfoConfig);
-            //在排除的城市中
-            if (relationNotCityList.contains(cityMatch)) {
-                carClueErrorReasonSet(carClueInfo, config.getName().concat("[").concat(configApiCode).concat("]").concat("城市=").concat(cityMatch).
-                        concat("在外采配置的排除城市中"), CarClueDataStatusEnum.NORMAL_MAPPER_LACK_CLUE.getValue());
-                return new Result().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
-            }
-        }
+
         //全国不用判断
         carClueInfo.setClueMatchProvince(provinceName);
         carClueInfo.setClueMatchCity(cityMatch);
@@ -139,6 +134,32 @@ public class YiCarClueChannelMatch extends AbstractClueChannelMatch {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(carClueInfo);
     }
 
+    // 城市验证方法
+    private boolean isCityValid(CarClueRelationalMapping mapping, String city,
+                                List<CarClueProvincesInformation> config) {
+
+        Set<String> cities = new HashSet<>();
+        if (ProvinceTypeEnum.FIXED.getValue().equals(mapping.getProvinceType())) {
+            getCityByProvince(cities, mapping.getSatisfyProvinceName(),
+                    mapping.getSatisfyCityName(), config);
+            return cities.contains(city);
+        }
+        else if (ProvinceTypeEnum.EXCLUDE.getValue().equals(mapping.getProvinceType())) {
+            getCityByProvince(cities, mapping.getExcludeProvinceName(),
+                    mapping.getExcludeCityName(), config);
+            return cities.contains(city);
+        }
+        return true;
+    }
+
+    // 构建错误结果方法
+    private Result<CarClueInfo> buildErrorResult(CarClueInfo carClueInfo, CarChannelConfig config,
+                                                 String configApiCode, String reason, CarClueDataStatusEnum status) {
+
+        String fullMsg = config.getName() + "[" + configApiCode + "]" + reason;
+        carClueErrorReasonSet(carClueInfo, fullMsg, status.getValue());
+        return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(carClueInfo);
+    }
 
     private void carClueErrorReasonSet(CarClueInfo carClueInfo, String errorMsg, Integer status) {
         carClueInfo.setClueErrorReason(errorMsg);

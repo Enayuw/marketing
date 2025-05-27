@@ -80,10 +80,11 @@ public class CarClueServiceImpl implements CarClueService {
         StringBuilder matchError = new StringBuilder();
         while (iterator.hasNext()) {
             CarChannelConfig config = iterator.next();
-            String configApicode = config.getApiCode();
-            List<AbstractClueChannelFilter> channelFilterList = clueChannelConfigService.getChannelFilter(configApicode);
+            String configApiCode = config.getApiCode();
+            List<AbstractClueChannelFilter> channelFilterList = clueChannelConfigService.getChannelFilter(configApiCode);
             CarClueInfo filterClueInfo = ObjectCopyCommon.deepCopyBean(carClueInfo, CarClueInfo.class);
-            Result<CarClueInfo> result = isFilterHandler(filterClueInfo, configApicode, channelFilterList);
+            //黑名单过滤
+            Result<CarClueInfo> result = isFilterHandler(filterClueInfo, configApiCode, channelFilterList);
             //命中过滤规则，剔除渠道
             if (result.isSuccess()) {
                 filterError.append(result.getData().getClueErrorReason());
@@ -204,7 +205,7 @@ public class CarClueServiceImpl implements CarClueService {
                 CarChannelConfigExample example = new CarChannelConfigExample();
                 example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(carClueInfo.getCluePushChannel());
                 List<CarChannelConfig> carChannelConfigs = carChannelConfigMapper.selectByExample(example);
-                if (carChannelConfigs.size() > 0) {
+                if (!carChannelConfigs.isEmpty()) {
                     name = carChannelConfigs.get(0).getName();
                 }
                 CarClueRelationalMapping carClueRelationalMapping = carClueRelationalMappingMapper.selectByPrimaryKey(clueRelationship.getMappingId());

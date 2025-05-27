@@ -161,4 +161,77 @@
         order by `id` asc limit 2000
     </select>
 
+    <select id="queryList" resultType="com.br.marketing.entity.CarClueInfo" parameterType="com.br.marketing.dto.CarClueReportDTO">
+        select *
+        from b_car_clue_info
+        <where>
+            <if test="carClueReportDTO.createTimeStart != null and carClueReportDTO.createTimeStart != ''">
+                <![CDATA[ and create_time >= #{carClueReportDTO.createTimeStart} ]]>
+            </if>
+            <if test="carClueReportDTO.createTimeEnd != null and carClueReportDTO.createTimeEnd != ''">
+                <![CDATA[ and create_time < #{carClueReportDTO.createTimeEnd} ]]>
+            </if>
+            <if test="carClueReportDTO.resourceType != null and carClueReportDTO.resourceType != ''">
+                and resource_type = #{carClueReportDTO.resourceType}
+            </if>
+            <if test="carClueReportDTO.intention != null and carClueReportDTO.intention != ''">
+                and intention = #{carClueReportDTO.intention}
+            </if>
+            <if test="carClueReportDTO.clueDataStatus != null and !carClueReportDTO.clueDataStatus.isEmpty()">
+                AND clue_data_status IN
+                <foreach collection="carClueReportDTO.clueDataStatus" item="clueDataStatus" open="(" separator="," close=")">
+                    #{clueDataStatus}
+                </foreach>
+            </if>
+            <if test="carClueReportDTO.clueCompleteStatus != null and !carClueReportDTO.clueCompleteStatus.isEmpty()">
+                AND clue_complete_status IN
+                <foreach collection="carClueReportDTO.clueCompleteStatus" item="clueCompleteStatus" open="(" separator="," close=")">
+                    #{clueCompleteStatus}
+                </foreach>
+            </if>
+            <if test="carClueReportDTO.updateTimeStart != null and carClueReportDTO.updateTimeStart != ''">
+                <![CDATA[ and update_time >= #{carClueReportDTO.updateTimeStart} ]]>
+            </if>
+            <if test="carClueReportDTO.updateTimeEnd != null and carClueReportDTO.updateTimeEnd != ''">
+                <![CDATA[ and update_time < #{carClueReportDTO.updateTimeEnd} ]]>
+            </if>
+            <if test="carClueReportDTO.cluePushChannel != null and !carClueReportDTO.cluePushChannel.isEmpty()">
+                AND clue_push_channel IN
+                <foreach collection="carClueReportDTO.cluePushChannel" item="channel" open="(" separator="," close=")">
+                    #{channel}
+                </foreach>
+            </if>
+            <if test="carClueReportDTO.cluePushStatus != null">
+                and clue_push_status = #{carClueReportDTO.cluePushStatus}
+            </if>
+            <if test="carClueReportDTO.pushTimeStart != null and carClueReportDTO.pushTimeStart != ''">
+                <![CDATA[ and push_time >= #{carClueReportDTO.pushTimeStart} ]]>
+            </if>
+            <if test="carClueReportDTO.pushTimeEnd != null and carClueReportDTO.pushTimeEnd != ''">
+                <![CDATA[ and push_time < #{carClueReportDTO.pushTimeEnd} ]]>
+            </if>
+            <if test="carClueReportDTO.clueCallbackFinalState != null">
+                and clue_callback_final_state = #{carClueReportDTO.clueCallbackFinalState}
+            </if>
+            <if test="carClueReportDTO.callBackTimeStart != null and carClueReportDTO.callBackTimeStart != ''">
+                <![CDATA[ and call_back_time >= #{carClueReportDTO.callBackTimeStart} ]]>
+            </if>
+            <if test="carClueReportDTO.callBackTimeEnd != null and carClueReportDTO.callBackTimeEnd != ''">
+                <![CDATA[ and call_back_time < #{carClueReportDTO.callBackTimeEnd} ]]>
+            </if>
+            <if test="carClueReportDTO.search !=null and carClueReportDTO.search!=''">
+                and (brand like concat("%", #{carClueReportDTO.search},"%")
+                or series like concat("%", #{carClueReportDTO.search},"%")
+                or city like concat("%", #{carClueReportDTO.search},"%")
+                or clue_match_brand like concat("%", #{carClueReportDTO.search},"%")
+                or clue_match_series like concat("%", #{carClueReportDTO.search},"%")
+                or clue_match_city like concat("%", #{carClueReportDTO.search},"%"))
+            </if>
+            <if test="minId != null and minId >0">
+                and `id` > #{minId}
+            </if>
+        </where>
+        order by `id` asc limit 2000
+    </select>
+
 </mapper>

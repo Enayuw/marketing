@@ -2615,9 +2615,9 @@ public class MarketingCommonConfig {
 
     /**
      * 车线索入库配置
-     * {"carClueApiCodes":["7410733"],"carClueIntentionGrades":["A","B","a","b"]}
+     * {"yiZhi":"7410733","ziYan":"7410737"}
      */
-    private Map<String, List<String>> carClueStorageConfig;
+    private Map<String, String> carClueStorageConfig;
 
     /**
      * 车线索数据清洗配置
@@ -2778,6 +2778,11 @@ public class MarketingCommonConfig {
      * 通用上传推送决策特殊客户
      */
     private List<String> apiCodeOfpushPolicy;
+
+    /**
+     * 字段映射 样例{"apiCode":{"customName":"cusName"}}
+     */
+    private HashMap<String,JSONObject> fieldKeyMapping;
     /**
      * 众安AI 通话明细名单推送时间
      */
@@ -2860,7 +2865,7 @@ public class MarketingCommonConfig {
     /**
      * 转化文件提取到marketingBI的配置
      */
-    private List<String> transFileExtractionApiCodesConfig;
+    private List<JSONObject> transFileExtractionApiCodesConfig;
     /**
      * 转化文件提取到BI线程数
      */
@@ -2943,5 +2948,19 @@ public class MarketingCommonConfig {
      * 58查询延期撞库数据线程
      */
     private Integer wuBaQueryDelayZipThreadNum;
+
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer customUploadCleanThreadNum;
+
+
+
+    /**
+     * 动态切换消息队列定时任务开关
+     */
+    private Boolean isEnableMqSwitch;
+
+
 }
 

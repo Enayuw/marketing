@@ -1,42 +1,41 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingSyncInfoMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSyncInfo" >
-    <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="cus_batch" property="cusBatch" jdbcType="VARCHAR" />
-    <result column="request_batch" property="requestBatch" jdbcType="VARCHAR" />
-    <result column="last" property="last" jdbcType="TINYINT" />
-    <result column="total" property="total" jdbcType="BIGINT" />
-    <result column="status" property="status" jdbcType="INTEGER" />
-    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
-    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="error_id" property="errorId" jdbcType="BIGINT" />
-    <result column="actual_num" property="actualNum" jdbcType="INTEGER" />
-    <result column="is_upload" property="isUpload" jdbcType="INTEGER" />
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingSyncInfoMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSyncInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="cus_batch" jdbcType="VARCHAR" property="cusBatch" />
+    <result column="request_batch" jdbcType="VARCHAR" property="requestBatch" />
+    <result column="last" jdbcType="TINYINT" property="last" />
+    <result column="total" jdbcType="BIGINT" property="total" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="data_source_type" jdbcType="INTEGER" property="dataSourceType" />
+    <result column="json_data" jdbcType="VARCHAR" property="jsonData" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="error_id" jdbcType="BIGINT" property="errorId" />
+    <result column="actual_num" jdbcType="INTEGER" property="actualNum" />
+    <result column="is_upload" jdbcType="INTEGER" property="isUpload" />
   </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingSyncInfo" extends="BaseResultMap" >
-    <result column="json_data" property="jsonData" jdbcType="LONGVARCHAR" />
-  </resultMap>
-  <sql id="Example_Where_Clause" >
-    <where >
-      <foreach collection="oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue" >
+                <when test="criterion.singleValue">
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue" >
+                <when test="criterion.betweenValue">
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue" >
+                <when test="criterion.listValue">
                   and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
                     #{listItem}
                   </foreach>
                 </when>
@@ -47,25 +46,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause" >
-    <where >
-      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue" >
+                <when test="criterion.singleValue">
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue" >
+                <when test="criterion.betweenValue">
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue" >
+                <when test="criterion.listValue">
                   and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
                     #{listItem}
                   </foreach>
                 </when>
@@ -76,314 +75,268 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List" >
-    id, api_code, cus_batch, request_batch, last, total, status, create_time, update_time, 
-    error_id, actual_num, is_upload
+  <sql id="Base_Column_List">
+    id, api_code, cus_batch, request_batch, `last`, total, `status`, data_source_type, 
+    json_data, create_time, update_time, error_id, actual_num, is_upload
   </sql>
-  <sql id="Blob_Column_List" >
-    json_data
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" >
+  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" resultMap="BaseResultMap">
     select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_marketing_sync_info
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" >
-    select
-    <if test="distinct" >
+    <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_marketing_sync_info
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null" >
+    <if test="orderByClause != null">
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_marketing_sync_info
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     delete from b_marketing_sync_info
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" >
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingSyncInfoExample">
     delete from b_marketing_sync_info
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingSyncInfo" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingSyncInfo" useGeneratedKeys="true">
     insert into b_marketing_sync_info (api_code, cus_batch, request_batch, 
-      last, total, status, 
-      create_time, update_time, error_id, 
-      actual_num, is_upload, json_data
-      )
+      `last`, total, `status`, 
+      data_source_type, json_data, create_time, 
+      update_time, error_id, actual_num, 
+      is_upload)
     values (#{apiCode,jdbcType=VARCHAR}, #{cusBatch,jdbcType=VARCHAR}, #{requestBatch,jdbcType=VARCHAR}, 
       #{last,jdbcType=TINYINT}, #{total,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{errorId,jdbcType=BIGINT}, 
-      #{actualNum,jdbcType=INTEGER}, #{isUpload,jdbcType=INTEGER}, #{jsonData,jdbcType=LONGVARCHAR}
-      )
+      #{dataSourceType,jdbcType=INTEGER}, #{jsonData,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{errorId,jdbcType=BIGINT}, #{actualNum,jdbcType=INTEGER}, 
+      #{isUpload,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSyncInfo" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingSyncInfo" useGeneratedKeys="true">
     insert into b_marketing_sync_info
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
         api_code,
       </if>
-      <if test="cusBatch != null" >
+      <if test="cusBatch != null">
         cus_batch,
       </if>
-      <if test="requestBatch != null" >
+      <if test="requestBatch != null">
         request_batch,
       </if>
-      <if test="last != null" >
-        last,
+      <if test="last != null">
+        `last`,
       </if>
-      <if test="total != null" >
+      <if test="total != null">
         total,
       </if>
-      <if test="status != null" >
-        status,
+      <if test="status != null">
+        `status`,
       </if>
-      <if test="createTime != null" >
-        create_time,
+      <if test="dataSourceType != null">
+        data_source_type,
       </if>
-      <if test="updateTime != null" >
-        update_time,
-      </if>
-      <if test="errorId != null" >
-        error_id,
-      </if>
-      <if test="actualNum != null" >
-        actual_num,
-      </if>
-      <if test="isUpload != null" >
-        is_upload,
-      </if>
-      <if test="jsonData != null" >
+      <if test="jsonData != null">
         json_data,
       </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="errorId != null">
+        error_id,
+      </if>
+      <if test="actualNum != null">
+        actual_num,
+      </if>
+      <if test="isUpload != null">
+        is_upload,
+      </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="cusBatch != null" >
+      <if test="cusBatch != null">
         #{cusBatch,jdbcType=VARCHAR},
       </if>
-      <if test="requestBatch != null" >
+      <if test="requestBatch != null">
         #{requestBatch,jdbcType=VARCHAR},
       </if>
-      <if test="last != null" >
+      <if test="last != null">
         #{last,jdbcType=TINYINT},
       </if>
-      <if test="total != null" >
+      <if test="total != null">
         #{total,jdbcType=BIGINT},
       </if>
-      <if test="status != null" >
+      <if test="status != null">
         #{status,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null" >
+      <if test="dataSourceType != null">
+        #{dataSourceType,jdbcType=INTEGER},
+      </if>
+      <if test="jsonData != null">
+        #{jsonData,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="errorId != null" >
+      <if test="errorId != null">
         #{errorId,jdbcType=BIGINT},
       </if>
-      <if test="actualNum != null" >
+      <if test="actualNum != null">
         #{actualNum,jdbcType=INTEGER},
       </if>
-      <if test="isUpload != null" >
+      <if test="isUpload != null">
         #{isUpload,jdbcType=INTEGER},
-      </if>
-      <if test="jsonData != null" >
-        #{jsonData,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" resultType="java.lang.Integer" >
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingSyncInfoExample" resultType="java.lang.Integer">
     select count(*) from b_marketing_sync_info
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map" >
+  <update id="updateByExampleSelective" parameterType="map">
     update b_marketing_sync_info
-    <set >
-      <if test="record.id != null" >
+    <set>
+      <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null" >
+      <if test="record.apiCode != null">
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.cusBatch != null" >
+      <if test="record.cusBatch != null">
         cus_batch = #{record.cusBatch,jdbcType=VARCHAR},
       </if>
-      <if test="record.requestBatch != null" >
+      <if test="record.requestBatch != null">
         request_batch = #{record.requestBatch,jdbcType=VARCHAR},
       </if>
-      <if test="record.last != null" >
-        last = #{record.last,jdbcType=TINYINT},
+      <if test="record.last != null">
+        `last` = #{record.last,jdbcType=TINYINT},
       </if>
-      <if test="record.total != null" >
+      <if test="record.total != null">
         total = #{record.total,jdbcType=BIGINT},
       </if>
-      <if test="record.status != null" >
-        status = #{record.status,jdbcType=INTEGER},
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
-      <if test="record.createTime != null" >
+      <if test="record.dataSourceType != null">
+        data_source_type = #{record.dataSourceType,jdbcType=INTEGER},
+      </if>
+      <if test="record.jsonData != null">
+        json_data = #{record.jsonData,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null" >
+      <if test="record.updateTime != null">
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.errorId != null" >
+      <if test="record.errorId != null">
         error_id = #{record.errorId,jdbcType=BIGINT},
       </if>
-      <if test="record.actualNum != null" >
+      <if test="record.actualNum != null">
         actual_num = #{record.actualNum,jdbcType=INTEGER},
       </if>
-      <if test="record.isUpload != null" >
+      <if test="record.isUpload != null">
         is_upload = #{record.isUpload,jdbcType=INTEGER},
       </if>
-      <if test="record.jsonData != null" >
-        json_data = #{record.jsonData,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
+  <update id="updateByExample" parameterType="map">
     update b_marketing_sync_info
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cus_batch = #{record.cusBatch,jdbcType=VARCHAR},
       request_batch = #{record.requestBatch,jdbcType=VARCHAR},
-      last = #{record.last,jdbcType=TINYINT},
+      `last` = #{record.last,jdbcType=TINYINT},
       total = #{record.total,jdbcType=BIGINT},
-      status = #{record.status,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      error_id = #{record.errorId,jdbcType=BIGINT},
-      actual_num = #{record.actualNum,jdbcType=INTEGER},
-      is_upload = #{record.isUpload,jdbcType=INTEGER},
-      json_data = #{record.jsonData,jdbcType=LONGVARCHAR}
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExample" parameterType="map" >
-    update b_marketing_sync_info
-    set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      cus_batch = #{record.cusBatch,jdbcType=VARCHAR},
-      request_batch = #{record.requestBatch,jdbcType=VARCHAR},
-      last = #{record.last,jdbcType=TINYINT},
-      total = #{record.total,jdbcType=BIGINT},
-      status = #{record.status,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      data_source_type = #{record.dataSourceType,jdbcType=INTEGER},
+      json_data = #{record.jsonData,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       error_id = #{record.errorId,jdbcType=BIGINT},
       actual_num = #{record.actualNum,jdbcType=INTEGER},
       is_upload = #{record.isUpload,jdbcType=INTEGER}
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingSyncInfo" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingSyncInfo">
     update b_marketing_sync_info
-    <set >
-      <if test="apiCode != null" >
+    <set>
+      <if test="apiCode != null">
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="cusBatch != null" >
+      <if test="cusBatch != null">
         cus_batch = #{cusBatch,jdbcType=VARCHAR},
       </if>
-      <if test="requestBatch != null" >
+      <if test="requestBatch != null">
         request_batch = #{requestBatch,jdbcType=VARCHAR},
       </if>
-      <if test="last != null" >
-        last = #{last,jdbcType=TINYINT},
+      <if test="last != null">
+        `last` = #{last,jdbcType=TINYINT},
       </if>
-      <if test="total != null" >
+      <if test="total != null">
         total = #{total,jdbcType=BIGINT},
       </if>
-      <if test="status != null" >
-        status = #{status,jdbcType=INTEGER},
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null" >
+      <if test="dataSourceType != null">
+        data_source_type = #{dataSourceType,jdbcType=INTEGER},
+      </if>
+      <if test="jsonData != null">
+        json_data = #{jsonData,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="errorId != null" >
+      <if test="errorId != null">
         error_id = #{errorId,jdbcType=BIGINT},
       </if>
-      <if test="actualNum != null" >
+      <if test="actualNum != null">
         actual_num = #{actualNum,jdbcType=INTEGER},
       </if>
-      <if test="isUpload != null" >
+      <if test="isUpload != null">
         is_upload = #{isUpload,jdbcType=INTEGER},
-      </if>
-      <if test="jsonData != null" >
-        json_data = #{jsonData,jdbcType=LONGVARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingSyncInfo" >
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSyncInfo">
     update b_marketing_sync_info
     set api_code = #{apiCode,jdbcType=VARCHAR},
       cus_batch = #{cusBatch,jdbcType=VARCHAR},
       request_batch = #{requestBatch,jdbcType=VARCHAR},
-      last = #{last,jdbcType=TINYINT},
+      `last` = #{last,jdbcType=TINYINT},
       total = #{total,jdbcType=BIGINT},
-      status = #{status,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      error_id = #{errorId,jdbcType=BIGINT},
-      actual_num = #{actualNum,jdbcType=INTEGER},
-      is_upload = #{isUpload,jdbcType=INTEGER},
-      json_data = #{jsonData,jdbcType=LONGVARCHAR}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSyncInfo" >
-    update b_marketing_sync_info
-    set api_code = #{apiCode,jdbcType=VARCHAR},
-      cus_batch = #{cusBatch,jdbcType=VARCHAR},
-      request_batch = #{requestBatch,jdbcType=VARCHAR},
-      last = #{last,jdbcType=TINYINT},
-      total = #{total,jdbcType=BIGINT},
-      status = #{status,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      data_source_type = #{dataSourceType,jdbcType=INTEGER},
+      json_data = #{jsonData,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       error_id = #{errorId,jdbcType=BIGINT},

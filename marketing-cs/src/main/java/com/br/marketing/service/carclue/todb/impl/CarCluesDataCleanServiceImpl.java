@@ -2,6 +2,7 @@ package com.br.marketing.service.carclue.todb.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -9,6 +10,8 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
@@ -16,6 +19,7 @@ import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.CallRecordLogMapper;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
+import com.br.marketing.mapper.CarClueManageConfigMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.carclue.clueenums.CarClueCompleteStatusEnum;
@@ -55,6 +59,9 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
     private CallRecordLogMapper callRecordLogMapper;
 
     @Resource
+    private CarClueManageConfigMapper carClueManageConfigMapper;
+
+    @Resource
     private TableCreateServiceImpl tableCreateService;
 
     @Resource
@@ -70,8 +77,52 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
 
     public void clean(String apiCode, String date) {
         String cid = tableCreateService.getCId(apiCode);
-        Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
-        List<String> carClueIntentionGrades = carClueStorageConfig.get("carClueIntentionGrades");
+        if (StringUtils.isEmpty(cid)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据入库异常：获取cid失败，apiCode：" + apiCode));
+            return;
+        }
+
+        // 查询意向等级配置
+        CarClueManageConfigExample example = new CarClueManageConfigExample();
+        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<CarClueManageConfig> configs = carClueManageConfigMapper.selectByExample(example);
+
+        if (CollectionUtils.isEmpty(configs)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据入库异常：渠道商配置为空！"));
+            return;
+        }
+
+        // 解析意向配置
+        String intentionConfig = configs.get(0).getIntentionConfig();
+        if (StringUtils.isEmpty(intentionConfig)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据入库异常：意向配置为空！"));
+            return;
+        }
+
+        JSONObject intentionConfigObj = JSONObject.parseObject(intentionConfig);
+        Map<String, String> storageConfig = marketingCommonConfig.getCarClueStorageConfig();
+
+        // 查找匹配apiCode下的意向等级
+        Optional<String> intentionOpt = storageConfig.entrySet().stream()
+                .filter(entry -> apiCode.equals(entry.getValue()))
+                .map(entry -> intentionConfigObj.getString(entry.getKey()))
+                .filter(StringUtils::isNotEmpty)
+                .findFirst();
+
+        if (!intentionOpt.isPresent()) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "车线索数据入库异常：未配置意向等级，apiCode：" + apiCode));
+            return;
+        }
+
+        // 分割意向等级
+        List<String> carClueIntentionGrades = Arrays.stream(intentionOpt.get().split(","))
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toList());
+
         JSONObject carClueDataCleanConfig = marketingCommonConfig.getCarClueDataCleanConfig();
         Integer limit = carClueDataCleanConfig.getInteger("limit");
         Integer threadNum = carClueDataCleanConfig.getInteger("threadNum");

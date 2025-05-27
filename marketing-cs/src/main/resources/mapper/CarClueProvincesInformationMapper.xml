@@ -35,4 +35,5 @@
         where is_del = 1
 
     </select>
+
 </mapper>

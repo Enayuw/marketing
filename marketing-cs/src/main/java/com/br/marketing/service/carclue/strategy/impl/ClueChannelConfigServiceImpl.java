@@ -10,6 +10,7 @@ import com.br.marketing.entity.CarChannelConfigExample;
 import com.br.marketing.mapper.CarChannelConfigMapper;
 import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
 import com.br.marketing.service.carclue.clueenums.ChannelConfigTypeEnum;
+import com.br.marketing.service.carclue.config.AbstractClueChannelConfig;
 import com.br.marketing.service.carclue.filter.AbstractClueChannelFilter;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
 import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
@@ -36,6 +37,11 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
     Map<String, AbstractClueChannelMatch> abstractClueChannelMatchMap;
 
     Map<String, AbstractClueChannelMatch> clueChannelMatchMapByLabel;
+
+    @Resource
+    Map<String, AbstractClueChannelConfig> abstractClueChannelConfigMap;
+
+    Map<String, AbstractClueChannelConfig> clueChannelConfigMapByLabel;
 
     @Resource
     Map<String, AbstractClueChannelFilter> abstractClueChannelFilterMap;
@@ -77,6 +83,12 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
         for (Map.Entry<String, AbstractClueChannelCallBack> stringAbstractClueChannelCallBackEntry : abstractClueChannelCallBackMap.entrySet()) {
             AbstractClueChannelCallBack value = stringAbstractClueChannelCallBackEntry.getValue();
             clueChannelCallBackMapByLabel.putIfAbsent(value.label(), value);
+        }
+
+        clueChannelConfigMapByLabel = new HashMap<>();
+        for (Map.Entry<String, AbstractClueChannelConfig> stringAbstractClueChannelConfigEntry : abstractClueChannelConfigMap.entrySet()) {
+            AbstractClueChannelConfig value = stringAbstractClueChannelConfigEntry.getValue();
+            clueChannelConfigMapByLabel.putIfAbsent(value.label(), value);
         }
     }
 
@@ -135,6 +147,14 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
         Optional<String> pushOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
                 .map(t -> t.getStrategyMatch()).findFirst();
         return pushOpt.isPresent() ? clueChannelMatchMapByLabel.get(pushOpt.get()) : null;
+    }
+
+    @Override
+    public AbstractClueChannelConfig getChannelConfigImpl(String apiCodeChannel) {
+        List<CarChannelConfig> configs = getChannelConfig();
+        Optional<String> pushOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
+                .map(t -> t.getStrategyConfigInfo()).findFirst();
+        return pushOpt.isPresent() ? clueChannelConfigMapByLabel.get(pushOpt.get()) : null;
     }
 
     @Override
