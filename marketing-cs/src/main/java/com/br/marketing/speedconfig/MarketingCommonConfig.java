@@ -2954,13 +2954,15 @@ public class MarketingCommonConfig {
      */
     private Integer customUploadCleanThreadNum;
 
-
-
     /**
      * 动态切换消息队列定时任务开关
      */
     private Boolean isEnableMqSwitch;
 
+    /**
+     * 同程正负样本本地和内部SFTP-文件路径
+     */
+    private String tongChengSampleZipFilePath;
 
 }
 
