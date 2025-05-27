@@ -80,5 +80,20 @@ public class TcCustomizeWithoutSignController {
         return tcCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
+    @ApiOperation(value = "测试正负样本推送")
+    @PostMapping("/sampleDataPush")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public TcResponseDTO sampleDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+        tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
+        Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
+        String signature = RSAUtil.generateContent(convert);
+        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
+        //同程私钥加签
+        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
+        String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
+        tcRequestDTO.setSign(sign);
+        return tcCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    }
+
 
 }

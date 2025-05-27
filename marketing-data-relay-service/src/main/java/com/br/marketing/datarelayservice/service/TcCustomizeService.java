@@ -14,4 +14,6 @@ public interface TcCustomizeService {
     TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO, String apiCode);
 
     TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode);
+
+    TcResponseDTO sampleDataPush(TcRequestDTO tcRequestDTO, String apiCode);
 }
