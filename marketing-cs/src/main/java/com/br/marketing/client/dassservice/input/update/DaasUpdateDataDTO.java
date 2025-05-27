@@ -39,4 +39,9 @@ public class DaasUpdateDataDTO {
      */
     private String extend;
 
+    /**
+     * 请求ID，用于幂等性校验
+     */
+    private String requestId;
+
 }

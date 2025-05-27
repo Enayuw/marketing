@@ -2188,6 +2188,14 @@ public class PushDataServiceImpl implements PushDataService {
             List<DaasUpdateDataDTO> updateDataList = updatePhoneSaleMapper.getPushUpdateDassData(id, minId);
             number += updateDataList.size();
             if (updateDataList.size() > 0) {
+                // 为每条数据预生成requestId，确保重试时使用相同ID
+                updateDataList.forEach(updateData -> {
+                    if (StringUtils.isBlank(updateData.getRequestId())) {
+                        String requestId = "req" + System.currentTimeMillis() + "_" + updateData.getUid() + "_" + updateData.getId();
+                        updateData.setRequestId(requestId);
+                    }
+                });
+                
                 DaasUpdateDataDTO lastUpdate = updateDataList.get(updateDataList.size() - 1);
                 DaasUpdateDataAdapDTO dto = new DaasUpdateDataAdapDTO();
                 dto.setDaasUpdateDataDTOList(updateDataList);

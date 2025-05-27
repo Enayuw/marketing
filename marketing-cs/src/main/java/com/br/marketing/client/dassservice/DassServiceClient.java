@@ -599,8 +599,12 @@ public class DassServiceClient {
                 // 构建请求参数
                 Map<String, Object> requestParam = new HashMap<>();
                 
-                // 生成唯一请求ID
-                String requestId = "req" + System.currentTimeMillis() + "_" + updateData.getUid();
+                // 生成唯一请求ID（如果DTO中没有则生成新的，确保重试时使用相同ID）
+                String requestId = updateData.getRequestId();
+                if (StringUtils.isBlank(requestId)) {
+                    requestId = "req" + System.currentTimeMillis() + "_" + updateData.getUid();
+                    updateData.setRequestId(requestId);
+                }
                 
                 // 获取当前时间戳
                 long timeStamp = System.currentTimeMillis();
