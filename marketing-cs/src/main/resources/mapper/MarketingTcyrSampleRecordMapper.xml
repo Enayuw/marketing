@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrSampleRecordMapper" >
+    <select id="searchTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSampleRecord">
+        SELECT  id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        FROM b_marketing_tcyr_sample_record
+        WHERE api_code = #{apiCode}
+          AND status = #{status}
+          AND down_status = 0
+          AND is_del = 1
+    </select>
+
+
+    <update id="updageTcyrSampleRecordDownStatus">
+        update b_marketing_tcyr_sample_record set down_status = #{downStatus} where batch_no = #{batchNo}
+    </update>
+
+
+</mapper>

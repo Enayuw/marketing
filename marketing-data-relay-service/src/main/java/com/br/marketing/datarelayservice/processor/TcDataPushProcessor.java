@@ -38,13 +38,13 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         try {
-            tcyrSyncRecordMapper.insert(record);
+            tcyrSyncRecordMapper.insertSelective(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警 todo
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
             record.setStatus(2);
-            tcyrSyncRecordMapper.insert(record);
+            tcyrSyncRecordMapper.insertSelective(record);
             return null;
         }
     }
