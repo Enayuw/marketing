@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface UpdatePhoneSaleMapper extends UpdatePhoneSaleMapperBase {
 
-    List<DaasUpdateDataDTO> getPushCsosDassData(@Param("localId")Long id, @Param("dataId") Long dataId);
+    List<DaasUpdateDataDTO> getPushUpdateDassData(@Param("localId")Long id, @Param("dataId") Long dataId);
 
 }

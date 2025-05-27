@@ -18,6 +18,8 @@ import com.br.marketing.client.dassservice.input.csos.DaasCsosDataAdapDTO;
 import com.br.marketing.client.dassservice.input.csos.DaasCsosDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
+import com.br.marketing.client.dassservice.input.update.DaasUpdateDataAdapDTO;
+import com.br.marketing.client.dassservice.input.update.DaasUpdateDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.common.commondto.Result;
@@ -88,6 +90,12 @@ public class DassServiceClient {
 
     @Value("${api.dass.postWealthUserData:00}")
     private String postCsosData;
+
+    @Value("${api.dass.postWealthUpdateData:http://39.98.232.175:8088/csos-daas/call/postWealthUpdateData}")
+    private String postWealthUpdateData;
+
+    @Value("${api.dass.appId:TEST_APP_ID}")
+    private String appId;
 
     static String ibuBatchToDass = "IBTD";
 
@@ -578,6 +586,83 @@ public class DassServiceClient {
         }
     }
 
-    // daas更新接口 （需要做幂等校验，重试的时候相同requestId进行重试）
+    /**
+     * 推送人工业务数据更新接口
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result postWealthUpdateData(DaasUpdateDataAdapDTO daasUpdateDataAdapDTO) {
+        Result result = new Result();
+        try {
+            List<DaasUpdateDataDTO> daasUpdateDataDTOList = daasUpdateDataAdapDTO.getDaasUpdateDataDTOList();
+            
+            for (DaasUpdateDataDTO updateData : daasUpdateDataDTOList) {
+                // 构建请求参数
+                Map<String, Object> requestParam = new HashMap<>();
+                
+                // 生成唯一请求ID
+                String requestId = "req" + System.currentTimeMillis() + "_" + updateData.getUid();
+                
+                // 获取当前时间戳
+                long timeStamp = System.currentTimeMillis();
+                
+                // 计算签名: MD5(appId + requestId + timeStamp)
+                String signatureString = appId + requestId + timeStamp;
+                String signature = DigestUtils.md5DigestAsHex(signatureString.getBytes());
+                
+                // 构建扩展字段
+                Map<String, Object> reserveField1 = new HashMap<>();
+                if (StringUtils.isNotBlank(updateData.getPlanCallTime())) {
+                    reserveField1.put("planCallTime", updateData.getPlanCallTime());
+                }
+                
+                // 设置请求参数
+                requestParam.put("requestId", requestId);
+                requestParam.put("uid", updateData.getUid());
+                requestParam.put("orgname", updateData.getOrgname());
+                requestParam.put("source", updateData.getSource());
+                requestParam.put("userType", updateData.getUserType());
+                requestParam.put("reserveField1", reserveField1);
+                requestParam.put("timeStamp", timeStamp);
+                requestParam.put("signature", signature);
+                
+                // 发送请求
+                HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postWealthUpdateData,
+                        isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+                
+                final String httpCode = hashMap.getOrDefault("httpcode", "5000");
+                if (httpCode.equals("200")) {
+                    final String respStr = hashMap.getOrDefault("content", "");
+                    log.warn("%%人工业务数据更新接口应答内容：[{}]", respStr);
+                    if (StringUtils.isEmpty(respStr)) {
+                        result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
+                        return result;
+                    }
+                    
+                    // 解析响应
+                    try {
+                        JSONObject respJson = JSONObject.parseObject(respStr);
+                        Integer code = respJson.getInteger("code");
+                        String message = respJson.getString("message");
+                        
+                        if (code != null && code == 1) {
+                            result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
+                        } else {
+                            result.setCode(ResultCode.FAIL.getValue()).setMessage(message);
+                            log.warn("人工业务数据更新接口返回失败：code={}, message={}", code, message);
+                        }
+                    } catch (Exception e) {
+                        result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
+                    }
+                } else {
+                    result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
+                }
+            }
+            
+            return result;
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "推送人工业务数据更新接口异常"), ex);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+        }
+    }
 
 }

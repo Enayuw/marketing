@@ -24,6 +24,10 @@ public class DaasUpdateDataDTO {
      */
     private String uid;
 
+    /**
+     * 机构名称
+     */
+    private String orgname;
 
     /**
      * 计划外呼时间

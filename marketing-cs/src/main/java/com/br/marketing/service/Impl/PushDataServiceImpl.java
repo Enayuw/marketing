@@ -19,6 +19,7 @@ import com.br.marketing.client.dassservice.input.csos.DaasCsosDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.update.DaasUpdateDataDTO;
+import com.br.marketing.client.dassservice.input.update.DaasUpdateDataAdapDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
@@ -2165,7 +2166,74 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushUpdateDassData(Long id) {
-        return null;
+        Boolean actionMark = true;
+        Long minId = null;
+        String key = "dass:push:threadnum";
+        Integer threadNum = 5;
+        if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
+            threadNum = Integer.valueOf(redisChgService.get(key));
+        }
+        modifyThreadPool(pushDassThreadPool, threadNum);
+
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+        }
+
+        localFile.setPushStartTime(new Date());
+
+        Integer number = 0;
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        while (actionMark) {
+            List<DaasUpdateDataDTO> updateDataList = updatePhoneSaleMapper.getPushUpdateDassData(id, minId);
+            number += updateDataList.size();
+            if (updateDataList.size() > 0) {
+                DaasUpdateDataDTO lastUpdate = updateDataList.get(updateDataList.size() - 1);
+                DaasUpdateDataAdapDTO dto = new DaasUpdateDataAdapDTO();
+                dto.setDaasUpdateDataDTOList(updateDataList);
+                minId = lastUpdate.getId();
+
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                    try {
+                        Result result = dassServiceClient.postWealthUpdateData(dto);
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            RetryMainLog mainLog = new RetryMainLog();
+                            mainLog.setRetryType(1);
+                            mainLog.setRetryParam(JSON.toJSONString(dto));
+                            mainLog.setRetryParamType(dto.getClass().getName());
+                            mainLog.setRetryService("dassServiceClient");
+                            mainLog.setRetryMethod("postWealthUpdateData");
+                            mainLog.setRetryNum(0);
+                            mainLog.setRetryMaxNum(3);
+                            mainLog.setRetryStatus(1);
+                            mainLog.setCreateTime(new Date());
+                            mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                            retryMainLogMapper.insertSelective(mainLog);
+                        }
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                "sftp文件推送人工业务数据更新接口子线程异常，异常日志：" + e.getMessage()), e);
+                    }
+                }, pushDassThreadPool);
+                futures.add(future);
+            } else {
+                actionMark = false;
+            }
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(number);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
+                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("数量：".concat(number.toString()).concat("\r\n"))
+                    .append("文件推送人工业务数据更新接口结束".concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "人工业务数据更新接口推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
 
