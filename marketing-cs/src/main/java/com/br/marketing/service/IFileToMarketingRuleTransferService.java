@@ -3,12 +3,15 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @ClassName IFileToMarketingRuleTransferService
@@ -42,6 +45,19 @@ public interface IFileToMarketingRuleTransferService {
     default String getTaskId(String apiCode,String fileNm){
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         return apiCode.concat("_").concat(yyyyMMdd);
+    }
+
+    default Boolean isChecklistName(MarketingDataFileConfig fileConfig, String fileNm){
+        // 校验表名称
+        if(fileConfig.getIsChecklistName() != null && fileConfig.getIsChecklistName() == 0){
+            String regex = fileConfig.getValidationRules();
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcherWithoutSuccess = pattern.matcher(fileNm);
+            if (!matcherWithoutSuccess.matches()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

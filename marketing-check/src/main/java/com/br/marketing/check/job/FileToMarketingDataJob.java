@@ -179,15 +179,10 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
         // 校验表名称
-        if(fileConfig.getIsChecklistName() != null && fileConfig.getIsChecklistName() == 0){
-            String regex = fileConfig.getValidationRules();
-            Pattern pattern = Pattern.compile(regex);
-            // 匹配不带 .success 后缀的文件名
-            Matcher matcherWithoutSuccess = pattern.matcher(fileNm);
-            if (!matcherWithoutSuccess.matches()) {
-                log.warn("文件名:{};校验规则:{};错误:{};", fileNm, regex, "文件名称校验失败");
-                return;
-            }
+        Boolean checklistName = iFileToMarketingRuleService.isChecklistName(fileConfig, fileNm);
+        if(!checklistName){
+            log.warn("文件名:{};校验规则:{};错误:{};", fileNm, fileConfig.getValidationRules(), "文件名称校验失败");
+            return;
         }
         // json转化为字段属性list
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
@@ -441,15 +436,10 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
         // 校验表名称
-        if(fileConfig.getIsChecklistName() != null && fileConfig.getIsChecklistName() == 0){
-            String regex = fileConfig.getValidationRules();
-            Pattern pattern = Pattern.compile(regex);
-            // 匹配不带 .success 后缀的文件名
-            Matcher matcherWithoutSuccess = pattern.matcher(fileNm);
-            if (!matcherWithoutSuccess.matches()) {
-                log.warn("文件名:{};校验规则:{};错误:{};", fileNm, regex, "文件名称校验失败");
-                return;
-            }
+        Boolean checklistName = iFileToMarketingRuleService.isChecklistName(fileConfig, fileNm);
+        if(!checklistName){
+            log.warn("文件名:{};校验规则:{};错误:{};", fileNm, fileConfig.getValidationRules(), "文件名称校验失败");
+            return;
         }
         // json转化为字段属性list
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
