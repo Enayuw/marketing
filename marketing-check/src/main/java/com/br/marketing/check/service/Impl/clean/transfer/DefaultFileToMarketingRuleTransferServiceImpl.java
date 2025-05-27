@@ -2,6 +2,7 @@ package com.br.marketing.check.service.Impl.clean.transfer;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.service.IFileToMarketingRuleTransferService;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class DefaultFileToMarketingRuleTransferServiceImpl implements IFileToMar
     }
 
     @Override
-    public TransferDataDTO make(List<FileToMarketingDataFieldVO> vos) {
+    public TransferDataItemDTO make(List<FileToMarketingDataFieldVO> vos) {
         return IFileToMarketingRuleTransferService.super.make(vos);
     }
 

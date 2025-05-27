@@ -1,7 +1,10 @@
 package com.br.marketing.check.service.Impl.clean.transfer;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.service.IFileToMarketingRuleTransferService;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 import org.springframework.stereotype.Service;
@@ -24,8 +27,55 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
     }
 
     @Override
-    public TransferDataDTO make(List<FileToMarketingDataFieldVO> vos) {
-        return IFileToMarketingRuleTransferService.super.make(vos);
+    public TransferDataItemDTO make(List<FileToMarketingDataFieldVO> vos) {
+        TransferDataItemDTO dto = new TransferDataItemDTO();
+        JSONObject reserveFieldJo = new JSONObject();
+        for (FileToMarketingDataFieldVO vo : vos) {
+            switch (vo.getInterfaceField()){
+                case "custNum":
+                    dto.setCustNum(vo.getDataValue());
+                    dto.setUserType(vo.getDataValue());
+                    break;
+                case"ifLogin":
+                    dto.setIfLogin(vo.getDataValue());
+                    break;
+                case"ifLent":
+                    if(StringUtils.isNotBlank(vo.getDataValue())){
+                        dto.setIfLent(vo.getDataValue());
+                    }
+                    break;
+                case"caseEffective":
+                    reserveFieldJo.put("caseEffective",vo.getDataValue());
+                    break;
+                case"lmt_sts":
+                    reserveFieldJo.put("lmt_sts",vo.getDataValue());
+                    break;
+                case"crd_typ":
+                    reserveFieldJo.put("crd_typ",vo.getDataValue());
+                    break;
+                case"qy_typ":
+                    reserveFieldJo.put("qy_typ",vo.getDataValue());
+                    break;
+                case"qy_rat":
+                    reserveFieldJo.put("qy_rat",vo.getDataValue());
+                    break;
+                case"applyLoan":
+                    reserveFieldJo.put("applyLoan",vo.getDataValue());
+                    break;
+                case"cmpn_value_typ":
+                    reserveFieldJo.put("cmpn_value_typ",vo.getDataValue());
+                    break;
+                default:
+                    break;
+            }
+            if(vo.getIsExtend()!=null && vo.getIsExtend()){
+                reserveFieldJo.put(StringUtils.isBlank(vo.getInterfaceField())?vo.getHeadField():vo.getInterfaceField(),vo.getDataValue());
+            }
+        }
+        if (reserveFieldJo.keySet().size()>0) {
+            dto.setReserveField1(JSON.toJSONString(reserveFieldJo));
+        }
+        return dto;
     }
 
     @Override

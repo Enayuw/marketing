@@ -2,7 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 
@@ -33,9 +33,8 @@ public interface IFileToMarketingRuleTransferService {
      * 生成营销数据对象
      * @return
      */
-    default TransferDataDTO make(List<FileToMarketingDataFieldVO> vos){
-        return new TransferDataDTO();
-
+    default TransferDataItemDTO make(List<FileToMarketingDataFieldVO> vos){
+        return new TransferDataItemDTO();
     }
 
     /**

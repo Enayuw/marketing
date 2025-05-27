@@ -16,6 +16,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -43,14 +44,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -464,7 +460,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
             Integer pushBatchNumber = 1;
             HashMap<Integer, String> address = new HashMap<>();
             HashSet<String> extra = new HashSet<>();
-            List<TransferDataDTO> transferDataDTOS = new ArrayList<>();
+            List<TransferDataItemDTO> transferDataDTOS = new ArrayList<>();
             Integer headSum = 0;
             Boolean isNotFinal = Boolean.TRUE;
             String[] headers = new String[0];
@@ -625,7 +621,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             log.warn("文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
                             continue;
                         }
-                        TransferDataDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
+                        TransferDataItemDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
                         transferDataDTOS.add(make);
                     }
                 }
@@ -633,7 +629,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 if (transferDataDTOS.size() == pushNum || (!isNotFinal && transferDataDTOS.size() > 0)) {
                     pushSum += transferDataDTOS.size();
                     TransferDataDTO transferDataDTO = new TransferDataDTO();
-                    transferDataDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));
                     transferDataDTO.setRequestId(apiCode.concat("_").concat(RandomStringUtils.randomNumeric(5)).concat("_").concat(String.valueOf(System.currentTimeMillis())));
                     transferDataDTO.setDataItems(transferDataDTOS);
                     PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
