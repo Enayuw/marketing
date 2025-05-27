@@ -91,10 +91,10 @@ public class DassServiceClient {
     @Value("${api.dass.postWealthUserData:00}")
     private String postCsosData;
 
-    @Value("${api.dass.postWealthUpdateData:http://39.98.232.175:8088/csos-daas/call/postWealthUpdateData}")
+    @Value("${api.dass.postWealthUpdateData:00}")
     private String postWealthUpdateData;
 
-    @Value("${api.dass.appId:TEST_APP_ID}")
+    @Value("${api.dass.appId:00}")
     private String appId;
 
     static String ibuBatchToDass = "IBTD";
@@ -611,8 +611,7 @@ public class DassServiceClient {
                 
                 // 计算签名: MD5(appId + requestId + timeStamp)
                 String signatureString = appId + requestId + timeStamp;
-                String signature = DigestUtils.md5DigestAsHex(signatureString.getBytes());
-                
+                String signature = DigestUtils.md5DigestAsHex(signatureString.getBytes()).toUpperCase();
                 // 构建扩展字段
                 Map<String, Object> reserveField1 = new HashMap<>();
                 if (StringUtils.isNotBlank(updateData.getPlanCallTime())) {
