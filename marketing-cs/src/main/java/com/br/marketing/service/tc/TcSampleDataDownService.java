@@ -72,10 +72,12 @@ public class TcSampleDataDownService {
                     log.warn("apiCode:{},batchNo:{},fileUrl:{} 下载链接为空", sampleRecord.getApiCode(), sampleRecord.getBatchNo(), fileUrl);
                     return;
                 }
+
                 //文件下载
                 String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
                 String dirPath = syncConfigService.getPath().concat(filePath).concat(yyyyMMdd).concat("/");
-                String gzFileName = "tcyr_" + sampleRecord.getBatchNo() + ".csv.zip";
+                String orgFileName = extractFileNameFromUrl(fileUrl);
+                String gzFileName = StringUtils.isEmpty(orgFileName) ? "tcyr_" + sampleRecord.getBatchNo() + ".csv.zip" : orgFileName + ".zip";
                 String gzFilePath = dirPath.concat(gzFileName);
                 Result callFileResult = zipFileClient.downloadFile(fileUrl, gzFilePath, true);
                 if (callFileResult == null || !callFileResult.isSuccess()) {
@@ -115,5 +117,20 @@ public class TcSampleDataDownService {
                 .withSecond(59)
                 .withNano(999999999);
         return Date.from(todayEnd.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    private String extractFileNameFromUrl(String url) {
+        try {
+            // 获取最后一个斜杠后的内容
+            String fileName = url.substring(url.lastIndexOf('/') + 1);
+
+            // 验证文件名是否有效
+            if (!fileName.isEmpty() && !fileName.equals("/")) {
+                return fileName;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to extract filename from URL: {}", url);
+        }
+        return null;
     }
 }

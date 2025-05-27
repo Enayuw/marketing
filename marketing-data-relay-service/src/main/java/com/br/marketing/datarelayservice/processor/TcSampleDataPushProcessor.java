@@ -45,7 +45,7 @@ public class TcSampleDataPushProcessor extends AbstractTcCustomizeProcessor{
             //告警
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
             record.setStatus(2);
-            tcyrSampleRecordMapper.insert(record);
+            tcyrSampleRecordMapper.insertSelective(record);
             return null;
         }
     }
