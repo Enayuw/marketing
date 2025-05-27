@@ -43,4 +43,6 @@ public interface ITxtToDbService {
     Result<Integer> phoneTodbByYiXinAfterAction(LocalFile file);
 
     Result csosPhoneTodb(TxtToDbDTO txtToDbDTO);
+
+    Result updateFileTodb(TxtToDbDTO txtToDbDTO);
 }

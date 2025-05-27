@@ -79,6 +79,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
     @Resource
     CsosPhoneSaleMapper csosPhoneSaleMapper;
 
+    @Resource
+    UpdatePhoneSaleMapper updatePhoneSaleMapper;
+
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
@@ -2185,6 +2188,106 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             return name;
         }
         return "1";
+    }
+
+    @Override
+    public Result updateFileTodb(TxtToDbDTO dto) {
+        UpdatePhoneSale phoneSale = new UpdatePhoneSale();
+        String row = dto.getContent();
+        HashMap<Integer, String> address = dto.getAddress();
+        HashMap<Integer, String> extSetFields = dto.getExtSetField();
+        Integer line = dto.getLine();
+        List<String> datas = Splitter.on(",").splitToList(row);
+        JSONObject jo = null;
+        String error = "uid不能为空;orgName不能为空;user_type不能为空;source不能为空;";
+        phoneSale.setApiCode(dto.getApiCode());
+        phoneSale.setLocalId(dto.getLocalId().toString());
+        phoneSale.setStatus(1);
+        try {
+            if (datas.size() != address.size()) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
+                updatePhoneSaleMapper.insertSelective(phoneSale);
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                switch (sureaddress) {
+                    case "uid":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("uid不能为空;", "");
+                        }
+                        phoneSale.setUid(datas.get(i));
+                        break;
+                    case "phone":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("phone不能为空;", "");
+                            Result<String> stringResult = decryptPhone(datas.get(i));
+                            phoneSale.setPhoneAes(datas.get(i));
+                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                                phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
+                            } else {
+                                phoneSale.setPhone(stringResult.getData());
+                            }
+                        }
+                        break;
+                    case "name":
+                        String name = datas.get(i);
+                        phoneSale.setNameAes(name);
+                        phoneSale.setName(decryptCsosName(name));
+                        break;
+                    case "gender":
+                        phoneSale.setGender(datas.get(i));
+                        break;
+                    case "orgname":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("orgName不能为空;", "");
+                            phoneSale.setOrgname(datas.get(i));
+                        }
+                        break;
+                    case "source":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("source不能为空;", "");
+                            phoneSale.setSource(datas.get(i));
+                        }
+                        break;
+                    case "user_type":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("user_type不能为空;", "");
+                            phoneSale.setUserType(datas.get(i));
+                        }
+                        break;
+                    case "extend":
+                        String s = extSetFields.get(i);
+                        if (StringUtils.isNotBlank(s)) {
+                            if (jo == null) {
+                                jo = new JSONObject();
+                            }
+                            jo.put(s, datas.get(i));
+                        }
+                        break;
+                }
+                if (jo != null) {
+                    phoneSale.setExtend(jo.toJSONString());
+                }
+            }
+            if (!StringUtils.isEmpty(error)) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+            }
+            Date date = new Date();
+            phoneSale.setCreateTime(date);
+            phoneSale.setUpdateTime(date);
+            updatePhoneSaleMapper.insertSelective(phoneSale);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            phoneSale.setStatus(2);
+            phoneSale.setDataMessage(String.format("行号：%d;发生错误！", line));
+            updatePhoneSaleMapper.insertSelective(phoneSale);
+        }
+        return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
+                ? ResultCode.SUCCESS.getValue()
+                : ResultCode.FAIL.getValue());
     }
 
 }

@@ -577,4 +577,7 @@ public class DassServiceClient {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
     }
+
+    // daas更新接口 （需要做幂等校验，重试的时候相同requestId进行重试）
+
 }
