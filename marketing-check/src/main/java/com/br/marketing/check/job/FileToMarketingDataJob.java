@@ -1,6 +1,7 @@
 package com.br.marketing.check.job;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -430,8 +431,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
     private void fileTransferAction(String apiCode, MarketingDataFileConfig fileConfig, String path, String fileNm, Long localId, IFileToMarketingRuleTransferService iFileToMarketingRuleService) {
         LocalFile updateFile = new LocalFile();
         updateFile.setId(localId);
-        //String taskId = iFileToMarketingRuleService.getTaskId(apiCode,fileNm);
-        String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
+        String taskId = iFileToMarketingRuleService.getTaskId(apiCode,fileNm);
         String fileStr = path.concat(fileNm);
         // 校验表名称
         Boolean checklistName = iFileToMarketingRuleService.isChecklistName(fileConfig, fileNm);
@@ -457,7 +457,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row = "";
             Integer pushNum = 500;
-            Integer pushBatchNumber = 1;
             HashMap<Integer, String> address = new HashMap<>();
             HashSet<String> extra = new HashSet<>();
             List<TransferDataItemDTO> transferDataDTOS = new ArrayList<>();
@@ -622,6 +621,8 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             continue;
                         }
                         TransferDataItemDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
+                        JSONObject jsonObject = JSONObject.parseObject(make.getReserveField1());
+                        jsonObject.put("taskId",taskId);
                         transferDataDTOS.add(make);
                     }
                 }
@@ -638,7 +639,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         pushInfoService.pushTransferByRetry(dto, null);
                     });
                     transferDataDTOS = new ArrayList<>();
-                    pushBatchNumber++;
                 }
             }
             pushPool.shutdown();

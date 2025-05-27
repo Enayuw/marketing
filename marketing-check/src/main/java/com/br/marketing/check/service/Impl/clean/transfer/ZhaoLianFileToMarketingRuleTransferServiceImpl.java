@@ -34,7 +34,6 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
             switch (vo.getInterfaceField()){
                 case "custNum":
                     dto.setCustNum(vo.getDataValue());
-                    dto.setUserType(vo.getDataValue());
                     break;
                 case"ifLogin":
                     dto.setIfLogin(vo.getDataValue());
@@ -54,7 +53,11 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
                     reserveFieldJo.put("crd_typ",vo.getDataValue());
                     break;
                 case"qy_typ":
-                    reserveFieldJo.put("qy_typ",vo.getDataValue());
+                    if(vo.getDataValue().contains("-")){
+                        reserveFieldJo.put("activityTime",vo.getDataValue());
+                    }else {
+                        reserveFieldJo.put("qy_typ",vo.getDataValue());
+                    }
                     break;
                 case"qy_rat":
                     reserveFieldJo.put("qy_rat",vo.getDataValue());
