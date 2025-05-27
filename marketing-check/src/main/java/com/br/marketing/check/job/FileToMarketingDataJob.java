@@ -140,6 +140,14 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                     if(dataFileConfig.getCleanType().equals(0)){
                         IFileToMarketingRuleService fileToMarketingRuleService = getFileToMarketingRuleService(dataFileConfig);
                         for (String fileName : fileNames) {
+
+                            // 校验表名称
+                            Boolean checklistName = fileToMarketingRuleService.isChecklistName(dataFileConfig, fileName);
+                            if(!checklistName){
+                                log.warn("文件名:{};校验规则:{};错误:{};", fileName, dataFileConfig.getValidationRules(), "文件名称校验失败");
+                                continue;
+                            }
+
                             Result<Long> action = isAction(syncConfig.getApiCode(), fileName, targetPath, syncConfig.getTargetPath());
                             if (ResultCode.SUCCESS.getValue().equals(action.getCode())) {
                                 fileUploadAction(syncConfig.getApiCode(), dataFileConfig, targetPath, fileName, action.getData(), fileToMarketingRuleService);
@@ -148,6 +156,14 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                     }else {
                         IFileToMarketingRuleTransferService fileToMarketingRuleTransferService = getFileToMarketingRuleTransferService(dataFileConfig);
                         for (String fileName : fileNames) {
+
+                            // 校验表名称
+                            Boolean checklistName = fileToMarketingRuleTransferService.isChecklistName(dataFileConfig, fileName);
+                            if(!checklistName){
+                                log.warn("文件名:{};校验规则:{};错误:{};", fileName, dataFileConfig.getValidationRules(), "文件名称校验失败");
+                                continue;
+                            }
+
                             Result<Long> action = isAction(syncConfig.getApiCode(), fileName, targetPath, syncConfig.getTargetPath());
                             if (ResultCode.SUCCESS.getValue().equals(action.getCode())) {
                                 fileTransferAction(syncConfig.getApiCode(), dataFileConfig, targetPath, fileName, action.getData(), fileToMarketingRuleTransferService);
@@ -177,12 +193,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         String taskId = iFileToMarketingRuleService.getTaskId(apiCode,fileNm);
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
-        // 校验表名称
-        Boolean checklistName = iFileToMarketingRuleService.isChecklistName(fileConfig, fileNm);
-        if(!checklistName){
-            log.warn("文件名:{};校验规则:{};错误:{};", fileNm, fileConfig.getValidationRules(), "文件名称校验失败");
-            return;
-        }
         // json转化为字段属性list
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
         // 根据 headField 字段分组
@@ -433,12 +443,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         updateFile.setId(localId);
         String taskId = iFileToMarketingRuleService.getTaskId(apiCode,fileNm);
         String fileStr = path.concat(fileNm);
-        // 校验表名称
-        Boolean checklistName = iFileToMarketingRuleService.isChecklistName(fileConfig, fileNm);
-        if(!checklistName){
-            log.warn("文件名:{};校验规则:{};错误:{};", fileNm, fileConfig.getValidationRules(), "文件名称校验失败");
-            return;
-        }
         // json转化为字段属性list
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
         // 根据 headField 字段分组
@@ -623,6 +627,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         TransferDataItemDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
                         JSONObject jsonObject = JSONObject.parseObject(make.getReserveField1());
                         jsonObject.put("taskId",taskId);
+                        make.setReserveField1(jsonObject.toJSONString());
                         transferDataDTOS.add(make);
                     }
                 }

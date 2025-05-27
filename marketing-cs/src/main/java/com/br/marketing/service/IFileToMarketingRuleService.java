@@ -98,8 +98,8 @@ public interface IFileToMarketingRuleService {
         if(fileConfig.getIsChecklistName() != null && fileConfig.getIsChecklistName() == 0){
             String regex = fileConfig.getValidationRules();
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcherWithoutSuccess = pattern.matcher(fileNm);
-            if (!matcherWithoutSuccess.matches()) {
+            Matcher matcher = pattern.matcher(fileNm);
+            if (!matcher.matches()) {
                 return false;
             }
         }

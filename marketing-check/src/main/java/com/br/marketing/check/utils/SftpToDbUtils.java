@@ -391,7 +391,7 @@ public class SftpToDbUtils {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
         }
         if(!heads.containsAll(baseHeads)){
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段,必填字段：" + baseHeads);
         }
         for (int i = 0; i < heads.size(); i++) {
             String s = heads.get(i);
