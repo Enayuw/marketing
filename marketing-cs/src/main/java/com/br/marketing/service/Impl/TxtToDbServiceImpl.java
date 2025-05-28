@@ -2282,12 +2282,12 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         break;
                     case "planCallTime":
                         if (StringUtils.isNotBlank(dataValue)) {
-                            // 验证日期格式 yyyy-mm-dd
-                            if (isValidDateFormat(dataValue)) {
-                                phoneSale.setPlanCallTime(dataValue);
-                            } else {
-                                error += "planCallTime格式错误，应为yyyy-mm-dd;";
-                            }
+                            // 格式化planCallTime并验证
+                            String formattedPlanCallTime = formatPlanCallTime(dataValue, phoneSale.getUid());
+                            phoneSale.setPlanCallTime(formattedPlanCallTime);
+                        } else {
+                            // planCallTime 不能为空
+                            error += "planCallTime不能为空;";
                         }
                         break;
                     case "extend":
@@ -2385,6 +2385,74 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         return "男".equals(gender) || "女".equals(gender) || 
                "M".equalsIgnoreCase(gender) || "F".equalsIgnoreCase(gender) ||
                "1".equals(gender) || "2".equals(gender) || "0".equals(gender);
+    }
+
+    /**
+     * 格式化planCallTime字段，支持多种日期格式并统一转换为yyyy-MM-dd格式
+     * 
+     * @param planCallTime 原始时间字符串
+     * @param uid 用户ID，用于日志记录
+     * @return 格式化后的时间字符串（yyyy-MM-dd格式）或原始值（如果转换失败）
+     */
+    private String formatPlanCallTime(String planCallTime, String uid) {
+        if (StringUtils.isEmpty(planCallTime)) {
+            return planCallTime;
+        }
+        
+        // 去除空格
+        String trimmedTime = planCallTime.trim();
+        
+        // 支持的日期格式列表
+        String[] supportedFormats = {
+            "yyyy-MM-dd",
+            "yyyy/MM/dd",
+            "yyyy.MM.dd",
+            "yyyyMMdd",
+            "yyyy-M-d",
+            "yyyy/M/d",
+            "yyyy.M.d",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy.MM.dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm",
+            "yyyy/MM/dd HH:mm",
+            "yyyy.MM.dd HH:mm",
+            "dd/MM/yyyy",
+            "dd-MM-yyyy",
+            "dd.MM.yyyy",
+            "MM/dd/yyyy",
+            "MM-dd-yyyy",
+            "MM.dd.yyyy"
+        };
+        
+        // 目标格式
+        DateTimeFormatter targetFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        // 尝试解析各种格式
+        for (String format : supportedFormats) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+                
+                if (format.contains("HH:mm")) {
+                    // 包含时间的格式，解析为LocalDateTime然后转换为LocalDate
+                    LocalDateTime dateTime = LocalDateTime.parse(trimmedTime, formatter);
+                    return dateTime.toLocalDate().format(targetFormatter);
+                } else {
+                    // 只有日期的格式，直接解析为LocalDate
+                    LocalDate date = LocalDate.parse(trimmedTime, formatter);
+                    return date.format(targetFormatter);
+                }
+            } catch (Exception e) {
+                // 当前格式解析失败，继续尝试下一个格式
+                continue;
+            }
+        }
+        
+        // 如果所有格式都解析失败，记录错误并返回原始值
+        log.warn("planCallTime格式转换失败: uid={}, 原始值={}, 支持的格式: {}", 
+                uid, planCallTime, String.join(", ", supportedFormats));
+        // 返回原始值
+        return trimmedTime;
     }
 
 }
