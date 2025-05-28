@@ -112,6 +112,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
     @Autowired
     PushInfoService pushInfoService;
 
+    private static final String TITLE = "【通用文件清洗】";
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -144,7 +145,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             // 校验表名称
                             Boolean checklistName = fileToMarketingRuleService.isChecklistName(dataFileConfig, fileName);
                             if(!checklistName){
-                                log.warn("文件名:{};校验规则:{};错误:{};", fileName, dataFileConfig.getValidationRules(), "文件名称校验失败");
+                                log.warn(TITLE + "文件名:{};校验规则:{};错误:{};", fileName, dataFileConfig.getValidationRules(), "文件名称校验失败");
                                 continue;
                             }
 
@@ -160,7 +161,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             // 校验表名称
                             Boolean checklistName = fileToMarketingRuleTransferService.isChecklistName(dataFileConfig, fileName);
                             if(!checklistName){
-                                log.warn("文件名:{};校验规则:{};错误:{};", fileName, dataFileConfig.getValidationRules(), "文件名称校验失败");
+                                log.warn(TITLE + "文件名:{};校验规则:{};错误:{};", fileName, dataFileConfig.getValidationRules(), "文件名称校验失败");
                                 continue;
                             }
 
@@ -249,7 +250,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         List<String> datas = Splitter.on(",").splitToList(row);
                         if (!headSum.equals(datas.size())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
+                            log.warn(TITLE + "文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
                             continue;
                         }
                         // 确保表头和数据数量一致
@@ -357,13 +358,13 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             }
                             if(!b){
                                 errorNum++;
-                                log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "选填字段未赋值:"+list);
+                                log.warn(TITLE + "文件名:{};行数:{};错误:{};", fileNm, line, "选填字段未赋值:"+list);
                                 continue;
                             }
                         }
                         if (StringUtils.isNotBlank(errorMsg.toString())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
+                            log.warn(TITLE + "文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
                             continue;
                         }
 
@@ -371,7 +372,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
                         if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
+                            log.warn(TITLE + "文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
                             continue;
                         }
                         MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
@@ -439,6 +440,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
      * @param iFileToMarketingRuleService
      */
     private void fileTransferAction(String apiCode, MarketingDataFileConfig fileConfig, String path, String fileNm, Long localId, IFileToMarketingRuleTransferService iFileToMarketingRuleService) {
+        String TITLE1 = TITLE + "清洗";
         LocalFile updateFile = new LocalFile();
         updateFile.setId(localId);
         String taskId = iFileToMarketingRuleService.getTaskId(apiCode,fileNm);
@@ -498,7 +500,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         List<String> datas = Splitter.on(",").splitToList(row);
                         if (!headSum.equals(datas.size())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
+                            log.warn(TITLE1 + "文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
                             continue;
                         }
                         // 确保表头和数据数量一致
@@ -607,13 +609,13 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             }
                             if(!b){
                                 errorNum++;
-                                log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "选填字段未赋值:"+list);
+                                log.warn(TITLE1 + "文件名:{};行数:{};错误:{};", fileNm, line, "选填字段未赋值:"+list);
                                 continue;
                             }
                         }
                         if (StringUtils.isNotBlank(errorMsg.toString())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
+                            log.warn(TITLE1 + "文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
                             continue;
                         }
 
@@ -621,7 +623,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
                         if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
+                            log.warn(TITLE1 + "文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
                             continue;
                         }
                         TransferDataItemDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
@@ -697,7 +699,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 .andLocalPathEqualTo(targetPath);
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
         if (localFiles.size() > 0) {
-            log.warn("该文件已经读取过：{}", fileStr);
+            log.warn(TITLE + "该文件已经读取过：{}", fileStr);
             return new Result().setCode(ResultCode.FAIL.getValue());
         } else {
             Date date = new Date();
