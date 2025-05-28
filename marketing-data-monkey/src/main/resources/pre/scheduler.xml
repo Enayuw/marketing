@@ -605,7 +605,7 @@
     <job:simple id="【monkey】-CollectDeviceTypeJob"
                 class="com.br.marketing.monkey.job.yunke.CollectDeviceTypeJob"
                 cron="0 0 18 29 9 ? 2099-2099"
-                description="cell数据收集"
+                description="云客机型获取"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
