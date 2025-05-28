@@ -58,8 +58,8 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
                 case "caseEffective":
                     if(vo.getHeadField().equals("cmpn_ctrl_typ")){
                         reserveFieldJo.put("caseEffective", value);
-                        break;
                     }
+                    break;
                 case "lmt_sts":
                     // 对 % 进行 URL 编码（替换 % 为 %25）
                     if (value != null && value.contains("%")) {
