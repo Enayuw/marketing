@@ -2257,6 +2257,11 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             phoneSale.setUserType(datas.get(i));
                         }
                         break;
+                    case "planCallTime":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            phoneSale.setPlanCallTime(datas.get(i));
+                        }
+                        break;
                     case "extend":
                         String s = extSetFields.get(i);
                         if (StringUtils.isNotBlank(s)) {
