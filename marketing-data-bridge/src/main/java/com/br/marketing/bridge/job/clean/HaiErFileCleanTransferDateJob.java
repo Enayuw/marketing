@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -133,11 +134,17 @@ public class HaiErFileCleanTransferDateJob extends AbstractSimpleElasticJob {
         // yyyyMMdd
         String compactDate = TimeUtils.getNowDate(TimeUtils.DATE_STRING);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TimeUtils.DATE_STRING);
+        // 获取当前日期并减1天
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        // 格式化为字符串
+        String yesterdayStr = yesterday.format(formatter);
+
         // 2. 处理源路径和目标路径中的日期占位符
         String srcPath = replaceDatePlaceholders(syncConfig.getSrcPath(), formattedDate, compactDate);
         String targetPath = replaceDatePlaceholders(syncConfig.getTargetPath(), formattedDate, compactDate);
 
-        String fileName = "BR202501_result_" + compactDate + ".csv";
+        String fileName = "BR202501_result_" + yesterdayStr + ".csv";
         syncConfig.setSrcPath(srcPath);
         syncConfig.setTargetPath(targetPath);
 
