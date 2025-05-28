@@ -101,7 +101,6 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -2194,46 +2193,56 @@ public class PushDataServiceImpl implements PushDataService {
             totalNumber += updateDataList.size();
             
             if (updateDataList.size() > 0) {
-                // 为每条数据预生成requestId，确保重试时使用相同ID
-                updateDataList.forEach(updateData -> {
-                    if (StringUtils.isBlank(updateData.getRequestId())) {
-                        // 使用固定算法生成requestId，确保幂等性
-                        String requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" + 
-                                          DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
-                        updateData.setRequestId(requestId);
-                    }
-                });
-                
                 DaasUpdateDataDTO lastUpdate = updateDataList.get(updateDataList.size() - 1);
-                DaasUpdateDataAdapDTO dto = new DaasUpdateDataAdapDTO();
-                dto.setDaasUpdateDataDTOList(updateDataList);
                 minId = lastUpdate.getId();
 
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     try {
-                        Result result = dassServiceClient.postWealthUpdateData(dto);
+                        // 批量处理结果统计
+                        int batchSuccessCount = 0;
+                        int batchFailCount = 0;
+                        List<String> failMessages = new ArrayList<>();
                         
-                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                            successCount.addAndGet(updateDataList.size());
-                            log.debug("批次推送成功，数量: {}", updateDataList.size());
-                        } else {
-                            failCount.addAndGet(updateDataList.size());
-                            log.warn("批次推送失败，数量: {}, 错误信息: {}", updateDataList.size(), result.getMessage());
-                            
-                            // 创建重试记录
-                            RetryMainLog mainLog = new RetryMainLog();
-                            mainLog.setRetryType(1);
-                            mainLog.setRetryParam(JSON.toJSONString(dto));
-                            mainLog.setRetryParamType(dto.getClass().getName());
-                            mainLog.setRetryService("dassServiceClient");
-                            mainLog.setRetryMethod("postWealthUpdateData");
-                            mainLog.setRetryNum(0);
-                            mainLog.setRetryMaxNum(3);
-                            mainLog.setRetryStatus(1);
-                            mainLog.setCreateTime(new Date());
-                            mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-                            retryMainLogMapper.insertSelective(mainLog);
+                        for (DaasUpdateDataDTO updateData : updateDataList) {
+                            try {
+                                // 预生成requestId，确保重试时使用相同ID
+                                if (StringUtils.isBlank(updateData.getRequestId())) {
+                                    String requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" + 
+                                                      DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
+                                    updateData.setRequestId(requestId);
+                                }
+                                
+                                // 调用接口
+                                Result result = dassServiceClient.postWealthUpdateData(updateData);
+                                
+                                // 处理单条数据的响应结果
+                                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                                    batchSuccessCount++;
+                                    log.debug("数据更新成功: uid={}, requestId={}", updateData.getUid(), updateData.getRequestId());
+                                } else {
+                                    batchFailCount++;
+                                    String errorMsg = "uid=" + updateData.getUid() + ": " + result.getMessage();
+                                    failMessages.add(errorMsg);
+                                    log.warn("人工业务数据更新失败：{}", errorMsg);
+                                }
+                            } catch (Exception e) {
+                                batchFailCount++;
+                                String errorMsg = "uid=" + updateData.getUid() + ": 处理异常 - " + e.getMessage();
+                                failMessages.add(errorMsg);
+                                log.error("处理单条数据异常：{}", errorMsg, e);
+                            }
                         }
+                        
+                        // 更新计数器
+                        if (batchSuccessCount > 0) {
+                            successCount.addAndGet(batchSuccessCount);
+                        }
+                        if (batchFailCount > 0) {
+                            failCount.addAndGet(batchFailCount);
+                        }
+                        
+                        log.debug("批次推送结果，总数: {}, 成功: {}, 失败: {}", 
+                                updateDataList.size(), batchSuccessCount, batchFailCount);
                     } catch (Exception e) {
                         failCount.addAndGet(updateDataList.size());
                         log.error("推送人工业务数据更新接口子线程异常，批次大小: {}, 异常信息: {}", 
