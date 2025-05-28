@@ -630,6 +630,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         JSONObject jsonObject = JSONObject.parseObject(make.getReserveField1());
                         jsonObject.put("taskId",taskId);
                         make.setReserveField1(jsonObject.toJSONString());
+                        make.setApiCode(apiCode);
                         transferDataDTOS.add(make);
                     }
                 }
