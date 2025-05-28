@@ -77,6 +77,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -2181,17 +2182,24 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         localFile.setPushStartTime(new Date());
+        log.info("开始推送人工业务数据更新，文件ID: {}, 文件名: {}", id, localFile.getFileName());
 
-        Integer number = 0;
+        Integer totalNumber = 0;
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        
         while (actionMark) {
             List<DaasUpdateDataDTO> updateDataList = updatePhoneSaleMapper.getPushUpdateDassData(id, minId);
-            number += updateDataList.size();
+            totalNumber += updateDataList.size();
+            
             if (updateDataList.size() > 0) {
                 // 为每条数据预生成requestId，确保重试时使用相同ID
                 updateDataList.forEach(updateData -> {
                     if (StringUtils.isBlank(updateData.getRequestId())) {
-                        String requestId = "req" + System.currentTimeMillis() + "_" + updateData.getUid() + "_" + updateData.getId();
+                        // 使用固定算法生成requestId，确保幂等性
+                        String requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" + 
+                                          DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
                         updateData.setRequestId(requestId);
                     }
                 });
@@ -2204,7 +2212,15 @@ public class PushDataServiceImpl implements PushDataService {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     try {
                         Result result = dassServiceClient.postWealthUpdateData(dto);
-                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        
+                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            successCount.addAndGet(updateDataList.size());
+                            log.debug("批次推送成功，数量: {}", updateDataList.size());
+                        } else {
+                            failCount.addAndGet(updateDataList.size());
+                            log.warn("批次推送失败，数量: {}, 错误信息: {}", updateDataList.size(), result.getMessage());
+                            
+                            // 创建重试记录
                             RetryMainLog mainLog = new RetryMainLog();
                             mainLog.setRetryType(1);
                             mainLog.setRetryParam(JSON.toJSONString(dto));
@@ -2219,8 +2235,21 @@ public class PushDataServiceImpl implements PushDataService {
                             retryMainLogMapper.insertSelective(mainLog);
                         }
                     } catch (Exception e) {
-                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
-                                "sftp文件推送人工业务数据更新接口子线程异常，异常日志：" + e.getMessage()), e);
+                        failCount.addAndGet(updateDataList.size());
+                        log.error("推送人工业务数据更新接口子线程异常，批次大小: {}, 异常信息: {}", 
+                                updateDataList.size(), e.getMessage(), e);
+                        
+                        // 发送告警
+                        try {
+                            alarmClient.sendAlarm(
+                                String.format("人工业务数据更新推送异常，文件ID: %s, 批次大小: %d, 异常: %s", 
+                                            id, updateDataList.size(), e.getMessage()),
+                                "人工业务数据更新推送异常", 
+                                AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                            );
+                        } catch (Exception alarmEx) {
+                            log.error("发送告警失败", alarmEx);
+                        }
                     }
                 }, pushDassThreadPool);
                 futures.add(future);
@@ -2228,95 +2257,37 @@ public class PushDataServiceImpl implements PushDataService {
                 actionMark = false;
             }
         }
+        
+        // 等待所有任务完成
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(number);
+        localFile.setPushNumber(successCount.get());
+        localFile.setErrorActualNumber(failCount.get());
         localFileMapper.updateByPrimaryKeySelective(localFile);
+        
+        // 推送完成后发送通知
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
-            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
-                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
-                    .append("数量：".concat(number.toString()).concat("\r\n"))
-                    .append("文件推送人工业务数据更新接口结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "人工业务数据更新接口推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+            content.append("apiCode：").append(localFile.getApiCode()).append("\r\n")
+                    .append("fileName：").append(localFile.getFileName()).append("\r\n")
+                    .append("总数量：").append(totalNumber).append("\r\n")
+                    .append("成功数量：").append(successCount.get()).append("\r\n")
+                    .append("失败数量：").append(failCount.get()).append("\r\n")
+                    .append("成功率：").append(totalNumber > 0 ? String.format("%.2f%%", (double)successCount.get() / totalNumber * 100) : "0%").append("\r\n")
+                    .append("人工业务数据更新接口推送结束").append("\r\n");
+            
+            AlarmSendCodeEnum alarmCode = failCount.get() == 0 ? 
+                AlarmSendCodeEnum.SUCCESS_UPLOAD : AlarmSendCodeEnum.PUSHING_DAASERROR;
+            
+            alarmClient.sendAlarm(content.toString(), "人工业务数据更新接口推送", alarmCode.getCode());
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        
+        log.info("人工业务数据更新推送完成，文件ID: {}, 总数量: {}, 成功: {}, 失败: {}", 
+                id, totalNumber, successCount.get(), failCount.get());
+        
+        return new Result().setCode(ResultCode.SUCCESS.getValue())
+                .setMessage(String.format("推送完成，总数量: %d, 成功: %d, 失败: %d", 
+                          totalNumber, successCount.get(), failCount.get()));
     }
-
-
-
-
-
-//    @Override
-//    public Result pushUpdateDassData(Long id) {
-//        Boolean actionMark = true;
-//        Long minId = null;
-//        String key = "dass:push:threadnum";
-//        Integer threadNum = 5;
-//        if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
-//            threadNum = Integer.valueOf(redisChgService.get(key));
-//        }
-//        modifyThreadPool(pushDassThreadPool, threadNum);
-//
-//        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
-//        if (localFile == null) {
-//            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
-//        }
-//
-//        localFile.setPushStartTime(new Date());
-//
-//        Integer number = 0;
-//        List<CompletableFuture<Void>> futures = Lists.newArrayList();
-//        while (actionMark) {
-//            List<DaasUpdateDataDTO> phoneSales = updatePhoneSaleMapper.getPushCsosDassData(id, minId);
-//            number += phoneSales.size();
-//            if (phoneSales.size() > 0) {
-//                DaasUpdateDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
-//                DaasCsosDataAdapDTO dto = new DaasCsosDataAdapDTO();
-//                dto.setDaasCsosDataDTOList(phoneSales);
-//                minId = phoneSale.getId();
-//
-//                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-//                    try {
-//                        Result result = dassServiceClient.postCsosData(dto);
-//                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-//                            RetryMainLog mainLog = new RetryMainLog();
-//                            mainLog.setRetryType(1);
-//                            mainLog.setRetryParam(JSON.toJSONString(dto));
-//                            mainLog.setRetryParamType(dto.getClass().getName());
-//                            mainLog.setRetryService("dassServiceClient");
-//                            mainLog.setRetryMethod("postCsosData");
-//                            mainLog.setRetryNum(0);
-//                            mainLog.setRetryMaxNum(3);
-//                            mainLog.setRetryStatus(1);
-//                            mainLog.setCreateTime(new Date());
-//                            mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-//                            retryMainLogMapper.insertSelective(mainLog);
-//                        }
-//                    } catch (Exception e) {
-//                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
-//                                "sftp文件推送Dass财富接口子线程异常，异常日志：" + e.getMessage()), e);
-//                    }
-//                }, pushDassThreadPool);
-//                futures.add(future);
-//            } else {
-//                actionMark = false;
-//            }
-//        }
-//        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-//
-//        localFile.setPushEndTime(new Date());
-//        localFile.setPushNumber(number);
-//        localFileMapper.updateByPrimaryKeySelective(localFile);
-//        if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
-//            StringBuilder content = new StringBuilder();
-//            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
-//                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
-//                    .append("数量：".concat(number.toString()).concat("\r\n"))
-//                    .append("文件推送dass(财富接口)结束".concat("\r\n"));
-//            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
-//        }
-//        return new Result().setCode(ResultCode.SUCCESS.getValue());
-//    }
 }

@@ -595,70 +595,121 @@ public class DassServiceClient {
         try {
             List<DaasUpdateDataDTO> daasUpdateDataDTOList = daasUpdateDataAdapDTO.getDaasUpdateDataDTOList();
             
+            // 批量处理结果统计
+            int successCount = 0;
+            int failCount = 0;
+            List<String> failMessages = new ArrayList<>();
+            
             for (DaasUpdateDataDTO updateData : daasUpdateDataDTOList) {
-                // 构建请求参数
-                Map<String, Object> requestParam = new HashMap<>();
-                
-                // 生成唯一请求ID（如果DTO中没有则生成新的，确保重试时使用相同ID）
-                String requestId = updateData.getRequestId();
-                if (StringUtils.isBlank(requestId)) {
-                    requestId = "req" + System.currentTimeMillis() + "_" + updateData.getUid();
-                    updateData.setRequestId(requestId);
-                }
-                
-                // 获取当前时间戳
-                long timeStamp = System.currentTimeMillis();
-                
-                // 计算签名: MD5(appId + requestId + timeStamp)
-                String signatureString = appId + requestId + timeStamp;
-                String signature = DigestUtils.md5DigestAsHex(signatureString.getBytes()).toUpperCase();
-                // 构建扩展字段
-                Map<String, Object> reserveField1 = new HashMap<>();
-                if (StringUtils.isNotBlank(updateData.getPlanCallTime())) {
-                    reserveField1.put("planCallTime", updateData.getPlanCallTime());
-                }
-                
-                // 设置请求参数
-                requestParam.put("requestId", requestId);
-                requestParam.put("uid", updateData.getUid());
-                requestParam.put("orgname", updateData.getOrgname());
-                requestParam.put("source", updateData.getSource());
-                requestParam.put("userType", updateData.getUserType());
-                requestParam.put("reserveField1", reserveField1);
-                requestParam.put("timeStamp", timeStamp);
-                requestParam.put("signature", signature);
-                
-                // 发送请求
-                HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postWealthUpdateData,
-                        isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
-                
-                final String httpCode = hashMap.getOrDefault("httpcode", "5000");
-                if (httpCode.equals("200")) {
-                    final String respStr = hashMap.getOrDefault("content", "");
-                    log.warn("%%人工业务数据更新接口应答内容：[{}]", respStr);
-                    if (StringUtils.isEmpty(respStr)) {
-                        result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
-                        return result;
+                try {
+                    // 构建请求参数
+                    Map<String, Object> requestParam = new HashMap<>();
+                    
+                    // 生成唯一请求ID（确保幂等性）
+                    String requestId = updateData.getRequestId();
+                    if (StringUtils.isBlank(requestId)) {
+                        // 使用固定算法生成requestId，确保重试时ID一致
+                        requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" + 
+                                   DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
+                        updateData.setRequestId(requestId);
                     }
                     
-                    // 解析响应
-                    try {
-                        JSONObject respJson = JSONObject.parseObject(respStr);
-                        Integer code = respJson.getInteger("code");
-                        String message = respJson.getString("message");
-                        
-                        if (code != null && code == 1) {
-                            result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
-                        } else {
-                            result.setCode(ResultCode.FAIL.getValue()).setMessage(message);
-                            log.warn("人工业务数据更新接口返回失败：code={}, message={}", code, message);
-                        }
-                    } catch (Exception e) {
-                        result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
+                    // 获取当前时间戳
+                    long timeStamp = System.currentTimeMillis();
+                    
+                    // 计算签名: MD5(appId + requestId + timeStamp)
+                    String signatureString = appId + requestId + timeStamp;
+                    String signature = DigestUtils.md5DigestAsHex(signatureString.getBytes()).toUpperCase();
+                    
+                    // 构建扩展字段
+                    Map<String, Object> reserveField1 = new HashMap<>();
+                    if (StringUtils.isNotBlank(updateData.getPlanCallTime())) {
+                        reserveField1.put("planCallTime", updateData.getPlanCallTime());
                     }
-                } else {
-                    result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
+                    // 添加其他扩展字段
+                    if (StringUtils.isNotBlank(updateData.getExtend())) {
+                        try {
+                            JSONObject extendJson = JSONObject.parseObject(updateData.getExtend());
+                            for (String key : extendJson.keySet()) {
+                                reserveField1.put(key, extendJson.get(key));
+                            }
+                        } catch (Exception e) {
+                            log.warn("解析extend字段失败: {}", updateData.getExtend());
+                        }
+                    }
+                    
+                    // 设置请求参数
+                    requestParam.put("requestId", requestId);
+                    requestParam.put("uid", updateData.getUid());
+                    requestParam.put("orgname", updateData.getOrgname());
+                    requestParam.put("source", updateData.getSource());
+                    requestParam.put("userType", updateData.getUserType());
+                    requestParam.put("reserveField1", reserveField1);
+                    requestParam.put("timeStamp", timeStamp);
+                    requestParam.put("signature", signature);
+                    
+                    // 发送请求
+                    HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postWealthUpdateData,
+                            isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+                    
+                    final String httpCode = hashMap.getOrDefault("httpcode", "5000");
+                    if (httpCode.equals("200")) {
+                        final String respStr = hashMap.getOrDefault("content", "");
+                        log.debug("人工业务数据更新接口应答内容：[{}]", respStr);
+                        
+                        if (StringUtils.isEmpty(respStr)) {
+                            failCount++;
+                            failMessages.add("uid=" + updateData.getUid() + ": 无应答消息");
+                            continue;
+                        }
+                        
+                        // 解析响应
+                        try {
+                            JSONObject respJson = JSONObject.parseObject(respStr);
+                            Integer code = respJson.getInteger("code");
+                            String message = respJson.getString("message");
+                            
+                            if (code != null && code == 1) {
+                                successCount++;
+                                log.debug("数据更新成功: uid={}, requestId={}", updateData.getUid(), requestId);
+                            } else {
+                                failCount++;
+                                String errorMsg = "uid=" + updateData.getUid() + ": code=" + code + ", message=" + message;
+                                failMessages.add(errorMsg);
+                                log.warn("人工业务数据更新失败：{}", errorMsg);
+                            }
+                        } catch (Exception e) {
+                            // 如果解析失败，认为成功（兼容旧版本）
+                            successCount++;
+                            log.debug("响应解析失败，默认为成功: uid={}", updateData.getUid());
+                        }
+                    } else {
+                        failCount++;
+                        String errorMsg = "uid=" + updateData.getUid() + ": HTTP " + httpCode + " - " + hashMap.getOrDefault("content", "");
+                        failMessages.add(errorMsg);
+                        log.warn("HTTP请求失败：{}", errorMsg);
+                    }
+                } catch (Exception e) {
+                    failCount++;
+                    String errorMsg = "uid=" + updateData.getUid() + ": 处理异常 - " + e.getMessage();
+                    failMessages.add(errorMsg);
+                    log.error("处理单条数据异常：{}", errorMsg, e);
                 }
+            }
+            
+            // 设置批量处理结果
+            if (failCount == 0) {
+                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setMessage("全部成功，共处理 " + successCount + " 条数据");
+                log.info("人工业务数据更新全部成功：成功{}条", successCount);
+            } else if (successCount == 0) {
+                result.setCode(ResultCode.FAIL.getValue());
+                result.setMessage("全部失败，共 " + failCount + " 条数据失败：" + String.join("; ", failMessages));
+                log.error("人工业务数据更新全部失败：失败{}条", failCount);
+            } else {
+                result.setCode(ResultCode.FAIL.getValue());
+                result.setMessage("部分成功，成功 " + successCount + " 条，失败 " + failCount + " 条：" + String.join("; ", failMessages));
+                log.warn("人工业务数据更新部分成功：成功{}条，失败{}条", successCount, failCount);
             }
             
             return result;
