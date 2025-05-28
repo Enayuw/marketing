@@ -2192,6 +2192,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
 
     @Override
     public Result updateFileTodb(TxtToDbDTO dto) {
+        long startTime = System.currentTimeMillis();
         UpdatePhoneSale phoneSale = new UpdatePhoneSale();
         String row = dto.getContent();
         HashMap<Integer, String> address = dto.getAddress();
@@ -2199,30 +2200,41 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         Integer line = dto.getLine();
         List<String> datas = Splitter.on(",").splitToList(row);
         JSONObject jo = null;
-        String error = "uid不能为空;orgName不能为空;user_type不能为空;source不能为空;";
+        String error = "uid不能为空;orgname不能为空;user_type不能为空;source不能为空;";
         phoneSale.setApiCode(dto.getApiCode());
         phoneSale.setLocalId(dto.getLocalId().toString());
         phoneSale.setStatus(1);
+        
         try {
+            // 数据列数验证
             if (datas.size() != address.size()) {
                 phoneSale.setStatus(2);
                 phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
                 updatePhoneSaleMapper.insertSelective(phoneSale);
+                log.warn("updateFileTodb - 数据列数不匹配，行号：{}, 期望：{}, 实际：{}", line, address.size(), datas.size());
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
+            
+            // 数据处理
             for (int i = 0; i < datas.size(); i++) {
                 String sureaddress = address.get(i);
+                String dataValue = datas.get(i) != null ? datas.get(i).trim() : "";
+                
                 switch (sureaddress) {
                     case "uid":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
+                        if (StringUtils.isNotBlank(dataValue)) {
                             error = error.replace("uid不能为空;", "");
+                            // 验证uid长度和格式
+                            if (dataValue.length() > 255) {
+                                error += "uid长度超过255字符;";
+                            }
                         }
-                        phoneSale.setUid(datas.get(i));
+                        phoneSale.setUid(dataValue);
                         break;
                     case "phone":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            Result<String> stringResult = decryptPhone(datas.get(i));
-                            phoneSale.setPhoneAes(datas.get(i));
+                        if (StringUtils.isNotBlank(dataValue)) {
+                            Result<String> stringResult = decryptPhone(dataValue);
+                            phoneSale.setPhoneAes(dataValue);
                             if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
                                 phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
                             } else {
@@ -2231,67 +2243,148 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         }
                         break;
                     case "name":
-                        String name = datas.get(i);
-                        phoneSale.setNameAes(name);
-                        phoneSale.setName(decryptCsosName(name));
+                        phoneSale.setNameAes(dataValue);
+                        phoneSale.setName(decryptCsosName(dataValue));
                         break;
                     case "gender":
-                        phoneSale.setGender(datas.get(i));
+                        // 验证性别值
+                        if (StringUtils.isNotBlank(dataValue) && !isValidGender(dataValue)) {
+                            error += "gender值无效;";
+                        }
+                        phoneSale.setGender(dataValue);
                         break;
                     case "orgname":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("orgName不能为空;", "");
-                            phoneSale.setOrgname(datas.get(i));
+                        if (StringUtils.isNotBlank(dataValue)) {
+                            error = error.replace("orgname不能为空;", "");
+                            if (dataValue.length() > 100) {
+                                error += "orgname长度超过100字符;";
+                            }
+                            phoneSale.setOrgname(dataValue);
                         }
                         break;
                     case "source":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
+                        if (StringUtils.isNotBlank(dataValue)) {
                             error = error.replace("source不能为空;", "");
-                            phoneSale.setSource(datas.get(i));
+                            if (dataValue.length() > 100) {
+                                error += "source长度超过100字符;";
+                            }
+                            phoneSale.setSource(dataValue);
                         }
                         break;
                     case "user_type":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
+                        if (StringUtils.isNotBlank(dataValue)) {
                             error = error.replace("user_type不能为空;", "");
-                            phoneSale.setUserType(datas.get(i));
+                            if (dataValue.length() > 100) {
+                                error += "user_type长度超过100字符;";
+                            }
+                            phoneSale.setUserType(dataValue);
                         }
                         break;
                     case "planCallTime":
-                        if (StringUtils.isNotBlank(datas.get(i))) {
-                            phoneSale.setPlanCallTime(datas.get(i));
+                        if (StringUtils.isNotBlank(dataValue)) {
+                            // 验证日期格式 yyyy-mm-dd
+                            if (isValidDateFormat(dataValue)) {
+                                phoneSale.setPlanCallTime(dataValue);
+                            } else {
+                                error += "planCallTime格式错误，应为yyyy-mm-dd;";
+                            }
                         }
                         break;
                     case "extend":
                         String s = extSetFields.get(i);
-                        if (StringUtils.isNotBlank(s)) {
+                        if (StringUtils.isNotBlank(s) && StringUtils.isNotBlank(dataValue)) {
                             if (jo == null) {
                                 jo = new JSONObject();
                             }
-                            jo.put(s, datas.get(i));
+                            jo.put(s, dataValue);
                         }
                         break;
                 }
-                if (jo != null) {
-                    phoneSale.setExtend(jo.toJSONString());
-                }
             }
+            
+            // 在循环外设置扩展字段
+            if (jo != null) {
+                phoneSale.setExtend(jo.toJSONString());
+            }
+            
+            // 数据验证结果处理
             if (!StringUtils.isEmpty(error)) {
                 phoneSale.setStatus(2);
                 phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+                log.warn("updateFileTodb - 数据验证失败，行号：{}, 错误：{}", line, error);
+            } else {
+                log.debug("updateFileTodb - 数据处理成功，行号：{}, uid：{}, orgname：{}", 
+                    line, phoneSale.getUid(), phoneSale.getOrgname());
             }
+            
+            // 设置时间戳
             Date date = new Date();
             phoneSale.setCreateTime(date);
             phoneSale.setUpdateTime(date);
+            
+            // 数据库插入
             updatePhoneSaleMapper.insertSelective(phoneSale);
+            
+            // 性能监控
+            long endTime = System.currentTimeMillis();
+            // 超过1秒记录警告
+            if (endTime - startTime > 1000) {
+                log.error("updateFileTodb - 处理耗时过长，行号：{}, 耗时：{}ms", line, endTime - startTime);
+            }
+            
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error("updateFileTodb - 处理异常，行号：{}, 错误：{}", line, ex.getMessage(), ex);
             phoneSale.setStatus(2);
-            phoneSale.setDataMessage(String.format("行号：%d;发生错误！", line));
-            updatePhoneSaleMapper.insertSelective(phoneSale);
+            String errorMsg = ex.getMessage();
+            if (errorMsg != null && errorMsg.length() > 200) {
+                errorMsg = errorMsg.substring(0, 200) + "...";
+            }
+            phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, errorMsg));
+            
+            try {
+                updatePhoneSaleMapper.insertSelective(phoneSale);
+            } catch (Exception insertEx) {
+                log.error("updateFileTodb - 插入错误记录失败，行号：{}, 错误：{}", line, insertEx.getMessage());
+            }
         }
+        
         return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
                 ? ResultCode.SUCCESS.getValue()
                 : ResultCode.FAIL.getValue());
+    }
+    
+    /**
+     * 验证日期格式是否为 yyyy-mm-dd
+     */
+    private boolean isValidDateFormat(String dateStr) {
+        if (StringUtils.isEmpty(dateStr)) {
+            return false;
+        }
+        try {
+            // 使用正则表达式验证格式
+            if (!dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return false;
+            }
+            // 进一步验证日期的有效性
+            LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * 验证性别值是否有效
+     */
+    private boolean isValidGender(String gender) {
+        if (StringUtils.isEmpty(gender)) {
+            // 空值允许返回空
+            return true;
+        }
+        // 常见的性别值
+        return "男".equals(gender) || "女".equals(gender) || 
+               "M".equalsIgnoreCase(gender) || "F".equalsIgnoreCase(gender) ||
+               "1".equals(gender) || "2".equals(gender) || "0".equals(gender);
     }
 
 }

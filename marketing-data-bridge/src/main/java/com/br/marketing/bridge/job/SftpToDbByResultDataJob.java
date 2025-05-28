@@ -206,7 +206,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                             } else {
                                 ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
                                 ArrayList<String> csosBaseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type","source"));
-                                ArrayList<String> updateBaseHeads = new ArrayList<String>(Arrays.asList("orgname", "source", "user_type", "uid"));
+                                ArrayList<String> updateBaseHeads = new ArrayList<String>(Arrays.asList("orgname", "source", "user_type", "uid", "extend", "planCallTime"));
                                 if(fileName.startsWith("csosnew")){
                                     sftpToDbByCommonService.actionTxtFile(context
                                             , localFile
