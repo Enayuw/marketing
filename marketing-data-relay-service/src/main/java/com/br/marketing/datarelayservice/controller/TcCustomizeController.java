@@ -44,4 +44,11 @@ public class TcCustomizeController {
     public TcResponseDTO transformNotify(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
         return tcCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
+
+    @ApiOperation(value = "正负样本推送")
+    @PostMapping("/sampleDataPush")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public TcResponseDTO sampleDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+        return tcCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    }
 }
