@@ -45,7 +45,7 @@ public class JobTest implements ApplicationContextAware {
     }
 
     public static void main(String[] args) {
-        Map<String, String> paramMap = new HashMap<>();
+        Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("appId", "42935819");
         String timestamp = System.currentTimeMillis() + "";
         System.out.println(timestamp);
