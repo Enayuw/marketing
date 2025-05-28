@@ -56,8 +56,10 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
                     dto.setIfLent(value);
                     break;
                 case "caseEffective":
-                    reserveFieldJo.put("caseEffective", value);
-                    break;
+                    if(vo.getHeadField().equals("cmpn_ctrl_typ")){
+                        reserveFieldJo.put("caseEffective", value);
+                        break;
+                    }
                 case "lmt_sts":
                     // 对 % 进行 URL 编码（替换 % 为 %25）
                     if (value != null && value.contains("%")) {

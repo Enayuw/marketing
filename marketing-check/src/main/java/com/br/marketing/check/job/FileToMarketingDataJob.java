@@ -318,7 +318,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                     List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
                                     if (!genderMappings.isEmpty()) {
                                         Map<String, String> genderMapping = genderMappings.get(0);
-                                        value = genderMapping.get(value);
+                                        value = genderMapping.get(value) == null? value : genderMapping.get(value);
                                     }
                                 } catch (IOException ex) {
                                     log.error(ex.getMessage(), ex);
@@ -568,7 +568,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                     List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
                                     if (!genderMappings.isEmpty()) {
                                         Map<String, String> genderMapping = genderMappings.get(0);
-                                        value = genderMapping.get(value);
+                                        value = genderMapping.get(value) == null? value : genderMapping.get(value);
                                     }
                                 } catch (IOException ex) {
                                     log.error(ex.getMessage(), ex);
