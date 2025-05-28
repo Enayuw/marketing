@@ -2221,7 +2221,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         break;
                     case "phone":
                         if (StringUtils.isNotBlank(datas.get(i))) {
-                            error = error.replace("phone不能为空;", "");
                             Result<String> stringResult = decryptPhone(datas.get(i));
                             phoneSale.setPhoneAes(datas.get(i));
                             if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
