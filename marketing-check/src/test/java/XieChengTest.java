@@ -341,11 +341,15 @@ public class XieChengTest {
     @Test
     public void testColliding() {
         List<String> sha256CodeList = Lists.newArrayList();
-        sha256CodeList.add("0a16fd689248cf58e939d6eb56d0df495910a9ec84d767debc70f6c42c5297bc");
-        pushXieChengSmsCollidingDataNew(sha256CodeList);
+        sha256CodeList.add("fa3e0a97327269b7c33a1b8a45b41e4d9d6e3a1149a5233db3945cf5cc34bc6f");
+//        pushXieChengSmsCollidingDataNew(sha256CodeList);
     }
 
-    private Result pushXieChengSmsCollidingDataNew(List<String> sha256CodeList) {
+
+    @Test
+    public void pushXieChengSmsCollidingDataNew() {
+        List<String> sha256CodeList = Lists.newArrayList();
+        sha256CodeList.add("0a16fd689248cf58e939d6eb56d0df495910a9ec84d767debc70f6c42c5297bc");
 //        String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
         String smsCollidingOpenUrl = "https://ad-test.fat.ctripqa.com/ad/common/unionCheckUser.do";
 //        String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
@@ -375,20 +379,6 @@ public class XieChengTest {
         resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
 
-        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
-        }
-        String content = resMap.get("content");
-        JSONObject resultJson = JSONObject.parseObject(content);
-        Integer code = resultJson.getInteger("code");
-        if (code == 0) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.toJSONString(resMap));
-        } else {
-            if (code == 707) {
-            }
-
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
-        }
     }
 
     public static String getCode(int n) {
