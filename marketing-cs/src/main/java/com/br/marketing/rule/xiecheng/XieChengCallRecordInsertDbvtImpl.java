@@ -5,12 +5,15 @@ import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengJudgeConvTypeValue;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.XieChengJudgeConvTypeService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -44,7 +47,15 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
     @Resource
     private XieChengJudgeConvTypeService xieChengJudgeConvTypeService;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
     private List<Integer> callStatusFail = Arrays.asList(13, 15);
+
+    private List<Integer> callStatusIsBlack = Arrays.asList(12);
 
 
     @Override
@@ -117,6 +128,15 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
             if (bo.getDetail() != null && callStatusFail.contains(bo.getDetail().getCallStatus())) {
                 keepRecord(bo, String.format("CallStatus状态是：%d", bo.getDetail().getCallStatus()));
                 return false;
+            }
+            if (bo.getDetail() != null && callStatusIsBlack.contains(bo.getDetail().getCallStatus())) {
+                String tcid = tableCreateService.getTcId(bo.getApiCode());
+                MarketingTransferSyncUser xcTransferTodayNoAdDataByOnlyBlack = marketingTransferSyncUserMapper.getXcTransferTodayNoAdDataByOnlyBlack(
+                        tcid, bo.getCaseNum(), bo.getApiCode());
+                if (xcTransferTodayNoAdDataByOnlyBlack != null) {
+                    keepRecord(bo, String.format("CallStatus状态是：%d,且当天转化isBlack='1'", bo.getDetail().getCallStatus()));
+                    return false;
+                }
             }
             // 是延迟队列且没有106：剔除
             if (isDelay != null && isDelay == 1) {

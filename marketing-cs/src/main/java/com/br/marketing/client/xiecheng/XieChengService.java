@@ -251,7 +251,7 @@ public class XieChengService {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengDataNew(AdReqDTO xieChengData) {
-        log.warn("携程上报新接口罗逻辑："+xieChengData.getSha256Tel());
+        log.warn("携程上报新接口逻辑："+xieChengData.getSha256Tel());
         // 1. 获取配置
         Map<String, JSONObject> configMap = marketingCommonConfig.getXieChengCpaAndCpsConfig();
         JSONObject config = "1".equals(xieChengData.getConditionKey()) ? configMap.get("cpa") : configMap.get("cps");
@@ -262,30 +262,37 @@ public class XieChengService {
         deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
 
         // 3. 处理扩展源
-        String extendSource = config.getString("source");
+        String source = config.getString("source");
+        String mktProductNo = config.getString("mktProductNo");
         try {
             JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
-            String sourceStr = extend.getString("source");
-            if (StringUtils.isNotEmpty(sourceStr)) {
-                extendSource = sourceStr;
+            String extendSource = extend.getString("source");
+            if (StringUtils.isNotEmpty(extendSource)) {
+                source = extendSource;
             } else {
-                log.warn("携程广告上报接口，source为空，置为默认值:{}", extendSource);
+                log.warn("携程广告上报接口，id:{}的xieChengData的extend中source字段为空，置为默认值:{}", xieChengData.getId() , source);
+            }
+            String extendMktProductNo = extend.getString("mktProductNo");
+            if (StringUtils.isNotEmpty(extendMktProductNo)) {
+                mktProductNo = extendMktProductNo;
+            } else {
+                log.warn("携程广告上报接口，id:{}的xieChengData的extend中mktProductNo字段为空，置为默认值:{}", xieChengData.getId() , mktProductNo);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程广告上报接口，source 解析异常"+xieChengData.getSha256Tel()));
+                    , "携程广告上报接口，source或mktProductNo解析异常" + xieChengData.getSha256Tel()));
         }
 
         // 4. 构建请求对象
         ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(
                 timestamp,
-                extendSource,
+                source,
                 xieChengData.getClickId(),
                 xieChengData.getActionType(),
                 deviceInfo.toString(),
                 config.getString("mktMode"),
                 xieChengData.getMktChannel(),
-                config.getString("mktProductNo"),
+                mktProductNo,
                 config.getString("appId")
         );
 
@@ -347,6 +354,41 @@ public class XieChengService {
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, Objects.isNull(config.get("signKey"))?smsQuitSingKey: config.get("signKey")));
         List<Boolean> logStore = httpProxyClient.isLogStore(XIECHENGSMSQUIT);
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE, "", logStore.get(0), logStore.get(1));
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程短信退订接口-请求参数:{};返回:{}", JSON.toJSONString(resMap), JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
+        Integer code = resultJson.getInteger("code");
+        if (code == 0) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        //需要重试
+        if (code == 500 || code == 704) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        } else {
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
+    }
+
+    @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result sendSmsQuitDataNew(SmsQuitReq smsQuitReq) {
+        log.warn("短信退订新地址调用，smsQuitReq：" + JSON.toJSONString(smsQuitReq));
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfigNew().get(smsQuitReq.getApiCode());
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", Objects.isNull(config.get("appId")) ? smsQuitAppId : config.get("appId"));
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", Objects.isNull(config.get("channel")) ? channel : config.get("channel"));
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq),
+                Objects.isNull(config.get("aesKey")) ? smsQuitKey : config.get("aesKey"),
+                Objects.isNull(config.get("aesIv")) ? smsQuitIv: config.get("aesIv")));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, Objects.isNull(config.get("signKey")) ? smsQuitSingKey : config.get("signKey")));
+        List<Boolean> logStore = httpProxyClient.isLogStore(XIECHENGSMSQUIT);
+        String url = Objects.isNull(config.get("url")) ? smsQuitOpenUrl : config.get("url");
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, url, smsQuitIsProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE, "", logStore.get(0), logStore.get(1));
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信退订接口-请求参数:{};返回:{}", JSON.toJSONString(resMap), JSON.toJSONString(resMap));
