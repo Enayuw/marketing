@@ -666,8 +666,8 @@ public class DassServiceClient {
                     log.debug("响应解析失败，默认为成功: uid={}", updateData.getUid());
                 }
             } else {
-                result.setCode(ResultCode.FAIL.getValue()).setMessage("HTTP " + httpCode + " - " + hashMap.getOrDefault("content", ""));
                 log.warn("HTTP请求失败：uid={}, httpCode={}, content={}", updateData.getUid(), httpCode, hashMap.getOrDefault("content", ""));
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(hashMap.getOrDefault("content", ""));
             }
             
             return result;
