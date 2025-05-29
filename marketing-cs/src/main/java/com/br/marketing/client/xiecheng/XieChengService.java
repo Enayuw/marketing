@@ -342,7 +342,6 @@ public class XieChengService {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
-        log.warn("短信退订新地址调用，smsQuitReq：" + JSON.toJSONString(smsQuitReq));
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfig().get(smsQuitReq.getApiCode());
         Map<String, Object> retMap = Maps.newHashMap();
@@ -376,6 +375,7 @@ public class XieChengService {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmsQuitDataNew(SmsQuitReq smsQuitReq) {
+        log.warn("短信退订新地址调用，smsQuitReq：" + JSON.toJSONString(smsQuitReq));
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfigNew().get(smsQuitReq.getApiCode());
         Map<String, Object> retMap = Maps.newHashMap();
