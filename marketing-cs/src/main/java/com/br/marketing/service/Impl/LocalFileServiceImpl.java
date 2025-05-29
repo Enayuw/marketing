@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -102,5 +103,10 @@ public class LocalFileServiceImpl implements LocalFileService {
             localFileMapper.updateByPrimaryKeySelective(localFile);
             log.warn("更新推送量级，localId: {}, quantity: {}", localId,  quantity);
         }
+    }
+
+    @Override
+    public LocalFile getLastDataByApiCode(String apiCode, LocalDateTime dayStartTime) {
+        return localFileMapper.getLastDataByApiCode(apiCode,dayStartTime);
     }
 }
