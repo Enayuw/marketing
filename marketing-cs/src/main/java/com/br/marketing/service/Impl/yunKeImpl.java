@@ -110,7 +110,6 @@ public class yunKeImpl implements YunKeService {
     void CollectCellByApiCode(String apiCode) {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getCellCollectThreadNum(),
                 marketingCommonConfig.getCellCollectThreadNum());
-        modifyThreadPool(threadPool);
         while (true) {
             try {
                 CellCollectRecordExample example = new CellCollectRecordExample();
@@ -125,6 +124,7 @@ public class yunKeImpl implements YunKeService {
                     break;
                 }
                 //分组多线程处理
+                getCellCollectThreadNum(threadPool);
                 List<CompletableFuture<Void>> futures = new ArrayList<>();
                 List<List<MarketingSyncCell>> partitions = Lists.partition(marketingSyncCells, PARTITION);
                 partitions.forEach(partition -> futures.add(CompletableFuture.runAsync(() ->
@@ -146,8 +146,14 @@ public class yunKeImpl implements YunKeService {
         }
     }
 
-    private void modifyThreadPool(ThreadPoolExecutor pool) {
-        Integer threadNum = marketingCommonConfig.getTransFileExtractionBIThread();
+    private void getCellCollectThreadNum(ThreadPoolExecutor pool) {
+        Integer threadNum = marketingCommonConfig.getCellCollectThreadNum();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
+    }
+
+    private void modifyDeviceTypeThreadPool(ThreadPoolExecutor pool) {
+        Integer threadNum = marketingCommonConfig.getDeviceTypeThreadNum();
         pool.setCorePoolSize(threadNum);
         pool.setMaximumPoolSize(threadNum);
     }
@@ -173,7 +179,6 @@ public class yunKeImpl implements YunKeService {
         Integer pageSize = marketingCommonConfig.getCollectDeviceTypePageSize();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getDeviceTypeThreadNum(),
                 marketingCommonConfig.getDeviceTypeThreadNum());
-        modifyThreadPool(threadPool);
         if (marketingCommonConfig.getDeviceTypeExecuteCondition()) {
             //按照device_type is NULL查找增量数据
             incrementalDataProcessing(pageSize, threadPool);
@@ -207,6 +212,7 @@ public class yunKeImpl implements YunKeService {
                 if (CollectionUtils.isEmpty(list)) {
                     break;
                 }
+                modifyDeviceTypeThreadPool(threadPool);
                 List<CompletableFuture<Void>> futures = new ArrayList<>();
                 List<List<MarketingDeviceType>> partitions = Lists.partition(list,
                         marketingCommonConfig.getDeviceTypePartitionNum());
@@ -239,6 +245,7 @@ public class yunKeImpl implements YunKeService {
                         cellCollectRecordMapper.updateMaxIdByApiCode(apiCode, 0L);
                         break;
                     }
+                    modifyDeviceTypeThreadPool(threadPool);
                     List<CompletableFuture<Void>> futures = new ArrayList<>();
                     List<List<MarketingDeviceType>> partitions = Lists.partition(list,
                             marketingCommonConfig.getDeviceTypePartitionNum());
