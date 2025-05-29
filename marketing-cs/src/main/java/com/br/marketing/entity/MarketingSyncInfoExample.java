@@ -12,7 +12,7 @@ public class MarketingSyncInfoExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingSyncInfoExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingSyncInfoExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -376,62 +376,62 @@ public class MarketingSyncInfoExample {
         }
 
         public Criteria andLastIsNull() {
-            addCriterion("last is null");
+            addCriterion("`last` is null");
             return (Criteria) this;
         }
 
         public Criteria andLastIsNotNull() {
-            addCriterion("last is not null");
+            addCriterion("`last` is not null");
             return (Criteria) this;
         }
 
         public Criteria andLastEqualTo(Byte value) {
-            addCriterion("last =", value, "last");
+            addCriterion("`last` =", value, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastNotEqualTo(Byte value) {
-            addCriterion("last <>", value, "last");
+            addCriterion("`last` <>", value, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastGreaterThan(Byte value) {
-            addCriterion("last >", value, "last");
+            addCriterion("`last` >", value, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastGreaterThanOrEqualTo(Byte value) {
-            addCriterion("last >=", value, "last");
+            addCriterion("`last` >=", value, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastLessThan(Byte value) {
-            addCriterion("last <", value, "last");
+            addCriterion("`last` <", value, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastLessThanOrEqualTo(Byte value) {
-            addCriterion("last <=", value, "last");
+            addCriterion("`last` <=", value, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastIn(List<Byte> values) {
-            addCriterion("last in", values, "last");
+            addCriterion("`last` in", values, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastNotIn(List<Byte> values) {
-            addCriterion("last not in", values, "last");
+            addCriterion("`last` not in", values, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastBetween(Byte value1, Byte value2) {
-            addCriterion("last between", value1, value2, "last");
+            addCriterion("`last` between", value1, value2, "last");
             return (Criteria) this;
         }
 
         public Criteria andLastNotBetween(Byte value1, Byte value2) {
-            addCriterion("last not between", value1, value2, "last");
+            addCriterion("`last` not between", value1, value2, "last");
             return (Criteria) this;
         }
 
@@ -496,62 +496,192 @@ public class MarketingSyncInfoExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(Integer value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeIsNull() {
+            addCriterion("data_source_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeIsNotNull() {
+            addCriterion("data_source_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeEqualTo(Integer value) {
+            addCriterion("data_source_type =", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotEqualTo(Integer value) {
+            addCriterion("data_source_type <>", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeGreaterThan(Integer value) {
+            addCriterion("data_source_type >", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("data_source_type >=", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeLessThan(Integer value) {
+            addCriterion("data_source_type <", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("data_source_type <=", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeIn(List<Integer> values) {
+            addCriterion("data_source_type in", values, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotIn(List<Integer> values) {
+            addCriterion("data_source_type not in", values, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeBetween(Integer value1, Integer value2) {
+            addCriterion("data_source_type between", value1, value2, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("data_source_type not between", value1, value2, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIsNull() {
+            addCriterion("json_data is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIsNotNull() {
+            addCriterion("json_data is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataEqualTo(String value) {
+            addCriterion("json_data =", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotEqualTo(String value) {
+            addCriterion("json_data <>", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataGreaterThan(String value) {
+            addCriterion("json_data >", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataGreaterThanOrEqualTo(String value) {
+            addCriterion("json_data >=", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLessThan(String value) {
+            addCriterion("json_data <", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLessThanOrEqualTo(String value) {
+            addCriterion("json_data <=", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataLike(String value) {
+            addCriterion("json_data like", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotLike(String value) {
+            addCriterion("json_data not like", value, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataIn(List<String> values) {
+            addCriterion("json_data in", values, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotIn(List<String> values) {
+            addCriterion("json_data not in", values, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataBetween(String value1, String value2) {
+            addCriterion("json_data between", value1, value2, "jsonData");
+            return (Criteria) this;
+        }
+
+        public Criteria andJsonDataNotBetween(String value1, String value2) {
+            addCriterion("json_data not between", value1, value2, "jsonData");
             return (Criteria) this;
         }
 
@@ -856,8 +986,9 @@ public class MarketingSyncInfoExample {
         }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

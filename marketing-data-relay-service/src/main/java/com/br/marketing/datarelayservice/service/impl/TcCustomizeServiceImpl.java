@@ -25,6 +25,9 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
     @Resource
     private AbstractTcCustomizeProcessor tcRevokeProcessor;
 
+    @Resource
+    private AbstractTcCustomizeProcessor tcSampleDataPushProcessor;
+
     /**
      * @param tcRequestDTO
      * @param apiCode
@@ -62,5 +65,18 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
     @Override
     public TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode) {
         return tcTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class);
+    }
+
+    /**
+     * @param tcRequestDTO
+     * @param apiCode
+     * @return com.br.marketing.dto.tc.TcResponseCommonDTO
+     * @description 正负样本推送
+     * @author hong.chen
+     * @date 2025/5/23 16:27
+     **/
+    @Override
+    public TcResponseDTO sampleDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
+        return tcSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class);
     }
 }

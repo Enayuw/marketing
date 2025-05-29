@@ -70,7 +70,47 @@ public class ZipFileClient {
         }
         return result.success();
     }
-    
+    public Result downloadFile(String url, String targetPath, Boolean isProxy) {
+        Result result = new Result().failure();
+        HttpClient httpClient = httpProxyClient.getHttpClientInner(isProxy);
+        RequestConfig requestConfig = httpProxyClient.getRequestConfig(isProxy, socketTimeout, null);
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setConfig(requestConfig);
+
+        try {
+            // 添加请求头
+            httpGet.addHeader("Accept", "application/zip");
+            httpGet.addHeader("Accept-Encoding", "gzip, deflate");
+            log.warn("Starting download from: {}", url);
+            try (CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(httpGet)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+
+                if (statusCode != HttpStatus.SC_OK) {
+                    throw new IOException("Invalid response status: " + statusCode);
+                }
+
+                HttpEntity entity = response.getEntity();
+                if (entity == null) {
+                    throw new IOException("No response entity found");
+                }
+
+                // 确保目标目录存在
+                File targetFile = new File(targetPath);
+                createDirectoryIfNeeded(targetFile.getParentFile());
+
+                // 下载文件
+                downloadWithProgress(entity, targetFile);
+
+                log.warn("Download completed successfully: {}", targetPath);
+            }
+
+        } catch (Exception e) {
+            log.error("Error downloading zip file", e);
+            throw new RuntimeException("Failed to download file", e);
+        }
+        return result.success();
+    }
+
     private void downloadWithProgress(HttpEntity entity, File targetFile) throws IOException {
         long totalBytes = entity.getContentLength();
         long downloadedBytes = 0;
