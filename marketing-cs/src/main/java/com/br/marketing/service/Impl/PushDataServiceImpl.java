@@ -2168,7 +2168,7 @@ public class PushDataServiceImpl implements PushDataService {
     public Result pushUpdateDassData(Long id) {
         Boolean actionMark = true;
         Long minId = null;
-        Integer threadNum = marketingCommonConfig.getPushDassThreadNum();
+        Integer threadNum = ObjectUtils.isEmpty(marketingCommonConfig.getPushDassThreadNum()) ? 5 : marketingCommonConfig.getPushDassThreadNum();
         modifyThreadPool(pushDassThreadPool, threadNum);
 
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
