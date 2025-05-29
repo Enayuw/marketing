@@ -81,4 +81,6 @@ public interface PushDataService {
     void retryPushXieChengSmsCollidingToDbData(Long localId);
 
     Result pushCsosDassData(Long id);
+
+    Result pushUpdateDassData(Long id);
 }

@@ -2964,5 +2964,9 @@ public class MarketingCommonConfig {
      */
     private String tongChengSampleZipFilePath;
 
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer pushDassThreadNum;
 }
 
