@@ -2997,5 +2997,9 @@ public class MarketingCommonConfig {
      * 云客机型获取接口挡板true打开false关闭
      */
     private Boolean yunKeDeviceTypeApiSwitch;
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer pushDassThreadNum;
 }
 

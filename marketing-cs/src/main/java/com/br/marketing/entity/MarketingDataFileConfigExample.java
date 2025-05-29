@@ -635,6 +635,76 @@ public class MarketingDataFileConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andTransferServiceNameIsNull() {
+            addCriterion("transfer_service_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameIsNotNull() {
+            addCriterion("transfer_service_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameEqualTo(String value) {
+            addCriterion("transfer_service_name =", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameNotEqualTo(String value) {
+            addCriterion("transfer_service_name <>", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameGreaterThan(String value) {
+            addCriterion("transfer_service_name >", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameGreaterThanOrEqualTo(String value) {
+            addCriterion("transfer_service_name >=", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameLessThan(String value) {
+            addCriterion("transfer_service_name <", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameLessThanOrEqualTo(String value) {
+            addCriterion("transfer_service_name <=", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameLike(String value) {
+            addCriterion("transfer_service_name like", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameNotLike(String value) {
+            addCriterion("transfer_service_name not like", value, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameIn(List<String> values) {
+            addCriterion("transfer_service_name in", values, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameNotIn(List<String> values) {
+            addCriterion("transfer_service_name not in", values, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameBetween(String value1, String value2) {
+            addCriterion("transfer_service_name between", value1, value2, "transferServiceName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTransferServiceNameNotBetween(String value1, String value2) {
+            addCriterion("transfer_service_name not between", value1, value2, "transferServiceName");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;
