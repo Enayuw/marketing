@@ -61,10 +61,6 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
                     }
                     break;
                 case "lmt_sts":
-                    // 对 % 进行 URL 编码（替换 % 为 %25）
-                    if (value != null && value.contains("%")) {
-                        value = value.replace("%", "%25");
-                    }
                     reserveFieldJo.put("lmt_sts", value);
                     break;
                 case "crd_typ":
@@ -74,10 +70,6 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
                     handleQyTyp(reserveFieldJo, value); // 提取特殊逻辑
                     break;
                 case "qy_rat":
-                    // 对 % 进行 URL 编码（替换 % 为 %25）
-                    if (value != null && value.contains("%")) {
-                        value = value.replace("%", "%25");
-                    }
                     reserveFieldJo.put("qy_rat", value);
                     break;
                 case "applyLoan":
