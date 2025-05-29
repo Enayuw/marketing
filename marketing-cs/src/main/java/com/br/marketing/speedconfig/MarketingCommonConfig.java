@@ -2969,6 +2969,47 @@ public class MarketingCommonConfig {
      */
     private Map<String, Map<String, String>> xieChengSmsQuitConfigNew;
 
+    /**
+     * 同程正负样本本地和内部SFTP-文件路径
+     */
+    private String tongChengSampleZipFilePath;
 
+
+    /**
+     * 收集手机号的apiCode集合
+     */
+    private List<String> cellOfApiCodeCellCollect;
+    /**
+     * 收集手机号的线程数
+     */
+    private Integer cellCollectThreadNum;
+    /**
+     * 云客手机号收集分页大小
+     */
+    private Integer cellCollectPageSize;
+    /**
+     * 云客机型获取分页查询大小
+     */
+    private Integer collectDeviceTypePageSize;
+    /**
+     * 云客机型获取每页分组大小
+     */
+    private Integer deviceTypePartitionNum;
+    /**
+     * 云客机型获取并发请求线程数
+     */
+    private Integer deviceTypeThreadNum;
+    /**
+     * 云客机型获取job参数 0-按照device_type is NULL查询请求增量数据,1-按照maxId查找请求每三个月刷一次
+     */
+    private Boolean deviceTypeExecuteCondition;
+    /**
+     * 云客机型获取接口挡板true打开false关闭
+     */
+    private Boolean yunKeDeviceTypeApiSwitch;
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer pushDassThreadNum;
 }
 

@@ -35,14 +35,16 @@ public class TcTransformNotifyProcessor extends AbstractTcCustomizeProcessor{
         record.setStatus(0);
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
+        record.setIsClean(0);
+        record.setIsDel(1);
         try {
-            tcyrTransferRecordMapper.insert(record);
+            tcyrTransferRecordMapper.insertSelective(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
             record.setStatus(2);
-            tcyrTransferRecordMapper.insert(record);
+            tcyrTransferRecordMapper.insertSelective(record);
             return null;
         }
     }
