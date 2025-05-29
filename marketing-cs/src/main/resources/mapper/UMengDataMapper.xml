@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.UMengDataMapper" >
+    <select id="selectDeviceAddList" resultType="com.br.marketing.entity.UMengData">
+    SELECT   id, local_id, api_code, id_card, cell, cus_num, usertype, `name`, pd_cell_type, pd_cell_province,
+            device_add_status, push_status, `status`, is_del, create_time, update_time, extend,
+            data_message, create_date
+    FROM b_umeng_data
+    WHERE id > #{lastSearchId}
+      AND local_id in (0,#{localId})
+      AND api_code =#{apiCode}
+      AND device_add_status in (-1,1)
+      AND status = 1
+      AND is_del = 1
+      <if test="searchStartTime !=null">
+        <![CDATA[AND create_time >=#{searchStartTime} ]]>
+      </if>
+    ORDER BY id ASC
+    LIMIT #{searchSize}
+    </select>
+    <select id="selectDevicePushList" resultType="com.br.marketing.entity.UMengData">
+        SELECT  id, local_id, api_code, id_card, cell, cus_num, usertype, `name`, pd_cell_type, pd_cell_province,
+                device_add_status, push_status, `status`, is_del, create_time, update_time, extend,
+                data_message, create_date
+        FROM b_umeng_data
+        WHERE id > #{lastSearchId}
+          AND local_id = #{localId}
+          AND api_code = #{apiCode}
+          AND push_status in (-1,1)
+          AND status = 1
+          AND is_del = 1
+        ORDER BY id ASC
+        LIMIT #{searchSize}
+    </select>
+
+    <select id="selectDeviceByCell" resultType="com.br.marketing.entity.UMengData">
+        SELECT   id, local_id, api_code, id_card, cell, cus_num, usertype, `name`, pd_cell_type, pd_cell_province,
+                 device_add_status, push_status, `status`, is_del, create_time, update_time, extend,
+                 data_message, create_date
+        FROM b_umeng_data
+        WHERE local_id=#{localId}
+          and cell = #{cell}
+    </select>
+
+
+    <update id="updateDeviceAddStatus">
+        update b_umeng_data set local_id = #{localId},device_add_status = #{deviceAddStatus}
+        WHERE id IN (
+        <foreach collection="idList" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </update>
+
+    <update id="updatePushStausByIds">
+        update b_umeng_data set push_status = #{pushStatus}
+        WHERE id IN (
+        <foreach collection="idList" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </update>
+
+</mapper>

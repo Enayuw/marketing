@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.UMengDataMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.UMengData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="id_card" property="idCard" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="cus_num" property="cusNum" jdbcType="VARCHAR" />
+    <result column="usertype" property="usertype" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="pd_cell_type" property="pdCellType" jdbcType="VARCHAR" />
+    <result column="pd_cell_province" property="pdCellProvince" jdbcType="VARCHAR" />
+    <result column="device_add_status" property="deviceAddStatus" jdbcType="INTEGER" />
+    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="create_date" property="createDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, local_id, api_code, id_card, cell, cus_num, usertype, `name`, pd_cell_type, pd_cell_province,
+    device_add_status, push_status, `status`, is_del, create_time, update_time, extend,
+    data_message, create_date
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.UMengDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_umeng_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_umeng_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_umeng_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.UMengDataExample" >
+    delete from b_umeng_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.UMengData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_umeng_data (local_id, api_code, id_card,
+    cell, cus_num, usertype,
+    `name`, pd_cell_type, pd_cell_province,
+    device_add_status, push_status, `status`,
+    is_del, create_time, update_time,
+    extend, data_message, create_date
+    )
+    values (#{localId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{idCard,jdbcType=VARCHAR},
+    #{cell,jdbcType=VARCHAR}, #{cusNum,jdbcType=VARCHAR}, #{usertype,jdbcType=VARCHAR},
+    #{name,jdbcType=VARCHAR}, #{pdCellType,jdbcType=VARCHAR}, #{pdCellProvince,jdbcType=VARCHAR},
+    #{deviceAddStatus,jdbcType=INTEGER}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+    #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{extend,jdbcType=VARCHAR}, #{dataMessage,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}
+    )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.UMengData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_umeng_data
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="localId != null" >
+        local_id,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="idCard != null" >
+        id_card,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="cusNum != null" >
+        cus_num,
+      </if>
+      <if test="usertype != null" >
+        usertype,
+      </if>
+      <if test="name != null" >
+        `name`,
+      </if>
+      <if test="pdCellType != null" >
+        pd_cell_type,
+      </if>
+      <if test="pdCellProvince != null" >
+        pd_cell_province,
+      </if>
+      <if test="deviceAddStatus != null" >
+        device_add_status,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="localId != null" >
+        #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="idCard != null" >
+        #{idCard,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="cusNum != null" >
+        #{cusNum,jdbcType=VARCHAR},
+      </if>
+      <if test="usertype != null" >
+        #{usertype,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pdCellType != null" >
+        #{pdCellType,jdbcType=VARCHAR},
+      </if>
+      <if test="pdCellProvince != null" >
+        #{pdCellProvince,jdbcType=VARCHAR},
+      </if>
+      <if test="deviceAddStatus != null" >
+        #{deviceAddStatus,jdbcType=INTEGER},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.UMengDataExample" resultType="java.lang.Integer" >
+    select count(*) from b_umeng_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_umeng_data
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.localId != null" >
+        local_id = #{record.localId,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.idCard != null" >
+        id_card = #{record.idCard,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cusNum != null" >
+        cus_num = #{record.cusNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.usertype != null" >
+        usertype = #{record.usertype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null" >
+        `name` = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdCellType != null" >
+        pd_cell_type = #{record.pdCellType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdCellProvince != null" >
+        pd_cell_province = #{record.pdCellProvince,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deviceAddStatus != null" >
+        device_add_status = #{record.deviceAddStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createDate != null" >
+        create_date = #{record.createDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_umeng_data
+    set id = #{record.id,jdbcType=BIGINT},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    id_card = #{record.idCard,jdbcType=VARCHAR},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    cus_num = #{record.cusNum,jdbcType=VARCHAR},
+    usertype = #{record.usertype,jdbcType=VARCHAR},
+    `name` = #{record.name,jdbcType=VARCHAR},
+    pd_cell_type = #{record.pdCellType,jdbcType=VARCHAR},
+    pd_cell_province = #{record.pdCellProvince,jdbcType=VARCHAR},
+    device_add_status = #{record.deviceAddStatus,jdbcType=INTEGER},
+    push_status = #{record.pushStatus,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    create_date = #{record.createDate,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.UMengData" >
+    update b_umeng_data
+    <set >
+      <if test="localId != null" >
+        local_id = #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="idCard != null" >
+        id_card = #{idCard,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="cusNum != null" >
+        cus_num = #{cusNum,jdbcType=VARCHAR},
+      </if>
+      <if test="usertype != null" >
+        usertype = #{usertype,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="pdCellType != null" >
+        pd_cell_type = #{pdCellType,jdbcType=VARCHAR},
+      </if>
+      <if test="pdCellProvince != null" >
+        pd_cell_province = #{pdCellProvince,jdbcType=VARCHAR},
+      </if>
+      <if test="deviceAddStatus != null" >
+        device_add_status = #{deviceAddStatus,jdbcType=INTEGER},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.UMengData" >
+    update b_umeng_data
+    set local_id = #{localId,jdbcType=BIGINT},
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        id_card = #{idCard,jdbcType=VARCHAR},
+        cell = #{cell,jdbcType=VARCHAR},
+        cus_num = #{cusNum,jdbcType=VARCHAR},
+        usertype = #{usertype,jdbcType=VARCHAR},
+        `name` = #{name,jdbcType=VARCHAR},
+        pd_cell_type = #{pdCellType,jdbcType=VARCHAR},
+        pd_cell_province = #{pdCellProvince,jdbcType=VARCHAR},
+        device_add_status = #{deviceAddStatus,jdbcType=INTEGER},
+        push_status = #{pushStatus,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        extend = #{extend,jdbcType=VARCHAR},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        create_date = #{createDate,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
