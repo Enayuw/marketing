@@ -2206,15 +2206,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         phoneSale.setStatus(1);
         
         try {
-            // 数据列数验证
-            if (datas.size() != address.size()) {
-                phoneSale.setStatus(2);
-                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
-                updatePhoneSaleMapper.insertSelective(phoneSale);
-                log.warn("updateFileTodb - 数据列数不匹配，行号：{}, 期望：{}, 实际：{}", line, address.size(), datas.size());
-                return new Result().setCode(ResultCode.FAIL.getValue());
-            }
-            
+
             // 数据处理
             for (int i = 0; i < datas.size(); i++) {
                 String sureaddress = address.get(i);
