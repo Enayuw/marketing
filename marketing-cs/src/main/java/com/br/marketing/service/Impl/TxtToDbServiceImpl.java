@@ -2231,28 +2231,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         }
                         phoneSale.setUid(dataValue);
                         break;
-                    case "phone":
-                        if (StringUtils.isNotBlank(dataValue)) {
-                            Result<String> stringResult = decryptPhone(dataValue);
-                            phoneSale.setPhoneAes(dataValue);
-                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
-                                phoneSale.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
-                            } else {
-                                phoneSale.setPhone(stringResult.getData());
-                            }
-                        }
-                        break;
-                    case "name":
-                        phoneSale.setNameAes(dataValue);
-                        phoneSale.setName(decryptCsosName(dataValue));
-                        break;
-                    case "gender":
-                        // 验证性别值
-                        if (StringUtils.isNotBlank(dataValue) && !isValidGender(dataValue)) {
-                            error += "gender值无效;";
-                        }
-                        phoneSale.setGender(dataValue);
-                        break;
                     case "orgname":
                         if (StringUtils.isNotBlank(dataValue)) {
                             error = error.replace("orgname不能为空;", "");
@@ -2278,16 +2256,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                                 error += "user_type长度超过100字符;";
                             }
                             phoneSale.setUserType(dataValue);
-                        }
-                        break;
-                    case "planCallTime":
-                        if (StringUtils.isNotBlank(dataValue)) {
-                            // 格式化planCallTime并验证
-                            String formattedPlanCallTime = formatPlanCallTime(dataValue, phoneSale.getUid());
-                            phoneSale.setPlanCallTime(formattedPlanCallTime);
-                        } else {
-                            // planCallTime 不能为空
-                            error += "planCallTime不能为空;";
                         }
                         break;
                     case "extend":
@@ -2351,108 +2319,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
                 ? ResultCode.SUCCESS.getValue()
                 : ResultCode.FAIL.getValue());
-    }
-    
-    /**
-     * 验证日期格式是否为 yyyy-mm-dd
-     */
-    private boolean isValidDateFormat(String dateStr) {
-        if (StringUtils.isEmpty(dateStr)) {
-            return false;
-        }
-        try {
-            // 使用正则表达式验证格式
-            if (!dateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                return false;
-            }
-            // 进一步验证日期的有效性
-            LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-    
-    /**
-     * 验证性别值是否有效
-     */
-    private boolean isValidGender(String gender) {
-        if (StringUtils.isEmpty(gender)) {
-            // 空值允许返回空
-            return true;
-        }
-        // 常见的性别值
-        return "男".equals(gender) || "女".equals(gender) || 
-               "M".equalsIgnoreCase(gender) || "F".equalsIgnoreCase(gender) ||
-               "1".equals(gender) || "2".equals(gender) || "0".equals(gender);
-    }
-
-    /**
-     * 格式化planCallTime字段，支持多种日期格式并统一转换为yyyy-MM-dd格式
-     * 
-     * @param planCallTime 原始时间字符串
-     * @param uid 用户ID，用于日志记录
-     * @return 格式化后的时间字符串（yyyy-MM-dd格式）或原始值（如果转换失败）
-     */
-    private String formatPlanCallTime(String planCallTime, String uid) {
-        if (StringUtils.isEmpty(planCallTime)) {
-            return planCallTime;
-        }
-        
-        // 去除空格
-        String trimmedTime = planCallTime.trim();
-        
-        // 支持的日期格式列表
-        String[] supportedFormats = {
-            "yyyy-MM-dd",
-            "yyyy/MM/dd",
-            "yyyy.MM.dd",
-            "yyyyMMdd",
-            "yyyy-M-d",
-            "yyyy/M/d",
-            "yyyy.M.d",
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy/MM/dd HH:mm:ss",
-            "yyyy.MM.dd HH:mm:ss",
-            "yyyy-MM-dd HH:mm",
-            "yyyy/MM/dd HH:mm",
-            "yyyy.MM.dd HH:mm",
-            "dd/MM/yyyy",
-            "dd-MM-yyyy",
-            "dd.MM.yyyy",
-            "MM/dd/yyyy",
-            "MM-dd-yyyy",
-            "MM.dd.yyyy"
-        };
-        
-        // 目标格式
-        DateTimeFormatter targetFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        
-        // 尝试解析各种格式
-        for (String format : supportedFormats) {
-            try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-                
-                if (format.contains("HH:mm")) {
-                    // 包含时间的格式，解析为LocalDateTime然后转换为LocalDate
-                    LocalDateTime dateTime = LocalDateTime.parse(trimmedTime, formatter);
-                    return dateTime.toLocalDate().format(targetFormatter);
-                } else {
-                    // 只有日期的格式，直接解析为LocalDate
-                    LocalDate date = LocalDate.parse(trimmedTime, formatter);
-                    return date.format(targetFormatter);
-                }
-            } catch (Exception e) {
-                // 当前格式解析失败，继续尝试下一个格式
-                continue;
-            }
-        }
-        
-        // 如果所有格式都解析失败，记录错误并返回原始值
-        log.warn("planCallTime格式转换失败: uid={}, 原始值={}, 支持的格式: {}", 
-                uid, planCallTime, String.join(", ", supportedFormats));
-        // 返回原始值
-        return trimmedTime;
     }
 
 }

@@ -2168,11 +2168,7 @@ public class PushDataServiceImpl implements PushDataService {
     public Result pushUpdateDassData(Long id) {
         Boolean actionMark = true;
         Long minId = null;
-        String key = "dass:push:threadnum";
-        Integer threadNum = 5;
-        if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
-            threadNum = Integer.valueOf(redisChgService.get(key));
-        }
+        Integer threadNum = marketingCommonConfig.getPushDassThreadNum();
         modifyThreadPool(pushDassThreadPool, threadNum);
 
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
@@ -2205,12 +2201,9 @@ public class PushDataServiceImpl implements PushDataService {
                         
                         for (DaasUpdateDataDTO updateData : updateDataList) {
                             try {
-                                // 预生成requestId，确保重试时使用相同ID
-                                if (StringUtils.isBlank(updateData.getRequestId())) {
-                                    String requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" + 
-                                                      DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
-                                    updateData.setRequestId(requestId);
-                                }
+                                String requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" +
+                                        DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
+                                updateData.setRequestId(requestId);
                                 
                                 // 调用接口
                                 Result result = dassServiceClient.postWealthUpdateData(updateData);

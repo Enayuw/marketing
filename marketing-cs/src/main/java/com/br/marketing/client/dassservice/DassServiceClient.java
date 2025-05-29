@@ -608,9 +608,6 @@ public class DassServiceClient {
             
             // 构建扩展字段
             Map<String, Object> reserveField1 = new HashMap<>();
-            if (StringUtils.isNotBlank(updateData.getPlanCallTime())) {
-                reserveField1.put("planCallTime", updateData.getPlanCallTime());
-            }
             // 添加其他扩展字段
             if (StringUtils.isNotBlank(updateData.getExtend())) {
                 try {

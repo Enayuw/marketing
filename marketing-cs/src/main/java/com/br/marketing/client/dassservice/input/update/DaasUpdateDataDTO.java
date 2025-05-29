@@ -30,11 +30,6 @@ public class DaasUpdateDataDTO {
     private String orgname;
 
     /**
-     * 计划外呼时间
-     */
-    private String planCallTime;
-
-    /**
      * 扩展字段
      */
     private String extend;

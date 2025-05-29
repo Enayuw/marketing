@@ -4,12 +4,12 @@ import java.util.Date;
 
 public class UpdatePhoneSale {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -34,31 +34,6 @@ public class UpdatePhoneSale {
     private String uid;
 
     /**
-     * 手机号
-     */
-    private String phone;
-
-    /**
-     * 手机号aes加密
-     */
-    private String phoneAes;
-
-    /**
-     * 姓名
-     */
-    private String name;
-
-    /**
-     * 姓名aes加密
-     */
-    private String nameAes;
-
-    /**
-     * 性别
-     */
-    private String gender;
-
-    /**
      * 机构名称
      */
     private String orgname;
@@ -72,11 +47,6 @@ public class UpdatePhoneSale {
      * 机构运营场景
      */
     private String userType;
-
-    /**
-     * 计划外呼时间
-     */
-    private String planCallTime;
 
     /**
      * 扩展字段
@@ -141,46 +111,6 @@ public class UpdatePhoneSale {
         this.uid = uid == null ? null : uid.trim();
     }
 
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone == null ? null : phone.trim();
-    }
-
-    public String getPhoneAes() {
-        return phoneAes;
-    }
-
-    public void setPhoneAes(String phoneAes) {
-        this.phoneAes = phoneAes == null ? null : phoneAes.trim();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
-    }
-
-    public String getNameAes() {
-        return nameAes;
-    }
-
-    public void setNameAes(String nameAes) {
-        this.nameAes = nameAes == null ? null : nameAes.trim();
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender == null ? null : gender.trim();
-    }
-
     public String getOrgname() {
         return orgname;
     }
@@ -203,14 +133,6 @@ public class UpdatePhoneSale {
 
     public void setUserType(String userType) {
         this.userType = userType == null ? null : userType.trim();
-    }
-
-    public String getPlanCallTime() {
-        return planCallTime;
-    }
-
-    public void setPlanCallTime(String planCallTime) {
-        this.planCallTime = planCallTime == null ? null : planCallTime.trim();
     }
 
     public String getExtend() {
