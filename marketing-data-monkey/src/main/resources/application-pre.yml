@@ -5,7 +5,7 @@ datasource:
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: f9daIYUIAXQkeyVbDoOI
+      password: M6teKbFVl1odfOCkC1JA
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -260,6 +260,13 @@ api:
     baseUrl: https://car.s.zonrn.cn
     carList: ${api.ycKA.baseUrl}/api/yiPlanDown
     isProxy: false
+  yunKe:
+    baseUrl: http://120.226.208.2:8072/vertx/smartsms/validAimAbility
+    appId: 42935819
+    appKey: c2300278153c40e081cfb39462ff8db3
+    version: 1
+    encryptionType: md5
+
 spring:
   rabbitmq:
     zw:

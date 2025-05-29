@@ -466,4 +466,9 @@ public interface MarketingSyncUserMapper {
             @Param("cusBatch") String cusBatch,
             @Param("minId") Long minId,
             @Param("pageSize") Integer pageSize);
+    List<MarketingSyncCell> getCellByApiCodeAndMaxId(
+            @Param("apiCode") String apiCode,
+            @Param("maxId") Long maxId,
+            @Param("pageSize") Integer pageSize);
+
 }

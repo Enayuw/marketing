@@ -571,4 +571,33 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【monkey】-ApiCodeCellCollectJob"
+                class="com.br.marketing.monkey.job.yunke.ApiCodeCellCollectJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="cell数据收集"
+                registry-center-ref="regCenter"
+                sharding-total-count="3"
+                sharding-item-parameters="0=A,1=B,2=C"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="【monkey】-CollectDeviceTypeJob"
+                class="com.br.marketing.monkey.job.yunke.CollectDeviceTypeJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="云客机型获取"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
