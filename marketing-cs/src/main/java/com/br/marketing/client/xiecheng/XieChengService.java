@@ -342,6 +342,7 @@ public class XieChengService {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
+        log.warn("短信退订新地址调用，smsQuitReq：" + JSON.toJSONString(smsQuitReq));
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfig().get(smsQuitReq.getApiCode());
         Map<String, Object> retMap = Maps.newHashMap();
@@ -352,6 +353,39 @@ public class XieChengService {
                 Objects.isNull(config.get("aesKey"))?smsQuitKey: config.get("aesKey"),
                 Objects.isNull(config.get("aesIv"))?smsQuitIv: config.get("aesIv")));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, Objects.isNull(config.get("signKey"))?smsQuitSingKey: config.get("signKey")));
+        List<Boolean> logStore = httpProxyClient.isLogStore(XIECHENGSMSQUIT);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE, "", logStore.get(0), logStore.get(1));
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程短信退订接口-请求参数:{};返回:{}", JSON.toJSONString(resMap), JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
+        Integer code = resultJson.getInteger("code");
+        if (code == 0) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        //需要重试
+        if (code == 500 || code == 704) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        } else {
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
+    }
+
+    @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result sendSmsQuitDataNew(SmsQuitReq smsQuitReq) {
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfigNew().get(smsQuitReq.getApiCode());
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", Objects.isNull(config.get("appId")) ? smsQuitAppId : config.get("appId"));
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", Objects.isNull(config.get("channel")) ? channel : config.get("channel"));
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq),
+                Objects.isNull(config.get("aesKey")) ? smsQuitKey : config.get("aesKey"),
+                Objects.isNull(config.get("aesIv")) ? smsQuitIv: config.get("aesIv")));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, Objects.isNull(config.get("signKey")) ? smsQuitSingKey : config.get("signKey")));
         List<Boolean> logStore = httpProxyClient.isLogStore(XIECHENGSMSQUIT);
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE, "", logStore.get(0), logStore.get(1));

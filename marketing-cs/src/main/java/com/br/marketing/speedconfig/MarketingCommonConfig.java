@@ -2954,12 +2954,20 @@ public class MarketingCommonConfig {
      */
     private Integer customUploadCleanThreadNum;
 
-
-
     /**
      * 动态切换消息队列定时任务开关
      */
     private Boolean isEnableMqSwitch;
+
+    /**
+     * 携程接口调用参数切换
+     */
+    private Map<String, Boolean> xiechengICParamSwitch;
+
+    /**
+     * 携程推送短信退订接口配置信息新
+     */
+    private Map<String, Map<String, String>> xieChengSmsQuitConfigNew;
 
 
 }
