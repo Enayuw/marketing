@@ -3011,5 +3011,56 @@ public class MarketingCommonConfig {
      * 上传数据清洗线程数
      */
     private Integer pushDassThreadNum;
+
+
+
+
+    /**
+     * uMeng apiCodes
+     */
+    private List<String> apiCodeOfUMeng;
+
+    /**
+     * uMeng apiCode-创建智能时机任务的配置参数
+     * eg  uMengTaskParamMap={"111111":{"event_type":"1001","touch_type":3,"callback_url":"url","status":1,"callback_period":"10-16","start_time":"yyyy-MM-dd 10:00:00","end_time":"yyyy-MM-dd 20:00:00"}}
+     */
+    private HashMap<String,JSONObject> uMengTaskParamMap;
+
+    /**
+     * uMeng bizId、bizSecret配置 {"bizId":"sqg11746598977wccp","bizSecret":"b9073f30a7837609b97f5ce0e962d42e"}
+     */
+    private HashMap<String,String> uMengBizInfoMap;
+
+
+    /**
+     * uMeng requestUrl配置
+     * eg {"timingTaskUrl":"https://udata.umeng.com/occa/v1/task/create?sign=%s","deviceAddUrl":"https://udata.umeng.com/occa/v1/device/add?sign=%s"}
+     */
+    private HashMap<String,String> uMengUrlInfoMap;
+
+
+    /**
+     * uMeng 设备注册job每页查询条数
+     */
+    private Integer  uMengPageSearchSize;
+
+    /**
+     * uMeng 批量操作线程 批量注册设备/批量推决策
+     */
+    private Integer uMengThreadPool;
+
+    /**
+     * uMeng 智能时机-调用决策，根据情况配置对应的决策参数 strategyCode
+     * 说明：
+     * {
+     *   "apiCode":"策略编号"
+     * }
+     * 样例：
+     * {
+     * "7492800": "CASTR0142044",
+     * 	"4004643":"CASTR0000864"
+     * }
+     */
+    private HashMap<String, String> uMengPushPolicyStrategyCode;
 }
 
