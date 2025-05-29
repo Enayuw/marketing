@@ -599,13 +599,6 @@ public class DassServiceClient {
             
             // 生成唯一请求ID（确保幂等性）
             String requestId = updateData.getRequestId();
-            if (StringUtils.isBlank(requestId)) {
-                // 使用固定算法生成requestId，确保重试时ID一致
-                requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" + 
-                           DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
-                updateData.setRequestId(requestId);
-            }
-            
             // 获取当前时间戳
             long timeStamp = System.currentTimeMillis();
             
