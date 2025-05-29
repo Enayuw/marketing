@@ -121,8 +121,10 @@ public class TcSampleDataDownService {
 
     private String extractFileNameFromUrl(String url) {
         try {
+            // 移除预签名url参数
+            String cleanUrl = url.split("\\?")[0];
             // 获取最后一个斜杠后的内容
-            String fileName = url.substring(url.lastIndexOf('/') + 1);
+            String fileName = cleanUrl.substring(url.lastIndexOf('/') + 1);
 
             // 验证文件名是否有效
             if (!fileName.isEmpty() && !fileName.equals("/")) {
