@@ -22,6 +22,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,6 +37,8 @@ import java.util.stream.Collectors;
 public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
 
     private final static String TITLE = "【uMeng-智能时机回调】";
+
+    private static final SecureRandom secureRandom = new SecureRandom();
 
 
     @Resource
@@ -78,21 +81,18 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
                     userDataService.updatePushStausByIds(idList,2);
                 }
             }
+            umengInterfaceLogMapper.insertSelective(interfaceLog);
         } catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             result = result.failure();
-        }finally {
-            interfaceLog.setResult(JSONObject.toJSONString(result));
-            umengInterfaceLogMapper.insertSelective(interfaceLog);
-            return result;
         }
+        return result;
     }
 
     @Override
     public Result callPolicyData(Long localId, String apiCode, String strategyCode, List<UMengData> uMengDataList) {
         Result result = new Result().success();
-        Random random = new Random();
-        int randomNumber = 10000 + random.nextInt(90000);
+        int randomNumber = 10000 + secureRandom.nextInt(90000);
         List<PushMarketingUserDetailDTO>  list = convertPushUserList(uMengDataList);
         if(!list.isEmpty()){
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));

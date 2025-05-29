@@ -105,7 +105,21 @@ public class UMengTimingTaskCreateJob extends AbstractSimpleElasticJob {
 
     /**
      * 构建uMeng智能时机任务创建参数
-     * eg:{"task_name":"xxx","event_type":"1001","touch_type":"1","callback_url":"xxx","callback_params":{"param1":"xxx"},"status":0,"callback_period":"8-14,15-20","start_time":"2023-06-29 11:30:12","end_time":"2023-06-30 11:30:12","aspect_data_scenes_ids":"a0dz1681375302jhp4ig2zsn,a0dz1681375302jhp4qqpjlv"}
+     * eg:
+     * {
+     *     "task_name": "xxx",
+     *     "event_type": "1001",
+     *     "touch_type": "1",
+     *     "callback_url": "xxx",
+     *     "callback_params": {
+     *         "param1": "xxx"
+     *     },
+     *     "status": 0,
+     *     "callback_period": "8-14,15-20",
+     *     "start_time": "2023-06-29 11:30:12",
+     *     "end_time": "2023-06-30 11:30:12",
+     *     "aspect_data_scenes_ids": "a0dz1681375302jhp4ig2zsn,a0dz1681375302jhp4qqpjlv"
+     * }
      * @param apiCode
      * @param taskName
      * @return

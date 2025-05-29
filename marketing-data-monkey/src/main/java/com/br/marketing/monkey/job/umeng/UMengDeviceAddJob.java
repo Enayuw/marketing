@@ -105,7 +105,8 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
         shutdownThreadPool(actionPool);
     }
 
-    private void deviceAdd(List<UMengData> uMengDataList, UMengTimingTask timingTask, ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList) {
+    private void deviceAdd(List<UMengData> uMengDataList, UMengTimingTask timingTask,
+                           ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList) {
         actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processDeviceAdd(timingTask,uMengDataList), actionPool)
@@ -143,7 +144,26 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     /**
      * 构建设备注册参数
-     * eg {"task_ids":["sqg11746598977wccplxl4rx"],"device_list":[{"phone_md5":"","phone_sha256":"0000111b93e70fd2d173333ce988da0cc65dbd18678ssss20ad8380fab2fbd07","imei_md5":"","oaid_md5":"","idfa_md5":"","aaid":"sqg11746598977wccp","appkey":"b9073f30a7837609b97f5ce0e962d42e","device_token":"","umid":"","custom_param":""}]}
+     * eg
+     * {
+     *     "task_ids": [
+     *         "sqg11746598977wccplxl4rx"
+     *     ],
+     *     "device_list": [
+     *         {
+     *             "phone_md5": "",
+     *             "phone_sha256": "0000111b93e70fd2d173333ce988da0cc65dbd18678ssss20ad8380fab2fbd07",
+     *             "imei_md5": "",
+     *             "oaid_md5": "",
+     *             "idfa_md5": "",
+     *             "aaid": "sqg11746598977wccp",
+     *             "appkey": "b9073f30a7837609b97f5ce0e962d42e",
+     *             "device_token": "",
+     *             "umid": "",
+     *             "custom_param": ""
+     *         }
+     *     ]
+     * }
      * @param timingTask
      * @param partitionItemList
      * @return

@@ -69,7 +69,9 @@ public class UMengApiServiceImpl implements IUMengApiService {
                     resultData = JSONObject.parseObject(EntityUtils.toString(response.getEntity()));
                 }
                 Long endTime = System.currentTimeMillis();
-                log.warn("TITLE:{} 结束,localId:{}, apiCode:{}, url:{},requestParam:{},result:{} ",TITLE,localId,apiCode,realRequestUrl,requestParam,resultData.toJSONString());
+                String resultStr = resultData==null?"":resultData.toJSONString();
+                log.warn("TITLE:{} 结束,localId:{}, apiCode:{}, url:{},requestParam:{},result:{} ",TITLE,localId,apiCode,
+                        realRequestUrl,requestParam,resultStr);
                 saveLog(localId,1,rid,"0",requestParam,realRequestUrl,header,statusCode,resultData,(endTime-startTime));
             }
         } catch (Exception e) {
@@ -112,7 +114,8 @@ public class UMengApiServiceImpl implements IUMengApiService {
                     resultData = JSONObject.parseObject(EntityUtils.toString(response.getEntity()));
                 }
                 Long endTime = System.currentTimeMillis();
-                log.warn("TITLE:{} 结束,localId:{}, apiCode:{}, url:{},result:{} ",TITLE,localId,apiCode,realRequestUrl,resultData.toJSONString());
+                String resultStr = resultData==null?"":resultData.toJSONString();
+                log.warn("TITLE:{} 结束,localId:{}, apiCode:{}, url:{},result:{} ",TITLE,localId,apiCode,realRequestUrl,resultStr);
                 saveLog(localId,2,rid,"0",requestParam,realRequestUrl,header,statusCode,resultData,(endTime-startTime));
             }
         } catch (Exception e) {

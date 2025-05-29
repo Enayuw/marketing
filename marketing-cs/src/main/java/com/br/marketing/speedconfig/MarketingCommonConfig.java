@@ -3022,7 +3022,10 @@ public class MarketingCommonConfig {
 
     /**
      * uMeng apiCode-创建智能时机任务的配置参数
-     * eg  uMengTaskParamMap={"111111":{"event_type":"1001","touch_type":3,"callback_url":"url","status":1,"callback_period":"10-16","start_time":"yyyy-MM-dd 10:00:00","end_time":"yyyy-MM-dd 20:00:00"}}
+     * eg  uMengTaskParamMap=
+     * {"111111":{"event_type":"1001","touch_type":3,"callback_url":"url","status":1,
+     * "callback_period":"10-16","start_time":"yyyy-MM-dd 10:00:00",
+     * "end_time":"yyyy-MM-dd 20:00:00"}}
      */
     private HashMap<String,JSONObject> uMengTaskParamMap;
 

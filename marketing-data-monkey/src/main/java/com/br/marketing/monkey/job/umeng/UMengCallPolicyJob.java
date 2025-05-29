@@ -87,7 +87,9 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         Long lastSearchId = 0L;
         Long totalCount = 0L;
         Integer searchSize = marketingCommonConfig.getUMengPageSearchSize();
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool( marketingCommonConfig.getUMengThreadPool(), marketingCommonConfig.getUMengThreadPool());
+        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                marketingCommonConfig.getUMengThreadPool(),
+                marketingCommonConfig.getUMengThreadPool());
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         List<Long> resultList = new ArrayList<>(20);
         while (true) {
@@ -106,10 +108,13 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         for (Long successCount : resultList) {
             successLine += successCount;
         }
-        log.warn("TITLE:{},localId:{},apiCode:{}, callPolicy end,totalCount:{},successLine:{}",TITLE,timingTask.getLocalId(),apiCode,totalCount,successLine);
+        log.warn("TITLE:{},localId:{},apiCode:{}, callPolicy end,totalCount:{},successLine:{}",
+                TITLE,timingTask.getLocalId(),apiCode,totalCount,successLine);
     }
 
-    private Result dealCallPolicy(UMengTimingTask timingTask ,List<UMengData> uMengDataList,ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList, List<Long> resultList ) {
+    private Result dealCallPolicy(UMengTimingTask timingTask ,List<UMengData> uMengDataList,
+                                  ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList,
+                                  List<Long> resultList ) {
         Result result = new Result().failure();
         actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
@@ -121,7 +126,8 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
                     }
                     resultList.add(Long.parseLong(processDataResult.getData().toString()));
                     if (throwable != null) {
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),throwable.getMessage(), TITLE), throwable);
+                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),
+                                throwable.getMessage(), TITLE), throwable);
                         resultList.add(0L);
                     }
                 })
