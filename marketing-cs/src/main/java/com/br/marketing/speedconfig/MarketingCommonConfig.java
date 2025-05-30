@@ -1849,6 +1849,11 @@ public class MarketingCommonConfig {
     private JSONObject xieChengSmsCollidingConfig;
 
     /**
+     *  携程短信撞库接口参数配置90
+     */
+    private JSONObject xieChengSmsCollidingConfigVt;
+
+    /**
      * 奇富360数据清洗调用转化接口线程数
      */
     private Integer dataCleanQiFu360CoreAndMaxNum;
