@@ -464,6 +464,7 @@ public class XieChengService {
           data 组装
          */
         JSONObject collidingConfig = marketingCommonConfig.getXieChengSmsCollidingConfigVt();
+        log.warn("vt撞库参数"+JSONObject.toJSONString(collidingConfig));
         String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
         String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
         String smsCollidingKey = collidingConfig.getString("smsCollidingKey");
