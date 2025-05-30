@@ -282,7 +282,7 @@ corn:
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
-  name-server: 192.168.57.11:9876;192.168.57.12:9876;192.168.57.13:9876
+  name-server: ${ROCKET_NAME_SERVER:192.168.57.11:9875;192.168.57.12:9875;192.168.57.13:9875}
   producer:
     # 发送同一类消息的设置为同一个group，保证唯一
     group: Marketing_Default_Group
