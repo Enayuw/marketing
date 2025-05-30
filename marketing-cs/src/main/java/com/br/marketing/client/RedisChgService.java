@@ -604,4 +604,13 @@ public class RedisChgService {
             throw new RuntimeException(e);
         }
     }
+
+    public Object eval(String script, ScriptOutputType outputType, String[] keys, String... args) {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.eval(script, outputType, keys, args);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
