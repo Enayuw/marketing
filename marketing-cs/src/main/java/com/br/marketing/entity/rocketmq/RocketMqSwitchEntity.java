@@ -13,18 +13,24 @@ import lombok.Data;
  *     apiCodes: 配置启用RocketMQ的apiCode,多个以逗号分隔
  * 完整样例：
  * {
- * 	 "global": "true",
- * 	 "group": {
- * 	   "Marketing.PreUser.Receive": {
- * 	   	 "flag": true,
- * 	   	 "apiCodes": "7410950,7410951"
+ *     "global": "true",
+ *     "group": {
+ *         "Marketing.PreUser.Receive": {
+ *             "flag": true,
+ *             "apiCodes": "7410950,7410951",
+ *             "msgUUIdFlag": true,
+ *             "msgIdemFlag": true,
+ *             "printLog": true
+ *         }
  *     },
- * 	   "Marketing.PreUser.Receive.Small": {
- * 	   	 "flag": true,
- * 	   	 "apiCodes": "7410950,7410951"
+ *     "appNameFlag": {
+ *        "marketing-mq-consumer": {
+ *            "msgUUIdFlag": true,
+ *            "msgIdemFlag": true
+ *        }
  *     }
- *   }
  * }
+ *
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-08-22
  */
@@ -37,22 +43,26 @@ public class RocketMqSwitchEntity {
     /**
      * 按照tag分类
      * {
-     *   "Marketing.PreUser.Receive": {
-     *   	"flag": true,
-     *   	"apiCodes": "7410950,7410951"
-     *   },
-     *   "Marketing.PreUser.Receive.Small": {
-     *   	"flag": true,
-     *   	"apiCodes": "7410950,7410951"
-     *   }
+     *     "Marketing.PreUser.Receive": {
+     *         "flag": true,
+     *         "apiCodes": "7410950,7410951",
+     *         "msgUUIdFlag": true,
+     *         "msgIdemFlag": true,
+     *         "printLog": true
+     *     }
      * }
      */
     private JSONObject group;
 
     /**
-     * 停止消费开关
-     * true：停止消费
+     * appNameFlag
+     *     {
+     *       "marketing-mq-consumer": {
+     *           "msgUUIdFlag": true,
+     *           "msgIdemFlag": true
+     *       }
+     *     }
      */
-    private Boolean consumerStopFlag;
+    private JSONObject appNameFlag;
 
 }

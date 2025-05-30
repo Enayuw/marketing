@@ -1,11 +1,13 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.handle.CachedMessageIdempotentHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.util.function.Function;
 
 /**
  * 替换原来的ConsumerService
+ *
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-07-18
  */
@@ -28,26 +31,50 @@ public class RocketMqConsumerService {
 
     @Resource
     private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private CachedMessageIdempotentHandler cachedMessageIdempotentHandler;
 
     /**
      * RocketMQ消费端
+     *
      * @param messageExt 消费消息
-     * @param method 消费业务
-     * @param t 消费信息
-     * @param retryTag Tag（消息重试使用）
-     *                 使用时去marketing-utils/src/main/java/com/br/marketing/common/constants/rocketmq 包中核对
+     * @param method     消费业务
+     * @param t          消费信息
+     * @param retryTag   Tag（消息重试使用）
+     *                   使用时去marketing-utils/src/main/java/com/br/marketing/common/constants/rocketmq 包中核对
      * @param delayTopic 消息延时对应的延时队列
      *                   使用时去marketing-utils/src/main/java/com/br/marketing/common/constants/rocketmq 包中核对
-     * @param delayTime 消息延时时间（单位：秒） delayTime
-     *                  delayTime>0时，发送到延时Topic下
+     * @param delayTime  消息延时时间（单位：秒） delayTime
+     *                   delayTime>0时，发送到延时Topic下
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
-            , String delayTopic, String retryTag, long delayTime) {
+            , String delayTopic, String retryTag, long delayTime, boolean checkAndMarkMessageProcessed) {
+        try {
+            if (ConsumerService.consumerDownStatus) {
+                log.warn("服务下线，消费者不在接收新的流量");
+                Thread.sleep(12000L);
+                log.warn("服务下线，消费者休眠时间到");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("消费者休眠异常", e);
+        }
+        long startTime = System.currentTimeMillis();
         String message = null;
         String uuid = messageExt.getProperty(RocketMqSwitch.UUID_KEY);
         String topic = messageExt.getTopic();
         String tags = messageExt.getTags();
         String msgId = messageExt.getMsgId();
+        try {
+            if (checkAndMarkMessageProcessed && rocketMqSwitch.msgIdemFlag(tags)
+                    && !cachedMessageIdempotentHandler.checkAndMarkMessageProcessed(topic, uuid, msgId)) {
+                log.warn("消息重复消费，topic：{},tags：{},msgId：{},uuid：{}", topic, tags, msgId, uuid);
+                rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
+                return;
+            }
+        } catch (Exception e) {
+            log.error("消息去重失败{},消息信息:{}", e.getMessage(), JSON.toJSONString(messageExt), e);
+        }
         try {
             Result<Boolean> apply = method.apply(t);
             /**
@@ -56,13 +83,13 @@ public class RocketMqConsumerService {
              * code 为False 任务消费失败，重推队列
              */
             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-                message = new String(messageExt.getBody(),StandardCharsets.UTF_8);
+                message = new String(messageExt.getBody(), StandardCharsets.UTF_8);
                 if (null != apply.getData() && apply.getData()) {
                     if (StringUtils.isNotBlank(delayTopic) && StringUtils.isNotBlank(retryTag)) {
-                        if(delayTime>0){
+                        if (delayTime > 0) {
                             // 根据消费端配置的[延迟Topic]和[Tags]发送
                             rocketMqSwitch.syncSendDelaySecond(delayTopic, retryTag, message, delayTime);
-                        }else{
+                        } else {
                             // 根据消费端配置的[普通Topic]和[Tags]发送
                             rocketMqSwitch.syncSend(delayTopic, retryTag, message);
                         }
@@ -75,53 +102,65 @@ public class RocketMqConsumerService {
                 String msg = String.format("RocketMQ消息重试topic：%s,Tags：%s,uuid：%s,msgId：%s,message：%s"
                         , topic, tags, uuid, msgId, message);
                 log.warn(msg);
-                /**
-                 * 消息重试，默认消息重试规则：
-                 * 第几次重试	与上次重试的间隔时间	第几次重试	与上次重试的间隔时间
-                 * 1	    10秒	            9	        7分钟
-                 * 2	    30秒	            10	        8分钟
-                 * 3	    1分钟	            11	        9分钟
-                 * 4	    2分钟	            12	        10分钟
-                 * 5	    3分钟	            13	        20分钟
-                 * 6	    4分钟	            14	        30分钟
-                 * 7	    5分钟	            15	        1小时
-                 * 8	    6分钟	            16	        2小时
-                 */
+                cachedMessageIdempotentHandler.markMessageProcessFailed(topic, uuid);
+                rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
                 throw new RuntimeException();
             }
         } catch (Exception e) {
+            cachedMessageIdempotentHandler.markMessageProcessFailed(topic, uuid);
             String error = String.format("RocketMQ消费异常topic：%s,Tags：%s,uuid：%s,msgId：%s,message：%s,\r\n错误信息：%s"
                     , topic, tags, uuid, msgId, message, e.getMessage());
-            log.warn(error,e);
-            alarmClient.sendAlarm(error,"RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
+            log.warn(error, e);
+            alarmClient.sendAlarm(error, "RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
+            rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
             throw new RuntimeException();
         }
+        rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
     }
 
     /**
      * RocketMQ消费端
+     *
      * @param messageExt 消费消息
-     * @param method 消费业务
-     * @param t 消费信息
-     * @param <T> 消费消息类型
+     * @param method     消费业务
+     * @param t          消费信息
+     * @param <T>        消费消息类型
+     */
+    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
+            , String delayTopic, String retryTag, long delayTime) {
+        consumerRun(messageExt, method, t, delayTopic, retryTag, delayTime, true);
+    }
+
+    /**
+     * RocketMQ消费端
+     *
+     * @param messageExt 消费消息
+     * @param method     消费业务
+     * @param t          消费信息
+     * @param <T>        消费消息类型
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t) {
-        consumerRun(messageExt, method, t, null, null, 0L);
+        consumerRun(messageExt, method, t, null, null, 0L, true);
+    }
+
+    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, boolean checkAndMarkMessageProcessed) {
+        consumerRun(messageExt, method, t, null, null, 0L, checkAndMarkMessageProcessed);
     }
 
     /**
      * pulsar消费端
+     *
      * @param subscription 订阅者
-     * @param method 消费业务方法
-     * @param consumerNum 消费者数量
-     * @param topic 主题，死信，重试
+     * @param method       消费业务方法
+     * @param consumerNum  消费者数量
+     * @param topic        主题，死信，重试
      */
-    public void consumerPulsar(String subscription,Function<String, Result<Boolean>> method,Integer consumerNum,String... topic) {
-        if(consumerNum == null || consumerNum<=0){
+    public void consumerPulsar(String subscription, Function<String, Result<Boolean>> method, Integer consumerNum, String... topic) {
+        if (consumerNum == null || consumerNum <= 0) {
             consumerNum = 1;
         }
-        for (int i=0;i<consumerNum;i++){
-            new PulsarConsumerThread(method,subscription,topic).start();
+        for (int i = 0; i < consumerNum; i++) {
+            new PulsarConsumerThread(method, subscription, topic).start();
         }
     }
 

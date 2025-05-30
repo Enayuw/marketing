@@ -9,10 +9,12 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.wuba.WuBaOldServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rocketmq.MarketingWuBaConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -69,6 +71,8 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
     private TableCreateServiceImpl tableCreateService;
     @Resource
     CustomerTransferHandler customerTransferHandler;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
 
     private final static int PARTATION_SIZE = 50;
     ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10);
@@ -286,7 +290,9 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
 
     private void sendEliminateDataToMq(Long batchNoId) {
         try {
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE, String.valueOf(batchNoId));
+            rocketMqSwitch.sendMessage(null, MarketingWuBaConstants.TOPIC
+                    , MarketingWuBaConstants.TAG_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE, String.valueOf(batchNoId)
+                    , MQConstants.ROUTING_KEY_MARKETING_WUBA_OLD_COLLIDING_ELIMINATE);
             log.warn("58老客-查询撞库结果作业 status-1发送mq，batchNoId:{}", batchNoId);
         } catch (Exception e) {
             String title = "58老客-查询撞库结果作业，status-1数据发送mq失败";
