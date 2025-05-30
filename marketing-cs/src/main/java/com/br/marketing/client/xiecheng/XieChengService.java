@@ -464,7 +464,7 @@ public class XieChengService {
           data 组装
          */
         JSONObject collidingConfig = marketingCommonConfig.getXieChengSmsCollidingConfigVt();
-        log.warn("vt撞库参数"+JSONObject.toJSONString(collidingConfig));
+
         String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
         String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
         String smsCollidingKey = collidingConfig.getString("smsCollidingKey");
@@ -476,7 +476,6 @@ public class XieChengService {
                 smsCollidingAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
 
-        log.warn("携程VtAppId:{}",smsCollidingVtAppId);
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", smsCollidingAppId);
@@ -490,7 +489,11 @@ public class XieChengService {
             String content = " {\"code\":702,\"msg\":\"网络异常或者返回内容为空\"}";
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);
         }
-
+        log.warn("vt撞库参数 appId:"+smsCollidingAppId
+                +",smsCollidingIv:"+smsCollidingIv
+                +",smsCollidingKey" +smsCollidingKey
+                +"smsCollidingOpenUrl:"+smsCollidingOpenUrl
+        +",smsCollidingSingKey:"+smsCollidingSingKey);
         String content = resMap.get("content");
         //String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
         JSONObject resultJson = JSONObject.parseObject(content);
