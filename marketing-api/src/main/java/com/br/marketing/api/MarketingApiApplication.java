@@ -65,7 +65,7 @@ public class MarketingApiApplication {
      */
     public static void stop() {
         try {
-            Thread.sleep(24500L);
+            Thread.sleep(4500L);
             BrGrpcUtils.shutDown();
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);

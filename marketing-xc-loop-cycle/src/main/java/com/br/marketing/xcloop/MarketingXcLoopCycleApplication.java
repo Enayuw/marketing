@@ -47,7 +47,7 @@ public class MarketingXcLoopCycleApplication {
      */
     public static void stop() {
         try {
-            Thread.sleep(24500L);
+            Thread.sleep(4500L);
             BrGrpcUtils.shutDown();
         } catch (Exception e) {
             Thread.currentThread().interrupt();
