@@ -16,6 +16,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -138,10 +139,13 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
     private Result processCallPolicy(UMengTimingTask timingTask,List<UMengData> uMengDataList) {
         Result result = new Result().failure();
         String strategyCode = marketingCommonConfig.getUMengPushPolicyStrategyCode().get(timingTask.getApiCode());
-        Result pushResult = dataCallbackService.callPolicyData(timingTask.getLocalId(),timingTask.getApiCode(),strategyCode,uMengDataList);
-        if (pushResult != null && pushResult.isSuccess()) {
-            List<Long> idList = uMengDataList.stream().map(UMengData::getId).collect(Collectors.toList());
-            uMengdataService.updatePushStausByIds(idList,2);
+        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, 200);
+        for (List<UMengData> partitionItemList : partitionList) {
+            Result pushResult = dataCallbackService.callPolicyData(timingTask.getLocalId(),timingTask.getApiCode(),strategyCode,partitionItemList);
+            if (pushResult != null && pushResult.isSuccess()) {
+                List<Long> idList = partitionItemList.stream().map(UMengData::getId).collect(Collectors.toList());
+                uMengdataService.updatePushStausByIds(idList,2);
+            }
         }
         return result.success().setDate(uMengDataList.size());
     }
