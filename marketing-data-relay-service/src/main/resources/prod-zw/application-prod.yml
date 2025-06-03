@@ -79,8 +79,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
-      username: ENC(mysql-prod-ai-marketing-log-user)
-      password: ENC(mysql-prod-ai-marketing-log-password)
+      username: u_pd_m_log
+      password: 0eCxVDTusFncEtfQ5o+1
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
       maxActive: 300 # 最大连接池数量
@@ -184,3 +184,8 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
+
+api:
+  intelligentCustomerService:
+    baseUrl: http://pdai.brapp.com/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
