@@ -118,12 +118,24 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
         uMengDataList.stream().forEach(umengData -> {
             PushMarketingUserDetailDTO pushMarketingUserDetailDTO = new PushMarketingUserDetailDTO();
             pushMarketingUserDetailDTO.setCaseNumber(umengData.getCusNum());
-            //TODO cell加解密是否正确
             pushMarketingUserDetailDTO.setPhone(umengData.getCell());
-//            pushMarketingUserDetailDTO.setPhone(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(umengData.getCell()).getBytes()));
+            JSONObject variablesInfo = getVariablesJsonObject(umengData);
+            pushMarketingUserDetailDTO.setVariables(variablesInfo);
             resultList.add(pushMarketingUserDetailDTO);
         });
         return resultList;
+    }
+
+    private static JSONObject getVariablesJsonObject(UMengData umengData) {
+        JSONObject variablesInfo = new JSONObject();
+        variablesInfo.put("caseNumber", umengData.getCusNum());
+        variablesInfo.put("phone", umengData.getCell());
+        variablesInfo.put("usertype", umengData.getUsertype());
+        variablesInfo.put("id", umengData.getIdCard());
+        variablesInfo.put("name", umengData.getName());
+        variablesInfo.put("pd_cell_type", umengData.getPdCellType());
+        variablesInfo.put("pd_cell_province", umengData.getPdCellProvince());
+        return variablesInfo;
     }
 
     private UMengInterfaceLog buildInferfaceLog(Long localId, HttpServletRequest request, String eventType, String requestParam) {
