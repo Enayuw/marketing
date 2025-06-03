@@ -139,7 +139,7 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
     private Result processCallPolicy(UMengTimingTask timingTask,List<UMengData> uMengDataList) {
         Result result = new Result().failure();
         String strategyCode = marketingCommonConfig.getUMengPushPolicyStrategyCode().get(timingTask.getApiCode());
-        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, 200);
+        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, 1000);
         for (List<UMengData> partitionItemList : partitionList) {
             Result pushResult = dataCallbackService.callPolicyData(timingTask.getLocalId(),timingTask.getApiCode(),strategyCode,partitionItemList);
             if (pushResult != null && pushResult.isSuccess()) {
