@@ -70,7 +70,7 @@ public class UMengCryptoUtil {
             buffer.put(ridBytes);
             sign = Hex.encodeHexString(MessageDigest.getInstance("md5").digest(buffer.array()));
         }catch (Exception e) {
-            log.error("YouMeng sign error", e);
+            log.error("uMeng sign error", e);
         }
         return sign;
     }

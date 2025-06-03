@@ -93,7 +93,7 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
     public Result callPolicyData(Long localId, String apiCode, String strategyCode, List<UMengData> uMengDataList) {
         Result result = new Result().success();
         int randomNumber = 10000 + secureRandom.nextInt(90000);
-        List<PushMarketingUserDetailDTO>  list = convertPushUserList(uMengDataList);
+        List<PushMarketingUserDetailDTO>  list = convertPushUserList(strategyCode,uMengDataList);
         if(!list.isEmpty()){
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
@@ -113,7 +113,7 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
         return result;
     }
 
-    private List<PushMarketingUserDetailDTO> convertPushUserList(List<UMengData> uMengDataList) {
+    private List<PushMarketingUserDetailDTO> convertPushUserList(String strategyCode,List<UMengData> uMengDataList) {
         List<PushMarketingUserDetailDTO> resultList = new ArrayList<>();
         uMengDataList.stream().forEach(umengData -> {
             PushMarketingUserDetailDTO pushMarketingUserDetailDTO = new PushMarketingUserDetailDTO();
@@ -121,6 +121,7 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
             pushMarketingUserDetailDTO.setPhone(umengData.getCell());
             JSONObject variablesInfo = getVariablesJsonObject(umengData);
             pushMarketingUserDetailDTO.setVariables(variablesInfo);
+            pushMarketingUserDetailDTO.setStrategyCode(strategyCode);
             resultList.add(pushMarketingUserDetailDTO);
         });
         return resultList;
