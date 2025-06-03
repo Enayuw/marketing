@@ -351,7 +351,7 @@ public class XieChengTest {
         List<String> sha256CodeList = Lists.newArrayList();
         sha256CodeList.add("0a16fd689248cf58e939d6eb56d0df495910a9ec84d767debc70f6c42c5297bc");
 //        String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
-        String smsCollidingOpenUrl = "https://ad-test.fat.ctripqa.com/ad/common/unionCheckUser.do";
+        String smsCollidingOpenUrl = "https://adtest.fat.qatetrip.com/ad/common/unionCheckUser.do";
 //        String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
         String smsCollidingAppId = "test002";
 //        String smsCollidingKey = collidingConfig.getString("smsCollidingKey");
@@ -360,6 +360,44 @@ public class XieChengTest {
         String smsCollidingIv = "5e7b6c07d3edbc01";
 //        String smsCollidingSingKey = collidingConfig.getString("smsCollidingSingKey");
         String smsCollidingSingKey = "b8845b4cb1f16471";
+        String smsCollidingChannel = "commonUnionCheckUser";
+        Boolean smsCollidingIsProxy = false;
+        /**
+         * data 组装
+         */
+        XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
+                smsCollidingAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
+        );
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", smsCollidingAppId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", smsCollidingChannel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
+        HashMap<String, String> resMap;
+        resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+
+    }
+
+    /**
+     * 撞库生产
+     */
+    @Test
+    public void pushXieChengSmsCollidingDataNewSC() {
+        List<String> sha256CodeList = Lists.newArrayList();
+        sha256CodeList.add("0a16fd689248cf58e939d6eb56d0df495910a9ec84d767debc70f6c42c5297bc");
+//        String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
+        String smsCollidingOpenUrl = "https://jr-ad.ctrip.com/ad/common/unionCheckUser.do";
+//        String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
+        String smsCollidingAppId = "bairong001";
+//        String smsCollidingKey = collidingConfig.getString("smsCollidingKey");
+        String smsCollidingKey = "f3df6f62f0527bf0";
+//        String smsCollidingIv = collidingConfig.getString("smsCollidingIv");
+        String smsCollidingIv = "3b2dac323465b024";
+//        String smsCollidingSingKey = collidingConfig.getString("smsCollidingSingKey");
+        String smsCollidingSingKey = "95cc01ec07387a44";
         String smsCollidingChannel = "commonUnionCheckUser";
         Boolean smsCollidingIsProxy = false;
         /**
