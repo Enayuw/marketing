@@ -24,6 +24,7 @@ public class XieChengReportContext {
     private AdReqDTO adReqDTO;
     private XieChengData resultData;
     private PushConfig pushConfig;
+
     private String tcId;
     private String sha256Tel;
     private String redisKey;

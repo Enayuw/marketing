@@ -9,10 +9,18 @@ public abstract class AbstractXieChengReportHandler {
 
     private Integer order;
 
+    private String bizMark;
+
     private AbstractXieChengReportHandler next;
+
 
     protected AbstractXieChengReportHandler (Integer order){
         this.order = order;
+    }
+
+    protected AbstractXieChengReportHandler (Integer order, String bizMark){
+        this.order = order;
+        this.bizMark = bizMark;
     }
 
     abstract void process(XieChengReportContext context);
@@ -33,5 +41,9 @@ public abstract class AbstractXieChengReportHandler {
 
     public Integer getOrder() {
         return order;
+    }
+
+    public String getBizMark() {
+        return bizMark;
     }
 }

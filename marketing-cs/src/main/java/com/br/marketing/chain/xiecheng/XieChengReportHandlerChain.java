@@ -1,6 +1,7 @@
 package com.br.marketing.chain.xiecheng;
 
 import com.br.marketing.context.XieChengReportContext;
+import com.br.marketing.enums.XieChengBizMarkEnum;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -16,28 +17,42 @@ import java.util.stream.Collectors;
 @Component
 public class XieChengReportHandlerChain implements ApplicationContextAware {
 
-    private List<AbstractXieChengReportHandler> handlers;
+    private List<AbstractXieChengReportHandler> cpaHandlers;
+
+    private List<AbstractXieChengReportHandler> cpsHandlers;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         Map<String, AbstractXieChengReportHandler> handlerMap = applicationContext.getBeansOfType(AbstractXieChengReportHandler.class);
-        handlers = handlerMap.values()
+        List<AbstractXieChengReportHandler> handlers = handlerMap.values()
                 .stream()
                 .sorted(Comparator.comparing(AbstractXieChengReportHandler::getOrder))
                 .collect(Collectors.toList());
-        buildChain();
+        this.cpaHandlers = handlers.stream()
+                .filter(handler -> !XieChengBizMarkEnum.CPS.name().equals(handler.getBizMark())).collect(Collectors.toList());
+        this.cpsHandlers = handlers.stream()
+                .filter(handler -> !XieChengBizMarkEnum.CPA.name().equals(handler.getBizMark())).collect(Collectors.toList());
+        buildChain(cpaHandlers);
+        buildChain(cpsHandlers);
     }
 
-    private void buildChain() {
+    private void buildChain(List<AbstractXieChengReportHandler> handlers) {
         for (int i = 0; i < handlers.size() - 1; i++) {
             handlers.get(i).setNext(handlers.get(i + 1));
         }
     }
 
     public void handle(XieChengReportContext context) {
-        if (!handlers.isEmpty()) {
-            handlers.get(0).handle(context);
+        if ("1".equals(context.getPushConfig().getConditionKey())) {
+            if (!cpaHandlers.isEmpty()) {
+                cpaHandlers.get(0).handle(context);
+            }
+        } else {
+            if (!cpsHandlers.isEmpty()) {
+                cpsHandlers.get(0).handle(context);
+            }
         }
+
     }
 
 }

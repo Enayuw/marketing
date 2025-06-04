@@ -5,12 +5,11 @@ import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.XieChengBizMarkEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
@@ -19,13 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Slf4j
 @Component
-public class XiChengReportCollidingHandler extends AbstractXieChengReportHandler {
+public class XiChengReportCollidingCpaHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
@@ -39,54 +36,25 @@ public class XiChengReportCollidingHandler extends AbstractXieChengReportHandler
     @Resource
     private XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
 
-    @Resource
-    private XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
-
     @Override
     void process(XieChengReportContext context) {
-        String orgChannel;
-        if ("1".equals(context.getPushConfig().getConditionKey())) {
-            boolean hasConvType = hasConvType(
-                    context.getPushConfig().getMainApiCode(),
-                    context.getPushConfig().getConvTypeApiCodes(),
-                    context.getTcId(),
-                    context.getSha256Tel());
-            if (hasConvType) {
-                context.setError("有效期内命中convType106或107或110");
-                return;
-            }
-            XieChengCollidingDataLog dataLog = xieChengCollidingDataLogMapper.selectlog(context.getSha256Tel());
-            if (dataLog == null) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                        , "当前数据在日志表中未查到"));
-                context.setError("当前数据在日志表中未查到");
-                return;
-            }
-            orgChannel = dataLog.getOrgChannel();
-        } else {
-            Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
-            vtExample.createCriteria()
-                    .andSha256CodeListEqualTo(context.getSha256Tel())
-                    .andStatusEqualTo(2)
-                    .andSendDateEqualTo(day);
-            List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
-            if (xieChengSmsCollidingDataLogVts.size() == 0) {
-                context.setError("没有获取到当日撞库结果");
-                return;
-            }
-            XieChengSmsCollidingDataLogVt dataLogVt = xieChengSmsCollidingDataLogVts.get(0);
-            if(!dataLogVt.getResult()){
-                context.setError("命中当日撞库结果为false");
-                return;
-            }
-            if (StringUtils.isBlank(dataLogVt.getOrgChannel())) {
-                context.setError("命中当日OrgChannel为空,id="+dataLogVt.getSmsCollidingDataVtId());
-                return;
-            }
-            orgChannel = dataLogVt.getOrgChannel();
+        boolean hasConvType = hasConvType(
+                context.getPushConfig().getMainApiCode(),
+                context.getPushConfig().getConvTypeApiCodes(),
+                context.getTcId(),
+                context.getSha256Tel());
+        if (hasConvType) {
+            context.setError("有效期内命中convType106或107或110");
+            return;
         }
-        context.getAdReqDTO().setMktChannel(orgChannel);
+        XieChengCollidingDataLog dataLog = xieChengCollidingDataLogMapper.selectlog(context.getSha256Tel());
+        if (dataLog == null) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "当前数据在日志表中未查到"));
+            context.setError("当前数据在日志表中未查到");
+            return;
+        }
+        context.getAdReqDTO().setMktChannel(dataLog.getOrgChannel());
     }
 
     private boolean hasConvType(String apiCode, JSONArray convTypeApiCodes, String tcId, String sha256Tel) {
@@ -125,7 +93,7 @@ public class XiChengReportCollidingHandler extends AbstractXieChengReportHandler
         return false;
     }
 
-    public XiChengReportCollidingHandler() {
-        super(4);
+    public XiChengReportCollidingCpaHandler() {
+        super(4, XieChengBizMarkEnum.CPA.name());
     }
 }

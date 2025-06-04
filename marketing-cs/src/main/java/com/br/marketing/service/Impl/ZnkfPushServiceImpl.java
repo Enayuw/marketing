@@ -6,15 +6,11 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
-import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.customer.SmsRecordDTO;
@@ -24,7 +20,6 @@ import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.CallRecordExample;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
@@ -52,7 +47,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -77,12 +71,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     private SmsCallbackMapper smsCallbackMapper;
 
     @Autowired
-    private PushDataService pushDataService;
-
-    @Autowired
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
-
-    @Autowired
     private RoboAIBlackPhoneMarkMapperBase roboAIBlackPhoneMarkMapper;
 
     @Autowired
@@ -96,8 +84,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Resource
     private RabbitMqProducter producter;
+
     @Resource
     private RocketMqSwitch rocketMqSwitch;
+
     @Resource
     private RocketMqTemplate template;
 
@@ -116,7 +106,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     private String appName;
 
     private final String title = "客服->推送电销";
-
 
     @Override
     public String znkfPushCallBack(CallRecordDTO dto) {
