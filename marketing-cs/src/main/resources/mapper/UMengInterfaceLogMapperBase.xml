@@ -17,6 +17,7 @@
     <result column="extend_info" property="extendInfo" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="phone_sha256" property="phoneSha256" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -78,7 +79,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, local_id, request_type, event_type, request_id, request_param, url, `header`, 
-    `result`, http_code, call_time, expire, extend_info, create_time, update_time
+    `result`, http_code, call_time, expire, extend_info, create_time, update_time, phone_sha256
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.UMengInterfaceLogExample" >
     select
@@ -118,12 +119,14 @@
       request_id, request_param, url, 
       `header`, `result`, http_code, 
       call_time, expire, extend_info, 
-      create_time, update_time)
+      create_time, update_time, phone_sha256
+      )
     values (#{localId,jdbcType=BIGINT}, #{requestType,jdbcType=INTEGER}, #{eventType,jdbcType=VARCHAR}, 
       #{requestId,jdbcType=VARCHAR}, #{requestParam,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, 
       #{header,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, #{httpCode,jdbcType=INTEGER}, 
       #{callTime,jdbcType=INTEGER}, #{expire,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{phoneSha256,jdbcType=VARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.UMengInterfaceLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -173,6 +176,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="phoneSha256 != null" >
+        phone_sha256,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="localId != null" >
@@ -216,6 +222,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="phoneSha256 != null" >
+        #{phoneSha256,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -273,6 +282,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.phoneSha256 != null" >
+        phone_sha256 = #{record.phoneSha256,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -294,7 +306,8 @@
       expire = #{record.expire,jdbcType=VARCHAR},
       extend_info = #{record.extendInfo,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      phone_sha256 = #{record.phoneSha256,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -344,6 +357,9 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="phoneSha256 != null" >
+        phone_sha256 = #{phoneSha256,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -362,7 +378,8 @@
       expire = #{expire,jdbcType=VARCHAR},
       extend_info = #{extendInfo,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      phone_sha256 = #{phoneSha256,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

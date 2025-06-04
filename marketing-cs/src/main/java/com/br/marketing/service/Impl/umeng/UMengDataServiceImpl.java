@@ -41,4 +41,9 @@ public class UMengDataServiceImpl implements IUMengDataService {
     public Integer updatePushStausByIds(List<Long> idList, Integer pushStatus) {
         return uMengDataMapper.updatePushStausByIds(idList,pushStatus);
     }
+
+    @Override
+    public List<UMengData> selectEventPushList(Long localId, String apiCode, Long lastSearchId, Integer searchSize) {
+        return uMengDataMapper.selectEventPushList(localId,apiCode,lastSearchId,searchSize);
+    }
 }

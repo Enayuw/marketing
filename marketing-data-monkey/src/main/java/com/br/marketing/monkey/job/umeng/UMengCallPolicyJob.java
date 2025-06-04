@@ -24,6 +24,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -85,6 +86,7 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         }
         log.warn("TITLE:{},localId:{},apiCode:{}, callPolicy start",TITLE,timingTask.getLocalId(),apiCode);
         //3、查询未推决策 数据信息
+        boolean checkCallbackEndFlag = checkCallBackEnd(marketingCommonConfig.getUMengCallBackEndTime(),LocalDateTime.now());
         Long lastSearchId = 0L;
         Long totalCount = 0L;
         Integer searchSize = marketingCommonConfig.getUMengPageSearchSize();
@@ -94,7 +96,12 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         List<Long> resultList = new ArrayList<>(20);
         while (true) {
-            List<UMengData> uMengDataList = uMengdataService.selectDevicePushList(localFile.getId(),apiCode,lastSearchId,searchSize);
+            List<UMengData> uMengDataList;
+            if (checkCallbackEndFlag) {
+                uMengDataList = uMengdataService.selectEventPushList(localFile.getId(),apiCode,lastSearchId,searchSize);
+            }else {
+                uMengDataList = uMengdataService.selectDevicePushList(localFile.getId(),apiCode,lastSearchId,searchSize);
+            }
             totalCount = totalCount + uMengDataList.size();
             if (CollectionUtils.isEmpty(uMengDataList)) {
                 break;
@@ -112,6 +119,8 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         log.warn("TITLE:{},localId:{},apiCode:{}, callPolicy end,totalCount:{},successLine:{}",
                 TITLE,timingTask.getLocalId(),apiCode,totalCount,successLine);
     }
+
+
 
     private Result dealCallPolicy(UMengTimingTask timingTask ,List<UMengData> uMengDataList,
                                   ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList,
@@ -169,5 +178,14 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
             log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }
         log.warn(TITLE + "shutdownThreadPool结束");
+    }
+
+
+    private boolean checkCallBackEnd(String callBackEndTimeStr, LocalDateTime nowTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String date = LocalDate.now().format(formatter);
+        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime callBackTime = LocalDateTime.parse(callBackEndTimeStr.replace("yyyy-MM-dd",date),formatter);
+        return nowTime.isBefore(callBackTime);
     }
 }

@@ -21,4 +21,6 @@ public interface IUMengDataService {
     List<UMengData> selectDeviceByCell(Long localId, String phoneSha256);
 
     Integer updatePushStausByIds(List<Long> idList, Integer pushStatus);
+
+    List<UMengData> selectEventPushList(Long localId, String apiCode, Long lastSearchId, Integer searchSize);
 }

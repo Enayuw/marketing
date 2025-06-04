@@ -1084,6 +1084,76 @@ public class UMengInterfaceLogExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andPhoneSha256IsNull() {
+            addCriterion("phone_sha256 is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256IsNotNull() {
+            addCriterion("phone_sha256 is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256EqualTo(String value) {
+            addCriterion("phone_sha256 =", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotEqualTo(String value) {
+            addCriterion("phone_sha256 <>", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256GreaterThan(String value) {
+            addCriterion("phone_sha256 >", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256GreaterThanOrEqualTo(String value) {
+            addCriterion("phone_sha256 >=", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256LessThan(String value) {
+            addCriterion("phone_sha256 <", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256LessThanOrEqualTo(String value) {
+            addCriterion("phone_sha256 <=", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256Like(String value) {
+            addCriterion("phone_sha256 like", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotLike(String value) {
+            addCriterion("phone_sha256 not like", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256In(List<String> values) {
+            addCriterion("phone_sha256 in", values, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotIn(List<String> values) {
+            addCriterion("phone_sha256 not in", values, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256Between(String value1, String value2) {
+            addCriterion("phone_sha256 between", value1, value2, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotBetween(String value1, String value2) {
+            addCriterion("phone_sha256 not between", value1, value2, "phoneSha256");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

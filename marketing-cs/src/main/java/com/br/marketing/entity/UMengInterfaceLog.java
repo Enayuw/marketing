@@ -78,6 +78,11 @@ public class UMengInterfaceLog {
      */
     private Date updateTime;
 
+    /**
+     * phone_sha256 
+     */
+    private String phoneSha256;
+
     public Long getId() {
         return id;
     }
@@ -196,5 +201,13 @@ public class UMengInterfaceLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getPhoneSha256() {
+        return phoneSha256;
+    }
+
+    public void setPhoneSha256(String phoneSha256) {
+        this.phoneSha256 = phoneSha256 == null ? null : phoneSha256.trim();
     }
 }

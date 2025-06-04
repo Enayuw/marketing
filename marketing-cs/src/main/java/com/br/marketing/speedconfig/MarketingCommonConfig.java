@@ -3070,5 +3070,12 @@ public class MarketingCommonConfig {
      * }
      */
     private HashMap<String, String> uMengPushPolicyStrategyCode;
+
+
+    /**
+     * uMeng 每日回调结束的时间(eg: yyyy-MM-dd 16:00:00)
+     */
+    private String uMengCallBackEndTime;
+
 }
 
