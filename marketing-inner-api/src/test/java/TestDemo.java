@@ -19,7 +19,7 @@ public class TestDemo {
 
     @Test
     public void test01() {
-        Long id = 147959l;
+        Long id = 195606l;
         rocketMqSwitch.syncSend(
                 MarketingXieChengConstants.TOPIC,
                 MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,

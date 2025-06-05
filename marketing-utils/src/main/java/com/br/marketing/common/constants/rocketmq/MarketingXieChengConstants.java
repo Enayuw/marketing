@@ -18,7 +18,7 @@ public class MarketingXieChengConstants {
      */
     public static final String TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing.xiecheng.colliding.log";
 
-    public static final String MARKETING_XIECHENG_REPORT = "Marketing_XieCheng_Report";
+    public static final String GROUP_MARKETING_XIECHENG_REPORT = "Marketing_XieCheng_Report";
 
     public static final String TAG_MARKETING_XIECHENG_REPORT = "marketing.xiecheng.report";
 

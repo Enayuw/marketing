@@ -6,6 +6,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -28,28 +29,26 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
                 .stream()
                 .sorted(Comparator.comparing(AbstractXieChengReportHandler::getOrder))
                 .collect(Collectors.toList());
-        this.cpaHandlers = handlers.stream()
+        cpaHandlers = handlers.stream()
                 .filter(handler -> !XieChengBizMarkEnum.CPS.name().equals(handler.getBizMark())).collect(Collectors.toList());
-        this.cpsHandlers = handlers.stream()
+        cpsHandlers = handlers.stream()
                 .filter(handler -> !XieChengBizMarkEnum.CPA.name().equals(handler.getBizMark())).collect(Collectors.toList());
-        buildChain(cpaHandlers);
-        buildChain(cpsHandlers);
-    }
-
-    private void buildChain(List<AbstractXieChengReportHandler> handlers) {
-        for (int i = 0; i < handlers.size() - 1; i++) {
-            handlers.get(i).setNext(handlers.get(i + 1));
-        }
     }
 
     public void handle(XieChengReportContext context) {
         if ("1".equals(context.getPushConfig().getConditionKey())) {
-            if (!cpaHandlers.isEmpty()) {
-                cpaHandlers.get(0).handle(context);
+            for (AbstractXieChengReportHandler handler : cpaHandlers) {
+                if (!context.isContinueFlag()) {
+                    return;
+                }
+                handler.process(context);
             }
         } else {
-            if (!cpsHandlers.isEmpty()) {
-                cpsHandlers.get(0).handle(context);
+            for (AbstractXieChengReportHandler handler : cpsHandlers) {
+                if (!context.isContinueFlag()) {
+                    return;
+                }
+                handler.process(context);
             }
         }
 

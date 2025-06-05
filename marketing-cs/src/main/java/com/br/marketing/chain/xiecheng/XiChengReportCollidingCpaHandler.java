@@ -93,7 +93,7 @@ public class XiChengReportCollidingCpaHandler extends AbstractXieChengReportHand
         return false;
     }
 
-    public XiChengReportCollidingCpaHandler() {
+    protected XiChengReportCollidingCpaHandler() {
         super(4, XieChengBizMarkEnum.CPA.name());
     }
 }

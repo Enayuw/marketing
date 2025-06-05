@@ -52,6 +52,7 @@ public class XieChengReportServiceImpl implements XieChengReportService{
     @Override
     public Result pushXieChengData(Long sourceId) {
         try {
+
             //1.准备context
             XieChengReportContext context = prepareContext(sourceId);
             JSONObject condition = getPushCondition(context.getCallRecord().getApiCode());

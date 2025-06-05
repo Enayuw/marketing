@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
-        consumerGroup = MarketingXieChengConstants.MARKETING_XIECHENG_REPORT,
+        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
         consumeThreadNumber = 20, consumeThreadMax = 64, awaitTerminationMillisWhenShutdown = 10000)
 public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {

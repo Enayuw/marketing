@@ -21,9 +21,7 @@ public class XiChengReportBlackbTHandler extends AbstractXieChengReportHandler{
             context.setError("命中黑名单");
         }
     }
-
-    public XiChengReportBlackbTHandler() {
-        super(3);
+    protected XiChengReportBlackbTHandler() {
+        super(3, "common");
     }
-
 }

@@ -45,7 +45,7 @@ public class XiChengReportCollidingCpsHandler extends AbstractXieChengReportHand
         context.getAdReqDTO().setMktChannel(dataLogVt.getOrgChannel());
     }
 
-    public XiChengReportCollidingCpsHandler() {
+    protected XiChengReportCollidingCpsHandler() {
         super(4, XieChengBizMarkEnum.CPS.name());
     }
 }

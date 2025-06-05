@@ -20,7 +20,7 @@ public class XiChengReportSmsQuitHandler extends AbstractXieChengReportHandler{
     }
 
     public XiChengReportSmsQuitHandler() {
-        super(2);
+        super(2, "common");
     }
 
 }

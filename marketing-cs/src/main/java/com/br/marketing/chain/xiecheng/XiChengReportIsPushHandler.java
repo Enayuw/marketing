@@ -50,7 +50,7 @@ public class XiChengReportIsPushHandler extends AbstractXieChengReportHandler {
         }
     }
 
-    public XiChengReportIsPushHandler() {
-        super(5);
+    protected XiChengReportIsPushHandler() {
+        super(5, "common");
     }
 }

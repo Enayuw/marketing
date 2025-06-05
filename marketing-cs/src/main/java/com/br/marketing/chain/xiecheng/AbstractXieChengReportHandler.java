@@ -11,13 +11,6 @@ public abstract class AbstractXieChengReportHandler {
 
     private String bizMark;
 
-    private AbstractXieChengReportHandler next;
-
-
-    protected AbstractXieChengReportHandler (Integer order){
-        this.order = order;
-    }
-
     protected AbstractXieChengReportHandler (Integer order, String bizMark){
         this.order = order;
         this.bizMark = bizMark;
@@ -25,23 +18,7 @@ public abstract class AbstractXieChengReportHandler {
 
     abstract void process(XieChengReportContext context);
 
-    void handle(XieChengReportContext context){
-        if (!context.isContinueFlag()) {
-            return;
-        }
-        process(context);
-        if (next != null) {
-            next.handle(context);
-        }
-    }
-
-    void setNext(AbstractXieChengReportHandler next){
-        this.next = next;
-    }
-
-    public Integer getOrder() {
-        return order;
-    }
+    public Integer getOrder() {return order;}
 
     public String getBizMark() {
         return bizMark;

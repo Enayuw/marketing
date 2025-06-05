@@ -33,8 +33,8 @@ public class XiChengReportBlackTHandler extends AbstractXieChengReportHandler{
         }
     }
 
-    public XiChengReportBlackTHandler() {
-        super(1);
+    protected XiChengReportBlackTHandler() {
+        super(1, "common");
     }
 
 }
