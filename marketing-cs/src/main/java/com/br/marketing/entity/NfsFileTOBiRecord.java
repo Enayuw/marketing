@@ -31,6 +31,11 @@ public class NfsFileTOBiRecord {
      */
     private Long taskId;
 
+    /**
+     * 执行日期
+     */
+    private String executeDate;
+
     public Long getId() {
         return id;
     }
@@ -77,5 +82,13 @@ public class NfsFileTOBiRecord {
 
     public void setTaskId(Long taskId) {
         this.taskId = taskId;
+    }
+
+    public String getExecuteDate() {
+        return executeDate;
+    }
+
+    public void setExecuteDate(String executeDate) {
+        this.executeDate = executeDate == null ? null : executeDate.trim();
     }
 }
