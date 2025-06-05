@@ -150,8 +150,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     }
                 }
                 if(marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)){
-                    if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)
-                            && rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT)) {
+                    if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)) {
                         //rocket
                         rocketMqSwitch.syncSend(
                                 MarketingXieChengConstants.TOPIC,
