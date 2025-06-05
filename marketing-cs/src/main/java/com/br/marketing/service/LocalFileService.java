@@ -39,7 +39,7 @@ public interface LocalFileService {
      * @param apiCode
      * @return
      */
-    LocalFile getLastDataByApiCode(String apiCode, LocalDateTime dayStartTime);
+    List<LocalFile> getLastDataByApiCode(String apiCode, LocalDateTime dayStartTime);
 
 
 }

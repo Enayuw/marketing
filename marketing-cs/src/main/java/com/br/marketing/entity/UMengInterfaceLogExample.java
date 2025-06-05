@@ -1084,6 +1084,146 @@ public class UMengInterfaceLogExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andPhoneSha256IsNull() {
+            addCriterion("phone_sha256 is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256IsNotNull() {
+            addCriterion("phone_sha256 is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256EqualTo(String value) {
+            addCriterion("phone_sha256 =", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotEqualTo(String value) {
+            addCriterion("phone_sha256 <>", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256GreaterThan(String value) {
+            addCriterion("phone_sha256 >", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256GreaterThanOrEqualTo(String value) {
+            addCriterion("phone_sha256 >=", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256LessThan(String value) {
+            addCriterion("phone_sha256 <", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256LessThanOrEqualTo(String value) {
+            addCriterion("phone_sha256 <=", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256Like(String value) {
+            addCriterion("phone_sha256 like", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotLike(String value) {
+            addCriterion("phone_sha256 not like", value, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256In(List<String> values) {
+            addCriterion("phone_sha256 in", values, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotIn(List<String> values) {
+            addCriterion("phone_sha256 not in", values, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256Between(String value1, String value2) {
+            addCriterion("phone_sha256 between", value1, value2, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andPhoneSha256NotBetween(String value1, String value2) {
+            addCriterion("phone_sha256 not between", value1, value2, "phoneSha256");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamIsNull() {
+            addCriterion("encrypt_param is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamIsNotNull() {
+            addCriterion("encrypt_param is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamEqualTo(String value) {
+            addCriterion("encrypt_param =", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotEqualTo(String value) {
+            addCriterion("encrypt_param <>", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamGreaterThan(String value) {
+            addCriterion("encrypt_param >", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamGreaterThanOrEqualTo(String value) {
+            addCriterion("encrypt_param >=", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamLessThan(String value) {
+            addCriterion("encrypt_param <", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamLessThanOrEqualTo(String value) {
+            addCriterion("encrypt_param <=", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamLike(String value) {
+            addCriterion("encrypt_param like", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotLike(String value) {
+            addCriterion("encrypt_param not like", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamIn(List<String> values) {
+            addCriterion("encrypt_param in", values, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotIn(List<String> values) {
+            addCriterion("encrypt_param not in", values, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamBetween(String value1, String value2) {
+            addCriterion("encrypt_param between", value1, value2, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotBetween(String value1, String value2) {
+            addCriterion("encrypt_param not between", value1, value2, "encryptParam");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

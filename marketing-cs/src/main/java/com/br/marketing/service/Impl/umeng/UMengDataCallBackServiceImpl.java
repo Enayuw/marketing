@@ -2,13 +2,13 @@ package com.br.marketing.service.Impl.umeng;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.UMengCryptoUtil;
 import com.br.marketing.entity.UMengData;
 import com.br.marketing.entity.UMengInterfaceLog;
@@ -18,19 +18,15 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.security.SecureRandom;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -59,33 +55,26 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
 
 
     @Override
-    public Result marketingCallback(String requestBody, HttpServletRequest request) {
-        log.warn("uMeng callBack,decryptBody:{}", requestBody);
+    public Result marketingCallback(String encryptParam, HttpServletRequest request) {
+        String decryptParam = UMengCryptoUtil.decryptBody(marketingCommonConfig.getUMengBizInfoMap().get("bizSecret"),encryptParam);
+        log.warn("uMeng callBack,encryptParam:{},decryptBody:{}",encryptParam, decryptParam);
         Result result = new Result().success();
         UMengInterfaceLog interfaceLog = new UMengInterfaceLog();
         try {
-            JSONObject requestData = JSONObject.parseObject(requestBody);
+            JSONObject requestData = JSONObject.parseObject(decryptParam);
+            Long localId = 0L;
             String taskId = requestData.getString("task_id");
-            String eventType =  requestData.get("event_type").toString();
-            String cellSha256 = requestData.getString("phone_sha256");
-            UMengTimingTask timingTask = timingTaskService.getDataByTaskId(taskId);
-            interfaceLog = buildInferfaceLog(timingTask.getLocalId(),request,eventType,requestData.toJSONString());
-            if (eventType.equals("22") || eventType.equals("1001")) {
-                String strategyCode = marketingCommonConfig.getUMengPushPolicyStrategyCode().get(timingTask.getApiCode());
-                List<UMengData> uMengDataList = userDataService.selectDeviceByCell(timingTask.getLocalId(),cellSha256);
-                Result pushResult = this.callPolicyData(timingTask.getLocalId(),timingTask.getApiCode(),strategyCode,uMengDataList);
-                log.warn("uMeng callPolicyData,localId:{},cellSha256:{},strategyCode:{},result:{}",timingTask.getLocalId(),cellSha256,
-                        strategyCode,JSONObject.toJSONString(pushResult));
-                if (pushResult != null && pushResult.isSuccess()) {
-                    List<Long> idList = uMengDataList.stream().map(UMengData::getId).collect(Collectors.toList());
-                    userDataService.updatePushStausByIds(idList,2);
-                }
+            if (StringUtils.isNotEmpty(taskId)) {
+                UMengTimingTask timingTask = timingTaskService.getDataByTaskId(taskId);
+                localId = timingTask.getLocalId();
             }
-            umengInterfaceLogMapper.insertSelective(interfaceLog);
+            interfaceLog = buildInferfaceLog(localId,request,encryptParam,requestData);
         } catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             result = result.failure();
         }
+        interfaceLog.setResult(JSONObject.toJSONString(result));
+        umengInterfaceLogMapper.insertSelective(interfaceLog);
         return result;
     }
 
@@ -139,15 +128,22 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
         return variablesInfo;
     }
 
-    private UMengInterfaceLog buildInferfaceLog(Long localId, HttpServletRequest request, String eventType, String requestParam) {
+    private UMengInterfaceLog buildInferfaceLog(Long localId, HttpServletRequest request,String encryptParam, JSONObject requestParam) {
         String headerBizId = request.getHeader("bizid");
         String header = "bizid:" + headerBizId;
         UMengInterfaceLog uMengInterfaceLog = new UMengInterfaceLog();
         uMengInterfaceLog.setLocalId(localId);
         uMengInterfaceLog.setRequestType(3);
-        uMengInterfaceLog.setRequestId("");
-        uMengInterfaceLog.setEventType(eventType);
-        uMengInterfaceLog.setRequestParam(requestParam);
+        try {
+            uMengInterfaceLog.setRequestId(requestParam.getString("data_id"));
+            uMengInterfaceLog.setEventType(requestParam.getString("event_type"));
+            uMengInterfaceLog.setPhoneSha256(requestParam.getString("phone_sha256"));
+        }catch (Exception e){
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE+"参数字段不存在"), e);
+        }
+        uMengInterfaceLog.setRequestParam(requestParam.toJSONString());
+        uMengInterfaceLog.setEncryptParam(encryptParam);
         uMengInterfaceLog.setUrl(request.getRequestURL().toString());
         uMengInterfaceLog.setHeader(header);
         uMengInterfaceLog.setHttpCode(200);
@@ -158,8 +154,4 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
         uMengInterfaceLog.setExpire("0");
         return uMengInterfaceLog;
     }
-
-
-
-
 }

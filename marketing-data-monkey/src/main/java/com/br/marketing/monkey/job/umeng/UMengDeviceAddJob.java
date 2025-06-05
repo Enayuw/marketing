@@ -73,20 +73,19 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
     private void atciton(String apiCode) {
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
-        //1、查询T日 b_local_file处理完成 记录
-        LocalFile localFile = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
-        if (localFile == null) {
-            log.warn("TITLE:{},apiCode={} localFile is null 原始数据上传还未完成，稍后重试",TITLE,apiCode);
-            return;
-        }
+        //1、查询T日 b_local_file(list)处理完成 记录
+        List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
+        localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
+    }
 
+    private void dealSingleAction(LocalFile localFile, String apiCode, LocalDateTime dayStartTime) {
+        log.warn("TITLE:{},localId:{},apiCode:{} 开始进行设备注册",TITLE,localFile.getId(),apiCode);
         //2、查询T日智能时机任务创建记录
         UMengTimingTask timingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode,dayStartTime);
         if (timingTask == null || !checkExpireTime(timingTask)) {
             log.warn("localId:{},apiCode={} 今日智能时机任务不存在或任务刚创建不到5分钟 ",localFile.getId(),apiCode);
             return;
         }
-        log.warn("TITLE:{},localId:{},apiCode:{}设备注册调度开始",TITLE,timingTask.getLocalId(),apiCode);
         //3、查询未进行设备注册的 数据信息
         Long lastSearchId = 0L;
         Integer searchSize = marketingCommonConfig.getUMengPageSearchSize();
@@ -136,7 +135,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
             }catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
             }finally {
-                uMengdataService.updateDeviceAddStatus(idList,timingTask.getLocalId(),deviceAddStatus);
+                uMengdataService.updateDeviceAddStatus(idList,deviceAddStatus);
             }
         }
         return result.success();

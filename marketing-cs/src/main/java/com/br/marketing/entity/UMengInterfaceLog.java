@@ -78,6 +78,16 @@ public class UMengInterfaceLog {
      */
     private Date updateTime;
 
+    /**
+     * phone_sha256 
+     */
+    private String phoneSha256;
+
+    /**
+     * 友盟原始加密请求参数
+     */
+    private String encryptParam;
+
     public Long getId() {
         return id;
     }
@@ -196,5 +206,21 @@ public class UMengInterfaceLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getPhoneSha256() {
+        return phoneSha256;
+    }
+
+    public void setPhoneSha256(String phoneSha256) {
+        this.phoneSha256 = phoneSha256 == null ? null : phoneSha256.trim();
+    }
+
+    public String getEncryptParam() {
+        return encryptParam;
+    }
+
+    public void setEncryptParam(String encryptParam) {
+        this.encryptParam = encryptParam == null ? null : encryptParam.trim();
     }
 }
