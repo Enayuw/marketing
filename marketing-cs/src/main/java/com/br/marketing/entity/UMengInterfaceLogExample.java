@@ -1154,6 +1154,76 @@ public class UMengInterfaceLogExample {
             addCriterion("phone_sha256 not between", value1, value2, "phoneSha256");
             return (Criteria) this;
         }
+
+        public Criteria andEncryptParamIsNull() {
+            addCriterion("encrypt_param is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamIsNotNull() {
+            addCriterion("encrypt_param is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamEqualTo(String value) {
+            addCriterion("encrypt_param =", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotEqualTo(String value) {
+            addCriterion("encrypt_param <>", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamGreaterThan(String value) {
+            addCriterion("encrypt_param >", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamGreaterThanOrEqualTo(String value) {
+            addCriterion("encrypt_param >=", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamLessThan(String value) {
+            addCriterion("encrypt_param <", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamLessThanOrEqualTo(String value) {
+            addCriterion("encrypt_param <=", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamLike(String value) {
+            addCriterion("encrypt_param like", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotLike(String value) {
+            addCriterion("encrypt_param not like", value, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamIn(List<String> values) {
+            addCriterion("encrypt_param in", values, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotIn(List<String> values) {
+            addCriterion("encrypt_param not in", values, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamBetween(String value1, String value2) {
+            addCriterion("encrypt_param between", value1, value2, "encryptParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andEncryptParamNotBetween(String value1, String value2) {
+            addCriterion("encrypt_param not between", value1, value2, "encryptParam");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

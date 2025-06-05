@@ -23,8 +23,8 @@ public class UMengDataServiceImpl implements IUMengDataService {
     }
 
     @Override
-    public Integer updateDeviceAddStatus(List<Long> idList,Long localId, Integer deviceAddStatus) {
-        return uMengDataMapper.updateDeviceAddStatus(idList,localId,deviceAddStatus);
+    public Integer updateDeviceAddStatus(List<Long> idList, Integer deviceAddStatus) {
+        return uMengDataMapper.updateDeviceAddStatus(idList,deviceAddStatus);
     }
 
     @Override

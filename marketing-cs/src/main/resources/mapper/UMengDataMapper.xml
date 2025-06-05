@@ -69,7 +69,7 @@
 
 
     <update id="updateDeviceAddStatus">
-        update b_umeng_data set local_id = #{localId},device_add_status = #{deviceAddStatus}
+        update b_umeng_data set device_add_status = #{deviceAddStatus}
         WHERE id IN (
         <foreach collection="idList" item="id" separator=",">
             #{id}

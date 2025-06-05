@@ -15,6 +15,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -64,12 +65,20 @@ public class UMengTimingTaskCreateJob extends AbstractSimpleElasticJob {
     private void atciton(String apiCode) {
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
-        LocalFile localFile = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
-        if (localFile == null) {
-            log.warn("TITLE:{}, apiCode={} localFile is null 原始数据上传还未完成，稍后重试",TITLE,apiCode);
-            return;
+        Long lastSearchId = 0L;
+        Integer searchSize = 100;
+        while(true) {
+            List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime,lastSearchId,searchSize);
+            if (CollectionUtils.isEmpty(localFileList)) {
+                break;
+            }
+            localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
+            lastSearchId = localFileList.get(localFileList.size()-1).getId();
         }
+    }
 
+    private void dealSingleAction(LocalFile localFile, String apiCode,LocalDateTime dayStartTime) {
+        log.warn("TITLE:{},localId:{},apiCode:{} 开始创建智能时机",TITLE,localFile.getId(),apiCode);
         //2、查询当天是否已经存在智能时机任务
         UMengTimingTask existTimingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode,dayStartTime);
         if (existTimingTask != null) {
@@ -77,7 +86,6 @@ public class UMengTimingTaskCreateJob extends AbstractSimpleElasticJob {
                     existTimingTask.getId(),existTimingTask.getTaskName());
             return;
         }
-
         //3、调用友盟时机任务创建接口
         UMengTimingTask uMengTimingTask = new UMengTimingTask();
         uMengTimingTask.setLocalId(localFile.getId());

@@ -37,8 +37,7 @@ public class UMengCustomizeController {
         if (!checkHeaderSign(request)) {
             return new Result().failure().setMessage("header sign error");
         }
-        String decryptBody = UMengCryptoUtil.decryptBody(marketingCommonConfig.getUMengBizInfoMap().get("bizSecret"),requestBody);
-        return umengCustomizeService.marketingCallback(decryptBody,request);
+        return umengCustomizeService.marketingCallback(requestBody,request);
     }
 
     private boolean checkHeaderSign(HttpServletRequest request) {

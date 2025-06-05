@@ -18,6 +18,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="phone_sha256" property="phoneSha256" jdbcType="VARCHAR" />
+    <result column="encrypt_param" property="encryptParam" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -79,7 +80,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, local_id, request_type, event_type, request_id, request_param, url, `header`, 
-    `result`, http_code, call_time, expire, extend_info, create_time, update_time, phone_sha256
+    `result`, http_code, call_time, expire, extend_info, create_time, update_time, phone_sha256, 
+    encrypt_param
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.UMengInterfaceLogExample" >
     select
@@ -119,14 +121,14 @@
       request_id, request_param, url, 
       `header`, `result`, http_code, 
       call_time, expire, extend_info, 
-      create_time, update_time, phone_sha256
-      )
+      create_time, update_time, phone_sha256, 
+      encrypt_param)
     values (#{localId,jdbcType=BIGINT}, #{requestType,jdbcType=INTEGER}, #{eventType,jdbcType=VARCHAR}, 
       #{requestId,jdbcType=VARCHAR}, #{requestParam,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, 
       #{header,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, #{httpCode,jdbcType=INTEGER}, 
       #{callTime,jdbcType=INTEGER}, #{expire,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{phoneSha256,jdbcType=VARCHAR}
-      )
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{phoneSha256,jdbcType=VARCHAR}, 
+      #{encryptParam,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.UMengInterfaceLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -179,6 +181,9 @@
       <if test="phoneSha256 != null" >
         phone_sha256,
       </if>
+      <if test="encryptParam != null" >
+        encrypt_param,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="localId != null" >
@@ -225,6 +230,9 @@
       </if>
       <if test="phoneSha256 != null" >
         #{phoneSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="encryptParam != null" >
+        #{encryptParam,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -285,6 +293,9 @@
       <if test="record.phoneSha256 != null" >
         phone_sha256 = #{record.phoneSha256,jdbcType=VARCHAR},
       </if>
+      <if test="record.encryptParam != null" >
+        encrypt_param = #{record.encryptParam,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -307,7 +318,8 @@
       extend_info = #{record.extendInfo,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      phone_sha256 = #{record.phoneSha256,jdbcType=VARCHAR}
+      phone_sha256 = #{record.phoneSha256,jdbcType=VARCHAR},
+      encrypt_param = #{record.encryptParam,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -360,6 +372,9 @@
       <if test="phoneSha256 != null" >
         phone_sha256 = #{phoneSha256,jdbcType=VARCHAR},
       </if>
+      <if test="encryptParam != null" >
+        encrypt_param = #{encryptParam,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -379,7 +394,8 @@
       extend_info = #{extendInfo,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      phone_sha256 = #{phoneSha256,jdbcType=VARCHAR}
+      phone_sha256 = #{phoneSha256,jdbcType=VARCHAR},
+      encrypt_param = #{encryptParam,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

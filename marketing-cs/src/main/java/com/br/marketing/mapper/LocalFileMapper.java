@@ -96,5 +96,6 @@ public interface LocalFileMapper extends LocalFileMapperBase {
      * @param startTime
      * @return
      */
-    LocalFile getLastDataByApiCode(@Param("apiCode") String apiCode,@Param("startTime") LocalDateTime startTime);
+    List<LocalFile> getLastDataByApiCode(@Param("apiCode") String apiCode,@Param("startTime") LocalDateTime startTime,
+                                         @Param("lastSearchId") Long lastSearchId,@Param("searchSize") Integer searchSize);
 }

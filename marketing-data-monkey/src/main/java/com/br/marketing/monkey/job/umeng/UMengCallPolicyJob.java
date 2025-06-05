@@ -23,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -72,21 +73,30 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
         //1、查询T日 b_local_file处理完成 记录
-        LocalFile localFile = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
-        if (localFile == null) {
-            log.warn("TITLE:{},apiCode={} localFile is null 原始数据上传还未完成，稍后重试",TITLE,apiCode);
-            return;
+        Long lastSearchId = 0L;
+        Integer searchSize = 100;
+        while(true) {
+            List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime,lastSearchId,searchSize);
+            if (CollectionUtils.isEmpty(localFileList)) {
+                break;
+            }
+            localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
+            lastSearchId = localFileList.get(localFileList.size()-1).getId();
         }
 
+
+    }
+
+    private void dealSingleAction(LocalFile localFile, String apiCode, LocalDateTime dayStartTime) {
+        log.warn("TITLE:{},localId:{},apiCode:{} 开始推决策",TITLE,localFile.getId(),apiCode);
         //2、查询T日智能时机任务创建记录
         UMengTimingTask timingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode,dayStartTime);
         if (timingTask == null) {
             log.warn("TITLE:{},localId:{},apiCode={} 今日智能时机任务未创建",TITLE,localFile.getId(),apiCode);
             return;
         }
-        log.warn("TITLE:{},localId:{},apiCode:{}, callPolicy start",TITLE,timingTask.getLocalId(),apiCode);
         //3、查询未推决策 数据信息
-        boolean checkCallbackEndFlag = checkCallBackEnd(marketingCommonConfig.getUMengCallBackEndTime(),LocalDateTime.now());
+        boolean checkCallbackEndFlag = checkCallBackEnd(marketingCommonConfig.getUMengCallBackEndTime());
         Long lastSearchId = 0L;
         Long totalCount = 0L;
         Integer searchSize = marketingCommonConfig.getUMengPageSearchSize();
@@ -119,7 +129,6 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         log.warn("TITLE:{},localId:{},apiCode:{}, callPolicy end,totalCount:{},successLine:{}",
                 TITLE,timingTask.getLocalId(),apiCode,totalCount,successLine);
     }
-
 
 
     private Result dealCallPolicy(UMengTimingTask timingTask ,List<UMengData> uMengDataList,
@@ -180,12 +189,14 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         log.warn(TITLE + "shutdownThreadPool结束");
     }
 
-
-    private boolean checkCallBackEnd(String callBackEndTimeStr, LocalDateTime nowTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String date = LocalDate.now().format(formatter);
-        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime callBackTime = LocalDateTime.parse(callBackEndTimeStr.replace("yyyy-MM-dd",date),formatter);
+    /**
+     * 只比较小时时间
+     * @param callBackEndTimeStr
+     * @return
+     */
+    private boolean checkCallBackEnd(String callBackEndTimeStr) {
+        LocalTime nowTime = LocalTime.now();
+        LocalTime callBackTime = LocalTime.parse(callBackEndTimeStr);
         return nowTime.isBefore(callBackTime);
     }
 }

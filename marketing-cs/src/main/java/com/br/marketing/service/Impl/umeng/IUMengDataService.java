@@ -14,7 +14,7 @@ public interface IUMengDataService {
 
     List<UMengData> selectDeviceAddList(Long id, String apiCode, LocalDateTime searchTime,Long lastSearchId, Integer searchSize);
 
-    Integer updateDeviceAddStatus(List<Long> idList,Long localId, Integer deviceAddStatus);
+    Integer updateDeviceAddStatus(List<Long> idList, Integer deviceAddStatus);
 
     List<UMengData> selectDevicePushList(Long localId,String apiCode, Long lastSearchId, Integer searchSize);
 
