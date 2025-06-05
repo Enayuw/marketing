@@ -427,7 +427,7 @@ public class HttpProxyClient {
             HttpPost post = new HttpPost(url);
             HttpEntity requestEntity = null;
             if (mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)) {
-                String s = JSON.toJSONString(param);
+                String s = param.toString();
                 interfaceLog.setRequestParam(s);
                 requestEntity = new StringEntity(s, CHARSET_UTF8);
             } else if (mediaType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
