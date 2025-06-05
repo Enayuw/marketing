@@ -272,7 +272,7 @@
 
     <job:simple id="【bridge】-TcTransferCleanJob"
                 class="com.br.marketing.bridge.job.tc.TcTransferCleanJob"
-                cron="0 0/5 * * * ?"
+                cron="0 0/1 * * * ?"
                 description="同程转化数据清洗任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -286,7 +286,7 @@
     />
     <job:simple id="【bridge】-TcRevokeCleanJob"
                 class="com.br.marketing.bridge.job.tc.TcRevokeCleanJob"
-                cron="0 0/5 * * * ?"
+                cron="0 0/1 * * * ?"
                 description="同程撤销数据清洗任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
