@@ -49,8 +49,8 @@ public class UMengApiServiceImpl implements IUMengApiService {
 
     @Override
     public Result createTimingTask(Long localId,String apiCode, String requestParam,Boolean isProxy) {
-        Result result = null;
-        JSONObject resultData;
+        Result result = new Result();
+        JSONObject resultData = new JSONObject();
         String rid = UUID.randomUUID().toString();
         String bizId = marketingCommonConfig.getUMengBizInfoMap().get("bizId");
         String bizSecret = marketingCommonConfig.getUMengBizInfoMap().get("bizSecret");
@@ -65,10 +65,10 @@ public class UMengApiServiceImpl implements IUMengApiService {
                     new BasicHeader("bizid", bizId),
                     new BasicHeader("rid", rid),
             };
-            HashMap<String, String> rewultMap = httpProxyClient.sendByCodeWithLogWithHeader(encodeBody,realRequestUrl,true,
+            HashMap<String, String> resultMap = httpProxyClient.sendByCodeWithLogWithHeader(encodeBody,realRequestUrl,true,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,"",true,false,headers);
-            if (rewultMap!=null && rewultMap.get("httpcode").equals("200")) {
-                String resContent = rewultMap.get("content");
+            if (resultMap!=null && resultMap.get("httpcode").equals("200")) {
+                String resContent = resultMap.get("content");
                 resultData = JSONObject.parseObject(resContent);
             }else {
                 return new Result().failure();
@@ -76,13 +76,14 @@ public class UMengApiServiceImpl implements IUMengApiService {
         } catch (Exception e) {
             throw new RuntimeException(String.format("uMeng-智能时机任务创建请求失败，localId: %s，apiCode: %s", localId, apiCode), e);
         }
+        log.warn("TITLE:{} 结束,localId:{}, apiCode:{}, url:{},result:{} ",TITLE,localId,apiCode,realRequestUrl,resultData==null?"":resultData.toJSONString());
         return result.success().setDate(resultData);
     }
 
     @Override
     public Result deviceAdd(Long localId, String apiCode, String requestParam,Boolean isProxy) {
-        Result result = null;
-        JSONObject resultData = null;
+        Result result = new Result();
+        JSONObject resultData = new JSONObject();
         String rid = UUID.randomUUID().toString();
         String bizId = marketingCommonConfig.getUMengBizInfoMap().get("bizId");
         String bizSecret = marketingCommonConfig.getUMengBizInfoMap().get("bizSecret");
@@ -96,10 +97,10 @@ public class UMengApiServiceImpl implements IUMengApiService {
                     new BasicHeader("bizid", bizId),
                     new BasicHeader("rid", rid),
             };
-            HashMap<String, String> rewultMap = httpProxyClient.sendByCodeWithLogWithHeader(encodeBody,realRequestUrl,true,
+            HashMap<String, String> resultMap = httpProxyClient.sendByCodeWithLogWithHeader(encodeBody,realRequestUrl,true,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,"",true,false,headers);
-            if (rewultMap!=null && rewultMap.get("httpcode").equals("200")) {
-                String resContent = rewultMap.get("content");
+            if (resultMap!=null && resultMap.get("httpcode").equals("200")) {
+                String resContent = resultMap.get("content");
                 resultData = JSONObject.parseObject(resContent);
             }else {
                 return new Result().failure();
@@ -107,30 +108,8 @@ public class UMengApiServiceImpl implements IUMengApiService {
         } catch (Exception e) {
             throw new RuntimeException(String.format("uMeng-智能设备注册请求失败，localId: %s，apiCode: %s", localId, apiCode), e);
         }
-        log.warn("TITLE:{} 结束,localId:{}, apiCode:{}, url:{},result:{} ",TITLE,localId,apiCode,realRequestUrl,resultData.toJSONString());
+        log.warn("TITLE:{} 结束,localId:{}, apiCode:{}, url:{},result:{} ",TITLE,localId,apiCode,realRequestUrl,resultData==null?"":resultData.toJSONString());
         return result.success().setDate(resultData);
-    }
-
-    private void saveLog(Long localId, Integer requestType, String requestId, String eventType, String requestParam,
-                        String url, String header, Integer httpCode, JSONObject resultData, Long exipreTime) {
-        UMengInterfaceLog uMengInterfaceLog = new UMengInterfaceLog();
-        uMengInterfaceLog.setLocalId(localId);
-        uMengInterfaceLog.setRequestType(requestType);
-        uMengInterfaceLog.setRequestId(requestId);
-        uMengInterfaceLog.setEventType(eventType);
-        uMengInterfaceLog.setRequestParam(requestParam);
-        uMengInterfaceLog.setUrl(url);
-        uMengInterfaceLog.setHeader(header);
-        uMengInterfaceLog.setHttpCode(httpCode);
-        if (resultData != null) {
-            uMengInterfaceLog.setResult(resultData.toJSONString());
-        }
-        uMengInterfaceLog.setCallTime(1);
-        Date now = new Date();
-        uMengInterfaceLog.setCreateTime(now);
-        uMengInterfaceLog.setUpdateTime(now);
-        uMengInterfaceLog.setExpire(String.valueOf((exipreTime)));
-        umengInterfaceLogMapper.insertSelective(uMengInterfaceLog);
     }
 
 
