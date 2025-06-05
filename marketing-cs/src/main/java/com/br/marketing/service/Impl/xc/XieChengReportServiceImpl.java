@@ -55,7 +55,7 @@ public class XieChengReportServiceImpl implements XieChengReportService{
             //1.准备context
             XieChengReportContext context = prepareContext(sourceId);
             JSONObject condition = getPushCondition(context.getCallRecord().getApiCode());
-            if(condition == null){
+            if (condition == null) {
                 updateResult(context.getResultData(), 2, "该apiCode未配置规则数据");
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
