@@ -8,6 +8,7 @@
     <result column="file_name" property="fileName" jdbcType="VARCHAR" />
     <result column="file_path" property="filePath" jdbcType="VARCHAR" />
     <result column="task_id" property="taskId" jdbcType="BIGINT" />
+    <result column="execute_date" property="executeDate" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -68,7 +69,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_type, file_name, file_path, task_id
+    id, api_code, file_type, file_name, file_path, task_id, execute_date
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.NfsFileTOBiRecordExample" >
     select
@@ -85,7 +86,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_nfsfile_bi_record
     where id = #{id,jdbcType=BIGINT}
@@ -104,10 +105,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_nfsfile_bi_record (api_code, file_type, file_name, 
-      file_path, task_id)
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR}, 
-      #{filePath,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT})
+    insert into b_nfsfile_bi_record (api_code, file_type, file_name,
+    file_path, task_id, execute_date
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR},
+    #{filePath,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{executeDate,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.NfsFileTOBiRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -130,6 +133,9 @@
       <if test="taskId != null" >
         task_id,
       </if>
+      <if test="executeDate != null" >
+        execute_date,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -146,6 +152,9 @@
       </if>
       <if test="taskId != null" >
         #{taskId,jdbcType=BIGINT},
+      </if>
+      <if test="executeDate != null" >
+        #{executeDate,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -176,6 +185,9 @@
       <if test="record.taskId != null" >
         task_id = #{record.taskId,jdbcType=BIGINT},
       </if>
+      <if test="record.executeDate != null" >
+        execute_date = #{record.executeDate,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -184,11 +196,12 @@
   <update id="updateByExample" parameterType="map" >
     update b_nfsfile_bi_record
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      file_type = #{record.fileType,jdbcType=INTEGER},
-      file_name = #{record.fileName,jdbcType=VARCHAR},
-      file_path = #{record.filePath,jdbcType=VARCHAR},
-      task_id = #{record.taskId,jdbcType=BIGINT}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    file_type = #{record.fileType,jdbcType=INTEGER},
+    file_name = #{record.fileName,jdbcType=VARCHAR},
+    file_path = #{record.filePath,jdbcType=VARCHAR},
+    task_id = #{record.taskId,jdbcType=BIGINT},
+    execute_date = #{record.executeDate,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -211,16 +224,20 @@
       <if test="taskId != null" >
         task_id = #{taskId,jdbcType=BIGINT},
       </if>
+      <if test="executeDate != null" >
+        execute_date = #{executeDate,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.NfsFileTOBiRecord" >
     update b_nfsfile_bi_record
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      file_type = #{fileType,jdbcType=INTEGER},
-      file_name = #{fileName,jdbcType=VARCHAR},
-      file_path = #{filePath,jdbcType=VARCHAR},
-      task_id = #{taskId,jdbcType=BIGINT}
+    file_type = #{fileType,jdbcType=INTEGER},
+    file_name = #{fileName,jdbcType=VARCHAR},
+    file_path = #{filePath,jdbcType=VARCHAR},
+    task_id = #{taskId,jdbcType=BIGINT},
+    execute_date = #{executeDate,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

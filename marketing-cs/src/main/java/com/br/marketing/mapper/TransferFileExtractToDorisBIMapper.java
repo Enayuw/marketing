@@ -9,4 +9,6 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface TransferFileExtractToDorisBIMapper {
     Integer insertDataToMarketingBiTablebI_(@Param("insertDorisSql") String insertDorisSql);
+
+    void deleteDataFromMarketingBiTablebI_(@Param("deleteDorisSqlByDate") String deleteDorisSqlByDate);
 }

@@ -64,7 +64,6 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
             List<String> dateList = Arrays.asList(date.split(","));
             for (int i = 0; i < dateList.size(); i++) {
                 String dateItem = dateList.get(i);
-
                 //按照日期执行
                 TransferFileTaskExample taskExample = new TransferFileTaskExample();
                 taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateItem)
@@ -74,24 +73,44 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
                     TransferFileTask transferFileTask = transferFileTasks.get(0);
 
                     NfsFileTOBiRecordExample nfsExample = new NfsFileTOBiRecordExample();
-                    nfsExample.createCriteria().andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType).andTaskIdEqualTo(transferFileTask.getId());
+                    nfsExample.createCriteria().andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType).andExecuteDateEqualTo(dateItem);
                     List<NfsFileTOBiRecord> nfsFileTOBiRecordList = nfsFileTOBiRecordMapper.selectByExample(nfsExample);
                     if (CollectionUtils.isNotEmpty(nfsFileTOBiRecordList)) {
-                        continue;
+                        if (transferFileTask.getId().equals(nfsFileTOBiRecordList.get(0).getTaskId())) {
+                            continue;
+                        } else {
+                            nfsFileTOBiRecordMapper.deleteByExample(nfsExample);
+                            List<BFileBiConfig> bFileBiConfigs = getBFileBiConfig(apiCode, "1");
+                            if (CollectionUtils.isEmpty(bFileBiConfigs)) {
+                                continue;
+                            }
+                            String deleteSql = "delete from " + bFileBiConfigs.get(0).getDbName() +
+                                    " where data_date = '" + LocalDate.now() + "'";
+                            transferFileExtractToDorisBIMapper.deleteDataFromMarketingBiTablebI_(deleteSql);
+                        }
                     }
-
-                    BFileBiConfigExample example = new BFileBiConfigExample();
-                    example.createCriteria().andApiCodeEqualTo(apiCode).andBusTypeEqualTo("1");
-                    List<BFileBiConfig> bFileBiConfigs = bFileBiConfigMapper.selectByExample(example);
+                    List<BFileBiConfig> bFileBiConfigs = getBFileBiConfig(apiCode, "1");
                     if (CollectionUtils.isEmpty(bFileBiConfigs)) {
-                        String errMsg = "apiCode: " + apiCode + " nfs转化提取文件落库到marketingBI没有找到对应的配置信息";
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
+                        continue;
                     }
                     processTransferFile(transferFileTask, bFileBiConfigs.get(0), dateItem, apiCode, fileType);
                 }
             }
         });
     }
+
+    public List<BFileBiConfig> getBFileBiConfig(String apiCode, String busType) {
+        BFileBiConfigExample example = new BFileBiConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andBusTypeEqualTo(busType);
+        List<BFileBiConfig> bFileBiConfigs = bFileBiConfigMapper.selectByExample(example);
+        if (CollectionUtils.isEmpty(bFileBiConfigs)) {
+            String errMsg = "apiCode: " + apiCode + " nfs转化提取文件落库到marketingBI没有找到对应的配置信息";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
+            return new ArrayList<>();
+        }
+        return bFileBiConfigs;
+    }
+
 
     void processTransferFile(TransferFileTask transferFileTask, BFileBiConfig bFileBiConfig, String dateItem, String apiCode, Integer fileType) {
         //修改自己的配置
@@ -123,9 +142,10 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
             NfsFileTOBiRecord record = new NfsFileTOBiRecord();
             record.setApiCode(apiCode);
             record.setFileType(fileType);
-            record.setFilePath(filePath);
-            record.setFileName(filePath);
+            record.setFilePath(transferFileTask.getFilePath());
+            record.setFileName(transferFileTask.getFileName());
             record.setTaskId(transferFileTask.getId());
+            record.setExecuteDate(LocalDate.now().toString().replace("-", ""));
             nfsFileTOBiRecordMapper.insertSelective(record);
 
             threadPoolShutDown(threadPool);
