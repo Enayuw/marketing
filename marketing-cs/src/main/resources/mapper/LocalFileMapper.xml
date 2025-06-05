@@ -121,13 +121,10 @@
         SELECT *
         FROM b_local_file
         WHERE
-            id >#{lastSearchId}
-            AND api_code = #{apiCode}
+            api_code = #{apiCode}
             AND status = '2'
             <if test="startTime !=null">
                 <![CDATA[ AND create_time >=#{startTime} ]]>
             </if>
-        ORDER BY id asc
-        LIMIT #{searchSize}
     </select>
 </mapper>

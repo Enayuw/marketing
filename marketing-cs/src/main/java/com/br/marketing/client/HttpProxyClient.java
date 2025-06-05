@@ -10,6 +10,7 @@ import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -231,6 +232,10 @@ public class HttpProxyClient {
         return sendByCode(param, url, isPorxy, mediaType, extendInfo, true, false, null);
     }
 
+    public HashMap<String, String> sendByCodeWithLogWithHeader(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog,Header[] headers) {
+        return sendByCodePoolWithHeader(param, url, isPorxy, mediaType, extendInfo, isDbLog, isFileLog,headers);
+    }
+
     /**
      * 调用接口的核心方法
      *
@@ -351,6 +356,93 @@ public class HttpProxyClient {
             }
             post.setEntity(requestEntity);
             post.setHeader("content-type", mediaType);
+            interfaceLog.setHeader(post.getAllHeaders().toString());
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 20000, null);
+            post.setConfig(requestConfig);
+            HttpResponse response = null;
+            start = System.currentTimeMillis();
+            if (isPorxy) {
+                AuthCache authCache = new BasicAuthCache();
+                AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
+                authCache.put(new HttpHost(proxyHost, proxyPort), authScheme);
+                HttpContext httpContext = new BasicHttpContext();
+                httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                response = httpClient.execute(post, httpContext);
+            } else {
+                response = httpClient.execute(post);
+            }
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            res.put("content", result);
+            interfaceLog.setResult(result);
+            interfaceLog.setHttpCode(statusCode);
+            post.releaseConnection();
+        } catch (Exception e) {
+            if (url.contains("ibu-daas")) {
+                log.error("url={} Log加密param={}", url, BrCipherMaker.getInstance().encode(param.toString()), e);
+            } else if (url.contains("https://finance-gateway-pop.diandian.com.cn/fcpGateway")) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_INTERFACEERROR.getCode(),
+                        "url= " + url + " param= " + param), e);
+            } else {
+                log.error("url={} param={}", url, param, e);
+            }
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            interfaceLog.setResult(e.getMessage());
+            res.put("content", e.getMessage());
+        }
+        if (isDbLog) {
+            interfaceLogDbpool.submit(() -> {
+                try {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                } catch (Exception ex) {
+                    log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+                }
+            });
+        }
+        if (isFileLog) {
+            if (url.contains("ibu-daas")) {
+                log.warn("InterfaceLog表加密输出{}",BrCipherMaker.getInstance().encode(JSON.toJSONString(interfaceLog)));
+            } else {
+                log.warn(JSON.toJSONString(interfaceLog));
+            }
+        }
+        return res;
+    }
+
+
+    private HashMap<String, String> sendByCodePoolWithHeader(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog, Header[] headers) {
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setExtendInfo(extendInfo);
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setUrl(url);
+        interfaceLog.setCreateTime(new Date());
+        HttpClient httpClient = getHttpClientInner(isPorxy);
+        HashMap<String, String> res = new HashMap<>();
+        Long start = System.currentTimeMillis();
+        try {
+            HttpPost post = new HttpPost(url);
+            HttpEntity requestEntity = null;
+            if (mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)) {
+                String s = JSON.toJSONString(param);
+                interfaceLog.setRequestParam(s);
+                requestEntity = new StringEntity(s, CHARSET_UTF8);
+            } else if (mediaType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                StringBuilder paramStr = new StringBuilder();
+                BeanMap beanMap = BeanMap.create(param);
+                for (Object o : beanMap.keySet()) {
+                    paramStr.append(String.format("%s=%s&", o.toString(), URLEncoder.encode(beanMap.get(o).toString(), "utf-8")));
+                }
+                interfaceLog.setRequestParam(paramStr.toString());
+                requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);
+            } else {
+                throw new RuntimeException("不支持的请求类型");
+            }
+            post.setEntity(requestEntity);
+            post.setHeaders(headers);
             interfaceLog.setHeader(post.getAllHeaders().toString());
             RequestConfig requestConfig = getRequestConfig(isPorxy, 20000, null);
             post.setConfig(requestConfig);

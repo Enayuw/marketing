@@ -65,16 +65,8 @@ public class UMengTimingTaskCreateJob extends AbstractSimpleElasticJob {
     private void atciton(String apiCode) {
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
-        Long lastSearchId = 0L;
-        Integer searchSize = 100;
-        while(true) {
-            List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime,lastSearchId,searchSize);
-            if (CollectionUtils.isEmpty(localFileList)) {
-                break;
-            }
-            localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
-            lastSearchId = localFileList.get(localFileList.size()-1).getId();
-        }
+        List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
+        localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
     }
 
     private void dealSingleAction(LocalFile localFile, String apiCode,LocalDateTime dayStartTime) {

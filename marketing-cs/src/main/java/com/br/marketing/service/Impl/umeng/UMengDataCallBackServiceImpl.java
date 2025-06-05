@@ -57,7 +57,7 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
     @Override
     public Result marketingCallback(String encryptParam, HttpServletRequest request) {
         String decryptParam = UMengCryptoUtil.decryptBody(marketingCommonConfig.getUMengBizInfoMap().get("bizSecret"),encryptParam);
-        log.warn("uMeng callBack,decryptBody:{}", decryptParam);
+        log.warn("uMeng callBack,encryptParam:{},decryptBody:{}",encryptParam, decryptParam);
         Result result = new Result().success();
         UMengInterfaceLog interfaceLog = new UMengInterfaceLog();
         try {

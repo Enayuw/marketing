@@ -74,16 +74,8 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
         //1、查询T日 b_local_file(list)处理完成 记录
-        Long lastSearchId = 0L;
-        Integer searchSize = 100;
-        while(true) {
-            List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime,lastSearchId,searchSize);
-            if (CollectionUtils.isEmpty(localFileList)) {
-                break;
-            }
-            localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
-            lastSearchId = localFileList.get(localFileList.size()-1).getId();
-        }
+        List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
+        localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
     }
 
     private void dealSingleAction(LocalFile localFile, String apiCode, LocalDateTime dayStartTime) {
