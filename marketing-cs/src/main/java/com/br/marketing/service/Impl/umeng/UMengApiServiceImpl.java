@@ -67,7 +67,7 @@ public class UMengApiServiceImpl implements IUMengApiService {
             };
             HashMap<String, String> rewultMap = httpProxyClient.sendByCodeWithLogWithHeader(encodeBody,realRequestUrl,true,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,"",true,false,headers);
-            if (rewultMap!=null && rewultMap.get("code").equals("200")) {
+            if (rewultMap!=null && rewultMap.get("httpcode").equals("200")) {
                 String resContent = rewultMap.get("data");
                 resultData = JSONObject.parseObject(resContent);
             }else {
@@ -98,7 +98,7 @@ public class UMengApiServiceImpl implements IUMengApiService {
             };
             HashMap<String, String> rewultMap = httpProxyClient.sendByCodeWithLogWithHeader(encodeBody,realRequestUrl,true,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,"",true,false,headers);
-            if (rewultMap!=null && rewultMap.get("code").equals("200")) {
+            if (rewultMap!=null && rewultMap.get("httpcode").equals("200")) {
                 String resContent = rewultMap.get("data");
                 resultData = JSONObject.parseObject(resContent);
             }else {
