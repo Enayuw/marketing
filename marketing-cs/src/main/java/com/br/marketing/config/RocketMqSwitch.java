@@ -63,7 +63,7 @@ public class RocketMqSwitch {
     @Resource
     private RabbitMqProducter rabbitMqProducter;
 
-    @Value("${srping.application.name}")
+    @Value("${spring.application.name}")
     private String appName;
 
     public Boolean rocketMQSwitchFlag(String apiCode, String tag){
