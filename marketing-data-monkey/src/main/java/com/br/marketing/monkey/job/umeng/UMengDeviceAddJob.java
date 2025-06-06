@@ -83,7 +83,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
         //2、查询T日智能时机任务创建记录
         UMengTimingTask timingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode,dayStartTime);
         if (timingTask == null || !checkExpireTime(timingTask)) {
-            log.warn("localId:{},apiCode={} 今日智能时机任务不存在或任务刚创建不到5分钟 ",localFile.getId(),apiCode);
+            log.warn("TITLE:{},localId:{},apiCode={} 今日智能时机任务不存在或任务刚创建不到5分钟 ",TITLE,localFile.getId(),apiCode);
             return;
         }
         //3、查询未进行设备注册的 数据信息
@@ -106,8 +106,8 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     private void deviceAdd(List<UMengData> uMengDataList, UMengTimingTask timingTask,
                            ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList) {
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        actionPool.setCorePoolSize(marketingCommonConfig.getUMengThreadPool());
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengThreadPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processDeviceAdd(timingTask,uMengDataList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (throwable != null) {
@@ -119,7 +119,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     private Result processDeviceAdd(UMengTimingTask timingTask, List<UMengData> uMengDataList) {
         Result result = new Result().failure();
-        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, 200);
+        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, marketingCommonConfig.getUMengDeviceAddCount());
         for (List<UMengData> partitionItemList : partitionList) {
             Integer deviceAddStatus =-1;
             List<Long> idList = partitionItemList.stream().map(UMengData::getId).collect(Collectors.toList());

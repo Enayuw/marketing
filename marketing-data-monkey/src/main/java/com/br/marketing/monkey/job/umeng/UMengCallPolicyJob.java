@@ -125,8 +125,8 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
                                   ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList,
                                   List<Long> resultList ) {
         Result result = new Result().failure();
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        actionPool.setCorePoolSize(marketingCommonConfig.getUMengThreadPool());
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengThreadPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processCallPolicy(timingTask,uMengDataList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {

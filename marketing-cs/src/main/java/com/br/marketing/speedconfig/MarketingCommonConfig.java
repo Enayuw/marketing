@@ -3077,5 +3077,11 @@ public class MarketingCommonConfig {
      */
     private String uMengCallBackEndTime;
 
+
+    /**
+     * uMeng deviceAdd 设备注册每次接口数量
+     */
+    private Integer uMengDeviceAddCount;
+
 }
 
