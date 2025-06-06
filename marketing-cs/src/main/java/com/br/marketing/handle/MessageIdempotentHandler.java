@@ -21,7 +21,7 @@ public class MessageIdempotentHandler {
     private final String applicationName;
 
     // 消息处理记录过期时间(秒)，根据业务特性调整
-    private static final long RECORD_EXPIRE_SECONDS = 600000; // 10分钟
+    private static final long RECORD_EXPIRE_SECONDS = 7200000; // 两个小时
 
     public MessageIdempotentHandler(RedisChgService redisChgService,
                                     SnowflakeRedisGeneratorHandle idGenerator) {

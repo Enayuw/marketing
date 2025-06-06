@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 带本地缓存的幂等性处理器
+ *
  * @author Hua Qiang
  * @date 2025/5/22 14:58
  */
@@ -31,6 +32,11 @@ public class CachedMessageIdempotentHandler extends MessageIdempotentHandler {
 
     @Override
     public boolean checkAndMarkMessageProcessed(String topic, String messageId) {
+        return this.checkAndMarkMessageProcessed(topic, messageId, "1");
+    }
+
+    @Override
+    public boolean checkAndMarkMessageProcessed(String topic, String messageId, String value) {
         String idempotentKey = buildIdempotentKey(topic, messageId);
 
         // 先查本地缓存
@@ -40,7 +46,7 @@ public class CachedMessageIdempotentHandler extends MessageIdempotentHandler {
         }
 
         // 本地缓存未命中，查询Redis
-        boolean result = super.checkAndMarkMessageProcessed(topic, messageId);
+        boolean result = super.checkAndMarkMessageProcessed(topic, messageId, value);
 
         // 更新本地缓存
         if (!result) {
