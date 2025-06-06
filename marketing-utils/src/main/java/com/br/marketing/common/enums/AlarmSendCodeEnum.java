@@ -320,7 +320,9 @@ public enum AlarmSendCodeEnum {
     //云客业务异常
     YUNKE_SERVICEERROR("6080001", "云客业务异常"),
 
-    UMENG_SERVICEERROR("6090001", "友盟智能时机业务异常")
+    UMENG_SERVICEERROR("6090001", "友盟智能时机业务异常"),
+
+    MOCK_SERVICEERROR("6091000", "Mock系统异常")
     ;
 
     /**
