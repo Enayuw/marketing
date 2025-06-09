@@ -3077,5 +3077,14 @@ public class MarketingCommonConfig {
      */
     private String uMengCallBackEndTime;
 
+    /**
+     * 奇富促动支上传数据apiCode
+     */
+    private String qiFuActuationApiCode;
+
+    /**
+     * 奇富促动支上传数据参数配置
+     */
+    private JSONObject qiFuActuationServerConfig;
 }
 
