@@ -3,6 +3,7 @@ package com.br.marketing.handle;
 import com.br.marketing.client.RedisChgService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
@@ -26,7 +27,7 @@ public class CachedMessageIdempotentHandler extends MessageIdempotentHandler {
         // 配置本地缓存
         this.localCache = Caffeine.newBuilder()
                 .maximumSize(10000000) // 最多缓存100万条记录
-                .expireAfterWrite(5, TimeUnit.MINUTES) // 10分钟后过期
+                .expireAfterWrite(5, TimeUnit.MINUTES) // 5分钟后过期
                 .build();
     }
 
@@ -37,6 +38,9 @@ public class CachedMessageIdempotentHandler extends MessageIdempotentHandler {
 
     @Override
     public boolean checkAndMarkMessageProcessed(String topic, String messageId, String value) {
+        if (StringUtils.isBlank(messageId)) {
+            return true;
+        }
         String idempotentKey = buildIdempotentKey(topic, messageId);
 
         // 先查本地缓存
@@ -54,5 +58,11 @@ public class CachedMessageIdempotentHandler extends MessageIdempotentHandler {
         }
 
         return result;
+    }
+
+    @Override
+    public void markMessageProcessFailed(String topic, String messageId) {
+        localCache.invalidate(buildIdempotentKey(topic, messageId));
+        super.markMessageProcessFailed(topic, messageId);
     }
 }
