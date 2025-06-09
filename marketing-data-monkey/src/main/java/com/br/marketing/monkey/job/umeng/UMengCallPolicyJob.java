@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -89,14 +88,14 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
         boolean checkCallbackEndFlag = checkCallBackEnd(marketingCommonConfig.getUMengCallBackEndTime());
         Long lastSearchId = 0L;
         Long totalCount = 0L;
-        Integer searchSize = marketingCommonConfig.getUMengPageSearchSize();
         ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
-                marketingCommonConfig.getUMengThreadPool(),
-                marketingCommonConfig.getUMengThreadPool());
+                marketingCommonConfig.getUMengCallPolicyPool(),
+                marketingCommonConfig.getUMengCallPolicyPool());
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         List<Long> resultList = new ArrayList<>(20);
         while (true) {
-            List<UMengData> uMengDataList;
+            List<UMengData> uMengDataList = new ArrayList<>();
+            Integer searchSize = marketingCommonConfig.getUMengCallPolicyPageSize();
             if (checkCallbackEndFlag) {
                 uMengDataList = uMengdataService.selectEventPushList(localFile.getId(),apiCode,lastSearchId,searchSize);
             }else {
@@ -120,13 +119,12 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
                 TITLE,timingTask.getLocalId(),apiCode,totalCount,successLine);
     }
 
-
     private Result dealCallPolicy(UMengTimingTask timingTask ,List<UMengData> uMengDataList,
                                   ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList,
                                   List<Long> resultList ) {
         Result result = new Result().failure();
-        actionPool.setCorePoolSize(marketingCommonConfig.getUMengThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengThreadPool());
+        actionPool.setCorePoolSize(marketingCommonConfig.getUMengCallPolicyPool());
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengCallPolicyPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processCallPolicy(timingTask,uMengDataList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {
@@ -147,7 +145,7 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
     private Result processCallPolicy(UMengTimingTask timingTask,List<UMengData> uMengDataList) {
         Result result = new Result().failure();
         String strategyCode = marketingCommonConfig.getUMengPushPolicyStrategyCode().get(timingTask.getApiCode());
-        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, 1000);
+        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, marketingCommonConfig.getUMengPolicyPartCount());
         for (List<UMengData> partitionItemList : partitionList) {
             Result pushResult = dataCallbackService.callPolicyData(timingTask.getLocalId(),timingTask.getApiCode(),strategyCode,partitionItemList);
             if (pushResult != null && pushResult.isSuccess()) {

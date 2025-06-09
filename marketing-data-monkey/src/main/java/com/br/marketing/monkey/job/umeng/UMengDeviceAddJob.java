@@ -88,12 +88,13 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
         }
         //3、查询未进行设备注册的 数据信息
         Long lastSearchId = 0L;
-        Integer searchSize = marketingCommonConfig.getUMengPageSearchSize();
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(marketingCommonConfig.getUMengThreadPool(),
-                marketingCommonConfig.getUMengThreadPool());
+        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                marketingCommonConfig.getUMengDeviceAddPool(),
+                marketingCommonConfig.getUMengDeviceAddPool());
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         while (true) {
-            List<UMengData> uMengDataList = uMengdataService.selectDeviceAddList(localFile.getId(),apiCode,dayStartTime,lastSearchId,searchSize);
+            List<UMengData> uMengDataList = uMengdataService.selectDeviceAddList(localFile.getId(),apiCode,dayStartTime,
+                    lastSearchId,marketingCommonConfig.getUMengDeviceAddPageSize());
             if (CollectionUtils.isEmpty(uMengDataList)) {
                 break;
             }
@@ -106,8 +107,8 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     private void deviceAdd(List<UMengData> uMengDataList, UMengTimingTask timingTask,
                            ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList) {
-        actionPool.setCorePoolSize(marketingCommonConfig.getUMengThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengThreadPool());
+        actionPool.setCorePoolSize(marketingCommonConfig.getUMengDeviceAddPool());
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengDeviceAddPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processDeviceAdd(timingTask,uMengDataList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (throwable != null) {
@@ -119,7 +120,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     private Result processDeviceAdd(UMengTimingTask timingTask, List<UMengData> uMengDataList) {
         Result result = new Result().failure();
-        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, marketingCommonConfig.getUMengDeviceAddCount());
+        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, marketingCommonConfig.getUMengDevicePartCount());
         for (List<UMengData> partitionItemList : partitionList) {
             Integer deviceAddStatus =-1;
             List<Long> idList = partitionItemList.stream().map(UMengData::getId).collect(Collectors.toList());

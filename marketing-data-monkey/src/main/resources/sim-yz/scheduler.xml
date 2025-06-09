@@ -650,7 +650,7 @@
 
     <job:simple id="【monkey】-UMengCallPolicyJob"
                 class="com.br.marketing.monkey.job.umeng.UMengCallPolicyJob"
-                cron="0 0/5 * * * ?"
+                cron="0 0/5 10-17 * * *"
                 description="友盟-推决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
