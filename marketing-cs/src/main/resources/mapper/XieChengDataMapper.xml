@@ -91,4 +91,7 @@
       and cycle.push_time <![CDATA[<]]> report.create_time
   </select>
 
+  <select id="executeBackSql" resultType="com.br.marketing.client.xiecheng.intput.AdReqDTO">
+    #{sqlParameter}
+    </select>
 </mapper>

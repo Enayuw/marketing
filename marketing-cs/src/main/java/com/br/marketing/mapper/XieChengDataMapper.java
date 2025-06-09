@@ -1,10 +1,12 @@
 package com.br.marketing.mapper;
 
 import com.alibaba.fastjson.JSONArray;
+import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.entity.XieChengData;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface XieChengDataMapper extends XieChengDataMapperBase{
 
@@ -45,4 +47,8 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
                                 @Param("convType") String convType);
 
     List<Integer> getReportPushStatusInPeriod(@Param("cell") String cell, @Param("apiCode") String apiCode);
+
+    List<AdReqDTO> executeBackSql(String sqlParameter,Long minId);
+
+
 }
