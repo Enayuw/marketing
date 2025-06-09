@@ -5,7 +5,6 @@ import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 import javax.annotation.Resource;
@@ -28,9 +27,9 @@ public class SnowflakeConfig {
     @Value("${snowflake.datacenter.id:0}")
     private long datacenterId;
 
-    // 配置改进版雪花算法（摆脱时钟依赖）
+    // 配置改进版雪花算法
     @Bean
-    @Order(Ordered.LOWEST_PRECEDENCE)
+    @Order()
     public SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle() {
         return new SnowflakeRedisGeneratorHandle(redisChgService, applicationName, datacenterId);
     }
