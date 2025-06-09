@@ -1,5 +1,6 @@
-package com.br.marketing.chain.xiecheng;
+package com.br.marketing.chain.xiecheng.common;
 
+import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.XieChengDataMapper;
@@ -16,7 +17,7 @@ public class XiChengReportIsPushHandler extends AbstractXieChengReportHandler {
     private XieChengDataMapper xieChengDataMapper;
 
     @Override
-    void process(XieChengReportContext context) {
+    public String process(XieChengReportContext context) {
         Boolean isPush;
         Boolean isDelete = false;
         if (context.getPushConfig().getOffRepeatByPeriod()) {
@@ -36,21 +37,20 @@ public class XiChengReportIsPushHandler extends AbstractXieChengReportHandler {
             isPush = CollectionUtils.isEmpty(xieChengRepeatDatalist);
         }
         if (!isPush) {
-            String message;
             if (context.getPushConfig().getOffRepeatByPeriod()) {
                 if (isDelete) {
-                    message = "数据不在锁定期内，不可推送";
+                    return "数据不在锁定期内，不可推送";
                 } else {
-                    message = "数据在锁定期内已推送过" + context.getPushConfig().getOffRepeatCount() + "次";
+                    return "数据在锁定期内已推送过" + context.getPushConfig().getOffRepeatCount() + "次";
                 }
             } else {
-                message = "数据重复未推送";
+                return "数据重复未推送";
             }
-            context.setError(message);
         }
+        return null;
     }
 
     protected XiChengReportIsPushHandler() {
-        super(5, "common");
+        super("common");
     }
 }

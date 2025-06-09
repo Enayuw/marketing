@@ -718,6 +718,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 }
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
         }
     }
 

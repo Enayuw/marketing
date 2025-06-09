@@ -24,7 +24,6 @@ public class XieChengReportContext {
     private AdReqDTO adReqDTO;
     private XieChengData resultData;
     private PushConfig pushConfig;
-
     private String tcId;
     private String sha256Tel;
     private String redisKey;
@@ -32,7 +31,6 @@ public class XieChengReportContext {
     private boolean continueFlag;
     private String clickId;
     private Result pushResult;
-
     /**
      * 解析推送配置
      */
@@ -86,17 +84,15 @@ public class XieChengReportContext {
      * 设置错误信息并停止处理
      */
     public void setError(String message) {
-        this.continueFlag = false;
-        this.resultData.setStatus(2);
+//        this.resultData.setStatus(2);
         this.resultData.setDataMessage(message);
     }
 
     /**
      * 设置成功信息
      */
-    public void setSuccess(String message) {
-        this.resultData.setStatus(1);
-        this.resultData.setDataMessage(message);
+    public void setSuccess() {
+//        this.resultData.setStatus(1);
     }
 
     /**

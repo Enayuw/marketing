@@ -1,5 +1,6 @@
-package com.br.marketing.chain.xiecheng;
+package com.br.marketing.chain.xiecheng.common;
 
+import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -7,21 +8,20 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 @Component
-public class XiChengReportBlackbTHandler extends AbstractXieChengReportHandler{
+public class XiChengReportBlackbTHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Override
-    void process(XieChengReportContext context) {
+    public String process(XieChengReportContext context) {
         MarketingTransferSyncUser xcTransferBlack =
                 marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(
                         context.getTcId(), context.getSha256Tel(), context.getPushConfig().getIsBlackApiCodes());
-        if (xcTransferBlack != null) {
-            context.setError("命中黑名单");
-        }
+        if (xcTransferBlack != null) return "命中黑名单";
+        return null;
     }
     protected XiChengReportBlackbTHandler() {
-        super(3, "common");
+        super("common");
     }
 }

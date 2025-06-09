@@ -3,22 +3,17 @@ package com.br.marketing.chain.xiecheng;
 import com.br.marketing.context.XieChengReportContext;
 
 /**
- * 携程上报责任链服务
+ * 携程上报责任链抽象类
  */
 public abstract class AbstractXieChengReportHandler {
 
-    private Integer order;
-
     private String bizMark;
 
-    protected AbstractXieChengReportHandler (Integer order, String bizMark){
-        this.order = order;
+    public AbstractXieChengReportHandler (String bizMark){
         this.bizMark = bizMark;
     }
 
-    abstract void process(XieChengReportContext context);
-
-    public Integer getOrder() {return order;}
+    abstract public String process(XieChengReportContext context);
 
     public String getBizMark() {
         return bizMark;

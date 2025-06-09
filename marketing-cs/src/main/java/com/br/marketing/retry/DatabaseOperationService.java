@@ -58,6 +58,7 @@ public class DatabaseOperationService {
                     String sql = getSqlStatement(operation);
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(),
                             "数据库操作异常，场景：" + operationName + "，尝试次数：" + retryCount + "，执行sql：" + sql), e);
+                    throw e;
                 }
                 sleep(delay);
                 if (config.isExponentialBackoff()) {

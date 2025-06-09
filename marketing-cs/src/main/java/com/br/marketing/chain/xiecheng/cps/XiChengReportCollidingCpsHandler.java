@@ -1,5 +1,6 @@
-package com.br.marketing.chain.xiecheng;
+package com.br.marketing.chain.xiecheng.cps;
 
+import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
@@ -21,7 +22,7 @@ public class XiChengReportCollidingCpsHandler extends AbstractXieChengReportHand
     private XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
 
     @Override
-    void process(XieChengReportContext context) {
+    public String process(XieChengReportContext context) {
         Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
         vtExample.createCriteria()
@@ -29,23 +30,17 @@ public class XiChengReportCollidingCpsHandler extends AbstractXieChengReportHand
                 .andStatusEqualTo(2)
                 .andSendDateEqualTo(day);
         List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
-        if (xieChengSmsCollidingDataLogVts.size() == 0) {
-            context.setError("没有获取到当日撞库结果");
-            return;
-        }
+        if (xieChengSmsCollidingDataLogVts.size() == 0) return "没有获取到当日撞库结果";
         XieChengSmsCollidingDataLogVt dataLogVt = xieChengSmsCollidingDataLogVts.get(0);
-        if(!dataLogVt.getResult()){
-            context.setError("命中当日撞库结果为false");
-            return;
-        }
+        if (!dataLogVt.getResult()) return "命中当日撞库结果为false";
         if (StringUtils.isBlank(dataLogVt.getOrgChannel())) {
-            context.setError("命中当日OrgChannel为空,id="+dataLogVt.getSmsCollidingDataVtId());
-            return;
+            return "命中当日OrgChannel为空,id=" + dataLogVt.getSmsCollidingDataVtId();
         }
         context.getAdReqDTO().setMktChannel(dataLogVt.getOrgChannel());
+        return null;
     }
 
     protected XiChengReportCollidingCpsHandler() {
-        super(4, XieChengBizMarkEnum.CPS.name());
+        super(XieChengBizMarkEnum.CPS.name());
     }
 }

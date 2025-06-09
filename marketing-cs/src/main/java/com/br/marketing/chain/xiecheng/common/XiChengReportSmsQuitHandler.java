@@ -1,26 +1,26 @@
-package com.br.marketing.chain.xiecheng;
+package com.br.marketing.chain.xiecheng.common;
 
+import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.mapper.XiechengSmsQuitDataMapper;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 @Component
-public class XiChengReportSmsQuitHandler extends AbstractXieChengReportHandler{
+public class XiChengReportSmsQuitHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
 
     @Override
-    void process(XieChengReportContext context) {
+    public String process(XieChengReportContext context) {
         Integer xiechengSmsQuitDataSize = xiechengSmsQuitDataMapper.getCountSmsQuitDataByMobile(context.getSha256Tel());
-        if (xiechengSmsQuitDataSize > 0) {
-            context.setError("命中投诉退订数据");
-        }
+        if (xiechengSmsQuitDataSize > 0) return "命中投诉退订数据";
+        return null;
     }
 
     public XiChengReportSmsQuitHandler() {
-        super(2, "common");
+        super("common");
     }
 
 }
