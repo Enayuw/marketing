@@ -1849,6 +1849,11 @@ public class MarketingCommonConfig {
     private JSONObject xieChengSmsCollidingConfig;
 
     /**
+     *  携程短信撞库接口参数配置90
+     */
+    private JSONObject xieChengSmsCollidingConfigVt;
+
+    /**
      * 奇富360数据清洗调用转化接口线程数
      */
     private Integer dataCleanQiFu360CoreAndMaxNum;
@@ -2615,9 +2620,9 @@ public class MarketingCommonConfig {
 
     /**
      * 车线索入库配置
-     * {"carClueApiCodes":["7410733"],"carClueIntentionGrades":["A","B","a","b"]}
+     * {"yiZhi":"7410733","ziYan":"7410737"}
      */
-    private Map<String, List<String>> carClueStorageConfig;
+    private Map<String, String> carClueStorageConfig;
 
     /**
      * 车线索数据清洗配置
@@ -2778,6 +2783,11 @@ public class MarketingCommonConfig {
      * 通用上传推送决策特殊客户
      */
     private List<String> apiCodeOfpushPolicy;
+
+    /**
+     * 字段映射 样例{"apiCode":{"customName":"cusName"}}
+     */
+    private HashMap<String,JSONObject> fieldKeyMapping;
     /**
      * 众安AI 通话明细名单推送时间
      */
@@ -2864,7 +2874,7 @@ public class MarketingCommonConfig {
     /**
      * 转化文件提取到marketingBI的配置
      */
-    private List<String> transFileExtractionApiCodesConfig;
+    private List<JSONObject> transFileExtractionApiCodesConfig;
     /**
      * 转化文件提取到BI线程数
      */
@@ -2947,5 +2957,129 @@ public class MarketingCommonConfig {
      * 58查询延期撞库数据线程
      */
     private Integer wuBaQueryDelayZipThreadNum;
+
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer customUploadCleanThreadNum;
+
+    /**
+     * 动态切换消息队列定时任务开关
+     */
+    private Boolean isEnableMqSwitch;
+
+    /**
+     * 携程接口调用参数切换
+     */
+    private Map<String, Boolean> xiechengICParamSwitch;
+
+    /**
+     * 携程推送短信退订接口配置信息新
+     */
+    private Map<String, Map<String, String>> xieChengSmsQuitConfigNew;
+
+    /**
+     * 同程正负样本本地和内部SFTP-文件路径
+     */
+    private String tongChengSampleZipFilePath;
+
+
+    /**
+     * 收集手机号的apiCode集合
+     */
+    private List<String> cellOfApiCodeCellCollect;
+    /**
+     * 收集手机号的线程数
+     */
+    private Integer cellCollectThreadNum;
+    /**
+     * 云客手机号收集分页大小
+     */
+    private Integer cellCollectPageSize;
+    /**
+     * 云客机型获取分页查询大小
+     */
+    private Integer collectDeviceTypePageSize;
+    /**
+     * 云客机型获取每页分组大小
+     */
+    private Integer deviceTypePartitionNum;
+    /**
+     * 云客机型获取并发请求线程数
+     */
+    private Integer deviceTypeThreadNum;
+    /**
+     * 云客机型获取job参数 0-按照device_type is NULL查询请求增量数据,1-按照maxId查找请求每三个月刷一次
+     */
+    private Boolean deviceTypeExecuteCondition;
+    /**
+     * 云客机型获取接口挡板true打开false关闭
+     */
+    private Boolean yunKeDeviceTypeApiSwitch;
+    /**
+     * 上传数据清洗线程数
+     */
+    private Integer pushDassThreadNum;
+
+
+
+
+    /**
+     * uMeng apiCodes
+     */
+    private List<String> apiCodeOfUMeng;
+
+    /**
+     * uMeng apiCode-创建智能时机任务的配置参数
+     * eg  uMengTaskParamMap=
+     * {"111111":{"event_type":"1001","touch_type":3,"callback_url":"url","status":1,
+     * "callback_period":"10-16","start_time":"yyyy-MM-dd 10:00:00",
+     * "end_time":"yyyy-MM-dd 20:00:00"}}
+     */
+    private HashMap<String,JSONObject> uMengTaskParamMap;
+
+    /**
+     * uMeng bizId、bizSecret配置 {"bizId":"sqg11746598977wccp","bizSecret":"b9073f30a7837609b97f5ce0e962d42e"}
+     */
+    private HashMap<String,String> uMengBizInfoMap;
+
+
+    /**
+     * uMeng requestUrl配置
+     * eg {"timingTaskUrl":"https://udata.umeng.com/occa/v1/task/create?sign=%s","deviceAddUrl":"https://udata.umeng.com/occa/v1/device/add?sign=%s"}
+     */
+    private HashMap<String,String> uMengUrlInfoMap;
+
+
+    /**
+     * uMeng 设备注册job每页查询条数
+     */
+    private Integer  uMengPageSearchSize;
+
+    /**
+     * uMeng 批量操作线程 批量注册设备/批量推决策
+     */
+    private Integer uMengThreadPool;
+
+    /**
+     * uMeng 智能时机-调用决策，根据情况配置对应的决策参数 strategyCode
+     * 说明：
+     * {
+     *   "apiCode":"策略编号"
+     * }
+     * 样例：
+     * {
+     * "7492800": "CASTR0142044",
+     * 	"4004643":"CASTR0000864"
+     * }
+     */
+    private HashMap<String, String> uMengPushPolicyStrategyCode;
+
+
+    /**
+     * uMeng 每日回调结束的时间(eg: yyyy-MM-dd 16:00:00)
+     */
+    private String uMengCallBackEndTime;
+
 }
 

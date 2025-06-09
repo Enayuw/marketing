@@ -116,4 +116,15 @@
     <update id="updatePushStatusByLocalId">
         update b_local_file set push_status = null where id in ${highValueIds};
     </update>
+
+    <select id="getLastDataByApiCode" resultMap="BaseResultMap">
+        SELECT *
+        FROM b_local_file
+        WHERE
+            api_code = #{apiCode}
+            AND status = '2'
+            <if test="startTime !=null">
+                <![CDATA[ AND create_time >=#{startTime} ]]>
+            </if>
+    </select>
 </mapper>

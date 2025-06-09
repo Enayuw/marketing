@@ -7,10 +7,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.ScorePushCustomerConfig;
-import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -21,10 +18,12 @@ import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.RsTransferServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.Impl.qifu.QiFuServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
+import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
@@ -778,5 +777,109 @@ public class AlarmAndNoticeTest {
         scorePushCustomerConfig3.setResourceConfig("{\"pushCustomerDataPageNumber\":50}");
         Integer pushCustomerResource3 = pushCustomerService.getPushCustomerResource(scorePushCustomerConfig3, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
         System.out.println("测试3"+pushCustomerResource3);
+    }
+
+
+    @Resource
+    private RuleCleaningService ruleCleaningService;
+
+    @Test
+    public void testRuleCleaning(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject = JSONObject.parseObject("{\"batchNo\":\"E000932_6635568777882767361\",\"retryCall\":\"Y\"," +
+                "\"templateNo\":\"睡眠借条-原CASTR0321218\",\"callTimeRange\":\"09:00-20:00\",\"dataList\":[{\"gender\":\"M\",\"surname\":\"王\",\"phoneNoMd5\":\"c7a25c24e9cf98ea7caa11756a1270b3\",\"serialNo\":\"RB6635584322132770817\"},{\"gender\":\"M\",\"surname\":\"孙\",\"phoneNoMd5\":\"80a8ee96150bf49c953a3fed83a1abbe\",\"serialNo\":\"RB6635584322132770818\"},{\"gender\":\"M\",\"surname\":\"姚\",\"phoneNoMd5\":\"bec08a8e0091922f3be08d6f9a6dec60\",\"serialNo\":\"RB6635584322132770819\"},{\"gender\":\"M\",\"surname\":\"李\",\"phoneNoMd5\":\"942ef6b8f1fd49b58338b5270d23f479\",\"serialNo\":\"RB6635584322132770820\"},{\"gender\":\"F\",\"surname\":\"李\",\"phoneNoMd5\":\"ad9985f249da68a2a59dcfcc998fdf91\",\"serialNo\":\"RB6635584322132770821\"},{\"gender\":\"F\",\"surname\":\"马\",\"phoneNoMd5\":\"dc54284c3b13c4ab711ade9232b10667\",\"serialNo\":\"RB6635584322132770822\"}],\"flowNo\":\"RF6635584322132770816\",\"sendMsg\":\"N\",\"callType\":\"AI\",\"operateScene\":\"loan\"}");
+        MarketingDataCleanGeneralRuleConfig ruleConfig = new MarketingDataCleanGeneralRuleConfig();
+        ruleConfig.setIsDel(1);
+        ruleConfig.setIsMapping(true);
+        ruleConfig.setCleanFields("callType");
+        ruleConfig.setMappingField("userType");
+        ruleConfig.setMappingRule("[{\"order\":1,\"operateType\":\"string\",\"expression\":{\"operator\":\"default\",\"defaultValue\":\"1\"}}]");
+        Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+        System.err.println(result);
+    }
+
+
+    @Resource
+    private QiFuServiceImpl qiFuService;
+
+    @Test
+    public void testProcessCouponInfo(){
+        // 准备全面的测试数据 - 覆盖各种券类型和边界情况
+        List<String> rCouponInfoList = Arrays.asList(
+            // === 分期券测试 ===
+            "[{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"3期700元免息券\"},{\"couponName\":\"3期900元免息券\"}]",
+            "[{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"6期300元免息券\"},{\"couponName\":\"12期100元免息券\"}]",
+            "[{\"couponName\":\"最高300元6期免息券\"},{\"couponName\":\"最高500元3期免息券\"},{\"couponName\":\"最高200元12期免息券\"}]",
+            "[{\"couponName\":\"智信3期600元免息券\"},{\"couponName\":\"超级会员6期500元免息券\"},{\"couponName\":\"专属12期300元免息券\"}]",
+            
+            // === 折扣券测试 ===
+            "[{\"couponName\":\"最高8.8折免息券\"},{\"couponName\":\"最高8.6折免息券\"},{\"couponName\":\"最高9.2折免息券\"}]",
+            "[{\"couponName\":\"最高8.8折300元免息券\"},{\"couponName\":\"最高8.8折600元免息券\"},{\"couponName\":\"最高8.8折200元免息券\"}]",
+            "[{\"couponName\":\"专享7.5折最高1000元优惠券\"},{\"couponName\":\"智信8.0折最高500元券\"},{\"couponName\":\"会员6.8折最高800元券\"}]",
+            
+            // === 周转金测试 ===
+            "[{\"couponName\":\"7天周转金\"},{\"couponName\":\"28天周转金\"},{\"couponName\":\"30天周转金\"}]",
+            "[{\"couponName\":\"7天200元周转金\"},{\"couponName\":\"7天500元周转金\"},{\"couponName\":\"7天100元周转金\"}]",
+            "[{\"couponName\":\"500元周转金\"},{\"couponName\":\"周转金300元\"},{\"couponName\":\"1000周转金\"}]",
+            
+            // === 大额直减券测试 ===
+            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减800元免息券\"},{\"couponName\":\"最高减1000元免息券\"}]",
+            "[{\"couponName\":\"专属最高减700元大额券\"},{\"couponName\":\"智信最高减900元优惠券\"},{\"couponName\":\"会员最高减650元免息券\"}]",
+            
+            // === 小额直减券测试 ===
+            "[{\"couponName\":\"最高减150元免息券\"},{\"couponName\":\"最高减200元免息券\"},{\"couponName\":\"最高减99元免息券\"}]",
+            "[{\"couponName\":\"最高减599元免息券\"},{\"couponName\":\"最高减300元免息券\"},{\"couponName\":\"最高减100元免息券\"}]",
+            
+            // === 混合类型优先级测试 ===
+            "[{\"couponName\":\"最高减1000元免息券\"},{\"couponName\":\"3期100元免息券\"},{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"30天周转金\"}]",
+            "[{\"couponName\":\"最高减800元免息券\"},{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"30天周转金\"},{\"couponName\":\"最高减200元免息券\"}]",
+            "[{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"30天周转金\"},{\"couponName\":\"最高减200元免息券\"},{\"couponName\":\"免息优惠券1\"}]",
+            "[{\"couponName\":\"最高8.5折免息券\"},{\"couponName\":\"最高减200元免息券\"},{\"couponName\":\"免息优惠券1\"}]",
+            
+            // === 边界和特殊情况测试 ===
+            "[{\"couponName\":\"智信专属6期500元免息券\"}]",
+            "[{\"couponName\":\"\"},{\"couponName\":\"3期600元免息券\"},{\"couponName\":\"最高减500元免息券\"}]",
+            "[{\"couponName\":\"免息优惠券3\"},{\"couponName\":\"免息优惠券1\"},{\"couponName\":\"免息优惠券2\"}]",
+            "[{\"couponName\":\"最高1000元9.5折12期免息券\"},{\"couponName\":\"最高500元8.8折6期免息券\"}]",
+            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减599元免息券\"}]",
+            "[{\"couponName\":\"8.5折500元免息券\"},{\"couponName\":\"8.8折600元免息券\"},{\"couponName\":\"7.2折300元免息券\"}]",
+            "[{\"couponName\":\"智信超级会员专属3期600元免息券\"},{\"couponName\":\"智信专属最高减800元免息券\"},{\"couponName\":\"超级会员30天周转金\"}]",
+            
+            // === 真实业务场景测试 ===
+            "[{\"couponName\":\"智信3期600元免息券\"},{\"couponName\":\"最高300元6期免息券\"},{\"couponName\":\"最高300元5期免息券\"}]",
+            "[{\"couponName\":\"最高减600元免息券\"},{\"couponName\":\"最高减700元免息券\"},{\"couponName\":\"最高减500元免息券\"}]",
+            "[{\"couponName\":\"最高8.8折免息券\"},{\"couponName\":\"最高8.7折免息券\"},{\"couponName\":\"最高8.6折免息券\"}]"
+        );
+        
+        // 期望结果对照表
+        List<String> expectedResults = Arrays.asList(
+            "3期900元免息券", "12期100元免息券", "最高200元12期免息券", "12期300元免息券",
+            "最高8.6折免息券", "最高8.8折600元免息券", "会员6.8折最高800元券",
+            "30天周转金", "7天500元周转金", "1000周转金",
+            "最高减1000元免息券", "最高减900元优惠券",
+            "最高减200元免息券", "最高减599元免息券",
+            "3期100元免息券", "最高减800元免息券", "30天周转金", "最高8.5折免息券",
+            "6期500元免息券", "3期600元免息券", "免息优惠券3", "最高1000元9.5折12期免息券",
+            "最高减600元免息券", "7.2折300元免息券", "3期600元免息券",
+            "最高300元6期免息券", "最高减700元免息券", "最高8.6折免息券"
+        );
+        
+        System.err.println("=== 开始测试processCouponInfo方法（全面测试）===");
+        
+        // 遍历测试所有数据
+        for (int i = 0; i < rCouponInfoList.size(); i++) {
+            String rCouponInfo = rCouponInfoList.get(i);
+            String result = qiFuService.processCouponInfo(rCouponInfo);
+            String expected = i < expectedResults.size() ? expectedResults.get(i) : "未知";
+            
+            System.err.println("=== 测试案例 " + (i + 1) + " ===");
+            System.err.println("输入: " + rCouponInfo);
+            System.err.println("实际结果: " + result);
+            System.err.println("期望结果: " + expected);
+            System.err.println("是否匹配: " + (result.equals(expected) ? "✅" : "❌"));
+            System.err.println();
+        }
+        
+        System.err.println("=== 测试完成 ===");
     }
 }

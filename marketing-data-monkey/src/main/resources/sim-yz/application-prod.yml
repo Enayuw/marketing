@@ -304,6 +304,12 @@ api:
     baseUrl: https://car.s.zonrn.cn
     carList: ${api.ycKA.baseUrl}/api/yiPlanDown
     isProxy: true
+  yunKe:
+    baseUrl: http://120.226.208.2:3072/vertx/smartsms/validAimAbility
+    appId: 13184681
+    appKey: 1845238f517b4bd993438bc821270749
+    version: 1
+    encryptionType: md5
 spring:
   rabbitmq:
     zw:

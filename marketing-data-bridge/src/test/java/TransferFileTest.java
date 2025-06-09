@@ -5,7 +5,9 @@ import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
+import com.br.marketing.service.Impl.PushDataServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.*;
+import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -271,4 +273,11 @@ public class TransferFileTest implements ApplicationContextAware {
         return "";
     }
 
+    @Resource
+    PushDataServiceImpl pushDataService;
+
+    @Test
+    public void testPushDataService() {
+        pushDataService.pushUpdateDassData(9360060L);
+    }
 }

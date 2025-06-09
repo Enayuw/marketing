@@ -44,6 +44,11 @@ public class MarketingDataFileConfig {
     private String serviceName;
 
     /**
+     * 转化清洗实现的服务名
+     */
+    private String transferServiceName;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -145,6 +150,14 @@ public class MarketingDataFileConfig {
 
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName == null ? null : serviceName.trim();
+    }
+
+    public String getTransferServiceName() {
+        return transferServiceName;
+    }
+
+    public void setTransferServiceName(String transferServiceName) {
+        this.transferServiceName = transferServiceName == null ? null : transferServiceName.trim();
     }
 
     public Date getCreateTime() {

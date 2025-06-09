@@ -7,6 +7,7 @@ import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.LocalFileVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -88,4 +89,12 @@ public interface LocalFileMapper extends LocalFileMapperBase {
     void updatePushNumber(@Param("localFile") LocalFile localFile);
 
     void updatePushStatusByLocalId(@Param("highValueIds") String highValueIds);
+
+    /**
+     * 获取大于指定时间 apiCode的最新下载完成的记录
+     * @param apiCode
+     * @param startTime
+     * @return
+     */
+    List<LocalFile> getLastDataByApiCode(@Param("apiCode") String apiCode,@Param("startTime") LocalDateTime startTime);
 }

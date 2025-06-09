@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.UpdatePhoneSaleMapper" >
+
+    <select id="getPushUpdateDassData" resultType="com.br.marketing.client.dassservice.input.update.DaasUpdateDataDTO">
+        select
+        *
+        from b_update_phone_sale
+        where local_id = #{localId}
+        and status =1
+        <if test="dataId != null and dataId>0">
+            and id > #{dataId}
+        </if>
+        order by id asc limit 1000;
+
+    </select>
+</mapper>

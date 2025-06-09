@@ -60,6 +60,8 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             //文件名以csosnew开头，推送财富Daas接口
             if(localFile.getFileName().startsWith("csosnew")){
                 pushDataService.pushCsosDassData(localFile.getId());
+            } else if (localFile.getFileName().startsWith("update")) {
+                pushDataService.pushUpdateDassData(localFile.getId());
             }else {
                 pushDataService.pushDassData(localFile.getId());
             }

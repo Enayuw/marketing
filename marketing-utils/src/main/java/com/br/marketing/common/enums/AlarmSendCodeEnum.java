@@ -295,6 +295,8 @@ public enum AlarmSendCodeEnum {
     PUSH_TO_SFTP("6042003", "跑分文件推送SFTP异常"),
     //中台标签业务告警码
     TAG_SERVICEERROR("6043001", "中台标签业务处理异常"),
+    //中台标签业务告警码
+    DATACLEANING_SERVICEERROR("6044001", "规则数据清洗业务处理异常"),
     //萨摩耶黑名单传输业务异常,立即推送
     SMY_SERVICEERROR("6050001", "萨摩耶黑名单传输业务异常"),
     //萨摩耶接口调用失败,阶梯推送
@@ -315,6 +317,10 @@ public enum AlarmSendCodeEnum {
     RSXK_SERVICEERROR("6071002", "榕树新客业务异常"),
     //BI业务异常
     BI_SERVICEERROR("6072001", "BI业务异常"),
+    //云客业务异常
+    YUNKE_SERVICEERROR("6080001", "云客业务异常"),
+
+    UMENG_SERVICEERROR("6090001", "友盟智能时机业务异常")
     ;
 
     /**

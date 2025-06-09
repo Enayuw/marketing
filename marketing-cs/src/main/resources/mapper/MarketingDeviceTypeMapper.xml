@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingDeviceTypeMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDeviceType">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="cell" property="cell" jdbcType="VARCHAR"/>
+        <result column="cell_md5" property="cellMd5" jdbcType="VARCHAR"/>
+        <result column="cell_sha256" property="cellSha256" jdbcType="VARCHAR"/>
+        <result column="cell_sha1" property="cellSha1" jdbcType="VARCHAR"/>
+        <result column="device_type" property="deviceType" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, api_code, cell, cell_md5, cell_sha256, cell_sha1, device_type, create_time,
+        update_time
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.MarketingDeviceTypeExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_marketing_device_type
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from b_marketing_device_type
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from b_marketing_device_type
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDeviceTypeExample">
+        delete from b_marketing_device_type
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.MarketingDeviceType">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_device_type (api_code, cell, cell_md5,
+        cell_sha256, cell_sha1, device_type,
+        create_time, update_time
+        )
+        values (#{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{cellMd5,jdbcType=VARCHAR},
+        #{cellSha256,jdbcType=VARCHAR}, #{cellSha1,jdbcType=VARCHAR}, #{deviceType,jdbcType=INTEGER},
+        #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDeviceType">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_device_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="cell != null">
+                cell,
+            </if>
+            <if test="cellMd5 != null">
+                cell_md5,
+            </if>
+            <if test="cellSha256 != null">
+                cell_sha256,
+            </if>
+            <if test="cellSha1 != null">
+                cell_sha1,
+            </if>
+            <if test="deviceType != null">
+                device_type,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="cell != null">
+                #{cell,jdbcType=VARCHAR},
+            </if>
+            <if test="cellMd5 != null">
+                #{cellMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="cellSha256 != null">
+                #{cellSha256,jdbcType=VARCHAR},
+            </if>
+            <if test="cellSha1 != null">
+                #{cellSha1,jdbcType=VARCHAR},
+            </if>
+            <if test="deviceType != null">
+                #{deviceType,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDeviceTypeExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_marketing_device_type
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update b_marketing_device_type
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.apiCode != null">
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.cell != null">
+                cell = #{record.cell,jdbcType=VARCHAR},
+            </if>
+            <if test="record.cellMd5 != null">
+                cell_md5 = #{record.cellMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="record.cellSha256 != null">
+                cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
+            </if>
+            <if test="record.cellSha1 != null">
+                cell_sha1 = #{record.cellSha1,jdbcType=VARCHAR},
+            </if>
+            <if test="record.deviceType != null">
+                device_type = #{record.deviceType,jdbcType=INTEGER},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update b_marketing_device_type
+        set id = #{record.id,jdbcType=BIGINT},
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+        cell = #{record.cell,jdbcType=VARCHAR},
+        cell_md5 = #{record.cellMd5,jdbcType=VARCHAR},
+        cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
+        cell_sha1 = #{record.cellSha1,jdbcType=VARCHAR},
+        device_type = #{record.deviceType,jdbcType=INTEGER},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDeviceType">
+        update b_marketing_device_type
+        <set>
+            <if test="apiCode != null">
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="cell != null">
+                cell = #{cell,jdbcType=VARCHAR},
+            </if>
+            <if test="cellMd5 != null">
+                cell_md5 = #{cellMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="cellSha256 != null">
+                cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
+            </if>
+            <if test="cellSha1 != null">
+                cell_sha1 = #{cellSha1,jdbcType=VARCHAR},
+            </if>
+            <if test="deviceType != null">
+                device_type = #{deviceType,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDeviceType">
+        update b_marketing_device_type
+        set api_code = #{apiCode,jdbcType=VARCHAR},
+        cell = #{cell,jdbcType=VARCHAR},
+        cell_md5 = #{cellMd5,jdbcType=VARCHAR},
+        cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
+        cell_sha1 = #{cellSha1,jdbcType=VARCHAR},
+        device_type = #{deviceType,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <insert id="saveBatch" parameterType="list">
+        insert ignore INTO b_marketing_device_type (
+        api_code,
+        cell,
+        cell_md5,
+        cell_sha256,
+        cell_sha1,
+        create_time,
+        update_time)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode,jdbcType=VARCHAR}, #{data.cell,jdbcType=VARCHAR},
+            #{data.cellMd5,jdbcType=VARCHAR}, #{data.cellSha256,jdbcType=VARCHAR},
+            #{data.cellSha1,jdbcType=VARCHAR}, now(),now()
+            )
+        </foreach>
+    </insert>
+    <select id="selectPageByDeviceType" resultMap="BaseResultMap">
+        select cell_sha1 from b_marketing_device_type where device_type is NULL limit #{pageSize}
+    </select>
+    <select id="selectPageByCodeMaxId" resultMap="BaseResultMap">
+        select id,cell_sha1 from b_marketing_device_type where api_code = #{apiCode} and id > #{maxId}
+        order by id asc limit #{pageSize}
+    </select>
+
+    <update id="updateDeviceTypeBySha1">
+        update b_marketing_device_type
+        set device_type = #{parseState,jdbcType=INTEGER},
+        update_time = now()
+        where cell_sha1 = #{checkElement,jdbcType=VARCHAR}
+    </update>
+
+    <select id="getDeviceTypesByLogCells" parameterType="com.br.marketing.dto.LogEncryptionCellsDto"
+            resultType="com.br.marketing.vo.yunke.DeviceTypeVO">
+        select cell,device_type from b_marketing_device_type where cell in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item.logCell}
+        </foreach>
+    </select>
+
+</mapper>

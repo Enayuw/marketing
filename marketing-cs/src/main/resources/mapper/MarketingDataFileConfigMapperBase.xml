@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingDataFileConfigMapperBase" >
+<mapper namespace="com.br.marketing.mapper.MarketingDataFileConfigMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataFileConfig" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -10,6 +10,7 @@
     <result column="field_config" property="fieldConfig" jdbcType="VARCHAR" />
     <result column="field_config_show" property="fieldConfigShow" jdbcType="VARCHAR" />
     <result column="service_name" property="serviceName" jdbcType="VARCHAR" />
+    <result column="transfer_service_name" property="transferServiceName" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -79,8 +80,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, file_id, clean_type, rule_name, field_config, field_config_show, service_name, 
-    create_time, update_time, is_del, is_checklist_name, validation_rules, auto_table_name, 
-    auto_duplicate_column, auto_search_data_sql
+    transfer_service_name, create_time, update_time, is_del, is_checklist_name, validation_rules, 
+    auto_table_name, auto_duplicate_column, auto_search_data_sql
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" >
     select
@@ -118,16 +119,16 @@
     </selectKey>
     insert into b_marketing_data_file_config (api_code, file_id, clean_type, 
       rule_name, field_config, field_config_show, 
-      service_name, create_time, update_time, 
-      is_del, is_checklist_name, validation_rules, 
-      auto_table_name, auto_duplicate_column, auto_search_data_sql
-      )
+      service_name, transfer_service_name, create_time, 
+      update_time, is_del, is_checklist_name, 
+      validation_rules, auto_table_name, auto_duplicate_column, 
+      auto_search_data_sql)
     values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=INTEGER}, #{cleanType,jdbcType=INTEGER}, 
       #{ruleName,jdbcType=VARCHAR}, #{fieldConfig,jdbcType=VARCHAR}, #{fieldConfigShow,jdbcType=VARCHAR}, 
-      #{serviceName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{isDel,jdbcType=INTEGER}, #{isChecklistName,jdbcType=TINYINT}, #{validationRules,jdbcType=VARCHAR}, 
-      #{autoTableName,jdbcType=VARCHAR}, #{autoDuplicateColumn,jdbcType=VARCHAR}, #{autoSearchDataSql,jdbcType=VARCHAR}
-      )
+      #{serviceName,jdbcType=VARCHAR}, #{transferServiceName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, #{isChecklistName,jdbcType=TINYINT}, 
+      #{validationRules,jdbcType=VARCHAR}, #{autoTableName,jdbcType=VARCHAR}, #{autoDuplicateColumn,jdbcType=VARCHAR}, 
+      #{autoSearchDataSql,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -155,6 +156,9 @@
       </if>
       <if test="serviceName != null" >
         service_name,
+      </if>
+      <if test="transferServiceName != null" >
+        transfer_service_name,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -202,6 +206,9 @@
       </if>
       <if test="serviceName != null" >
         #{serviceName,jdbcType=VARCHAR},
+      </if>
+      <if test="transferServiceName != null" >
+        #{transferServiceName,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -262,6 +269,9 @@
       <if test="record.serviceName != null" >
         service_name = #{record.serviceName,jdbcType=VARCHAR},
       </if>
+      <if test="record.transferServiceName != null" >
+        transfer_service_name = #{record.transferServiceName,jdbcType=VARCHAR},
+      </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
@@ -301,6 +311,7 @@
       field_config = #{record.fieldConfig,jdbcType=VARCHAR},
       field_config_show = #{record.fieldConfigShow,jdbcType=VARCHAR},
       service_name = #{record.serviceName,jdbcType=VARCHAR},
+      transfer_service_name = #{record.transferServiceName,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_del = #{record.isDel,jdbcType=INTEGER},
@@ -336,6 +347,9 @@
       </if>
       <if test="serviceName != null" >
         service_name = #{serviceName,jdbcType=VARCHAR},
+      </if>
+      <if test="transferServiceName != null" >
+        transfer_service_name = #{transferServiceName,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -373,6 +387,7 @@
       field_config = #{fieldConfig,jdbcType=VARCHAR},
       field_config_show = #{fieldConfigShow,jdbcType=VARCHAR},
       service_name = #{serviceName,jdbcType=VARCHAR},
+      transfer_service_name = #{transferServiceName,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_del = #{isDel,jdbcType=INTEGER},

@@ -67,6 +67,7 @@ public class MarketingApiService {
                     .setUrl(transferUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto)
+                    .setEncode(Boolean.TRUE)
                     .postTransferStr();
             if (Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 JSONObject jsonObject = JSON.parseObject(transfer.getResult());

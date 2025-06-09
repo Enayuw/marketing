@@ -1145,6 +1145,7 @@
         and is_repeat in (1,2)
     </select>
 
+
     <select id="getCustNumsByCusBatchtikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
         select id, cust_num
         from b_marketing_sync_${apiCode}
@@ -1155,6 +1156,14 @@
             and id > #{minId}
         </if>
         order by id limit #{pageSize}
+    </select>
+
+    <select id="getCellByApiCodeAndMaxId" resultType="com.br.marketing.entity.MarketingSyncCell">
+        select id, cell,cell_md5, cell_sha256 from b_marketing_sync_${apiCode}
+        where
+        status = 1
+        and is_repeat in (1,2)
+        and id > #{maxId} order by id limit #{pageSize}
     </select>
 
 

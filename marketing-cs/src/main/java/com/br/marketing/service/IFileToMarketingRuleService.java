@@ -6,10 +6,15 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 文件写入营销数据 规则服务
@@ -78,4 +83,27 @@ public interface IFileToMarketingRuleService {
         }
         return dto;
     }
+
+    /**
+     * 获取taskId
+     * @return
+     */
+    default String getTaskId(String apiCode,String fileNm){
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return apiCode.concat("_").concat(yyyyMMdd);
+    }
+
+    default Boolean isChecklistName(MarketingDataFileConfig fileConfig, String fileNm){
+        // 校验表名称
+        if(fileConfig.getIsChecklistName() != null && fileConfig.getIsChecklistName() == 0){
+            String regex = fileConfig.getValidationRules();
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(fileNm);
+            if (!matcher.matches()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

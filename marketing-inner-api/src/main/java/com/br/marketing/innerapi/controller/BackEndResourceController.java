@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.innerapi.service.ResourceAllocationService;
 import com.br.marketing.mapper.XieChengDataMapper;
+import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.ICustomerConfigService;
 import io.swagger.annotations.ApiOperation;
@@ -22,6 +23,7 @@ import javax.annotation.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
@@ -37,6 +39,9 @@ public class BackEndResourceController {
 
     @Autowired
     ICustomerConfigService iCustomerConfigService;
+
+    @Resource
+    private DataLoadingHandlerService dataLoadingHandlerService;
 
     @ApiOperation(value = "新增zk节点信息",notes = "新增zk节点")
     @GetMapping("/createZkData")
@@ -142,5 +147,11 @@ public class BackEndResourceController {
             }
         }
         return "ok";
+    }
+
+    @GetMapping("/getRulesFromCache")
+    public String hset(@RequestParam("apiCode") String apiCode) {
+        Set<String> rules = dataLoadingHandlerService.customerRules(apiCode);
+        return rules.toString();
     }
 }

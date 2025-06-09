@@ -4,6 +4,7 @@ import com.br.marketing.bo.CellValidityPeriodBO;
 import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -465,4 +466,9 @@ public interface MarketingSyncUserMapper {
             @Param("cusBatch") String cusBatch,
             @Param("minId") Long minId,
             @Param("pageSize") Integer pageSize);
+    List<MarketingSyncCell> getCellByApiCodeAndMaxId(
+            @Param("apiCode") String apiCode,
+            @Param("maxId") Long maxId,
+            @Param("pageSize") Integer pageSize);
+
 }

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -111,8 +112,10 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
                     result.append("0");
                 }
                 return result.toString();
+            } else {
+                // 金额小于5000时，只保留整数部分
+                return amount.setScale(0, BigDecimal.ROUND_DOWN).toString();
             }
-            return value;
         } catch (NumberFormatException e) {
             log.warn("金额格式错误，value={}", value);
             return value;

@@ -70,10 +70,10 @@ datasource:
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
-#      removeAbandoned: true # 是否自动回收超时连接
-#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
-#      filters: stat,wall,log4j2
-#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    #      removeAbandoned: true # 是否自动回收超时连接
+    #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+    #      filters: stat,wall,log4j2
+    #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
 logging:
   level:
     com.br.off.mapper: info

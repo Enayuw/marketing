@@ -5,7 +5,7 @@ datasource:
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -82,7 +82,7 @@ datasource:
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -106,7 +106,7 @@ datasource:
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 40 # 最大连接池数量
@@ -177,6 +177,9 @@ api:
     postBlackList: ${api.dass.baseUrl}/csos-daas/call/postBlackList # 黑名单数据推送
     postRealTimeUserData: ${api.dass.baseUrl}/csos-daas/call/postRealTimeUserData # 实时单条用户名单数据推送
     postTransferData: ${api.dass.baseUrl}/csos-daas/call/postDealData # 转化数据推送
+    updateUrl: http://39.98.232.175:8088
+    postWealthUpdateData: ${api.dass.updateUrl}/csos-daas/call/postWealthUpdateData # 人工业务数据更新接口
+    appId: daasTest # 测试环境appId
     aesKey: ovksl39fcl13m9dF
     SecretKey: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJ4W9Hw1Kb6g0RevKSeKqriBCup3x8V2G2J63imkypbtPV+RJjq4eCqcd7s2FI/9eTSMw17675Ey9MkKndIckvpxT1iCtUnuRbg1ICtZ127t65GhOPchBzWHoC+rG56Rw4NhpsvpIGC1y4EUx26TyNop7HRekKwosAnnl6QDWBEdAgMBAAECgYAkX7W7CmRjdw8E+wlmDrK/JvnC/vJZDZa5bvnE7SSr20Qew//ezOjhLQUjbwsGIlUL8UNWjDgo2WeXBjlPycFLP8YN/+gUPR/bfftUY4cTnWzAAKKyUJBeyt3SqaeYcUhW3aUCUlaVAb8ZdyIu4WlHYHhlkSoXrDRvnqlJmyj8wQJBAMzApuvsJDZIX6qvMGR6YTvqPIsl47+qIlk7iTUfwbjGz5zlFtu4IRd+ZVdHlncg5arrl+lOw33rkHhxtnV8jO0CQQDFqGsIPk4Nnwsx9XtCCrYePvgydzEAT1nr4gBUkXbvavMyJKsQWI5AXUAInNuqxRvNfjh3GMaWstIsMQJyDj7xAkEAglL1bCEIA40ZZ1jO4oWKskorcx4Q0oQGDOn6MVgfQ+83YlPmsr+GQJ/w/RbRzM2hoaMHNDcv80wmzqMCUdGPGQJAKIHuhX73UhVRHwj3HL7DOgmfpgAFW9HnVM85UBuLq19YveMD59KuPISf1eQHpMTGgOOoQMgkEshNCF9259cBkQJBAKIlpXnTHvv2M96B7w7T1RYVvjke4LLpCbAVd8fBciOdFLmMh0+FThxGWijgfow1XYaPrU0DlfLpkfLrgk3LWUQ=
     isProxy: 0

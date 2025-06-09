@@ -4,4 +4,7 @@
     <insert id = "insertDataToMarketingBiTablebI_">
         ${insertDorisSql}
     </insert>
+    <delete id = "deleteDataFromMarketingBiTablebI_">
+        ${deleteDorisSqlByDate}
+    </delete>
 </mapper>

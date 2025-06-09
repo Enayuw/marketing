@@ -329,4 +329,24 @@ public class RedisKeyConstant {
      */
     public static final String SWITCH_MESSAGE_QUEUE = prefix.concat("switchmessagequeue");
 
+    /**
+     * 原始数据JSON结构
+     */
+    public static final String ORIGINAL_DATA_JSON_PARSE = prefix.concat("data:jsonparse");
+
+    /**
+     * 数据清洗配置
+     */
+    public static final String DATA_CLEAN_CONFIG_RULE = prefix.concat("dataclean:ruleconfig");
+
+    /**
+     * 数据清洗任务锁
+     */
+    public static final String DATA_CLEAN_TASK_LOCK = prefix.concat("dataclean:task:lock");
+
+    /**
+     * 车线索外采渠道文件上传锁
+     */
+    public static final String updateInitMapping = prefix.concat("updateInitMapping");
+
 }

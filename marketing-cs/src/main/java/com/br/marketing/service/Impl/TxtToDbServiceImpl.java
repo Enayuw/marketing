@@ -79,6 +79,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
     @Resource
     CsosPhoneSaleMapper csosPhoneSaleMapper;
 
+    @Resource
+    UpdatePhoneSaleMapper updatePhoneSaleMapper;
+
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
@@ -2185,6 +2188,129 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             return name;
         }
         return "1";
+    }
+
+    @Override
+    public Result updateFileTodb(TxtToDbDTO dto) {
+        long startTime = System.currentTimeMillis();
+        UpdatePhoneSale phoneSale = new UpdatePhoneSale();
+        String row = dto.getContent();
+        HashMap<Integer, String> address = dto.getAddress();
+        HashMap<Integer, String> extSetFields = dto.getExtSetField();
+        Integer line = dto.getLine();
+        List<String> datas = Splitter.on(",").splitToList(row);
+        JSONObject jo = null;
+        String error = "uid不能为空;orgname不能为空;user_type不能为空;source不能为空;";
+        phoneSale.setApiCode(dto.getApiCode());
+        phoneSale.setLocalId(dto.getLocalId().toString());
+        phoneSale.setStatus(1);
+        
+        try {
+
+            // 数据处理
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                String dataValue = datas.get(i) != null ? datas.get(i).trim() : "";
+                
+                switch (sureaddress) {
+                    case "uid":
+                        if (StringUtils.isNotBlank(dataValue)) {
+                            error = error.replace("uid不能为空;", "");
+                            // 验证uid长度和格式
+                            if (dataValue.length() > 255) {
+                                error += "uid长度超过255字符;";
+                            }
+                        }
+                        phoneSale.setUid(dataValue);
+                        break;
+                    case "orgname":
+                        if (StringUtils.isNotBlank(dataValue)) {
+                            error = error.replace("orgname不能为空;", "");
+                            if (dataValue.length() > 100) {
+                                error += "orgname长度超过100字符;";
+                            }
+                            phoneSale.setOrgname(dataValue);
+                        }
+                        break;
+                    case "source":
+                        if (StringUtils.isNotBlank(dataValue)) {
+                            error = error.replace("source不能为空;", "");
+                            if (dataValue.length() > 100) {
+                                error += "source长度超过100字符;";
+                            }
+                            phoneSale.setSource(dataValue);
+                        }
+                        break;
+                    case "user_type":
+                        if (StringUtils.isNotBlank(dataValue)) {
+                            error = error.replace("user_type不能为空;", "");
+                            if (dataValue.length() > 100) {
+                                error += "user_type长度超过100字符;";
+                            }
+                            phoneSale.setUserType(dataValue);
+                        }
+                        break;
+                    case "extend":
+                        String s = extSetFields.get(i);
+                        if (StringUtils.isNotBlank(s) && StringUtils.isNotBlank(dataValue)) {
+                            if (jo == null) {
+                                jo = new JSONObject();
+                            }
+                            jo.put(s, dataValue);
+                        }
+                        break;
+                }
+            }
+            
+            // 在循环外设置扩展字段
+            if (jo != null) {
+                phoneSale.setExtend(jo.toJSONString());
+            }
+            
+            // 数据验证结果处理
+            if (!StringUtils.isEmpty(error)) {
+                phoneSale.setStatus(2);
+                phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+                log.warn("updateFileTodb - 数据验证失败，行号：{}, 错误：{}", line, error);
+            } else {
+                log.debug("updateFileTodb - 数据处理成功，行号：{}, uid：{}, orgname：{}", 
+                    line, phoneSale.getUid(), phoneSale.getOrgname());
+            }
+            
+            // 设置时间戳
+            Date date = new Date();
+            phoneSale.setCreateTime(date);
+            phoneSale.setUpdateTime(date);
+            
+            // 数据库插入
+            updatePhoneSaleMapper.insertSelective(phoneSale);
+            
+            // 性能监控
+            long endTime = System.currentTimeMillis();
+            // 超过1秒记录警告
+            if (endTime - startTime > 1000) {
+                log.error("updateFileTodb - 处理耗时过长，行号：{}, 耗时：{}ms", line, endTime - startTime);
+            }
+            
+        } catch (Exception ex) {
+            log.error("updateFileTodb - 处理异常，行号：{}, 错误：{}", line, ex.getMessage(), ex);
+            phoneSale.setStatus(2);
+            String errorMsg = ex.getMessage();
+            if (errorMsg != null && errorMsg.length() > 200) {
+                errorMsg = errorMsg.substring(0, 200) + "...";
+            }
+            phoneSale.setDataMessage(String.format("行号：%d;报错信息：%s", line, errorMsg));
+            
+            try {
+                updatePhoneSaleMapper.insertSelective(phoneSale);
+            } catch (Exception insertEx) {
+                log.error("updateFileTodb - 插入错误记录失败，行号：{}, 错误：{}", line, insertEx.getMessage());
+            }
+        }
+        
+        return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
+                ? ResultCode.SUCCESS.getValue()
+                : ResultCode.FAIL.getValue());
     }
 
 }
