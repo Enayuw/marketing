@@ -1,9 +1,7 @@
 package com.br.marketing.datarelayservice.service;
 
-import com.br.marketing.client.qifu.enums.CodeEnum;
-import com.br.marketing.client.qifu.enums.FlagEnum;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.datarelayservice.client.QiFuAiReqDTO;
-import javafx.util.Pair;
 
 /**
  * @ClassName QiFuCustomizeService
@@ -13,5 +11,5 @@ import javafx.util.Pair;
  */
 public interface QiFuCustomizeService {
 
-    Pair<CodeEnum, FlagEnum> handle(QiFuAiReqDTO requestBody, String bizType);
+    ApiResult handle(QiFuAiReqDTO requestBody);
 }
