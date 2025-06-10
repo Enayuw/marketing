@@ -10,9 +10,11 @@ import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
@@ -34,6 +36,7 @@ import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -244,10 +247,11 @@ public class DataCleanServiceImpl implements DataCleanService {
             }
             //写入缓存
             redisChgService.saddMember(redisKey, nodeName);
+        } catch (DuplicateKeyException keyException) {
+            log.warn("数据清洗json解析入库已存在,api_code={}", apiCode);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "数据清洗json解析入库异常" + e.getMessage()), e);
-
         }
     }
 
