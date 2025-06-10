@@ -214,7 +214,7 @@ public class MessageIdempotentHandler {
             return;
         }
         String idempotentKey = buildIdempotentKey(topic, messageId);
-        if (!retryDelete(idempotentKey, maxRetries)) {
+        if (retryDelete(idempotentKey, maxRetries)) {
             LOGGER.error("删除消息幂等失败！topic={}, messageId={},idempotentKey={}, maxRetries={}", topic, messageId, idempotentKey, maxRetries);
         }
     }
@@ -228,7 +228,7 @@ public class MessageIdempotentHandler {
             return;
         }
         String idempotentKey = buildGroupIdempotentKey(topic, consumerGroup, messageId);
-        if (!retryDelete(idempotentKey, maxRetries)) {
+        if (retryDelete(idempotentKey, maxRetries)) {
             LOGGER.error("删除消息幂等失败！topic={}, consumerGroup={}, messageId={},idempotentKey={}, maxRetries={}", topic, consumerGroup, messageId, idempotentKey, maxRetries);
         }
 
@@ -236,6 +236,10 @@ public class MessageIdempotentHandler {
 
     /**
      * 删除幂等性键，允许重新处理
+     *
+     * @param idempotentKey 幂等性键
+     * @param maxRetries    最大重试次数
+     * @return true 表示删除失败，false 表示删除成功
      */
     private boolean retryDelete(String idempotentKey, int maxRetries) {
         for (int i = 0; i < maxRetries; i++) {
@@ -245,7 +249,7 @@ public class MessageIdempotentHandler {
                     if (LOGGER.isInfoEnabled()) {
                         LOGGER.info("Successfully deleted idempotent key: {}", idempotentKey);
                     }
-                    return true;
+                    return false;
                 }
                 LOGGER.warn("Delete attempt {} failed for key: {} (key may not exist)", i + 1, idempotentKey);
 
@@ -266,14 +270,14 @@ public class MessageIdempotentHandler {
                     try {
                         // 只有在确认key存在时才设置过期时间
                         if (redisChgService.exists(idempotentKey)) {
-                            redisChgService.expire(idempotentKey, 5); // 增加过期时间到5秒
+                            redisChgService.expire(idempotentKey, 1); // 增加过期时间到5秒
                         }
                     } catch (Exception ex) {
                         LOGGER.error("Failed to set expiration for key: {}, error: {}",
                                 idempotentKey, ex.getMessage());
                     }
                     try {
-                        Thread.sleep(Math.min((long) Math.pow(2, i) * 100, 5000));
+                        Thread.sleep(Math.min((long) Math.pow(2, i) * 100, 3000));
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                         break;
@@ -281,7 +285,7 @@ public class MessageIdempotentHandler {
                 }
             }
         }
-        return false;
+        return true;
     }
 
     @Getter
