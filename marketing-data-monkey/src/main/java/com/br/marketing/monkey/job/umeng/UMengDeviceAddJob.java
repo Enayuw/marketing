@@ -67,7 +67,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
         try {
             String dealDate = shardingContext.getJobParameter();
             List<String> uMengApiCodes = marketingCommonConfig.getApiCodeOfUMeng();
-            uMengApiCodes.forEach(apiCode -> action(dealDate,dealDate));
+            uMengApiCodes.forEach(apiCode -> action(apiCode,dealDate));
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
