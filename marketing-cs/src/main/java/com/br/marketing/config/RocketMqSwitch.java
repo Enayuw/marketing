@@ -21,6 +21,7 @@ import java.util.UUID;
 
 /**
  * RocketMQ和RabbitMQ切换开关
+ *
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-08-22
  */
@@ -48,6 +49,12 @@ public class RocketMqSwitch {
      * 消息幂等
      */
     public static final String MSG_IDEM_FLAG = "msgIdemFlag";
+
+    /**
+     * 允许重复消费的秒数
+     */
+    public static final String ALLOW_REPROCESS_SECONDS = "allowReprocessSeconds";
+
     /**
      * mq消息头 生产消息的唯一标识
      */
@@ -66,46 +73,46 @@ public class RocketMqSwitch {
     @Value("${spring.application.name}")
     private String appName;
 
-    public Boolean rocketMQSwitchFlag(String apiCode, String tag){
+    public Boolean rocketMQSwitchFlag(String apiCode, String tag) {
         try {
             UUID uuid = UUID.randomUUID();
-            if(log.isInfoEnabled()){
+            if (log.isInfoEnabled()) {
                 log.info("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
             }
             RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
-            if(entity == null){
+            if (entity == null) {
                 return Boolean.FALSE;
             }
             String global = entity.getGlobal();
-            if("false".equalsIgnoreCase(global)){
+            if ("false".equalsIgnoreCase(global)) {
                 return Boolean.FALSE;
-            }else if("true".equalsIgnoreCase(global)){
+            } else if ("true".equalsIgnoreCase(global)) {
                 JSONObject group = entity.getGroup();
                 JSONObject tagObjet = group.getJSONObject(tag);
-                if(null == tagObjet || tagObjet.isEmpty()){
+                if (null == tagObjet || tagObjet.isEmpty()) {
                     return Boolean.FALSE;
-                }else{
+                } else {
                     Boolean flagBoolean = tagObjet.getBoolean(FLAG);
-                    if(log.isInfoEnabled()){
+                    if (log.isInfoEnabled()) {
                         log.info("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
                     }
-                    if(flagBoolean){
+                    if (flagBoolean) {
                         return Boolean.TRUE;
-                    }else{
-                        if(StringUtils.isBlank(apiCode)){
+                    } else {
+                        if (StringUtils.isBlank(apiCode)) {
                             return Boolean.FALSE;
                         }
                         String apiCodes = tagObjet.getString(APICODES_SPEED);
-                        if(StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)){
+                        if (StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)) {
                             return Boolean.TRUE;
                         }
                     }
                 }
                 return Boolean.FALSE;
-            }else{
+            } else {
                 return Boolean.FALSE;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn("rocketMQSwitchFlag对应的RocketMqSwitch2配置异常,apiCode:{}--tag:{}--", apiCode, tag, e);
         }
         return Boolean.FALSE;
@@ -119,33 +126,12 @@ public class RocketMqSwitch {
         }
     }
 
-    public boolean rocketLogSwitchFlag(String tag){
-        UUID uuid = UUID.randomUUID();
-        if(log.isInfoEnabled()){
-            log.info("[{}]rocketLogSwitchFlag--tag[{}]", uuid, tag);
-        }
-        RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
-        if(entity == null){
-            return Boolean.FALSE;
-        }
-        JSONObject group = entity.getGroup();
-        JSONObject tagObjet = group.getJSONObject(tag);
-        if(null == tagObjet || tagObjet.isEmpty()){
-            return Boolean.FALSE;
-        }else{
-            Boolean logBoolean = tagObjet.getBoolean(PRINT_LOG);
-            if(log.isInfoEnabled()){
-                log.info("[{}]rocketLogSwitchFlag--tagObjet[{}]logBoolean[{}]", uuid, tagObjet, logBoolean);
-            }
-            if(null != logBoolean && logBoolean){
-                return Boolean.TRUE;
-            }
-        }
-        return Boolean.FALSE;
+    public boolean rocketLogSwitchFlag(String tag) {
+        return getMsgFlag(tag, PRINT_LOG, false);
     }
 
     public <T> void rocketLogSwitchFlag(String tag, MessageExt messageExt, T t, long startTimeMillis) {
-        if(rocketLogSwitchFlag(tag)){
+        if (rocketLogSwitchFlag(tag)) {
             log.warn("rocketLogSwitchFlag--耗时[{}ms]--tag[{}];message[{}];messageExt[{}]"
                     , (System.currentTimeMillis() - startTimeMillis), tag, t, messageExt);
         }
@@ -163,7 +149,7 @@ public class RocketMqSwitch {
         return template.syncSendMessage(topic, tags, build);
     }
 
-    public <T> SendResult syncSendDelaySecond(String topic, String tags, T msg, long delayTime){
+    public <T> SendResult syncSendDelaySecond(String topic, String tags, T msg, long delayTime) {
         Message<?> build;
         if (msgUUIdFlag(tags)) {
             build = MessageBuilder.withPayload(msg)
@@ -176,44 +162,100 @@ public class RocketMqSwitch {
     }
 
 
+    /**
+     * 2025/6/11 00:31
+     * 开启uuid，如果配置 MSG_IDEM_FLAG为 true 则 强制开启 uuid
+     */
     public boolean msgUUIdFlag(String tags) {
-        if (msgIdemFlag(tags)) {
-            return Boolean.TRUE;
-        }
-        return getMsgFlag(tags, MSG_UUID_FLAG);
+        return msgIdemFlag(tags) || getMsgFlag(tags, MSG_UUID_FLAG, true);
     }
 
+    /**
+     * 2025/6/11 00:31
+     * 开启消息幂等
+     */
     public boolean msgIdemFlag(String tags) {
-        return getMsgFlag(tags, MSG_IDEM_FLAG);
+        return getMsgFlag(tags, MSG_IDEM_FLAG, true);
     }
 
-    private boolean getMsgFlag(String tags, String key) {
-        RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
-        if (entity == null) {
-            return Boolean.TRUE;
-        }
-        JSONObject appNameFlag = entity.getAppNameFlag();
-        if (null == appNameFlag) {
-            return Boolean.TRUE;
-        }
-        JSONObject jsonObject = appNameFlag.getJSONObject(appName);
-        if (jsonObject == null || jsonObject.isEmpty()) {
-            return Boolean.TRUE;
-        }
-        Boolean aBoolean = jsonObject.getBoolean(key);
-        if (aBoolean == null || aBoolean) {
-            JSONObject group = entity.getGroup();
-            if (group == null || group.isEmpty()) {
-                return Boolean.TRUE;
+    public boolean msgIdemFlag(String tags, boolean localFlag) {
+        return getMsgFlag(tags, MSG_IDEM_FLAG, localFlag);
+    }
+
+    public int getAllowReprocessSeconds(String tags, int localValue) {
+        return getMsgFlagValue(tags, ALLOW_REPROCESS_SECONDS, localValue, Integer.class);
+    }
+
+    /**
+     * 2025/6/11 01:54
+     * 获取boolean类型的开关
+     */
+    private boolean getMsgFlag(String tags, String key, boolean localFlag) {
+        try {
+            RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
+            if (entity == null) {
+                return localFlag;
             }
-            JSONObject tagObjet = group.getJSONObject(tags);
-            if (tagObjet == null || tagObjet.isEmpty()) {
-                return Boolean.TRUE;
+            JSONObject appNameFlag = entity.getAppNameFlag();
+            if (null == appNameFlag) {
+                return getGroupValue(entity, tags, key, localFlag, Boolean.class);
             }
-            Boolean msgUUIdFlag = tagObjet.getBoolean(key);
-            return msgUUIdFlag == null || msgUUIdFlag;
+            JSONObject jsonObject = appNameFlag.getJSONObject(appName);
+            if (jsonObject == null || jsonObject.isEmpty()) {
+                return getGroupValue(entity, tags, key, localFlag, Boolean.class);
+            }
+            Boolean aBoolean = jsonObject.getBoolean(key);
+            if (aBoolean == null || aBoolean) {
+                return getGroupValue(entity, tags, key, localFlag, Boolean.class);
+            }
+            return false;
+        } catch (Exception e) {
+            log.warn("{},tags:{},key:{},localFlag:{}", e.getMessage(), tags, key, localFlag, e);
+            return localFlag;
         }
-        return Boolean.FALSE;
+    }
+
+
+    private <T> T getGroupValue(RocketMqSwitchEntity entity, String tags, String key, T localVale, Class<T> tClass) {
+        JSONObject group = entity.getGroup();
+        if (group == null || group.isEmpty()) {
+            return localVale;
+        }
+        JSONObject tagObjet = group.getJSONObject(tags);
+        if (tagObjet == null || tagObjet.isEmpty()) {
+            return localVale;
+        }
+        T value = tagObjet.getObject(key, tClass);
+        return value == null ? localVale : value;
+    }
+
+    /**
+     * 2025/6/11 01:54
+     * 获取其他值的开关
+     */
+    private <T> T getMsgFlagValue(String tags, String key, T localValue, Class<T> tClass) {
+        try {
+            RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
+            if (entity == null) {
+                return localValue;
+            }
+            JSONObject appNameFlag = entity.getAppNameFlag();
+            if (null == appNameFlag) {
+                return getGroupValue(entity, tags, key, localValue, tClass);
+            }
+            JSONObject jsonObject = appNameFlag.getJSONObject(appName);
+            if (jsonObject == null || jsonObject.isEmpty()) {
+                return getGroupValue(entity, tags, key, localValue, tClass);
+            }
+            T value = jsonObject.getObject(key, tClass);
+            if (value == null) {
+                return getGroupValue(entity, tags, key, localValue, tClass);
+            }
+            return value;
+        } catch (Exception e) {
+            log.warn("{},tags:{},key:{},localFlag:{}", e.getMessage(), tags, key, localValue, e);
+            return localValue;
+        }
     }
 
 }

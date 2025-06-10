@@ -20,13 +20,16 @@ import lombok.Data;
  *             "apiCodes": "7410950,7410951",
  *             "msgUUIdFlag": true,
  *             "msgIdemFlag": true,
+ *             "allowReprocessSeconds": 60,
  *             "printLog": true
  *         }
  *     },
  *     "appNameFlag": {
  *        "marketing-mq-consumer": {
  *            "msgUUIdFlag": true,
- *            "msgIdemFlag": true
+ *            "msgIdemFlag": true,
+ *            "allowReprocessSeconds": 60,
+ *            "printLog": true
  *        }
  *     }
  * }
@@ -48,6 +51,7 @@ public class RocketMqSwitchEntity {
      *         "apiCodes": "7410950,7410951",
      *         "msgUUIdFlag": true,
      *         "msgIdemFlag": true,
+     *         "allowReprocessSeconds": 60,
      *         "printLog": true
      *     }
      * }
@@ -59,7 +63,9 @@ public class RocketMqSwitchEntity {
      *     {
      *       "marketing-mq-consumer": {
      *           "msgUUIdFlag": true,
-     *           "msgIdemFlag": true
+     *           "msgIdemFlag": true,
+     *           "allowReprocessSeconds": 60,
+     *           "printLog": true
      *       }
      *     }
      */
