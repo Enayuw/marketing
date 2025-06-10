@@ -3048,14 +3048,35 @@ public class MarketingCommonConfig {
 
 
     /**
-     * uMeng 设备注册job每页查询条数
+     * uMeng 设备注册 批量注册设备
      */
-    private Integer  uMengPageSearchSize;
+    private Integer uMengDeviceAddPool;
 
     /**
-     * uMeng 批量操作线程 批量注册设备/批量推决策
+     * uMeng 设备注册 每页查询条数
      */
-    private Integer uMengThreadPool;
+    private Integer  uMengDeviceAddPageSize;
+
+    /**
+     * uMeng deviceAdd 设备注册 切片数量(目前设置200 <200)
+     */
+    private Integer uMengDevicePartCount;
+
+
+    /**
+     * uMeng 推决策    批量操作线程
+     */
+    private Integer uMengCallPolicyPool;
+
+    /**
+     * uMeng 推决策 每页查询数量
+     */
+    private Integer  uMengCallPolicyPageSize;
+
+    /**
+     * uMeng callPolicy 推决策切片数量(目前设置为500， <=2000)
+     */
+    private Integer uMengPolicyPartCount;
 
     /**
      * uMeng 智能时机-调用决策，根据情况配置对应的决策参数 strategyCode

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public interface UMengTimingTaskMapper extends UMengTimingTaskMapperBase{
 
-    UMengTimingTask getTodayLastTask(@Param("localId") Long localId, @Param("apiCode") String apiCode, @Param("startTime") LocalDateTime startTime);
+    UMengTimingTask getTodayLastTask(@Param("localId") Long localId, @Param("apiCode") String apiCode);
 
     UMengTimingTask getDataByTaskId(@Param("taskId") String taskId);
 }

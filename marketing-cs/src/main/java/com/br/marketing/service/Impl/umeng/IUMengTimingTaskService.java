@@ -13,7 +13,7 @@ public interface IUMengTimingTaskService {
 
     void insertSelective(UMengTimingTask uMengTimingTask);
 
-    UMengTimingTask getTodayLastTask(Long localId, String apiCode, LocalDateTime dayStartTime);
+    UMengTimingTask getTodayLastTask(Long localId, String apiCode);
 
     UMengTimingTask getDataByTaskId(String taskId);
 }
