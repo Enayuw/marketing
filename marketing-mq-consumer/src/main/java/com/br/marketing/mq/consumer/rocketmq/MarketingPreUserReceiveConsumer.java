@@ -46,7 +46,7 @@ public class MarketingPreUserReceiveConsumer extends BaseMqMessageListener imple
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o);
+        consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o,10);
     }
 
     @Override

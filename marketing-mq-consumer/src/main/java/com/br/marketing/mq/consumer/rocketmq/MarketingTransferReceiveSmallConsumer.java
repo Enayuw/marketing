@@ -46,7 +46,7 @@ public class MarketingTransferReceiveSmallConsumer extends BaseMqMessageListener
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(messageExt, pushRuleService::consumerTransferData, o);
+        consumerService.consumerRun(messageExt, pushRuleService::consumerTransferData, o,8);
     }
 
     @Override
