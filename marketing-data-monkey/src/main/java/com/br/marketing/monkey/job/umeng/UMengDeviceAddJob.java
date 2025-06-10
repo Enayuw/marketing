@@ -74,7 +74,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
     }
 
     private void action(String apiCode,String dealDate) {
-        log.warn("TITLE:{},apiCode:{},dealDate:{} 开始进行设备注册",TITLE,apiCode,dealDate);
+        log.warn("TITLE:{},apiCode:{},dealDate:{}",TITLE,apiCode,dealDate);
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
         LocalDateTime dayEndTime = LocalDate.now(zone).atTime(LocalTime.MAX);
