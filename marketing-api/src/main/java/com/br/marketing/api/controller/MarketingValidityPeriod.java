@@ -5,7 +5,6 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.api.service.QiFuDataService;
 import com.br.marketing.aspect.ReqLogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
-import com.br.marketing.service.RequestInterfaceLogService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -65,6 +64,22 @@ public class MarketingValidityPeriod {
     public ApiNoDataResult strategyReport(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         log.warn("360策略效果数据报表接口入参：{},{}",apiCode,jsonData);
         ApiNoDataResult apiNoDataResult = qiFuDataService.strategyReportData(apiCode, jsonData);
+        return apiNoDataResult;
+    }
+
+
+    /**
+     * 促动分析效果统计数据报表-接口
+     * @param apiCode apiCode
+     * @param jsonData jsonData
+     * @return ApiNoDataResult
+     */
+    @ApiOperation(value = "促动分析效果统计数据报表")
+    @PostMapping("/analysisStatistics")
+    @ReqLogAnnotation()
+    public ApiNoDataResult analysisStatistics(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        log.warn("促动分析效果统计数据报表接口入参：{},{}",apiCode,jsonData);
+        ApiNoDataResult apiNoDataResult = qiFuDataService.analysisStatistics(apiCode, jsonData);
         return apiNoDataResult;
     }
 
