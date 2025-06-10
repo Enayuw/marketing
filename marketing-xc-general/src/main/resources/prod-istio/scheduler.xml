@@ -182,7 +182,7 @@
     />
     <job:simple id="【xc-general】XieChengPushDataBackToSendJob"
                 class="com.br.marketing.xc.job.XieChengPushDataBackToSendJob"
-                cron="0 */10 * ? * * 2050-2050"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="携程上报数据历史补推-手动"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
