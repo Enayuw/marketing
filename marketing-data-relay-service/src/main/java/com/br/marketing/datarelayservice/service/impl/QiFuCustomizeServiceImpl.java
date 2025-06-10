@@ -92,14 +92,7 @@ public class QiFuCustomizeServiceImpl implements QiFuCustomizeService {
         try {
 
             QiFuActuationDTO qiFuActuationDTO = JSONObject.parseObject(decryptData, QiFuActuationDTO.class);
-            //判空
-            if (StringUtils.isEmpty(qiFuActuationDTO.getIssueMonth()) || StringUtils.isEmpty(qiFuActuationDTO.getIssueDate()) ||
-                    StringUtils.isEmpty(qiFuActuationDTO.getUserType()) || StringUtils.isEmpty(qiFuActuationDTO.getSupplier()) ||
-                    StringUtils.isEmpty(qiFuActuationDTO.getValidDate()) || StringUtils.isEmpty(qiFuActuationDTO.getCreditUserCount()) ||
-                    StringUtils.isEmpty(qiFuActuationDTO.getAppLoginUserCount()) || StringUtils.isEmpty(qiFuActuationDTO.getStartUserCount()) ||
-                    StringUtils.isEmpty(qiFuActuationDTO.getUserLoanCount()) || StringUtils.isEmpty(qiFuActuationDTO.getAppLoginRate()) ||
-                    StringUtils.isEmpty(qiFuActuationDTO.getUserStartRate()) || StringUtils.isEmpty(qiFuActuationDTO.getUserLoanRate())
-            ) {
+            if (qiFuActuationDTO == null) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUCUDONGZHIREPORT_SERVICEERROR.getCode(), JSONObject.toJSONString(qiFuActuationDTO),
                         "奇富促动支上传数据，参数不能为空！！！"));
                 return new ApiResult().fail("奇富促动支上传数据，参数不能为空！！！");
