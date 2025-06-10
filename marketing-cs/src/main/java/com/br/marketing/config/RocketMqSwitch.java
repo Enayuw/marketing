@@ -151,8 +151,8 @@ public class RocketMqSwitch {
         }
     }
 
-    public SendResult syncSend(String topic, String tags, String msg) {
-        Message<String> build;
+    public <T> SendResult syncSend(String topic, String tags, T msg) {
+        Message<?> build;
         if (msgUUIdFlag(tags)) {
             build = MessageBuilder.withPayload(msg)
                     .setHeader(UUID_KEY, messageIdempotentHandler.generateMessageId())
@@ -163,10 +163,15 @@ public class RocketMqSwitch {
         return template.syncSendMessage(topic, tags, build);
     }
 
-    public SendResult syncSendDelaySecond(String topic, String tags, String msg, long delayTime){
-        Message<String> build = MessageBuilder.withPayload(msg)
-                .setHeader(UUID_KEY, messageIdempotentHandler.generateMessageId())
-                .build();
+    public <T> SendResult syncSendDelaySecond(String topic, String tags, T msg, long delayTime){
+        Message<?> build;
+        if (msgUUIdFlag(tags)) {
+            build = MessageBuilder.withPayload(msg)
+                    .setHeader(UUID_KEY, messageIdempotentHandler.generateMessageId())
+                    .build();
+        } else {
+            build = MessageBuilder.withPayload(msg).build();
+        }
         return template.syncSendDelaySecond(topic, tags, build, delayTime);
     }
 

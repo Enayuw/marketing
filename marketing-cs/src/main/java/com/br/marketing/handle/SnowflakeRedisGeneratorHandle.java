@@ -81,7 +81,7 @@ public class SnowflakeRedisGeneratorHandle {
         for (int retry = 0; retry < maxRetries; retry++) {
             long id = generateSingleId();
 
-            // 简单的重复检测 (可选)
+            // 简单的重复检测
             if (id > 0 && isValidId(id)) {
                 return id;
             }

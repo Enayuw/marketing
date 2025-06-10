@@ -13,7 +13,6 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 /**
@@ -60,7 +59,6 @@ public class RocketMqConsumerService {
             log.error("消费者休眠异常", e);
         }
         long startTime = System.currentTimeMillis();
-        String message = null;
         String uuid = messageExt.getProperty(RocketMqSwitch.UUID_KEY);
         String topic = messageExt.getTopic();
         String tags = messageExt.getTags();
@@ -77,42 +75,39 @@ public class RocketMqConsumerService {
         }
         try {
             Result<Boolean> apply = method.apply(t);
-            /**
+            /*
              * code 为SUCCESS 认为消费成功
              *      根据返回结果来判断是否需要重新推送队列 false-不需要；true需要
              * code 为False 任务消费失败，重推队列
              */
             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-                message = new String(messageExt.getBody(), StandardCharsets.UTF_8);
                 if (null != apply.getData() && apply.getData()) {
                     if (StringUtils.isNotBlank(delayTopic) && StringUtils.isNotBlank(retryTag)) {
                         if (delayTime > 0) {
                             // 根据消费端配置的[延迟Topic]和[Tags]发送
-                            rocketMqSwitch.syncSendDelaySecond(delayTopic, retryTag, message, delayTime);
+                            rocketMqSwitch.syncSendDelaySecond(delayTopic, retryTag, t, delayTime);
                         } else {
                             // 根据消费端配置的[普通Topic]和[Tags]发送
-                            rocketMqSwitch.syncSend(delayTopic, retryTag, message);
+                            rocketMqSwitch.syncSend(delayTopic, retryTag, t);
                         }
                     } else {
                         // 消息重新入本队列
-                        rocketMqSwitch.syncSend(topic, tags, message);
+                        rocketMqSwitch.syncSend(topic, tags, t);
                     }
                 }
             } else {
-                String msg = String.format("RocketMQ消息重试topic：%s,Tags：%s,uuid：%s,msgId：%s,message：%s"
-                        , topic, tags, uuid, msgId, message);
+                String msg = String.format("RocketMQ消息重试topic:%s,Tags：%s,uuid:%s,msgId:%s,message:%s,messageExt:%s"
+                        , topic, tags, uuid, msgId, t, messageExt);
                 log.warn(msg);
                 cachedMessageIdempotentHandler.markMessageProcessFailed(topic, uuid);
-                rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
                 throw new RuntimeException();
             }
         } catch (Exception e) {
             cachedMessageIdempotentHandler.markMessageProcessFailed(topic, uuid);
-            String error = String.format("RocketMQ消费异常topic：%s,Tags：%s,uuid：%s,msgId：%s,message：%s,\r\n错误信息：%s"
-                    , topic, tags, uuid, msgId, message, e.getMessage());
+            String error = String.format("RocketMQ消费异常topic:%s,Tags:%s,uuid:%s,msgId:%s,message:%s，messageExt:%s，\r\n错误信息:%s"
+                    , topic, tags, uuid, msgId, t, e.getMessage(), messageExt);
             log.warn(error, e);
             alarmClient.sendAlarm(error, "RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
-            rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
             throw new RuntimeException();
         }
         rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
