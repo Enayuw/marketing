@@ -30,11 +30,12 @@ public class QiFuCustomizeController {
     @Resource
     private QiFuCustomizeService qiFuCustomizeService;
 
-    @ApiOperation(value = "促动分析效果统计数据报表")
-    @PostMapping("/analysisStatistics")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
-    public ApiResult analysisStatistics(@RequestBody QiFuAiReqDTO requestBody) {
-        return qiFuCustomizeService.handle(requestBody);
-    }
+    //《暂时不启动》
+    //@ApiOperation(value = "促动分析效果统计数据报表")
+    //@PostMapping("/analysisStatistics")
+    //@PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    //public ApiResult analysisStatistics(@RequestBody QiFuAiReqDTO requestBody) {
+    //    return qiFuCustomizeService.handle(requestBody);
+    //}
 
 }
