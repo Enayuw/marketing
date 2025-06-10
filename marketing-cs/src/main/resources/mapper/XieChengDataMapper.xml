@@ -92,6 +92,6 @@
   </select>
 
   <select id="executeBackSql" resultType="com.br.marketing.client.xiecheng.intput.AdReqDTO">
-    #{sqlParameter}
+    ${sqlParameter}
     </select>
 </mapper>

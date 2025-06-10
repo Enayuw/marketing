@@ -103,16 +103,12 @@ public class XieChengPushDataBackToSendJob extends AbstractSimpleElasticJob {
         try {
             XieChengData resultData = new XieChengData();
             resultData.setId(adReqDTO.getId());
+            String clickId = System.currentTimeMillis() + getCode(5) + adReqDTO.getSha256Tel();
+            adReqDTO.setClickId(clickId);
+            resultData.setClickId(clickId);
             //region 获取配置信息
             String apiCode = adReqDTO.getApiCode();
             HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
-            if (xieChengCallPushCondition == null) {
-                xieChengCallPushCondition = new HashMap<>();
-                xieChengCallPushCondition.put("3710058", getJo("1", Arrays.asList("3710058", "3710078"), "3710058"));
-                xieChengCallPushCondition.put("3710078", getJo("1", Arrays.asList("3710058", "3710078"), "3710058"));
-                xieChengCallPushCondition.put("3710090", getJo("2", Arrays.asList("3710090", "3710091"), "3710090"));
-                xieChengCallPushCondition.put("3710091", getJo("2", Arrays.asList("3710090", "3710091"), "3710090"));
-            }
             JSONObject condition = xieChengCallPushCondition.get(apiCode);
 
             String conditionKey = condition.getString("condition");
@@ -120,7 +116,14 @@ public class XieChengPushDataBackToSendJob extends AbstractSimpleElasticJob {
             try {
                 // 携程推送新接口
                 Result result = xieChengService.pushXieChengDataNew(adReqDTO);
-
+                if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                    resultData.setPushStatus(2);
+                } else {
+                    resultData.setPushStatus(3);
+                }
+                resultData.setDataMessage(result.getMessage());
+                //endregion
+                xieChengDataMapper.updateByPrimaryKeySelective(resultData);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                         "携程补推上报异常，id=" + adReqDTO.getId() + "，localId=" + adReqDTO.getLocalId() + "errorMessage=" + e.getMessage()), e);
@@ -141,5 +144,21 @@ public class XieChengPushDataBackToSendJob extends AbstractSimpleElasticJob {
         jsonObject.put("mainApiCode", mainApiCode);
         return jsonObject;
     }
-
+    /**
+     * 随机生成由数字、字母组成的N位验证码
+     *
+     * @return 返回一个字符串
+     */
+    public static String getCode(int n) {
+        char arr[] = new char[n];
+        int i = 0;
+        while (i < n) {
+            char ch = (char) (int) (Math.random() * 124);
+            if (ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9') {
+                arr[i++] = ch;
+            }
+        }
+        //将数组转为字符串
+        return new String(arr);
+    }
 }

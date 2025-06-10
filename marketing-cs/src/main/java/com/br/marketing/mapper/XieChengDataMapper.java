@@ -48,7 +48,7 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
 
     List<Integer> getReportPushStatusInPeriod(@Param("cell") String cell, @Param("apiCode") String apiCode);
 
-    List<AdReqDTO> executeBackSql(String sqlParameter,Long minId);
+    List<AdReqDTO> executeBackSql(@Param("sqlParameter") String sqlParameter,@Param("minId") Long minId);
 
 
 }
