@@ -75,9 +75,9 @@ public class MarketingValidityPeriod {
      * @return ApiNoDataResult
      */
     @ApiOperation(value = "促动分析效果统计数据报表")
-    @PostMapping("/analysisStatistics")
+    @PostMapping("/analysisstatistics")
     @ReqLogAnnotation()
-    public ApiNoDataResult analysisStatistics(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+    public ApiNoDataResult analysisstatistics(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         log.warn("促动分析效果统计数据报表接口入参：{},{}",apiCode,jsonData);
         ApiNoDataResult apiNoDataResult = qiFuDataService.analysisStatistics(apiCode, jsonData);
         return apiNoDataResult;
