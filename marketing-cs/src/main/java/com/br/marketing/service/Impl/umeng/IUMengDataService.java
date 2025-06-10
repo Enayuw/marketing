@@ -12,7 +12,7 @@ import java.util.List;
  */
 public interface IUMengDataService {
 
-    List<UMengData> selectDeviceAddList(Long id, String apiCode, LocalDateTime searchTime,Long lastSearchId, Integer searchSize);
+    List<UMengData> selectDeviceAddList(Long id, String apiCode,Long lastSearchId, Integer searchSize);
 
     Integer updateDeviceAddStatus(List<Long> idList, Integer deviceAddStatus);
 
