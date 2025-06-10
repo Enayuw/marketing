@@ -12,9 +12,6 @@
       AND device_add_status in (-1,1)
       AND status = 1
       AND is_del = 1
-      <if test="searchStartTime !=null">
-        <![CDATA[AND create_time >=#{searchStartTime} ]]>
-      </if>
     ORDER BY id ASC
     LIMIT #{searchSize}
     </select>

@@ -2962,6 +2962,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
                 ReserveField1DTO finalReserveField = reserveField1;
+                //扩展字段添加手机号
+                addCellReserveFileld1(reserveFileld1Json,marketingPreUserDetailDTO.getCell(),finalIsCheck);
                 JSONObject finalReserveFileld1Json = reserveFileld1Json;
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -3191,6 +3193,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
+    }
+
+    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck) {
+        if (StringUtils.isNotEmpty(cell)) {
+            //明文规则校验
+            UserValidator userValidator = new UserValidator(isCheck);
+            if (userValidator.validatePhone(cell)) {
+                reserveFileld1Json.put("originalCell", BrCipherMaker.getInstance().encode(cell));
+            } else {
+                reserveFileld1Json.put("originalCell", cell);
+
+            }
+
+        }
     }
 
     private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode) {
