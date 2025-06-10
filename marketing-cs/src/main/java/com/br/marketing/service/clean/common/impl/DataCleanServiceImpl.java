@@ -245,9 +245,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             //写入缓存
             redisChgService.saddMember(redisKey, nodeName);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "数据清洗json解析入库异常" + e.getMessage()), e);
-
+            log.warn("数据清洗json解析入库异常" + e.getMessage(), e);
         }
     }
 
