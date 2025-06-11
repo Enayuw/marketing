@@ -26,7 +26,7 @@ public class CachedMessageIdempotentHandler extends MessageIdempotentHandler {
 
         // 配置本地缓存
         this.localCache = Caffeine.newBuilder()
-                .maximumSize(10000000) // 最多缓存100万条记录
+                .maximumSize(1000000) // 最多缓存100万条记录
                 .expireAfterWrite(5, TimeUnit.MINUTES) // 5分钟后过期
                 .build();
     }
