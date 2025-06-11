@@ -132,7 +132,7 @@ public class RocketMqConsumerService {
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
             , String delayTopic, String retryTag, long delayTime) {
-        consumerRun(messageExt, method, t, delayTopic, retryTag, delayTime, true, -1);
+        consumerRun(messageExt, method, t, delayTopic, retryTag, delayTime, true);
     }
 
     /**
@@ -176,7 +176,7 @@ public class RocketMqConsumerService {
      * @param t          信息
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t) {
-        consumerRun(messageExt, method, t, null, null, 0L, true, -1);
+        consumerRun(messageExt, method, t, true);
     }
 
 
@@ -188,7 +188,7 @@ public class RocketMqConsumerService {
      * @param t          信息
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, boolean isMsgIdempotence) {
-        consumerRun(messageExt, method, t, null, null, 0L, isMsgIdempotence, -1);
+        consumerRun(messageExt, method, t, isMsgIdempotence, -1);
     }
 
     /**
@@ -200,7 +200,7 @@ public class RocketMqConsumerService {
      * @param allowReprocessSeconds 允许重复消费时间（单位：秒）
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, int allowReprocessSeconds) {
-        consumerRun(messageExt, method, t, null, null, 0L, true, allowReprocessSeconds);
+        consumerRun(messageExt, method, t, true, allowReprocessSeconds);
     }
 
 
