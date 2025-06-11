@@ -28,4 +28,14 @@
         limit 2000
 
     </select>
+
+    <select id="getLastMonthDataDates" resultType="java.lang.String">
+        SELECT
+            receive_date
+        FROM b_marketing_customer_original_data
+        WHERE api_code = #{apiCode}
+          AND receive_date BETWEEN DATE_SUB(CURDATE(),INTERVAL 1 month) AND CURDATE()
+        GROUP BY receive_date
+        ORDER BY receive_date DESC
+    </select>
 </mapper>

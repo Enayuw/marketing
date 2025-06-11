@@ -69,6 +69,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
 
     @Resource
+    private MarketingSyncReportMapper marketingSyncReportMapper;
+
+    @Resource
+    private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
+
+    @Resource
     private MarketingDataCleanGeneralFieldConfigMapper marketingDataCleanGeneralFieldConfigMapper;
 
     @Resource
@@ -1811,6 +1817,25 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         
         return "";
+    }
+
+    public List<String> getLastMonthDataDates(String apiCode, Integer acceptType, String sftpPath){
+        List<String> dates = new ArrayList<>();
+
+        //通用上传：根据apiCode查询上传记录表b_marketing_sync_report
+        if (acceptType == 0){
+            dates = marketingSyncReportMapper.getLastMonthDataDates(apiCode);
+        }
+        //定制上传：根据apiCode查询b_marketing_customer_original_data，查询数据日期
+        if (acceptType == 1){
+            dates = marketingCustomerOriginalDataMapper.getLastMonthDataDates(apiCode);
+        }
+        //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
+        if (acceptType == 2){
+            dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,sftpPath);
+        }
+
+        return dates;
     }
 }
 

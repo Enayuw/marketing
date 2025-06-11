@@ -356,4 +356,15 @@
             md5_value        = #{md5Value,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
+
+    <select id="getLastMonthDataDates" parameterType="java.lang.String">
+        SELECT
+            receive_date
+        FROM b_marketing_clean_data_file
+        WHERE api_code = #{apiCode}
+          AND target_sftp_path = #{sftpPath}
+          AND receive_date BETWEEN DATE_SUB(CURDATE(),INTERVAL 1 month) AND CURDATE()
+        GROUP BY receive_date
+        ORDER BY receive_date DESC
+    </select>
 </mapper>

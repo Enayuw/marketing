@@ -22,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -229,6 +230,27 @@ public class RuleCleaningController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "获取模版字段配置接口错误！错误信息：" + e.getMessage()), e);
             return new ApiResult<MarketingDataCleanGeneralFieldConfig>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getLastMonthDataDates")
+    @ApiOperation(value = "查询近一个月有数据的日期集合", notes = "查询近一个月有数据的日期集合", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
+            @ApiImplicitParam(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true),
+            @ApiImplicitParam(name = "sftpPath", value = "sft地址，接口类型为FTP则必填", paramType = "query", dataType = "String", required = false)
+    })
+    public ApiResult<List<String>> getLastMonthDataDates(@RequestParam("apiCode") String apiCode, @RequestParam("acceptType") Integer acceptType, @RequestParam(required = false) String sftpPath) {
+        List<String> dates = new ArrayList<>();
+        try {
+            dates = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
+            return new ApiResult<List<String>>().success(dates);
+        }catch (BusinessException be){
+            return new ApiResult<List<String>>().fail(be.getMsg());
+        }catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.LASTMONTHDATDDATES_SERVICEERROR.getCode(),
+                    "获取近一个月有数据的日期失败！错误信息：" + e.getMessage()),e);
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
         }
     }
 
