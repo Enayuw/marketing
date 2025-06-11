@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.UMengTimingTask;
 import com.br.marketing.service.Impl.umeng.IUMengApiService;
@@ -12,14 +13,13 @@ import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -51,8 +51,9 @@ public class UMengTimingTaskCreateJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
+            String dealDate = shardingContext.getJobParameter();
             List<String> uMengApiCodes = marketingCommonConfig.getApiCodeOfUMeng();
-            uMengApiCodes.forEach(this::atciton);
+            uMengApiCodes.forEach(apiCode-> action(apiCode,dealDate));
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
@@ -62,17 +63,24 @@ public class UMengTimingTaskCreateJob extends AbstractSimpleElasticJob {
      * api_code具体执行创建智能时机任务
      * @param apiCode
      */
-    private void atciton(String apiCode) {
+    private void action(String apiCode,String dealDate) {
+        log.warn("TITLE:{},apiCode:{},dealDate:{}",TITLE,apiCode,dealDate);
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
-        List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
-        localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
+        LocalDateTime dayEndTime = LocalDate.now(zone).atTime(LocalTime.MAX);
+        if (StringUtils.isNotBlank(dealDate)) {
+            LocalDate date = LocalDate.parse(dealDate);
+            dayStartTime = date.atStartOfDay();
+            dayEndTime = date.atTime(LocalTime.MAX);
+        }
+        List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime,dayEndTime);
+        localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode));
     }
 
-    private void dealSingleAction(LocalFile localFile, String apiCode,LocalDateTime dayStartTime) {
+    private void dealSingleAction(LocalFile localFile, String apiCode) {
         log.warn("TITLE:{},localId:{},apiCode:{} 开始创建智能时机",TITLE,localFile.getId(),apiCode);
         //2、查询当天是否已经存在智能时机任务
-        UMengTimingTask existTimingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode,dayStartTime);
+        UMengTimingTask existTimingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode);
         if (existTimingTask != null) {
             log.warn("TITLE:{}, localId:{},apiCode={} 今日智能时机任务已存在,taskId:{},taskName:{}",TITLE,existTimingTask.getLocalId(),apiCode,
                     existTimingTask.getId(),existTimingTask.getTaskName());
