@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DataExportLogMapper" >
+
+  <resultMap id="VOResultMap" type="com.br.marketing.vo.DataExportLogVO" >
+    <id column="id" property="id" />
+    <result column="task_id" property="taskId" />
+    <result column="batch_no" property="batchNo" />
+    <result column="export_rows" property="exportRows" />
+    <result column="file_path" property="filePath" />
+    <result column="sftp_status" property="sftpStatus" />
+    <result column="execute_status" property="executeStatus" />
+    <result column="error_msg" property="errorMsg" />
+    <result column="start_time" property="startTime" />
+    <result column="end_time" property="endTime" />
+    <result column="create_time" property="createTime" />
+  </resultMap>
+
+  <select id="getDataExportLogList" resultMap="VOResultMap">
+    SELECT 
+      id, task_id, batch_no, export_rows, file_path, sftp_status, execute_status, error_msg,
+      DATE_FORMAT(start_time, '%Y-%m-%d %H:%i:%s') as start_time,
+      DATE_FORMAT(end_time, '%Y-%m-%d %H:%i:%s') as end_time,
+      DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
+    FROM b_data_export_log
+    <where>
+      <if test="taskId != null">
+        AND task_id = #{taskId}
+      </if>
+      <if test="batchNo != null and batchNo != ''">
+        AND batch_no LIKE CONCAT('%', #{batchNo}, '%')
+      </if>
+      <if test="executeStatus != null">
+        AND execute_status = #{executeStatus}
+      </if>
+      <if test="startTimeStart != null and startTimeStart != ''">
+        AND start_time >= #{startTimeStart}
+      </if>
+      <if test="startTimeEnd != null and startTimeEnd != ''">
+        AND start_time &lt;= #{startTimeEnd}
+      </if>
+    </where>
+    ORDER BY create_time DESC
+  </select>
+
+  <select id="getLogsByTaskId" resultMap="VOResultMap">
+    SELECT 
+      id, task_id, batch_no, export_rows, file_path, sftp_status, execute_status, error_msg,
+      DATE_FORMAT(start_time, '%Y-%m-%d %H:%i:%s') as start_time,
+      DATE_FORMAT(end_time, '%Y-%m-%d %H:%i:%s') as end_time,
+      DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time
+    FROM b_data_export_log
+    WHERE task_id = #{taskId}
+    ORDER BY create_time DESC
+  </select>
+
+  <update id="updateSftpStatus">
+    UPDATE b_data_export_log 
+    SET sftp_status = #{sftpStatus}
+    WHERE id = #{id}
+  </update>
+
+</mapper> 

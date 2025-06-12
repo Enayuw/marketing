@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DataExportTaskMapper" >
+
+  <resultMap id="VOResultMap" type="com.br.marketing.vo.DataExportTaskVO" >
+    <id column="id" property="id" />
+    <result column="task_name" property="taskName" />
+    <result column="data_source" property="dataSource" />
+    <result column="export_headers" property="exportHeaders" />
+    <result column="field_mapping" property="fieldMapping" />
+    <result column="query_condition" property="queryCondition" />
+    <result column="estimated_rows" property="estimatedRows" />
+    <result column="file_name_template" property="fileNameTemplate" />
+    <result column="status" property="status" />
+    <result column="create_time" property="createTime" />
+    <result column="update_time" property="updateTime" />
+    <result column="create_by" property="createBy" />
+    <result column="update_by" property="updateBy" />
+  </resultMap>
+
+  <select id="getDataExportTaskList" resultMap="VOResultMap">
+    SELECT 
+      id, task_name, data_source, export_headers, field_mapping, query_condition,
+      estimated_rows, file_name_template, status, 
+      DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time,
+      DATE_FORMAT(update_time, '%Y-%m-%d %H:%i:%s') as update_time,
+      create_by, update_by
+    FROM b_data_export_task
+    <where>
+      <if test="taskName != null and taskName != ''">
+        AND task_name LIKE CONCAT('%', #{taskName}, '%')
+      </if>
+      <if test="dataSource != null and dataSource != ''">
+        AND data_source = #{dataSource}
+      </if>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+    ORDER BY create_time DESC
+  </select>
+
+  <select id="getActiveTasksByDataSource" resultMap="VOResultMap">
+    SELECT 
+      id, task_name, data_source, export_headers, field_mapping, query_condition,
+      estimated_rows, file_name_template, status, 
+      DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as create_time,
+      DATE_FORMAT(update_time, '%Y-%m-%d %H:%i:%s') as update_time,
+      create_by, update_by
+    FROM b_data_export_task
+    WHERE data_source = #{dataSource} AND status = 1
+    ORDER BY id ASC
+  </select>
+
+</mapper> 
