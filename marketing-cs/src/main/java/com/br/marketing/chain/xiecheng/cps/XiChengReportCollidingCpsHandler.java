@@ -5,6 +5,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
+import com.br.marketing.enums.HandlerStageEnum;
 import com.br.marketing.enums.XieChengBizMarkEnum;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,6 @@ public class XiChengReportCollidingCpsHandler extends AbstractXieChengReportHand
     }
 
     protected XiChengReportCollidingCpsHandler() {
-        super(XieChengBizMarkEnum.CPS.name());
+        super(XieChengBizMarkEnum.CPS.name(), HandlerStageEnum.THREAD.name());
     }
 }

@@ -3,6 +3,8 @@ package com.br.marketing.chain.xiecheng.common;
 import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.enums.HandlerStageEnum;
+import com.br.marketing.enums.XieChengBizMarkEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
@@ -10,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class XiChengReportBlackTHandler extends AbstractXieChengReportHandler {
+public class XiChengReportCallStatusHandler extends AbstractXieChengReportHandler {
 
     private List<Integer> callStatusFail = Arrays.asList(13, 15);
 
@@ -34,8 +36,8 @@ public class XiChengReportBlackTHandler extends AbstractXieChengReportHandler {
         return null;
     }
 
-    protected XiChengReportBlackTHandler() {
-        super("common");
+    protected XiChengReportCallStatusHandler() {
+        super(XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
     }
 
 }

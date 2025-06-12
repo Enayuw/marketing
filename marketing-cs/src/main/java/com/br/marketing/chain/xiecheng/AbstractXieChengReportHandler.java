@@ -9,13 +9,20 @@ public abstract class AbstractXieChengReportHandler {
 
     private String bizMark;
 
-    public AbstractXieChengReportHandler (String bizMark){
+    private String stage;
+
+    public AbstractXieChengReportHandler (String bizMark, String stage){
         this.bizMark = bizMark;
+        this.stage = stage;
     }
 
     abstract public String process(XieChengReportContext context);
 
     public String getBizMark() {
         return bizMark;
+    }
+
+    public String getStage() {
+        return stage;
     }
 }

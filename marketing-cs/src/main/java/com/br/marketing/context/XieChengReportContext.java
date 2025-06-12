@@ -44,6 +44,7 @@ public class XieChengReportContext {
         private String mainApiCode;
         private Boolean offRepeatByPeriod;
         private Integer offRepeatCount;
+        private Boolean mock;
 
         /**
          * 从JSONObject创建PushConfig
@@ -54,6 +55,8 @@ public class XieChengReportContext {
             }
             Boolean offRepeatByPeriod = json.getBoolean("offRepeatByPeriod") == null
                     ? false : json.getBoolean("offRepeatByPeriod");
+            Boolean mock = json.getBoolean("mock") == null
+                    ? false : json.getBoolean("mock");
             return PushConfig.builder()
                     .conditionKey(json.getString("condition"))
                     .soleCellApiCodes(json.getJSONArray("soleCellApiCodes"))
@@ -62,6 +65,7 @@ public class XieChengReportContext {
                     .mainApiCode(json.getString("mainApiCode"))
                     .offRepeatByPeriod(offRepeatByPeriod)
                     .offRepeatCount(offRepeatByPeriod ? json.getInteger("offRepeatCount") : null)
+                    .mock(mock)
                     .build();
         }
     }
@@ -84,7 +88,8 @@ public class XieChengReportContext {
      * 设置错误信息并停止处理
      */
     public void setError(String message) {
-//        this.resultData.setStatus(2);
+        this.continueFlag = false;
+        this.resultData.setStatus(2);
         this.resultData.setDataMessage(message);
     }
 

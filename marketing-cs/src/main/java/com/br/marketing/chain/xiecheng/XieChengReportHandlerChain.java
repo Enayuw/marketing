@@ -1,6 +1,8 @@
 package com.br.marketing.chain.xiecheng;
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.XieChengReportContext;
+import com.br.marketing.enums.HandlerStageEnum;
 import com.br.marketing.enums.XieChengBizMarkEnum;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,14 +41,21 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
     }
 
     public void handle(XieChengReportContext context) {
-        //1.确定cpa还是cps
+        //1.判断cpa还是cps
         List<AbstractXieChengReportHandler> handlers;
         if ("1".equals(context.getPushConfig().getConditionKey())) {
             handlers = cpaHandlers;
         } else {
             handlers = cpsHandlers;
         }
-        //4.执行check阶段，该阶段handler可以同时处理，为了提高效率，放在线程池中处理
+        //2.先执行pre阶段的handler(去重)，目前只有一个handler，不需要排序，后续若有多个，可在handler中添加order来排序
+        List<AbstractXieChengReportHandler> preHandlers = handlers.stream()
+                .filter(handler -> HandlerStageEnum.PRE.name().equals(handler.getStage())).collect(Collectors.toList());
+        for (AbstractXieChengReportHandler preHandler : preHandlers) {
+            String preMessage = preHandler.process(context);
+            if (StringUtils.isNotBlank(preMessage)) context.setError(preMessage);
+        }
+        //3.执行thread阶段，该阶段handler可以同时处理，为了提高效率，放在线程池中处理
         List<Callable<String>> tasks = new ArrayList<>();
         for (AbstractXieChengReportHandler handler : handlers) {
             tasks.add(() -> handler.process(context));
@@ -87,7 +96,7 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
         messages = messages.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        if (messages.size() > 0) context.setError(String.join("; ", messages));
+        if (messages.size() > 0) context.setError(String.join(";", messages));
     }
 
 }

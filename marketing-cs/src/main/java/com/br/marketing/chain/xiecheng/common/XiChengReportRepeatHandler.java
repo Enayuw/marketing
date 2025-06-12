@@ -3,6 +3,8 @@ package com.br.marketing.chain.xiecheng.common;
 import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.enums.HandlerStageEnum;
+import com.br.marketing.enums.XieChengBizMarkEnum;
 import com.br.marketing.mapper.XieChengDataMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
@@ -11,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class XiChengReportIsPushHandler extends AbstractXieChengReportHandler {
+public class XiChengReportRepeatHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private XieChengDataMapper xieChengDataMapper;
@@ -50,7 +52,8 @@ public class XiChengReportIsPushHandler extends AbstractXieChengReportHandler {
         return null;
     }
 
-    protected XiChengReportIsPushHandler() {
-        super("common");
+    protected XiChengReportRepeatHandler() {
+        super(XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.PRE.name());
     }
+
 }

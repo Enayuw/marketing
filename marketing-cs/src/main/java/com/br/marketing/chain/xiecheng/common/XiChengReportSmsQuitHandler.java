@@ -2,6 +2,8 @@ package com.br.marketing.chain.xiecheng.common;
 
 import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.context.XieChengReportContext;
+import com.br.marketing.enums.HandlerStageEnum;
+import com.br.marketing.enums.XieChengBizMarkEnum;
 import com.br.marketing.mapper.XiechengSmsQuitDataMapper;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
@@ -20,7 +22,7 @@ public class XiChengReportSmsQuitHandler extends AbstractXieChengReportHandler {
     }
 
     public XiChengReportSmsQuitHandler() {
-        super("common");
+        super(XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
     }
 
 }

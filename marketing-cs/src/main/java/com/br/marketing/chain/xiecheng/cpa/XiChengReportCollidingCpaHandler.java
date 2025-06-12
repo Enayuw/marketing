@@ -5,6 +5,7 @@ import com.br.marketing.chain.xiecheng.AbstractXieChengReportHandler;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.HandlerStageEnum;
 import com.br.marketing.enums.XieChengBizMarkEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
@@ -42,9 +43,7 @@ public class XiChengReportCollidingCpaHandler extends AbstractXieChengReportHand
         return null;
     }
 
-
-
     protected XiChengReportCollidingCpaHandler() {
-        super(XieChengBizMarkEnum.CPA.name());
+        super(XieChengBizMarkEnum.CPA.name(), HandlerStageEnum.THREAD.name());
     }
 }

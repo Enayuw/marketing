@@ -44,13 +44,11 @@ public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener 
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT)){
-            log.warn("MARKETING_XIECHENG_REPORT_QUEUE" +
-                            "：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), o);
-        }
+        log.warn("MARKETING_XIECHENG_REPORT_QUEUE" +
+                        "：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), o);
         consumerService.consumerRun(messageExt, xieChengReportService::pushXieChengData, o);
     }
 
