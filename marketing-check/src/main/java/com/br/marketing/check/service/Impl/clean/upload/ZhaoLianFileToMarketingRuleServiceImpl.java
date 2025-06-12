@@ -3,7 +3,7 @@ package com.br.marketing.check.service.Impl.clean.upload;
 import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.service.IFileToMarketingRuleService;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class ZhaoLianFileToMarketingRuleServiceImpl implements IFileToMarketingRuleService {
 
     @Override
-    public Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String, FileToMarketingDataFieldVO> voMaps) {
+    public SimpleResult isVaild(List<FileToMarketingDataFieldVO> vos, Map<String, FileToMarketingDataFieldVO> voMaps) {
         return IFileToMarketingRuleService.super.isVaild(vos, voMaps);
     }
 

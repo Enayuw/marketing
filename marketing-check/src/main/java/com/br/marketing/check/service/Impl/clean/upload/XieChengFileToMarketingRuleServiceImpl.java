@@ -1,7 +1,7 @@
 package com.br.marketing.check.service.Impl.clean.upload;
 
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.service.IFileToMarketingRuleService;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
@@ -14,12 +14,12 @@ import java.util.Map;
 public class XieChengFileToMarketingRuleServiceImpl implements IFileToMarketingRuleService {
 
     @Override
-    public Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps) {
+    public SimpleResult isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps) {
         FileToMarketingDataFieldVO keyType = voMaps.get("keyType");
         if(keyType!=null&&"1".equals(keyType.getDataValue())){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("keyType 为1");
+            return new SimpleResult().setCode(ResultCode.FAIL.getValue()).setMessage("keyType 为1");
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        return new SimpleResult().setCode(ResultCode.SUCCESS.getValue());
     }
 
     @Override
