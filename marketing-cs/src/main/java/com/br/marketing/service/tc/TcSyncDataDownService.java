@@ -14,7 +14,7 @@ import java.util.List;
 public interface TcSyncDataDownService {
 
     //获取未匹配处理的同城易融批次请求记录
-    List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode, Integer status, Date dayBegin, Date dayEnd);
+    List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode, Integer status);
 
     //处理单个同城易融具体批次batchNo的文件加载和同步db
     Result dealTcyrFileSync(MarketingTcyrSyncRecord syncRecord);

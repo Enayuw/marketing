@@ -13,7 +13,7 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
     List<MarketingTcyrSyncRecord> searchAllTcyrSyncList(@Param("apiCode")String apiCode, @Param("status")Integer status);
 
 
-    List<MarketingTcyrSyncRecord> searchTcyrSyncList(@Param("apiCode")String apiCode, @Param("status")Integer status,@Param("dayBeginTime") Date dayBeginTime, @Param("dayEndTime") Date dayEndTime);
+    List<MarketingTcyrSyncRecord> searchTcyrSyncList(@Param("apiCode")String apiCode, @Param("status")Integer status);
 
 
 

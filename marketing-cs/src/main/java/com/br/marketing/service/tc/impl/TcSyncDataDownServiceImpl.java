@@ -62,8 +62,8 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
     private String sftpPwd;
 
     @Override
-    public List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode,Integer status,Date dayBeginTime, Date dayEndTime) {
-        return tcPullGzFileMapper.searchTcyrSyncList(apiCode,status,dayBeginTime,dayEndTime);
+    public List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode,Integer status) {
+        return tcPullGzFileMapper.searchTcyrSyncList(apiCode,status);
     }
 
 

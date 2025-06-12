@@ -66,7 +66,7 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
     private void atciton(String apiCode) {
         //
         List<MarketingTcyrSyncRecord> syncRecordList =
-                tcSyncDataDownService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue(),getStartOfDay(),getEndOfDay());
+                tcSyncDataDownService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
 
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
