@@ -30,13 +30,13 @@ public class DataExportController {
     public Result<Long> createTask(@RequestBody @Valid DataExportTaskDTO taskDTO) {
         try {
             MarketingUserDetail user = ThreadContextInfo.getUser();
-            Boolean task = dataExportTaskService.createTask(taskDTO, user);
-            if (task) {
-                return new Result<>().success().setMessage("新增导出任务成功！");
+            Long taskId = dataExportTaskService.createTask(taskDTO, user);
+            if (taskId != null) {
+                return new Result<Long>().success().setDate(taskId).setMessage("新增导出任务成功！");
             }
-            return new Result<>().failure().setMessage("新增导出任务失败！");
+            return new Result<Long>().failure().setMessage("新增导出任务失败！");
         } catch (Exception e) {
-            return new Result<>().failure().setMessage("新增导出任务失败！");
+            return new Result<Long>().failure().setMessage("新增导出任务失败！异常：" + e.getMessage());
         }
     }
 }
