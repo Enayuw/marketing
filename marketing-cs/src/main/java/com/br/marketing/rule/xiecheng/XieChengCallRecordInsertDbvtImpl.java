@@ -1,5 +1,7 @@
 package com.br.marketing.rule.xiecheng;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -19,11 +21,9 @@ import com.br.marketing.service.XieChengJudgeConvTypeService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -42,7 +42,7 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
     private XieChengDataMapper xieChengDataMapper;
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
-    @Autowired
+    @Resource
     MarketingCommonConfig marketingCommonConfig;
     @Resource
     private XieChengJudgeConvTypeService xieChengJudgeConvTypeService;
@@ -131,8 +131,11 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
             }
             if (bo.getDetail() != null && callStatusIsBlack.contains(bo.getDetail().getCallStatus())) {
                 String tcid = tableCreateService.getTcId(bo.getApiCode());
+                Map<String, JSONObject> pushCondition = marketingCommonConfig.getXieChengCallPushCondition();
+                JSONObject condition = pushCondition.get(bo.getApiCode());
+                JSONArray isBlackApiCodes = condition.getJSONArray("isBlackApiCodes");
                 MarketingTransferSyncUser xcTransferTodayNoAdDataByOnlyBlack = marketingTransferSyncUserMapper.getXcTransferTodayNoAdDataByOnlyBlack(
-                        tcid, bo.getCaseNum(), bo.getApiCode());
+                        tcid, bo.getCaseNum(), isBlackApiCodes);
                 if (xcTransferTodayNoAdDataByOnlyBlack != null) {
                     keepRecord(bo, String.format("CallStatus状态是：%d,且当天转化isBlack='1'", bo.getDetail().getCallStatus()));
                     return false;

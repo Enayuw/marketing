@@ -819,7 +819,10 @@
         where cust_num = #{custNum}
         and (reserve_field1->'$.isBlack' = '1' or reserve_field1->'$.isBlack' = 1)
         <![CDATA[ and create_time > curdate()]]>
-        and api_code = #{apiCode}
+        and api_code in
+        <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
+            #{apiCode}
+        </foreach>
         limit 1
     </select>
     <select id="getZhongBangTransferByApiCodetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">

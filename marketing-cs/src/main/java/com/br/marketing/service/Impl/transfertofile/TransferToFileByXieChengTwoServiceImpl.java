@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.transfertofile;
 
-import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -46,11 +45,7 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
     @Autowired
     private TransferFileTaskMapper transferFileTaskMapper;
     @Autowired
-    private TableCreateServiceImpl tableCreateService;
-    @Autowired
     private RuleRedisServiceImpl ruleRedisService;
-    @Resource
-    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -60,11 +55,7 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
     @Resource
     private JobManager jobManager;
 
-    final static String EXECUTE_TIME = " 09:00:00";
-
     final static String ZK_EXECUTE_TIME = " 09:00:00";
-
-    final static String XIECHENG_TRANSFER_FILE = "_zhuanhua_";
 
     final static String XIECHENG_ZK_FILE = "callbackresult_";
 
@@ -94,36 +85,6 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();
         //可配置
-        String execute = EXECUTE_TIME;
-        if (marketingCommonConfig.getXieChengTwoTransferExecuteTime() != null
-                && marketingCommonConfig.getXieChengTwoTransferExecuteTime().size() > 0) {
-            execute = " " + marketingCommonConfig.getXieChengTwoTransferExecuteTime().get(0);
-        }
-        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
-        if (now.after(executeTime)) {
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-            TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
-            List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-            if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("携程转化数据提取-开始执行,apiCode ={}", apiCode);
-                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
-                TransferFileTask transferFileTask = new TransferFileTask();
-                transferFileTask.setApiCode(apiCode);
-                transferFileTask.setFileType(1);
-                transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName("");
-                transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(yyyyMMdd);
-                transferFileTask.setContextId(transferFileContextId);
-                transferFileTask.setCreateTime(new Date());
-                transferFileTask.setUpdateTime(new Date());
-                transferFileTaskMapper.insertSelective(transferFileTask);
-                resultList.add(transferFileTask);
-            }
-        }
-
         String zkexecute = ZK_EXECUTE_TIME;
         if (marketingCommonConfig.getXieChengTwoTransferExecuteTime() != null
                 && marketingCommonConfig.getXieChengTwoTransferExecuteTime().size() > 1) {
@@ -159,101 +120,14 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
-        Integer one = Integer.valueOf(1);
         Integer two = Integer.valueOf(2);
-        if (one.equals(transferFileTask.getFileType())) {
-            return actionTransfer(transferFileTask, jobParameter);
-        } else if (two.equals(transferFileTask.getFileType())) {
+        if (two.equals(transferFileTask.getFileType())) {
             return actionZk(transferFileTask, jobParameter);
         } else {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
     }
 
-    private Result actionTransfer(TransferFileTask transferFileTask, String jobParameter) {
-        String requestDate = StringUtils.isBlank(jobParameter)
-                ? LocalDate.now().toString() : jobParameter;
-        log.warn("携程转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
-        String apiCode = transferFileTask.getApiCode();
-        String recordDate = transferFileTask.getStartDate();
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
-        File writeDic = new File(descPath);
-        if (!writeDic.exists()) {
-            writeDic.mkdirs();
-        }
-        StringBuilder fileName = new StringBuilder();
-        fileName.append(apiCode).append(XIECHENG_TRANSFER_FILE).append(recordDate).append(".txt");
-        String fileAllPath = descPath.concat(fileName.toString());
-        transferFileTask.setFileName(fileName.toString());
-        transferFileTask.setFilePath(descPath);
-        File file = new File(fileAllPath);
-        try (Writer fw = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(file), "UTF-8"));) {
-            fw.append("cell,convType,requestTime,isBlack");
-            fw.append("\r\n");
-            writeXieChengTransferToFile(fw, apiCode, transferFileTask);
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
-        }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    private void writeXieChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
-        Long start = System.currentTimeMillis();
-        String tcId = tableCreateService.getTcId(apiCode);
-        LocalDate date = LocalDate.now();
-        int totalSize = 0;
-        Long indexId = null;
-        Integer pageSize = 2000;
-        while (true) {
-            List<MarketingTransferSyncUser> data = marketingTransferSyncUserMapper.getTransferData(apiCode, tcId,
-                    date.toString(), pageSize, indexId);
-            if (CollectionUtils.isEmpty(data)) {
-                break;
-            }
-
-            indexId = data.get(data.size() - 1).getId();
-
-            //cell,convType
-            for (MarketingTransferSyncUser transferFilterData : data) {
-                String cell = transferFilterData.getCustNum();
-                String convType = "";
-                String isBlack = "";
-                if (StringUtils.isNotEmpty(transferFilterData.getReserveField1())) {
-                    try {
-                        convType = getReserFieldVal(transferFilterData.getReserveField1(),"convType");
-                        isBlack =  getReserFieldVal(transferFilterData.getReserveField1(),"isBlack");;
-                    } catch (Exception e) {
-                        log.warn("携程转化数据提取,ReserveField1非JSON格式{}", transferFilterData.getReserveField1());
-                    }
-                }
-                StringBuilder sb = new StringBuilder();
-                sb.append(cell.concat(","))
-                        .append(convType.concat(","))
-                        .append(transferFilterData.getRequestTime().concat(","))
-                        .append(isBlack)
-                        .append("\r\n");
-                fw.append(sb.toString());
-            }
-            totalSize = totalSize + data.size();
-            data.clear();
-        }
-        TransferFileTask updatetask = new TransferFileTask();
-        updatetask.setId(transferFileTask.getId());
-        updatetask.setStatus(2);
-        updatetask.setFileName(transferFileTask.getFileName());
-        updatetask.setFilePath(transferFileTask.getFilePath());
-        updatetask.setTaskNumber(totalSize);
-        updatetask.setUpdateTime(new Date());
-        transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-        log.warn("携程转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
-    }
-
-    private String getReserFieldVal(String reserStr,String field){
-        return StringUtils.isNotEmpty(JSON.parseObject(reserStr).getString(field)) ? JSON.parseObject(reserStr).getString(field) : "";
-    }
 
     private Result actionZk(TransferFileTask transferFileTask, String jobParameter) {
         String requestDate = StringUtils.isBlank(jobParameter)
