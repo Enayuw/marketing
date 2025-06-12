@@ -1,5 +1,6 @@
 package com.br.marketing.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.Map;
@@ -13,15 +14,25 @@ import java.util.Map;
  */
 @Data
 public class DataExportTaskDTO {
+    @ApiModelProperty(value = "任务名称")
     private String taskName;
+
+    @ApiModelProperty(value = "数据源名称")
     private String dataSource;
-    // "姓名,手机号,年龄"
+
+    @ApiModelProperty(value = "导出表头(逗号分隔)")
     private String exportHeaders;
-    // {"姓名":"name","手机号":"phone"}
+
+    @ApiModelProperty(value = "字段映射关系JSON")
     private Map<String, String> fieldMapping;
-    private QueryConditionDTO queryCondition;
+
+    @ApiModelProperty(value = "查询条件配置JSON")
+    private Map<String, String> queryCondition;
+
+    @ApiModelProperty(value = "预估数据量")
     private Long estimatedRows;
-    // "用户数据_{yyyyMMdd}.txt"
+
+    @ApiModelProperty(value = "导出文件名")
     private String fileNameTemplate;
-    private String sftpPath;
+
 }
