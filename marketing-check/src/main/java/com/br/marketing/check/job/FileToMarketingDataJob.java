@@ -10,6 +10,7 @@ import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -369,7 +370,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         }
 
                         //region 抽象的剔除方法和组装逻辑的调用,如未实现走默认的service
-                        Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
+                        SimpleResult vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
                         if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
                             errorNum++;
                             log.warn(TITLE + "文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
