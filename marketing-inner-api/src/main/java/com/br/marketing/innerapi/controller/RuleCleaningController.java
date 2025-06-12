@@ -2,8 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
-import com.br.marketing.client.rulecleaning.FieldCleaningPreviewDTO;
+import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -13,8 +12,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
-import com.br.marketing.client.rulecleaning.FieldSampleDTO;
-import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import com.br.marketing.client.rulecleaning.CleanConfigDTO;
+
 
 /**
  * 规则数据清洗
@@ -251,6 +250,24 @@ public class RuleCleaningController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.LASTMONTHDATDDATES_SERVICEERROR.getCode(),
                     "获取近一个月有数据的日期失败！错误信息：" + e.getMessage()),e);
             return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    @PostMapping("/config/save")
+    @ApiOperation(value = "规则配置保存", notes = "规则配置保存", httpMethod = "POST")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    public ApiResult<Boolean> saveConfig(@RequestBody @Validated CleanConfigDTO configDTO) {
+        try {
+            // 调用Service处理业务逻辑
+            boolean result = ruleCleaningService.saveCleanConfig(configDTO);
+            return new ApiResult<Boolean>().success(result);
+        } catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false, be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "规则配置保存接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.rulecleaning.CleanConfigDTO;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.JsonParseUtils;
@@ -1836,6 +1837,52 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         return dates;
+    }
+
+
+
+    @Override
+    public boolean saveCleanConfig(CleanConfigDTO configDTO) {
+        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
+        configExample.createCriteria()
+                .andApiCodeEqualTo(configDTO.getApiCode())
+                .andDataTypeEqualTo(configDTO.getDataType())
+                .andAcceptTypeEqualTo(configDTO.getAcceptType())
+                .andIsDelEqualTo(1);
+        if(StringUtils.isNotEmpty(configDTO.getSftpPath())){
+            configExample.createCriteria().andSftpPathEqualTo(configDTO.getSftpPath());
+        }
+        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+        if(!CollectionUtils.isEmpty(configs)){
+            throw new BusinessException("清洗规则已存在");
+        }
+        // 构建规则配置对象
+        MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
+        config.setApiCode(configDTO.getApiCode());
+        config.setDataType(configDTO.getDataType());
+        config.setAcceptType(configDTO.getAcceptType());
+        config.setSftpPath(configDTO.getSftpPath());
+        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+        MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
+        criteria.andApiCodeEqualTo(config.getApiCode());
+        marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
+        List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+        Integer accountType = customers.get(0).getAccountType();
+        if (accountType != null && accountType.equals(DataProcessEnum.AccountTypeEnum.CUSTOM.getCode())) {
+            config.setAccountType("正式");
+        } else if (accountType != null && accountType.equals(DataProcessEnum.AccountTypeEnum.GENERAL.getCode())) {
+            config.setAccountType("测试");
+        } else {
+            config.setAccountType("未知");
+        }
+
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        Long userId = Long.valueOf(user.getId());
+        String userName = user.getUserName();
+        config.setOptUserId(userId);
+        config.setOptUserName(userName);
+        cleanGeneralConfigMapper.insertSelective(config);
+        return Boolean.TRUE;
     }
 }
 

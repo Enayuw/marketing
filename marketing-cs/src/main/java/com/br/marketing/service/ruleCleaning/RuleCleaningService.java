@@ -1,6 +1,7 @@
 package com.br.marketing.service.ruleCleaning;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.rulecleaning.CleanConfigDTO;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
@@ -107,4 +108,5 @@ public interface RuleCleaningService {
 
     List<String> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
 
+    boolean saveCleanConfig(CleanConfigDTO configDTO);
 }

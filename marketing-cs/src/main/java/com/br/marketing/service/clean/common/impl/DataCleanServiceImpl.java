@@ -202,6 +202,21 @@ public class DataCleanServiceImpl implements DataCleanService {
                 }
             }
         } else {
+            // 原始类型处理 - 新增String类型JSON解析支持
+            if (nodeValue instanceof String) {
+                String stringValue = (String) nodeValue;
+                
+                // 尝试判断字符串是否为JSON格式并解析
+                Object parsedValue = tryParseJsonString(stringValue);
+                
+                if (parsedValue != null) {
+                    // 如果解析成功，递归处理解析后的对象
+                    log.debug("字符串解析为JSON成功，继续递归处理: {}", nodeName);
+                    processJsonNode(apiCode, dataType, acceptType, nodeName, parentPath, parsedValue, level, isArrayItem);
+                    return;
+                }
+            }
+            
             // 原始类型 (字符串、数字、布尔值等)
             nodeType = "primitive";
 
@@ -211,6 +226,43 @@ public class DataCleanServiceImpl implements DataCleanService {
             // 保存原始类型节点，包含节点值
             saveNodeData(apiCode, dataType, acceptType, nodeName, level, parentPath, nodeType, isArrayItem, nodeValueStr);
         }
+    }
+
+    /**
+     * 尝试解析字符串为JSON对象或数组
+     * 
+     * @param jsonString 待解析的JSON字符串
+     * @return 解析成功返回JSONObject或JSONArray，失败返回null
+     */
+    private Object tryParseJsonString(String jsonString) {
+        if (StringUtils.isEmpty(jsonString)) {
+            return null;
+        }
+        
+        String trimmed = jsonString.trim();
+        
+        // 判断是否可能为JSON格式 - 优化后的逻辑
+        boolean isJsonObject = trimmed.startsWith("{") && trimmed.endsWith("}");
+        boolean isJsonArray = trimmed.startsWith("[") && trimmed.endsWith("]");
+        
+        if (!(isJsonObject || isJsonArray)) {
+            return null;
+        }
+        
+        try {
+            // 尝试解析为JSON对象或数组
+            Object parsed = JSON.parse(trimmed);
+            
+            // 只有解析结果是JSONObject或JSONArray才继续处理
+            if (parsed instanceof JSONObject || parsed instanceof JSONArray) {
+                return parsed;
+            }
+        } catch (Exception e) {
+            // 解析失败，记录调试日志但不抛出异常
+            log.error("字符串JSON解析失败，按原始字符串处理: {}", e.getMessage());
+        }
+        
+        return null;
     }
 
     /**
