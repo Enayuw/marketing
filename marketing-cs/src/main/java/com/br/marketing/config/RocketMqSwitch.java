@@ -58,7 +58,7 @@ public class RocketMqSwitch {
     /**
      * mq消息头 生产消息的唯一标识
      */
-    public static final String UUID_KEY = "uuid";
+    public static final String KEYS = "KEYS";
 
     @Resource
     private MessageIdempotentHandler messageIdempotentHandler;
@@ -141,7 +141,7 @@ public class RocketMqSwitch {
         Message<?> build;
         if (msgUUIdFlag(tags)) {
             build = MessageBuilder.withPayload(msg)
-                    .setHeader(UUID_KEY, messageIdempotentHandler.generateMessageId())
+                    .setHeader(KEYS, messageIdempotentHandler.generateMessageId())
                     .build();
         } else {
             build = MessageBuilder.withPayload(msg).build();
@@ -153,7 +153,7 @@ public class RocketMqSwitch {
         Message<?> build;
         if (msgUUIdFlag(tags)) {
             build = MessageBuilder.withPayload(msg)
-                    .setHeader(UUID_KEY, messageIdempotentHandler.generateMessageId())
+                    .setHeader(KEYS, messageIdempotentHandler.generateMessageId())
                     .build();
         } else {
             build = MessageBuilder.withPayload(msg).build();

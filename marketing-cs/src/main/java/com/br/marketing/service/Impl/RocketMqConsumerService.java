@@ -60,15 +60,15 @@ public class RocketMqConsumerService {
             log.error("消费者休眠异常", e);
         }
         long startTime = System.currentTimeMillis();
-        String uuid = messageExt.getProperty(RocketMqSwitch.UUID_KEY);
+        String keys = messageExt.getKeys();
         String topic = messageExt.getTopic();
         String tags = messageExt.getTags();
         String msgId = messageExt.getMsgId();
         boolean idemFlag = rocketMqSwitch.msgIdemFlag(tags, isMsgIdempotence);
         if (idemFlag) {
             allowReprocessSeconds = rocketMqSwitch.getAllowReprocessSeconds(tags, allowReprocessSeconds);
-            if (!cachedMessageIdempotentHandler.checkAndMarkMessageProcessed(topic, uuid, allowReprocessSeconds)) {
-                log.warn("消息重复消费，topic：{},tags：{},msgId：{},uuid：{}", topic, tags, msgId, uuid);
+            if (!cachedMessageIdempotentHandler.checkAndMarkMessageProcessed(topic, keys, allowReprocessSeconds)) {
+                log.warn("消息重复消费，topic：{},tags：{},msgId：{},keys：{}", topic, tags, msgId, keys);
                 rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
                 return;
             }
@@ -82,7 +82,7 @@ public class RocketMqConsumerService {
              */
             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
                 if (idemFlag) {
-                    cachedMessageIdempotentHandler.markMessageCompleted(topic, uuid, allowReprocessSeconds);
+                    cachedMessageIdempotentHandler.markMessageCompleted(topic, keys, allowReprocessSeconds);
                 }
                 if (null != apply.getData() && apply.getData()) {
                     if (StringUtils.isNotBlank(delayTopic) && StringUtils.isNotBlank(retryTag)) {
@@ -99,20 +99,20 @@ public class RocketMqConsumerService {
                     }
                 }
             } else {
-                String msg = String.format("RocketMQ消息重试topic:%s,Tags：%s,uuid:%s,msgId:%s,message:%s,messageExt:%s"
-                        , topic, tags, uuid, msgId, t, messageExt);
+                String msg = String.format("RocketMQ消息重试topic:%s,Tags：%s,keys:%s,msgId:%s,message:%s,messageExt:%s"
+                        , topic, tags, keys, msgId, t, messageExt);
                 log.warn(msg);
                 if (idemFlag) {
-                    cachedMessageIdempotentHandler.markMessageProcessFailed(topic, uuid);
+                    cachedMessageIdempotentHandler.markMessageProcessFailed(topic, keys);
                 }
                 throw new RuntimeException();
             }
         } catch (Exception e) {
             if (idemFlag) {
-                cachedMessageIdempotentHandler.markMessageProcessFailed(topic, uuid);
+                cachedMessageIdempotentHandler.markMessageProcessFailed(topic, keys);
             }
-            String error = String.format("RocketMQ消费异常topic:%s,Tags:%s,uuid:%s,msgId:%s,message:%s，messageExt:%s，\r\n错误信息:%s"
-                    , topic, tags, uuid, msgId, t, e.getMessage(), messageExt);
+            String error = String.format("RocketMQ消费异常topic:%s,Tags:%s,keys:%s,msgId:%s,message:%s，messageExt:%s，\r\n错误信息:%s"
+                    , topic, tags, keys, msgId, t, e.getMessage(), messageExt);
             log.warn(error, e);
             alarmClient.sendAlarm(error, "RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
             throw new RuntimeException();
