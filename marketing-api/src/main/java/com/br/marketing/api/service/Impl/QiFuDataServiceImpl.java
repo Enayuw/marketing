@@ -2,17 +2,25 @@ package com.br.marketing.api.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.api.service.QiFuDataService;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.QifuActuation;
 import com.br.marketing.entity.QifuStrategyReportData;
+import com.br.marketing.mapper.QifuActuationMapper;
 import com.br.marketing.mapper.QifuStrategyReportDataMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +38,8 @@ public class QiFuDataServiceImpl implements QiFuDataService {
 
     @Autowired
     private QifuStrategyReportDataMapper qifuStrategyReportDataMapper;
-
+    @Resource
+    private QifuActuationMapper qifuActuationMapper;
 
     @Override
     public ApiNoDataResult strategyReportData(String apiCode, String jsonData) {
@@ -62,4 +71,32 @@ public class QiFuDataServiceImpl implements QiFuDataService {
         qifuStrategyReportDataMapper.insertSelective(reportData);
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }
+
+    @Override
+    public ApiNoDataResult analysisStatistics(String apiCode, String jsonData) {
+        try {
+            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {}.getType());
+
+            reportDataList.parallelStream().forEach(item -> {
+                item.setApiCode(apiCode);
+                item.setCreateDate(LocalDate.now().toString());
+                item.setCreateTime(new Date());
+                item.setUpdateTime(new Date());
+            });
+
+            if (!CollectionUtils.isEmpty(reportDataList)) {
+                qifuActuationMapper.batchInsert(reportDataList);
+                log.warn("奇富促动支定制上传数据接入 数量:{}", reportDataList.size());
+            }
+
+            return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUCUDONGZHIREPORT_SERVICEERROR.getCode(),
+                    "jsonData:" + jsonData, "该apiCode:" + apiCode + "奇富促动支定制上传数据接入异常！！！"), e);
+            return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
+                    .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+        }
+    }
+
+
 }
