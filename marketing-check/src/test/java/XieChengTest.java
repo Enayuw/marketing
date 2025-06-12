@@ -3,18 +3,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.FinanceAESUtils;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tc.TcDataPushDto;
 import com.br.marketing.dto.tc.TcRequestDTO;
-import com.br.marketing.dto.tc.TcResponseDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
 import com.br.marketing.retry.DatabaseOperationService;
 import com.br.marketing.service.Impl.transfertofile.*;
-import com.br.marketing.service.Impl.xc.XieChengReportService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.util.tc.RSAUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,7 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -57,9 +52,6 @@ public class XieChengTest {
 
     @Resource
     TransferToFileByXieChengServiceImpl TransferToFileByXieChengServiceImpl;
-
-    @Resource
-    XieChengReportService xieChengReportService;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -94,11 +86,6 @@ public class XieChengTest {
 
     @Resource
     private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
-
-    @Test
-    public void test06() {
-        xieChengReportService.pushXieChengData(147959l);
-    }
 
     @Test
     public void test04() {

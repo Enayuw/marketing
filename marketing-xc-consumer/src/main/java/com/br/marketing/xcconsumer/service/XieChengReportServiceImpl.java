@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.xc;
+package com.br.marketing.xcconsumer.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;

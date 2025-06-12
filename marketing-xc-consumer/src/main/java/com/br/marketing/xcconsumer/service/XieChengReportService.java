@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.xc;
+package com.br.marketing.xcconsumer.service;
 
 import com.br.marketing.common.commondto.Result;
 
