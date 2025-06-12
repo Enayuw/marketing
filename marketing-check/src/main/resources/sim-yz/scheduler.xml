@@ -513,21 +513,6 @@
                 sharding-offset="3"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
-    <job:simple id="XieChengSmsCollidingDataVtToSendJob"
-                class="com.br.marketing.check.job.XieChengSmsCollidingDataVtToSendJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="携程短信撞库早 8 点定时任务"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-
     <job:simple id="YiXinTransferToJueCeMakeUpJob"
                 class="com.br.marketing.check.job.yixin.YiXinTransferToJueCeMakeUpJob"
                 cron="0 0 18 29 9 ? 2050-2050"

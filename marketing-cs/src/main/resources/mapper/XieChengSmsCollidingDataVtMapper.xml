@@ -10,4 +10,9 @@
         left join b_xiecheng_sms_colliding_data_log_vt b on a.sha256_code_list = b.sha256_code_list and b.send_date = #{sendDate}  and b.status in(1,2,3)
         where a.local_id = #{localId}  and b.id is null   limit #{xieChengSmsCollidingDataVtPageSize}
     </select>
+    <select id="selectMaxNextPushTimetiflash_" resultType="com.br.marketing.entity.XieChengSmsCollidingDataVt">
+        select * from b_xiecheng_sms_colliding_data_vt
+        where sha256_code_list = #{sha256Tel} and next_push_time is not null
+        order by next_push_time desc limit 1
+    </select>
 </mapper>

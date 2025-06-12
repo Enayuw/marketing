@@ -4,7 +4,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import javax.annotation.Resource;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;

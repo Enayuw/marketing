@@ -57,10 +57,10 @@ public class XieChengReportServiceImpl implements XieChengReportService{
     @Override
     public Result pushXieChengData(Long sourceId) {
         long start = System.currentTimeMillis();
-        CallRecord callRecord = null;
-        XieChengData xieChengData = null;
-        String lockKey = null;
-        String lockValue = null;
+        CallRecord callRecord;
+        XieChengData xieChengData;
+        String lockKey;
+        String lockValue;
         try {
             //1.查询【b_call_record】
             callRecord = callRecordMapper.selectByPrimaryKey(sourceId);

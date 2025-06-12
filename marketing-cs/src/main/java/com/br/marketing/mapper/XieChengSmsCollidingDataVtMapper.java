@@ -12,4 +12,6 @@ public interface XieChengSmsCollidingDataVtMapper extends XieChengSmsCollidingDa
                                                             @Param("localId") Long localId,
                                                             @Param("sendDate") Integer sendDate,
                                                             @Param("xieChengSmsCollidingDataVtPageSize") Integer xieChengSmsCollidingDataVtPageSize);
+
+    XieChengSmsCollidingDataVt selectMaxNextPushTimetiflash_(@Param("sha256Tel") String sha256Tel);
 }

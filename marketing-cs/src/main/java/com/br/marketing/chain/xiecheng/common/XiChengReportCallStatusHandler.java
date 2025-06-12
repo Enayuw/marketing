@@ -28,7 +28,7 @@ public class XiChengReportCallStatusHandler extends AbstractXieChengReportHandle
         }
         if(callStatusIsBlack.contains(context.getCallRecord().getCallStatus())){
             MarketingTransferSyncUser syncUser = marketingTransferSyncUserMapper
-                    .getXcTransferTodayNoAdDataByOnlyBlack(context.getTcId(), context.getSha256Tel(), context.getCallRecord().getApiCode());
+                    .getXcTransferTodayNoAdDataByOnlyBlack(context.getTcId(), context.getSha256Tel(), context.getPushConfig().getIsBlackApiCodes());
             if (syncUser != null) {
                 return String.format("CallStatus状态是：%d,且当天转化isBlack='1'", context.getCallRecord().getCallStatus());
             }
