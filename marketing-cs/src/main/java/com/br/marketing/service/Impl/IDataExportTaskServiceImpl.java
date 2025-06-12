@@ -49,13 +49,14 @@ public class IDataExportTaskServiceImpl implements IDataExportTaskService {
             }
 
             // 3. 验证数据源是否有效
-            if (!isValidDataSource(dto.getDataSource())) {
-                log.error("无效的数据源：{}", dto.getDataSource());
+            DataSourceEnum dataSourceEnum = getDataSourceEnum(dto.getDataSource());
+            if (dataSourceEnum == null) {
+                log.error("无效的数据源code：{}", dto.getDataSource());
                 return null;
             }
 
             // 4. DTO转换为Entity
-            DataExportTask task = convertToEntity(dto, user);
+            DataExportTask task = convertToEntity(dto, user, dataSourceEnum);
 
             // 5. 保存到数据库
             int result = dataExportTaskMapper.insertSelective(task);
@@ -94,21 +95,30 @@ public class IDataExportTaskServiceImpl implements IDataExportTaskService {
     }
 
     /**
-     * 验证数据源是否有效
+     * 根据前端传入的code获取数据源枚举
+     * @param dataSourceCode 前端传入的数据源code（数字字符串）
+     * @return 数据源枚举，如果不存在返回null
      */
-    private boolean isValidDataSource(String dataSource) {
-        return DataSourceEnum.isValidSourceCode(dataSource);
+    private DataSourceEnum getDataSourceEnum(String dataSourceCode) {
+        try {
+            // 前端传的是code（数字），需要转换为Integer
+            Integer code = Integer.valueOf(dataSourceCode);
+            return DataSourceEnum.getByCode(code);
+        } catch (NumberFormatException e) {
+            log.error("数据源code格式错误：{}", dataSourceCode);
+            return null;
+        }
     }
 
     /**
      * DTO转换为Entity
      */
-    private DataExportTask convertToEntity(DataExportTaskDTO dto, MarketingUserDetail user) {
+    private DataExportTask convertToEntity(DataExportTaskDTO dto, MarketingUserDetail user, DataSourceEnum dataSourceEnum) {
         DataExportTask task = new DataExportTask();
         
         // 基本信息
         task.setTaskName(dto.getTaskName());
-        task.setDataSource(dto.getDataSource());
+        task.setDataSource(dataSourceEnum.getSourceCode());
         task.setExportHeaders(dto.getExportHeaders());
         task.setEstimatedRows(dto.getEstimatedRows());
         
