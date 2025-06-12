@@ -271,4 +271,45 @@ public class RuleCleaningController {
         }
     }
 
+
+    @GetMapping("/getFileSftpPath")
+    @ApiOperation(value = "获取文件SFTP路径", notes = "获取文件SFTP路径", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
+            @ApiImplicitParam(name = "fileType", value = "文件类型：13:上传清洗周期文件,14:转化清洗周期文件", paramType = "query", dataType = "integer", required = true)
+
+    })
+    public ApiResult<List<String>> getFileSftpPath(@RequestParam("apiCode") String apiCode,@RequestParam("fileType") Integer fileType) {
+        try {
+            List<String> dates = ruleCleaningService.getFileSftpPath(apiCode, fileType);
+            return new ApiResult<List<String>>().success(dates);
+        } catch (BusinessException be) {
+            return new ApiResult<List<String>>().fail(be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "获取文件SFTP路径失败！错误信息：" + e.getMessage()), e);
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getRuleDetail")
+    @ApiOperation(value = "获取清洗规则配置", notes = "获取清洗规则配置", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "configId", value = "配置Id", paramType = "query", dataType = "Long", required = true)
+
+    })
+    public ApiResult<List<FieldSampleDTO>> getRuleDetail(@RequestParam("configId") Long configId) {
+        try {
+            List<FieldSampleDTO> ruleDetails = ruleCleaningService.getRuleDetail(configId);
+            return new ApiResult<List<FieldSampleDTO>>().success(ruleDetails);
+        } catch (BusinessException be) {
+            return new ApiResult<List<FieldSampleDTO>>().fail(be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "获取清洗规则配置！错误信息：" + e.getMessage()), e);
+            return new ApiResult<List<FieldSampleDTO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
 }

@@ -8,6 +8,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.rulecleaning.CleanConfigDTO;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -86,6 +87,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private DataCleanServiceImpl dataCleanService;
+
+    @Resource
+    SyncConfigMapper syncConfigMapper;
 
     /**
      * 规则列表查询
@@ -1840,7 +1844,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
 
-
     @Override
     public boolean saveCleanConfig(CleanConfigDTO configDTO) {
         MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
@@ -1849,11 +1852,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andDataTypeEqualTo(configDTO.getDataType())
                 .andAcceptTypeEqualTo(configDTO.getAcceptType())
                 .andIsDelEqualTo(1);
-        if(StringUtils.isNotEmpty(configDTO.getSftpPath())){
+        if (StringUtils.isNotEmpty(configDTO.getSftpPath())) {
             configExample.createCriteria().andSftpPathEqualTo(configDTO.getSftpPath());
         }
         List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
-        if(!CollectionUtils.isEmpty(configs)){
+        if (!CollectionUtils.isEmpty(configs)) {
             throw new BusinessException("清洗规则已存在");
         }
         // 构建规则配置对象
@@ -1883,6 +1886,79 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         config.setOptUserName(userName);
         cleanGeneralConfigMapper.insertSelective(config);
         return Boolean.TRUE;
+    }
+
+    @Override
+    public List<String> getFileSftpPath(String apiCode, Integer fileType) {
+
+        SyncConfigExample syncConfigExample = new SyncConfigExample();
+        SyncConfigExample.Criteria criteria = syncConfigExample.createCriteria();
+        if (org.apache.commons.lang.StringUtils.isNotBlank(apiCode)) {
+            criteria.andApiCodeEqualTo(apiCode);
+        }
+        criteria.andStatusEqualTo(1).andDataTypeEqualTo(fileType).andTypeEqualTo(1);
+        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
+        List<String> sftpPaths = syncConfigs.stream().map(SyncConfig::getTargetPath).collect(Collectors.toList());
+        return sftpPaths;
+    }
+
+    @Override
+    public List<FieldSampleDTO> getRuleDetail(Long configId) {
+        List<FieldSampleDTO> result = new ArrayList<>();
+        MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configId);
+        String apiCode = config.getApiCode();
+        Integer dataType = config.getDataType();
+        Integer acceptType = config.getAcceptType();
+        MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+        nodeExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType);
+        List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+        if (CollectionUtils.isEmpty(nodes)) {
+            return result;
+        }
+        MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+        generalRuleConfigExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andCleanConfigIdEqualTo(configId)
+                .andIsDelEqualTo(1);
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
+        for (MarketingJsonNodeParse node : nodes) {
+            String nodeName = node.getNodeName();
+            Integer level = node.getLevel();
+            if (level == 0) {
+                continue;
+            }
+            if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
+                if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
+                    continue;
+                }
+            }
+            FieldSampleDTO dto = new FieldSampleDTO();
+            String nodeValue = node.getNodeValue();
+            Date createTime = node.getCreateTime();
+            if (StringUtil.isBlank(nodeName)) {
+                continue;
+            }
+            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(nodeName))
+                    .findFirst().orElse(null);
+            // 设置字段名称
+            dto.setFieldName(nodeName);
+            //TODO 为空查询值
+            dto.setFieldSample(nodeValue);
+            dto.setFirstUploadTime(createTime);
+            dto.setFieldType(0);
+            dto.setNeedCleaning(false);
+            if (!Objects.isNull(ruleConfig)) {
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+            }
+            dto.setResultPreview(nodeValue);
+            // 添加到结果列表
+            result.add(dto);
+        }
+        return result;
     }
 }
 

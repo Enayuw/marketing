@@ -109,4 +109,8 @@ public interface RuleCleaningService {
     List<String> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
 
     boolean saveCleanConfig(CleanConfigDTO configDTO);
+
+    List<String> getFileSftpPath(String apiCode, Integer fileType);
+
+    List<FieldSampleDTO> getRuleDetail(Long configId);
 }
