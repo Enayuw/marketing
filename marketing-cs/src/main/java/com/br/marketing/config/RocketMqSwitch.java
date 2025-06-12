@@ -16,7 +16,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.UUID;
 
 
 /**
@@ -75,42 +74,25 @@ public class RocketMqSwitch {
 
     public Boolean rocketMQSwitchFlag(String apiCode, String tag) {
         try {
-            UUID uuid = UUID.randomUUID();
-            if (log.isInfoEnabled()) {
-                log.info("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
-            }
             RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
             if (entity == null) {
                 return Boolean.FALSE;
             }
-            String global = entity.getGlobal();
-            if ("false".equalsIgnoreCase(global)) {
+            Boolean global = entity.getGlobal();
+            if (global == null) {
                 return Boolean.FALSE;
-            } else if ("true".equalsIgnoreCase(global)) {
-                JSONObject group = entity.getGroup();
-                JSONObject tagObjet = group.getJSONObject(tag);
-                if (null == tagObjet || tagObjet.isEmpty()) {
-                    return Boolean.FALSE;
+            }
+            if (global) {
+                boolean flagValue = getMsgFlag(tag, FLAG, Boolean.FALSE);
+                if (flagValue) {
+                    return Boolean.TRUE;
                 } else {
-                    Boolean flagBoolean = tagObjet.getBoolean(FLAG);
-                    if (log.isInfoEnabled()) {
-                        log.info("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
+                    String appCodesValue = getMsgFlagValue(tag, APICODES_SPEED, null, String.class);
+                    if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(appCodesValue)) {
+                        return Boolean.FALSE;
                     }
-                    if (flagBoolean) {
-                        return Boolean.TRUE;
-                    } else {
-                        if (StringUtils.isBlank(apiCode)) {
-                            return Boolean.FALSE;
-                        }
-                        String apiCodes = tagObjet.getString(APICODES_SPEED);
-                        if (StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)) {
-                            return Boolean.TRUE;
-                        }
-                    }
+                    return appCodesValue.contains(apiCode);
                 }
-                return Boolean.FALSE;
-            } else {
-                return Boolean.FALSE;
             }
         } catch (Exception e) {
             log.warn("rocketMQSwitchFlag对应的RocketMqSwitch2配置异常,apiCode:{}--tag:{}--", apiCode, tag, e);
@@ -137,28 +119,28 @@ public class RocketMqSwitch {
         }
     }
 
-    public <T> SendResult syncSend(String topic, String tags, T msg) {
+    public <T> SendResult syncSend(String topic, String tag, T msg) {
         Message<?> build;
-        if (msgUUIdFlag(tags)) {
+        if (msgUUIdFlag(tag)) {
             build = MessageBuilder.withPayload(msg)
                     .setHeader(KEYS, messageIdempotentHandler.generateMessageId())
                     .build();
         } else {
             build = MessageBuilder.withPayload(msg).build();
         }
-        return template.syncSendMessage(topic, tags, build);
+        return template.syncSendMessage(topic, tag, build);
     }
 
-    public <T> SendResult syncSendDelaySecond(String topic, String tags, T msg, long delayTime) {
+    public <T> SendResult syncSendDelaySecond(String topic, String tag, T msg, long delayTime) {
         Message<?> build;
-        if (msgUUIdFlag(tags)) {
+        if (msgUUIdFlag(tag)) {
             build = MessageBuilder.withPayload(msg)
                     .setHeader(KEYS, messageIdempotentHandler.generateMessageId())
                     .build();
         } else {
             build = MessageBuilder.withPayload(msg).build();
         }
-        return template.syncSendDelaySecond(topic, tags, build, delayTime);
+        return template.syncSendDelaySecond(topic, tag, build, delayTime);
     }
 
 
@@ -166,31 +148,31 @@ public class RocketMqSwitch {
      * 2025/6/11 00:31
      * 开启uuid，如果配置 MSG_IDEM_FLAG为 true 则 强制开启 uuid
      */
-    public boolean msgUUIdFlag(String tags) {
-        return msgIdemFlag(tags) || getMsgFlag(tags, MSG_UUID_FLAG, true);
+    public boolean msgUUIdFlag(String tag) {
+        return msgIdemFlag(tag) || getMsgFlag(tag, MSG_UUID_FLAG, true);
     }
 
     /**
      * 2025/6/11 00:31
      * 开启消息幂等
      */
-    public boolean msgIdemFlag(String tags) {
-        return getMsgFlag(tags, MSG_IDEM_FLAG, true);
+    public boolean msgIdemFlag(String tag) {
+        return getMsgFlag(tag, MSG_IDEM_FLAG, true);
     }
 
-    public boolean msgIdemFlag(String tags, boolean localFlag) {
-        return getMsgFlag(tags, MSG_IDEM_FLAG, localFlag);
+    public boolean msgIdemFlag(String tag, boolean localFlag) {
+        return getMsgFlag(tag, MSG_IDEM_FLAG, localFlag);
     }
 
-    public int getAllowReprocessSeconds(String tags, int localValue) {
-        return getMsgFlagValue(tags, ALLOW_REPROCESS_SECONDS, localValue, Integer.class);
+    public int getAllowReprocessSeconds(String tag, int localValue) {
+        return getMsgFlagValue(tag, ALLOW_REPROCESS_SECONDS, localValue, Integer.class);
     }
 
     /**
      * 2025/6/11 01:54
      * 获取boolean类型的开关
      */
-    private boolean getMsgFlag(String tags, String key, boolean localFlag) {
+    private boolean getMsgFlag(String tag, String key, boolean localFlag) {
         try {
             RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
             if (entity == null) {
@@ -198,30 +180,30 @@ public class RocketMqSwitch {
             }
             JSONObject appNameFlag = entity.getAppNameFlag();
             if (null == appNameFlag) {
-                return getGroupValue(entity, tags, key, localFlag, Boolean.class);
+                return getGroupValue(entity, tag, key, localFlag, Boolean.class);
             }
             JSONObject jsonObject = appNameFlag.getJSONObject(appName);
             if (jsonObject == null || jsonObject.isEmpty()) {
-                return getGroupValue(entity, tags, key, localFlag, Boolean.class);
+                return getGroupValue(entity, tag, key, localFlag, Boolean.class);
             }
             Boolean aBoolean = jsonObject.getBoolean(key);
             if (aBoolean == null || aBoolean) {
-                return getGroupValue(entity, tags, key, localFlag, Boolean.class);
+                return getGroupValue(entity, tag, key, localFlag, Boolean.class);
             }
             return false;
         } catch (Exception e) {
-            log.warn("{},tags:{},key:{},localFlag:{}", e.getMessage(), tags, key, localFlag, e);
-            return localFlag;
+            log.warn("{},tag:{},key:{},localFlag:{}", e.getMessage(), tag, key, localFlag, e);
         }
+        return localFlag;
     }
 
 
-    private <T> T getGroupValue(RocketMqSwitchEntity entity, String tags, String key, T localVale, Class<T> tClass) {
+    private <T> T getGroupValue(RocketMqSwitchEntity entity, String tag, String key, T localVale, Class<T> tClass) {
         JSONObject group = entity.getGroup();
         if (group == null || group.isEmpty()) {
             return localVale;
         }
-        JSONObject tagObjet = group.getJSONObject(tags);
+        JSONObject tagObjet = group.getJSONObject(tag);
         if (tagObjet == null || tagObjet.isEmpty()) {
             return localVale;
         }
@@ -233,7 +215,7 @@ public class RocketMqSwitch {
      * 2025/6/11 01:54
      * 获取其他值的开关
      */
-    private <T> T getMsgFlagValue(String tags, String key, T localValue, Class<T> tClass) {
+    private <T> T getMsgFlagValue(String tag, String key, T localValue, Class<T> tClass) {
         try {
             RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
             if (entity == null) {
@@ -241,21 +223,21 @@ public class RocketMqSwitch {
             }
             JSONObject appNameFlag = entity.getAppNameFlag();
             if (null == appNameFlag) {
-                return getGroupValue(entity, tags, key, localValue, tClass);
+                return getGroupValue(entity, tag, key, localValue, tClass);
             }
             JSONObject jsonObject = appNameFlag.getJSONObject(appName);
             if (jsonObject == null || jsonObject.isEmpty()) {
-                return getGroupValue(entity, tags, key, localValue, tClass);
+                return getGroupValue(entity, tag, key, localValue, tClass);
             }
             T value = jsonObject.getObject(key, tClass);
             if (value == null) {
-                return getGroupValue(entity, tags, key, localValue, tClass);
+                return getGroupValue(entity, tag, key, localValue, tClass);
             }
             return value;
         } catch (Exception e) {
-            log.warn("{},tags:{},key:{},localFlag:{}", e.getMessage(), tags, key, localValue, e);
-            return localValue;
+            log.warn("{},tag:{},key:{},localFlag:{}", e.getMessage(), tag, key, localValue, e);
         }
+        return localValue;
     }
 
 }
