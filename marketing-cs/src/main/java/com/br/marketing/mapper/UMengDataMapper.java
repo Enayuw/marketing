@@ -9,8 +9,7 @@ import java.util.List;
 public interface UMengDataMapper extends UMengDataMapperBase{
 
     List<UMengData> selectDeviceAddList(@Param("localId") Long localId, @Param("apiCode") String apiCode,
-                                        @Param("searchStartTime") LocalDateTime searchStartTime, @Param("lastSearchId") Long lastSearchId,
-                                        @Param("searchSize") Integer searchSize);
+                                        @Param("lastSearchId") Long lastSearchId,@Param("searchSize") Integer searchSize);
 
     Integer updateDeviceAddStatus(@Param("idList") List<Long> idList,@Param("deviceAddStatus") Integer deviceAddStatus);
 

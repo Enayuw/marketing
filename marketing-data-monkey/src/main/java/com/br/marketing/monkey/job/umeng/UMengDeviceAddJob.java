@@ -6,6 +6,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.UMengData;
 import com.br.marketing.entity.UMengTimingTask;
@@ -24,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,37 +65,46 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
+            String dealDate = shardingContext.getJobParameter();
             List<String> uMengApiCodes = marketingCommonConfig.getApiCodeOfUMeng();
-            uMengApiCodes.forEach(this::atciton);
+            uMengApiCodes.forEach(apiCode -> action(apiCode,dealDate));
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.UMENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }
 
-    private void atciton(String apiCode) {
+    private void action(String apiCode,String dealDate) {
+        log.warn("TITLE:{},apiCode:{},dealDate:{}",TITLE,apiCode,dealDate);
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         LocalDateTime dayStartTime = LocalDate.now(zone).atStartOfDay();
+        LocalDateTime dayEndTime = LocalDate.now(zone).atTime(LocalTime.MAX);
+        if (StringUtils.isNotBlank(dealDate)) {
+            LocalDate date = LocalDate.parse(dealDate);
+            dayStartTime = date.atStartOfDay();
+            dayEndTime = date.atTime(LocalTime.MAX);
+        }
         //1、查询T日 b_local_file(list)处理完成 记录
-        List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime);
-        localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode,dayStartTime));
+        List<LocalFile> localFileList = localFileService.getLastDataByApiCode(apiCode,dayStartTime,dayEndTime);
+        localFileList.forEach(localFile -> dealSingleAction(localFile,apiCode));
     }
 
-    private void dealSingleAction(LocalFile localFile, String apiCode, LocalDateTime dayStartTime) {
+    private void dealSingleAction(LocalFile localFile, String apiCode) {
         log.warn("TITLE:{},localId:{},apiCode:{} 开始进行设备注册",TITLE,localFile.getId(),apiCode);
         //2、查询T日智能时机任务创建记录
-        UMengTimingTask timingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode,dayStartTime);
+        UMengTimingTask timingTask = timingTaskService.getTodayLastTask(localFile.getId(),apiCode);
         if (timingTask == null || !checkExpireTime(timingTask)) {
-            log.warn("localId:{},apiCode={} 今日智能时机任务不存在或任务刚创建不到5分钟 ",localFile.getId(),apiCode);
+            log.warn("TITLE:{},localId:{},apiCode={} 今日智能时机任务不存在或任务刚创建不到5分钟 ",TITLE,localFile.getId(),apiCode);
             return;
         }
         //3、查询未进行设备注册的 数据信息
         Long lastSearchId = 0L;
-        Integer searchSize = marketingCommonConfig.getUMengPageSearchSize();
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(marketingCommonConfig.getUMengThreadPool(),
-                marketingCommonConfig.getUMengThreadPool());
+        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                marketingCommonConfig.getUMengDeviceAddPool(),
+                marketingCommonConfig.getUMengDeviceAddPool());
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         while (true) {
-            List<UMengData> uMengDataList = uMengdataService.selectDeviceAddList(localFile.getId(),apiCode,dayStartTime,lastSearchId,searchSize);
+            List<UMengData> uMengDataList = uMengdataService.selectDeviceAddList(localFile.getId(),apiCode,
+                    lastSearchId,marketingCommonConfig.getUMengDeviceAddPageSize());
             if (CollectionUtils.isEmpty(uMengDataList)) {
                 break;
             }
@@ -106,8 +117,8 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     private void deviceAdd(List<UMengData> uMengDataList, UMengTimingTask timingTask,
                            ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList) {
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        actionPool.setCorePoolSize(marketingCommonConfig.getUMengDeviceAddPool());
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengDeviceAddPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processDeviceAdd(timingTask,uMengDataList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (throwable != null) {
@@ -119,7 +130,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     private Result processDeviceAdd(UMengTimingTask timingTask, List<UMengData> uMengDataList) {
         Result result = new Result().failure();
-        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, 200);
+        List<List<UMengData>> partitionList = ListUtils.partition(uMengDataList, marketingCommonConfig.getUMengDevicePartCount());
         for (List<UMengData> partitionItemList : partitionList) {
             Integer deviceAddStatus =-1;
             List<Long> idList = partitionItemList.stream().map(UMengData::getId).collect(Collectors.toList());

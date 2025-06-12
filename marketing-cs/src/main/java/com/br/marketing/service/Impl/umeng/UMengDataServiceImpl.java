@@ -18,8 +18,8 @@ public class UMengDataServiceImpl implements IUMengDataService {
     private UMengDataMapper uMengDataMapper;
 
     @Override
-    public List<UMengData> selectDeviceAddList(Long localId, String apiCode, LocalDateTime searchStartTime, Long lastSearchId, Integer searchSize) {
-        return uMengDataMapper.selectDeviceAddList(localId,apiCode,searchStartTime,lastSearchId,searchSize);
+    public List<UMengData> selectDeviceAddList(Long localId, String apiCode, Long lastSearchId, Integer searchSize) {
+        return uMengDataMapper.selectDeviceAddList(localId,apiCode,lastSearchId,searchSize);
     }
 
     @Override

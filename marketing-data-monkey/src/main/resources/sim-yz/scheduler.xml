@@ -618,7 +618,7 @@
 
     <job:simple id="【monkey】-UMengTimingTaskCreateJob"
                 class="com.br.marketing.monkey.job.umeng.UMengTimingTaskCreateJob"
-                cron="0 0/10 * * * ? "
+                cron="0 0/5 * * * ?"
                 description="友盟智能时机任务创建"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -634,7 +634,7 @@
 
     <job:simple id="【monkey】-UMengDeviceAddJob"
                 class="com.br.marketing.monkey.job.umeng.UMengDeviceAddJob"
-                cron="0 0 0/5 * * ? "
+                cron="0 0/10 * * * ?"
                 description="友盟智能时机设备注册"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -650,7 +650,7 @@
 
     <job:simple id="【monkey】-UMengCallPolicyJob"
                 class="com.br.marketing.monkey.job.umeng.UMengCallPolicyJob"
-                cron="0 0 16 * * ?"
+                cron="0 0/5 10-17 * * ?"
                 description="友盟-推决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

@@ -106,7 +106,7 @@ public class LocalFileServiceImpl implements LocalFileService {
     }
 
     @Override
-    public List<LocalFile> getLastDataByApiCode(String apiCode, LocalDateTime dayStartTime) {
-        return localFileMapper.getLastDataByApiCode(apiCode,dayStartTime);
+    public List<LocalFile> getLastDataByApiCode(String apiCode, LocalDateTime dayStartTime,LocalDateTime dateEndTime) {
+        return localFileMapper.getLastDataByApiCode(apiCode,dayStartTime,dateEndTime);
     }
 }

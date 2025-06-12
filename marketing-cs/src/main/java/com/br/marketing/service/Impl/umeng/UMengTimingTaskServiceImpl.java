@@ -21,8 +21,8 @@ public class UMengTimingTaskServiceImpl implements IUMengTimingTaskService {
     }
 
     @Override
-    public UMengTimingTask getTodayLastTask(Long localId, String apiCode, LocalDateTime dayStartTime) {
-        return umengTimingTaskMapper.getTodayLastTask(localId,apiCode,dayStartTime);
+    public UMengTimingTask getTodayLastTask(Long localId, String apiCode) {
+        return umengTimingTaskMapper.getTodayLastTask(localId,apiCode);
     }
 
     @Override

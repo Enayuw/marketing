@@ -1,5 +1,7 @@
 package com.br.marketing.rule.xiecheng;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
@@ -9,16 +11,17 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 通话明细推送携程(3710058/3710078)
@@ -41,6 +44,9 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO bo = (CallRecordBO) transmitFact;
@@ -51,7 +57,6 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         xieChengData.setActionType("IVR");
         xieChengDataDTO.setInitId(bo.getId());
         xieChengData.setSha256Tel(bo.getCaseNum());
-
         // 保存通话明细扩展字段
         xieChengData.setExtend(bo.getDetail().getUserProperties());
         return xieChengDataDTO;
@@ -67,8 +72,11 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
             }
             if (callRecordBO.getDetail() != null && callStatusIsBlack.contains(callRecordBO.getDetail().getCallStatus())) {
                 String tcid = tableCreateService.getTcId(callRecordBO.getApiCode());
+                Map<String, JSONObject> pushCondition = marketingCommonConfig.getXieChengCallPushCondition();
+                JSONObject condition = pushCondition.get(callRecordBO.getApiCode());
+                JSONArray isBlackApiCodes = condition.getJSONArray("isBlackApiCodes");
                 MarketingTransferSyncUser xcTransferTodayNoAdDataByOnlyBlack = marketingTransferSyncUserMapper.getXcTransferTodayNoAdDataByOnlyBlack(
-                        tcid, callRecordBO.getCaseNum(), callRecordBO.getApiCode());
+                        tcid, callRecordBO.getCaseNum(), isBlackApiCodes);
                 if (xcTransferTodayNoAdDataByOnlyBlack != null) {
                     keepRecord(callRecordBO, String.format("CallStatus状态是：%d,且当天转化isBlack='1'", callRecordBO.getDetail().getCallStatus()));
                     return false;
@@ -94,19 +102,16 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         return null;
     }
 
-
     private void keepRecord(CallRecordBO bo, String errorMsg) {
         XieChengData xieChengData = new XieChengData();
         xieChengData.setApiCode(bo.getApiCode());
         xieChengData.setActionType("IVR");
         xieChengData.setSha256Tel(bo.getCaseNum());
-
         xieChengData.setCreateTime(new Date());
         xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         xieChengData.setLocalId(bo.getId());
         xieChengData.setPushStatus(1);
         xieChengData.setType("1");
-
         xieChengData.setDataMessage(errorMsg);
         xieChengData.setStatus(2);
         xieChengDataMapper.insertSelective(xieChengData);

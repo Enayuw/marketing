@@ -126,5 +126,8 @@
             <if test="startTime !=null">
                 <![CDATA[ AND create_time >=#{startTime} ]]>
             </if>
+            <if test="endTime !=null">
+                <![CDATA[ AND create_time <= #{endTime} ]]>
+            </if>
     </select>
 </mapper>
