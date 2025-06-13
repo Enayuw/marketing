@@ -32,6 +32,12 @@ public class TransferFieldProcessByQiFuFactory implements TransferFieldProcessFa
     MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
+    public Boolean isFormat() {
+        return true;
+    }
+
+
+    @Override
     public void fieldProcess(MarketingTransferSyncUser transferSyncUser, TransferDataItemDTO transferDataItemDTO) {
         if(StringUtils.isNotBlank(transferSyncUser.getCustNum()) && transferSyncUser.getCustNum().length() >= 32){
             String initCustNum = transferSyncUser.getCustNum();
