@@ -18,7 +18,7 @@ public class DataExportTaskDTO {
     private String taskName;
 
     @ApiModelProperty(value = "数据源名称")
-    private String dataSource;
+    private int dataSource;
 
     @ApiModelProperty(value = "导出表头(逗号分隔)")
     private String exportHeaders;

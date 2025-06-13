@@ -1,6 +1,7 @@
 package com.br.marketing.service.carclue.web.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
@@ -9,14 +10,15 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.dto.DataExportTaskDTO;
 import com.br.marketing.dto.ExecuteCarClueDTO;
-import com.br.marketing.entity.CarClueExecuteRecording;
-import com.br.marketing.entity.CarClueInfo;
-import com.br.marketing.entity.CarClueManageConfigExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.enums.DataSourceEnum;
 import com.br.marketing.mapper.CarClueExecuteRecordingMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.mapper.CarClueManageConfigMapper;
+import com.br.marketing.mapper.DataExportTaskMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.carclue.clueenums.CarClueCompleteStatusEnum;
 import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
@@ -26,10 +28,12 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -53,6 +57,9 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     EntityOptServiceImpl entityOptService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private DataExportTaskMapper dataExportTaskMapper;
 
     @Override
     public PageResultReturn getReportList(CarClueReportDTO request) {
@@ -250,6 +257,185 @@ public class CarClueReportServiceImpl implements CarClueReportService {
             return null;
         }
         return str.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    }
+
+    @Override
+    public ApiResult<Boolean> createTask(DataExportTaskDTO dto, MarketingUserDetail user) {
+        log.info("开始创建数据导出任务，参数：{}, 用户：{}", dto, user.getUserName());
+
+        // 1. 参数验证
+        if (dto == null) {
+            return new ApiResult<Boolean>().fail(false, "DTO参数不能为空");
+        }
+        Integer dataSourceCode = dto.getDataSource();
+        if (ObjectUtil.isEmpty(dataSourceCode)) {
+            return new ApiResult<Boolean>().fail(false, "数据源不能为空");
+        }
+        // 2. 验证数据源是否有效
+        DataSourceEnum dataSourceEnum = getDataSourceEnum(dto.getDataSource());
+        if (dataSourceEnum == null) {
+            return new ApiResult<Boolean>().fail(false, "无效的数据源code");
+        }
+        // 3. 处理任务名称 - 如果为空则生成默认名称
+        String taskName = dto.getTaskName();
+        taskName = generateDefaultTaskName(taskName, dataSourceCode);
+        // 4. 检查任务名称是否重复
+        if (isTaskNameExists(taskName)) {
+            return new ApiResult<Boolean>().fail(false, "任务名称已存在");
+        }
+
+        dto.setTaskName(taskName);
+        // 5. DTO转换为Entity
+        DataExportTask task = convertToEntity(dto, user, dataSourceEnum);
+
+        // 6. 保存到数据库
+        dataExportTaskMapper.insertSelective(task);
+        return new ApiResult<Boolean>().success(true);
+    }
+
+    /**
+     * 根据前端传入的code获取数据源枚举
+     * @param dataSourceCode 前端传入的数据源code（数字字符串）
+     * @return 数据源枚举，如果不存在返回null
+     */
+    private DataSourceEnum getDataSourceEnum(Integer dataSourceCode) {
+        try {
+            return DataSourceEnum.getByCode(dataSourceCode);
+        } catch (NumberFormatException e) {
+            log.error("数据源code格式错误：{}", dataSourceCode);
+            return null;
+        }
+    }
+
+    /**
+     * 生成默认任务名称
+     * @param taskName 原始任务名称
+     * @param dataSourceCode 数据源代码
+     * @return 生成的任务名称
+     */
+    private String generateDefaultTaskName(String taskName, Integer dataSourceCode) {
+        try {
+            if (dataSourceCode == 1) {
+                // dataSource=1: 返回 {时间}_序列号 的任务名称
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                String timeStr = sdf.format(new Date());
+                int sequence = getNextSequenceForTimeBasedName(timeStr);
+                return timeStr + "_" + String.format("%03d", sequence);
+
+            } else {
+                // 其他数据源，如果taskName为空，返回默认名称
+                if (StringUtils.isBlank(taskName)) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                    return "导出任务_" + sdf.format(new Date());
+                }
+                return taskName;
+            }
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BAOXIAN_SERVICEERROR.getCode(),
+                    "创建默认任务名错误！错误信息：" + ex.getMessage()), ex);
+            return "导出任务_" + System.currentTimeMillis();
+        }
+    }
+
+    /**
+     * 检查任务名称是否已存在
+     */
+    private boolean isTaskNameExists(String taskName) {
+        try {
+            DataExportTaskExample example = new DataExportTaskExample();
+            example.createCriteria()
+                    .andTaskNameEqualTo(taskName)
+                    .andStatusEqualTo(1);
+
+            List<DataExportTask> existingTasks = dataExportTaskMapper.selectByExample(example);
+            return !CollectionUtils.isEmpty(existingTasks);
+        } catch (Exception e) {
+            log.error("检查任务名称是否存在时异常", e);
+            return true;
+        }
+    }
+
+    /**
+     * 获取任务名称的下一个序列号
+     * @return 下一个序列号
+     */
+    private int getNextSequenceForTimeBasedName(String timeStr) {
+        try {
+            DataExportTaskExample example = new DataExportTaskExample();
+            example.createCriteria()
+                    .andTaskNameLike(timeStr + "_%")
+                    .andStatusEqualTo(1);
+
+            List<DataExportTask> existingTasks = dataExportTaskMapper.selectByExample(example);
+
+            if (CollectionUtils.isEmpty(existingTasks)) {
+                return 1;
+            }
+
+            // 找出最大的序列号
+            int maxSequence = 0;
+            for (DataExportTask task : existingTasks) {
+                String name = task.getTaskName();
+                if (name != null && name.startsWith(timeStr + "_")) {
+                    String sequencePart = name.substring((timeStr + "_").length());
+                    try {
+                        int sequence = Integer.parseInt(sequencePart);
+                        maxSequence = Math.max(maxSequence, sequence);
+                    } catch (NumberFormatException e) {
+                        // 忽略无法解析的序列号
+                    }
+                }
+            }
+
+            return maxSequence + 1;
+
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BAOXIAN_SERVICEERROR.getCode(),
+                    "获取时间基础任务名称序列号时异常！错误信息：" + ex.getMessage()), ex);
+            return 1;
+        }
+    }
+
+    /**
+     * DTO转换为Entity
+     */
+    private DataExportTask convertToEntity(DataExportTaskDTO dto, MarketingUserDetail user, DataSourceEnum dataSourceEnum) {
+        DataExportTask task = new DataExportTask();
+
+        // 基本信息
+        task.setTaskName(dto.getTaskName());
+        task.setDataSource(dataSourceEnum.getSourceCode());
+        task.setExportHeaders(dto.getExportHeaders());
+        task.setEstimatedRows(dto.getEstimatedRows());
+
+        // 文件名模板：如果为空则生成默认模板
+        String fileNameTemplate = StringUtils.isNotBlank(dto.getFileNameTemplate())
+                ? dto.getFileNameTemplate()
+                : dto.getTaskName() + ".txt";
+        task.setFileNameTemplate(fileNameTemplate);
+
+        // JSON字段序列化
+        if (!CollectionUtils.isEmpty(dto.getFieldMapping())) {
+            task.setFieldMapping(JSON.toJSONString(dto.getFieldMapping()));
+        }
+
+        if (!CollectionUtils.isEmpty(dto.getQueryCondition())) {
+            task.setQueryCondition(JSON.toJSONString(dto.getQueryCondition()));
+        }
+
+        // 默认状态：启用
+        task.setStatus(1);
+
+        // 创建人信息
+        task.setCreateBy(user.getUserName());
+        task.setUpdateBy(user.getUserName());
+
+        // 时间信息
+        Date now = new Date();
+        task.setCreateTime(now);
+        task.setUpdateTime(now);
+
+        return task;
     }
 
 }
