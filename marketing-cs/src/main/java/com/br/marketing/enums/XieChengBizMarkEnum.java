@@ -4,7 +4,7 @@ public enum XieChengBizMarkEnum {
 
     CPA("CPA"),
     CPS("CPS"),
-    COMMON("");
+    COMMON("common");
 
     XieChengBizMarkEnum(String name){
         this.name = name;

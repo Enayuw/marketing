@@ -75,7 +75,7 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
         List<Exception> exceptions = new ArrayList<>();
         for (Future<String> future : futures) {
             try {
-                String message = future.get(10, TimeUnit.SECONDS);
+                String message = future.get(60, TimeUnit.SECONDS);
                 messages.add(message);
             } catch (InterruptedException e) {
                 for (Future<String> f : futures) {
@@ -91,6 +91,7 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
             }
         }
         if (messages.size() != handlers.size() || !exceptions.isEmpty()) {
+            //todo 告警 要知道哪个handler异常
             throw new RuntimeException("任务执行失败");
         }
         messages = messages.stream()

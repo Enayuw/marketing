@@ -61,22 +61,22 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         long start = System.currentTimeMillis();
         CallRecord callRecord;
         XieChengData xieChengData;
-        String lockKey;
-        String lockValue;
+        String lockKey = null;
+        String lockValue = null;
         try {
             //1.查询【b_call_record】
             callRecord = callRecordMapper.selectByPrimaryKey(sourceId);
             if (callRecord == null) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                         , "携程上报异常，未查询到通话明细，callRecoordId=" + sourceId));
-                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
             }
             //2.插入【b_xiecheng_data】
             xieChengData = keepRecord(callRecord);
         } catch (DuplicateKeyException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，消息重复消费入库，callRecoordId=" + sourceId));
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，通话明细查询或携程上报插入异常，消息将退回队列中，callRecoordId=" + sourceId));
@@ -88,11 +88,6 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             //4.创建上下文
             XieChengReportContext context = XieChengReportContext.create(callRecord, xieChengData, tcId);
             JSONObject condition = marketingCommonConfig.getXieChengCallPushCondition().get(callRecord.getApiCode());
-            if (condition == null) {
-                context.setError("该apiCode未配置规则数据");
-                updateResult(context.getResultData());
-                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-            }
             context.setPushConfig(XieChengReportContext.PushConfig.fromJson(condition));
             //5.获取Redis锁
             lockKey = RedisKeyConstant.pushXieChengLock + ":" + context.getPushConfig().getConditionKey() + context.getSha256Tel();
@@ -122,13 +117,20 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             context.getResultData().setClickId(clickId);
             context.getResultData().setDataMessage(result.getMessage());
             updateResult(context.getResultData());
-            redisChgService.unlock(lockKey, lockValue);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                     "携程上报外层异常，callRecoordId=" + sourceId + ",errorMessage=" + e.getMessage()), e);
+        } finally {
+            if (lockKey != null && lockValue != null) {
+                try {
+                    redisChgService.unlock(lockKey, lockValue);
+                } catch (Exception e) {
+                    log.warn("携程上报解锁异常，lockKey={}, lockValue={}", lockKey, lockValue, e);
+                }
+            }
+            log.warn("携程上报消费消息{}耗时：{}ms", sourceId, (System.currentTimeMillis() - start));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
-        log.warn("携程上报消费消息" + sourceId + "耗时："+ (System.currentTimeMillis() - start));
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
     private XieChengData keepRecord(CallRecord callRecord) {
@@ -147,8 +149,8 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         try {
             xieChengDataMapper.insertSelective(xieChengData);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                    , "携程上报写入b_xiecheng_data异常！"), e);
+            //todo 打下日志即可
+            log.warn("携程上报写入b_xiecheng_data异常！");
             DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
             dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
                 @Override
