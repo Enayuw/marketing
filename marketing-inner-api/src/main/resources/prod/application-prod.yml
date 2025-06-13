@@ -144,19 +144,6 @@ datasource:
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
-    marketing_link:
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_link?useUnicode=true&characterEncoding=UTF-8
-      username: ENC(mysql-prod-ai-marketing-link-user)
-      password: ENC(mysql-prod-ai-marketing-link-password)
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      hikari:
-        minimum-idle: 10 # 最小空闲连接
-        max-pool-size: 80 # 最大连接
-        connection-timeout: 30000 # 从连接池获取连接的超时时间
-        idle-timeout: 30000 # 连接空闲时间
-        keepalive-time: 30000 # 空闲连接的探活频率 小于max-lefetime
-        max-lifetime: 60000 # 连接在连接池中的生命周期时间
-        connection-test-query: select 1 # 每次获取连接时都会校验连接的可用性
 eureka:
   client:
     service-url.defaultZone: http://192.168.21.20:18000/eureka/,http://192.168.21.29:18000/eureka/
