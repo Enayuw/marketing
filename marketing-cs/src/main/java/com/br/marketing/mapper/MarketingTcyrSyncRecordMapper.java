@@ -21,10 +21,12 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
 
     List<Long> selectLastUserRecordIdList(@Param("apiCode")String apiCode,@Param("userKeyList") List<String> userKeyList);
 
-    Integer updageTcyrRecordDownStatus(@Param("batchNo") String batchNo, @Param("downStatus") Integer downStatus);
+    Integer updateTcyrRecordDownStatus(@Param("batchNo") String batchNo, @Param("downStatus") Integer downStatus);
 
 
     List<Map<String, String>> selectLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKeyList") List<String> userKeyList);
+
+    Map<String, String> selectSingleLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKey")String userKey);
 
     Map<String, String> selectSingleLastCustNumCell(@Param("apiCode") String apiCode,@Param("userKey")String userKey);
 }

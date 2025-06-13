@@ -16,7 +16,8 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * @Description 同城易融downFile拉取文件,txt信息数据入库
+ * @Description 同城易融拉取文件,txt信息数据入库(b_marketing_tcyr_sync_file)
+ * Tc***ShardJob 同程优化速率新增的job
  * @Author zhiyong.zhang
  * @CreateTime 2025/06/12
  */
@@ -24,7 +25,7 @@ import java.util.List;
 @Slf4j
 public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
 
-    private final static String TITLE = "【同程易融-DownFile任务】";
+    private final static String TITLE = "【同程易融-downFileShard任务】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -40,25 +41,25 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
         Long start = System.currentTimeMillis();
         List<Integer> shardingItems = shardingContext.getShardingItems();
         String apiCode = marketingCommonConfig.getTcyrApiCode();
+        log.warn("{}调度开始,apiCode:{},分片:{}",TITLE,apiCode,shardingItems);
         try {
-            log.warn("{}调度开始,apiCode:{},分片:{}",TITLE,apiCode,shardingItems);
             atciton(apiCode);
         }catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE), e);
         }
         Long end = System.currentTimeMillis();
         log.warn("{}调度结束,apiCode:{},耗时:{},分片:{}",TITLE,apiCode,(end - start),shardingItems);
-
     }
 
     private void atciton(String apiCode) {
         List<MarketingTcyrSyncRecord> syncRecordList =
                 tcyrSyncRecordMapper.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
-            tcyrSyncRecordMapper.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
+            tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
             Result syncResult =downFileService.dealTcyrTxtFileSync(syncRecord);
             if (syncResult != null  && syncResult.isSuccess()) {
-                tcyrSyncRecordMapper.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
+                tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
             }
         }
     }

@@ -29,12 +29,12 @@ public class MarketingTcyrSyncFile {
     private String filePath;
 
     /**
-     * 状态 0-成功 1-失败
+     * 状态 0-异常数据 1-正常数据
      */
     private Integer status;
 
     /**
-     * 文件处理入库状态 -1-失败 0-未完成 1-处理中 2-完成
+     * 文件处理入库状态 -1-失败 0-未处理 1-处理中 2-处理完成
      */
     private Integer dealStatus;
 
@@ -57,6 +57,11 @@ public class MarketingTcyrSyncFile {
      * txt文件总行数
      */
     private Long totalCount;
+
+    /**
+     * 入库成功的总条数
+     */
+    private Long successCount;
 
     public Long getId() {
         return id;
@@ -144,5 +149,13 @@ public class MarketingTcyrSyncFile {
 
     public void setTotalCount(Long totalCount) {
         this.totalCount = totalCount;
+    }
+
+    public Long getSuccessCount() {
+        return successCount;
+    }
+
+    public void setSuccessCount(Long successCount) {
+        this.successCount = successCount;
     }
 }

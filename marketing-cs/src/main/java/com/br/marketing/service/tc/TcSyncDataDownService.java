@@ -20,6 +20,6 @@ public interface TcSyncDataDownService {
     Result dealTcyrFileSync(MarketingTcyrSyncRecord syncRecord);
 
     //修改单个down的处理结果
-    Integer updageTcyrRecordDownStatus(String batchNo, Integer status);
+    Integer updateTcyrRecordDownStatus(String batchNo, Integer status);
 
 }

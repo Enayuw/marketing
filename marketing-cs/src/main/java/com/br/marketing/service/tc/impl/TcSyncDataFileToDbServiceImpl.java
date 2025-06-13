@@ -1,27 +1,36 @@
 package com.br.marketing.service.tc.impl;
 
-import com.alibaba.fastjson2.JSONObject;
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.SftpClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
+import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
+import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
-import com.br.marketing.service.tc.TcSyncDataDownService;
+import com.br.marketing.service.tc.TcSyncDataDownFileService;
+import com.br.marketing.service.tc.TcSyncDataFileToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -30,16 +39,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 同城易融拉取文件入库-Service实现
+ * 同城易融拉取GZ文件 TXT信息入库-Service实现
  *
  * @author zhiyong.zhang
  * @date 2024/04/21
  */
 @Service
 @Slf4j
-public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
+public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService {
 
-    private static final String TITLE = "【同程易融-DownToDb任务】";
+    private final static String TITLE = "【同程易融-DownFile任务】";
 
     private Integer PARTITION_SIZE = 1000;
 
@@ -52,113 +61,83 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
     @Resource
     private MarketingTcyrSyncRecordMapper tcPullGzFileMapper;
 
-    @Value("${otherConfig.warning.sftpHost:00}")
-    private String sftpHost;
-    @Value("${otherConfig.warning.sftpPort:00}")
-    private Integer sftpPort;
-    @Value("${otherConfig.warning.sftpUser:00}")
-    private String sftpUsername;
-    @Value("${otherConfig.warning.sftpPwd:00}")
-    private String sftpPwd;
+    @Resource
+    private MarketingTcyrSyncFileMapper tcyrSyncFileMapper;
+
+    @Autowired
+    RedisChgService redisChgService;
+
 
     @Override
-    public List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode,Integer status) {
-        return tcPullGzFileMapper.searchTcyrSyncList(apiCode,status);
-    }
-
-
-    /**
-     *  具体的下载文件->数据入库->文件备份操作
-     *  //TODO 文件上传SFTP,SFTP相关的服务器/账号/路径 都通过speed配置
-     * @param syncRecord
-     * @return
-     */
-    @Override
-    public Result dealTcyrFileSync(MarketingTcyrSyncRecord syncRecord) {
-        Result result = new Result<>().failure();
-        Long totalSuccess =0L;
-        try{
-            String dataInfo = syncRecord.getData();
-            if (StringUtils.isEmpty(dataInfo)) {
-                log.warn("apiCode:{},batchNo:{} 下载数据为空",syncRecord.getApiCode(),syncRecord.getBatchNo());
-                return result.failure();
+    public void process(String apiCode,List<Integer> shardingItems) {
+        for (;;) {
+            if (!marketingCommonConfig.getTcTxtFileShardConfig().getBoolean("jobSwitch")) {
+                break;
             }
-            JSONObject dataJson = JSONObject.parseObject(dataInfo);
-            String fileUrl = dataJson.getString("fileUrl");
-            if (StringUtils.isEmpty(fileUrl)) {
-                log.warn("apiCode:{},batchNo:{},fileUrl:{} 下载链接为空",syncRecord.getApiCode(),syncRecord.getBatchNo(),fileUrl);
-                return result.failure();
+            // 1、查询单条未处理的txt
+            MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectSyncFile(apiCode,0);
+            if (ObjectUtil.isEmpty(tcyrSyncFile)) {
+                break;
             }
-            //文件下载
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-            String dirPath = getPath() +"tongcheng_customize_upload_data/"+yyyyMMdd+"/";
-            String gzFileName= "tcyr_"+syncRecord.getBatchNo()+".csv.gz";
-            String gzFilePath = dirPath.concat(gzFileName);
-            Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
-            if (callFileResult == null || !callFileResult.isSuccess()) {
-                log.warn("{},batchNo:{} 下载gz包失败",TITLE,syncRecord.getBatchNo());
-                return result.failure();
+            String lockKey = RedisKeyConstant.prefix.concat("tcyr_sync:").
+                    concat(apiCode).concat(":").concat(tcyrSyncFile.getBatchNo()+"_"+tcyrSyncFile.getFileName());
+            String lockValue = UUID.randomUUID().toString();
+            try {
+                // 2.对txt文件名加锁(->2.1获取锁成功继续... 2.2获取锁失败 continue下一个循环)
+                //2.1抢锁
+                redisChgService.lock(lockKey, lockValue);
+                //2.2处理txt数据入库
+                parseCsvFileToDb(tcyrSyncFile.getId(), tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(),
+                        tcyrSyncFile.getFileName(),tcyrSyncFile.getFilePath(),shardingItems);
+                //2.3释放锁
+                redisChgService.unlock(lockKey, lockValue);
+            }catch (Exception e) {
+                // TODO 单个txt处理异常时 是抛出异常终止任务 or 继续进行
+                // 4、释放锁(finally)
+                redisChgService.unlock(lockKey, lockValue);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                        e.getMessage(), TITLE), e);
             }
-            log.warn("{},batchNo:{} 下载gz包成功",TITLE,syncRecord.getBatchNo());
-
-
-            // 解压
-            File gzFile = new File(gzFilePath);
-            if (!gzFile.exists() || !gzFile.getName().contains(".gz")) {
-                log.warn("{}_batchNo:{} 对应gz文件不存在",TITLE,syncRecord.getBatchNo());
-                return result.failure();
-            }
-            String csvFilePath = dirPath+"/csv/"+syncRecord.getBatchNo()+"/";
-            ZipUtils.unZip(gzFile, csvFilePath, "");
-            log.warn(TITLE + "解压zip包成功");
-            File csvDir = new File(csvFilePath);
-            File[] files = csvDir.listFiles();
-            if (files == null) {
-                log.warn(TITLE + "解压csv文件不存在");
-                return result.failure();
-            }
-            //文件解析入库
-            for (File csvFile : files) {
-                log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
-                Result parseResult = parseCsvFileToDb(syncRecord.getApiCode(),syncRecord.getBatchNo(),csvFile);
-                Long successLine = Long.parseLong(parseResult.getData().toString());
-                log.warn("{} csv文件入db,batchNo:{},csvName{} 执行完成,successCount:{}",TITLE,syncRecord.getBatchNo(),csvFile.getName(),successLine);
-                totalSuccess += successLine;
-            }
-            result = result.success().setDate(totalSuccess);
-        }catch (Exception e){
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
-        return result;
     }
 
-    /**
-     * csvFile文件入库
-     * @param apiCode
-     * @param batchNo
-     * @param csvFile
-     * @return
-     */
-    private Result parseCsvFileToDb(String apiCode, String batchNo, File csvFile) {
-        Result result = new Result().failure();
-        Long successLine =0L;
-        try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
-            //批处理数据
-            List<String> lineBuffer = new ArrayList<>();
+    private void parseCsvFileToDb(Long id, String apiCode, String batchNo, String fileName, String filePath,List<Integer> shardingItems) {
+        Long start = System.currentTimeMillis();
+        log.warn("TITLE:{} csv文件入db,batchNo:{},csvName:{},分片:{} 开始执行", TITLE,batchNo,fileName,shardingItems);
+        // 1、(第一步查询极端情况查到同一个节点)--> 重新获取db数据, deal_status=1  表明其它线程正在处理中，则返回，执行下一个文件
+        MarketingTcyrSyncFile syncFileItem = tcyrSyncFileMapper.selectByPrimaryKey(id);
+        if (!ObjectUtil.isEmpty(syncFileItem) && syncFileItem.getDealStatus() == 1) {
+            log.warn("TITLE:{} csv文件入db,batchNo:{},csvName:{} 已有线程在处理...",TITLE,batchNo,fileName);
+        }
+        syncFileItem.setDealStatus(1);
+        tcyrSyncFileMapper.updateByPrimaryKey(syncFileItem);
 
-            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(10, 10);
+        // 2、判断文件存在
+        File txtFile = new File(filePath);
+        if (!txtFile.exists()) {
+            log.warn("TITLE:{} csv文件入db,batchNo:{},csvName:{},csvPath:{} 文件不存在",TITLE,batchNo,fileName,filePath);
+        }
+        // 3、txt文件解析入库
+        Long successLine = 0L;
+        try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
+            //3.1批处理数据
+            List<String> lineBuffer = new ArrayList<>();
+            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                    marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
+                    marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool")
+            );
             List<CompletableFuture<Result>> futureList = new ArrayList<>();
             List<Long> resultList = Collections.synchronizedList(new ArrayList<>(20));
-            PARTITION_SIZE = marketingCommonConfig.getTcGzResultPartitionSize();
             String line;
             Long totalLine = 0L;
             while ((line = reader.readLine()) != null) {
+                PARTITION_SIZE = marketingCommonConfig.getTcTxtFileShardConfig().getInteger("partSize");
                 lineBuffer.add(line);
                 if (lineBuffer.size() >= PARTITION_SIZE) {
                     List<String> lineList = new ArrayList<>();
                     lineList.addAll(lineBuffer);
                     totalLine += lineBuffer.size();
-                    processList(apiCode, batchNo, lineList, actionPool, futureList, resultList);
+                    processList(apiCode,batchNo,lineList,actionPool,futureList,resultList);
                     lineBuffer.clear();
                 }
             }
@@ -167,31 +146,30 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 List<String> lineList = new ArrayList<>();
                 lineList.addAll(lineBuffer);
                 totalLine += lineBuffer.size();
-                processList(apiCode, batchNo, lineList, actionPool, futureList, resultList);
-
+                processList(apiCode,batchNo,lineList,actionPool,futureList,resultList);
             }
-
             CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
-            log.warn(TITLE + "all process complete");
-
             for (Long successCount : resultList) {
                 successLine += successCount;
             }
-            log.warn(TITLE + "csvFile:{}, totalLine: {}, successLine: {}", csvFile.getName(),totalLine, successLine);
-            result = result.success().setDate(successLine);
+            //4、修改txt完成状态、总成功条数
+            syncFileItem.setDealStatus(2);
+            syncFileItem.setTotalCount(totalLine);
+            tcyrSyncFileMapper.updateByPrimaryKey(syncFileItem);
             shutdownThreadPool(actionPool);
-        }catch (IOException e) {
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
-            return result.failure();
+            log.warn("TITLE:{} csv文件入db完成,batchNo:{},csvName:{},分片:{},totalCount:{},successCount:{},执行时间:{}",
+                    TITLE,batchNo,fileName,shardingItems,totalLine,successLine,System.currentTimeMillis()-start);
+        } catch (IOException e) {
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
-        return result;
-
     }
 
-    private Result processList(String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
+
+    private Result processList(String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool,
+                               List<CompletableFuture<Result>> futureList, List<Long> resultList) {
         Result result = new Result().failure();
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        actionPool.setCorePoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
         futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, lineList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {
@@ -283,7 +261,6 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
         return result.success().setDate(dataList);
     }
 
-
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
         log.warn(TITLE + "shutdownThreadPool开始");
         long taskCount = -1;
@@ -304,16 +281,4 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }
-
-
-    public String getPath() {
-        String nfsPath = marketingCommonConfig.getNfsPath();
-        return StringUtils.isBlank(nfsPath) ? "/opt/data/inloan/download/marketing/" : nfsPath;
-    }
-
-    @Override
-    public Integer updateTcyrRecordDownStatus(String batchNo, Integer status) {
-        return tcPullGzFileMapper.updateTcyrRecordDownStatus(batchNo,status);
-    }
-
 }

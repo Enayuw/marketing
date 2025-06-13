@@ -13,6 +13,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="total_count" property="totalCount" jdbcType="BIGINT" />
+    <result column="success_count" property="successCount" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -74,7 +75,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, batch_no, file_name, file_path, `status`, deal_status, is_del, create_time, 
-    update_time, total_count
+    update_time, total_count, success_count
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSyncFileExample" >
     select
@@ -113,11 +114,11 @@
     insert into b_marketing_tcyr_sync_file (api_code, batch_no, file_name, 
       file_path, `status`, deal_status, 
       is_del, create_time, update_time, 
-      total_count)
+      total_count, success_count)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
       #{filePath,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{dealStatus,jdbcType=INTEGER}, 
       #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{totalCount,jdbcType=BIGINT})
+      #{totalCount,jdbcType=BIGINT}, #{successCount,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -155,6 +156,9 @@
       <if test="totalCount != null" >
         total_count,
       </if>
+      <if test="successCount != null" >
+        success_count,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -186,6 +190,9 @@
       </if>
       <if test="totalCount != null" >
         #{totalCount,jdbcType=BIGINT},
+      </if>
+      <if test="successCount != null" >
+        #{successCount,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -231,6 +238,9 @@
       <if test="record.totalCount != null" >
         total_count = #{record.totalCount,jdbcType=BIGINT},
       </if>
+      <if test="record.successCount != null" >
+        success_count = #{record.successCount,jdbcType=BIGINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -248,7 +258,8 @@
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      total_count = #{record.totalCount,jdbcType=BIGINT}
+      total_count = #{record.totalCount,jdbcType=BIGINT},
+      success_count = #{record.successCount,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -286,6 +297,9 @@
       <if test="totalCount != null" >
         total_count = #{totalCount,jdbcType=BIGINT},
       </if>
+      <if test="successCount != null" >
+        success_count = #{successCount,jdbcType=BIGINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -300,7 +314,8 @@
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      total_count = #{totalCount,jdbcType=BIGINT}
+      total_count = #{totalCount,jdbcType=BIGINT},
+      success_count = #{successCount,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

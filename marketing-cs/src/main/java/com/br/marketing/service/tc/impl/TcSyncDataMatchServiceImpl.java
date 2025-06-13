@@ -1,8 +1,10 @@
 package com.br.marketing.service.tc.impl;
 
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
@@ -13,6 +15,7 @@ import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -36,8 +39,6 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
     private Integer PARTITION_SIZE = 1000;
 
-    @Resource
-    private TcServiceClient tcServiceClient;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -48,6 +49,10 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
     @Resource
     private MarketingTcyrSyncMapper tcyrSyncMapper;
+
+
+    @Autowired
+    RedisChgService redisChgService;
 
     @Override
     public List<MarketingTcyrSync> selectUnMatchSyncList(String apiCode,Long lastSearchId, Integer searchSize) {
@@ -81,7 +86,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     public void processUnMatchSingleData(String apiCode, MarketingTcyrSync tcyrSync) {
         try {
             tcyrSync.setIsMatch(0);
-            Map<String,String> userCellMap = tcyrSyncRecordMapper.selectSingleLastCustNumCell(apiCode,tcyrSync.getUserKey());
+            Map<String,String> userCellMap = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode,tcyrSync.getUserKey());
             if (userCellMap != null) {
                 String custNum = userCellMap.get("custNum");
                 String cell = userCellMap.get("cell");
@@ -95,7 +100,6 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         }catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
-
     }
 
     private Result processUnMatchData(String apiCode,List<MarketingTcyrSync> tcyrSyncList) {
@@ -135,4 +139,60 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
             return result.failure();
         }
     }
+
+
+    @Override
+    public void shardProcess(String apiCode, List<Integer> shardingItems) {
+        for (;;) {
+            if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
+                break;
+            }
+            String lockKey = RedisKeyConstant.prefix.concat("tcyr_sync:match:").concat(apiCode);
+            String lockValue = UUID.randomUUID().toString();
+            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                    marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"),
+                    marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
+            try{
+                //1.抢锁
+                redisChgService.lock(lockKey, lockValue);
+                //2.获取数据
+                List<MarketingTcyrSync> tcyrSyncList = tcyrSyncMapper.selectMatchSyncList(
+                        apiCode,marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"));
+                if (CollectionUtils.isEmpty(tcyrSyncList)) {
+                    break;
+                }
+                //3.修改中间状态
+                dealMiddleState(tcyrSyncList);
+                //4.释放锁
+                redisChgService.unlock(lockKey, lockValue);
+                //5.多线程单个处理匹配
+                shardMathTcyrSynList(apiCode,tcyrSyncList,actionPool,shardingItems);
+            }catch (Exception e) {
+                redisChgService.unlock(lockKey, lockValue);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                        e.getMessage(), TITLE), e);
+            }
+        }
+    }
+
+
+    private void shardMathTcyrSynList(String apiCode, List<MarketingTcyrSync> tcyrSyncList,ThreadPoolExecutor actionPool, List<Integer> shardingItems) {
+        actionPool.setCorePoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
+        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
+        tcyrSyncList.forEach(tcyrSync -> {
+            CompletableFuture.runAsync(() -> processUnMatchSingleData(apiCode, tcyrSync), actionPool);
+        });
+    }
+
+    private void dealMiddleState(List<MarketingTcyrSync> tcyrSyncList) {
+        List<Long> idList = tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
+        List<List<Long>> partIdList = ListUtils.partition(idList, marketingCommonConfig.getTcMatchShardConfig().getInteger("partSize"));
+        for (List<Long> itemIdList : partIdList) {
+            tcyrSyncMapper.updateMiddleMatchStatus(itemIdList,-1);
+        }
+    }
+
+
+
+
 }

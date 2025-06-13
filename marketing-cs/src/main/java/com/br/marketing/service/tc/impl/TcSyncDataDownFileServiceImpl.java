@@ -109,6 +109,8 @@ public class TcSyncDataDownFileServiceImpl implements TcSyncDataDownFileService 
                 tcyrSyncFile.setBatchNo(syncRecord.getBatchNo());
                 tcyrSyncFile.setFileName(csvFile.getName());
                 tcyrSyncFile.setFilePath(csvFilePath+csvFile.getName());
+                tcyrSyncFile.setTotalCount(0L);
+                tcyrSyncFile.setSuccessCount(0L);
                 tcyrSyncFile.setStatus(1);
                 tcyrSyncFile.setDealStatus(0);
                 tcyrSyncFile.setIsDel(1);
