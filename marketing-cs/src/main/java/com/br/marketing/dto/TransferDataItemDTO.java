@@ -164,6 +164,8 @@ public class TransferDataItemDTO {
      */
     private String insertTime;
 
+    private String isAttribution;
+
     /**
      * 业务保留字段1
      */

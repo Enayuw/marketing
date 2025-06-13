@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.transferfieldprocess;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.TransferDataDTO;
@@ -15,8 +16,10 @@ import com.br.marketing.service.TransferFieldProcessFactory;
 import com.br.marketing.util.EncAndDecUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 public class TransferFieldProcessByQiFuFactory implements TransferFieldProcessFactory {
@@ -60,6 +63,18 @@ public class TransferFieldProcessByQiFuFactory implements TransferFieldProcessFa
 
     @Override
     public TransferDataDTO formatTransferObj(String jsonData) {
-        return null;
+
+        TransferDataDTO transferDataDTO = JSON.parseObject(jsonData, new TypeReference<TransferDataDTO<TransferDataItemDTO>>() {
+        }.getType());
+
+        List<TransferDataItemDTO> transferDataItemDTOS = transferDataDTO.getDataItems();
+        if(!CollectionUtils.isEmpty(transferDataItemDTOS)){
+            for (TransferDataItemDTO dto : transferDataItemDTOS){
+                JSONObject jsonObject = JSONObject.parseObject(dto.getReserveField1());
+                jsonObject.put("isAttribution",dto.getIsAttribution());
+                dto.setReserveField1(jsonObject.toJSONString());
+            }
+        }
+        return transferDataDTO;
     }
 }
