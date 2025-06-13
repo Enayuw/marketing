@@ -1,6 +1,5 @@
 package com.br.marketing.bridge.job.tc;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -8,13 +7,11 @@ import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataDownFileService;
-import com.br.marketing.service.tc.TcSyncDataDownService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
 import java.util.List;
 
@@ -25,7 +22,7 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class TcSyncDataDownFileJob extends AbstractSimpleElasticJob{
+public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
 
     private final static String TITLE = "【同程易融-DownFile任务】";
 
@@ -43,7 +40,6 @@ public class TcSyncDataDownFileJob extends AbstractSimpleElasticJob{
         Long start = System.currentTimeMillis();
         List<Integer> shardingItems = shardingContext.getShardingItems();
         String apiCode = marketingCommonConfig.getTcyrApiCode();
-
         try {
             log.warn("{}调度开始,apiCode:{},分片:{}",TITLE,apiCode,shardingItems);
             atciton(apiCode);
@@ -59,14 +55,10 @@ public class TcSyncDataDownFileJob extends AbstractSimpleElasticJob{
         List<MarketingTcyrSyncRecord> syncRecordList =
                 tcyrSyncRecordMapper.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
-            try {
-                tcyrSyncRecordMapper.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
-                Result syncResult =downFileService.dealTcyrTxtFileSync(syncRecord);
-                if (syncResult != null  && syncResult.isSuccess()) {
-                    tcyrSyncRecordMapper.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
-                }
-            }catch (Exception e) {
-                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
+            tcyrSyncRecordMapper.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
+            Result syncResult =downFileService.dealTcyrTxtFileSync(syncRecord);
+            if (syncResult != null  && syncResult.isSuccess()) {
+                tcyrSyncRecordMapper.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
             }
         }
     }

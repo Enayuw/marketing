@@ -1,6 +1,6 @@
 package com.br.marketing.bridge.job.tc;
 
-public class TcSyncDataFileToDbJob {
+public class TcSyncDataMatchShardJob {
 
 }
 

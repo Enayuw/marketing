@@ -16,7 +16,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.io.File;
 import java.time.LocalDate;
@@ -33,7 +32,7 @@ import java.util.Date;
 @Slf4j
 public class TcSyncDataDownFileServiceImpl implements TcSyncDataDownFileService {
 
-    private static final String TITLE = "【同程易融-DownFile任务】";
+    private final static String TITLE = "【同程易融-DownFile任务】";
 
     @Resource
     private TcServiceClient tcServiceClient;
@@ -91,7 +90,7 @@ public class TcSyncDataDownFileServiceImpl implements TcSyncDataDownFileService 
                 log.warn("{}_batchNo:{} 对应gz文件不存在",TITLE,syncRecord.getBatchNo());
                 return result.failure();
             }
-            String csvFilePath = dirPath+"/csv/"+syncRecord.getBatchNo()+"/";
+            String csvFilePath = dirPath+"csv/"+syncRecord.getBatchNo()+"/";
             ZipUtils.unZip(gzFile, csvFilePath, "");
             log.warn(TITLE + "解压zip包成功");
             File csvDir = new File(csvFilePath);
@@ -102,7 +101,6 @@ public class TcSyncDataDownFileServiceImpl implements TcSyncDataDownFileService 
             }
 
             //txt文件信息析入库
-            String csvRelativePath = "/tongcheng_customize_upload_data/"+yyyyMMdd+"/csv/"+syncRecord.getBatchNo()+"/";
             Date nowDate = new Date();
             for (File csvFile : files) {
                 log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
@@ -110,7 +108,7 @@ public class TcSyncDataDownFileServiceImpl implements TcSyncDataDownFileService 
                 tcyrSyncFile.setApiCode(syncRecord.getApiCode());
                 tcyrSyncFile.setBatchNo(syncRecord.getBatchNo());
                 tcyrSyncFile.setFileName(csvFile.getName());
-                tcyrSyncFile.setFilePath(csvRelativePath);
+                tcyrSyncFile.setFilePath(csvFilePath+csvFile.getName());
                 tcyrSyncFile.setStatus(1);
                 tcyrSyncFile.setDealStatus(0);
                 tcyrSyncFile.setIsDel(1);
@@ -124,7 +122,6 @@ public class TcSyncDataDownFileServiceImpl implements TcSyncDataDownFileService 
         }
         return result;
     }
-
 
     public String getPath() {
         String nfsPath = marketingCommonConfig.getNfsPath();
