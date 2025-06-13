@@ -28,35 +28,35 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String path = request.getServletPath().replaceAll("/", ".");
-        if (path.substring(0, 1).equalsIgnoreCase(".")) {
-            path = path.substring(1);
-        }
-
-        log.info("request path =====> {} ", path);
-        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
-        List<MarketingResource> resourcesList = userDetail.getResourcesList();
-        boolean flag = false;
-        Iterator var9 = resourcesList.iterator();
-
-        while(var9.hasNext()) {
-            MarketingResource r = (MarketingResource)var9.next();
-            if (!StringUtils.isEmpty(r.getAuthority()) && path.matches(r.getAuthority())) {
-                flag = true;
-                break;
-            }
-        }
-
-        if (!flag) {
-            log.info("【权限校验失败】code: {},message: {},path: {},Resources: {}", new Object[]{CodeEnum.USER_NOTRESOURCES_ERROR.getCode(), CodeEnum.USER_NOTRESOURCES_ERROR.getMessage(), path, JSONObject.toJSONString(resourcesList)});
-            response.setHeader("Content-Type", MediaType.APPLICATION_JSON_UTF8_VALUE);
-            ServletOutputStream outputStream = response.getOutputStream();
-            outputStream.write(JSON.toJSONBytes(new ApiResult<>().fail(CodeEnum.USER_NOTRESOURCES_ERROR.getCode()
-                    , CodeEnum.USER_NOTRESOURCES_ERROR.getMessage())));
-            outputStream.close();
-            return false;
-        } else {
+//        String path = request.getServletPath().replaceAll("/", ".");
+//        if (path.substring(0, 1).equalsIgnoreCase(".")) {
+//            path = path.substring(1);
+//        }
+//
+//        log.info("request path =====> {} ", path);
+//        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+//        List<MarketingResource> resourcesList = userDetail.getResourcesList();
+//        boolean flag = false;
+//        Iterator var9 = resourcesList.iterator();
+//
+//        while(var9.hasNext()) {
+//            MarketingResource r = (MarketingResource)var9.next();
+//            if (!StringUtils.isEmpty(r.getAuthority()) && path.matches(r.getAuthority())) {
+//                flag = true;
+//                break;
+//            }
+//        }
+//
+//        if (!flag) {
+//            log.info("【权限校验失败】code: {},message: {},path: {},Resources: {}", new Object[]{CodeEnum.USER_NOTRESOURCES_ERROR.getCode(), CodeEnum.USER_NOTRESOURCES_ERROR.getMessage(), path, JSONObject.toJSONString(resourcesList)});
+//            response.setHeader("Content-Type", MediaType.APPLICATION_JSON_UTF8_VALUE);
+//            ServletOutputStream outputStream = response.getOutputStream();
+//            outputStream.write(JSON.toJSONBytes(new ApiResult<>().fail(CodeEnum.USER_NOTRESOURCES_ERROR.getCode()
+//                    , CodeEnum.USER_NOTRESOURCES_ERROR.getMessage())));
+//            outputStream.close();
+//            return false;
+//        } else {
             return super.preHandle(request, response, handler);
-        }
+//        }
     }
 }

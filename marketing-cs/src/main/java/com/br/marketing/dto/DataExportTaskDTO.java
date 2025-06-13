@@ -1,5 +1,8 @@
 package com.br.marketing.dto;
 
+import cn.hutool.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -24,10 +27,10 @@ public class DataExportTaskDTO {
     private String exportHeaders;
 
     @ApiModelProperty(value = "字段映射关系JSON")
-    private Map<String, String> fieldMapping;
+    private String fieldMapping;
 
     @ApiModelProperty(value = "查询条件配置JSON")
-    private Map<String, String> queryCondition;
+    private String queryCondition;
 
     @ApiModelProperty(value = "预估数据量")
     private Long estimatedRows;

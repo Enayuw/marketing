@@ -261,7 +261,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
     @Override
     public ApiResult<Boolean> createTask(DataExportTaskDTO dto, MarketingUserDetail user) {
-        log.info("开始创建数据导出任务，参数：{}, 用户：{}", dto, user.getUserName());
+//        log.info("开始创建数据导出任务，参数：{}, 用户：{}", dto, user.getUserName());
 
         // 1. 参数验证
         if (dto == null) {
@@ -345,7 +345,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
             DataExportTaskExample example = new DataExportTaskExample();
             example.createCriteria()
                     .andTaskNameEqualTo(taskName)
-                    .andStatusEqualTo(1);
+                    .andStatusEqualTo((byte) 1);
 
             List<DataExportTask> existingTasks = dataExportTaskMapper.selectByExample(example);
             return !CollectionUtils.isEmpty(existingTasks);
@@ -364,7 +364,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
             DataExportTaskExample example = new DataExportTaskExample();
             example.createCriteria()
                     .andTaskNameLike(timeStr + "_%")
-                    .andStatusEqualTo(1);
+                    .andStatusEqualTo((byte) 1);
 
             List<DataExportTask> existingTasks = dataExportTaskMapper.selectByExample(example);
 
@@ -415,20 +415,22 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         task.setFileNameTemplate(fileNameTemplate);
 
         // JSON字段序列化
-        if (!CollectionUtils.isEmpty(dto.getFieldMapping())) {
-            task.setFieldMapping(JSON.toJSONString(dto.getFieldMapping()));
+        if (!ObjectUtil.isEmpty(dto.getFieldMapping())) {
+            JSONObject queryCondition = JSON.parseObject(dto.getFieldMapping());
+            task.setFieldMapping(queryCondition.toJSONString());
         }
 
-        if (!CollectionUtils.isEmpty(dto.getQueryCondition())) {
-            task.setQueryCondition(JSON.toJSONString(dto.getQueryCondition()));
+        if (!ObjectUtil.isEmpty(dto.getQueryCondition())) {
+            JSONObject queryCondition = JSON.parseObject(dto.getQueryCondition());
+            task.setQueryCondition(queryCondition.toJSONString());
         }
 
         // 默认状态：启用
-        task.setStatus(1);
-
-        // 创建人信息
-        task.setCreateBy(user.getUserName());
-        task.setUpdateBy(user.getUserName());
+        task.setStatus((byte) 1);
+//
+//        // 创建人信息
+//        task.setCreateBy(user.getUserName());
+//        task.setUpdateBy(user.getUserName());
 
         // 时间信息
         Date now = new Date();

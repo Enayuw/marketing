@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface DataExportTaskMapperBase {
-    long countByExample(DataExportTaskExample example);
+    int countByExample(DataExportTaskExample example);
 
     int deleteByExample(DataExportTaskExample example);
 

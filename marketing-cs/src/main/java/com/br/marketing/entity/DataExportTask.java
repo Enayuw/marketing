@@ -1,13 +1,7 @@
 package com.br.marketing.entity;
 
-import lombok.Data;
 import java.util.Date;
 
-/**
- * 数据导出任务配置表
- * @author 
- */
-@Data
 public class DataExportTask {
     /**
      * 主键ID
@@ -52,15 +46,15 @@ public class DataExportTask {
     /**
      * 状态:1-启用,0-禁用
      */
-    private Integer status;
+    private Byte status;
 
     /**
-     * 创建时间
+     *
      */
     private Date createTime;
 
     /**
-     * 更新时间
+     *
      */
     private Date updateTime;
 
@@ -73,4 +67,108 @@ public class DataExportTask {
      * 更新人
      */
     private String updateBy;
-} 
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName == null ? null : taskName.trim();
+    }
+
+    public String getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(String dataSource) {
+        this.dataSource = dataSource == null ? null : dataSource.trim();
+    }
+
+    public String getExportHeaders() {
+        return exportHeaders;
+    }
+
+    public void setExportHeaders(String exportHeaders) {
+        this.exportHeaders = exportHeaders == null ? null : exportHeaders.trim();
+    }
+
+    public String getFieldMapping() {
+        return fieldMapping;
+    }
+
+    public void setFieldMapping(String fieldMapping) {
+        this.fieldMapping = fieldMapping == null ? null : fieldMapping.trim();
+    }
+
+    public String getQueryCondition() {
+        return queryCondition;
+    }
+
+    public void setQueryCondition(String queryCondition) {
+        this.queryCondition = queryCondition == null ? null : queryCondition.trim();
+    }
+
+    public Long getEstimatedRows() {
+        return estimatedRows;
+    }
+
+    public void setEstimatedRows(Long estimatedRows) {
+        this.estimatedRows = estimatedRows;
+    }
+
+    public String getFileNameTemplate() {
+        return fileNameTemplate;
+    }
+
+    public void setFileNameTemplate(String fileNameTemplate) {
+        this.fileNameTemplate = fileNameTemplate == null ? null : fileNameTemplate.trim();
+    }
+
+    public Byte getStatus() {
+        return status;
+    }
+
+    public void setStatus(Byte status) {
+        this.status = status;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getCreateBy() {
+        return createBy;
+    }
+
+    public void setCreateBy(String createBy) {
+        this.createBy = createBy == null ? null : createBy.trim();
+    }
+
+    public String getUpdateBy() {
+        return updateBy;
+    }
+
+    public void setUpdateBy(String updateBy) {
+        this.updateBy = updateBy == null ? null : updateBy.trim();
+    }
+}
