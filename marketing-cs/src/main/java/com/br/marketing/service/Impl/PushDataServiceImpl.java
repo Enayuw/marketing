@@ -1601,8 +1601,10 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengSmsCollidingDataLogVt.setInfo(returnData.getString("info"));
             xieChengSmsCollidingDataLogVt.setMktLevel(returnData.getString("mktLevel"));
             xieChengSmsCollidingDataLogVt.setResult(returnData.getBoolean("result"));
-            xieChengSmsCollidingDataLogVt.setNextPushTime(
-                    DateUtil.parse(returnData.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
+            if (StringUtils.isNotBlank(returnData.getString("releaseTime"))) {
+                xieChengSmsCollidingDataLogVt.setNextPushTime(
+                        DateUtil.parse(returnData.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
+            }
             xieChengSmsCollidingDataLogVt.setOrgChannel(returnData.getString("orgChannel"));
             xieChengSmsCollidingDataLogVt.setStatus(2);
             xieChengSmsCollidingDataLogVt.setSendDate(sendDate);
