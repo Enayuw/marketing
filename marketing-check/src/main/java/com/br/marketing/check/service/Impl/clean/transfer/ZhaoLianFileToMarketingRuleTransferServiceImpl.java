@@ -4,6 +4,7 @@ import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.service.IFileToMarketingRuleTransferService;
@@ -23,7 +24,7 @@ import java.util.Map;
 public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMarketingRuleTransferService {
 
     @Override
-    public Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String, FileToMarketingDataFieldVO> voMaps) {
+    public SimpleResult isVaild(List<FileToMarketingDataFieldVO> vos, Map<String, FileToMarketingDataFieldVO> voMaps) {
         return IFileToMarketingRuleTransferService.super.isVaild(vos, voMaps);
     }
 
