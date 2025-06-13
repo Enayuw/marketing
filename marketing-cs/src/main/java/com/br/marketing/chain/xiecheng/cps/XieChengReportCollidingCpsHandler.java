@@ -6,7 +6,6 @@ import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
 import com.br.marketing.entity.XieChengSmsCollidingDataVt;
-import com.br.marketing.entity.XieChengSmsCollidingDataVtExample;
 import com.br.marketing.enums.HandlerStageEnum;
 import com.br.marketing.enums.XieChengBizMarkEnum;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
@@ -20,7 +19,7 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class XiChengReportCollidingCpsHandler extends AbstractXieChengReportHandler {
+public class XieChengReportCollidingCpsHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
@@ -52,7 +51,7 @@ public class XiChengReportCollidingCpsHandler extends AbstractXieChengReportHand
         return null;
     }
 
-    protected XiChengReportCollidingCpsHandler() {
-        super(XieChengBizMarkEnum.CPS.name(), HandlerStageEnum.THREAD.name());
+    protected XieChengReportCollidingCpsHandler() {
+        super("xieChengReportCollidingCps", XieChengBizMarkEnum.CPS.name(), HandlerStageEnum.THREAD.name());
     }
 }

@@ -29,6 +29,7 @@ public class XieChengReportContext {
     private String redisKey;
     private String redisValue;
     private boolean continueFlag;
+    private boolean exceptionFlag;
     private String clickId;
     private Result pushResult;
     /**
@@ -81,6 +82,7 @@ public class XieChengReportContext {
                 .sha256Tel(xieChengData.getSha256Tel())
                 .tcId(tcId)
                 .continueFlag(true)
+                .exceptionFlag(false)
                 .build();
     }
 

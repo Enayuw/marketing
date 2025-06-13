@@ -1568,10 +1568,12 @@ public class PushDataServiceImpl implements PushDataService {
                         XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVtList.get(i);
                         result.xieChengSmsCollidingThreadLogUpdateVt.submit(() -> {
                             try {
-                                XieChengSmsCollidingDataVt xieChengSmsCollidingDataVt = new XieChengSmsCollidingDataVt();
-                                xieChengSmsCollidingDataVt.setId(cellToIds.get(xieChengSmsCollidingDataLogVt.getSha256CodeList()));
-                                xieChengSmsCollidingDataVt.setNextPushTime(xieChengSmsCollidingDataLogVt.getNextPushTime());
-                                xieChengSmsCollidingDataVtMapper.updateByPrimaryKeySelective(xieChengSmsCollidingDataVt);
+                                if (null != xieChengSmsCollidingDataLogVt.getNextPushTime()) {
+                                    XieChengSmsCollidingDataVt xieChengSmsCollidingDataVt = new XieChengSmsCollidingDataVt();
+                                    xieChengSmsCollidingDataVt.setId(cellToIds.get(xieChengSmsCollidingDataLogVt.getSha256CodeList()));
+                                    xieChengSmsCollidingDataVt.setNextPushTime(xieChengSmsCollidingDataLogVt.getNextPushTime());
+                                    xieChengSmsCollidingDataVtMapper.updateByPrimaryKeySelective(xieChengSmsCollidingDataVt);
+                                }
                                 xieChengSmsCollidingDataLogVtMapper.updateSelectiveVt(xieChengSmsCollidingDataLogVt);
                             } catch (Exception e) {
                                 log.error("携程cps更新日志异常！,cell=" + xieChengSmsCollidingDataLogVt.getSha256CodeList(), e);

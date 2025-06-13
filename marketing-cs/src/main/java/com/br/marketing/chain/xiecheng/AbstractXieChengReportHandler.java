@@ -7,11 +7,14 @@ import com.br.marketing.context.XieChengReportContext;
  */
 public abstract class AbstractXieChengReportHandler {
 
+    private String name;
+
     private String bizMark;
 
     private String stage;
 
-    public AbstractXieChengReportHandler (String bizMark, String stage){
+    public AbstractXieChengReportHandler (String name, String bizMark, String stage){
+        this.name = name;
         this.bizMark = bizMark;
         this.stage = stage;
     }
@@ -20,6 +23,10 @@ public abstract class AbstractXieChengReportHandler {
 
     public String getBizMark() {
         return bizMark;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getStage() {

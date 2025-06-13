@@ -1,9 +1,12 @@
 package com.br.marketing.chain.xiecheng;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.enums.HandlerStageEnum;
 import com.br.marketing.enums.XieChengBizMarkEnum;
+import com.br.marketing.thread.TaggedFuture;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -57,42 +60,44 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
         }
         //3.执行thread阶段，该阶段handler可以同时处理，为了提高效率，放在线程池中处理
         List<Callable<String>> tasks = new ArrayList<>();
-        for (AbstractXieChengReportHandler handler : handlers) {
+        List<AbstractXieChengReportHandler> threadHandlers = handlers.stream()
+                .filter(handler -> HandlerStageEnum.THREAD.name().equals(handler.getStage())).collect(Collectors.toList());
+        for (AbstractXieChengReportHandler handler : threadHandlers) {
             tasks.add(() -> handler.process(context));
         }
-        List<Future<String>> futures;
+        List<TaggedFuture<String>> futures = new ArrayList<>();
         try {
-            futures = threadPool.invokeAll(tasks, 60, TimeUnit.SECONDS);
+            List<Future<String>> orgFutures = threadPool.invokeAll(tasks, 60, TimeUnit.SECONDS);
+            for (int i = 0; i < threadHandlers.size(); i++) {
+                futures.add(new TaggedFuture(threadHandlers.get(i).getName(), orgFutures.get(i)));
+            }
         } catch (InterruptedException e) {
             for (Callable<String> task : tasks) {
                 if (task instanceof Future) {
                     ((Future) task).cancel(true);
                 }
             }
-            throw new RuntimeException("任务执行被中断", e);
+            throw new RuntimeException("携程上报handler执行被中断", e);
         }
         List<String> messages = new ArrayList<>();
-        List<Exception> exceptions = new ArrayList<>();
-        for (Future<String> future : futures) {
+        for (TaggedFuture<String> future : futures) {
             try {
-                String message = future.get(60, TimeUnit.SECONDS);
+                String message = future.getFuture().get(60, TimeUnit.SECONDS);
                 messages.add(message);
             } catch (InterruptedException e) {
-                for (Future<String> f : futures) {
-                    if (!f.isDone()) {
-                        f.cancel(true);
+                for (TaggedFuture<String> f : futures) {
+                    if (!f.getFuture().isDone()) {
+                        f.getFuture().cancel(true);
                     }
                 }
-                throw new RuntimeException("获取结果时被中断", e);
+                throw new RuntimeException("携程上报handler获取结果时被中断", e);
             } catch (ExecutionException e) {
-                exceptions.add(e);
+                messages.add(future.getTag() + ":" + e.getMessage());
+                context.setExceptionFlag(true);
             } catch (TimeoutException e) {
-                exceptions.add(e);
+                messages.add(future.getTag() + ":" + e.getMessage());
+                context.setExceptionFlag(true);
             }
-        }
-        if (messages.size() != handlers.size() || !exceptions.isEmpty()) {
-            //todo 告警 要知道哪个handler异常
-            throw new RuntimeException("任务执行失败");
         }
         messages = messages.stream()
                 .filter(Objects::nonNull)

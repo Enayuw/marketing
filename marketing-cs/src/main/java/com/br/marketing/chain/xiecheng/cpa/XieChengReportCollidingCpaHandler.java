@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 
 @Slf4j
 @Component
-public class XiChengReportCollidingCpaHandler extends AbstractXieChengReportHandler {
+public class XieChengReportCollidingCpaHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
@@ -43,7 +43,7 @@ public class XiChengReportCollidingCpaHandler extends AbstractXieChengReportHand
         return null;
     }
 
-    protected XiChengReportCollidingCpaHandler() {
-        super(XieChengBizMarkEnum.CPA.name(), HandlerStageEnum.THREAD.name());
+    protected XieChengReportCollidingCpaHandler() {
+        super("xieChengReportCollidingCpa", XieChengBizMarkEnum.CPA.name(), HandlerStageEnum.THREAD.name());
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class XiChengReportRepeatHandler extends AbstractXieChengReportHandler {
+public class XieChengReportRepeatHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private XieChengDataMapper xieChengDataMapper;
@@ -52,8 +52,8 @@ public class XiChengReportRepeatHandler extends AbstractXieChengReportHandler {
         return null;
     }
 
-    protected XiChengReportRepeatHandler() {
-        super(XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.PRE.name());
+    protected XieChengReportRepeatHandler() {
+        super("xieChengReportRepeat", XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.PRE.name());
     }
 
 }

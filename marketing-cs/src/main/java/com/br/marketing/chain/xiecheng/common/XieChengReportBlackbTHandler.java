@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 @Component
-public class XiChengReportBlackbTHandler extends AbstractXieChengReportHandler {
+public class XieChengReportBlackbTHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
@@ -23,7 +23,7 @@ public class XiChengReportBlackbTHandler extends AbstractXieChengReportHandler {
         if (xcTransferBlack != null) return "命中黑名单";
         return null;
     }
-    protected XiChengReportBlackbTHandler() {
-        super(XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
+    protected XieChengReportBlackbTHandler() {
+        super("xieChengReportBlackbT", XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
     }
 }

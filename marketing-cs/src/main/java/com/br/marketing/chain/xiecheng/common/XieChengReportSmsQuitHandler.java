@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 @Component
-public class XiChengReportSmsQuitHandler extends AbstractXieChengReportHandler {
+public class XieChengReportSmsQuitHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
@@ -21,8 +21,8 @@ public class XiChengReportSmsQuitHandler extends AbstractXieChengReportHandler {
         return null;
     }
 
-    public XiChengReportSmsQuitHandler() {
-        super(XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
+    public XieChengReportSmsQuitHandler() {
+        super("xieChengReportSmsQuit", XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
     }
 
 }

@@ -22,7 +22,7 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class XiChengReportConvTypeCpaHandler extends AbstractXieChengReportHandler {
+public class XieChengReportConvTypeCpaHandler extends AbstractXieChengReportHandler {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
@@ -80,7 +80,7 @@ public class XiChengReportConvTypeCpaHandler extends AbstractXieChengReportHandl
         return false;
     }
 
-    protected XiChengReportConvTypeCpaHandler() {
-        super(XieChengBizMarkEnum.CPA.name(), HandlerStageEnum.THREAD.name());
+    protected XieChengReportConvTypeCpaHandler() {
+        super("xieChengReportConvTypeCpa", XieChengBizMarkEnum.CPA.name(), HandlerStageEnum.THREAD.name());
     }
 }

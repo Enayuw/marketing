@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class XiChengReportCallStatusHandler extends AbstractXieChengReportHandler {
+public class XieChengReportCallStatusHandler extends AbstractXieChengReportHandler {
 
     private List<Integer> callStatusFail = Arrays.asList(13, 15);
 
@@ -36,8 +36,8 @@ public class XiChengReportCallStatusHandler extends AbstractXieChengReportHandle
         return null;
     }
 
-    protected XiChengReportCallStatusHandler() {
-        super(XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
+    protected XieChengReportCallStatusHandler() {
+        super("xieChengReportCallStatus", XieChengBizMarkEnum.COMMON.name(), HandlerStageEnum.THREAD.name());
     }
 
 }

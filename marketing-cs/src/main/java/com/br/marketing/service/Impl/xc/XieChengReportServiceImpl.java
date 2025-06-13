@@ -97,6 +97,10 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             handlerChain.handle(context);
             if (!context.isContinueFlag()) {
                 updateResult(context.getResultData());
+                if (context.isExceptionFlag()) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                            "携程上报handler处理异常，请查看数据库获取具体报错"));
+                }
                 redisChgService.unlock(lockKey, lockValue);
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
@@ -119,13 +123,14 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             updateResult(context.getResultData());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                    "携程上报外层异常，callRecoordId=" + sourceId + ",errorMessage=" + e.getMessage()), e);
+                    "携程上报异常，callRecordId=" + sourceId + ",errorMessage=" + e.getMessage()), e);
         } finally {
             if (lockKey != null && lockValue != null) {
                 try {
                     redisChgService.unlock(lockKey, lockValue);
                 } catch (Exception e) {
-                    log.warn("携程上报解锁异常，lockKey={}, lockValue={}", lockKey, lockValue, e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                            "携程上报解锁异常，lockKey=" + lockKey + ",lockValue=" + lockValue), e);
                 }
             }
             log.warn("携程上报消费消息{}耗时：{}ms", sourceId, (System.currentTimeMillis() - start));
