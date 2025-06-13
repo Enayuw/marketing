@@ -255,7 +255,7 @@ public class RuleCleaningController {
 
 
     @PostMapping("/config/save")
-    @ApiOperation(value = "规则配置保存", notes = "规则配置保存", httpMethod = "POST")
+    @ApiOperation(value = "清洗配置保存", notes = "清洗配置保存", httpMethod = "POST")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> saveConfig(@RequestBody @Validated CleanConfigDTO configDTO) {
         try {
@@ -308,6 +308,24 @@ public class RuleCleaningController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "获取清洗规则配置！错误信息：" + e.getMessage()), e);
             return new ApiResult<List<FieldSampleDTO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    @PostMapping("/rule/save")
+    @ApiOperation(value = "清洗规则保存", notes = "清洗规则保存", httpMethod = "POST")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    public ApiResult<Boolean> saveCleanRule(@RequestBody @Validated RuleCleaningConfigDTO ruleCleaningConfigDTO) {
+        try {
+            // 调用Service处理业务逻辑
+            boolean result = ruleCleaningService.saveCleanRule(ruleCleaningConfigDTO);
+            return new ApiResult<Boolean>().success(result);
+        } catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false, be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "清洗规则保存接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 

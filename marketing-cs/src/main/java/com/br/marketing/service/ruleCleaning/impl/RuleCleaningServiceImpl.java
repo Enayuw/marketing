@@ -1909,6 +1909,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         String apiCode = config.getApiCode();
         Integer dataType = config.getDataType();
         Integer acceptType = config.getAcceptType();
+        MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+        generalRuleConfigExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andCleanConfigIdEqualTo(configId)
+                .andIsDelEqualTo(1);
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
+        if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.FTP.getCode())) {
+            getFileField(result, config, ruleConfigList);
+            return result;
+        }
+
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -1918,12 +1929,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (CollectionUtils.isEmpty(nodes)) {
             return result;
         }
-        MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-        generalRuleConfigExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andCleanConfigIdEqualTo(configId)
-                .andIsDelEqualTo(1);
-        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
         for (MarketingJsonNodeParse node : nodes) {
             String nodeName = node.getNodeName();
             Integer level = node.getLevel();
@@ -1953,12 +1958,86 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (!Objects.isNull(ruleConfig)) {
                 dto.setMappingRule(ruleConfig.getMappingRule());
                 dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
             }
-            dto.setResultPreview(nodeValue);
             // 添加到结果列表
             result.add(dto);
         }
         return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean saveCleanRule(RuleCleaningConfigDTO configDTO) {
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configDTO.getConfigId());
+        if (!CollectionUtils.isEmpty(cleaningConfigs)) {
+            // 提取所有清洗字段
+            List<String> cleanFields = cleaningConfigs.stream()
+                    .map(FieldCleaningConfigDTO::getCleanField)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            // 删除不在当前配置中的规则
+            boolean deleteResult = deleteRule(config, cleanFields);
+            if (!deleteResult) {
+                // 继续处理，不要因为删除失败而中断整个流程
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                        "删除不在当前配置中的规则失败！"));
+            }
+            // 保存清洗配置
+            for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
+                // 设置API编码信息
+                fieldConfig.setApiCode(configDTO.getApiCode());
+                fieldConfig.setDataType(configDTO.getDataType());
+                fieldConfig.setAcceptType(configDTO.getAcceptType());
+                // 2. 保存字段清洗规则
+                saveFieldCleaningRule(configDTO.getConfigId(), fieldConfig);
+            }
+        }
+        dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
+        if (DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode().equals(config.getStatus())) {
+            MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
+            update.setId(configDTO.getConfigId());
+            update.setStatus(DataProcessEnum.RuleStatusEnum.READY.getCode());
+            cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
+        }
+        return Boolean.TRUE;
+    }
+
+    private void getFileField(List<FieldSampleDTO> result, MarketingDataCleanGeneralConfig config, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+
+        // b_marketing_clean_data_file
+        MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
+        fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andTargetSftpPathEqualTo(config.getSftpPath());
+        fileExample.setOrderByClause("create_time asc limit 1");
+        List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
+        if (CollectionUtils.isEmpty(cleanDataFiles)) {
+            return;
+        }
+        MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
+        List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
+        List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(","));
+        for (int i = 0; i < fileHeader.size(); i++) {
+            FieldSampleDTO dto = new FieldSampleDTO();
+            // 设置字段名称
+            dto.setFieldName(fileHeader.get(i));
+            dto.setFieldSample(fileData.get(i));
+            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+            dto.setFieldType(0);
+            dto.setNeedCleaning(false);
+            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
+                    .findFirst().orElse(null);
+            if (!Objects.isNull(ruleConfig)) {
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
+            }
+            // 添加到结果列表
+            result.add(dto);
+
+        }
+
     }
 }
 

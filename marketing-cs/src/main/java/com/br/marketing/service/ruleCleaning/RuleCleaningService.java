@@ -113,4 +113,6 @@ public interface RuleCleaningService {
     List<String> getFileSftpPath(String apiCode, Integer fileType);
 
     List<FieldSampleDTO> getRuleDetail(Long configId);
+
+    boolean saveCleanRule(RuleCleaningConfigDTO ruleCleaningConfigDTO);
 }

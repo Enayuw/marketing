@@ -82,4 +82,17 @@ public enum DataProcessEnum {
         private  Integer code;
         private  String desc;
     }
+
+    /**
+     * Accept type enum: GENERAL(0), CUSTOM(1)
+     */
+    @Getter
+    @AllArgsConstructor
+    public enum RuleStatusEnum {
+        READY(0, "待生效"),
+        PRE_SUCCESS(1, "试跑成功");
+
+        private  Integer code;
+        private  String desc;
+    }
 }
