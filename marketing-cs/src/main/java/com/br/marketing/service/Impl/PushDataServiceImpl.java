@@ -1783,15 +1783,8 @@ public class PushDataServiceImpl implements PushDataService {
                     }
                     //endregion
                     adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
-                    XieChengSmsCollidingDataVt dataVt = xieChengSmsCollidingDataVtMapper.selectMaxNextPushTimetiflash_(sha256Tel);
-                    if (dataVt == null) {
-                        resultData.setDataMessage("没有获取到撞库释放时间");
-                        resultData.setStatus(2);
-                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                        redisChgService.unlock(key, value);
-                        return;
-                    }
-                    if (new Date().after(dataVt.getNextPushTime())) {
+                    Boolean isPushFlag = xieChengSmsCollidingDataVtMapper.selectMaxNextPushTimetiflash_(sha256Tel);
+                    if (!isPushFlag) {
                         resultData.setDataMessage("撞库释放时间小于当前时间");
                         resultData.setStatus(2);
                         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
