@@ -1570,7 +1570,7 @@ public class PushDataServiceImpl implements PushDataService {
                             try {
                                 XieChengSmsCollidingDataVt xieChengSmsCollidingDataVt = new XieChengSmsCollidingDataVt();
                                 xieChengSmsCollidingDataVt.setId(cellToIds.get(xieChengSmsCollidingDataLogVt.getSha256CodeList()));
-                                xieChengSmsCollidingDataLogVt.setNextPushTime(xieChengSmsCollidingDataLogVt.getNextPushTime());
+                                xieChengSmsCollidingDataVt.setNextPushTime(xieChengSmsCollidingDataLogVt.getNextPushTime());
                                 xieChengSmsCollidingDataVtMapper.updateByPrimaryKeySelective(xieChengSmsCollidingDataVt);
                                 xieChengSmsCollidingDataLogVtMapper.updateSelectiveVt(xieChengSmsCollidingDataLogVt);
                             } catch (Exception e) {

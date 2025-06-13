@@ -69,14 +69,14 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             if (callRecord == null) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                         , "携程上报异常，未查询到通话明细，callRecoordId=" + sourceId));
-                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
             //2.插入【b_xiecheng_data】
             xieChengData = keepRecord(callRecord);
         } catch (DuplicateKeyException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，消息重复消费入库，callRecoordId=" + sourceId));
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，通话明细查询或携程上报插入异常，消息将退回队列中，callRecoordId=" + sourceId));
