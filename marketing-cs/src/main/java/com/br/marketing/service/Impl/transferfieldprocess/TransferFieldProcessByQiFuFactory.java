@@ -12,14 +12,13 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.enums.ThreeKeyTypeEnum;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.service.Impl.transferfieldprocess.dto.qifu.TransferDataItemByQiFuDTO;
 import com.br.marketing.service.TransferFieldProcessFactory;
 import com.br.marketing.util.EncAndDecUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 @Service
 public class TransferFieldProcessByQiFuFactory implements TransferFieldProcessFactory {
@@ -39,6 +38,27 @@ public class TransferFieldProcessByQiFuFactory implements TransferFieldProcessFa
 
     @Override
     public void fieldProcess(MarketingTransferSyncUser transferSyncUser, TransferDataItemDTO transferDataItemDTO) {
+
+        TransferDataItemByQiFuDTO qiFuDto = (TransferDataItemByQiFuDTO) transferDataItemDTO;
+        if (StringUtils.isNotBlank(qiFuDto.getIsAttribution())) {
+            String reserveField1Str = "";
+            String reserveField1 = transferSyncUser.getReserveField1();
+            if (StringUtils.isNotBlank(reserveField1)) {
+                try {
+                    JSONObject jsonObject = JSON.parseObject(reserveField1);
+                    jsonObject.put("isAttribution",qiFuDto.getIsAttribution());
+                    reserveField1Str = jsonObject.toJSONString();
+                }catch (Exception ex){
+                    reserveField1Str += String.format("\"isAttribution\":\"s%\"",qiFuDto.getIsAttribution());
+                }
+            }else{
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("isAttribution",qiFuDto.getIsAttribution());
+                reserveField1Str = jsonObject.toJSONString();
+            }
+            transferSyncUser.setReserveField1(reserveField1Str);
+        }
+
         if(StringUtils.isNotBlank(transferSyncUser.getCustNum()) && transferSyncUser.getCustNum().length() >= 32){
             String initCustNum = transferSyncUser.getCustNum();
             Result<String> logResult = EncAndDecUtil.digestToLog(transferSyncUser.getCustNum(), ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.md5);
@@ -69,18 +89,8 @@ public class TransferFieldProcessByQiFuFactory implements TransferFieldProcessFa
 
     @Override
     public TransferDataDTO formatTransferObj(String jsonData) {
-
-        TransferDataDTO transferDataDTO = JSON.parseObject(jsonData, new TypeReference<TransferDataDTO<TransferDataItemDTO>>() {
+        return JSON.parseObject(jsonData, new TypeReference<TransferDataDTO<TransferDataItemByQiFuDTO>>() {
         }.getType());
-
-        List<TransferDataItemDTO> transferDataItemDTOS = transferDataDTO.getDataItems();
-        if(!CollectionUtils.isEmpty(transferDataItemDTOS)){
-            for (TransferDataItemDTO dto : transferDataItemDTOS){
-                JSONObject jsonObject = JSONObject.parseObject(dto.getReserveField1());
-                jsonObject.put("isAttribution",dto.getIsAttribution());
-                dto.setReserveField1(jsonObject.toJSONString());
-            }
-        }
-        return transferDataDTO;
     }
+
 }
