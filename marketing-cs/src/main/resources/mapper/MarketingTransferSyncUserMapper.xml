@@ -1126,7 +1126,7 @@
     </select>
 
     <select id="selectTransferWithValid" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select id, cust_num, apply_dt, apply_result, login_time, request_time, user_type
+        select id, cust_num, apply_dt, apply_result, login_time, request_time, user_type, reserve_field1
         from b_marketing_transfer_sync_${transferSyncUser.tCid}
         where
         <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
@@ -1147,6 +1147,7 @@
                transfer.login_time as loginTime,
                transfer.request_time as requestTime,
                transfer.user_type as userType,
+               transfer.reserve_field1 as reserveField1,
                sync.cus_batch as taskId,
                config.valid_end_date as expireDate,
                config.valid_start_date as effectiveDate
@@ -1223,6 +1224,7 @@
                transfer.login_time as loginTime,
                transfer.request_time as requestTime,
                transfer.user_type as userType,
+               transfer.reserve_field1 as reserveField1,
                sync.cus_batch as taskId,
                config.valid_end_date as expireDate,
                config.valid_start_date as effectiveDate
