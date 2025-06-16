@@ -10,6 +10,7 @@
     <result column="query_condition" property="queryCondition" jdbcType="VARCHAR" />
     <result column="estimated_rows" property="estimatedRows" jdbcType="BIGINT" />
     <result column="file_name_template" property="fileNameTemplate" jdbcType="VARCHAR" />
+    <result column="task_rule" property="taskRule" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -76,7 +77,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, task_name, data_source, export_headers, field_mapping, query_condition, estimated_rows,
-    file_name_template, `status`, create_time, update_time, create_by, update_by
+    file_name_template, task_rule, `status`, create_time, update_time, create_by, update_by
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DataExportTaskExample" >
     select
@@ -114,12 +115,12 @@
     </selectKey>
     insert into b_data_export_task (task_name, data_source, export_headers,
     field_mapping, query_condition, estimated_rows,
-    file_name_template, `status`, create_time,
+    file_name_template, task_rule, `status`, create_time,
     update_time, create_by, update_by
     )
     values (#{taskName,jdbcType=VARCHAR}, #{dataSource,jdbcType=VARCHAR}, #{exportHeaders,jdbcType=VARCHAR},
     #{fieldMapping,jdbcType=VARCHAR}, #{queryCondition,jdbcType=VARCHAR}, #{estimatedRows,jdbcType=BIGINT},
-    #{fileNameTemplate,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP},
+    #{fileNameTemplate,jdbcType=VARCHAR}, #{taskRule,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP},
     #{updateTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, #{updateBy,jdbcType=VARCHAR}
     )
   </insert>
@@ -149,6 +150,9 @@
       </if>
       <if test="fileNameTemplate != null" >
         file_name_template,
+      </if>
+      <if test="taskRule != null" >
+        task_rule,
       </if>
       <if test="status != null" >
         `status`,
@@ -187,6 +191,9 @@
       </if>
       <if test="fileNameTemplate != null" >
         #{fileNameTemplate,jdbcType=VARCHAR},
+      </if>
+      <if test="taskRule != null" >
+        #{taskRule,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         #{status,jdbcType=TINYINT},
@@ -238,6 +245,9 @@
       <if test="record.fileNameTemplate != null" >
         file_name_template = #{record.fileNameTemplate,jdbcType=VARCHAR},
       </if>
+      <if test="record.taskRule != null" >
+        task_rule = #{record.taskRule,jdbcType=VARCHAR},
+      </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=TINYINT},
       </if>
@@ -268,6 +278,7 @@
     query_condition = #{record.queryCondition,jdbcType=VARCHAR},
     estimated_rows = #{record.estimatedRows,jdbcType=BIGINT},
     file_name_template = #{record.fileNameTemplate,jdbcType=VARCHAR},
+    task_rule = #{record.taskRule,jdbcType=VARCHAR},
     `status` = #{record.status,jdbcType=TINYINT},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
     update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -301,6 +312,9 @@
       <if test="fileNameTemplate != null" >
         file_name_template = #{fileNameTemplate,jdbcType=VARCHAR},
       </if>
+      <if test="taskRule != null" >
+        task_rule = #{taskRule,jdbcType=VARCHAR},
+      </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=TINYINT},
       </if>
@@ -328,6 +342,7 @@
         query_condition = #{queryCondition,jdbcType=VARCHAR},
         estimated_rows = #{estimatedRows,jdbcType=BIGINT},
         file_name_template = #{fileNameTemplate,jdbcType=VARCHAR},
+        task_rule = #{taskRule,jdbcType=VARCHAR},
         `status` = #{status,jdbcType=TINYINT},
         create_time = #{createTime,jdbcType=TIMESTAMP},
         update_time = #{updateTime,jdbcType=TIMESTAMP},

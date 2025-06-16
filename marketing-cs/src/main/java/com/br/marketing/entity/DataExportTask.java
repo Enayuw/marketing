@@ -44,6 +44,11 @@ public class DataExportTask {
     private String fileNameTemplate;
 
     /**
+     * 任务规则
+     */
+    private String taskRule;
+
+    /**
      * 状态:1-启用,0-禁用
      */
     private Byte status;
@@ -130,6 +135,14 @@ public class DataExportTask {
 
     public void setFileNameTemplate(String fileNameTemplate) {
         this.fileNameTemplate = fileNameTemplate == null ? null : fileNameTemplate.trim();
+    }
+
+    public String getTaskRule() {
+        return taskRule;
+    }
+
+    public void setTaskRule(String taskRule) {
+        this.taskRule = taskRule == null ? null : taskRule.trim();
     }
 
     public Byte getStatus() {

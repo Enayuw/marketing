@@ -436,6 +436,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         Date now = new Date();
         task.setCreateTime(now);
         task.setUpdateTime(now);
+        task.setTaskRule("{\"extraScene\":\"文件提取_车线索数据提取\"}");
 
         return task;
     }
