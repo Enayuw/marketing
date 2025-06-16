@@ -16,6 +16,7 @@ import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataFileToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -41,7 +42,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
 
     private final static String TITLE = "【同程易融-fileToDbShard任务】";
 
-    private Integer PARTITION_SIZE = 1000;
+    private Integer PAGE_SIZE = 5000;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -92,10 +93,9 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
     }
 
     private void parseCsvFileToDb(Long id, String apiCode, String batchNo, String fileName, String filePath,List<Integer> shardingItems) {
-        log.warn("TITLE:{} csv文件入db完成,batchNo:{},csvName:{},分片:{},txtToDb开始执行...",
-                TITLE,batchNo,fileName,shardingItems);
+        log.warn("TITLE:{} csv文件入db,syncFileId{},batchNo:{},csvName:{},分片:{},txtToDb开始执行...",
+                TITLE,id,batchNo,fileName,shardingItems);
         Long start = System.currentTimeMillis();
-
         MarketingTcyrSyncFile syncFileItem = tcyrSyncFileMapper.selectByPrimaryKey(id);
         // 0、前置校验下id对应数据是否存在、文件处理状态是否正常(0:未处理 1:处理中 2:处理完成)
         if (ObjectUtil.isEmpty(syncFileItem) || (syncFileItem!=null && syncFileItem.getDealStatus()!=1)) {
@@ -122,9 +122,9 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             Long totalLine = 0L;
             Long successLine = 0L;
             while ((line = reader.readLine()) != null) {
-                PARTITION_SIZE = marketingCommonConfig.getTcTxtFileShardConfig().getInteger("partSize");
+                PAGE_SIZE = marketingCommonConfig.getTcTxtFileShardConfig().getInteger("pageSize");
                 lineBuffer.add(line);
-                if (lineBuffer.size() >= PARTITION_SIZE) {
+                if (lineBuffer.size() >= PAGE_SIZE) {
                     List<String> lineList = new ArrayList<>();
                     lineList.addAll(lineBuffer);
                     totalLine += lineBuffer.size();
@@ -149,8 +149,8 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             syncFileItem.setSuccessCount(successLine);
             tcyrSyncFileMapper.updateByPrimaryKey(syncFileItem);
             shutdownThreadPool(actionPool);
-            log.warn("TITLE:{} csv文件入db完成,batchNo:{},csvName:{},分片:{},totalCount:{},successCount:{},执行时间:{}",
-                    TITLE,batchNo,fileName,shardingItems,totalLine,successLine,System.currentTimeMillis()-start);
+            log.warn("TITLE:{} csv文件入db完成,syncFileId:{},batchNo:{},csvName:{},分片:{},totalCount:{},successCount:{},执行时间:{}",
+                    TITLE,id,batchNo,fileName,shardingItems,totalLine,successLine,System.currentTimeMillis()-start);
         } catch (IOException e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
@@ -189,7 +189,11 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             if (CollectionUtils.isEmpty(dataList)) {
                 return result.failure();
             }
-            tcPullGzFileMapper.batchAdd(dataList);
+            List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(dataList,
+                    marketingCommonConfig.getTcTxtFileShardConfig().getInteger("partSize"));
+            for (List<MarketingTcyrSync> partitionItemList : partitionList) {
+                tcPullGzFileMapper.batchAdd(partitionItemList);
+            }
             return result.success().setDate( Long.valueOf(dataList.size()));
         } catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);

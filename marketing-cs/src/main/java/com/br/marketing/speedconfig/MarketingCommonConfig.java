@@ -2939,8 +2939,7 @@ public class MarketingCommonConfig {
 
     /**
      * 同程易融-txtFile-shard job参数
-     * {"jobSwitch":true,"threadPool":2,"partSize":1000}
-     * }
+     * {"jobSwitch":true,"threadPool":100,"pageSize":5000,"partSize":1000}
      */
     private JSONObject tcTxtFileShardConfig;
 
@@ -2948,8 +2947,6 @@ public class MarketingCommonConfig {
     /**
      * 同程易融-match-shard  job参数
      * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":10000}
-     * }
-     * }
      */
     private JSONObject tcMatchShardConfig;
 
