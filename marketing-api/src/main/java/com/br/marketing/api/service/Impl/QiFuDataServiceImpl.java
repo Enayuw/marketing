@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -37,8 +38,6 @@ public class QiFuDataServiceImpl implements QiFuDataService {
 
     @Autowired
     private QifuStrategyReportDataMapper qifuStrategyReportDataMapper;
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private QifuActuationMapper qifuActuationMapper;
 
@@ -75,23 +74,29 @@ public class QiFuDataServiceImpl implements QiFuDataService {
 
     @Override
     public ApiNoDataResult analysisStatistics(String apiCode, String jsonData) {
-
         try {
-            QifuActuation reportData = JSON.parseObject(jsonData, new TypeReference<QifuActuation>() {
-            }.getType());
+            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {}.getType());
 
-            reportData.setApiCode(apiCode);
-            reportData.setCreateDate(LocalDate.now().toString());
-            reportData.setCreateTime(new Date());
-            reportData.setUpdateTime(new Date());
-            reportData.setIsDel(1);
-            qifuActuationMapper.insertSelective(reportData);
+            reportDataList.parallelStream().forEach(item -> {
+                item.setApiCode(apiCode);
+                item.setCreateDate(LocalDate.now().toString());
+                item.setCreateTime(new Date());
+                item.setUpdateTime(new Date());
+            });
+
+            if (!CollectionUtils.isEmpty(reportDataList)) {
+                qifuActuationMapper.batchInsert(reportDataList);
+                log.warn("奇富促动支定制上传数据接入 数量:{}", reportDataList.size());
+            }
+
             return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUCUDONGZHIREPORT_SERVICEERROR.getCode(),
                     "jsonData:" + jsonData, "该apiCode:" + apiCode + "奇富促动支定制上传数据接入异常！！！"), e);
-            return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode()).
-                    setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+            return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
+                    .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
         }
     }
+
+
 }
