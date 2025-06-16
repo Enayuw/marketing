@@ -172,6 +172,17 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                 Map<String, String> fieldMap = new LinkedHashMap<>();
 
                 // 处理JSON字段
+                if (data.get("transferReserveField1") != null) {
+                    try {
+                        JSONObject json = JSONObject.parseObject(data.get("transferReserveField1").toString());
+                        for (String key : json.keySet()) {
+                            fieldMap.put(key, json.getString(key) != null ? json.getString(key) : "");
+                        }
+                    } catch (Exception e) {
+                        log.warn("奇富360转化数据提取-transferReserveField1解析失败", e);
+                    }
+                }
+
                 if (data.get("reserveField1") != null) {
                     try {
                         JSONObject json = JSONObject.parseObject(data.get("reserveField1").toString());
@@ -179,7 +190,7 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                             fieldMap.put(key, json.getString(key) != null ? json.getString(key) : "");
                         }
                     } catch (Exception e) {
-                        log.warn("reserveField1解析失败", e);
+                        log.warn("奇富360转化数据提取-reserveField1解析失败", e);
                     }
                 }
 

@@ -1106,7 +1106,8 @@
                transfer.request_time as requestTime,
                transfer.user_type as userType,
                sync.cus_batch as taskId,
-               sync.reserve_field1 as reserveField1
+               sync.reserve_field1 as reserveField1,
+               transfer.reserve_field1 as transferReserveField1
         from
             (select id,
                    cust_num,
@@ -1114,7 +1115,8 @@
                    apply_result,
                    login_time,
                    request_time,
-                   user_type
+                   user_type,
+                   reserve_field1
             from b_marketing_transfer_sync_${transferSyncUser.tCid}
             where api_code = #{transferSyncUser.apiCode}
                 <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
