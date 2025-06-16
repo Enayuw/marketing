@@ -3,8 +3,6 @@ package com.br.marketing.service.tc.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.tc.TcServiceClient;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -12,19 +10,19 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
-import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
+import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.service.tc.TcSyncDataFileToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -48,7 +46,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private MarketingTcyrSyncRecordMapper tcPullGzFileMapper;
+    private MarketingTcyrSyncMapper tcyrSyncMapper;
 
     @Resource
     private MarketingTcyrSyncFileMapper tcyrSyncFileMapper;
@@ -95,15 +93,15 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         }
     }
 
-    private void parseCsvFileToDb(Long id, String apiCode, String batchNo, String fileName, String filePath,List<Integer> shardingItems) {
+    private void parseCsvFileToDb(Long syncFileId, String apiCode, String batchNo, String fileName, String filePath,List<Integer> shardingItems) {
         log.warn("TITLE:{} csv文件入db,syncFileId{},batchNo:{},csvName:{},分片:{},txtToDb开始执行...",
-                TITLE,id,batchNo,fileName,shardingItems);
+                TITLE,syncFileId,batchNo,fileName,shardingItems);
         Long start = System.currentTimeMillis();
         MarketingTcyrSyncFile syncFileItem = tcyrSyncFileMapper.selectByPrimaryKey(id);
         // 0、前置校验下id对应数据是否存在、文件处理状态是否正常(0:未处理 1:处理中 2:处理完成)
         if (ObjectUtil.isEmpty(syncFileItem) || (syncFileItem!=null && syncFileItem.getDealStatus()!=1)) {
             log.warn("TITLE:{} csv文件入db完成,id:{},batchNo:{},csvName:{},分片:{}, 文件记录状态异常",
-                    TITLE,id,batchNo,fileName,shardingItems);
+                    TITLE,syncFileId,batchNo,fileName,shardingItems);
             return;
         }
         // 1、判断文件存在
@@ -119,19 +117,14 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                     marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
                     marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool")
             );
-            List<CompletableFuture<Result>> futureList = new ArrayList<>();
-            List<Long> resultList = Collections.synchronizedList(new ArrayList<>(20));
             String line;
-            Long totalLine = 0L;
-            Long successLine = 0L;
             while ((line = reader.readLine()) != null) {
                 PAGE_SIZE = marketingCommonConfig.getTcTxtFileShardConfig().getInteger("pageSize");
                 lineBuffer.add(line);
                 if (lineBuffer.size() >= PAGE_SIZE) {
                     List<String> lineList = new ArrayList<>();
                     lineList.addAll(lineBuffer);
-                    totalLine += lineBuffer.size();
-                    processList(apiCode,batchNo,lineList,actionPool,futureList,resultList);
+                    processList(syncFileId,apiCode,batchNo,lineList,actionPool);
                     lineBuffer.clear();
                 }
             }
@@ -139,125 +132,68 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             if (!lineBuffer.isEmpty()) {
                 List<String> lineList = new ArrayList<>();
                 lineList.addAll(lineBuffer);
-                totalLine += lineBuffer.size();
-                processList(apiCode,batchNo,lineList,actionPool,futureList,resultList);
-            }
-            CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
-            for (Long successCount : resultList) {
-                successLine += successCount;
+                processList(syncFileId,apiCode,batchNo,lineList,actionPool);
             }
             //3、修改txt完成状态、总成功条数
             syncFileItem.setDealStatus(2);
+            Long totalLine = Files.lines(Paths.get(filePath)).count();
             syncFileItem.setTotalCount(totalLine);
-            syncFileItem.setSuccessCount(successLine);
             tcyrSyncFileMapper.updateByPrimaryKey(syncFileItem);
             shutdownThreadPool(actionPool);
             log.warn("TITLE:{} csv文件入db完成,syncFileId:{},batchNo:{},csvName:{},分片:{},totalCount:{},successCount:{},执行时间:{}",
-                    TITLE,id,batchNo,fileName,shardingItems,totalLine,successLine,System.currentTimeMillis()-start);
+                    TITLE,syncFileId,batchNo,fileName,shardingItems,totalLine,totalLine,System.currentTimeMillis()-start);
         } catch (IOException e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
     }
 
 
-    private Result processList(String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool,
-                               List<CompletableFuture<Result>> futureList, List<Long> resultList) {
-        Result result = new Result().failure();
+    private void processList(Long syncFileId,String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool) {
         actionPool.setCorePoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
-        futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, lineList), actionPool)
-                .whenComplete((processDataResult, throwable) -> {
-                    if (processDataResult == null || !processDataResult.isSuccess()) {
-                        resultList.add(0L);
-                        return;
-                    }
-                    resultList.add((Long) processDataResult.getData());
-                    if (throwable != null) {
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),throwable.getMessage(), TITLE), throwable);
-                        resultList.add(0L);
-                    }
-                })
-        );
-        return result.success();
+        lineList.forEach(line -> {
+            CompletableFuture.runAsync(() -> processSingleLineData(syncFileId,apiCode, batchNo,line), actionPool);
+        });
     }
 
-    private Result processData(String apiCode, String batchNo, List<String> lineList) {
-        Result result = new Result().failure();
-        try {
-            Result processResult = processLineBuffer(apiCode, batchNo, lineList);
-            if (processResult == null || !processResult.isSuccess() || processResult.getData() == null) {
-                return result.failure();
+    private void processSingleLineData(Long syncFileId,String apiCode, String batchNo,String line) {
+        String[] data = line.split(",");
+        String userKey;
+        int terminal = 0;
+        int dataStatus = 0;
+        if (data.length > 1) {
+            String firstColumn = data[0].trim();
+            String secondColumn = data[1].trim();
+            // 单个字段为空写入，数据状态异常；整行为空，也存入
+            if (StringUtils.isNotBlank(firstColumn) && StringUtils.isNotBlank(secondColumn)) {
+                dataStatus = 1;
             }
-            List<MarketingTcyrSync> dataList = (List<MarketingTcyrSync>) processResult.getData();
-            if (CollectionUtils.isEmpty(dataList)) {
-                return result.failure();
-            }
-            List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(dataList,
-                    marketingCommonConfig.getTcTxtFileShardConfig().getInteger("partSize"));
-            for (List<MarketingTcyrSync> partitionItemList : partitionList) {
-                tcPullGzFileMapper.batchAdd(partitionItemList);
-            }
-            return result.success().setDate( Long.valueOf(dataList.size()));
-        } catch (Exception e) {
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
-            return result.failure();
-        }
-    }
-
-    /**
-     * 转化成 List<MarketingTcyrSync>
-     * @param apiCode
-     * @param batchNo
-     * @param lineList
-     * @return
-     */
-    private Result processLineBuffer(String apiCode, String batchNo, List<String> lineList) {
-        Result result = new Result().failure();
-        if (CollectionUtils.isEmpty(lineList)) {
-            return result.success();
-        }
-        List<MarketingTcyrSync> dataList = new ArrayList<>();
-        List<String> userKeyList = new ArrayList<>();
-        for (String line : lineList) {
-            String[] data = line.split(",");
-            String userKey;
-            Integer terminal = 0;
-            Integer dataStatus = 0;
-            if (data.length > 1) {
-                String firstColumn = data[0].trim();
-                String secondColumn = data[1].trim();
-                // 单个字段为空写入，数据状态异常；整行为空，也存入
-                if (StringUtils.isNotBlank(firstColumn) && StringUtils.isNotBlank(secondColumn)) {
-                    dataStatus = 1;
-                }
-                userKey = firstColumn;
-                if (StringUtils.isNotBlank(secondColumn)) {
-                    try {
-                        terminal =Integer.parseInt(secondColumn);
-                    }catch (Exception e) {
-                        log.warn("{},porcessLine解析terminal异常,{},e:",TITLE,secondColumn,e);
-                        terminal =-2;
-                    }
-                }else {
-                    terminal = -1;
+            userKey = firstColumn;
+            if (StringUtils.isNotBlank(secondColumn)) {
+                try {
+                    terminal =Integer.parseInt(secondColumn);
+                }catch (Exception e) {
+                    log.warn("{},porcessLine解析terminal异常,{},e:",TITLE,secondColumn,e);
+                    terminal =-2;
                 }
             }else {
-                userKey= "";
                 terminal = -1;
             }
-            MarketingTcyrSync syncItem = new MarketingTcyrSync();
-            syncItem.setApiCode(apiCode);
-            syncItem.setBatchNo(batchNo);
-            syncItem.setUserKey(userKey);
-            syncItem.setTerminal(terminal);
-            Date nowDate = new Date();
-            syncItem.setCreateTime(nowDate);
-            syncItem.setUpdateTime(nowDate);
-            syncItem.setStatus(dataStatus);
-            userKeyList.add(userKey);
-            dataList.add(syncItem);
+        }else {
+            userKey= "";
+            terminal = -1;
         }
-        return result.success().setDate(dataList);
+        MarketingTcyrSync syncItem = new MarketingTcyrSync();
+        syncItem.setApiCode(apiCode);
+        syncItem.setBatchNo(batchNo);
+        syncItem.setUserKey(userKey);
+        syncItem.setTerminal(terminal);
+        Date nowDate = new Date();
+        syncItem.setCreateTime(nowDate);
+        syncItem.setUpdateTime(nowDate);
+        syncItem.setStatus(dataStatus);
+        syncItem.setSyncFileId(syncFileId);
+        tcyrSyncMapper.insertSelective(syncItem);
     }
 
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
