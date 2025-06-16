@@ -89,6 +89,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             XieChengReportContext context = XieChengReportContext.create(callRecord, xieChengData, tcId);
             JSONObject condition = marketingCommonConfig.getXieChengCallPushCondition().get(callRecord.getApiCode());
             context.setPushConfig(XieChengReportContext.PushConfig.fromJson(condition));
+            context.getAdReqDTO().setConditionKey(context.getPushConfig().getConditionKey());
             //5.获取Redis锁
             lockKey = RedisKeyConstant.pushXieChengLock + ":" + context.getPushConfig().getConditionKey() + context.getSha256Tel();
             lockValue = UUID.randomUUID().toString();
