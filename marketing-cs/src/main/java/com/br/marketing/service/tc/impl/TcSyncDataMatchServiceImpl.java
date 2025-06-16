@@ -172,6 +172,9 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 redisChgService.unlock(lockKey, lockValue);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                         e.getMessage(), TITLE), e);
+                if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
+                    break;
+                }
             }
         }
     }
