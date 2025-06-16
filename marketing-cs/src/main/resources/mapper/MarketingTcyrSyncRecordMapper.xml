@@ -81,6 +81,8 @@
             b_marketing_sync_${apiCode}
         WHERE status = 1
               AND cust_num =#{userKey}
+        ORDER BY create_time DESC
+        LIMIT 1
     </select>
 
     <select id="selectSingleLastCustNumCell" resultType="java.util.Map">

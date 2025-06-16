@@ -1,7 +1,6 @@
 package com.br.marketing.service.tc.impl;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.tc.TcServiceClient;
@@ -9,30 +8,22 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
-import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
-import com.br.marketing.service.tc.TcSyncDataDownFileService;
 import com.br.marketing.service.tc.TcSyncDataFileToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -48,12 +39,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService {
 
-    private final static String TITLE = "【同程易融-DownFile任务】";
+    private final static String TITLE = "【同程易融-fileToDbShard任务】";
 
     private Integer PARTITION_SIZE = 1000;
-
-    @Resource
-    private TcServiceClient tcServiceClient;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -74,26 +62,28 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             if (!marketingCommonConfig.getTcTxtFileShardConfig().getBoolean("jobSwitch")) {
                 break;
             }
-            // 1、查询单条未处理的txt
-            MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectSyncFile(apiCode,0);
-            if (ObjectUtil.isEmpty(tcyrSyncFile)) {
-                break;
-            }
-            String lockKey = RedisKeyConstant.prefix.concat("tcyr_sync:").
-                    concat(apiCode).concat(":").concat(tcyrSyncFile.getBatchNo()+"_"+tcyrSyncFile.getFileName());
+            // 对txt文件名加锁->获取锁成功继续...->获取锁失败->continue下一个循环
+            String lockKey = RedisKeyConstant.prefix.concat("tcyr_sync:txtToDb:").concat(apiCode);
             String lockValue = UUID.randomUUID().toString();
             try {
-                // 2.对txt文件名加锁(->2.1获取锁成功继续... 2.2获取锁失败 continue下一个循环)
-                //2.1抢锁
+                //1、抢锁
                 redisChgService.lock(lockKey, lockValue);
-                //2.2处理txt数据入库
+                // 2、查询单条未处理的txt
+                MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectSyncFile(apiCode,0);
+                if (ObjectUtil.isEmpty(tcyrSyncFile)) {
+                    redisChgService.unlock(lockKey, lockValue);
+                    break;
+                }
+                //3、修改txt处理状态
+                tcyrSyncFile.setDealStatus(1);
+                tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
+                redisChgService.unlock(lockKey, lockValue);
+                //4、处理txt数据入库
                 parseCsvFileToDb(tcyrSyncFile.getId(), tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(),
                         tcyrSyncFile.getFileName(),tcyrSyncFile.getFilePath(),shardingItems);
-                //2.3释放锁
-                redisChgService.unlock(lockKey, lockValue);
             }catch (Exception e) {
-                // TODO 单个txt处理异常时 是抛出异常终止任务 or 继续进行
-                // 4、释放锁(finally)
+                // TODO 单个txt处理异常时 是抛出异常终止任务 or 继续进行 (异常时候break跳出循环 or 继续执行下一个文件处理)
+                // 5、异常时释放锁(finally)
                 redisChgService.unlock(lockKey, lockValue);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                         e.getMessage(), TITLE), e);
@@ -102,25 +92,25 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
     }
 
     private void parseCsvFileToDb(Long id, String apiCode, String batchNo, String fileName, String filePath,List<Integer> shardingItems) {
+        log.warn("TITLE:{} csv文件入db完成,batchNo:{},csvName:{},分片:{},txtToDb开始执行...",
+                TITLE,batchNo,fileName,shardingItems);
         Long start = System.currentTimeMillis();
-        log.warn("TITLE:{} csv文件入db,batchNo:{},csvName:{},分片:{} 开始执行", TITLE,batchNo,fileName,shardingItems);
-        // 1、(第一步查询极端情况查到同一个节点)--> 重新获取db数据, deal_status=1  表明其它线程正在处理中，则返回，执行下一个文件
-        MarketingTcyrSyncFile syncFileItem = tcyrSyncFileMapper.selectByPrimaryKey(id);
-        if (!ObjectUtil.isEmpty(syncFileItem) && syncFileItem.getDealStatus() == 1) {
-            log.warn("TITLE:{} csv文件入db,batchNo:{},csvName:{} 已有线程在处理...",TITLE,batchNo,fileName);
-        }
-        syncFileItem.setDealStatus(1);
-        tcyrSyncFileMapper.updateByPrimaryKey(syncFileItem);
 
-        // 2、判断文件存在
+        MarketingTcyrSyncFile syncFileItem = tcyrSyncFileMapper.selectByPrimaryKey(id);
+        // 0、前置校验下id对应数据是否存在、文件处理状态是否正常(0:未处理 1:处理中 2:处理完成)
+        if (ObjectUtil.isEmpty(syncFileItem) || (syncFileItem!=null && syncFileItem.getDealStatus()!=1)) {
+            log.warn("TITLE:{} csv文件入db完成,id:{},batchNo:{},csvName:{},分片:{}, 文件记录状态异常",
+                    TITLE,id,batchNo,fileName,shardingItems);
+            return;
+        }
+        // 1、判断文件存在
         File txtFile = new File(filePath);
         if (!txtFile.exists()) {
             log.warn("TITLE:{} csv文件入db,batchNo:{},csvName:{},csvPath:{} 文件不存在",TITLE,batchNo,fileName,filePath);
         }
-        // 3、txt文件解析入库
-        Long successLine = 0L;
+        // 2、txt文件解析入库
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
-            //3.1批处理数据
+            //2.1批处理数据
             List<String> lineBuffer = new ArrayList<>();
             ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
                     marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
@@ -130,6 +120,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             List<Long> resultList = Collections.synchronizedList(new ArrayList<>(20));
             String line;
             Long totalLine = 0L;
+            Long successLine = 0L;
             while ((line = reader.readLine()) != null) {
                 PARTITION_SIZE = marketingCommonConfig.getTcTxtFileShardConfig().getInteger("partSize");
                 lineBuffer.add(line);
@@ -141,7 +132,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                     lineBuffer.clear();
                 }
             }
-            // 处理剩余数据
+            //2.2处理剩余数据
             if (!lineBuffer.isEmpty()) {
                 List<String> lineList = new ArrayList<>();
                 lineList.addAll(lineBuffer);
@@ -152,9 +143,10 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             for (Long successCount : resultList) {
                 successLine += successCount;
             }
-            //4、修改txt完成状态、总成功条数
+            //3、修改txt完成状态、总成功条数
             syncFileItem.setDealStatus(2);
             syncFileItem.setTotalCount(totalLine);
+            syncFileItem.setSuccessCount(successLine);
             tcyrSyncFileMapper.updateByPrimaryKey(syncFileItem);
             shutdownThreadPool(actionPool);
             log.warn("TITLE:{} csv文件入db完成,batchNo:{},csvName:{},分片:{},totalCount:{},successCount:{},执行时间:{}",

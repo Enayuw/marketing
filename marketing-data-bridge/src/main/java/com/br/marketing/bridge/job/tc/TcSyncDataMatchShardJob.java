@@ -34,9 +34,9 @@ public class TcSyncDataMatchShardJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         Long start = System.currentTimeMillis();
-        List<Integer> shardingItems = shardingContext.getShardingItems();
         String apiCode = marketingCommonConfig.getTcyrApiCode();
-        log.warn("{}调度开始,apiCode:{},分片:{}",TITLE,apiCode,shardingItems);
+        List<Integer> shardingItems = shardingContext.getShardingItems();
+        log.warn("TITLE:{}调度开始,apiCode:{},分片:{}",TITLE,apiCode,shardingItems);
         try {
             tcSyncDataMatchService.shardProcess(apiCode,shardingItems);
         }catch (Exception e){
@@ -44,7 +44,7 @@ public class TcSyncDataMatchShardJob extends AbstractSimpleElasticJob {
                     e.getMessage(), TITLE), e);
         }
         Long end = System.currentTimeMillis();
-        log.warn("{}调度结束,apiCode:{},耗时:{},分片:{}",TITLE,apiCode,(end - start),shardingItems);
+        log.warn("TITLE:{}调度结束,apiCode:{},耗时:{},分片:{}",TITLE,apiCode,(end - start),shardingItems);
     }
 }
 

@@ -6,7 +6,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
-import com.br.marketing.service.tc.TcSyncDataDownFileService;
+import com.br.marketing.service.tc.TcSyncDataDownService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -31,7 +31,7 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TcSyncDataDownFileService downFileService;
+    private TcSyncDataDownService downService;
 
     @Resource
     private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
@@ -39,9 +39,8 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         Long start = System.currentTimeMillis();
-        List<Integer> shardingItems = shardingContext.getShardingItems();
         String apiCode = marketingCommonConfig.getTcyrApiCode();
-        log.warn("{}调度开始,apiCode:{},分片:{}",TITLE,apiCode,shardingItems);
+        log.warn("TITLE:{}调度开始,apiCode:{}",TITLE,apiCode);
         try {
             atciton(apiCode);
         }catch (Exception e) {
@@ -49,7 +48,7 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
                     e.getMessage(), TITLE), e);
         }
         Long end = System.currentTimeMillis();
-        log.warn("{}调度结束,apiCode:{},耗时:{},分片:{}",TITLE,apiCode,(end - start),shardingItems);
+        log.warn("TITLE:{}调度结束,apiCode:{},耗时:{}",TITLE,apiCode,(end - start));
     }
 
     private void atciton(String apiCode) {
@@ -57,7 +56,7 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
                 tcyrSyncRecordMapper.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
-            Result syncResult =downFileService.dealTcyrTxtFileSync(syncRecord);
+            Result syncResult = downService.dealTcyrTxtFileSync(syncRecord);
             if (syncResult != null  && syncResult.isSuccess()) {
                 tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
             }

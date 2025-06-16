@@ -159,6 +159,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 List<MarketingTcyrSync> tcyrSyncList = tcyrSyncMapper.selectMatchSyncList(
                         apiCode,marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"));
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
+                    redisChgService.unlock(lockKey, lockValue);
                     break;
                 }
                 //3.修改中间状态

@@ -22,4 +22,6 @@ public interface TcSyncDataDownService {
     //修改单个down的处理结果
     Integer updateTcyrRecordDownStatus(String batchNo, Integer status);
 
+    //处理单个同城易融具体批次batchNo的文件 拉取GZ文件，txt信息入库
+    Result dealTcyrTxtFileSync(MarketingTcyrSyncRecord syncRecord);
 }

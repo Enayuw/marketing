@@ -18,7 +18,7 @@ public interface MarketingTcyrSyncMapper extends MarketingTcyrSyncMapperBase {
     Integer updateMatchInfo(MarketingTcyrSync syncItem);
 
     //shard-查询apiCode未匹配的数据 不排序不分页
-    List<MarketingTcyrSync> selectMatchSyncList(@Param("apiCode") String apiCode, @Param("pageSize") Integer pageSize);
+    List<MarketingTcyrSync> selectMatchSyncList(@Param("apiCode") String apiCode, @Param("searchSize") Integer searchSize);
     //shard-is_match更改中间态
     Integer updateMiddleMatchStatus(@Param("idList") List<Long> idList, @Param("matchStatus") Integer matchStatus);
 }

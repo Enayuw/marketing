@@ -11,7 +11,9 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
+import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
+import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataDownService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -51,6 +53,9 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
 
     @Resource
     private MarketingTcyrSyncRecordMapper tcPullGzFileMapper;
+
+    @Resource
+    private MarketingTcyrSyncFileMapper tcyrSyncFileMapper;
 
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
@@ -304,6 +309,80 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }
+
+    /**
+     *  同程易融: gz下载文件->TXT信息入库
+     * @param syncRecord
+     * @return
+     */
+    @Override
+    public Result dealTcyrTxtFileSync(MarketingTcyrSyncRecord syncRecord) {
+        Result result = new Result<>().failure();
+        try{
+            String dataInfo = syncRecord.getData();
+            if (StringUtils.isEmpty(dataInfo)) {
+                log.warn("apiCode:{},batchNo:{} 下载数据为空",syncRecord.getApiCode(),syncRecord.getBatchNo());
+                return result.failure();
+            }
+            JSONObject dataJson = JSONObject.parseObject(dataInfo);
+            String fileUrl = dataJson.getString("fileUrl");
+            if (StringUtils.isEmpty(fileUrl)) {
+                log.warn("apiCode:{},batchNo:{},fileUrl:{} 下载链接为空",syncRecord.getApiCode(),syncRecord.getBatchNo(),fileUrl);
+                return result.failure();
+            }
+            //1、gz文件下载
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+            String dirPath = getPath() +"tongcheng_customize_upload_data/"+yyyyMMdd+"/";
+            String gzFileName= "tcyr_"+syncRecord.getBatchNo()+".csv.gz";
+            String gzFilePath = dirPath.concat(gzFileName);
+            Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
+            if (callFileResult == null || !callFileResult.isSuccess()) {
+                log.warn("{},batchNo:{} 下载gz包失败",TITLE,syncRecord.getBatchNo());
+                return result.failure();
+            }
+            log.warn("{},batchNo:{} 下载gz包成功",TITLE,syncRecord.getBatchNo());
+
+            //2、gz解压
+            File gzFile = new File(gzFilePath);
+            if (!gzFile.exists() || !gzFile.getName().contains(".gz")) {
+                log.warn("{}_batchNo:{} 对应gz文件不存在",TITLE,syncRecord.getBatchNo());
+                return result.failure();
+            }
+            String csvFilePath = dirPath+"csv/"+syncRecord.getBatchNo()+"/";
+            ZipUtils.unZip(gzFile, csvFilePath, "");
+            log.warn(TITLE + "解压zip包成功");
+            File csvDir = new File(csvFilePath);
+            File[] files = csvDir.listFiles();
+            if (files == null) {
+                log.warn(TITLE + "解压csv文件不存在");
+                return result.failure();
+            }
+
+            //3、txt文件信息析入库
+            Date nowDate = new Date();
+            for (File csvFile : files) {
+                log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
+                MarketingTcyrSyncFile tcyrSyncFile = new MarketingTcyrSyncFile();
+                tcyrSyncFile.setApiCode(syncRecord.getApiCode());
+                tcyrSyncFile.setBatchNo(syncRecord.getBatchNo());
+                tcyrSyncFile.setFileName(csvFile.getName());
+                tcyrSyncFile.setFilePath(csvFilePath+csvFile.getName());
+                tcyrSyncFile.setTotalCount(0L);
+                tcyrSyncFile.setSuccessCount(0L);
+                tcyrSyncFile.setStatus(1);
+                tcyrSyncFile.setDealStatus(0);
+                tcyrSyncFile.setIsDel(1);
+                tcyrSyncFile.setCreateTime(nowDate);
+                tcyrSyncFile.setUpdateTime(nowDate);
+                tcyrSyncFileMapper.insertSelective(tcyrSyncFile);
+            }
+            result = result.success();
+        }catch (Exception e){
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
+        }
+        return result;
+    }
+
 
 
     public String getPath() {
