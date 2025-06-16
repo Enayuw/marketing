@@ -97,7 +97,7 @@ public class XieChengTest {
 
     @Test
     public void test06() {
-        xieChengReportService.pushXieChengData(147959l);
+        xieChengReportService.pushXieChengData(148057l);
     }
 
     @Test
