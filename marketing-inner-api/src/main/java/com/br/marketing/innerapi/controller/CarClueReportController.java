@@ -84,8 +84,8 @@ public class CarClueReportController {
     @PostMapping("/createTask")
     public ApiResult<Boolean> createTask(@RequestBody @Valid DataExportTaskDTO taskDTO) {
         try {
-//            MarketingUserDetail user = ThreadContextInfo.getUser();
-            return carClueReportService.createTask(taskDTO, null);
+            MarketingUserDetail user = ThreadContextInfo.getUser();
+            return carClueReportService.createTask(taskDTO, user);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BAOXIAN_SERVICEERROR.getCode(),
                     "创建导出任务错误！错误信息：" + ex.getMessage()), ex);

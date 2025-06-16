@@ -261,7 +261,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
     @Override
     public ApiResult<Boolean> createTask(DataExportTaskDTO dto, MarketingUserDetail user) {
-//        log.info("开始创建数据导出任务，参数：{}, 用户：{}", dto, user.getUserName());
+        log.info("开始创建数据导出任务，参数：{}, 用户：{}", dto, user.getUserName());
 
         // 1. 参数验证
         if (dto == null) {
@@ -427,10 +427,10 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
         // 默认状态：启用
         task.setStatus((byte) 1);
-//
-//        // 创建人信息
-//        task.setCreateBy(user.getUserName());
-//        task.setUpdateBy(user.getUserName());
+
+        // 创建人信息
+        task.setCreateBy(user.getUserName());
+        task.setUpdateBy(user.getUserName());
 
         // 时间信息
         Date now = new Date();
