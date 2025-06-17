@@ -30,9 +30,6 @@ public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener 
     RocketMqConsumerService consumerService;
 
     @Resource
-    private RocketMqSwitch rocketMqSwitch;
-
-    @Resource
     XieChengReportService xieChengReportService;
 
     @Override
