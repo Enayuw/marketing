@@ -193,22 +193,15 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
         log.warn(TITLE + "shutdownThreadPool开始");
-        long taskCount = -1;
         executor.shutdown();
         try {
-            while (!executor.awaitTermination(2, TimeUnit.MINUTES)) {
-                long completedTaskCount = executor.getCompletedTaskCount();
-                if (taskCount == completedTaskCount) {
-                    log.warn(TITLE + "业务线程等待超时");
-                    break;
-                }
-                taskCount = completedTaskCount;
+            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
+                log.info("{},线程池关闭",TITLE);
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ex) {
             executor.shutdownNow();
-            Thread.interrupted();
-        } catch (Throwable e) {
-            log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
+            log.error("{},日志保存线程池结束异常！",TITLE,ex);
+            Thread.currentThread().interrupt();
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }
