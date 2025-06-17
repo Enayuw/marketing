@@ -45,7 +45,7 @@ public class XieChengReportCollidingCpsHandler extends AbstractXieChengReportHan
         }
         context.getAdReqDTO().setMktChannel(dataLogVt.getOrgChannel());
         //2.上报时间<releasetime
-        Boolean isPush = xieChengSmsCollidingDataVtMapper.selectMaxNextPushTimetiflash_(context.getSha256Tel());
+        Boolean isPush = xieChengSmsCollidingDataVtMapper.selectMaxNextPushTimetikv_(context.getSha256Tel());
         if(!isPush) return "撞库释放时间小于当前时间";
         return null;
     }

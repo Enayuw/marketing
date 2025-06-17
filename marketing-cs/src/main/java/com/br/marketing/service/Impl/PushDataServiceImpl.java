@@ -1783,7 +1783,7 @@ public class PushDataServiceImpl implements PushDataService {
                     }
                     //endregion
                     adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
-                    Boolean isPushFlag = xieChengSmsCollidingDataVtMapper.selectMaxNextPushTimetiflash_(sha256Tel);
+                    Boolean isPushFlag = xieChengSmsCollidingDataVtMapper.selectMaxNextPushTimetikv_(sha256Tel);
                     if (!isPushFlag) {
                         resultData.setDataMessage("撞库释放时间小于当前时间");
                         resultData.setStatus(2);
