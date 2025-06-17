@@ -21,5 +21,5 @@ public interface TcSyncDataMatchService {
 
     void processUnMatchSingleData(String apiCode, MarketingTcyrSync tcyrSync);
 
-    void shardProcess(String apiCode, List<Integer> shardingItems);
+    void shardProcess(String apiCode);
 }

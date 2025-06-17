@@ -31,7 +31,7 @@ public class MarketingTcyrSync {
     /**
      * 终端 0-APP；1-小程序 -1:空值 -2:特殊字符串解析异常
      */
-    private Integer terminal;
+    private String terminal;
 
     /**
      * 电话
@@ -67,6 +67,11 @@ public class MarketingTcyrSync {
      * 删除状态 1-可用 9-删除
      */
     private Integer isDel;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 
     public Long getId() {
         return id;
@@ -108,12 +113,12 @@ public class MarketingTcyrSync {
         this.userKey = userKey == null ? null : userKey.trim();
     }
 
-    public Integer getTerminal() {
+    public String getTerminal() {
         return terminal;
     }
 
-    public void setTerminal(Integer terminal) {
-        this.terminal = terminal;
+    public void setTerminal(String terminal) {
+        this.terminal = terminal == null ? null : terminal.trim();
     }
 
     public String getCell() {
@@ -170,5 +175,13 @@ public class MarketingTcyrSync {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 }

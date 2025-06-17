@@ -33,7 +33,7 @@ public class DataCleanTest {
     public void uploadClean() throws NoSuchFieldException {
         MarketingTcyrSync marketingTcyrSync = new MarketingTcyrSync();
         marketingTcyrSync.setCell("123");
-        marketingTcyrSync.setTerminal(0);
+        marketingTcyrSync.setTerminal("0");
         marketingTcyrSync.setUserKey("456");
         List<MarketingTcyrSync> list = new ArrayList<>();
         list.add(marketingTcyrSync);

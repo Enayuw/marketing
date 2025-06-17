@@ -52,7 +52,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private MarketingTcyrSyncRecordMapper tcPullGzFileMapper;
+    private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
 
     @Resource
     private MarketingTcyrSyncFileMapper tcyrSyncFileMapper;
@@ -71,7 +71,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
 
     @Override
     public List<MarketingTcyrSyncRecord> searchTcyrSyncList(String apiCode,Integer status) {
-        return tcPullGzFileMapper.searchTcyrSyncList(apiCode,status);
+        return tcyrSyncRecordMapper.searchTcyrSyncList(apiCode,status);
     }
 
 
@@ -227,7 +227,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             if (CollectionUtils.isEmpty(dataList)) {
                 return result.failure();
             }
-            tcPullGzFileMapper.batchAdd(dataList);
+            tcyrSyncRecordMapper.batchAdd(dataList);
             return result.success().setDate( Long.valueOf(dataList.size()));
         } catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
@@ -248,44 +248,29 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             return result.success();
         }
         List<MarketingTcyrSync> dataList = new ArrayList<>();
-        List<String> userKeyList = new ArrayList<>();
         for (String line : lineList) {
-            String[] data = line.split(",");
-            String userKey;
-            Integer terminal = 0;
-            Integer dataStatus = 0;
-            if (data.length > 1) {
-                String firstColumn = data[0].trim();
-                String secondColumn = data[1].trim();
-                // 单个字段为空写入，数据状态异常；整行为空，也存入
-                if (StringUtils.isNotBlank(firstColumn) && StringUtils.isNotBlank(secondColumn)) {
-                    dataStatus = 1;
-                }
-                userKey = firstColumn;
-                if (StringUtils.isNotBlank(secondColumn)) {
-                    try {
-                        terminal =Integer.parseInt(secondColumn);
-                    }catch (Exception e) {
-                        log.warn("{},porcessLine解析terminal异常,{},e:",TITLE,secondColumn,e);
-                        terminal =-2;
-                    }
-                }else {
-                    terminal = -1;
-                }
-            }else {
-                userKey= "";
-                terminal = -1;
-            }
             MarketingTcyrSync syncItem = new MarketingTcyrSync();
+            String[] data = line.split(",");
+            int dataStatus = 0;
+            // length=1: 空字符串/没有逗号 赋值给第一个字段
+            // length=2 userKey:column1、terminal:column
+            // length>2  多余的数据放入extend:扩展字段(jsonObject)
+            if (data.length ==1) {
+                syncItem.setUserKey(line);
+            }else if (data.length >=2) {
+                syncItem.setUserKey(data[0].trim());
+                syncItem.setTerminal(data[1].trim());
+                dataStatus =1;
+            }
+            JSONObject extentJson = new JSONObject();
+            for (int i = 0; i < data.length; i++) {
+                extentJson.put("column_"+(i+1), data[i]);
+            }
+            syncItem.setExtend(extentJson.toJSONString());
             syncItem.setApiCode(apiCode);
             syncItem.setBatchNo(batchNo);
-            syncItem.setUserKey(userKey);
-            syncItem.setTerminal(terminal);
-            Date nowDate = new Date();
-            syncItem.setCreateTime(nowDate);
-            syncItem.setUpdateTime(nowDate);
+            syncItem.setCreateTime(new Date());
             syncItem.setStatus(dataStatus);
-            userKeyList.add(userKey);
             dataList.add(syncItem);
         }
         return result.success().setDate(dataList);
@@ -317,22 +302,13 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
      *  同程易融: gz下载文件->TXT信息入库
      * @param syncRecord
      * @return
+     * todo 半小时job一次
      */
     @Override
-    public Result dealTcyrTxtFileSync(MarketingTcyrSyncRecord syncRecord) {
-        Result result = new Result<>().failure();
+    public void dealTcyrTxtFileSync(MarketingTcyrSyncRecord syncRecord) {
         try{
-            String dataInfo = syncRecord.getData();
-            if (StringUtils.isEmpty(dataInfo)) {
-                log.warn("apiCode:{},batchNo:{} 下载数据为空",syncRecord.getApiCode(),syncRecord.getBatchNo());
-                return result.failure();
-            }
-            JSONObject dataJson = JSONObject.parseObject(dataInfo);
+            JSONObject dataJson = JSONObject.parseObject(syncRecord.getData());
             String fileUrl = dataJson.getString("fileUrl");
-            if (StringUtils.isEmpty(fileUrl)) {
-                log.warn("apiCode:{},batchNo:{},fileUrl:{} 下载链接为空",syncRecord.getApiCode(),syncRecord.getBatchNo(),fileUrl);
-                return result.failure();
-            }
             //1、gz文件下载
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             String dirPath = getPath() +"tongcheng_customize_upload_data/"+yyyyMMdd+"/";
@@ -340,27 +316,26 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             String gzFilePath = dirPath.concat(gzFileName);
             Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
             if (callFileResult == null || !callFileResult.isSuccess()) {
-                log.warn("{},batchNo:{} 下载gz包失败",TITLE,syncRecord.getBatchNo());
-                return result.failure();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                        syncRecord.getBatchNo()+"文件下载失败", TITLE));
+                return;
             }
-            log.warn("{},batchNo:{} 下载gz包成功",TITLE,syncRecord.getBatchNo());
-
             //2、gz解压
             File gzFile = new File(gzFilePath);
             if (!gzFile.exists() || !gzFile.getName().contains(".gz")) {
-                log.warn("{}_batchNo:{} 对应gz文件不存在",TITLE,syncRecord.getBatchNo());
-                return result.failure();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                        syncRecord.getBatchNo()+"对应gz文件不存在", TITLE));
+                return;
             }
             String csvFilePath = dirPath+"csv/"+syncRecord.getBatchNo()+"/";
             ZipUtils.unZip(gzFile, csvFilePath, "");
-            log.warn(TITLE + "解压zip包成功");
             File csvDir = new File(csvFilePath);
             File[] files = csvDir.listFiles();
             if (files == null) {
-                log.warn(TITLE + "解压csv文件不存在");
-                return result.failure();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                        syncRecord.getBatchNo()+"解压csv文件不存在", TITLE));
+               return;
             }
-
             //3、txt文件信息析入库
             Date nowDate = new Date();
             for (File csvFile : files) {
@@ -370,31 +345,17 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 tcyrSyncFile.setBatchNo(syncRecord.getBatchNo());
                 tcyrSyncFile.setFileName(csvFile.getName());
                 tcyrSyncFile.setFilePath(csvFilePath+csvFile.getName());
-                tcyrSyncFile.setTotalCount(0L);
-                tcyrSyncFile.setSuccessCount(0L);
-                tcyrSyncFile.setStatus(1);
-                tcyrSyncFile.setDealStatus(0);
-                tcyrSyncFile.setIsDel(1);
                 tcyrSyncFile.setCreateTime(nowDate);
-                tcyrSyncFile.setUpdateTime(nowDate);
                 tcyrSyncFileMapper.insertSelective(tcyrSyncFile);
             }
-            result = result.success();
+            //更新 syncRecord 状态
+            tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
         }catch (Exception e){
+            tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 3);
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
-        return result;
     }
 
-    @Override
-    public void dealTcyrTxtFileCount(String apiCode) {
-        List<MarketingTcyrSyncFile> tcyrSyncFileList = tcyrSyncFileMapper.selectSyncFileList(apiCode,2);
-        tcyrSyncFileList.stream().forEach(tcyrSyncFile -> {
-            Long insertCount = tcyrSyncMapper.selecFileDbCount(apiCode,tcyrSyncFile.getId());
-            tcyrSyncFile.setSuccessCount(insertCount);
-            tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
-        });
-    }
 
 
     public String getPath() {
@@ -404,7 +365,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
 
     @Override
     public Integer updateTcyrRecordDownStatus(String batchNo, Integer status) {
-        return tcPullGzFileMapper.updateTcyrRecordDownStatus(batchNo,status);
+        return tcyrSyncRecordMapper.updateTcyrRecordDownStatus(batchNo,status);
     }
 
 }

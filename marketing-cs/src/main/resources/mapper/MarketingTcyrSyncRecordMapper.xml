@@ -75,12 +75,12 @@
 
     <select id="selectSingleLastCustNumCelltikv_" resultType="java.util.Map">
         SELECT
-            cust_num AS custNum,
             cell_md5 AS cell
         FROM
             b_marketing_sync_${apiCode}
         WHERE status = 1
               AND cust_num =#{userKey}
+              AND is_repeat in (1,2)
         ORDER BY create_time DESC
         LIMIT 1
     </select>

@@ -87,15 +87,12 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     public void processUnMatchSingleData(String apiCode, MarketingTcyrSync tcyrSync) {
         try {
             tcyrSync.setIsMatch(0);
+            tcyrSync.setIsClean(0);
             Map<String,String> userCellMap = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode,tcyrSync.getUserKey());
             if (userCellMap != null) {
-                String custNum = userCellMap.get("custNum");
                 String cell = userCellMap.get("cell");
-                if (StringUtils.isNotBlank(custNum) && StringUtils.isNotBlank(cell)) {
-                    tcyrSync.setCell(cell);
-                    tcyrSync.setIsMatch(1);
-                    tcyrSync.setIsClean(0);
-                }
+                tcyrSync.setCell(cell);
+                tcyrSync.setIsMatch(1);
             }
             tcyrSyncMapper.updateMatchInfo(tcyrSync);
         }catch (Exception e) {
@@ -143,22 +140,23 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
 
     @Override
-    public void shardProcess(String apiCode, List<Integer> shardingItems) {
+    public void shardProcess(String apiCode) {
+        String lockKey = RedisKeyConstant.tcyrSyncMatch.concat(apiCode);
+        String lockValue = "";
         ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
                 marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"),
                 marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
-        for (;;) {
-            if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
-                break;
-            }
-            String lockKey = RedisKeyConstant.prefix.concat("tcyr_sync:match:").concat(apiCode);
-            String lockValue = UUID.randomUUID().toString();
-            try{
+        try{
+            for (;;) {
+                if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
+                    break;
+                }
+                lockValue = UUID.randomUUID().toString();
                 //1.抢锁
                 redisChgService.lock(lockKey, lockValue);
                 //2.获取数据
                 List<MarketingTcyrSync> tcyrSyncList = tcyrSyncMapper.selectMatchSyncList(
-                        apiCode,marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"));
+                        apiCode, marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"));
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
@@ -168,18 +166,15 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 //4.释放锁
                 redisChgService.unlock(lockKey, lockValue);
                 //5.多线程单个处理匹配
-                shardMathTcyrSynList(apiCode,tcyrSyncList,actionPool);
-            }catch (Exception e) {
-                redisChgService.unlock(lockKey, lockValue);
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                        e.getMessage(), TITLE), e);
-                if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
-                    break;
-                }
+                shardMathTcyrSynList(apiCode, tcyrSyncList, actionPool);
             }
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE), e);
+        }finally {
+            redisChgService.unlock(lockKey, lockValue);
+            shutdownThreadPool(actionPool);
         }
-        //关闭线程池
-        shutdownThreadPool(actionPool);
     }
 
 
@@ -193,50 +188,29 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
     private void dealMiddleState(List<MarketingTcyrSync> tcyrSyncList) {
         List<Long> idList = tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
-        List<List<Long>> partIdList = ListUtils.partition(idList, marketingCommonConfig.getTcMatchShardConfig().getInteger("partSize"));
-        for (List<Long> itemIdList : partIdList) {
-            tcyrSyncMapper.updateMiddleMatchStatus(itemIdList,-1);
-        }
+        tcyrSyncMapper.updateMiddleMatchStatus(idList);
     }
 
-
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
-        log.info(TITLE + "开始关闭线程池");
-        executor.shutdown(); // 停止接收新任务
-        long totalTimeout = 30; // 最大等待30分钟
-        long elapsed = 0;
-        long lastCompletedCount = -1;
+        log.warn(TITLE + "shutdownThreadPool开始");
+        long taskCount = -1;
+        executor.shutdown();
         try {
             while (!executor.awaitTermination(2, TimeUnit.MINUTES)) {
-                elapsed += 2;
-                long currentCompleted = executor.getCompletedTaskCount();
-                // 总超时检查
-                if (elapsed >= totalTimeout) {
-                    log.warn("❗ 达到总超时时间，强制终止");
-                    List<Runnable> unfinished = executor.shutdownNow();
-                    log.warn("未完成任务: {}", unfinished.size());
+                long completedTaskCount = executor.getCompletedTaskCount();
+                if (taskCount == completedTaskCount) {
+                    log.warn(TITLE + "业务线程等待超时");
                     break;
                 }
-
-                // 任务停滞检查
-                if (lastCompletedCount == currentCompleted) {
-                    log.warn("⚠️ 任务2分钟内无进展，强制终止");
-                    List<Runnable> unfinished = executor.shutdownNow();
-                    log.warn("未完成任务: {}", unfinished.size());
-                    break;
-                }
-
-                lastCompletedCount = currentCompleted;
-                log.info("等待中... 已完成: {}/{}",
-                        currentCompleted, executor.getTaskCount());
+                taskCount = completedTaskCount;
             }
         } catch (InterruptedException e) {
             executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        } finally {
-            log.info(TITLE + "线程池已关闭");
+            Thread.interrupted();
+        } catch (Throwable e) {
+            log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }
+        log.warn(TITLE + "shutdownThreadPool结束");
     }
-
 
 }

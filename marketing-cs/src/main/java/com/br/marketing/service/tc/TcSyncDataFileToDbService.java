@@ -5,6 +5,6 @@ import java.util.List;
 
 public interface TcSyncDataFileToDbService {
 
-    void shardProcess(String apiCode,List<Integer> shardingItems);
+    void shardProcess(String apiCode);
 
 }

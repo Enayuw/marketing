@@ -98,11 +98,13 @@
 
     <update id="updateMiddleMatchStatus">
         UPDATE b_marketing_tcyr_sync
-        SET is_match = #{matchStatus}
-        WHERE id IN (0,
-        <foreach collection="idList" item="id" separator=",">
-            #{id}
-        </foreach>)
+        SET is_match = 2
+        WHERE
+        id IN (
+            <foreach collection="idList" item="id" index="index" separator=",">
+                #{id}
+            </foreach>
+        )
     </update>
 
 

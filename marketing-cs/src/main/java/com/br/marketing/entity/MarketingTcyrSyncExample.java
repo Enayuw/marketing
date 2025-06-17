@@ -445,52 +445,62 @@ public class MarketingTcyrSyncExample {
             return (Criteria) this;
         }
 
-        public Criteria andTerminalEqualTo(Integer value) {
+        public Criteria andTerminalEqualTo(String value) {
             addCriterion("terminal =", value, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalNotEqualTo(Integer value) {
+        public Criteria andTerminalNotEqualTo(String value) {
             addCriterion("terminal <>", value, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalGreaterThan(Integer value) {
+        public Criteria andTerminalGreaterThan(String value) {
             addCriterion("terminal >", value, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalGreaterThanOrEqualTo(Integer value) {
+        public Criteria andTerminalGreaterThanOrEqualTo(String value) {
             addCriterion("terminal >=", value, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalLessThan(Integer value) {
+        public Criteria andTerminalLessThan(String value) {
             addCriterion("terminal <", value, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalLessThanOrEqualTo(Integer value) {
+        public Criteria andTerminalLessThanOrEqualTo(String value) {
             addCriterion("terminal <=", value, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalIn(List<Integer> values) {
+        public Criteria andTerminalLike(String value) {
+            addCriterion("terminal like", value, "terminal");
+            return (Criteria) this;
+        }
+
+        public Criteria andTerminalNotLike(String value) {
+            addCriterion("terminal not like", value, "terminal");
+            return (Criteria) this;
+        }
+
+        public Criteria andTerminalIn(List<String> values) {
             addCriterion("terminal in", values, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalNotIn(List<Integer> values) {
+        public Criteria andTerminalNotIn(List<String> values) {
             addCriterion("terminal not in", values, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalBetween(Integer value1, Integer value2) {
+        public Criteria andTerminalBetween(String value1, String value2) {
             addCriterion("terminal between", value1, value2, "terminal");
             return (Criteria) this;
         }
 
-        public Criteria andTerminalNotBetween(Integer value1, Integer value2) {
+        public Criteria andTerminalNotBetween(String value1, String value2) {
             addCriterion("terminal not between", value1, value2, "terminal");
             return (Criteria) this;
         }
@@ -922,6 +932,76 @@ public class MarketingTcyrSyncExample {
 
         public Criteria andIsDelNotBetween(Integer value1, Integer value2) {
             addCriterion("is_del not between", value1, value2, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIsNull() {
+            addCriterion("extend is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIsNotNull() {
+            addCriterion("extend is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendEqualTo(String value) {
+            addCriterion("extend =", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotEqualTo(String value) {
+            addCriterion("extend <>", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThan(String value) {
+            addCriterion("extend >", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("extend >=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThan(String value) {
+            addCriterion("extend <", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThanOrEqualTo(String value) {
+            addCriterion("extend <=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLike(String value) {
+            addCriterion("extend like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotLike(String value) {
+            addCriterion("extend not like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIn(List<String> values) {
+            addCriterion("extend in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotIn(List<String> values) {
+            addCriterion("extend not in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendBetween(String value1, String value2) {
+            addCriterion("extend between", value1, value2, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotBetween(String value1, String value2) {
+            addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
     }

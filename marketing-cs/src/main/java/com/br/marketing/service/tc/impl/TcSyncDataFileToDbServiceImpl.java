@@ -1,12 +1,12 @@
 package com.br.marketing.service.tc.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
@@ -21,8 +21,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -40,8 +38,6 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
 
     private final static String TITLE = "【同程易融-fileToDbShard任务】";
 
-    private Integer PAGE_SIZE = 5000;
-
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -54,21 +50,25 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
     @Autowired
     RedisChgService redisChgService;
 
-
+    // todo 技术方案 详细
     @Override
-    public void shardProcess(String apiCode,List<Integer> shardingItems) {
-        for (;;) {
-            if (!marketingCommonConfig.getTcTxtFileShardConfig().getBoolean("jobSwitch")) {
-                break;
-            }
-            // 对txt文件名加锁->获取锁成功继续...->获取锁失败->continue下一个循环
-            String lockKey = RedisKeyConstant.prefix.concat("tcyr_sync:txtToDb:").concat(apiCode);
-            String lockValue = UUID.randomUUID().toString();
-            try {
+    public void shardProcess(String apiCode) {
+        String lockKey = RedisKeyConstant.tcyrSyncTxtToDb.concat(apiCode);;
+        String lockValue = "";
+        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
+                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
+        try {
+            for (;;) {
+                if (!marketingCommonConfig.getTcTxtFileShardConfig().getBoolean("jobSwitch")) {
+                    break;
+                }
+                //todo 抢锁超时 如何处理 ->重试
+                lockValue = UUID.randomUUID().toString();
                 //1、抢锁
                 redisChgService.lock(lockKey, lockValue);
                 // 2、查询单条未处理的txt
-                MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectSingleSyncFile(apiCode,0);
+                MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectSingleSyncFile(apiCode, 0);
                 if (ObjectUtil.isEmpty(tcyrSyncFile)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
@@ -78,180 +78,105 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                 tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
                 redisChgService.unlock(lockKey, lockValue);
                 //4、处理txt数据入库
-                parseCsvFileToDb(tcyrSyncFile.getId(), tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(),
-                        tcyrSyncFile.getFileName(),tcyrSyncFile.getFilePath(),shardingItems);
-            }catch (Exception e) {
-                // TODO 单个txt处理异常时 是抛出异常终止任务 or 继续进行 (异常时候break跳出循环 or 继续执行下一个文件处理)
-                // 5、异常时释放锁(finally)
-                redisChgService.unlock(lockKey, lockValue);
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                        e.getMessage(), TITLE), e);
-                if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
-                    break;
-                }
+                parseCsvFileToDb(tcyrSyncFile,actionPool);
             }
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE), e);
+        }finally {
+            //5、异常时释放锁(finally)
+            redisChgService.unlock(lockKey, lockValue);
         }
     }
 
-    private void parseCsvFileToDb(Long syncFileId, String apiCode, String batchNo, String fileName, String filePath,List<Integer> shardingItems) {
-        log.warn("TITLE:{} csv文件入db,syncFileId{},batchNo:{},csvName:{},分片:{},txtToDb开始执行...",
-                TITLE,syncFileId,batchNo,fileName,shardingItems);
+
+    private void parseCsvFileToDb(MarketingTcyrSyncFile tcyrSyncFile, ThreadPoolExecutor actionPool) {
         Long start = System.currentTimeMillis();
-        MarketingTcyrSyncFile syncFileItem = tcyrSyncFileMapper.selectByPrimaryKey(syncFileId);
-        // 0、前置校验下id对应数据是否存在、文件处理状态是否正常(0:未处理 1:处理中 2:处理完成)
-        if (ObjectUtil.isEmpty(syncFileItem) || (syncFileItem!=null && syncFileItem.getDealStatus()!=1)) {
-            log.warn("TITLE:{} csv文件入db完成,id:{},batchNo:{},csvName:{},分片:{}, 文件记录状态异常",
-                    TITLE,syncFileId,batchNo,fileName,shardingItems);
-            return;
-        }
         // 1、判断文件存在
-        File txtFile = new File(filePath);
+        File txtFile = new File(tcyrSyncFile.getFilePath());
         if (!txtFile.exists()) {
-            log.warn("TITLE:{} csv文件入db,batchNo:{},csvName:{},csvPath:{} 文件不存在",TITLE,batchNo,fileName,filePath);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    tcyrSyncFile.getId()+"文件不存在", TITLE));
+            return;
         }
         // 2、txt文件解析入库
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
-            //2.1批处理数据
-            List<String> lineBuffer = new ArrayList<>();
-            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
-                    marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
-                    marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool")
-            );
+            Long totalCount = 0L;
             String line;
             while ((line = reader.readLine()) != null) {
-                PAGE_SIZE = marketingCommonConfig.getTcTxtFileShardConfig().getInteger("pageSize");
-                lineBuffer.add(line);
-                if (lineBuffer.size() >= PAGE_SIZE) {
-                    List<String> lineList = new ArrayList<>();
-                    lineList.addAll(lineBuffer);
-                    processList(syncFileId,apiCode,batchNo,lineList,actionPool);
-                    lineBuffer.clear();
-                }
-            }
-            //2.2处理剩余数据
-            if (!lineBuffer.isEmpty()) {
-                List<String> lineList = new ArrayList<>();
-                lineList.addAll(lineBuffer);
-                processList(syncFileId,apiCode,batchNo,lineList,actionPool);
+                actionPool.setCorePoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
+                actionPool.setMaximumPoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
+                String finalLine = line;
+                CompletableFuture.runAsync(() -> processSingleLineData(tcyrSyncFile.getId(),
+                        tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(), finalLine), actionPool);
+                totalCount ++;
             }
             //3、修改txt完成状态、总成功条数
-            syncFileItem.setDealStatus(2);
-            Long totalLine = Files.lines(Paths.get(filePath)).count();
-            syncFileItem.setTotalCount(totalLine);
-            tcyrSyncFileMapper.updateByPrimaryKey(syncFileItem);
-            log.warn("TITLE:{} csv文件入db完成,syncFileId:{},batchNo:{},csvName:{},分片:{},totalCount:{},successCount:{},执行时间:{}",
-                    TITLE,syncFileId,batchNo,fileName,shardingItems,totalLine,totalLine,System.currentTimeMillis()-start);
-            shutdownThreadPool(actionPool);
+            tcyrSyncFile.setDealStatus(2);
+            tcyrSyncFile.setTotalCount(totalCount);
+            //4、计算dbCount
+            Long dbCount = tcyrSyncMapper.selecFileDbCount(tcyrSyncFile.getApiCode(),tcyrSyncFile.getId());
+            tcyrSyncFile.setSuccessCount(dbCount);
+            tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
+
+            log.warn("TITLE:{} csv文件入db完成,syncFileId:{},csvName:{},totalCount:{},successCount:{},执行时间:{}",
+                    TITLE,tcyrSyncFile.getId(),tcyrSyncFile.getFileName(),totalCount,dbCount,System.currentTimeMillis()-start);
         } catch (IOException e) {
+            //修改txt处理异常状态
+            tcyrSyncFile.setDealStatus(3);
+            tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
+        shutdownThreadPool(actionPool);
     }
 
-
-    private void processList(Long syncFileId,String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool) {
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
-        lineList.forEach(line -> {
-            CompletableFuture.runAsync(() -> processSingleLineData(syncFileId,apiCode, batchNo,line), actionPool);
-        });
-    }
 
     private void processSingleLineData(Long syncFileId,String apiCode, String batchNo,String line) {
-        String[] data = line.split(",");
-        String userKey;
-        int terminal = 0;
-        int dataStatus = 0;
-        if (data.length > 1) {
-            String firstColumn = data[0].trim();
-            String secondColumn = data[1].trim();
-            // 单个字段为空写入，数据状态异常；整行为空，也存入
-            if (StringUtils.isNotBlank(firstColumn) && StringUtils.isNotBlank(secondColumn)) {
-                dataStatus = 1;
-            }
-            userKey = firstColumn;
-            if (StringUtils.isNotBlank(secondColumn)) {
-                try {
-                    terminal =Integer.parseInt(secondColumn);
-                }catch (Exception e) {
-                    log.warn("{},porcessLine解析terminal异常,{},e:",TITLE,secondColumn,e);
-                    terminal =-2;
-                }
-            }else {
-                terminal = -1;
-            }
-        }else {
-            userKey= "";
-            terminal = -1;
-        }
         MarketingTcyrSync syncItem = new MarketingTcyrSync();
+        String[] data = line.split(",");
+        int dataStatus = 0;
+        // length=1: 空字符串/没有逗号 赋值给第一个字段
+        // length=2 userKey:column1、terminal:column
+        // length>2  多余的数据放入extend:扩展字段(jsonObject)
+        if (data.length ==1) {
+            syncItem.setUserKey(line);
+        }else if (data.length >=2) {
+            syncItem.setUserKey(data[0].trim());
+            syncItem.setTerminal(data[1].trim());
+            dataStatus =1;
+        }
+        JSONObject extentJson = new JSONObject();
+        for (int i = 0; i < data.length; i++) {
+            extentJson.put("column_"+(i+1), data[i]);
+        }
+        syncItem.setExtend(extentJson.toJSONString());
         syncItem.setApiCode(apiCode);
         syncItem.setBatchNo(batchNo);
-        syncItem.setUserKey(userKey);
-        syncItem.setTerminal(terminal);
-        Date nowDate = new Date();
-        syncItem.setCreateTime(nowDate);
-        syncItem.setUpdateTime(nowDate);
+        syncItem.setCreateTime(new Date());
         syncItem.setStatus(dataStatus);
-        //TODO  b_marketing_tcyr_sync 新增syncFileId字段(最后统计txt成功的条数)
         syncItem.setSyncFileId(syncFileId);
         tcyrSyncMapper.insertSelective(syncItem);
     }
 
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
-//        log.warn(TITLE + "shutdownThreadPool开始");
-//        long taskCount = -1;
-//        executor.shutdown();
-//        try {
-//            while (!executor.awaitTermination(2, TimeUnit.MINUTES)) {
-//                long completedTaskCount = executor.getCompletedTaskCount();
-//                if (taskCount == completedTaskCount) {
-//                    log.warn(TITLE + "业务线程等待超时");
-//                    break;
-//                }
-//                taskCount = completedTaskCount;
-//            }
-//        } catch (InterruptedException e) {
-//            executor.shutdownNow();
-//            Thread.interrupted();
-//        } catch (Throwable e) {
-//            log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
-//        }
-//        log.warn(TITLE + "shutdownThreadPool结束");
-
-        log.info(TITLE + "shutdownThreadPool开始");
-        executor.shutdown(); // 停止接收新任务
-        long totalTimeout = 30; // 最大等待30分钟
-        long elapsed = 0;
-        long lastCompletedCount = -1;
+        log.warn(TITLE + "shutdownThreadPool开始");
+        long taskCount = -1;
+        executor.shutdown();
         try {
             while (!executor.awaitTermination(2, TimeUnit.MINUTES)) {
-                elapsed += 2;
-                long currentCompleted = executor.getCompletedTaskCount();
-                // 总超时检查
-                if (elapsed >= totalTimeout) {
-                    log.warn("❗ 达到总超时时间，强制终止");
-                    List<Runnable> unfinished = executor.shutdownNow();
-                    log.warn("未完成任务: {}", unfinished.size());
+                long completedTaskCount = executor.getCompletedTaskCount();
+                if (taskCount == completedTaskCount) {
+                    log.warn(TITLE + "业务线程等待超时");
                     break;
                 }
-
-                // 任务停滞检查
-                if (lastCompletedCount == currentCompleted) {
-                    log.warn("⚠️ 任务2分钟内无进展，强制终止");
-                    List<Runnable> unfinished = executor.shutdownNow();
-                    log.warn("未完成任务: {}", unfinished.size());
-                    break;
-                }
-
-                lastCompletedCount = currentCompleted;
-                log.info("等待中... 已完成: {}/{}",
-                        currentCompleted, executor.getTaskCount());
+                taskCount = completedTaskCount;
             }
         } catch (InterruptedException e) {
             executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        } finally {
-            log.info(TITLE + "shutdownThreadPool结束");
+            Thread.interrupted();
+        } catch (Throwable e) {
+            log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }
+        log.warn(TITLE + "shutdownThreadPool结束");
     }
 }

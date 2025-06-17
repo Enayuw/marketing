@@ -7,7 +7,7 @@
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
     <result column="sync_file_id" property="syncFileId" jdbcType="BIGINT" />
     <result column="user_key" property="userKey" jdbcType="VARCHAR" />
-    <result column="terminal" property="terminal" jdbcType="INTEGER" />
+    <result column="terminal" property="terminal" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="is_match" property="isMatch" jdbcType="INTEGER" />
     <result column="is_clean" property="isClean" jdbcType="INTEGER" />
@@ -15,6 +15,7 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -76,7 +77,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, batch_no, sync_file_id, user_key, terminal, cell, is_match, is_clean, 
-    create_time, update_time, `status`, is_del
+    create_time, update_time, `status`, is_del, extend
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSyncExample" >
     select
@@ -115,13 +116,13 @@
     insert into b_marketing_tcyr_sync (api_code, batch_no, sync_file_id, 
       user_key, terminal, cell, 
       is_match, is_clean, create_time, 
-      update_time, `status`, is_del
-      )
+      update_time, `status`, is_del, 
+      extend)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
-      #{userKey,jdbcType=VARCHAR}, #{terminal,jdbcType=INTEGER}, #{cell,jdbcType=VARCHAR}, 
+      #{userKey,jdbcType=VARCHAR}, #{terminal,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
       #{isMatch,jdbcType=INTEGER}, #{isClean,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}
-      )
+      #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{extend,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrSync" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -165,6 +166,9 @@
       <if test="isDel != null" >
         is_del,
       </if>
+      <if test="extend != null" >
+        extend,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -180,7 +184,7 @@
         #{userKey,jdbcType=VARCHAR},
       </if>
       <if test="terminal != null" >
-        #{terminal,jdbcType=INTEGER},
+        #{terminal,jdbcType=VARCHAR},
       </if>
       <if test="cell != null" >
         #{cell,jdbcType=VARCHAR},
@@ -202,6 +206,9 @@
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -230,7 +237,7 @@
         user_key = #{record.userKey,jdbcType=VARCHAR},
       </if>
       <if test="record.terminal != null" >
-        terminal = #{record.terminal,jdbcType=INTEGER},
+        terminal = #{record.terminal,jdbcType=VARCHAR},
       </if>
       <if test="record.cell != null" >
         cell = #{record.cell,jdbcType=VARCHAR},
@@ -253,6 +260,9 @@
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -265,14 +275,15 @@
       batch_no = #{record.batchNo,jdbcType=VARCHAR},
       sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
       user_key = #{record.userKey,jdbcType=VARCHAR},
-      terminal = #{record.terminal,jdbcType=INTEGER},
+      terminal = #{record.terminal,jdbcType=VARCHAR},
       cell = #{record.cell,jdbcType=VARCHAR},
       is_match = #{record.isMatch,jdbcType=INTEGER},
       is_clean = #{record.isClean,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       `status` = #{record.status,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER}
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -293,7 +304,7 @@
         user_key = #{userKey,jdbcType=VARCHAR},
       </if>
       <if test="terminal != null" >
-        terminal = #{terminal,jdbcType=INTEGER},
+        terminal = #{terminal,jdbcType=VARCHAR},
       </if>
       <if test="cell != null" >
         cell = #{cell,jdbcType=VARCHAR},
@@ -316,6 +327,9 @@
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -325,14 +339,15 @@
       batch_no = #{batchNo,jdbcType=VARCHAR},
       sync_file_id = #{syncFileId,jdbcType=BIGINT},
       user_key = #{userKey,jdbcType=VARCHAR},
-      terminal = #{terminal,jdbcType=INTEGER},
+      terminal = #{terminal,jdbcType=VARCHAR},
       cell = #{cell,jdbcType=VARCHAR},
       is_match = #{isMatch,jdbcType=INTEGER},
       is_clean = #{isClean,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       `status` = #{status,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER}
+      is_del = #{isDel,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
