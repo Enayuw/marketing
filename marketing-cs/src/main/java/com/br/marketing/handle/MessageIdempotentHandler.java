@@ -252,26 +252,30 @@ public class MessageIdempotentHandler {
                     return false;
                 }
                 LOGGER.warn("Delete attempt {} failed for key: {} (key may not exist)", i + 1, idempotentKey);
-
-                // 对于删除失败但无异常的情况，也应该有延迟
-                if (i < maxRetries - 1) {
-                    try {
-                        Thread.sleep(Math.min((long) Math.pow(2, i) * 100, 5000)); // 限制最大延迟
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
+                if (redisChgService.exists(idempotentKey)) {
+                    // 对于删除失败但无异常的情况，也应该有延迟
+                    if (i < maxRetries - 1) {
+                        try {
+                            Thread.sleep(Math.min((long) Math.pow(2, i) * 100, 3000)); // 限制最大延迟
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
                     }
+                } else {
+                    return true;
                 }
-
             } catch (Exception e) {
                 LOGGER.error("Delete attempt {} failed for key: {}, error: {}",
                         i + 1, idempotentKey, e.getMessage(), e);
                 if (i < maxRetries - 1) {
                     try {
-                        // 只有在确认key存在时才设置过期时间
-                        if (redisChgService.exists(idempotentKey)) {
-                            redisChgService.expire(idempotentKey, 1); // 增加过期时间到5秒
+                        // 异步删除
+                        long l = redisChgService.unlink(idempotentKey);
+                        if(l > 0){
+                            return false;
                         }
+                        LOGGER.warn("unlink attempt {} failed for key: {} fail", i + 1, idempotentKey);
                     } catch (Exception ex) {
                         LOGGER.error("Failed to set expiration for key: {}, error: {}",
                                 idempotentKey, ex.getMessage());
