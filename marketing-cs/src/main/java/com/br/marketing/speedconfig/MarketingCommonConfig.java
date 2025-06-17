@@ -3116,5 +3116,10 @@ public class MarketingCommonConfig {
      * 奇富促动支上传数据参数配置
      */
     private JSONObject qiFuActuationServerConfig;
+
+    /**
+     * 奇富促完件提取表头字段
+     */
+    private String qiFuTransferTableHead;
 }
 

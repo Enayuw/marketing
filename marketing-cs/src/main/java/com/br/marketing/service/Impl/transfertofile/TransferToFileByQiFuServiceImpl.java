@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
@@ -185,47 +186,86 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
      * @param transferDataNew
      * @param validityPeriodsByCustNum
      */
-    private static void writeDataForOneQuery(Writer fw,
+    private void writeDataForOneQuery(Writer fw,
                                              AtomicInteger totalSize,
                                              List<MarketingTransferSyncUser> transferDataNew,
                                              Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum) {
+        // 解析文件头字段
+        String qiFuTransferTableHead = marketingCommonConfig.getQiFuTransferTableHead();
+        String[] headers = qiFuTransferTableHead.split(",");
+        String custNum ="";
         for (MarketingTransferSyncUser transferFilterData : transferDataNew) {
-            String custNum = transferFilterData.getCustNum();
-            custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
-            String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
-                    ? transferFilterData.getApplyDt().replace(":000","") : "";
-            String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
-                    ? transferFilterData.getApplyResult() : "";
-            String loginTime = StringUtils.isNotEmpty(transferFilterData.getLoginTime())
-                    ? transferFilterData.getLoginTime().replace(":000","") : "";
-            String requestTime = StringUtils.isNotEmpty(transferFilterData.getRequestTime())
-                    ? transferFilterData.getRequestTime().replace(":000","") : "";
-            String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
-                    ? transferFilterData.getUserType() : "";
-            MarketingSyncUser marketingSyncUser = validityPeriodsByCustNum.get(custNum).getSyncUsers().get(0);
-            PeriodOfValidityBO bo = validityPeriodsByCustNum.get(custNum).getBuilders().get(0).builder();
-            SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd");
-            String validStartDate = simpleDateFormat.format(bo.getBeginDate());
-            String validEndDate = simpleDateFormat.format(bo.getEnDate());
-            StringBuilder sb = new StringBuilder();
-            sb.append(custNum.concat(","))
-                    .append(applyDt.concat(","))
-                    .append(applyResult.concat(","))
-                    .append(loginTime.concat(","))
-                    .append(requestTime.concat(","))
-                    .append(userType.concat(","))
-                    .append(marketingSyncUser.getCusBatch().concat(","))
-                    .append(validEndDate.concat(","))
-                    .append(validStartDate)
-                    .append("\r\n");
             try {
+                // 获取所有可能需要的字段
+                String reserveField1 = transferFilterData.getReserveField1();
+                JSONObject object = StringUtils.isBlank(reserveField1) ? null : JSONObject.parseObject(reserveField1);
+
+                custNum = transferFilterData.getCustNum();
+                custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
+
+                // 构建字段映射
+                Map<String, String> fieldMap = new LinkedHashMap<>();
+
+                // 处理固定字段
+                fieldMap.put("custNum", custNum);
+                fieldMap.put("applyDt", StringUtils.isNotEmpty(transferFilterData.getApplyDt())
+                        ? transferFilterData.getApplyDt().replace(":000", "") : "");
+                fieldMap.put("applyResult", StringUtils.isNotEmpty(transferFilterData.getApplyResult())
+                        ? transferFilterData.getApplyResult() : "");
+                fieldMap.put("loginTime", StringUtils.isNotEmpty(transferFilterData.getLoginTime())
+                        ? transferFilterData.getLoginTime().replace(":000", "") : "");
+                fieldMap.put("requestTime", StringUtils.isNotEmpty(transferFilterData.getRequestTime())
+                        ? transferFilterData.getRequestTime().replace(":000", "") : "");
+                fieldMap.put("userType", StringUtils.isNotEmpty(transferFilterData.getUserType())
+                        ? transferFilterData.getUserType() : "");
+
+                // 处理需要计算的字段
+                if (validityPeriodsByCustNum.containsKey(custNum)) {
+                    MarketingSyncUser marketingSyncUser = validityPeriodsByCustNum.get(custNum).getSyncUsers().get(0);
+                    PeriodOfValidityBO bo = validityPeriodsByCustNum.get(custNum).getBuilders().get(0).builder();
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+                    fieldMap.put("taskId", marketingSyncUser.getCusBatch());
+                    fieldMap.put("expireDate", simpleDateFormat.format(bo.getEnDate()));
+                    fieldMap.put("effectiveDate", simpleDateFormat.format(bo.getBeginDate()));
+                } else {
+                    fieldMap.put("taskId", "");
+                    fieldMap.put("expireDate", "");
+                    fieldMap.put("effectiveDate", "");
+                }
+
+                // 处理JSON中的字段
+                if (object != null) {
+                    for (String key : object.keySet()) {
+                        fieldMap.put(key, object.getString(key));
+                    }
+                }
+
+                // 根据文件头顺序构建行
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < headers.length; i++) {
+                    String header = headers[i].trim();
+                    if (fieldMap.containsKey(header)) {
+                        sb.append(fieldMap.get(header));
+                    } else {
+                        // 如果字段不存在，填充空值
+                        sb.append("");
+                    }
+
+                    if (i < headers.length - 1) {
+                        sb.append(",");
+                    }
+                }
+                sb.append("\r\n");
+
+                // 写入文件
                 fw.append(sb.toString());
                 totalSize.incrementAndGet();
-            } catch (IOException e) {
+
+            } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
                         custNum + "-奇富360转化数据提取-文件写入失败！"), e);
             }
         }
     }
-
 }
