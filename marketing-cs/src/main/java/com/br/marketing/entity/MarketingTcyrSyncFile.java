@@ -29,12 +29,17 @@ public class MarketingTcyrSyncFile {
     private String filePath;
 
     /**
-     * 状态 0-异常数据 1-正常数据
+     * txt文件总行数
      */
-    private Integer status;
+    private Long totalCount;
 
     /**
-     * 文件处理入库状态 -1-失败 0-未处理 1-处理中 2-处理完成
+     * 入库成功的总条数
+     */
+    private Long successCount;
+
+    /**
+     * 文件处理入库状态  0-未处理 1-处理中 2-处理完成,3-处理异常
      */
     private Integer dealStatus;
 
@@ -52,16 +57,6 @@ public class MarketingTcyrSyncFile {
      * 修改时间
      */
     private Date updateTime;
-
-    /**
-     * txt文件总行数
-     */
-    private Long totalCount;
-
-    /**
-     * 入库成功的总条数
-     */
-    private Long successCount;
 
     public Long getId() {
         return id;
@@ -103,12 +98,20 @@ public class MarketingTcyrSyncFile {
         this.filePath = filePath == null ? null : filePath.trim();
     }
 
-    public Integer getStatus() {
-        return status;
+    public Long getTotalCount() {
+        return totalCount;
     }
 
-    public void setStatus(Integer status) {
-        this.status = status;
+    public void setTotalCount(Long totalCount) {
+        this.totalCount = totalCount;
+    }
+
+    public Long getSuccessCount() {
+        return successCount;
+    }
+
+    public void setSuccessCount(Long successCount) {
+        this.successCount = successCount;
     }
 
     public Integer getDealStatus() {
@@ -141,21 +144,5 @@ public class MarketingTcyrSyncFile {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Long getTotalCount() {
-        return totalCount;
-    }
-
-    public void setTotalCount(Long totalCount) {
-        this.totalCount = totalCount;
-    }
-
-    public Long getSuccessCount() {
-        return successCount;
-    }
-
-    public void setSuccessCount(Long successCount) {
-        this.successCount = successCount;
     }
 }

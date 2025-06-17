@@ -4,23 +4,21 @@
 
     <select id="selectSingleSyncFile" resultType="com.br.marketing.entity.MarketingTcyrSyncFile">
         SELECT id, api_code, batch_no, file_name, file_path,
-               `status`, deal_status, is_del, create_time,
+               deal_status, is_del, create_time,
                 update_time, total_count
         FROM b_marketing_tcyr_sync_file
         WHERE api_code=#{apiCode}
               and deal_status=#{dealStatus}
-              and status=1
               and is_del=1
         LIMIT 1
     </select>
     <select id="selectSyncFileList" resultType="com.br.marketing.entity.MarketingTcyrSyncFile">
         SELECT id, api_code, batch_no, file_name, file_path,
-               `status`, deal_status, is_del, create_time,
+               deal_status, is_del, create_time,
                update_time, total_count
         FROM b_marketing_tcyr_sync_file
         WHERE api_code=#{apiCode}
           and deal_status=#{dealStatus}
-          and status=1
           and is_del=1
     </select>
 

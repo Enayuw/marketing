@@ -445,63 +445,123 @@ public class MarketingTcyrSyncFileExample {
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNull() {
-            addCriterion("`status` is null");
+        public Criteria andTotalCountIsNull() {
+            addCriterion("total_count is null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNotNull() {
-            addCriterion("`status` is not null");
+        public Criteria andTotalCountIsNotNull() {
+            addCriterion("total_count is not null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("`status` =", value, "status");
+        public Criteria andTotalCountEqualTo(Long value) {
+            addCriterion("total_count =", value, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("`status` <>", value, "status");
+        public Criteria andTotalCountNotEqualTo(Long value) {
+            addCriterion("total_count <>", value, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("`status` >", value, "status");
+        public Criteria andTotalCountGreaterThan(Long value) {
+            addCriterion("total_count >", value, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("`status` >=", value, "status");
+        public Criteria andTotalCountGreaterThanOrEqualTo(Long value) {
+            addCriterion("total_count >=", value, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThan(Integer value) {
-            addCriterion("`status` <", value, "status");
+        public Criteria andTotalCountLessThan(Long value) {
+            addCriterion("total_count <", value, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("`status` <=", value, "status");
+        public Criteria andTotalCountLessThanOrEqualTo(Long value) {
+            addCriterion("total_count <=", value, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("`status` in", values, "status");
+        public Criteria andTotalCountIn(List<Long> values) {
+            addCriterion("total_count in", values, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("`status` not in", values, "status");
+        public Criteria andTotalCountNotIn(List<Long> values) {
+            addCriterion("total_count not in", values, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("`status` between", value1, value2, "status");
+        public Criteria andTotalCountBetween(Long value1, Long value2) {
+            addCriterion("total_count between", value1, value2, "totalCount");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("`status` not between", value1, value2, "status");
+        public Criteria andTotalCountNotBetween(Long value1, Long value2) {
+            addCriterion("total_count not between", value1, value2, "totalCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountIsNull() {
+            addCriterion("success_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountIsNotNull() {
+            addCriterion("success_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountEqualTo(Long value) {
+            addCriterion("success_count =", value, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountNotEqualTo(Long value) {
+            addCriterion("success_count <>", value, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountGreaterThan(Long value) {
+            addCriterion("success_count >", value, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountGreaterThanOrEqualTo(Long value) {
+            addCriterion("success_count >=", value, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountLessThan(Long value) {
+            addCriterion("success_count <", value, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountLessThanOrEqualTo(Long value) {
+            addCriterion("success_count <=", value, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountIn(List<Long> values) {
+            addCriterion("success_count in", values, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountNotIn(List<Long> values) {
+            addCriterion("success_count not in", values, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountBetween(Long value1, Long value2) {
+            addCriterion("success_count between", value1, value2, "successCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andSuccessCountNotBetween(Long value1, Long value2) {
+            addCriterion("success_count not between", value1, value2, "successCount");
             return (Criteria) this;
         }
 
@@ -742,126 +802,6 @@ public class MarketingTcyrSyncFileExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountIsNull() {
-            addCriterion("total_count is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountIsNotNull() {
-            addCriterion("total_count is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountEqualTo(Long value) {
-            addCriterion("total_count =", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountNotEqualTo(Long value) {
-            addCriterion("total_count <>", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountGreaterThan(Long value) {
-            addCriterion("total_count >", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountGreaterThanOrEqualTo(Long value) {
-            addCriterion("total_count >=", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountLessThan(Long value) {
-            addCriterion("total_count <", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountLessThanOrEqualTo(Long value) {
-            addCriterion("total_count <=", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountIn(List<Long> values) {
-            addCriterion("total_count in", values, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountNotIn(List<Long> values) {
-            addCriterion("total_count not in", values, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountBetween(Long value1, Long value2) {
-            addCriterion("total_count between", value1, value2, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountNotBetween(Long value1, Long value2) {
-            addCriterion("total_count not between", value1, value2, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountIsNull() {
-            addCriterion("success_count is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountIsNotNull() {
-            addCriterion("success_count is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountEqualTo(Long value) {
-            addCriterion("success_count =", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountNotEqualTo(Long value) {
-            addCriterion("success_count <>", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountGreaterThan(Long value) {
-            addCriterion("success_count >", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountGreaterThanOrEqualTo(Long value) {
-            addCriterion("success_count >=", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountLessThan(Long value) {
-            addCriterion("success_count <", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountLessThanOrEqualTo(Long value) {
-            addCriterion("success_count <=", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountIn(List<Long> values) {
-            addCriterion("success_count in", values, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountNotIn(List<Long> values) {
-            addCriterion("success_count not in", values, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountBetween(Long value1, Long value2) {
-            addCriterion("success_count between", value1, value2, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountNotBetween(Long value1, Long value2) {
-            addCriterion("success_count not between", value1, value2, "successCount");
             return (Criteria) this;
         }
     }

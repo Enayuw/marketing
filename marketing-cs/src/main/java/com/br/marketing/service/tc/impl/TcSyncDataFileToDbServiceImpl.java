@@ -86,6 +86,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         }finally {
             //5、异常时释放锁(finally)
             redisChgService.unlock(lockKey, lockValue);
+            shutdownThreadPool(actionPool);
         }
     }
 
@@ -118,7 +119,6 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             Long dbCount = tcyrSyncMapper.selecFileDbCount(tcyrSyncFile.getApiCode(),tcyrSyncFile.getId());
             tcyrSyncFile.setSuccessCount(dbCount);
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
-
             log.warn("TITLE:{} csv文件入db完成,syncFileId:{},csvName:{},totalCount:{},successCount:{},执行时间:{}",
                     TITLE,tcyrSyncFile.getId(),tcyrSyncFile.getFileName(),totalCount,dbCount,System.currentTimeMillis()-start);
         } catch (IOException e) {
@@ -127,7 +127,6 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
-        shutdownThreadPool(actionPool);
     }
 
 
