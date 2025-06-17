@@ -2,7 +2,6 @@ package com.br.marketing.service.tc.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.SftpClient;
 import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -14,6 +13,7 @@ import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
+import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataDownService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -56,6 +56,9 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
 
     @Resource
     private MarketingTcyrSyncFileMapper tcyrSyncFileMapper;
+
+    @Resource
+    private MarketingTcyrSyncMapper tcyrSyncMapper;
 
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
@@ -383,6 +386,15 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
         return result;
     }
 
+    @Override
+    public void dealTcyrTxtFileCount(String apiCode) {
+        List<MarketingTcyrSyncFile> tcyrSyncFileList = tcyrSyncFileMapper.selectSyncFileList(apiCode,2);
+        tcyrSyncFileList.stream().forEach(tcyrSyncFile -> {
+            Long insertCount = tcyrSyncMapper.selecFileDbCount(apiCode,tcyrSyncFile.getId());
+            tcyrSyncFile.setSuccessCount(insertCount);
+            tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
+        });
+    }
 
 
     public String getPath() {

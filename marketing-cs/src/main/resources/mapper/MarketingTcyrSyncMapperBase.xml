@@ -5,6 +5,7 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
+    <result column="sync_file_id" property="syncFileId" jdbcType="BIGINT" />
     <result column="user_key" property="userKey" jdbcType="VARCHAR" />
     <result column="terminal" property="terminal" jdbcType="INTEGER" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_no, user_key, terminal, cell, is_match, is_clean, create_time, 
-    update_time, `status`, is_del
+    id, api_code, batch_no, sync_file_id, user_key, terminal, cell, is_match, is_clean, 
+    create_time, update_time, `status`, is_del
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSyncExample" >
     select
@@ -111,14 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_sync (api_code, batch_no, user_key, 
-      terminal, cell, is_match, 
-      is_clean, create_time, update_time, 
-      `status`, is_del)
-    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{userKey,jdbcType=VARCHAR}, 
-      #{terminal,jdbcType=INTEGER}, #{cell,jdbcType=VARCHAR}, #{isMatch,jdbcType=INTEGER}, 
-      #{isClean,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{status,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER})
+    insert into b_marketing_tcyr_sync (api_code, batch_no, sync_file_id, 
+      user_key, terminal, cell, 
+      is_match, is_clean, create_time, 
+      update_time, `status`, is_del
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
+      #{userKey,jdbcType=VARCHAR}, #{terminal,jdbcType=INTEGER}, #{cell,jdbcType=VARCHAR}, 
+      #{isMatch,jdbcType=INTEGER}, #{isClean,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrSync" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -131,6 +134,9 @@
       </if>
       <if test="batchNo != null" >
         batch_no,
+      </if>
+      <if test="syncFileId != null" >
+        sync_file_id,
       </if>
       <if test="userKey != null" >
         user_key,
@@ -166,6 +172,9 @@
       </if>
       <if test="batchNo != null" >
         #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="syncFileId != null" >
+        #{syncFileId,jdbcType=BIGINT},
       </if>
       <if test="userKey != null" >
         #{userKey,jdbcType=VARCHAR},
@@ -214,6 +223,9 @@
       <if test="record.batchNo != null" >
         batch_no = #{record.batchNo,jdbcType=VARCHAR},
       </if>
+      <if test="record.syncFileId != null" >
+        sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
+      </if>
       <if test="record.userKey != null" >
         user_key = #{record.userKey,jdbcType=VARCHAR},
       </if>
@@ -251,6 +263,7 @@
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
       user_key = #{record.userKey,jdbcType=VARCHAR},
       terminal = #{record.terminal,jdbcType=INTEGER},
       cell = #{record.cell,jdbcType=VARCHAR},
@@ -272,6 +285,9 @@
       </if>
       <if test="batchNo != null" >
         batch_no = #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="syncFileId != null" >
+        sync_file_id = #{syncFileId,jdbcType=BIGINT},
       </if>
       <if test="userKey != null" >
         user_key = #{userKey,jdbcType=VARCHAR},
@@ -307,6 +323,7 @@
     update b_marketing_tcyr_sync
     set api_code = #{apiCode,jdbcType=VARCHAR},
       batch_no = #{batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{syncFileId,jdbcType=BIGINT},
       user_key = #{userKey,jdbcType=VARCHAR},
       terminal = #{terminal,jdbcType=INTEGER},
       cell = #{cell,jdbcType=VARCHAR},

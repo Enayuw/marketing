@@ -7,10 +7,13 @@ import java.util.List;
 
 public interface MarketingTcyrSyncFileMapper extends MarketingTcyrSyncFileMapperBase{
 
-    MarketingTcyrSyncFile selectSyncFile(
+    MarketingTcyrSyncFile selectSingleSyncFile(
             @Param("apiCode") String apiCode,
             @Param("dealStatus") Integer dealStatus
     );
 
 
+    List<MarketingTcyrSyncFile> selectSyncFileList(
+            @Param("apiCode") String apiCode,
+            @Param("dealStatus") Integer dealStatus);
 }

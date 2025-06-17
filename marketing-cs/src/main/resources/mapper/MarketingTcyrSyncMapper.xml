@@ -88,9 +88,17 @@
             LIMIT #{searchSize}
     </select>
 
+    <select id="selecFileDbCount" resultType="java.lang.Long">
+        SELECT count(*)
+        FROM b_marketing_tcyr_sync
+        WHERE
+            api_code= #{apiCode}
+            AND sync_file_id = #{syncFileId}
+    </select>
+
     <update id="updateMiddleMatchStatus">
         UPDATE b_marketing_tcyr_sync
-        SET is_match = -1
+        SET is_match = #{matchStatus}
         WHERE id IN (0,
         <foreach collection="idList" item="id" separator=",">
             #{id}

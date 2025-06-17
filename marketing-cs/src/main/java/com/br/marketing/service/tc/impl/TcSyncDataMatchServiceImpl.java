@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -143,15 +144,15 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
     @Override
     public void shardProcess(String apiCode, List<Integer> shardingItems) {
+        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+                marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"),
+                marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
         for (;;) {
             if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
                 break;
             }
             String lockKey = RedisKeyConstant.prefix.concat("tcyr_sync:match:").concat(apiCode);
             String lockValue = UUID.randomUUID().toString();
-            ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
-                    marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"),
-                    marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
             try{
                 //1.抢锁
                 redisChgService.lock(lockKey, lockValue);
@@ -167,7 +168,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 //4.释放锁
                 redisChgService.unlock(lockKey, lockValue);
                 //5.多线程单个处理匹配
-                shardMathTcyrSynList(apiCode,tcyrSyncList,actionPool,shardingItems);
+                shardMathTcyrSynList(apiCode,tcyrSyncList,actionPool);
             }catch (Exception e) {
                 redisChgService.unlock(lockKey, lockValue);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
@@ -177,10 +178,12 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 }
             }
         }
+        //关闭线程池
+        shutdownThreadPool(actionPool);
     }
 
 
-    private void shardMathTcyrSynList(String apiCode, List<MarketingTcyrSync> tcyrSyncList,ThreadPoolExecutor actionPool, List<Integer> shardingItems) {
+    private void shardMathTcyrSynList(String apiCode, List<MarketingTcyrSync> tcyrSyncList,ThreadPoolExecutor actionPool) {
         actionPool.setCorePoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
         tcyrSyncList.forEach(tcyrSync -> {
@@ -197,6 +200,43 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     }
 
 
+    public  void shutdownThreadPool(ThreadPoolExecutor executor) {
+        log.info(TITLE + "开始关闭线程池");
+        executor.shutdown(); // 停止接收新任务
+        long totalTimeout = 30; // 最大等待30分钟
+        long elapsed = 0;
+        long lastCompletedCount = -1;
+        try {
+            while (!executor.awaitTermination(2, TimeUnit.MINUTES)) {
+                elapsed += 2;
+                long currentCompleted = executor.getCompletedTaskCount();
+                // 总超时检查
+                if (elapsed >= totalTimeout) {
+                    log.warn("❗ 达到总超时时间，强制终止");
+                    List<Runnable> unfinished = executor.shutdownNow();
+                    log.warn("未完成任务: {}", unfinished.size());
+                    break;
+                }
+
+                // 任务停滞检查
+                if (lastCompletedCount == currentCompleted) {
+                    log.warn("⚠️ 任务2分钟内无进展，强制终止");
+                    List<Runnable> unfinished = executor.shutdownNow();
+                    log.warn("未完成任务: {}", unfinished.size());
+                    break;
+                }
+
+                lastCompletedCount = currentCompleted;
+                log.info("等待中... 已完成: {}/{}",
+                        currentCompleted, executor.getTaskCount());
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        } finally {
+            log.info(TITLE + "线程池已关闭");
+        }
+    }
 
 
 }

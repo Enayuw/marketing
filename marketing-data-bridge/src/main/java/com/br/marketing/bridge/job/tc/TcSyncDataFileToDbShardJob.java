@@ -38,7 +38,7 @@ public class TcSyncDataFileToDbShardJob extends AbstractSimpleElasticJob {
         List<Integer> shardingItems = shardingContext.getShardingItems();
         log.warn("TITLE:{}调度开始,apiCode:{},分片:{}",TITLE,apiCode,shardingItems);
         try {
-            tcSyncDataFileToDbService.process(apiCode,shardingItems);
+            tcSyncDataFileToDbService.shardProcess(apiCode,shardingItems);
         }catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                     e.getMessage(), TITLE), e);

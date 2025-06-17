@@ -21,4 +21,7 @@ public interface MarketingTcyrSyncMapper extends MarketingTcyrSyncMapperBase {
     List<MarketingTcyrSync> selectMatchSyncList(@Param("apiCode") String apiCode, @Param("searchSize") Integer searchSize);
     //shard-is_match更改中间态
     Integer updateMiddleMatchStatus(@Param("idList") List<Long> idList, @Param("matchStatus") Integer matchStatus);
+
+    //统计单个txt 最后入库id数量
+    Long selecFileDbCount(@Param("apiCode") String apiCode,@Param("syncFileId") Long syncFileId);
 }

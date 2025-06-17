@@ -24,4 +24,6 @@ public interface TcSyncDataDownService {
 
     //处理单个同城易融具体批次batchNo的文件 拉取GZ文件，txt信息入库
     Result dealTcyrTxtFileSync(MarketingTcyrSyncRecord syncRecord);
+
+    void dealTcyrTxtFileCount(String apiCode);
 }

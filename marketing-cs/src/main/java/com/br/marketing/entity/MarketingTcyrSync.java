@@ -19,6 +19,11 @@ public class MarketingTcyrSync {
     private String batchNo;
 
     /**
+     * 同一批次下具体单个文件的id
+     */
+    private Long syncFileId;
+
+    /**
      * 用户唯一编号
      */
     private String userKey;
@@ -34,7 +39,7 @@ public class MarketingTcyrSync {
     private String cell;
 
     /**
-     * 是否匹配 0-否；1-是
+     * 是否匹配 0-否；1-是; -1匹配中
      */
     private Integer isMatch;
 
@@ -85,6 +90,14 @@ public class MarketingTcyrSync {
 
     public void setBatchNo(String batchNo) {
         this.batchNo = batchNo == null ? null : batchNo.trim();
+    }
+
+    public Long getSyncFileId() {
+        return syncFileId;
+    }
+
+    public void setSyncFileId(Long syncFileId) {
+        this.syncFileId = syncFileId;
     }
 
     public String getUserKey() {

@@ -305,6 +305,66 @@ public class MarketingTcyrSyncExample {
             return (Criteria) this;
         }
 
+        public Criteria andSyncFileIdIsNull() {
+            addCriterion("sync_file_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdIsNotNull() {
+            addCriterion("sync_file_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdEqualTo(Long value) {
+            addCriterion("sync_file_id =", value, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdNotEqualTo(Long value) {
+            addCriterion("sync_file_id <>", value, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdGreaterThan(Long value) {
+            addCriterion("sync_file_id >", value, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("sync_file_id >=", value, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdLessThan(Long value) {
+            addCriterion("sync_file_id <", value, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdLessThanOrEqualTo(Long value) {
+            addCriterion("sync_file_id <=", value, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdIn(List<Long> values) {
+            addCriterion("sync_file_id in", values, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdNotIn(List<Long> values) {
+            addCriterion("sync_file_id not in", values, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdBetween(Long value1, Long value2) {
+            addCriterion("sync_file_id between", value1, value2, "syncFileId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncFileIdNotBetween(Long value1, Long value2) {
+            addCriterion("sync_file_id not between", value1, value2, "syncFileId");
+            return (Criteria) this;
+        }
+
         public Criteria andUserKeyIsNull() {
             addCriterion("user_key is null");
             return (Criteria) this;
