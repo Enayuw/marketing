@@ -1950,6 +1950,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     .findFirst().orElse(null);
             // 设置字段名称
             dto.setFieldName(nodeName);
+            dto.setLevel(level);
+            dto.setParentPath(node.getParentPath());
+            dto.setNodeType(node.getNodeType());
             //TODO 为空查询值
             dto.setFieldSample(nodeValue);
             dto.setFirstUploadTime(createTime);
@@ -1959,6 +1962,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 dto.setMappingRule(ruleConfig.getMappingRule());
                 dto.setRelatedField(ruleConfig.getMappingField());
                 dto.setResultPreview(ruleConfig.getResultPreview());
+                dto.setNeedCleaning(ruleConfig.getIsMapping());
+                dto.setFieldType(ruleConfig.getIsDerived());
             }
             // 添加到结果列表
             result.add(dto);
