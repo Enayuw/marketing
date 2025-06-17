@@ -309,7 +309,7 @@ public class XieChengService {
         Map<String, String> resMap = httpProxyClient.sendByCodeWithLog(
                 retMap,
                 config.getString("url"),
-                isProxy,
+                config.getBoolean("isProxy"),
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 JSON.toJSONString(thirdAdOuterReq),
                 true,

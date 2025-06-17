@@ -4,17 +4,17 @@ import java.util.Date;
 
 public class XieChengSmsCollidingDataLogVt {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private Long smsCollidingDataVtId;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -67,6 +67,11 @@ public class XieChengSmsCollidingDataLogVt {
      * 核验结果 true：参与营销，false：不参与营销
      */
     private Boolean result;
+
+    /**
+     * 下次推送时间
+     */
+    private Date nextPushTime;
 
     /**
      * 状态 0-正常1-待推送 2 推送完成 3 异常
@@ -201,6 +206,14 @@ public class XieChengSmsCollidingDataLogVt {
 
     public void setResult(Boolean result) {
         this.result = result;
+    }
+
+    public Date getNextPushTime() {
+        return nextPushTime;
+    }
+
+    public void setNextPushTime(Date nextPushTime) {
+        this.nextPushTime = nextPushTime;
     }
 
     public Integer getStatus() {

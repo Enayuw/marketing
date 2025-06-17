@@ -2857,6 +2857,10 @@ public class MarketingCommonConfig {
      */
     private List<String> xieChengQueueApiCodes;
 
+    /**
+     * 携程上报消息开关
+     */
+    private JSONObject xieChengReportMqConfig;
 
     /**
      * 携程定制转化清洗apicode
@@ -3098,6 +3102,11 @@ public class MarketingCommonConfig {
      */
     private String uMengCallBackEndTime;
 
+
+    /**
+     * 携程上报线程池数量
+     */
+    private Integer xieChengReportThreadPoolNum;
     /**
      * 奇富促动支上传数据apiCode
      */
