@@ -434,7 +434,7 @@ public class SnowflakeRedisGeneratorHandle {
 
                     // ID合理性检查
                     if (id <= 0 || !isValidId(id)) {
-                        LOGGER.error("生成了无效ID: {}, 重新生成", id);
+                        LOGGER.warn("雪花算法生成了无效ID: {}, 重新生成", id);
                         continue;
                     }
 
