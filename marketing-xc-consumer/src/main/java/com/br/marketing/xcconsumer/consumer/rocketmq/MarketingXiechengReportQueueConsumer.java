@@ -69,5 +69,6 @@ public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener 
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(2);
         defaultMQPushConsumer.setPopBatchNums(2);
+        defaultMQPushConsumer.setClientRebalance(false);
     }
 }
