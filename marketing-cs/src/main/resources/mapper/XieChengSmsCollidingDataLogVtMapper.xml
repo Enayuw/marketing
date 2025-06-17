@@ -31,6 +31,9 @@
             <if test="result != null" >
                 result = #{result,jdbcType=BIT},
             </if>
+            <if test="nextPushTime != null" >
+                next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
+            </if>
             <if test="status != null" >
                 status = #{status,jdbcType=INTEGER},
             </if>

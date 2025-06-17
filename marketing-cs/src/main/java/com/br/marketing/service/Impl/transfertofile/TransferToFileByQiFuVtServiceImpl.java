@@ -1,9 +1,11 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
@@ -14,9 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
+
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -178,44 +179,61 @@ public class TransferToFileByQiFuVtServiceImpl extends AbstractTransferToFileByQ
      * @param totalSize
      * @param transferDataNew
      */
-    private static void writeDataForOneQuery(Writer fw,
-                                             AtomicInteger totalSize,
-                                             List<Map<String, Object>> transferDataNew) {
+    private void writeDataForOneQuery(Writer fw,
+                                      AtomicInteger totalSize,
+                                      List<Map<String, Object>> transferDataNew){
+        // 获取表头
+        String[] headers = marketingCommonConfig.getQiFuTransferTableHead().split(",");
+
+        // 处理每条记录
         for (Map<String, Object> data : transferDataNew) {
-            String custNum = ObjectUtils.isEmpty(data.get("custNum")) ?
-                    "" : String.valueOf(data.get("custNum"));
-            String applyDt = ObjectUtils.isEmpty(data.get("applyDt")) ?
-                    "" : String.valueOf(data.get("applyDt")).replace(":000","");
-            String applyResult = ObjectUtils.isEmpty(data.get("applyResult")) ?
-                    "" : String.valueOf(data.get("applyResult"));
-            String loginTime = ObjectUtils.isEmpty(data.get("loginTime")) ?
-                    "" : String.valueOf(data.get("loginTime")).replace(":000","");
-            String requestTime = ObjectUtils.isEmpty(data.get("requestTime")) ?
-                    "" : String.valueOf(data.get("requestTime")).replace(":000","");
-            String userType = ObjectUtils.isEmpty(data.get("userType")) ?
-                    "" : String.valueOf(data.get("userType"));
-            String taskId = ObjectUtils.isEmpty(data.get("taskId")) ?
-                    "" : String.valueOf(data.get("taskId"));
-            String expireDate = ObjectUtils.isEmpty(data.get("expireDate")) ?
-                    "" : String.valueOf(data.get("expireDate"));
-            String effectiveDate = ObjectUtils.isEmpty(data.get("effectiveDate")) ?
-                    "" : String.valueOf(data.get("effectiveDate"));
-            StringBuilder sb = new StringBuilder();
-            sb.append(custNum.concat(","))
-                    .append(applyDt.concat(","))
-                    .append(applyResult.concat(","))
-                    .append(loginTime.concat(","))
-                    .append(requestTime.concat(","))
-                    .append(userType.concat(","))
-                    .append(taskId.concat(","))
-                    .append(expireDate.concat(","))
-                    .append(effectiveDate)
-                    .append("\r\n");
+            String custNum = data.get("custNum") != null ? data.get("custNum").toString() : "";
+
             try {
-                fw.append(sb.toString());
+                // 合并字段（原始数据+JSON字段）
+                Map<String, String> fieldMap = new LinkedHashMap<>();
+
+                // 处理JSON字段
+                if (data.get("reserveField1") != null) {
+                    try {
+                        JSONObject json = JSONObject.parseObject(data.get("reserveField1").toString());
+                        for (String key : json.keySet()) {
+                            fieldMap.put(key, json.getString(key) != null ? json.getString(key) : "");
+                        }
+                    } catch (Exception e) {
+                        log.warn("reserveField1解析失败", e);
+                    }
+                }
+
+                // 添加原始数据
+                for (String key : data.keySet()) {
+                    fieldMap.put(key, data.get(key) != null ? data.get(key).toString() : "");
+                }
+
+                // 特殊处理时间字段
+                String[] timeFields = {"applyDt", "loginTime", "requestTime"};
+                for (String field : timeFields) {
+                    if (fieldMap.containsKey(field)) {
+                        fieldMap.put(field, fieldMap.get(field).replace(":000", ""));
+                    }
+                }
+
+                // 构建CSV行
+                StringBuilder line = new StringBuilder();
+                for (int i = 0; i < headers.length; i++) {
+                    String value = fieldMap.getOrDefault(headers[i].trim(), "");
+                    line.append(value);
+                    if (i < headers.length - 1) line.append(",");
+                }
+                line.append("\r\n");
+
+                // 写入文件
+                fw.write(line.toString());
                 totalSize.incrementAndGet();
-            } catch (IOException e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
+
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(
+                        AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
                         custNum + "-奇富360转化数据提取VT-文件写入失败！"), e);
             }
         }
