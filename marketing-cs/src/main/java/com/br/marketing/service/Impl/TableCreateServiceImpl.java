@@ -61,6 +61,24 @@ public class TableCreateServiceImpl {
     }
 
     /**
+     * 根据apiCode查询tcid,不使用example，使用mapper的方式查询
+     * @param apiCode
+     * @return
+     */
+    public String getIcIdVt(String apiCode) {
+        if(_tcidHashMap.containsKey(apiCode)){
+            return _tcidHashMap.get(apiCode);
+        }
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.getCidByApiCode(apiCode);
+        if (marketingCustomers.size() == 0) {
+            return null;
+        }
+        String s1 = marketingCustomers.get(0).getCid().replaceFirst("-", "");
+        _tcidHashMap.put(apiCode,s1);
+        return s1;
+    }
+
+    /**
      * 根据apiCode查询cid
      *
      * @author Guo Zeqiang
