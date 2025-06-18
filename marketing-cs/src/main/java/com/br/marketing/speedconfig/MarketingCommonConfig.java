@@ -2930,6 +2930,11 @@ public class MarketingCommonConfig {
     private Integer  tcPageSearchSize;
 
     /**
+     * 同城易融-match时batchUpdateSize
+     */
+    private Integer  tcPartSize;
+
+    /**
      * 同城易融-撤销清洗job每页查询条数
      */
     private Integer tcRevokePageSize;
@@ -2949,7 +2954,7 @@ public class MarketingCommonConfig {
 
     /**
      * 同程易融-match-shard  job参数
-     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":10000}
+     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000}
      */
     private JSONObject tcMatchShardConfig;
 

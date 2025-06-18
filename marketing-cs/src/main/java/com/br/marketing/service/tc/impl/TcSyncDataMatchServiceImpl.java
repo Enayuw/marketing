@@ -68,7 +68,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
         actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        futureList.add(CompletableFuture.supplyAsync(() -> processUnMatchData(apiCode,tcyrSyncList), actionPool)
+        futureList.add(CompletableFuture.supplyAsync(() -> processUnMatchData(apiCode,tcyrSyncList,marketingCommonConfig.getTcPartSize()), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {
                         resultList.add(0L);
@@ -99,7 +99,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         }
     }
 
-    private Result processUnMatchData(String apiCode,List<MarketingTcyrSync> tcyrSyncList) {
+    private Result processUnMatchData(String apiCode,List<MarketingTcyrSync> tcyrSyncList,Integer partSize) {
         Result result = new Result().failure();
         try {
             //is_match 默认设置0，匹配中修改为1
@@ -126,7 +126,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 }
 //                tcyrSyncMapper.updateMatchInfo(syncItem);
             }
-            List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(tcyrSyncList, 1000);
+            List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(tcyrSyncList, partSize);
             for (List<MarketingTcyrSync> partitionItemList : partitionList) {
                 tcyrSyncMapper.batchUpdateMatchInfo(partitionItemList);
             }
@@ -180,9 +180,12 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     private void shardMathTcyrSynList(String apiCode, List<MarketingTcyrSync> tcyrSyncList,ThreadPoolExecutor actionPool) {
         actionPool.setCorePoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
-        tcyrSyncList.forEach(tcyrSync -> {
-            CompletableFuture.runAsync(() -> processUnMatchSingleData(apiCode, tcyrSync), actionPool);
-        });
+        CompletableFuture.supplyAsync(() -> processUnMatchData(apiCode,tcyrSyncList,
+                marketingCommonConfig.getTcMatchShardConfig().getInteger("partSize")), actionPool);
+//        tcyrSyncList.forEach(tcyrSync -> {
+//            CompletableFuture.runAsync(() -> processUnMatchSingleData(apiCode, tcyrSync), actionPool);
+//        });
+
     }
 
     private void dealMiddleState(List<MarketingTcyrSync> tcyrSyncList) {
