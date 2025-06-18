@@ -73,7 +73,7 @@
     </select>
 
 
-    <select id="selectSingleLastCustNumCelltikv_" resultType="java.util.Map">
+    <select id="selectSingleLastCustNumCelltikv_" resultType="java.lang.String">
         SELECT
             cell_md5 AS cell
         FROM

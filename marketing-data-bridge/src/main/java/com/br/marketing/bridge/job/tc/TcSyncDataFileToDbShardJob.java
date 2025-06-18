@@ -32,6 +32,7 @@ public class TcSyncDataFileToDbShardJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
+        log.warn("TITLE:{} 开始执行",TITLE);
         try {
             tcSyncDataFileToDbService.shardProcess(marketingCommonConfig.getTcyrApiCode());
         }catch (Exception e){

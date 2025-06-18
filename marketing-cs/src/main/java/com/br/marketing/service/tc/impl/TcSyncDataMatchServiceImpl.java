@@ -88,9 +88,8 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         try {
             tcyrSync.setIsMatch(0);
             tcyrSync.setIsClean(0);
-            Map<String,String> userCellMap = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode,tcyrSync.getUserKey());
-            if (userCellMap != null) {
-                String cell = userCellMap.get("cell");
+            String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode,tcyrSync.getUserKey());
+            if (StringUtils.isNotBlank(cell)) {
                 tcyrSync.setCell(cell);
                 tcyrSync.setIsMatch(1);
             }
@@ -192,7 +191,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     }
 
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
-        log.warn(TITLE + "shutdownThreadPool开始");
+        log.warn("shutdownThreadPool开始");
         executor.shutdown();
         try {
             while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
@@ -203,7 +202,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
             log.error("{},日志保存线程池结束异常！",TITLE,ex);
             Thread.currentThread().interrupt();
         }
-        log.warn(TITLE + "shutdownThreadPool结束");
+        log.warn("shutdownThreadPool结束");
     }
 
 }

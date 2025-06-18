@@ -26,7 +26,7 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
 
     List<Map<String, String>> selectLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKeyList") List<String> userKeyList);
 
-    Map<String, String> selectSingleLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKey")String userKey);
+    String selectSingleLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKey")String userKey);
 
     Map<String, String> selectSingleLastCustNumCell(@Param("apiCode") String apiCode,@Param("userKey")String userKey);
 }

@@ -38,6 +38,7 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
+        log.warn("TITLE:{} 开始执行",TITLE);
         try {
             List<MarketingTcyrSyncRecord> syncRecordList =tcyrSyncRecordMapper.searchTcyrSyncList(
                             marketingCommonConfig.getTcyrApiCode(),

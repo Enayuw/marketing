@@ -86,6 +86,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             syncFileList.forEach(tcyrSyncFile -> {
                 Long dbCount = tcyrSyncMapper.selecFileDbCount(tcyrSyncFile.getApiCode(),tcyrSyncFile.getId());
                 tcyrSyncFile.setSuccessCount(dbCount);
+                tcyrSyncFile.setUpdateTime(new Date());
                 tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
                 if (!Objects.equals(tcyrSyncFile.getTotalCount(), dbCount)) {
                     String alertMsg =String.format("文件总数和db数量不一致,fileId:%s,fileName:%s,totalCount:%s,dbCount:%s",
@@ -129,6 +130,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             //3、修改txt完成状态、总成功条数
             tcyrSyncFile.setDealStatus(2);
             tcyrSyncFile.setTotalCount(totalCount);
+            tcyrSyncFile.setUpdateTime(new Date());
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
             log.warn("TITLE:{} csv文件入db完成,syncFileId:{},csvName:{},totalCount:{},执行时间:{}",
                     TITLE,tcyrSyncFile.getId(),tcyrSyncFile.getFileName(),totalCount,System.currentTimeMillis()-start);
