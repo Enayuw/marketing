@@ -2939,7 +2939,10 @@ public class MarketingCommonConfig {
 
     /**
      * 同程易融-txtFile-shard job参数
-     * {"jobSwitch":true,"threadPool":100,"pageSize":5000,"partSize":1000}
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":5000,"partSize":1000,
+     * "dbCountWaitTime":60000
+     * }
      */
     private JSONObject tcTxtFileShardConfig;
 
