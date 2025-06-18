@@ -84,7 +84,7 @@ public enum DataProcessEnum {
     }
 
     /**
-     * Accept type enum: GENERAL(0), CUSTOM(1)
+     * 规则状态
      */
     @Getter
     @AllArgsConstructor
@@ -95,4 +95,21 @@ public enum DataProcessEnum {
         private  Integer code;
         private  String desc;
     }
+
+    /**
+     * 清洗文件状态
+     */
+    @Getter
+    @AllArgsConstructor
+    public enum FileStatusEnum {
+        READY(0, "待开始"),
+        RUNNING(1, "清洗中"),
+        SUCCESS(2, "清洗完成");
+
+        private  Integer code;
+        private  String desc;
+    }
+
+
+
 }

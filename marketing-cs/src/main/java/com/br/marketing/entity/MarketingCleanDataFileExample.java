@@ -12,7 +12,7 @@ public class MarketingCleanDataFileExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingCleanDataFileExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingCleanDataFileExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -292,6 +292,66 @@ public class MarketingCleanDataFileExample {
 
         public Criteria andCleanTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("clean_type not between", value1, value2, "cleanType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeIsNull() {
+            addCriterion("db_operate_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeIsNotNull() {
+            addCriterion("db_operate_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeEqualTo(Integer value) {
+            addCriterion("db_operate_type =", value, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeNotEqualTo(Integer value) {
+            addCriterion("db_operate_type <>", value, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeGreaterThan(Integer value) {
+            addCriterion("db_operate_type >", value, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("db_operate_type >=", value, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeLessThan(Integer value) {
+            addCriterion("db_operate_type <", value, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("db_operate_type <=", value, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeIn(List<Integer> values) {
+            addCriterion("db_operate_type in", values, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeNotIn(List<Integer> values) {
+            addCriterion("db_operate_type not in", values, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeBetween(Integer value1, Integer value2) {
+            addCriterion("db_operate_type between", value1, value2, "dbOperateType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbOperateTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("db_operate_type not between", value1, value2, "dbOperateType");
             return (Criteria) this;
         }
 
@@ -1014,10 +1074,81 @@ public class MarketingCleanDataFileExample {
             addCriterion("md5_value not between", value1, value2, "md5Value");
             return (Criteria) this;
         }
+
+        public Criteria andReceiveDateIsNull() {
+            addCriterion("receive_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateIsNotNull() {
+            addCriterion("receive_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateEqualTo(String value) {
+            addCriterion("receive_date =", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotEqualTo(String value) {
+            addCriterion("receive_date <>", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateGreaterThan(String value) {
+            addCriterion("receive_date >", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateGreaterThanOrEqualTo(String value) {
+            addCriterion("receive_date >=", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLessThan(String value) {
+            addCriterion("receive_date <", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLessThanOrEqualTo(String value) {
+            addCriterion("receive_date <=", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLike(String value) {
+            addCriterion("receive_date like", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotLike(String value) {
+            addCriterion("receive_date not like", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateIn(List<String> values) {
+            addCriterion("receive_date in", values, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotIn(List<String> values) {
+            addCriterion("receive_date not in", values, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateBetween(String value1, String value2) {
+            addCriterion("receive_date between", value1, value2, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotBetween(String value1, String value2) {
+            addCriterion("receive_date not between", value1, value2, "receiveDate");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }
