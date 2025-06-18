@@ -180,12 +180,14 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     private void shardMathTcyrSynList(String apiCode, List<MarketingTcyrSync> tcyrSyncList,ThreadPoolExecutor actionPool) {
         actionPool.setCorePoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
-        CompletableFuture.supplyAsync(() -> processUnMatchData(apiCode,tcyrSyncList,
-                marketingCommonConfig.getTcMatchShardConfig().getInteger("partSize")), actionPool);
-//        tcyrSyncList.forEach(tcyrSync -> {
-//            CompletableFuture.runAsync(() -> processUnMatchSingleData(apiCode, tcyrSync), actionPool);
-//        });
-
+        if(marketingCommonConfig.getTcMatchShardConfig().getBoolean("batchSwitch")){
+            CompletableFuture.supplyAsync(() -> processUnMatchData(apiCode,tcyrSyncList,
+                    marketingCommonConfig.getTcMatchShardConfig().getInteger("partSize")), actionPool);
+        }else {
+            tcyrSyncList.forEach(tcyrSync -> {
+                CompletableFuture.runAsync(() -> processUnMatchSingleData(apiCode, tcyrSync), actionPool);
+            });
+        }
     }
 
     private void dealMiddleState(List<MarketingTcyrSync> tcyrSyncList) {
