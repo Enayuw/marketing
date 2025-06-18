@@ -15,6 +15,7 @@
     <result column="mkt_level" property="mktLevel" jdbcType="VARCHAR" />
     <result column="info" property="info" jdbcType="VARCHAR" />
     <result column="result" property="result" jdbcType="BIT" />
+    <result column="next_push_time" property="nextPushTime" jdbcType="TIMESTAMP" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
@@ -81,9 +82,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, sms_colliding_data_vt_id, api_code, local_id, `type`, sha256_code_list, md5_code, 
-    param, param_secret, org_channel, mkt_level, info, `result`, `status`, data_message, 
-    extend, create_time, update_time, send_date
+    id, sms_colliding_data_vt_id, api_code, local_id, `type`, sha256_code_list, md5_code,
+    param, param_secret, org_channel, mkt_level, info, `result`, next_push_time, `status`,
+    data_message, extend, create_time, update_time, send_date
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample" >
     select
@@ -100,7 +101,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_sms_colliding_data_log_vt
     where id = #{id,jdbcType=BIGINT}
@@ -119,20 +120,20 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_sms_colliding_data_log_vt (sms_colliding_data_vt_id, api_code, local_id, 
-      `type`, sha256_code_list, md5_code, 
-      param, param_secret, org_channel, 
-      mkt_level, info, `result`, 
-      `status`, data_message, extend, 
-      create_time, update_time, send_date
-      )
-    values (#{smsCollidingDataVtId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, 
-      #{type,jdbcType=VARCHAR}, #{sha256CodeList,jdbcType=VARCHAR}, #{md5Code,jdbcType=VARCHAR}, 
-      #{param,jdbcType=VARCHAR}, #{paramSecret,jdbcType=VARCHAR}, #{orgChannel,jdbcType=VARCHAR}, 
-      #{mktLevel,jdbcType=VARCHAR}, #{info,jdbcType=VARCHAR}, #{result,jdbcType=BIT}, 
-      #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{sendDate,jdbcType=INTEGER}
-      )
+    insert into b_xiecheng_sms_colliding_data_log_vt (sms_colliding_data_vt_id, api_code, local_id,
+    `type`, sha256_code_list, md5_code,
+    param, param_secret, org_channel,
+    mkt_level, info, `result`,
+    next_push_time, `status`, data_message,
+    extend, create_time, update_time,
+    send_date)
+    values (#{smsCollidingDataVtId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT},
+    #{type,jdbcType=VARCHAR}, #{sha256CodeList,jdbcType=VARCHAR}, #{md5Code,jdbcType=VARCHAR},
+    #{param,jdbcType=VARCHAR}, #{paramSecret,jdbcType=VARCHAR}, #{orgChannel,jdbcType=VARCHAR},
+    #{mktLevel,jdbcType=VARCHAR}, #{info,jdbcType=VARCHAR}, #{result,jdbcType=BIT},
+    #{nextPushTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR},
+    #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{sendDate,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataLogVt" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -175,6 +176,9 @@
       </if>
       <if test="result != null" >
         `result`,
+      </if>
+      <if test="nextPushTime != null" >
+        next_push_time,
       </if>
       <if test="status != null" >
         `status`,
@@ -231,6 +235,9 @@
       </if>
       <if test="result != null" >
         #{result,jdbcType=BIT},
+      </if>
+      <if test="nextPushTime != null" >
+        #{nextPushTime,jdbcType=TIMESTAMP},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -300,6 +307,9 @@
       <if test="record.result != null" >
         `result` = #{record.result,jdbcType=BIT},
       </if>
+      <if test="record.nextPushTime != null" >
+        next_push_time = #{record.nextPushTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
@@ -326,24 +336,25 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_sms_colliding_data_log_vt
     set id = #{record.id,jdbcType=BIGINT},
-      sms_colliding_data_vt_id = #{record.smsCollidingDataVtId,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      `type` = #{record.type,jdbcType=VARCHAR},
-      sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
-      md5_code = #{record.md5Code,jdbcType=VARCHAR},
-      param = #{record.param,jdbcType=VARCHAR},
-      param_secret = #{record.paramSecret,jdbcType=VARCHAR},
-      org_channel = #{record.orgChannel,jdbcType=VARCHAR},
-      mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
-      info = #{record.info,jdbcType=VARCHAR},
-      `result` = #{record.result,jdbcType=BIT},
-      `status` = #{record.status,jdbcType=INTEGER},
-      data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      send_date = #{record.sendDate,jdbcType=INTEGER}
+    sms_colliding_data_vt_id = #{record.smsCollidingDataVtId,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    `type` = #{record.type,jdbcType=VARCHAR},
+    sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
+    md5_code = #{record.md5Code,jdbcType=VARCHAR},
+    param = #{record.param,jdbcType=VARCHAR},
+    param_secret = #{record.paramSecret,jdbcType=VARCHAR},
+    org_channel = #{record.orgChannel,jdbcType=VARCHAR},
+    mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
+    info = #{record.info,jdbcType=VARCHAR},
+    `result` = #{record.result,jdbcType=BIT},
+    next_push_time = #{record.nextPushTime,jdbcType=TIMESTAMP},
+    `status` = #{record.status,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    send_date = #{record.sendDate,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -387,6 +398,9 @@
       <if test="result != null" >
         `result` = #{result,jdbcType=BIT},
       </if>
+      <if test="nextPushTime != null" >
+        next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
@@ -411,23 +425,24 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataLogVt" >
     update b_xiecheng_sms_colliding_data_log_vt
     set sms_colliding_data_vt_id = #{smsCollidingDataVtId,jdbcType=BIGINT},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      `type` = #{type,jdbcType=VARCHAR},
-      sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
-      md5_code = #{md5Code,jdbcType=VARCHAR},
-      param = #{param,jdbcType=VARCHAR},
-      param_secret = #{paramSecret,jdbcType=VARCHAR},
-      org_channel = #{orgChannel,jdbcType=VARCHAR},
-      mkt_level = #{mktLevel,jdbcType=VARCHAR},
-      info = #{info,jdbcType=VARCHAR},
-      `result` = #{result,jdbcType=BIT},
-      `status` = #{status,jdbcType=INTEGER},
-      data_message = #{dataMessage,jdbcType=VARCHAR},
-      extend = #{extend,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      send_date = #{sendDate,jdbcType=INTEGER}
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        local_id = #{localId,jdbcType=BIGINT},
+        `type` = #{type,jdbcType=VARCHAR},
+        sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
+        md5_code = #{md5Code,jdbcType=VARCHAR},
+        param = #{param,jdbcType=VARCHAR},
+        param_secret = #{paramSecret,jdbcType=VARCHAR},
+        org_channel = #{orgChannel,jdbcType=VARCHAR},
+        mkt_level = #{mktLevel,jdbcType=VARCHAR},
+        info = #{info,jdbcType=VARCHAR},
+        `result` = #{result,jdbcType=BIT},
+        next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
+        `status` = #{status,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        send_date = #{sendDate,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

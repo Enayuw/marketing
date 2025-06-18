@@ -120,7 +120,7 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
         transferFileTask.setFilePath(descPath);
         File file = new File(fileAllPath);
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-            fw.append(TABLE_HEAD_TRANSFER);
+            fw.append(marketingCommonConfig.getQiFuTransferTableHead());
             fw.append("\r\n");
             writeQifuTransferToFile(fw, apiCode,
                     transferFileTask, requestDate, marketingCommonConfig.getQiFuFullExtDataSoleNum());
