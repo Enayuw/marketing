@@ -20,6 +20,9 @@
         <if test="acceptType != null">
             AND a.accept_type = #{acceptType,jdbcType=INTEGER}
         </if>
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
         ORDER BY a.update_time DESC
     </select>
 

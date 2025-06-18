@@ -3,6 +3,7 @@ package com.br.marketing.service.clean.common;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
 
@@ -26,4 +27,9 @@ public interface DataCleanService {
 
     void dataCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDetailDTO marketingPreUserDetailDTO);
 
-    }
+    void fileUploadDataClean(MarketingCleanDataFile cleanFile, MarketingDataCleanGeneralConfig config);
+
+    void processBatchDataSync(List<String> batchLines, String[] headers,
+                              List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                              String apiCode, String fileName, int startIndex);
+}

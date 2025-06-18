@@ -5,14 +5,17 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.entity.MarketingCleanDataFile;
+import com.br.marketing.entity.MarketingCleanDataFileExample;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
+import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
 import com.br.marketing.service.SyncConfigService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +88,42 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                 }
             }
         }
+        List<String> appletDateList = Lists.newArrayList(LocalDate.now().toString(), LocalDate.now().minusDays(1).toString());
+        //填充b_marketing_clean_data_file表的表头及字段
+        MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
+        fileExample.createCriteria().andReceiveDateIn(appletDateList).andFileHeaderIsNull();
+        fileExample.setOrderByClause("create_time desc");
+        List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
+        cleanDataFiles.forEach(cleanDataFile -> {
+            fillHeaderAndData(cleanDataFile);
+        });
 
+    }
+
+    private void fillHeaderAndData(MarketingCleanDataFile cleanDataFile) {
+        MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
+        File file = new File(cleanDataFile.getLocalPath().concat(cleanDataFile.getLocalPath()));
+        Integer line = 0;
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String row;
+            while (line < 2 && (row = br.readLine()) != null) {
+                // 跳过空行（包含空白字符行）
+                if (row.trim().isEmpty()) {
+                    continue;
+                }
+                if (line == 0) {
+                    dataFile.setFileHeader(row);
+                } else {
+                    dataFile.setFileData(row);
+                }
+                line++;
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        dataFile.setId(cleanDataFile.getId());
+        dataFile.setReceiveDate(LocalDate.now().toString());
+        marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
     }
 
     private void fileSyncTable(SyncConfig syncConfig, String path, String fileName) {
@@ -94,10 +132,10 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         File file = new File(fileStr);
         Integer line = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String row = "";
-            while (line < 2) {
-                row = br.readLine();
-                if(StringUtils.isBlank(row)){
+            String row;
+            while (line < 2 && (row = br.readLine()) != null) {
+                // 跳过空行（包含空白字符行）
+                if (row.trim().isEmpty()) {
                     continue;
                 }
                 if (line == 0) {
@@ -117,6 +155,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setCleanType(0);
         dataFile.setCreateTime(new Date());
         dataFile.setUpdateTime(new Date());
+        dataFile.setReceiveDate(LocalDate.now().toString());
         marketingCleanDataFileMapper.insertSelective(dataFile);
 
     }

@@ -41,6 +41,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -493,6 +500,162 @@ public class DataCleanServiceImpl implements DataCleanService {
         });
     }
 
+
+    @Override
+    public void fileUploadDataClean(MarketingCleanDataFile cleanFile, MarketingDataCleanGeneralConfig config) {
+        log.warn(TITLE + "文件上传数据清洗开始，文件：{}", cleanFile.getFileName());
+        Long start = System.currentTimeMillis();
+        
+        String filePath = cleanFile.getLocalPath();
+        String fileName = cleanFile.getFileName();
+        String apiCode = config.getApiCode();
+        
+        //查询规则  
+        MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();    
+        ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(config.getId()).andIsDelEqualTo(1);
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+        
+        if (CollectionUtils.isEmpty(ruleConfigList)) {
+            log.warn("未找到清洗规则配置，apiCode: {}", apiCode);
+            return;
+        }
+        try {
+            // 批量读取并处理文件
+            processByBatch(filePath, fileName, apiCode, ruleConfigList);
+        } catch (Exception e) {
+            log.error(TITLE + "文件读取异常，文件路径: " + filePath, e);
+        }
+        log.warn(TITLE + "文件上传数据清洗结束，文件：{}，耗时：{}ms", fileName, System.currentTimeMillis() - start);
+    }
+    
+    /**
+     * 批量处理文件数据 - 每500行为一批，同步处理
+     */
+    private void processByBatch(String filePath, String fileName, String apiCode, 
+                               List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+        final int BATCH_SIZE = 500;
+        String[] headers = null;
+        List<String> batchLines = new ArrayList<>();
+        int totalProcessed = 0;
+        File file = new File(filePath + fileName);
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+            while ((line = reader.readLine()) != null) {
+                // 处理表头
+                if (isFirstLine) {
+                    headers = line.split(",");
+                    if (headers == null || headers.length == 0) {
+                        log.error("文件表头解析失败，文件路径: {}", filePath);
+                        return;
+                    }
+                    isFirstLine = false;
+                    continue;
+                }
+                // 跳过空行
+                if (StringUtils.isEmpty(line.trim())) {
+                    continue;
+                }
+                batchLines.add(line);
+                // 当达到批次大小时，处理这一批数据
+                if (batchLines.size() >= BATCH_SIZE) {
+                    processBatchDataSync(batchLines, headers, ruleConfigList, apiCode, fileName, totalProcessed);
+                    totalProcessed += batchLines.size();
+                    batchLines.clear();
+                }
+            }
+            // 处理最后一批数据（不足500行）
+            if (!batchLines.isEmpty()) {
+                processBatchDataSync(batchLines, headers, ruleConfigList, apiCode, fileName, totalProcessed);
+                totalProcessed += batchLines.size();
+            }
+            log.warn("文件处理完成，总共处理数据行数: {}", totalProcessed);
+            
+        } catch (IOException e) {
+            log.error("读取文件失败，文件路径: " + filePath, e);
+        }
+    }
+    
+    /**
+     * 功能说明：
+     * 将一批原始文件行 清洗值上传表
+     * 
+     * @param batchLines    待处理的文件行数据列表（不包含表头）
+     * @param headers       文件表头字段数组
+     * @param ruleConfigList 数据清洗规则配置列表，定义了字段映射和清洗逻辑
+     * @param apiCode       API编码
+     * @param fileName      文件名，用于日志记录和标识
+     * @param startIndex    当前批次在整个文件中的起始索引，用于计算实际行号
+     */
+    @Override
+    public void processBatchDataSync(List<String> batchLines, String[] headers,
+                                     List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                     String apiCode, String fileName, int startIndex) {
+        try {
+            // 处理数据清洗
+            MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+            // 同步处理当前批次的所有行
+            for (int i = 0; i < batchLines.size(); i++) {
+                String line = batchLines.get(i);
+                // +2 是因为跳过了表头，且索引从1开始
+                int actualRowIndex = startIndex + i + 2;
+                // 根据表头和行数据构建JSON对象
+                JSONObject jsonData = buildJsonFromLineData(line, headers, actualRowIndex);
+                if (jsonData == null) {
+                    log.warn("第{}行数据解析失败，跳过处理: {}", actualRowIndex, line);
+                    return;
+                }
+                MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+                // 调用数据清洗处理方法
+                dataCleanHandler(jsonData, ruleConfigList, marketingPreUserDetailDTO);
+                syncUsers.add(marketingPreUserDetailDTO);
+            }
+            marketingPreUserDTO.setTaskId(apiCode + "_" + LocalDate.now()+fileName);
+            marketingPreUserDTO.setRequestId(apiCode + "_" + LocalDate.now() + "_" + UUID.randomUUID());
+            // 组装最终数据
+            marketingPreUserDTO.setDataItems(syncUsers);
+            marketingPreUserDTO.setDataSourceType(DataSourceTypeEnum.ORIGINAL_INTERFACE.getCode());
+            // 推送清洗后的数据
+            UploadDataDTO uploadDataDTO = new UploadDataDTO();
+            uploadDataDTO.setApiCode(apiCode);
+            uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+            pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+        } catch (Exception e) {
+            log.error("批次数据处理异常", e);
+        }
+    }
+
+    /**
+     * 根据表头和行数据构建JSON对象 - 简化版本
+     */
+    private JSONObject buildJsonFromLineData(String lineData, String[] headers, int rowIndex) {
+        try {
+            // 只使用逗号分隔解析行数据
+            String[] values = lineData.split(",");
+            
+            if (values.length == 0) {
+                log.warn("第{}行数据为空", rowIndex);
+                return null;
+            }
+            
+            // 构建JSON对象
+            JSONObject jsonObject = new JSONObject();
+            
+            // 按表头字段数量处理，多余的数据忽略，缺失的数据设为空字符串
+            for (int i = 0; i < headers.length; i++) {
+                String fieldName = headers[i];
+                String fieldValue = i < values.length ? values[i] : "";
+                // 去除值的前后空格和引号，但不解析具体类型
+                fieldValue = fieldValue.trim().replaceAll("^\"|\"$", "");
+                jsonObject.put(fieldName, fieldValue);
+            }
+            return jsonObject;
+        } catch (Exception e) {
+            log.error("第{}行JSON构建失败: {}", rowIndex, e.getMessage());
+            return null;
+        }
+    }
 
     private String setExtendField(String reserveField1, String field, Object result) {
         JSONObject jsonObject;
