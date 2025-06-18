@@ -80,6 +80,14 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                 //4、处理txt数据入库
                 parseCsvFileToDb(tcyrSyncFile,actionPool);
             }
+            Thread.sleep(30000);
+            //4、计算dbCount
+            List<MarketingTcyrSyncFile> syncFileList = tcyrSyncFileMapper.selectSyncFileList(apiCode,2);
+            syncFileList.forEach(tcyrSyncFile -> {
+                Long dbCount = tcyrSyncMapper.selecFileDbCount(tcyrSyncFile.getApiCode(),tcyrSyncFile.getId());
+                tcyrSyncFile.setSuccessCount(dbCount);
+                tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
+            });
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                     e.getMessage(), TITLE), e);
@@ -115,12 +123,9 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             //3、修改txt完成状态、总成功条数
             tcyrSyncFile.setDealStatus(2);
             tcyrSyncFile.setTotalCount(totalCount);
-            //4、计算dbCount
-            Long dbCount = tcyrSyncMapper.selecFileDbCount(tcyrSyncFile.getApiCode(),tcyrSyncFile.getId());
-            tcyrSyncFile.setSuccessCount(dbCount);
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
-            log.warn("TITLE:{} csv文件入db完成,syncFileId:{},csvName:{},totalCount:{},successCount:{},执行时间:{}",
-                    TITLE,tcyrSyncFile.getId(),tcyrSyncFile.getFileName(),totalCount,dbCount,System.currentTimeMillis()-start);
+            log.warn("TITLE:{} csv文件入db完成,syncFileId:{},csvName:{},totalCount:{},执行时间:{}",
+                    TITLE,tcyrSyncFile.getId(),tcyrSyncFile.getFileName(),totalCount,System.currentTimeMillis()-start);
         } catch (IOException e) {
             //修改txt处理异常状态
             tcyrSyncFile.setDealStatus(3);
