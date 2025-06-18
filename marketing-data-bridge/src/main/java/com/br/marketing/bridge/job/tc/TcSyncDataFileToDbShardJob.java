@@ -10,7 +10,6 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * @Description 同城易融fileToDb,原始数据入库(b_marketing_tcyr_sync)

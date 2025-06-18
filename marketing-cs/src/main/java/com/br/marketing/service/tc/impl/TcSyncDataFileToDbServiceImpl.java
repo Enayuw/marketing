@@ -80,13 +80,19 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                 //4、处理txt数据入库
                 parseCsvFileToDb(tcyrSyncFile,actionPool);
             }
-            Thread.sleep(30000);
+            Thread.sleep(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("dbCountWaitTime"));
             //4、计算dbCount
             List<MarketingTcyrSyncFile> syncFileList = tcyrSyncFileMapper.selectSyncFileList(apiCode,2);
             syncFileList.forEach(tcyrSyncFile -> {
                 Long dbCount = tcyrSyncMapper.selecFileDbCount(tcyrSyncFile.getApiCode(),tcyrSyncFile.getId());
                 tcyrSyncFile.setSuccessCount(dbCount);
                 tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
+                if (!Objects.equals(tcyrSyncFile.getTotalCount(), dbCount)) {
+                    String alertMsg =String.format("文件总数和db数量不一致,fileId:%s,fileName:%s,totalCount:%s,dbCount:%s",
+                            tcyrSyncFile.getId(),tcyrSyncFile.getFileName(),tcyrSyncFile.getTotalCount(),dbCount);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                            alertMsg, TITLE));
+                }
             });
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
@@ -139,7 +145,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         MarketingTcyrSync syncItem = new MarketingTcyrSync();
         String[] data = line.split(",");
         int dataStatus = 0;
-        // length=1: 空字符串/没有逗号 赋值给第一个字段
+        // length=1: 空字符串/一个字符串没有逗号 赋值给第一个字段
         // length=2 userKey:column1、terminal:column
         // length>2  多余的数据放入extend:扩展字段(jsonObject)
         if (data.length ==1) {
