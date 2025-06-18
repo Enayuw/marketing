@@ -36,10 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
-    private static final String TITLE = "【同城易融上传数据匹配-gz包拉取入库】";
-
-    private Integer PARTITION_SIZE = 1000;
-
+    private static final String TITLE = "【同城易融上传数据匹配】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;

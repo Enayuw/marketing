@@ -45,11 +45,11 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
 
             Long lastSearchId = 0L;
             String apiCode = marketingCommonConfig.getTcyrApiCode();
-            Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
             ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
                     marketingCommonConfig.getTcGzBatDBThreadPool(),
                     marketingCommonConfig.getTcGzBatDBThreadPool());
             while (true) {
+                Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
                 actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
                 actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
                 List<MarketingTcyrSync> tcyrSyncList = tcSyncDataMatchService.selectUnMatchSyncList(apiCode,lastSearchId,searchSize);
@@ -58,10 +58,6 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
                 }
                 //多线程 批量match
                 tcSyncDataMatchService.matchTcyrSyncList(apiCode,tcyrSyncList);
-                // 多线程单个match
-//                tcyrSyncList.forEach(tcyrSync ->
-//                        actionPool.submit(() -> tcSyncDataMatchService.processUnMatchSingleData(apiCode, tcyrSync))
-//                );
                 lastSearchId = tcyrSyncList.get(tcyrSyncList.size() - 1).getId();
             }
             shutdownThreadPool(actionPool);
