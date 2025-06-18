@@ -121,7 +121,6 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                     syncItem.setIsMatch(1);
                     syncItem.setIsClean(0);
                 }
-//                tcyrSyncMapper.updateMatchInfo(syncItem);
             }
             List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(tcyrSyncList, partSize);
             for (List<MarketingTcyrSync> partitionItemList : partitionList) {
