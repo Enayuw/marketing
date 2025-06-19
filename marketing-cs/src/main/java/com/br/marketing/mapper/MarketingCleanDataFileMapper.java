@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.MarketingCleanDataFile;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -16,5 +17,7 @@ public interface MarketingCleanDataFileMapper extends MarketingCleanDataFileMapp
      * @return 日期列表，格式：yyyy-MM-dd
      */
     List<String> getLastMonthDataDates(@Param("apiCode") String apiCode, @Param("sftpPath") String sftpPath);
+
+    MarketingCleanDataFile getCleanDataFileByDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate, @Param("sftpPath") String sftpPath);
 
 }

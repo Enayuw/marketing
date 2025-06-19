@@ -410,7 +410,7 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
 
-    private void processData(MarketingCustomerOriginalData originalData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+    public void processData(MarketingCustomerOriginalData originalData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
         try {
             JSONObject jsonData = JSON.parseObject(originalData.getJsonData());
             String apiCode = originalData.getApiCode();
