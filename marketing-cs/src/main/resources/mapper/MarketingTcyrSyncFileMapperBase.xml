@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncMapperBase" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTcyrSync" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncFileMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTcyrSyncFile" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
-    <result column="sync_file_id" property="syncFileId" jdbcType="BIGINT" />
-    <result column="user_key" property="userKey" jdbcType="VARCHAR" />
-    <result column="terminal" property="terminal" jdbcType="VARCHAR" />
-    <result column="cell" property="cell" jdbcType="VARCHAR" />
-    <result column="is_match" property="isMatch" jdbcType="INTEGER" />
-    <result column="is_clean" property="isClean" jdbcType="INTEGER" />
+    <result column="file_name" property="fileName" jdbcType="VARCHAR" />
+    <result column="file_path" property="filePath" jdbcType="VARCHAR" />
+    <result column="total_count" property="totalCount" jdbcType="BIGINT" />
+    <result column="success_count" property="successCount" jdbcType="BIGINT" />
+    <result column="deal_status" property="dealStatus" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="status" property="status" jdbcType="INTEGER" />
-    <result column="is_del" property="isDel" jdbcType="INTEGER" />
-    <result column="extend" property="extend" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -76,16 +73,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_no, sync_file_id, user_key, terminal, cell, is_match, is_clean, 
-    create_time, update_time, `status`, is_del, extend
+    id, api_code, batch_no, file_name, file_path, total_count, success_count, deal_status, 
+    is_del, create_time, update_time
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSyncExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSyncFileExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_marketing_tcyr_sync
+    from b_marketing_tcyr_sync_file
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -96,39 +93,37 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from b_marketing_tcyr_sync
+    from b_marketing_tcyr_sync_file
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_marketing_tcyr_sync
+    delete from b_marketing_tcyr_sync_file
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTcyrSyncExample" >
-    delete from b_marketing_tcyr_sync
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTcyrSyncFileExample" >
+    delete from b_marketing_tcyr_sync_file
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTcyrSync" >
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_sync (api_code, batch_no, sync_file_id, 
-      user_key, terminal, cell, 
-      is_match, is_clean, create_time, 
-      update_time, `status`, is_del, 
-      extend)
-    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
-      #{userKey,jdbcType=VARCHAR}, #{terminal,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
-      #{isMatch,jdbcType=INTEGER}, #{isClean,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
-      #{extend,jdbcType=VARCHAR})
+    insert into b_marketing_tcyr_sync_file (api_code, batch_no, file_name, 
+      file_path, total_count, success_count, 
+      deal_status, is_del, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
+      #{filePath,jdbcType=VARCHAR}, #{totalCount,jdbcType=BIGINT}, #{successCount,jdbcType=BIGINT}, 
+      #{dealStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrSync" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_sync
+    insert into b_marketing_tcyr_sync_file
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
@@ -136,38 +131,29 @@
       <if test="batchNo != null" >
         batch_no,
       </if>
-      <if test="syncFileId != null" >
-        sync_file_id,
+      <if test="fileName != null" >
+        file_name,
       </if>
-      <if test="userKey != null" >
-        user_key,
+      <if test="filePath != null" >
+        file_path,
       </if>
-      <if test="terminal != null" >
-        terminal,
+      <if test="totalCount != null" >
+        total_count,
       </if>
-      <if test="cell != null" >
-        cell,
+      <if test="successCount != null" >
+        success_count,
       </if>
-      <if test="isMatch != null" >
-        is_match,
+      <if test="dealStatus != null" >
+        deal_status,
       </if>
-      <if test="isClean != null" >
-        is_clean,
+      <if test="isDel != null" >
+        is_del,
       </if>
       <if test="createTime != null" >
         create_time,
       </if>
       <if test="updateTime != null" >
         update_time,
-      </if>
-      <if test="status != null" >
-        `status`,
-      </if>
-      <if test="isDel != null" >
-        is_del,
-      </if>
-      <if test="extend != null" >
-        extend,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -177,23 +163,23 @@
       <if test="batchNo != null" >
         #{batchNo,jdbcType=VARCHAR},
       </if>
-      <if test="syncFileId != null" >
-        #{syncFileId,jdbcType=BIGINT},
+      <if test="fileName != null" >
+        #{fileName,jdbcType=VARCHAR},
       </if>
-      <if test="userKey != null" >
-        #{userKey,jdbcType=VARCHAR},
+      <if test="filePath != null" >
+        #{filePath,jdbcType=VARCHAR},
       </if>
-      <if test="terminal != null" >
-        #{terminal,jdbcType=VARCHAR},
+      <if test="totalCount != null" >
+        #{totalCount,jdbcType=BIGINT},
       </if>
-      <if test="cell != null" >
-        #{cell,jdbcType=VARCHAR},
+      <if test="successCount != null" >
+        #{successCount,jdbcType=BIGINT},
       </if>
-      <if test="isMatch != null" >
-        #{isMatch,jdbcType=INTEGER},
+      <if test="dealStatus != null" >
+        #{dealStatus,jdbcType=INTEGER},
       </if>
-      <if test="isClean != null" >
-        #{isClean,jdbcType=INTEGER},
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -201,25 +187,16 @@
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="status != null" >
-        #{status,jdbcType=INTEGER},
-      </if>
-      <if test="isDel != null" >
-        #{isDel,jdbcType=INTEGER},
-      </if>
-      <if test="extend != null" >
-        #{extend,jdbcType=VARCHAR},
-      </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTcyrSyncExample" resultType="java.lang.Integer" >
-    select count(*) from b_marketing_tcyr_sync
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTcyrSyncFileExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_tcyr_sync_file
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_marketing_tcyr_sync
+    update b_marketing_tcyr_sync_file
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -230,23 +207,23 @@
       <if test="record.batchNo != null" >
         batch_no = #{record.batchNo,jdbcType=VARCHAR},
       </if>
-      <if test="record.syncFileId != null" >
-        sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
+      <if test="record.fileName != null" >
+        file_name = #{record.fileName,jdbcType=VARCHAR},
       </if>
-      <if test="record.userKey != null" >
-        user_key = #{record.userKey,jdbcType=VARCHAR},
+      <if test="record.filePath != null" >
+        file_path = #{record.filePath,jdbcType=VARCHAR},
       </if>
-      <if test="record.terminal != null" >
-        terminal = #{record.terminal,jdbcType=VARCHAR},
+      <if test="record.totalCount != null" >
+        total_count = #{record.totalCount,jdbcType=BIGINT},
       </if>
-      <if test="record.cell != null" >
-        cell = #{record.cell,jdbcType=VARCHAR},
+      <if test="record.successCount != null" >
+        success_count = #{record.successCount,jdbcType=BIGINT},
       </if>
-      <if test="record.isMatch != null" >
-        is_match = #{record.isMatch,jdbcType=INTEGER},
+      <if test="record.dealStatus != null" >
+        deal_status = #{record.dealStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.isClean != null" >
-        is_clean = #{record.isClean,jdbcType=INTEGER},
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -254,42 +231,30 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.status != null" >
-        `status` = #{record.status,jdbcType=INTEGER},
-      </if>
-      <if test="record.isDel != null" >
-        is_del = #{record.isDel,jdbcType=INTEGER},
-      </if>
-      <if test="record.extend != null" >
-        extend = #{record.extend,jdbcType=VARCHAR},
-      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_marketing_tcyr_sync
+    update b_marketing_tcyr_sync_file
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
-      user_key = #{record.userKey,jdbcType=VARCHAR},
-      terminal = #{record.terminal,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      is_match = #{record.isMatch,jdbcType=INTEGER},
-      is_clean = #{record.isClean,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      `status` = #{record.status,jdbcType=INTEGER},
+      file_name = #{record.fileName,jdbcType=VARCHAR},
+      file_path = #{record.filePath,jdbcType=VARCHAR},
+      total_count = #{record.totalCount,jdbcType=BIGINT},
+      success_count = #{record.successCount,jdbcType=BIGINT},
+      deal_status = #{record.dealStatus,jdbcType=INTEGER},
       is_del = #{record.isDel,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR}
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTcyrSync" >
-    update b_marketing_tcyr_sync
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
+    update b_marketing_tcyr_sync_file
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -297,23 +262,23 @@
       <if test="batchNo != null" >
         batch_no = #{batchNo,jdbcType=VARCHAR},
       </if>
-      <if test="syncFileId != null" >
-        sync_file_id = #{syncFileId,jdbcType=BIGINT},
+      <if test="fileName != null" >
+        file_name = #{fileName,jdbcType=VARCHAR},
       </if>
-      <if test="userKey != null" >
-        user_key = #{userKey,jdbcType=VARCHAR},
+      <if test="filePath != null" >
+        file_path = #{filePath,jdbcType=VARCHAR},
       </if>
-      <if test="terminal != null" >
-        terminal = #{terminal,jdbcType=VARCHAR},
+      <if test="totalCount != null" >
+        total_count = #{totalCount,jdbcType=BIGINT},
       </if>
-      <if test="cell != null" >
-        cell = #{cell,jdbcType=VARCHAR},
+      <if test="successCount != null" >
+        success_count = #{successCount,jdbcType=BIGINT},
       </if>
-      <if test="isMatch != null" >
-        is_match = #{isMatch,jdbcType=INTEGER},
+      <if test="dealStatus != null" >
+        deal_status = #{dealStatus,jdbcType=INTEGER},
       </if>
-      <if test="isClean != null" >
-        is_clean = #{isClean,jdbcType=INTEGER},
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -321,33 +286,21 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="status != null" >
-        `status` = #{status,jdbcType=INTEGER},
-      </if>
-      <if test="isDel != null" >
-        is_del = #{isDel,jdbcType=INTEGER},
-      </if>
-      <if test="extend != null" >
-        extend = #{extend,jdbcType=VARCHAR},
-      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrSync" >
-    update b_marketing_tcyr_sync
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
+    update b_marketing_tcyr_sync_file
     set api_code = #{apiCode,jdbcType=VARCHAR},
       batch_no = #{batchNo,jdbcType=VARCHAR},
-      sync_file_id = #{syncFileId,jdbcType=BIGINT},
-      user_key = #{userKey,jdbcType=VARCHAR},
-      terminal = #{terminal,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      is_match = #{isMatch,jdbcType=INTEGER},
-      is_clean = #{isClean,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      `status` = #{status,jdbcType=INTEGER},
+      file_name = #{fileName,jdbcType=VARCHAR},
+      file_path = #{filePath,jdbcType=VARCHAR},
+      total_count = #{totalCount,jdbcType=BIGINT},
+      success_count = #{successCount,jdbcType=BIGINT},
+      deal_status = #{dealStatus,jdbcType=INTEGER},
       is_del = #{isDel,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR}
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
