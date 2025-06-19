@@ -66,14 +66,14 @@ public class TcSyncDataDownToDbJob extends AbstractSimpleElasticJob {
     private void atciton(String apiCode) {
         //
         List<MarketingTcyrSyncRecord> syncRecordList =
-                tcSyncDataDownService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue(),getStartOfDay(),getEndOfDay());
+                tcSyncDataDownService.searchTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
 
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
-                tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
+                tcSyncDataDownService.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 1);
                 Result syncResult =tcSyncDataDownService.dealTcyrFileSync(syncRecord);
                 if (syncResult != null  && syncResult.isSuccess()) {
-                    tcSyncDataDownService.updageTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
+                    tcSyncDataDownService.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
                     Long total = JSONObject.parseObject(syncRecord.getData()).getLong("total");
                     Long totalSuccess = Long.parseLong(syncResult.getData().toString());
                     log.warn(TITLE+"任务执行成功,apiCode:{}, batchNo:{},total:{},totalSuccess:{}"
