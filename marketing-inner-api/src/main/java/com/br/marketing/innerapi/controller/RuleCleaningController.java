@@ -346,4 +346,19 @@ public class RuleCleaningController {
         }
     }
 
+    @PostMapping("/ruleEffect")
+    @ApiOperation(value = "规则生效处理",notes = "规则生效处理",httpMethod = "POST")
+    public ApiResult<Boolean> ruleEffect(@RequestParam("ruleId") Long ruleId){
+        try {
+            boolean result = ruleCleaningService.ruleEffect(ruleId);
+            return new ApiResult<Boolean>().success(result);
+        }catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false,be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "规则生效处理接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
 }

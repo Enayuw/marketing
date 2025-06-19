@@ -1937,37 +1937,36 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 continue;
             }
             if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
-                if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
+                if ("requestId".equals(nodeName)) {
                     continue;
                 }
             }
-            FieldSampleDTO dto = new FieldSampleDTO();
             String nodeValue = node.getNodeValue();
             Date createTime = node.getCreateTime();
             if (StringUtil.isBlank(nodeName)) {
                 continue;
             }
-            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(nodeName))
-                    .findFirst().orElse(null);
-            // 设置字段名称
-            dto.setFieldName(nodeName);
-            dto.setLevel(level);
-            dto.setParentPath(node.getParentPath());
-            dto.setNodeType(node.getNodeType());
-            //TODO 为空查询值
-            dto.setFieldSample(nodeValue);
-            dto.setFirstUploadTime(createTime);
-            dto.setFieldType(0);
-            dto.setNeedCleaning(false);
-            if (!Objects.isNull(ruleConfig)) {
-                dto.setMappingRule(ruleConfig.getMappingRule());
-                dto.setRelatedField(ruleConfig.getMappingField());
-                dto.setResultPreview(ruleConfig.getResultPreview());
-                dto.setNeedCleaning(ruleConfig.getIsMapping());
-                dto.setFieldType(ruleConfig.getIsDerived());
-            }
-            // 添加到结果列表
-            result.add(dto);
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(nodeName)).collect(Collectors.toList());
+            ruleConfigs.forEach(ruleConfig -> {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                dto.setFieldName(nodeName);
+                dto.setLevel(level);
+                dto.setParentPath(node.getParentPath());
+                dto.setNodeType(node.getNodeType());
+                dto.setFieldSample(nodeValue);
+                dto.setFirstUploadTime(createTime);
+                dto.setFieldType(0);
+                dto.setNeedCleaning(false);
+                if (!Objects.isNull(ruleConfig)) {
+                    dto.setMappingRule(ruleConfig.getMappingRule());
+                    dto.setRelatedField(ruleConfig.getMappingField());
+                    dto.setResultPreview(ruleConfig.getResultPreview());
+                    dto.setNeedCleaning(ruleConfig.getIsMapping());
+                    dto.setFieldType(ruleConfig.getIsDerived());
+                }
+                // 添加到结果列表
+                result.add(dto);
+            });
         }
         return result;
     }
@@ -1993,6 +1992,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             // 保存清洗配置
             for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
+                if(StringUtils.isEmpty(fieldConfig.getMappingField())){
+                    continue;
+                }
                 // 设置API编码信息
                 fieldConfig.setApiCode(configDTO.getApiCode());
                 fieldConfig.setDataType(configDTO.getDataType());
@@ -2041,9 +2043,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             // 添加到结果列表
             result.add(dto);
-
         }
-
     }
 
     @Override
@@ -2141,6 +2141,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
                     .setMessage("系统处理异常: " + e.getMessage());
         }
+    }
+
+
+    @Override
+    public boolean ruleEffect(Long ruleId) {
+        MarketingDataCleanGeneralConfig generalConfig = cleanGeneralConfigMapper.selectByPrimaryKey(ruleId);
+        generalConfig.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+        cleanGeneralConfigMapper.updateByPrimaryKeySelective(generalConfig);
+        return Boolean.TRUE;
     }
 
 }
