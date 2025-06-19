@@ -378,15 +378,28 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
 
-    <select id="getLastMonthDataDates" parameterType="java.lang.String">
-        SELECT receive_date
+    <select id="getLastMonthDataDates" resultType="java.lang.String">
+        SELECT
+          receive_date
         FROM b_marketing_clean_data_file
         WHERE api_code = #{apiCode}
           AND target_sftp_path = #{sftpPath}
-          AND receive_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 month) AND CURDATE()
+          AND receive_date BETWEEN DATE_SUB(CURDATE(),INTERVAL 1 month) AND CURDATE()
+          AND is_del = 1
         GROUP BY receive_date
         ORDER BY receive_date DESC
     </select>
 
-
+    <select id="getCleanDataFileByDate" resultType="com.br.marketing.entity.MarketingCleanDataFile">
+        SELECT
+            *
+        FROM b_marketing_clean_data_file
+        WHERE api_code = #{apiCode}
+          AND target_sftp_path = #{sftpPath}
+          AND receive_date = #{appletDate}
+          AND is_del = 1
+        ORDER BY
+          rand()
+        limit 1
+    </select>
 </mapper>

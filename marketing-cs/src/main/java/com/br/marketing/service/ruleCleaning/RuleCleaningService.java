@@ -5,6 +5,8 @@ import com.br.marketing.client.rulecleaning.CleanConfigDTO;
 import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
 import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
+import com.br.marketing.client.rulecleaning.RuleTrialConfigDTO;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
@@ -106,7 +108,7 @@ public interface RuleCleaningService {
      */
     boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO);
 
-    List<String> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
+    Result<List<String>> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
 
     boolean saveCleanConfig(CleanConfigDTO configDTO);
 
@@ -115,4 +117,6 @@ public interface RuleCleaningService {
     List<FieldSampleDTO> getRuleDetail(Long configId);
 
     boolean saveCleanRule(RuleCleaningConfigDTO ruleCleaningConfigDTO);
+
+    Result<Boolean> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO);
 }

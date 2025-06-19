@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
@@ -237,13 +238,13 @@ public class RuleCleaningController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
             @ApiImplicitParam(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true),
-            @ApiImplicitParam(name = "sftpPath", value = "sft地址，接口类型为FTP则必填", paramType = "query", dataType = "String", required = false)
+            @ApiImplicitParam(name = "sftpPath", value = "sftp地址，接口类型为FTP则必填", paramType = "query", dataType = "String", required = false)
     })
     public ApiResult<List<String>> getLastMonthDataDates(@RequestParam("apiCode") String apiCode, @RequestParam("acceptType") Integer acceptType, @RequestParam(required = false) String sftpPath) {
-        List<String> dates = new ArrayList<>();
+
         try {
-            dates = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
-            return new ApiResult<List<String>>().success(dates);
+            Result<List<String>> result = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
+            return new ApiResult<List<String>>().success(result.getMessage());
         }catch (BusinessException be){
             return new ApiResult<List<String>>().fail(be.getMsg());
         }catch (Exception e){
@@ -329,5 +330,20 @@ public class RuleCleaningController {
         }
     }
 
+
+    @PostMapping("/trailProcess")
+    @ApiOperation(value = "试跑验证规则有效性",notes = "试跑验证规则有效性",httpMethod = "POST")
+    public ApiResult<Boolean> trailProcess(@RequestBody RuleTrialConfigDTO ruleTrialConfigDTO){
+        try {
+            Result<Boolean> result = ruleCleaningService.trialProcess(ruleTrialConfigDTO);
+            return new ApiResult<Boolean>().success(result.getMessage());
+        }catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false,be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_TRIALPROCESSERROR.getCode(),
+                    "规则试跑接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
 
 }

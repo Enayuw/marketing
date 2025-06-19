@@ -38,4 +38,27 @@
         GROUP BY receive_date
         ORDER BY receive_date DESC
     </select>
+
+    <select id="getCustomDataByDate" resultType="com.br.marketing.entity.MarketingCustomerOriginalData">
+        SELECT *
+        FROM b_marketing_customer_original_data
+        WHERE api_code = #{apiCode}
+          AND receive_date = #{appletDate}
+          AND (
+            (actual_num IS NOT NULL AND actual_num > #{actualNum}
+                OR (SELECT COUNT(*)
+                    FROM b_marketing_customer_original_data
+                    WHERE api_code = #{apiCode}
+                      AND receive_date = #{appletDate}
+                      AND actual_num IS NOT NULL
+                      AND actual_num > #{actualNum}) = 0
+                ))
+        ORDER BY
+            CASE
+                WHEN actual_num IS NOT NULL AND actual_num > #{actualNum} THEN 1
+                ELSE 2
+                END,
+            RAND()
+            LIMIT 1
+    </select>
 </mapper>

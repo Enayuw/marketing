@@ -6,9 +6,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.rulecleaning.CleanConfigDTO;
-import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
+import com.br.marketing.client.rulecleaning.*;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -21,9 +22,9 @@ import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralFieldConfigMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
-import com.br.marketing.client.rulecleaning.FieldSampleDTO;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Sets;
@@ -42,8 +43,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
 
 /**
  * 规则数据清洗接口实现
@@ -90,6 +89,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     SyncConfigMapper syncConfigMapper;
+
+    @Resource
+    private PushRuleService pushRuleService;
+
+    @Resource
+    private MarketingDataCleanGeneralRuleConfigMapper marketingDataCleanGeneralRuleConfigMapper;
 
     /**
      * 规则列表查询
@@ -1824,23 +1829,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         return "";
     }
 
-    public List<String> getLastMonthDataDates(String apiCode, Integer acceptType, String sftpPath){
+    public Result<List<String>> getLastMonthDataDates(String apiCode, Integer acceptType, String sftpPath){
         List<String> dates = new ArrayList<>();
 
         //通用上传：根据apiCode查询上传记录表b_marketing_sync_report
-        if (acceptType == 0){
+        if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())){
             dates = marketingSyncReportMapper.getLastMonthDataDates(apiCode);
-        }
-        //定制上传：根据apiCode查询b_marketing_customer_original_data，查询数据日期
-        if (acceptType == 1){
+        }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode())){
+            //定制上传：根据apiCode查询b_marketing_customer_original_data，查询数据日期
             dates = marketingCustomerOriginalDataMapper.getLastMonthDataDates(apiCode);
+        }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())){
+            //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
+            if (StringUtils.isNotBlank(sftpPath)){
+                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,sftpPath);
+            }else {
+                return new Result<>().failure().setMessage("sftpPath不能为空！");
+            }
+        }else {
+            throw new BusinessException("Invalid acceptType");
         }
-        //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
-        if (acceptType == 2){
-            dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,sftpPath);
-        }
-
-        return dates;
+        return new Result<List<String>>().setDate(dates).success();
     }
 
 
@@ -2044,6 +2052,104 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
     }
+
+    @Override
+    public Result<Boolean> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO) {
+        try {
+            String apiCode = ruleTrialConfigDTO.getApiCode();
+            Integer acceptType = ruleTrialConfigDTO.getAcceptType();
+            Integer dataType = ruleTrialConfigDTO.getDataType();
+            String appletDate = ruleTrialConfigDTO.getAppletDate();
+            Integer actualNum = ruleTrialConfigDTO.getActualNum();
+
+            // 通用上传处理
+            if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
+                MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.getMarketingSyncInfoByDate(apiCode, appletDate, actualNum);
+                if (Objects.isNull(marketingSyncInfo)) {
+                    return new Result<Boolean>().setDate(false)
+                            .setMessage("未找到符合条件的通用上传数据").failure();
+                }
+                Result<Boolean> result = pushRuleService.insertMarketingPreUserSync(marketingSyncInfo.getId());
+                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    return new Result<Boolean>().setDate(false)
+                            .setMessage("通用上传数据处理失败: " + result.getMessage()).failure();
+                }
+            }
+
+            // 定制上传处理
+            if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode())) {
+                MarketingCustomerOriginalData marketingCustomerOriginalData =
+                        marketingCustomerOriginalDataMapper.getCustomDataByDate(apiCode, appletDate, actualNum);
+                if (Objects.isNull(marketingCustomerOriginalData)) {
+                    return new Result<Boolean>().setDate(false)
+                            .setMessage("未找到符合条件的定制上传数据").failure();
+                }
+
+                // 查询规则
+                Long cleanConfigId = getOrCreateCleanGeneralConfig(apiCode, dataType, acceptType);
+                MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+                ruleConfigExample.createCriteria()
+                        .andCleanConfigIdEqualTo(cleanConfigId)
+                        .andIsDelEqualTo(1);
+                List<MarketingDataCleanGeneralRuleConfig> ruleConfigList =
+                        marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+
+                // 调用定制清洗方法
+                try {
+                    dataCleanService.processData(marketingCustomerOriginalData, ruleConfigList);
+                } catch (Exception e) {
+                    log.error("Process data failed for marketingCustomerOriginalData id: {}, error: {}",
+                            marketingCustomerOriginalData.getId(), e.getMessage(), e);
+                    return new Result<Boolean>().setDate(false)
+                            .setMessage("定制上传数据处理失败: " + e.getMessage()).failure();
+                }
+            }
+
+            // SFTP上传处理
+            if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())) {
+                String sftpPath = ruleTrialConfigDTO.getSftpPath();
+                if (StringUtils.isEmpty(sftpPath)) {
+                    return new Result<Boolean>().setDate(false)
+                            .setMessage("SFTP路径不能为空").failure();
+                }
+
+                MarketingCleanDataFile marketingCleanDataFile =
+                        marketingCleanDataFileMapper.getCleanDataFileByDate(apiCode, appletDate, sftpPath);
+                if (Objects.isNull(marketingCleanDataFile)) {
+                    return new Result<Boolean>().setDate(false)
+                            .setMessage("未找到符合条件的SFTP文件数据").failure();
+                }
+
+                // TODO: 实现SFTP文件处理逻辑
+                //查询规则条件
+                MarketingDataCleanGeneralConfig queryParam = new MarketingDataCleanGeneralConfig();
+                queryParam.setAcceptType(DataProcessEnum.AcceptTypeEnum.FTP.getCode());
+                queryParam.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+                queryParam.setApiCode(apiCode);
+                // 执行查询
+                List<MarketingDataCleanGeneralConfig> ruleList = cleanGeneralConfigMapper.selectRuleList(queryParam);
+                ruleList.forEach(config -> {
+                    //文件清洗
+                    dataCleanService.fileUploadDataClean(marketingCleanDataFile, config);
+                    MarketingCleanDataFile update = new MarketingCleanDataFile();
+                    update.setStatus(DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
+                    update.setId(config.getId());
+                    marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
+                });
+
+            }
+
+            return new Result<Boolean>().setDate(true)
+                    .setMessage("数据处理成功").success();
+
+        } catch (Exception e) {
+            log.error("Trial process failed for apiCode: {}, error: {}",
+                    ruleTrialConfigDTO.getApiCode(), e.getMessage(), e);
+            return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                    .setMessage("系统处理异常: " + e.getMessage());
+        }
+    }
+
 }
 
 

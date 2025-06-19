@@ -301,6 +301,7 @@ public enum AlarmSendCodeEnum {
     DATACLEANING_SERVICEERROR("6044001", "规则数据清洗业务处理异常"),
     //获取近一个月有数据的日期接口调用失败
     LASTMONTHDATDDATES_SERVICEERROR("6044002","获取近一个月有数据的日期接口调用失败"),
+    DATACLEANING_TRIALPROCESSERROR("6044003","规则试跑业务处理异常"),
     //萨摩耶黑名单传输业务异常,立即推送
     SMY_SERVICEERROR("6050001", "萨摩耶黑名单传输业务异常"),
     //萨摩耶接口调用失败,阶梯推送
