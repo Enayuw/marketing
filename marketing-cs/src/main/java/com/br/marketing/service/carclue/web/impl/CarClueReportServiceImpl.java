@@ -316,11 +316,15 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     private String generateDefaultTaskName(String taskName, Integer dataSourceCode) {
         try {
             if (dataSourceCode == 1) {
-                // dataSource=1: 返回 {时间}_序列号 的任务名称
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-                String timeStr = sdf.format(new Date());
-                int sequence = getNextSequenceForTimeBasedName(timeStr);
-                return timeStr + "_" + String.format("%03d", sequence);
+                // 其他数据源，如果taskName为空，返回默认名称
+                if (StringUtils.isBlank(taskName)) {
+                    // dataSource=1: 返回 {时间}_序列号 的任务名称
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                    String timeStr = sdf.format(new Date());
+                    int sequence = getNextSequenceForTimeBasedName(timeStr);
+                    return timeStr + "_" + String.format("%02d", sequence);
+                }
+                return taskName;
 
             } else {
                 // 其他数据源，如果taskName为空，返回默认名称
