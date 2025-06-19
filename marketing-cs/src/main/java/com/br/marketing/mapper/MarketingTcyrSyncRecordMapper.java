@@ -13,7 +13,7 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
     List<MarketingTcyrSyncRecord> searchAllTcyrSyncList(@Param("apiCode")String apiCode, @Param("status")Integer status);
 
 
-    List<MarketingTcyrSyncRecord> searchTcyrSyncList(@Param("apiCode")String apiCode, @Param("status")Integer status,@Param("dayBeginTime") Date dayBeginTime, @Param("dayEndTime") Date dayEndTime);
+    List<MarketingTcyrSyncRecord> searchTcyrSyncList(@Param("apiCode")String apiCode, @Param("status")Integer status);
 
 
 
@@ -21,10 +21,12 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
 
     List<Long> selectLastUserRecordIdList(@Param("apiCode")String apiCode,@Param("userKeyList") List<String> userKeyList);
 
-    Integer updageTcyrRecordDownStatus(@Param("batchNo") String batchNo, @Param("downStatus") Integer downStatus);
+    Integer updateTcyrRecordDownStatus(@Param("batchNo") String batchNo, @Param("downStatus") Integer downStatus);
 
 
     List<Map<String, String>> selectLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKeyList") List<String> userKeyList);
+
+    String selectSingleLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKey")String userKey);
 
     Map<String, String> selectSingleLastCustNumCell(@Param("apiCode") String apiCode,@Param("userKey")String userKey);
 }
