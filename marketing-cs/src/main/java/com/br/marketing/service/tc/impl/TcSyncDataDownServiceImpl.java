@@ -348,7 +348,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 tcyrSyncFile.setCreateTime(nowDate);
                 tcyrSyncFileMapper.insertSelective(tcyrSyncFile);
             }
-            //更新 syncRecord 状态
+            //4、更新 syncRecord 状态
             tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 2);
         }catch (Exception e){
             tcyrSyncRecordMapper.updateTcyrRecordDownStatus(syncRecord.getBatchNo(), 3);
