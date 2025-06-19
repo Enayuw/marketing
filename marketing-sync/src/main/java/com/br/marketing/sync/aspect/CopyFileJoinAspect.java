@@ -82,9 +82,7 @@ public class CopyFileJoinAspect {
         } catch (Throwable throwable) {
             log.error("copyFile error",throwable);
         }
-        if(DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())
-                || DataTypeEnum.SHORTLINKFILES.getValue().equals(loanSyncConfig.getDataType())
-                || DataTypeEnum.CLUSFILES.getValue().equals(loanSyncConfig.getDataType())){
+        if(DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())){
             insertSyncLog(loanSyncConfig,fileName,true,loanSyncLog);
             TransferFileTaskExample example = new TransferFileTaskExample();
             example.createCriteria().andApiCodeEqualTo(loanSyncConfig.getApiCode()).andFileNameEqualTo(fileName);
