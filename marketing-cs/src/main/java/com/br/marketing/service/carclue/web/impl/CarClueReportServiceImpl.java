@@ -413,9 +413,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         task.setEstimatedRows(dto.getEstimatedRows());
 
         // 文件名模板：如果为空则生成默认模板
-        String fileNameTemplate = StringUtils.isNotBlank(dto.getFileNameTemplate())
-                ? dto.getFileNameTemplate()
-                : dto.getTaskName() + ".txt";
+        String fileNameTemplate = dto.getTaskName() + ".txt";
         task.setFileNameTemplate(fileNameTemplate);
 
         // JSON字段序列化
