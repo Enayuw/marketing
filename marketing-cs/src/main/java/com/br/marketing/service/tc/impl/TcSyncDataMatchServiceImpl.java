@@ -148,18 +148,28 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 }
                 lockValue = UUID.randomUUID().toString();
                 //1.抢锁
+                Long startTime1 = System.currentTimeMillis();
                 redisChgService.lock(lockKey, lockValue);
+                log.warn("TITLE:{},获取锁耗时:{}",TITLE,System.currentTimeMillis()-startTime1);
                 //2.获取数据
+                Long startTime2 = System.currentTimeMillis();
                 List<MarketingTcyrSync> tcyrSyncList = tcyrSyncMapper.selectMatchSyncList(
                         apiCode, marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"));
+                log.warn("TITLE:{},获取数据耗时:{}",TITLE,System.currentTimeMillis()-startTime2);
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
                 }
+                Long startTime3 = System.currentTimeMillis();
                 //3.修改中间状态
                 dealMiddleState(tcyrSyncList);
+                log.warn("TITLE:{},修改中间态耗时:{}",TITLE,System.currentTimeMillis()-startTime3);
+
                 //4.释放锁
+                Long startTime4 = System.currentTimeMillis();
                 redisChgService.unlock(lockKey, lockValue);
+                log.warn("TITLE:{},释放锁耗时:{}",TITLE,System.currentTimeMillis()-startTime3);
+
                 //5.多线程单个处理匹配
                 shardMathTcyrSynList(apiCode, tcyrSyncList, actionPool);
             }
