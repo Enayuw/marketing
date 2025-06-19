@@ -168,7 +168,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 //4.释放锁
                 Long startTime4 = System.currentTimeMillis();
                 redisChgService.unlock(lockKey, lockValue);
-                log.warn("TITLE:{},释放锁耗时:{}",TITLE,System.currentTimeMillis()-startTime3);
+                log.warn("TITLE:{},释放锁耗时:{}",TITLE,System.currentTimeMillis()-startTime4);
 
                 //5.多线程单个处理匹配
                 shardMathTcyrSynList(apiCode, tcyrSyncList, actionPool);
