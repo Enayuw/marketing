@@ -1920,7 +1920,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             getFileField(result, config, ruleConfigList);
             return result;
         }
-
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -1947,7 +1946,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 continue;
             }
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(nodeName)).collect(Collectors.toList());
-            ruleConfigs.forEach(ruleConfig -> {
+            if (!CollectionUtils.isEmpty(ruleConfigs)) {
+                ruleConfigs.forEach(ruleConfig -> {
+                    FieldSampleDTO dto = new FieldSampleDTO();
+                    dto.setFieldName(nodeName);
+                    dto.setLevel(level);
+                    dto.setParentPath(node.getParentPath());
+                    dto.setNodeType(node.getNodeType());
+                    dto.setFieldSample(nodeValue);
+                    dto.setFirstUploadTime(createTime);
+                    dto.setFieldType(0);
+                    dto.setNeedCleaning(false);
+                    dto.setMappingRule(ruleConfig.getMappingRule());
+                    dto.setRelatedField(ruleConfig.getMappingField());
+                    dto.setResultPreview(ruleConfig.getResultPreview());
+                    dto.setNeedCleaning(ruleConfig.getIsMapping());
+                    dto.setFieldType(ruleConfig.getIsDerived());
+                    // 添加到结果列表
+                    result.add(dto);
+                });
+            } else {
                 FieldSampleDTO dto = new FieldSampleDTO();
                 dto.setFieldName(nodeName);
                 dto.setLevel(level);
@@ -1957,16 +1975,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 dto.setFirstUploadTime(createTime);
                 dto.setFieldType(0);
                 dto.setNeedCleaning(false);
-                if (!Objects.isNull(ruleConfig)) {
-                    dto.setMappingRule(ruleConfig.getMappingRule());
-                    dto.setRelatedField(ruleConfig.getMappingField());
-                    dto.setResultPreview(ruleConfig.getResultPreview());
-                    dto.setNeedCleaning(ruleConfig.getIsMapping());
-                    dto.setFieldType(ruleConfig.getIsDerived());
-                }
-                // 添加到结果列表
                 result.add(dto);
-            });
+            }
         }
         return result;
     }
