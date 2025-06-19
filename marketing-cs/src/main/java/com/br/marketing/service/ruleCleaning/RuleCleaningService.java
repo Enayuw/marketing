@@ -108,7 +108,7 @@ public interface RuleCleaningService {
      */
     boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO);
 
-    Result<List<String>> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
+    List<String> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
 
     boolean saveCleanConfig(CleanConfigDTO configDTO);
 

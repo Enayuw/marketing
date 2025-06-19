@@ -243,8 +243,8 @@ public class RuleCleaningController {
     public ApiResult<List<String>> getLastMonthDataDates(@RequestParam("apiCode") String apiCode, @RequestParam("acceptType") Integer acceptType, @RequestParam(required = false) String sftpPath) {
 
         try {
-            Result<List<String>> result = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
-            return new ApiResult<List<String>>().success(result.getMessage());
+            List<String> result = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
+            return new ApiResult<List<String>>().success(result);
         }catch (BusinessException be){
             return new ApiResult<List<String>>().fail(be.getMsg());
         }catch (Exception e){

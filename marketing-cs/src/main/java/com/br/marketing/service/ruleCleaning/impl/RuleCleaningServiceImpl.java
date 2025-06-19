@@ -1829,7 +1829,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         return "";
     }
 
-    public Result<List<String>> getLastMonthDataDates(String apiCode, Integer acceptType, String sftpPath){
+    public List<String> getLastMonthDataDates(String apiCode, Integer acceptType, String sftpPath){
         List<String> dates = new ArrayList<>();
 
         //通用上传：根据apiCode查询上传记录表b_marketing_sync_report
@@ -1843,12 +1843,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (StringUtils.isNotBlank(sftpPath)){
                 dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,sftpPath);
             }else {
-                return new Result<>().failure().setMessage("sftpPath不能为空！");
+                throw new BusinessException("sftpPath不能为空！");
             }
         }else {
             throw new BusinessException("Invalid acceptType");
         }
-        return new Result<List<String>>().setDate(dates).success();
+        return dates;
     }
 
 
