@@ -2,8 +2,8 @@ package com.br.marketing.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingDataFileConfig;
@@ -25,11 +25,11 @@ public interface IFileToMarketingRuleService {
      * 是否剔除 true有效；false无效
      * @return
      */
-    default Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps){
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    default SimpleResult isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps){
+        return new SimpleResult().setCode(ResultCode.SUCCESS.getValue());
     }
-    default Result isVaildByList(List<FileToMarketingDataFieldVO> vos, Map<String,List<FileToMarketingDataFieldVO>> voMaps){
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    default SimpleResult isVaildByList(List<FileToMarketingDataFieldVO> vos, Map<String,List<FileToMarketingDataFieldVO>> voMaps){
+        return new SimpleResult().setCode(ResultCode.SUCCESS.getValue());
     }
 
     /**

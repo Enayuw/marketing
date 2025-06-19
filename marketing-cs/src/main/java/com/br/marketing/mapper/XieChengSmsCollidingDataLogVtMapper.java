@@ -28,4 +28,6 @@ public interface XieChengSmsCollidingDataLogVtMapper extends XieChengSmsCollidin
      * @param msg
      */
     void updateBatchVt(@Param("list") List<String> list,@Param("status") Integer status,@Param("msg")String msg,@Param("sendDate") Integer sendDate);
+
+    XieChengSmsCollidingDataLogVt selectLatestVtLog(@Param("sha256Tel") String sha256Tel);
 }

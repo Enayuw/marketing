@@ -32,7 +32,7 @@ public class UMengCustomizeController {
 
     @ApiOperation(value = "友盟智能时机回调")
     @PostMapping("/marketingCallback")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public Result marketingCallback(@RequestBody String requestBody, HttpServletRequest request) {
         if (!checkHeaderSign(request)) {
             return new Result().failure().setMessage("header sign error");

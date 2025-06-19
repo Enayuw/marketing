@@ -58,4 +58,6 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
 
     List<Map<String, Object>> checkTableExist(@Param("tableName") String tableName);
 
+    List<MarketingCustomer> getCidByApiCode(@Param("apiCode") String apiCode);
+
 }

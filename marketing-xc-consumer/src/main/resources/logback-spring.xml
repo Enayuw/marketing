@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 此处的debug指是否打印logback内部日志信息 -->
+<configuration debug="false" scan="true" scanPeriod="10 seconds">
+    <!-- 应用名称 -->
+    <property name="APP_NAME" value="marketing-xc-consumer"/>
+    <property name="POD_NAME" value="marketing-xc-consumer"/>
+    <property name="LOG_LEVEL" value="warn"/>
+    <!--日志文件的保存路径,首先查找系统属性-Dlog.dir,如果存在就使用其；否则，在当前目录下创建名为logs目录做日志存放的目录 -->
+    <property name="LOG_HOME" value="/opt/SpringCloud/logs/${APP_NAME}"/>
+    <!-- 日志输出格式 -->
+    <property name="ENCODER_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger] [%X{brRequestId:--}] -%msg%n"/>
+    <contextName>${APP_NAME}</contextName>
+
+    <!-- 控制台日志：输出全部日志到控制台 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${ENCODER_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${POD_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${POD_NAME}.%i.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>2</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+            <totalSizeCap>250MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${ENCODER_PATTERN}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>ACCEPT</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="ASYNC" class="com.br.transfer.log.appender.LogbackAsyncAppender">
+        <appender-ref ref="RollingFile"/>
+        <queueSize>512</queueSize>
+    </appender>
+
+    <!--必填，根据配置的路径进行日志采集-->
+    <appender name="MOM_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${POD_NAME}.mom</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${POD_NAME}.%i.mom.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+            <totalSizeCap>250MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${ENCODER_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    <!--如果日志为异步打印注意在logback添加上-->
+    <appender name="ASYNC_MOM_LOG" class="com.br.transfer.log.appender.LogbackAsyncAppender">
+        <appender-ref ref="MOM_LOG"/>
+        <queueSize>512</queueSize>
+    </appender>
+
+    <!-- 2023-06-15 11:23 发送告警的日志模板 -->
+    <property name="ALARM_ERROR_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger] [%X{brRequestId:--}] -ALERT_LEVEL:ERROR ERROR_CODE:60000 SUBJECT:营销平台${APP_NAME}服务发生严重错误告警 MESSAGE:%msg%n"/>
+
+    <appender name="ALARM_ERROR_ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${POD_NAME}-alarm.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${POD_NAME}-alarm.%i.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>2</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+            <totalSizeCap>250MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${ALARM_ERROR_PATTERN}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <appender name="ALARM_ERROR_ASYNC" class="com.br.transfer.log.appender.LogbackAsyncAppender">
+        <appender-ref ref="ALARM_ERROR_ROLLING_FILE"/>
+        <queueSize>512</queueSize>
+    </appender>
+
+    <appender name="PATCH_LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${APP_NAME}.patch</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter"></filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}.patch.%d{yyyy-MM-dd}
+            </fileNamePattern>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${ENCODER_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="PATCH_ASYNC_LOG"  class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="PATCH_LOG"/>
+        <queueSize>512</queueSize>
+    </appender>
+    <!--TRACE, DEBUG, INFO, WARN, ERROR, ALL and OFF -->
+
+    <logger name="org.springframework.boot.context.embedded.tomcat" level="INFO"/>
+    <logger name="com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver" level="ERROR"/>
+    <logger name="com.br.bsf.ext.app.util" level="ERROR"/>
+    <logger name="PATCH_LOG" level="ERROR" additivity="false">
+        <appender-ref ref="PATCH_ASYNC_LOG" />
+    </logger>
+    <logger name="MOM_LOG" level="WARN" additivity="false">
+        <appender-ref ref="ASYNC_MOM_LOG" />
+    </logger>
+
+    <springProfile name="pre">
+        <root level="WARN">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="ASYNC"/>
+            <appender-ref ref="ALARM_ERROR_ASYNC"/>
+        </root>
+    </springProfile>
+    <springProfile name="prod">
+        <root level="ERROR">
+            <appender-ref ref="ASYNC"/>
+            <appender-ref ref="ALARM_ERROR_ASYNC"/>
+        </root>
+    </springProfile>
+</configuration>

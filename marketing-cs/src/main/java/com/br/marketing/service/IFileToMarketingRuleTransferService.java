@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
@@ -25,8 +26,8 @@ public interface IFileToMarketingRuleTransferService {
      * 是否剔除 true有效；false无效
      * @return
      */
-    default Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String, FileToMarketingDataFieldVO> voMaps){
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    default SimpleResult isVaild(List<FileToMarketingDataFieldVO> vos, Map<String, FileToMarketingDataFieldVO> voMaps){
+        return new SimpleResult().setCode(ResultCode.SUCCESS.getValue());
     }
 
     /**

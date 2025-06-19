@@ -2943,7 +2943,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 //3 未来客户：只有userType
                 String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
                 ReserveField1DTO reserveField1 = null;
-                JSONObject reserveFileld1Json = null;
+                JSONObject reserveFileld1Json = new JSONObject();
                 if (StringUtils.isBlank(reserveField1Str)) {
                     reserveField1 = new ReserveField1DTO();
                     reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
