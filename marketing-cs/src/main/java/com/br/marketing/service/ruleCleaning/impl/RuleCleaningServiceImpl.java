@@ -1371,14 +1371,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         
         log.warn("解析fieldValue得到的值列表: {}", fieldValues);
-        
-        if (fieldValues.isEmpty() || fieldValues.size() == 1) {
-            // 如果有默认值则返回默认值
-            if (ruleMap.containsKey("defaultValue")) {
-                return ruleMap.get("defaultValue");
-            }
-            return fieldSample;
-        }
 
         // 获取优先级条件
         List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
@@ -1829,6 +1821,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         return "";
     }
 
+    @Override
     public List<String> getLastMonthDataDates(String apiCode, Integer acceptType, String sftpPath){
         List<String> dates = new ArrayList<>();
 
