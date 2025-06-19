@@ -84,7 +84,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         }
         try {
             //3.获取tcId
-            String tcId = tableCreateService.getTcId(callRecord.getApiCode());
+            String tcId = tableCreateService.getIcIdVt(callRecord.getApiCode());
             //4.创建上下文
             XieChengReportContext context = XieChengReportContext.create(callRecord, xieChengData, tcId);
             JSONObject condition = marketingCommonConfig.getXieChengCallPushCondition().get(callRecord.getApiCode());
