@@ -31,6 +31,9 @@
             <if test="result != null" >
                 result = #{result,jdbcType=BIT},
             </if>
+            <if test="nextPushTime != null" >
+                next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
+            </if>
             <if test="status != null" >
                 status = #{status,jdbcType=INTEGER},
             </if>
@@ -51,4 +54,13 @@
         </foreach>
         and send_date = #{sendDate} and status = 1
     </update>
+
+    <select id="selectLatestVtLog" resultType="com.br.marketing.entity.XieChengSmsCollidingDataLogVt">
+        select next_push_time, org_channel from b_xiecheng_sms_colliding_data_log_vt
+        where sha256_code_list = #{sha256Tel}
+        and next_push_time >= NOW()
+        and status = 2
+        and result = 1
+        order by next_push_time desc limit 1
+    </select>
 </mapper>

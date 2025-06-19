@@ -2857,6 +2857,10 @@ public class MarketingCommonConfig {
      */
     private List<String> xieChengQueueApiCodes;
 
+    /**
+     * 携程上报消息开关
+     */
+    private JSONObject xieChengReportMqConfig;
 
     /**
      * 携程定制转化清洗apicode
@@ -2930,9 +2934,33 @@ public class MarketingCommonConfig {
     private Integer  tcPageSearchSize;
 
     /**
+     * 同城易融-match时batchUpdateSize
+     */
+    private Integer  tcPartSize;
+
+    /**
      * 同城易融-撤销清洗job每页查询条数
      */
     private Integer tcRevokePageSize;
+
+
+
+
+    /**
+     * 同程易融-txtFile-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":5000,"partSize":1000,
+     * "dbCountWaitTime":60000
+     * }
+     */
+    private JSONObject tcTxtFileShardConfig;
+
+
+    /**
+     * 同程易融-match-shard  job参数
+     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000}
+     */
+    private JSONObject tcMatchShardConfig;
 
     /**
      * 58查询非金融延期zip接口参数配置
@@ -3098,6 +3126,11 @@ public class MarketingCommonConfig {
      */
     private String uMengCallBackEndTime;
 
+
+    /**
+     * 携程上报线程池数量
+     */
+    private Integer xieChengReportThreadPoolNum;
     /**
      * 奇富促动支上传数据apiCode
      */
@@ -3107,5 +3140,10 @@ public class MarketingCommonConfig {
      * 奇富促动支上传数据参数配置
      */
     private JSONObject qiFuActuationServerConfig;
+
+    /**
+     * 奇富促完件提取表头字段
+     */
+    private String qiFuTransferTableHead;
 }
 

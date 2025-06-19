@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -256,6 +258,7 @@ public class PushDataServiceImpl implements PushDataService {
     private final static String SMS_QUIT ="saveAdMobileBlack";
 
     private final static String XIECHENGSMSCOLLIDINGFORMATTER = "yyyy-MM-dd HH:mm:ss";
+
     ThreadPoolExecutor pushDassThreadPool = BrExecutors.getThreadPool(5, 5);
 
     @Override
@@ -1549,7 +1552,8 @@ public class PushDataServiceImpl implements PushDataService {
         try {
             List<String> sha256CodeList = xieChengSmsCollidingDataVtPartition.stream()
                     .map(XieChengSmsCollidingDataVt::getSha256CodeList).collect(Collectors.toList());
-
+            Map<String, Long> cellToIds = xieChengSmsCollidingDataVtPartition.stream()
+                    .collect(Collectors.toMap(XieChengSmsCollidingDataVt::getSha256CodeList, XieChengSmsCollidingDataVt::getId));
             if (!sha256CodeList.isEmpty()) {
                 // 携程短信撞库接口
                 Result<String> postResult = xieChengService.pushXieChengSmsCollidingDataVt(sha256CodeList);
@@ -1558,15 +1562,21 @@ public class PushDataServiceImpl implements PushDataService {
                 if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
 
                     JSONArray returnDataList = resultJson.getJSONArray("data");
-                    // mq 更新日志
+                    // 线程池更新日志
                     List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList = initLogVt(returnDataList, sendDate);
                     for (int i = 0; i < xieChengSmsCollidingDataLogVtList.size(); i++) {
                         XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVtList.get(i);
                         result.xieChengSmsCollidingThreadLogUpdateVt.submit(() -> {
                             try {
+                                if (null != xieChengSmsCollidingDataLogVt.getNextPushTime()) {
+                                    XieChengSmsCollidingDataVt xieChengSmsCollidingDataVt = new XieChengSmsCollidingDataVt();
+                                    xieChengSmsCollidingDataVt.setId(cellToIds.get(xieChengSmsCollidingDataLogVt.getSha256CodeList()));
+                                    xieChengSmsCollidingDataVt.setNextPushTime(xieChengSmsCollidingDataLogVt.getNextPushTime());
+                                    xieChengSmsCollidingDataVtMapper.updateByPrimaryKeySelective(xieChengSmsCollidingDataVt);
+                                }
                                 xieChengSmsCollidingDataLogVtMapper.updateSelectiveVt(xieChengSmsCollidingDataLogVt);
                             } catch (Exception e) {
-                                log.error("携程更新日志异常！");
+                                log.error("携程cps更新日志异常！,cell=" + xieChengSmsCollidingDataLogVt.getSha256CodeList(), e);
                             }
                         });
                     }
@@ -1593,6 +1603,10 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengSmsCollidingDataLogVt.setInfo(returnData.getString("info"));
             xieChengSmsCollidingDataLogVt.setMktLevel(returnData.getString("mktLevel"));
             xieChengSmsCollidingDataLogVt.setResult(returnData.getBoolean("result"));
+            if (StringUtils.isNotBlank(returnData.getString("releaseTime"))) {
+                xieChengSmsCollidingDataLogVt.setNextPushTime(
+                        DateUtil.parse(returnData.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
+            }
             xieChengSmsCollidingDataLogVt.setOrgChannel(returnData.getString("orgChannel"));
             xieChengSmsCollidingDataLogVt.setStatus(2);
             xieChengSmsCollidingDataLogVt.setSendDate(sendDate);
@@ -1737,38 +1751,22 @@ public class PushDataServiceImpl implements PushDataService {
                         redisChgService.unlock(key, value);
                         return;
                     }
-
-                    Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                    XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
-                    vtExample.createCriteria()
-                            .andSha256CodeListEqualTo(sha256Tel)
-                            .andStatusEqualTo(2)
-                            .andSendDateEqualTo(day);
-                    List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
-                    if (xieChengSmsCollidingDataLogVts.size() <= 0) {
-                        resultData.setDataMessage("没有获取到当日撞库结果");
+                    XieChengSmsCollidingDataLogVt dataLogVt = xieChengSmsCollidingDataLogVtMapper.selectLatestVtLog(sha256Tel);
+                    if (null == dataLogVt) {
+                        resultData.setDataMessage("撞库释放时间小于当前时间或无返回true的撞库日志");
                         resultData.setStatus(2);
                         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                         redisChgService.unlock(key, value);
                         return;
                     }
-                    XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVts.get(0);
-                    if (!xieChengSmsCollidingDataLogVt.getResult()) {
-                        resultData.setDataMessage("命中当日撞库结果为false");
+                    if (StringUtils.isBlank(dataLogVt.getOrgChannel())) {
+                        resultData.setDataMessage("撞库日志获取orgChannel为空");
                         resultData.setStatus(2);
                         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                         redisChgService.unlock(key, value);
                         return;
                     }
-                    if (StringUtils.isBlank(xieChengSmsCollidingDataLogVt.getOrgChannel())) {
-                        resultData.setDataMessage("命中当日OrgChannel为空,id=" + xieChengSmsCollidingDataLogVt.getSmsCollidingDataVtId());
-                        resultData.setStatus(2);
-                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                        redisChgService.unlock(key, value);
-                        return;
-                    }
-                    //endregion
-                    adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
+                    adReqDTO.setMktChannel(dataLogVt.getOrgChannel());
                 }
                 //endregion
                 Boolean isPush;
@@ -2190,11 +2188,11 @@ public class PushDataServiceImpl implements PushDataService {
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
-        
+
         while (actionMark) {
             List<DaasUpdateDataDTO> updateDataList = updatePhoneSaleMapper.getPushUpdateDassData(id, minId);
             totalNumber += updateDataList.size();
-            
+
             if (updateDataList.size() > 0) {
                 DaasUpdateDataDTO lastUpdate = updateDataList.get(updateDataList.size() - 1);
                 minId = lastUpdate.getId();
@@ -2205,16 +2203,16 @@ public class PushDataServiceImpl implements PushDataService {
                         int batchSuccessCount = 0;
                         int batchFailCount = 0;
                         List<String> failMessages = new ArrayList<>();
-                        
+
                         for (DaasUpdateDataDTO updateData : updateDataList) {
                             try {
                                 String requestId = "req_" + updateData.getUid() + "_" + updateData.getId() + "_" +
                                         DigestUtils.md5DigestAsHex((updateData.getUid() + updateData.getId()).getBytes()).substring(0, 8);
                                 updateData.setRequestId(requestId);
-                                
+
                                 // 调用接口
                                 Result result = dassServiceClient.postWealthUpdateData(updateData);
-                                
+
                                 // 处理单条数据的响应结果
                                 if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                                     batchSuccessCount++;
@@ -2232,7 +2230,7 @@ public class PushDataServiceImpl implements PushDataService {
                                 log.error("处理单条数据异常：{}", errorMsg, e);
                             }
                         }
-                        
+
                         // 更新计数器
                         if (batchSuccessCount > 0) {
                             successCount.addAndGet(batchSuccessCount);
@@ -2240,20 +2238,20 @@ public class PushDataServiceImpl implements PushDataService {
                         if (batchFailCount > 0) {
                             failCount.addAndGet(batchFailCount);
                         }
-                        
-                        log.debug("批次推送结果，总数: {}, 成功: {}, 失败: {}", 
+
+                        log.debug("批次推送结果，总数: {}, 成功: {}, 失败: {}",
                                 updateDataList.size(), batchSuccessCount, batchFailCount);
                     } catch (Exception e) {
                         failCount.addAndGet(updateDataList.size());
-                        log.error("推送人工业务数据更新接口子线程异常，批次大小: {}, 异常信息: {}", 
+                        log.error("推送人工业务数据更新接口子线程异常，批次大小: {}, 异常信息: {}",
                                 updateDataList.size(), e.getMessage(), e);
-                        
+
                         // 发送告警
                         try {
                             alarmClient.sendAlarm(
-                                String.format("人工业务数据更新推送异常，文件ID: %s, 批次大小: %d, 异常: %s", 
+                                String.format("人工业务数据更新推送异常，文件ID: %s, 批次大小: %d, 异常: %s",
                                             id, updateDataList.size(), e.getMessage()),
-                                "人工业务数据更新推送异常", 
+                                "人工业务数据更新推送异常",
                                 AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
                             );
                         } catch (Exception alarmEx) {
@@ -2266,7 +2264,7 @@ public class PushDataServiceImpl implements PushDataService {
                 actionMark = false;
             }
         }
-        
+
         // 等待所有任务完成
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
@@ -2274,7 +2272,7 @@ public class PushDataServiceImpl implements PushDataService {
         localFile.setPushNumber(successCount.get());
         localFile.setErrorActualNumber(failCount.get());
         localFileMapper.updateByPrimaryKeySelective(localFile);
-        
+
         // 推送完成后发送通知
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
@@ -2285,18 +2283,18 @@ public class PushDataServiceImpl implements PushDataService {
                     .append("失败数量：").append(failCount.get()).append("\r\n")
                     .append("成功率：").append(totalNumber > 0 ? String.format("%.2f%%", (double)successCount.get() / totalNumber * 100) : "0%").append("\r\n")
                     .append("人工业务数据更新接口推送结束").append("\r\n");
-            
-            AlarmSendCodeEnum alarmCode = failCount.get() == 0 ? 
+
+            AlarmSendCodeEnum alarmCode = failCount.get() == 0 ?
                 AlarmSendCodeEnum.SUCCESS_UPLOAD : AlarmSendCodeEnum.PUSHING_DAASERROR;
-            
+
             alarmClient.sendAlarm(content.toString(), "人工业务数据更新接口推送", alarmCode.getCode());
         }
-        
-        log.info("人工业务数据更新推送完成，文件ID: {}, 总数量: {}, 成功: {}, 失败: {}", 
+
+        log.info("人工业务数据更新推送完成，文件ID: {}, 总数量: {}, 成功: {}, 失败: {}",
                 id, totalNumber, successCount.get(), failCount.get());
-        
+
         return new Result().setCode(ResultCode.SUCCESS.getValue())
-                .setMessage(String.format("推送完成，总数量: %d, 成功: %d, 失败: %d", 
+                .setMessage(String.format("推送完成，总数量: %d, 成功: %d, 失败: %d",
                           totalNumber, successCount.get(), failCount.get()));
     }
 }
