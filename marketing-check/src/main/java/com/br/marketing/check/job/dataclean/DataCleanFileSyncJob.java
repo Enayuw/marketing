@@ -104,7 +104,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
 
     private void fillHeaderAndData(MarketingCleanDataFile cleanDataFile) {
         MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
-        File file = new File(cleanDataFile.getLocalPath().concat(cleanDataFile.getLocalPath()));
+        File file = new File(cleanDataFile.getLocalPath().concat(cleanDataFile.getFileName()));
         Integer line = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
