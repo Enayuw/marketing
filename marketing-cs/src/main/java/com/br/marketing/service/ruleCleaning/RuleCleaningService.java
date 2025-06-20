@@ -114,7 +114,7 @@ public interface RuleCleaningService {
 
     boolean saveCleanRule(RuleCleaningConfigDTO ruleCleaningConfigDTO);
 
-    Result<List<RuleCleaningResult>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO);
+    Result<List<List<RuleCleaningResult>>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO);
 
     boolean ruleEffect(Long ruleId);
 }

@@ -14,6 +14,8 @@ import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.clean.DataProcessEnum;
@@ -2057,7 +2059,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     @Override
-    public Result<List<RuleCleaningResult>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO) {
+    public Result<List<List<RuleCleaningResult>>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO) {
         try {
             String apiCode = ruleTrialConfigDTO.getApiCode();
             Integer acceptType = ruleTrialConfigDTO.getAcceptType();
@@ -2071,19 +2073,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 String requestBatch = marketingSyncInfo.getRequestBatch();
                 String jsonData = marketingSyncInfo.getJsonData();
                 Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, dataType, acceptType);
-                List<RuleCleaningResult> ruleCleaningResultList = assembleResult(apiCode,requestBatch,jsonData,ruleConfigMap);
 
                 if (Objects.isNull(marketingSyncInfo)) {
-                    return new Result<List<RuleCleaningResult>>().setDate(null)
+                    return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                             .setMessage("未找到符合条件的通用上传数据").failure();
                 }
                 Result<Boolean> result = pushRuleService.insertMarketingPreUserSync(marketingSyncInfo.getId());
+                List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCommonResult(apiCode,requestBatch,jsonData,ruleConfigMap);
 
                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    return new Result<List<RuleCleaningResult>>().setDate(null)
+                    return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                             .setMessage("通用上传数据处理失败: " + result.getMessage()).failure();
                 }
-                return new Result<List<RuleCleaningResult>>().setDate(ruleCleaningResultList)
+                return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList)
                         .setMessage("数据处理成功").success();
             }
 
@@ -2092,7 +2094,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 MarketingCustomerOriginalData marketingCustomerOriginalData =
                         marketingCustomerOriginalDataMapper.getCustomDataByDate(apiCode, appletDate, actualNum);
                 if (Objects.isNull(marketingCustomerOriginalData)) {
-                    return new Result<List<RuleCleaningResult>>().setDate(null)
+                    return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                             .setMessage("未找到符合条件的定制上传数据").failure();
                 }
 
@@ -2107,11 +2109,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                 // 调用定制清洗方法
                 try {
-                    dataCleanService.processData(marketingCustomerOriginalData, ruleConfigList);
+                    //定制清洗
+                    String jsonData = marketingCustomerOriginalData.getJsonData();
+                    MarketingPreUserDTO marketingPreUserDTO = dataCleanService.dataClean(marketingCustomerOriginalData,ruleConfigList);
+                    List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCleanResult(jsonData,ruleConfigList,marketingPreUserDTO);
+
+                    //上传info表
+                    dataCleanService.insertInfo(apiCode,marketingPreUserDTO,marketingCustomerOriginalData.getId());
+                    return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList)
+                            .setMessage("数据处理成功").success();
                 } catch (Exception e) {
                     log.error("Process data failed for marketingCustomerOriginalData id: {}, error: {}",
                             marketingCustomerOriginalData.getId(), e.getMessage(), e);
-                    return new Result<List<RuleCleaningResult>>().setDate(null)
+                    return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                             .setMessage("定制上传数据处理失败: " + e.getMessage()).failure();
                 }
             }
@@ -2120,14 +2130,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())) {
                 String sftpPath = ruleTrialConfigDTO.getSftpPath();
                 if (StringUtils.isEmpty(sftpPath)) {
-                    return new Result<List<RuleCleaningResult>>().setDate(null)
+                    return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                             .setMessage("SFTP路径不能为空").failure();
                 }
 
                 MarketingCleanDataFile marketingCleanDataFile =
                         marketingCleanDataFileMapper.getCleanDataFileByDate(apiCode, appletDate, sftpPath);
                 if (Objects.isNull(marketingCleanDataFile)) {
-                    return new Result<List<RuleCleaningResult>>().setDate(null)
+                    return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                             .setMessage("未找到符合条件的SFTP文件数据").failure();
                 }
 
@@ -2150,13 +2160,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             }
 
-            return new Result<List<RuleCleaningResult>>().setDate(null)
+            return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                     .setMessage("数据处理成功").success();
 
         } catch (Exception e) {
             log.error("Trial process failed for apiCode: {}, error: {}",
                     ruleTrialConfigDTO.getApiCode(), e.getMessage(), e);
-            return new Result<List<RuleCleaningResult>>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+            return new Result<List<List<RuleCleaningResult>>>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
                     .setMessage("系统处理异常: " + e.getMessage());
         }
     }
@@ -2169,8 +2179,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         return Boolean.TRUE;
     }
 
-    public List<RuleCleaningResult> assembleResult(String apiCode, String requestBatch, String jsonData, Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap){
-        List<RuleCleaningResult> cleaningResults = new ArrayList<>();
+    /**
+     * 通用上传结果展示
+     * @param apiCode apiCode
+     * @param requestBatch  requestBatch
+     * @param jsonData  原始数据
+     * @param ruleConfigMap 规则列表
+     * @return 清洗前后的结果
+     */
+    public List<List<RuleCleaningResult>> assembleCommonResult(String apiCode, String requestBatch, String jsonData, Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap){
+        List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
         //获取字段映射关系
         Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
         for (Map.Entry<String, MarketingDataCleanGeneralRuleConfig> entry : ruleConfigMap.entrySet()) {
@@ -2182,18 +2200,68 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         JSONObject jsonObject = JSON.parseObject(jsonData);
         JSONArray dataItems = jsonObject.getJSONArray("dataItems");
         for (int i = 0; i < dataItems.size(); i++) {
+            List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
             JSONObject item = dataItems.getJSONObject(i);
             String custNum = (String) JsonParseUtils.findFirstValueByKey(item, "custNum");
             MarketingSyncUser result = marketingSyncInfoByRequestBatch.stream().filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum)).findFirst().orElse(null);
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getKey())).toString());
+                ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(item, entry.getKey())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getKey())).toString() : "");
+                ruleCleaningResult.setMappingField(entry.getKey());
+                ruleCleaningResult.setMappingValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString() : "");
+                cleaningResultItems.add(ruleCleaningResult);
+            }
+            cleaningResults.add(cleaningResultItems);
+        }
+        return cleaningResults;
+    }
+
+    /**
+     * 定制上传结果展示
+     * @param jsonData  原始数据
+     * @param ruleConfigList    规则列表
+     * @return  清洗前后的结果
+     */
+    public List<List<RuleCleaningResult>> assembleCleanResult(String jsonData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDTO marketingPreUserDTO){
+        List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
+        List<MarketingPreUserDetailDTO> preUserDetailDTOS = marketingPreUserDTO.getDataItems();
+        //获取字段映射关系
+        Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+            cleaningToMappingFieldMap.put(ruleConfig.getMappingField(),ruleConfig.getCleanFields());
+        }
+        JSONObject jsonObject = JSON.parseObject(jsonData);
+        List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
+        if (cleaningToMappingFieldMap.containsKey("dataItems")){
+            JSONArray dataItems = jsonObject.getJSONArray(cleaningToMappingFieldMap.get("dataItems"));
+            cleaningToMappingFieldMap.remove("dataItems");
+            for (int i = 0; i < dataItems.size(); i++) {
+                JSONObject item = dataItems.getJSONObject(i);
+                MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, "custNum")).toString())).findFirst().orElse(null);
+                for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
+                    RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
+                    ruleCleaningResult.setCleanFields(entry.getValue());
+                    ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getKey())).toString());
+                    ruleCleaningResult.setMappingField(entry.getKey());
+                    ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
+                    cleaningResultItems.add(ruleCleaningResult);
+                }
+                cleaningResults.add(cleaningResultItems);
+            }
+        }else {
+            MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, "custNum")).toString())).findFirst().orElse(null);
+            for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
+                RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
+                ruleCleaningResult.setCleanFields(entry.getValue());
+                ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey())).toString());
                 ruleCleaningResult.setMappingField(entry.getKey());
                 ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
-                cleaningResults.add(ruleCleaningResult);
+                cleaningResultItems.add(ruleCleaningResult);
             }
+            cleaningResults.add(cleaningResultItems);
         }
+
         return cleaningResults;
     }
 
