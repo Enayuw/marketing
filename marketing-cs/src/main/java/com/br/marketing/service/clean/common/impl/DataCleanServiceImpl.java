@@ -7,6 +7,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.client.rulecleaning.RuleCleaningResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -641,6 +642,50 @@ public class DataCleanServiceImpl implements DataCleanService {
             pushInfoService.pushUploadByRetry(uploadDataDTO, null);
         } catch (Exception e) {
             log.error("批次数据处理异常", e);
+        }
+    }
+
+    @Override
+    public void fileUploadCleanPre(List<List<RuleCleaningResult>> result, List<MarketingDataCleanGeneralRuleConfig> ruleList,
+                                   MarketingCleanDataFile cleanDataFile,Integer actualNum) {
+        File file = new File(cleanDataFile.getLocalPath() + cleanDataFile.getFileName());
+        String[] headers = null;
+        List<String> batchLines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+            while ((line = reader.readLine()) != null) {
+                // 处理表头
+                if (isFirstLine) {
+                    headers = line.split(",");
+                    if (headers == null || headers.length == 0) {
+                        log.error("文件表头解析失败，文件路径: {}", cleanDataFile.getLocalPath());
+                        return;
+                    }
+                    isFirstLine = false;
+                    continue;
+                }
+                // 跳过空行
+                if (StringUtils.isEmpty(line.trim())) {
+                    continue;
+                }
+                if(batchLines.size()>actualNum){
+                    break;
+                }
+                batchLines.add(line);
+
+            }
+
+        } catch (IOException e) {
+            log.error("读取文件失败，文件路径: " + cleanDataFile.getLocalPath(), e);
+        }
+        processBatchDataSync(batchLines,headers,ruleList,cleanDataFile.getApiCode(),cleanDataFile.getFileName(),0);
+        //组装数据
+        for (int i = 0; i < batchLines.size(); i++) {
+            String line = batchLines.get(i);
+            // 根据表头和行数据构建JSON对象
+            JSONObject jsonData = buildJsonFromLineData(line, headers, 0);
+            //TODO 组装数据
         }
     }
 

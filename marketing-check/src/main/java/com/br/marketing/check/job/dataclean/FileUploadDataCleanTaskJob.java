@@ -80,7 +80,7 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
             dataCleanService.fileUploadDataClean(cleanFile, config);
             MarketingCleanDataFile update = new MarketingCleanDataFile();
             update.setStatus(DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
-            update.setId(config.getId());
+            update.setId(cleanFile.getId());
             marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
         });
     }

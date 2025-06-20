@@ -23,6 +23,9 @@
         <if test="status != null">
             AND a.status = #{status}
         </if>
+        <if test="sftpPath != null and sftpPath != ''">
+            AND a.sftp_path = #{sftpPath}
+        </if>
         ORDER BY a.update_time DESC
     </select>
 

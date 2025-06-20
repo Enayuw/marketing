@@ -2150,19 +2150,21 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 queryParam.setAcceptType(DataProcessEnum.AcceptTypeEnum.FTP.getCode());
                 queryParam.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
                 queryParam.setApiCode(apiCode);
+                queryParam.setSftpPath(sftpPath);
                 // 执行查询
                 List<MarketingDataCleanGeneralConfig> ruleList = cleanGeneralConfigMapper.selectRuleList(queryParam);
-                ruleList.forEach(config -> {
-                    //文件清洗
-                    dataCleanService.fileUploadDataClean(marketingCleanDataFile, config);
-                    MarketingCleanDataFile update = new MarketingCleanDataFile();
-                    update.setStatus(DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
-                    update.setId(config.getId());
-                    marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
-                });
+                //查询规则
+                MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+                ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(ruleList.get(0).getId()).andIsDelEqualTo(1);
+                List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+                if(CollectionUtils.isEmpty(ruleConfigList)){
+                    throw new BusinessException("文件清洗规则配置不存在");
+                }
+                List<List<RuleCleaningResult>> ruleCleaningResultList =new ArrayList<>();
+                dataCleanService.fileUploadCleanPre(ruleCleaningResultList,ruleConfigList,marketingCleanDataFile,actualNum);
+                return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList).success();
 
             }
-
             return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                     .setMessage("数据处理成功").success();
 
