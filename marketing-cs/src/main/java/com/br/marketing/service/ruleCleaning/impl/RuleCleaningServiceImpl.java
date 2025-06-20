@@ -1901,7 +1901,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         criteria.andStatusEqualTo(1).andDataTypeEqualTo(fileType).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
-        List<String> sftpPaths = syncConfigs.stream().map(SyncConfig::getTargetPath).collect(Collectors.toList());
+        List<String> sftpPaths = syncConfigs.stream().map(SyncConfig::getSrcPath).collect(Collectors.toList());
         return sftpPaths;
     }
 
@@ -2030,7 +2030,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // b_marketing_clean_data_file
         MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
         fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andTargetSftpPathEqualTo(config.getSftpPath());
-        fileExample.setOrderByClause("create_time asc limit 1");
+        fileExample.setOrderByClause("create_time desc limit 1");
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
         if (CollectionUtils.isEmpty(cleanDataFiles)) {
             return;
