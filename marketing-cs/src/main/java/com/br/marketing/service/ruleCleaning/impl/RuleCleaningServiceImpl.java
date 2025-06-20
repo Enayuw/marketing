@@ -2079,7 +2079,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             .setMessage("未找到符合条件的通用上传数据").failure();
                 }
                 Result<Boolean> result = pushRuleService.insertMarketingPreUserSync(marketingSyncInfo.getId());
-                List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCommonResult(apiCode,requestBatch,jsonData,ruleConfigMap);
+                //等待数据入明细表
+                Thread.sleep(200);
+                List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCommonResult(apiCode,actualNum,requestBatch,jsonData,ruleConfigMap);
 
                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     return new Result<List<List<RuleCleaningResult>>>().setDate(null)
@@ -2116,7 +2118,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     //上传info表
                     dataCleanService.insertInfo(apiCode,marketingPreUserDTO,marketingCustomerOriginalData.getId());
 
-                    List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCleanResult(jsonData,ruleConfigList,marketingPreUserDTO);
+                    List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCleanResult(jsonData, actualNum,ruleConfigList,marketingPreUserDTO);
                     return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList)
                             .setMessage("数据处理成功").success();
                 } catch (Exception e) {
@@ -2188,7 +2190,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @param ruleConfigMap 规则列表
      * @return 清洗前后的结果
      */
-    public List<List<RuleCleaningResult>> assembleCommonResult(String apiCode, String requestBatch, String jsonData, Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap){
+    public List<List<RuleCleaningResult>> assembleCommonResult(String apiCode, Integer actualNum, String requestBatch, String jsonData, Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap){
         List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
         //获取字段映射关系
         Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
@@ -2200,7 +2202,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         //解析jsonData，获取清洗字段及其原始值
         JSONObject jsonObject = JSON.parseObject(jsonData);
         JSONArray dataItems = jsonObject.getJSONArray("dataItems");
-        for (int i = 0; i < dataItems.size(); i++) {
+        for (int i = 0; i < actualNum; i++) {
             List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
             JSONObject item = dataItems.getJSONObject(i);
             String custNum = (String) JsonParseUtils.findFirstValueByKey(item, "custNum");
@@ -2224,7 +2226,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @param ruleConfigList    规则列表
      * @return  清洗前后的结果
      */
-    public List<List<RuleCleaningResult>> assembleCleanResult(String jsonData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDTO marketingPreUserDTO){
+    public List<List<RuleCleaningResult>> assembleCleanResult(String jsonData, Integer actualNum, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDTO marketingPreUserDTO){
         List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
         List<MarketingPreUserDetailDTO> preUserDetailDTOS = marketingPreUserDTO.getDataItems();
         //获取字段映射关系
@@ -2237,7 +2239,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (cleaningToMappingFieldMap.containsKey("dataItems")){
             JSONArray dataItems = jsonObject.getJSONArray(cleaningToMappingFieldMap.get("dataItems"));
             cleaningToMappingFieldMap.remove("dataItems");
-            for (int i = 0; i < dataItems.size(); i++) {
+            for (int i = 0; i < actualNum; i++) {
                 JSONObject item = dataItems.getJSONObject(i);
                 MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, "custNum")).toString())).findFirst().orElse(null);
                 for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
