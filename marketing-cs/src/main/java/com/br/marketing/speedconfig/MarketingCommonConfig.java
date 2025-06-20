@@ -3145,5 +3145,10 @@ public class MarketingCommonConfig {
      * 奇富促完件提取表头字段
      */
     private String qiFuTransferTableHead;
+
+    /**
+     * 360 apiCode
+     */
+    private List<String> apiCodeOf360;
 }
 
