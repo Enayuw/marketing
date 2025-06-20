@@ -333,16 +333,16 @@ public class RuleCleaningController {
 
     @PostMapping("/trailProcess")
     @ApiOperation(value = "试跑验证规则有效性",notes = "试跑验证规则有效性",httpMethod = "POST")
-    public ApiResult<Boolean> trailProcess(@RequestBody RuleTrialConfigDTO ruleTrialConfigDTO){
+    public ApiResult<List<RuleCleaningResult>> trailProcess(@RequestBody RuleTrialConfigDTO ruleTrialConfigDTO){
         try {
-            Result<Boolean> result = ruleCleaningService.trialProcess(ruleTrialConfigDTO);
-            return new ApiResult<Boolean>().success(result.getMessage());
+            Result<List<RuleCleaningResult>> result = ruleCleaningService.trialProcess(ruleTrialConfigDTO);
+            return new ApiResult<List<RuleCleaningResult>>().setData(result.getData()).success(result.getMessage());
         }catch (BusinessException be) {
-            return new ApiResult<Boolean>().fail(false,be.getMsg());
+            return new ApiResult<List<RuleCleaningResult>>().fail("",be.getMsg());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_TRIALPROCESSERROR.getCode(),
                     "规则试跑接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<List<RuleCleaningResult>>().fail(ServiceResultEnum.FAILED);
         }
     }
 

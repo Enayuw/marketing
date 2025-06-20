@@ -518,4 +518,11 @@
             LIMIT 1
     </select>
 
+    <select id="getMarketingSyncInfoByRequestBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+            *
+        from  b_marketing_sync_${apiCode}
+        where request_batch = #{requestBatch}
+    </select>
+
 </mapper>

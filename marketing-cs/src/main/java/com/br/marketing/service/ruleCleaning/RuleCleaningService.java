@@ -1,11 +1,7 @@
 package com.br.marketing.service.ruleCleaning;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.rulecleaning.CleanConfigDTO;
-import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
-import com.br.marketing.client.rulecleaning.FieldSampleDTO;
-import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
-import com.br.marketing.client.rulecleaning.RuleTrialConfigDTO;
+import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
@@ -118,7 +114,7 @@ public interface RuleCleaningService {
 
     boolean saveCleanRule(RuleCleaningConfigDTO ruleCleaningConfigDTO);
 
-    Result<Boolean> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO);
+    Result<List<RuleCleaningResult>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO);
 
     boolean ruleEffect(Long ruleId);
 }
