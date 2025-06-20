@@ -2112,10 +2112,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     //定制清洗
                     String jsonData = marketingCustomerOriginalData.getJsonData();
                     MarketingPreUserDTO marketingPreUserDTO = dataCleanService.dataClean(marketingCustomerOriginalData,ruleConfigList);
-                    List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCleanResult(jsonData,ruleConfigList,marketingPreUserDTO);
 
                     //上传info表
                     dataCleanService.insertInfo(apiCode,marketingPreUserDTO,marketingCustomerOriginalData.getId());
+
+                    List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCleanResult(jsonData,ruleConfigList,marketingPreUserDTO);
                     return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList)
                             .setMessage("数据处理成功").success();
                 } catch (Exception e) {
