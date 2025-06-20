@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
@@ -88,13 +89,14 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-        List<String> appletDateList = Lists.newArrayList(LocalDate.now().toString(), LocalDate.now().minusDays(1).toString());
+        Date date = Date.from(LocalDate.now().minusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         //填充b_marketing_clean_data_file表的表头及字段
         MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
-        fileExample.createCriteria().andReceiveDateIn(appletDateList).andFileHeaderIsNull();
+        fileExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(date).andFileHeaderIsNull();
         fileExample.setOrderByClause("create_time desc");
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
         cleanDataFiles.forEach(cleanDataFile -> {
+            log.warn("开始填充文件表头及样例,fileName={}", cleanDataFile.getFileName());
             fillHeaderAndData(cleanDataFile);
         });
 
