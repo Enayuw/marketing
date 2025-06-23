@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
         consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-        consumeThreadNumber = 20, consumeThreadMax = 64, awaitTerminationMillisWhenShutdown = 10000)
+        consumeThreadNumber = 16, consumeThreadMax = 16, awaitTerminationMillisWhenShutdown = 10000)
 public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> , RocketMQPushConsumerLifecycleListener {
 
     @Autowired
@@ -67,8 +67,9 @@ public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener 
 
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
-        defaultMQPushConsumer.setPullBatchSize(2);
-        defaultMQPushConsumer.setPopBatchNums(2);
+//        defaultMQPushConsumer.setPullBatchSize(2);
+//        defaultMQPushConsumer.setPopBatchNums(2);
         defaultMQPushConsumer.setClientRebalance(false);
+        defaultMQPushConsumer.setPopInvisibleTime(3000000L);
     }
 }

@@ -3145,5 +3145,14 @@ public class MarketingCommonConfig {
      * 奇富促完件提取表头字段
      */
     private String qiFuTransferTableHead;
+
+    /**
+     * 携程线程池上报
+     */
+    private Integer xcMqReportHandlerThreadNum;
+    /**
+     * 携程上报线程池开启开关 false 开启线程池  true 关闭线程池
+     */
+    private Boolean xcMqReportHandlerSwitch;
 }
 
