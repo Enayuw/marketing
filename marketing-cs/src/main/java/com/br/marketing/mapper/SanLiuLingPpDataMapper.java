@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface SanLiuLingPpDataMapper extends SanLiuLingPpDataMapperBase {
 
-    List<SanLiuLingPpData> getTrafficData(@Param("localId") Long localId, @Param("dataId") Long dataId);
+    List<SanLiuLingPpData> getTrafficData(@Param("localId") Long localId, @Param("minId") Long minId);
 
     void batchUpdatePushStatusAndResult(@Param("list") List<SanLiuLingPpData> list);
 

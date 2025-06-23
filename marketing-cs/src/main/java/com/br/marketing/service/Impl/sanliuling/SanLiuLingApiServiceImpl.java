@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -71,10 +72,19 @@ public class SanLiuLingApiServiceImpl implements SanLiuLingApiService {
                 continue;
             }
 
-            total += dataList.size();
             minId = dataList.get(dataList.size() - 1).getId();
 
-            List<List<SanLiuLingPpData>> partition = ListUtils.partition(dataList, 100);
+            // 去重
+            List<SanLiuLingPpData> distinctList = new ArrayList<>(dataList.stream()
+                    .collect(Collectors.toMap(
+                            SanLiuLingPpData::getMobileNoMd5,
+                            Function.identity(),
+                            (existing, replacement) -> existing
+                    ))
+                    .values());
+
+            total += distinctList.size();
+            List<List<SanLiuLingPpData>> partition = ListUtils.partition(distinctList, 100);
 
             partition.forEach((List<SanLiuLingPpData> p) -> {
                 pool.submit(() -> buildDataAndPush(p, id));

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @ClassName SanLiuLingClient
@@ -61,14 +62,14 @@ public class SanLiuLingClient {
                 log.warn(TITLE + "mock开关开启");
                 Integer code = (Integer) mock.get("code");
                 String message = (String) mock.get("message");
-                if (200 != code) {
-                    result.setCode(code);
+                if (!Objects.equals(ResultCode.SUCCESS.getValue(), code)) {
+                    result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                     result.setMessage(message);
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
                             , TITLE + "360mock失败，失败原因：" + mock));
                     return result;
                 }
-                result.setCode(code);
+                result.setCode(ResultCode.SUCCESS.getValue());
                 result.setDate(mock.get("data"));
                 log.warn(TITLE + "流量业务营销result: {}", JSONObject.toJSON(result));
                 return result;
@@ -96,15 +97,11 @@ public class SanLiuLingClient {
                     return result;
                 }
             }
-
         } catch (Exception e) {
             String eMsg = TITLE + "流量业务营销接口异常:" + e.getMessage();
             result.setMessage(eMsg);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
-                    , eMsg));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode(), eMsg));
         }
-        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
-                , TITLE + "流量业务营销，失败原因：" + httpResponseMap));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
     }

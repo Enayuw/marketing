@@ -5,15 +5,15 @@
     <select id="getTrafficData" resultType="com.br.marketing.entity.SanLiuLingPpData">
         SELECT a.*
         FROM b_sanliuling_pp_data a
-        LEFT JOIN b_sanliuling_pp_data b ON a.mobile = b.mobile
+        LEFT JOIN b_sanliuling_pp_data b ON a.mobile_no_md5 = b.mobile_no_md5
         AND b.push_status = 2
-        AND DATE(b.push_time) = DATE(NOW())
+        AND b.create_date = DATE_FORMAT(now(), '%Y%m%d')
         WHERE a.local_id = #{localId}
         AND a.status = 1
         AND a.push_status = 1
-        AND b.mobile IS NULL
-        <if test="dataId != null and dataId>0">
-            AND a.id > #{dataId}
+        AND b.mobile_no_md5 IS NULL
+        <if test="minId != null and minId>0">
+            AND a.id > #{minId}
         </if>
         ORDER BY a.id ASC
         LIMIT 2000
