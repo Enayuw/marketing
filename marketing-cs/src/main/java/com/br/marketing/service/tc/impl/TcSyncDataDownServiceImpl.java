@@ -128,7 +128,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             //文件解析入库
             for (File csvFile : files) {
                 log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
-                Result parseResult = parseCsvFileToDb(syncRecord.getApiCode(),syncRecord.getBatchNo(),csvFile);
+                Result parseResult = parseCsvFileToDb(syncRecord.getApiCode(),syncRecord.getBatchNo(),csvFile,dataInfo);
                 Long successLine = Long.parseLong(parseResult.getData().toString());
                 log.warn("{} csv文件入db,batchNo:{},csvName{} 执行完成,successCount:{}",TITLE,syncRecord.getBatchNo(),csvFile.getName(),successLine);
                 totalSuccess += successLine;
@@ -147,7 +147,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
      * @param csvFile
      * @return
      */
-    private Result parseCsvFileToDb(String apiCode, String batchNo, File csvFile) {
+    private Result parseCsvFileToDb(String apiCode, String batchNo, File csvFile,String dataInfo) {
         Result result = new Result().failure();
         Long successLine =0L;
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
@@ -166,7 +166,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                     List<String> lineList = new ArrayList<>();
                     lineList.addAll(lineBuffer);
                     totalLine += lineBuffer.size();
-                    processList(apiCode, batchNo, lineList, actionPool, futureList, resultList);
+                    processList(apiCode, batchNo, lineList, actionPool, futureList, resultList,dataInfo);
                     lineBuffer.clear();
                 }
             }
@@ -175,7 +175,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
                 List<String> lineList = new ArrayList<>();
                 lineList.addAll(lineBuffer);
                 totalLine += lineBuffer.size();
-                processList(apiCode, batchNo, lineList, actionPool, futureList, resultList);
+                processList(apiCode, batchNo, lineList, actionPool, futureList, resultList,dataInfo);
 
             }
 
@@ -196,11 +196,12 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
 
     }
 
-    private Result processList(String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
+    private Result processList(String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool,
+                               List<CompletableFuture<Result>> futureList, List<Long> resultList,String dataInfo) {
         Result result = new Result().failure();
         actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
         actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, lineList), actionPool)
+        futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, lineList,dataInfo), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {
                         resultList.add(0L);
@@ -216,10 +217,10 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
         return result.success();
     }
 
-    private Result processData(String apiCode, String batchNo, List<String> lineList) {
+    private Result processData(String apiCode, String batchNo, List<String> lineList,String dataInfo) {
         Result result = new Result().failure();
         try {
-            Result processResult = processLineBuffer(apiCode, batchNo, lineList);
+            Result processResult = processLineBuffer(apiCode, batchNo, lineList,dataInfo);
             if (processResult == null || !processResult.isSuccess() || processResult.getData() == null) {
                 return result.failure();
             }
@@ -242,7 +243,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
      * @param lineList
      * @return
      */
-    private Result processLineBuffer(String apiCode, String batchNo, List<String> lineList) {
+    private Result processLineBuffer(String apiCode, String batchNo, List<String> lineList,String dataInfo) {
         Result result = new Result().failure();
         if (CollectionUtils.isEmpty(lineList)) {
             return result.success();
@@ -265,6 +266,14 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
             JSONObject extentJson = new JSONObject();
             for (int i = 0; i < data.length; i++) {
                 extentJson.put("column_"+(i+1), data[i]);
+            }
+
+            JSONObject customJson = JSONObject.parseObject(dataInfo);
+            List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
+            for (String key : customJson.keySet()) {
+                if (!tcyrSyncExcludeFieldList.contains(key)) {
+                    extentJson.put(key, customJson.get(key));
+                }
             }
             syncItem.setExtend(extentJson.toJSONString());
             syncItem.setApiCode(apiCode);
