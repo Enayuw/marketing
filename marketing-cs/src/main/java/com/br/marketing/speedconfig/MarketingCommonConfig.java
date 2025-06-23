@@ -2962,6 +2962,12 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcMatchShardConfig;
 
+
+    /**
+     * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
+     */
+    private List<String> tcyrSyncExcludeFieldList;
+
     /**
      * 58查询非金融延期zip接口参数配置
      */
