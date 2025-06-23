@@ -3147,8 +3147,12 @@ public class MarketingCommonConfig {
     private String qiFuTransferTableHead;
 
     /**
-     * 360 apiCode
+     * 360-pp流量业务营销挡板
+     * {"switch":"0","code":1,"message":"","data":""}
+     * switch:0开启 1关闭
+     * code：1成功 其他失败
+     *
      */
-    private List<String> apiCodeOf360;
+    private HashMap<String, Object> sanLiuLingTrafficMock;
 }
 

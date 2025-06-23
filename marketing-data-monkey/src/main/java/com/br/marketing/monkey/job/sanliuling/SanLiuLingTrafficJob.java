@@ -35,6 +35,9 @@ public class SanLiuLingTrafficJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
+        log.warn(TITLE + "start");
+        long start = System.currentTimeMillis();
+
         String apiCode = shardingContext.getJobParameter();
         if (StringUtils.isEmpty(apiCode)) {
             apiCode = "3710185";
@@ -45,6 +48,7 @@ public class SanLiuLingTrafficJob extends AbstractSimpleElasticJob {
                 .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeEqualTo(apiCode);
         List<LocalFile> localFiles = localFileMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(localFiles)) {
+            log.warn(TITLE + "查询文件为空，apiCode：" + apiCode);
             return;
         }
 
@@ -61,6 +65,8 @@ public class SanLiuLingTrafficJob extends AbstractSimpleElasticJob {
             log.error(TITLE + "推送异常", e);
         }
 
+        long end = System.currentTimeMillis();
+        log.warn(TITLE + "end, 耗时{}ms", end - start);
     }
 
 }

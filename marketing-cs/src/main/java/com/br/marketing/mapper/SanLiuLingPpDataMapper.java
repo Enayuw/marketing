@@ -9,4 +9,6 @@ public interface SanLiuLingPpDataMapper extends SanLiuLingPpDataMapperBase {
 
     List<SanLiuLingPpData> getTrafficData(@Param("localId") Long localId, @Param("dataId") Long dataId);
 
+    void batchUpdatePushStatusAndResult(@Param("list") List<SanLiuLingPpData> list);
+
 }

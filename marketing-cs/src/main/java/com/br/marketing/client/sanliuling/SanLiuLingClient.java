@@ -4,17 +4,22 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -39,12 +44,33 @@ public class SanLiuLingClient {
     private static final String CODE_KEY = "httpcode";
     private static final String CONTENT_KEY = "content";
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
+    private final static String TITLE = "【360-】";
 
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result batchTrafficData(SanLiuLingTrafficReq req) {
         Result result = new Result();
         try {
+            // 获取挡板开关
+            HashMap<String, Object> mock = marketingCommonConfig.getSanLiuLingTrafficMock();
+            if ("1".equals(mock.get("switch"))) {
+                log.warn(TITLE + "mock开关开启");
+                Integer code = (Integer) mock.get("code");
+                String message = (String) mock.get("message");
+                if (1 != code) {
+                    result.setCode(code);
+                    result.setMessage(message);
+                    return result;
+                }
+                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setDate(mock.get("data"));
+                log.warn(TITLE + "result: {}", JSONObject.toJSON(result));
+                return result;
+            }
+
             Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(req, url, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(req), true, true);
@@ -68,8 +94,9 @@ public class SanLiuLingClient {
 
         } catch (Exception e) {
             String eMsg = "360流量业务营销接口异常:" + e.getMessage();
-            log.error(eMsg, e);
             result.setMessage(eMsg);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
+                    , eMsg));
         }
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;

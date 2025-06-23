@@ -14,4 +14,28 @@
         order by id asc limit 2000;
     </select>
 
+    <update id="batchUpdatePushStatusAndResult" parameterType="java.util.List">
+        UPDATE b_sanliuling_pp_data
+        <set>
+            push_status = CASE id
+            <foreach collection="list" item="item">
+                WHEN #{item.id,jdbcType=BIGINT} THEN #{item.pushStatus,jdbcType=INTEGER}
+            </foreach>
+            ELSE push_status
+            END,
+            mobile_result = CASE id
+            <foreach collection="list" item="item">
+                WHEN #{item.id,jdbcType=BIGINT} THEN #{item.mobileResult,jdbcType=VARCHAR}
+            </foreach>
+            ELSE mobile_result
+            END,
+            update_time = now()
+        </set>
+        WHERE id IN (
+        <foreach collection="list" item="item" separator=",">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+        )
+    </update>
+
 </mapper>

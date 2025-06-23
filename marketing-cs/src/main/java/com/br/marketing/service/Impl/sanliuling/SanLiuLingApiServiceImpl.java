@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.sanliuling;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.sanliuling.SanLiuLingClient;
 import com.br.marketing.client.sanliuling.SanLiuLingTrafficReq;
@@ -9,14 +11,16 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.SanLiuLingPpData;
+import com.br.marketing.entity.SanLiuLingPpDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.SanLiuLingPpDataMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -37,8 +41,6 @@ public class SanLiuLingApiServiceImpl implements SanLiuLingApiService {
     private SanLiuLingClient sanLiuLingClient;
     @Autowired
     LocalFileMapper localFileMapper;
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
 
     private final static String TITLE = "【360-pp流量业务营销】";
 
@@ -55,45 +57,69 @@ public class SanLiuLingApiServiceImpl implements SanLiuLingApiService {
                 continue;
             }
 
-            List<String> mobileMd5List = dataList.stream()
-                    .map(SanLiuLingPpData::getMobileNoMd5)
-                    .collect(Collectors.toList());
-
-            SanLiuLingTrafficReq sanLiuLingTrafficReq = new SanLiuLingTrafficReq();
-            sanLiuLingTrafficReq.setChannel("brllt");
-            sanLiuLingTrafficReq.setMobileMd5(mobileMd5List);
-
             total += dataList.size();
             minId = dataList.get(dataList.size() - 1).getId();
-            Result result = sanLiuLingClient.batchTrafficData(sanLiuLingTrafficReq);
 
-            if (Objects.equals(result.getCode(), ResultCode.SUCCESS.getValue())) {
-                Object data = result.getData();
-                if (data instanceof SanLiuLingTrafficResp) {
-                    SanLiuLingTrafficResp sanLiuLingTrafficResp = (SanLiuLingTrafficResp) data;
+            List<List<SanLiuLingPpData>> partition = ListUtils.partition(dataList, 100);
+
+            partition.forEach((List<SanLiuLingPpData> p) -> {
+                List<String> mobileMd5List = p.stream()
+                        .map(SanLiuLingPpData::getMobileNoMd5)
+                        .collect(Collectors.toList());
+
+                SanLiuLingTrafficReq sanLiuLingTrafficReq = new SanLiuLingTrafficReq();
+                sanLiuLingTrafficReq.setChannel("brllt");
+                sanLiuLingTrafficReq.setMobileMd5(mobileMd5List);
+
+                Result result = sanLiuLingClient.batchTrafficData(sanLiuLingTrafficReq);
+
+                if (Objects.equals(result.getCode(), ResultCode.SUCCESS.getValue())) {
+                    Object data = result.getData();
+                    SanLiuLingTrafficResp sanLiuLingTrafficResp = JSON.parseObject(data.toString(), SanLiuLingTrafficResp.class);
                     if ("200".equals(sanLiuLingTrafficResp.getCode())) {
                         List<String> respMobileMd5List = sanLiuLingTrafficResp.getData().getMobile_md5();
 
                         // 校验返回数量和请求数量一致
-                        if (respMobileMd5List.size() != dataList.size()) {
+                        if (respMobileMd5List.size() != p.size()) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
-                                    , "返回的mobileMd5数量与请求数量不一致"));
+                                    , TITLE + "返回的mobileMd5数量与请求数量不一致"));
+                            return;
                         }
 
-                        for (int i = 0; i < dataList.size(); i++) {
+                        // 批量更新
+                        List<SanLiuLingPpData> updateList = new ArrayList<>();
+                        for (int i = 0; i < p.size(); i++) {
                             SanLiuLingPpData updateData = new SanLiuLingPpData();
-                            updateData.setId(dataList.get(i).getId());
+                            updateData.setId(p.get(i).getId());
+                            updateData.setPushStatus(2);
                             updateData.setMobileResult(respMobileMd5List.get(i));
-                            sanLiuLingPpDataMapper.updateByPrimaryKeySelective(updateData);
+                            updateList.add(updateData);
                         }
+                        if (!updateList.isEmpty()) {
+                            sanLiuLingPpDataMapper.batchUpdatePushStatusAndResult(updateList);
+                        }
+                    } else {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
+                                , TITLE + "调用360接口失败，失败原因：" + JSONObject.toJSONString(result)));
                     }
                 }
-            }
+            });
+
         }
-        localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(total);
-        localFile.setPushStatus("2");
-        localFileMapper.updateByPrimaryKeySelective(localFile);
+
+        SanLiuLingPpDataExample example = new SanLiuLingPpDataExample();
+        example.createCriteria().andLocalIdEqualTo(localFile.getId()).andPushStatusEqualTo(2);
+        int i = sanLiuLingPpDataMapper.countByExample(example);
+        //全部更新成功
+        if (total != 0 && total == i) {
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(total);
+            localFile.setPushStatus("2");
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
     }
 
+
 }
+
+
