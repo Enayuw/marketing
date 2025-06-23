@@ -3149,10 +3149,15 @@ public class MarketingCommonConfig {
     /**
      * 360-pp流量业务营销挡板
      * {"switch":"0","code":1,"message":"","data":""}
-     * switch:0开启 1关闭
-     * code：1成功 其他失败
+     * switch:1开启 0关闭
+     * code：200成功 其他失败
      *
      */
     private HashMap<String, Object> sanLiuLingTrafficMock;
+
+    /**
+     * 360-pp流量业务营销接口线程数
+     */
+    private Integer sanLiuLingTrafficThreadNum;
 }
 

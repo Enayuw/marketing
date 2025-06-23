@@ -3,15 +3,20 @@
 <mapper namespace="com.br.marketing.mapper.SanLiuLingPpDataMapper" >
 
     <select id="getTrafficData" resultType="com.br.marketing.entity.SanLiuLingPpData">
-        select
-        *
-        from b_sanliuling_pp_data
-        where local_id = #{localId}
-        and status =1 and push_status =1
+        SELECT a.*
+        FROM b_sanliuling_pp_data a
+        LEFT JOIN b_sanliuling_pp_data b ON a.mobile = b.mobile
+        AND b.push_status = 2
+        AND DATE(b.push_time) = DATE(NOW())
+        WHERE a.local_id = #{localId}
+        AND a.status = 1
+        AND a.push_status = 1
+        AND b.mobile IS NULL
         <if test="dataId != null and dataId>0">
-            and id > #{dataId}
+            AND a.id > #{dataId}
         </if>
-        order by id asc limit 2000;
+        ORDER BY a.id ASC
+        LIMIT 2000
     </select>
 
     <update id="batchUpdatePushStatusAndResult" parameterType="java.util.List">

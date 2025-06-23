@@ -53,6 +53,7 @@ public class SanLiuLingClient {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result batchTrafficData(SanLiuLingTrafficReq req) {
         Result result = new Result();
+        Map<String, String> httpResponseMap = new HashMap<>();
         try {
             // 获取挡板开关
             HashMap<String, Object> mock = marketingCommonConfig.getSanLiuLingTrafficMock();
@@ -60,25 +61,27 @@ public class SanLiuLingClient {
                 log.warn(TITLE + "mock开关开启");
                 Integer code = (Integer) mock.get("code");
                 String message = (String) mock.get("message");
-                if (1 != code) {
+                if (200 != code) {
                     result.setCode(code);
                     result.setMessage(message);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
+                            , TITLE + "360mock失败，失败原因：" + mock));
                     return result;
                 }
-                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setCode(code);
                 result.setDate(mock.get("data"));
-                log.warn(TITLE + "result: {}", JSONObject.toJSON(result));
+                log.warn(TITLE + "流量业务营销result: {}", JSONObject.toJSON(result));
                 return result;
             }
 
-            Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(req, url, isProxy,
+            httpResponseMap = httpProxyClient.sendByCodeWithLog(req, url, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(req), true, true);
 
             if (String.valueOf(HttpStatus.SC_OK).equals(httpResponseMap.get(CODE_KEY))) {
                 result.setDate(httpResponseMap.get(CONTENT_KEY));
                 result.setCode(ResultCode.SUCCESS.getValue());
-                result.setMessage("");
+                result.setMessage("成功");
                 return result;
             }
 
@@ -88,16 +91,20 @@ public class SanLiuLingClient {
                 String code = resultJson.getString("code");
                 if (!"200".equals(code)) {
                     result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
+                            , TITLE + "流量业务营销，失败原因：" + httpResponseMap));
                     return result;
                 }
             }
 
         } catch (Exception e) {
-            String eMsg = "360流量业务营销接口异常:" + e.getMessage();
+            String eMsg = TITLE + "流量业务营销接口异常:" + e.getMessage();
             result.setMessage(eMsg);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
                     , eMsg));
         }
+        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULING_SERVICEERROR.getCode()
+                , TITLE + "流量业务营销，失败原因：" + httpResponseMap));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
     }
