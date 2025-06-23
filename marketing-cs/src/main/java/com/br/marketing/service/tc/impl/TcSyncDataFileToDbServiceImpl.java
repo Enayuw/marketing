@@ -120,7 +120,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                     tcyrSyncFile.getId()+"文件不存在", TITLE));
             return;
         }
-        String customerData = tcyrSyncRecordMapper.selectDataByBatchNo(tcyrSyncFile.getApiCode(),tcyrSyncFile.getBatchNo());
+        MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
         // 2、txt文件解析入库
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             Long totalCount = 0L;
@@ -130,7 +130,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                 actionPool.setMaximumPoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
                 String finalLine = line;
                 CompletableFuture.runAsync(() -> processSingleLineData(tcyrSyncFile.getId(),
-                            tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(), finalLine,customerData), actionPool);
+                            tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(), finalLine,syncRecord.getData()), actionPool);
                 totalCount ++;
             }
             //3、修改txt完成状态、总成功条数
