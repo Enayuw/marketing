@@ -170,7 +170,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             extentJson.put("column_"+(i+1), data[i]);
         }
         JSONObject customJson = JSONObject.parseObject(customerData);
-        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncExcludeFieldList();
+        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
         for (String key : customJson.keySet()) {
             if (!tcyrSyncExcludeFieldList.contains(key)) {
                 extentJson.put(key, customJson.get(key));
