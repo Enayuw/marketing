@@ -27,12 +27,12 @@
 
     <insert id="batchAdd">
         INSERT INTO marketing.b_marketing_tcyr_sync
-        (api_code,batch_no,user_key,terminal,create_time,update_time,status)
+        (api_code,batch_no,user_key,terminal,create_time,update_time,status,extend)
         values
          <foreach collection="dataList" item="item" separator=",">
              (
               #{item.apiCode},#{item.batchNo},#{item.userKey},#{item.terminal},
-              #{item.createTime},#{item.updateTime},#{item.status}
+              #{item.createTime},#{item.updateTime},#{item.status},#{item.extend}
              )
          </foreach>
     </insert>
