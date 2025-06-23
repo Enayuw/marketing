@@ -2204,7 +2204,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         //解析jsonData，获取清洗字段及其原始值
         JSONObject jsonObject = JSON.parseObject(jsonData);
         JSONArray dataItems = jsonObject.getJSONArray("dataItems");
-        for (int i = 0; i < actualNum; i++) {
+        int size = actualNum > dataItems.size() ? dataItems.size() : actualNum;
+        for (int i = 0; i < size; i++) {
             List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
             JSONObject item = dataItems.getJSONObject(i);
             String custNum = (String) JsonParseUtils.findFirstValueByKey(item, "custNum");
@@ -2241,7 +2242,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (cleaningToMappingFieldMap.containsKey("dataItems")){
             JSONArray dataItems = jsonObject.getJSONArray(cleaningToMappingFieldMap.get("dataItems"));
             cleaningToMappingFieldMap.remove("dataItems");
-            for (int i = 0; i < actualNum; i++) {
+            int size = actualNum > dataItems.size() ? dataItems.size() : actualNum;
+            for (int i = 0; i < size; i++) {
                 JSONObject item = dataItems.getJSONObject(i);
                 MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, "custNum")).toString())).findFirst().orElse(null);
                 for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
