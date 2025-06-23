@@ -1382,6 +1382,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldValues.get(0);
         }
 
+        // 检查优先级规则数量限制（最多6个）
+        if (conditions.size() > 6) {
+            log.warn("优先级规则数量超过限制(6个)，只处理前6个规则");
+            conditions = conditions.subList(0, 6);
+        }
+
         // 优先级排序后的结果
         List<String> processedValues = new ArrayList<>(fieldValues);
         log.warn("初始字段值列表: {}", processedValues);
@@ -1401,29 +1407,45 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 按数字排序
                 String sort = condition.containsKey("sort") ? String.valueOf(condition.get("sort")) : "desc";
 
-                // 处理包含数字和非数字的情况
-                List<NumberStringPair> pairs = new ArrayList<>();
-                for (String value : processedValues) {
-                    pairs.add(new NumberStringPair(value));
-                }
-
-                // 根据数字大小排序
-                if ("desc".equals(sort)) {
-                    // 降序（从大到小）
-                    Collections.sort(pairs, (p1, p2) -> Double.compare(p2.getNumber(), p1.getNumber()));
+                // 检查是否所有值都是纯字符串（不包含数字）
+                boolean allPureStrings = processedValues.stream()
+                        .allMatch(v -> !v.matches(".*\\d+.*"));
+                
+                if (allPureStrings) {
+                    // 纯字符串按字母排序
+                    if ("desc".equals(sort)) {
+                        // 降序（Z到A）
+                        Collections.sort(processedValues, Collections.reverseOrder());
+                    } else {
+                        // 升序（A到Z）
+                        Collections.sort(processedValues);
+                    }
+                    log.warn("纯字符串按字母排序后: {}", processedValues);
                 } else {
-                    // 升序（从小到大）
-                    Collections.sort(pairs, (p1, p2) -> Double.compare(p1.getNumber(), p2.getNumber()));
-                }
+                    // 包含数字的字符串，使用原有的数字排序逻辑
+                    List<NumberStringPair> pairs = new ArrayList<>();
+                    for (String value : processedValues) {
+                        pairs.add(new NumberStringPair(value));
+                    }
 
-                log.warn("数字排序后: {}", pairs.stream()
-                        .map(p -> p.getOriginalString() + "(" + p.getNumber() + ")")
-                        .collect(java.util.stream.Collectors.joining(", ")));
+                    // 根据数字大小排序
+                    if ("desc".equals(sort)) {
+                        // 降序（从大到小）
+                        Collections.sort(pairs, (p1, p2) -> Double.compare(p2.getNumber(), p1.getNumber()));
+                    } else {
+                        // 升序（从小到大）
+                        Collections.sort(pairs, (p1, p2) -> Double.compare(p1.getNumber(), p2.getNumber()));
+                    }
 
-                // 更新处理后的值列表
-                processedValues.clear();
-                for (NumberStringPair pair : pairs) {
-                    processedValues.add(pair.getOriginalString());
+                    log.warn("数字排序后: {}", pairs.stream()
+                            .map(p -> p.getOriginalString() + "(" + p.getNumber() + ")")
+                            .collect(java.util.stream.Collectors.joining(", ")));
+
+                    // 更新处理后的值列表
+                    processedValues.clear();
+                    for (NumberStringPair pair : pairs) {
+                        processedValues.add(pair.getOriginalString());
+                    }
                 }
                 anyConditionMatched = true;
                 
@@ -1455,23 +1477,35 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return processedValues.get(0);
         }
         
-        // 如果没有条件匹配，使用defaultValue作为索引从原始列表中选择
+        // 如果没有条件匹配或处理后没有值，使用兜底方案
+        log.warn("没有条件匹配或处理后没有值，使用兜底方案");
+        
+        // 使用defaultValue作为索引从原始列表中选择（下标从1开始）
         if (ruleMap.containsKey("defaultValue")) {
             try {
                 // 获取defaultValue值(从1开始计数)
                 int defaultIdx = Integer.parseInt(String.valueOf(ruleMap.get("defaultValue")));
+                
+                // 验证defaultValue不能为空且必须大于0
+                if (defaultIdx <= 0) {
+                    log.warn("兜底方案索引值必须大于0，当前值: {}", defaultIdx);
+                    return fieldSample;
+                }
+                
                 // 转换为0基索引
                 defaultIdx = defaultIdx - 1;
                 // 确保索引在有效范围内
                 if (defaultIdx >= 0 && defaultIdx < fieldValues.size()) {
-                    log.warn("使用默认索引值 {} 选择: {}", defaultIdx+1, fieldValues.get(defaultIdx));
+                    log.warn("使用兜底方案索引值 {} (从1开始) 选择: {}", defaultIdx+1, fieldValues.get(defaultIdx));
                     return fieldValues.get(defaultIdx);
                 } else {
-                    log.warn("默认索引值 {} 超出范围 [1-{}], 返回原值", defaultIdx+1, fieldValues.size());
+                    log.warn("兜底方案索引值 {} 超出范围 [1-{}], 返回原值", defaultIdx+1, fieldValues.size());
                 }
             } catch (NumberFormatException e) {
-                log.warn("默认值解析为索引失败: {}", ruleMap.get("defaultValue"));
+                log.warn("兜底方案索引值解析失败: {}, 错误: {}", ruleMap.get("defaultValue"), e.getMessage());
             }
+        } else {
+            log.warn("未配置兜底方案，返回原值");
         }
 
         // 如果前面的处理都没有返回结果，返回原始样例
