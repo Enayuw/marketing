@@ -62,7 +62,10 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
                 .filter(handler -> HandlerStageEnum.PRE.name().equals(handler.getStage())).collect(Collectors.toList());
         for (AbstractXieChengReportHandler preHandler : preHandlers) {
             String preMessage = preHandler.process(context);
-            if (StringUtils.isNotBlank(preMessage)) context.setError(preMessage);
+            if (StringUtils.isNotBlank(preMessage)) {
+                context.setError(preMessage);
+                return;
+            }
         }
         //3.执行thread阶段，该阶段handler可以同时处理，为了提高效率，放在线程池中处理
         List<Callable<String>> tasks = new ArrayList<>();
@@ -72,7 +75,10 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
         if(marketingCommonConfig.getXcMqReportHandlerSwitch()){
             for (AbstractXieChengReportHandler threadHandler : threadHandlers) {
                 String threadMessage = threadHandler.process(context);
-                if (StringUtils.isNotBlank(threadMessage)) context.setError(threadMessage);
+                if (StringUtils.isNotBlank(threadMessage)) {
+                    context.setError(threadMessage);
+                    return;
+                }
             }
         }else {
             for (AbstractXieChengReportHandler handler : threadHandlers) {
