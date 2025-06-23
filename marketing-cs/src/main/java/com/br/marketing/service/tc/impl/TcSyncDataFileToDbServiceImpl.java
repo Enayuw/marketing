@@ -80,6 +80,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                 }
                 //3、修改txt处理状态
                 tcyrSyncFile.setDealStatus(1);
+                tcyrSyncFile.setUpdateTime(new Date());
                 tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
                 redisChgService.unlock(lockKey, lockValue);
                 //4、处理txt数据入库
@@ -143,6 +144,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         } catch (IOException e) {
             //修改txt处理异常状态
             tcyrSyncFile.setDealStatus(3);
+            tcyrSyncFile.setUpdateTime(new Date());
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
