@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 public class SanLiuLingTrafficReq {
 
-    private List<String> mobileMd5;
+    private List<String> mobile_md5;
 
     private String channel;
 }

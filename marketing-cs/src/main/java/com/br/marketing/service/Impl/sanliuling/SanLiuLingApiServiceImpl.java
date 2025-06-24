@@ -122,7 +122,7 @@ public class SanLiuLingApiServiceImpl implements SanLiuLingApiService {
 
             SanLiuLingTrafficReq sanLiuLingTrafficReq = new SanLiuLingTrafficReq();
             sanLiuLingTrafficReq.setChannel("brllt");
-            sanLiuLingTrafficReq.setMobileMd5(mobileMd5List);
+            sanLiuLingTrafficReq.setMobile_md5(mobileMd5List);
 
             Result result = sanLiuLingClient.batchTrafficData(sanLiuLingTrafficReq);
 
