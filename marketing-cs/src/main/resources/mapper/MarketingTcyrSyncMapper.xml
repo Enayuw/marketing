@@ -3,7 +3,8 @@
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncMapper" >
 
     <select id="selectTcSyncList" resultType="com.br.marketing.entity.MarketingTcyrSync">
-        SELECT id, api_code, batch_no, user_key, terminal, cell, is_match, is_clean, create_time,update_time
+        SELECT id, api_code, batch_no, sync_file_id, user_key, terminal, cell, is_match, is_clean,
+               create_time, update_time, `status`, is_del, extend
         FROM  b_marketing_tcyr_sync
         WHERE id > #{lastSearchId}
             AND status = 1
@@ -16,7 +17,8 @@
 
 
     <select id="selectUnMatchSyncList" resultType="com.br.marketing.entity.MarketingTcyrSync">
-        SELECT id, api_code, batch_no, user_key, terminal, cell, is_match, is_clean, create_time,update_time
+        SELECT id, api_code, batch_no, sync_file_id, user_key, terminal, cell, is_match, is_clean,
+               create_time, update_time, `status`, is_del, extend
         FROM  b_marketing_tcyr_sync
         WHERE id > #{lastSearchId}
         AND api_code = #{apiCode}

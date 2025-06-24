@@ -58,6 +58,11 @@ public class MarketingTcyrSyncFile {
      */
     private Date updateTime;
 
+    /**
+     * 同程请求的记录id
+     */
+    private Long syncRecordId;
+
     public Long getId() {
         return id;
     }
@@ -144,5 +149,13 @@ public class MarketingTcyrSyncFile {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Long getSyncRecordId() {
+        return syncRecordId;
+    }
+
+    public void setSyncRecordId(Long syncRecordId) {
+        this.syncRecordId = syncRecordId;
     }
 }
