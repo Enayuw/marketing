@@ -804,6 +804,66 @@ public class MarketingTcyrSyncFileExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andSyncRecordIdIsNull() {
+            addCriterion("sync_record_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdIsNotNull() {
+            addCriterion("sync_record_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdEqualTo(Long value) {
+            addCriterion("sync_record_id =", value, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdNotEqualTo(Long value) {
+            addCriterion("sync_record_id <>", value, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdGreaterThan(Long value) {
+            addCriterion("sync_record_id >", value, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("sync_record_id >=", value, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdLessThan(Long value) {
+            addCriterion("sync_record_id <", value, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdLessThanOrEqualTo(Long value) {
+            addCriterion("sync_record_id <=", value, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdIn(List<Long> values) {
+            addCriterion("sync_record_id in", values, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdNotIn(List<Long> values) {
+            addCriterion("sync_record_id not in", values, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdBetween(Long value1, Long value2) {
+            addCriterion("sync_record_id between", value1, value2, "syncRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncRecordIdNotBetween(Long value1, Long value2) {
+            addCriterion("sync_record_id not between", value1, value2, "syncRecordId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
