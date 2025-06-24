@@ -188,7 +188,7 @@ api:
   sanliuling:
     baseUrl: http://promote-dev.daikuan.360.cn
     batch: ${api.sanliuling.baseUrl}/open_api/v1/apply/batch
-    isProxy: false
+    isProxy: true
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

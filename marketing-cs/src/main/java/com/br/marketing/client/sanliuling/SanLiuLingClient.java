@@ -74,7 +74,7 @@ public class SanLiuLingClient {
                 log.warn(TITLE + "流量业务营销result: {}", JSONObject.toJSON(result));
                 return result;
             }
-
+            log.warn(TITLE + "isProxy:" + isProxy);
             httpResponseMap = httpProxyClient.sendByCodeWithLog(req, url, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(req), true, true);
