@@ -1305,7 +1305,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 处理优先级操作
      */
-    private Object handlePriorityOperation(String fieldSample, Map<String, Object> ruleMap) {
+    private Object handlePriorityOperation(Object fieldSample, Map<String, Object> ruleMap) {
         // 如果字段值是列表类型
         if (!"List".equals(ruleMap.get("fieldType")) || !ruleMap.containsKey("fieldValue")) {
             return fieldSample;
@@ -1313,11 +1313,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         // 获取并处理fieldValue，支持多种格式
         List<String> fieldValues = new ArrayList<>();
-        Object rawFieldValue = ruleMap.get("fieldValue");
         
-        if (rawFieldValue instanceof List) {
+        if (fieldSample instanceof List) {
             // 已经是列表，直接使用
-            List<?> rawList = (List<?>) rawFieldValue;
+            List<?> rawList = (List<?>) fieldSample;
             for (Object item : rawList) {
                 if (item instanceof String) {
                     fieldValues.add((String) item);
@@ -1336,8 +1335,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     fieldValues.add(String.valueOf(item));
                 }
             }
-        } else if (rawFieldValue instanceof String) {
-            String strValue = (String) rawFieldValue;
+        } else if (fieldSample instanceof String) {
+            String strValue = (String) fieldSample;
             
             // 尝试判断是否为JSON数组格式
             if (strValue.startsWith("[") && strValue.endsWith("]")) {
