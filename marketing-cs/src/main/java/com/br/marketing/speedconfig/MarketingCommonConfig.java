@@ -3159,6 +3159,20 @@ public class MarketingCommonConfig {
     private String qiFuTransferTableHead;
 
     /**
+     * 360-pp流量业务营销挡板
+     * {"switch":"0","code":1,"message":"","data":""}
+     * switch:1开启 0关闭
+     * code：200成功 其他失败
+     *
+     */
+    private HashMap<String, Object> sanLiuLingTrafficMock;
+
+    /**
+     * 360-pp流量业务营销接口线程数
+     */
+    private Integer sanLiuLingTrafficThreadNum;
+
+    /**
      * 携程线程池上报
      */
     private Integer xcMqReportHandlerThreadNum;
