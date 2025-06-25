@@ -52,18 +52,18 @@ public class SanLiuLingTrafficJob extends AbstractSimpleElasticJob {
             return;
         }
 
-        try {
-            localFiles.forEach((LocalFile localFile) -> {
+        localFiles.forEach((LocalFile localFile) -> {
+            try {
                 sanLiuLingApiService.pushTrafficData(localFile);
-            });
-        } catch (Exception e) {
-            //推送异常更新状态,更新为失败status=3
-            LocalFile localFile = new LocalFile();
-            localFile.setPushStatus("3");
-            localFile.setId(localFiles.get(0).getId());
-            localFileMapper.updateByPrimaryKeySelective(localFile);
-            log.error(TITLE + "推送异常", e);
-        }
+            }catch (Exception e){
+                //推送异常更新状态,更新为失败status=3
+                LocalFile localFile1 = new LocalFile();
+                localFile1.setPushStatus("3");
+                localFile1.setId(localFile.getId());
+                localFileMapper.updateByPrimaryKeySelective(localFile1);
+                log.error(TITLE + "推送异常", e);
+            }
+        });
 
         long end = System.currentTimeMillis();
         log.warn(TITLE + "end, 耗时{}ms", end - start);
