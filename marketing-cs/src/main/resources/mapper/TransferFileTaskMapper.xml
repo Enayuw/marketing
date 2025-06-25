@@ -4,6 +4,7 @@
     <select id="getTransferFileList" resultType="com.br.marketing.vo.TransferFileTaskVO">
         select id
         , api_code
+        , file_type as fileType
         , file_name as fileName
         , task_number as taskNumber
         , start_date as startDate

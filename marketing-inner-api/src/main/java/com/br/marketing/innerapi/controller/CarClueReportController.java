@@ -7,6 +7,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.dto.DataExportTaskDTO;
 import com.br.marketing.dto.ExecuteCarClueDTO;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.entity.auth.MarketingUserDetail;
@@ -76,6 +77,18 @@ public class CarClueReportController {
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                     "增加线索执行记录接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/createTask")
+    public ApiResult<Boolean> createTask(@RequestBody @Valid DataExportTaskDTO taskDTO) {
+        try {
+            MarketingUserDetail user = ThreadContextInfo.getUser();
+            return carClueReportService.createTask(taskDTO, user);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BAOXIAN_SERVICEERROR.getCode(),
+                    "创建导出任务错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }

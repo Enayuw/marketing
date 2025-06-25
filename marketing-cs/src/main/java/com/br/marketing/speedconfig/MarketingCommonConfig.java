@@ -2962,6 +2962,18 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcMatchShardConfig;
 
+
+    /**
+     * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
+     */
+    private List<String> tcyrSyncSaveExcludeFieldList;
+
+
+    /**
+     * 同程易融-转化清洗 extend 排除的字段(column_1,column_2)
+     */
+    private List<String> tcyrSyncCleanExcludeFieldList;
+
     /**
      * 58查询非金融延期zip接口参数配置
      */
@@ -3145,5 +3157,28 @@ public class MarketingCommonConfig {
      * 奇富促完件提取表头字段
      */
     private String qiFuTransferTableHead;
+
+    /**
+     * 360-pp流量业务营销挡板
+     * {"switch":"0","code":1,"message":"","data":""}
+     * switch:1开启 0关闭
+     * code：200成功 其他失败
+     *
+     */
+    private HashMap<String, Object> sanLiuLingTrafficMock;
+
+    /**
+     * 360-pp流量业务营销接口线程数
+     */
+    private Integer sanLiuLingTrafficThreadNum;
+
+    /**
+     * 携程线程池上报
+     */
+    private Integer xcMqReportHandlerThreadNum;
+    /**
+     * 携程上报线程池开启开关 false 开启线程池  true 关闭线程池
+     */
+    private Boolean xcMqReportHandlerSwitch;
 }
 

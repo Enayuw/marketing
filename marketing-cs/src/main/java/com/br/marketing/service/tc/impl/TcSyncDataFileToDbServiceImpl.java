@@ -9,8 +9,10 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
+import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncMapper;
+import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataFileToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,9 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
     @Autowired
     RedisChgService redisChgService;
 
+    @Resource
+    private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
+
     // todo 技术方案 详细
     @Override
     public void shardProcess(String apiCode) {
@@ -75,6 +80,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                 }
                 //3、修改txt处理状态
                 tcyrSyncFile.setDealStatus(1);
+                tcyrSyncFile.setUpdateTime(new Date());
                 tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
                 redisChgService.unlock(lockKey, lockValue);
                 //4、处理txt数据入库
@@ -115,6 +121,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                     tcyrSyncFile.getId()+"文件不存在", TITLE));
             return;
         }
+        MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
         // 2、txt文件解析入库
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             Long totalCount = 0L;
@@ -124,7 +131,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
                 actionPool.setMaximumPoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
                 String finalLine = line;
                 CompletableFuture.runAsync(() -> processSingleLineData(tcyrSyncFile.getId(),
-                        tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(), finalLine), actionPool);
+                            tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(), finalLine,syncRecord.getData()), actionPool);
                 totalCount ++;
             }
             //3、修改txt完成状态、总成功条数
@@ -137,13 +144,14 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         } catch (IOException e) {
             //修改txt处理异常状态
             tcyrSyncFile.setDealStatus(3);
+            tcyrSyncFile.setUpdateTime(new Date());
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
     }
 
 
-    private void processSingleLineData(Long syncFileId,String apiCode, String batchNo,String line) {
+    private void processSingleLineData(Long syncFileId,String apiCode, String batchNo,String line,String customerData) {
         MarketingTcyrSync syncItem = new MarketingTcyrSync();
         String[] data = line.split(",");
         int dataStatus = 0;
@@ -160,6 +168,13 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         JSONObject extentJson = new JSONObject();
         for (int i = 0; i < data.length; i++) {
             extentJson.put("column_"+(i+1), data[i]);
+        }
+        JSONObject customJson = JSONObject.parseObject(customerData);
+        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
+        for (String key : customJson.keySet()) {
+            if (!tcyrSyncExcludeFieldList.contains(key)) {
+                extentJson.put(key, customJson.get(key));
+            }
         }
         syncItem.setExtend(extentJson.toJSONString());
         syncItem.setApiCode(apiCode);
