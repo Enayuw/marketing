@@ -2176,8 +2176,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                             .setMessage("未找到符合条件的SFTP文件数据").failure();
                 }
-
-                // TODO: 实现SFTP文件处理逻辑
                 //查询规则条件
                 MarketingDataCleanGeneralConfig queryParam = new MarketingDataCleanGeneralConfig();
                 queryParam.setAcceptType(DataProcessEnum.AcceptTypeEnum.FTP.getCode());
@@ -2195,8 +2193,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
                 List<List<RuleCleaningResult>> ruleCleaningResultList =new ArrayList<>();
                 dataCleanService.fileUploadCleanPre(ruleCleaningResultList,ruleConfigList,marketingCleanDataFile,actualNum);
+                if (CollectionUtils.isEmpty(ruleCleaningResultList)) {
+                    throw new BusinessException("文件清洗试跑失败，请检查配置");
+                }
                 return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList).success();
-
             }
             return new Result<List<List<RuleCleaningResult>>>().setDate(null)
                     .setMessage("数据处理成功").success();

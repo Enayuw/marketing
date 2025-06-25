@@ -1,5 +1,6 @@
 package com.br.marketing.service.clean.common.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -8,6 +9,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningResult;
+import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -22,14 +24,15 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
+import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
-import com.br.marketing.mapper.MarketingDataCleanGeneralRuleConfigMapper;
-import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.service.PushInfoService;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -84,6 +87,19 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Resource
     private RuleCleaningService ruleCleaningService;
+
+    @Resource
+    MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Resource
+    private MarketingUserMapper marketingUserMapper;
+
+    @Autowired
+    private PushRuleService pushRuleService;
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
 
     private static final String TITLE = "【定制上传数据清洗】";
 
@@ -611,81 +627,105 @@ public class DataCleanServiceImpl implements DataCleanService {
                                      List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                      String apiCode, String fileName, int startIndex) {
         try {
-            // 处理数据清洗
-            MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
-            // 同步处理当前批次的所有行
-            for (int i = 0; i < batchLines.size(); i++) {
-                String line = batchLines.get(i);
-                // +2 是因为跳过了表头，且索引从1开始
-                int actualRowIndex = startIndex + i + 2;
-                // 根据表头和行数据构建JSON对象
-                JSONObject jsonData = buildJsonFromLineData(line, headers, actualRowIndex);
-                if (jsonData == null) {
-                    log.warn("第{}行数据解析失败，跳过处理: {}", actualRowIndex, line);
-                    return;
-                }
-                MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-                // 调用数据清洗处理方法
-                dataCleanHandler(jsonData, ruleConfigList, marketingPreUserDetailDTO);
-                syncUsers.add(marketingPreUserDetailDTO);
-            }
-            marketingPreUserDTO.setTaskId(apiCode + "_" + LocalDate.now()+fileName);
-            marketingPreUserDTO.setRequestId(apiCode + "_" + LocalDate.now() + "_" + UUID.randomUUID());
-            // 组装最终数据
-            marketingPreUserDTO.setDataItems(syncUsers);
-            marketingPreUserDTO.setDataSourceType(DataSourceTypeEnum.ORIGINAL_INTERFACE.getCode());
-            // 推送清洗后的数据
-            UploadDataDTO uploadDataDTO = new UploadDataDTO();
-            uploadDataDTO.setApiCode(apiCode);
-            uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-            pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+            List<JSONObject> fileJsonData = fileDataAssemble(batchLines,headers,fileName,startIndex);
+            cleanData(fileJsonData,ruleConfigList,apiCode,fileName,Boolean.FALSE);
         } catch (Exception e) {
             log.error("批次数据处理异常", e);
         }
     }
 
-    @Override
-    public void fileUploadCleanPre(List<List<RuleCleaningResult>> result, List<MarketingDataCleanGeneralRuleConfig> ruleList,
-                                   MarketingCleanDataFile cleanDataFile,Integer actualNum) {
-        File file = new File(cleanDataFile.getLocalPath() + cleanDataFile.getFileName());
-        String[] headers = null;
-        List<String> batchLines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            boolean isFirstLine = true;
-            while ((line = reader.readLine()) != null) {
-                // 处理表头
-                if (isFirstLine) {
-                    headers = line.split(",");
-                    if (headers == null || headers.length == 0) {
-                        log.error("文件表头解析失败，文件路径: {}", cleanDataFile.getLocalPath());
-                        return;
-                    }
-                    isFirstLine = false;
-                    continue;
-                }
-                // 跳过空行
-                if (StringUtils.isEmpty(line.trim())) {
-                    continue;
-                }
-                if(batchLines.size()>actualNum){
-                    break;
-                }
-                batchLines.add(line);
+    public MarketingPreUserDTO cleanData(List<JSONObject> jsonObjectList, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, String apiCode, String fileName,Boolean isTest) {
+        List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+        // 处理数据清洗
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        jsonObjectList.forEach(jsonData -> {
+            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+            // 调用数据清洗处理方法
+            dataCleanHandler(jsonData, ruleConfigList, marketingPreUserDetailDTO);
+            syncUsers.add(marketingPreUserDetailDTO);
 
+        });
+        marketingPreUserDTO.setTaskId(apiCode + "_" + LocalDate.now()+"_"+fileName);
+        marketingPreUserDTO.setRequestId(apiCode + "_" + LocalDate.now() + "_" + UUID.randomUUID());
+        // 组装最终数据
+        marketingPreUserDTO.setDataItems(syncUsers);
+        marketingPreUserDTO.setDataSourceType(DataSourceTypeEnum.ORIGINAL_INTERFACE.getCode());
+        // 推送清洗后的数据
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+        uploadDataDTO.setApiCode(apiCode);
+        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+        if(isTest){
+            //插入上传info表
+            MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+            try {
+                syncInfo.setApiCode(marketingCommonConfig.getDatacleanTestRunApiCode());
+                syncInfo.setCusBatch(marketingPreUserDTO.getTaskId());
+                syncInfo.setRequestBatch(marketingPreUserDTO.getRequestId());
+                syncInfo.setCreateTime(new Date());
+                syncInfo.setJsonData(uploadDataDTO.getJsonData());
+                syncInfo.setActualNum(marketingPreUserDTO.getDataItems().size());
+                marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+            } catch (DuplicateKeyException keyException) {
+                log.error("数据清洗上传数据request_batch重复，requestBatch = {}", marketingPreUserDTO.getRequestId());
+            } catch (Exception ex) {
+                log.error("数据清洗上传数据插入异常", ex.getMessage());
             }
-
-        } catch (IOException e) {
-            log.error("读取文件失败，文件路径: " + cleanDataFile.getLocalPath(), e);
+            //插入上传明细表
+            pushRuleService.insertMarketingPreUserSync(syncInfo.getId());
+        }else {
+            pushInfoService.pushUploadByRetry(uploadDataDTO, null);
         }
-        processBatchDataSync(batchLines,headers,ruleList,cleanDataFile.getApiCode(),cleanDataFile.getFileName(),0);
-        //组装数据
+        return marketingPreUserDTO;
+    }
+
+    @Override
+    public List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex) {
+        List<JSONObject> jsonArray = new ArrayList<>();
+        // 同步处理当前批次的所有行
         for (int i = 0; i < batchLines.size(); i++) {
             String line = batchLines.get(i);
+            // +2 是因为跳过了表头，且索引从1开始
+            int actualRowIndex = startIndex + i + 2;
             // 根据表头和行数据构建JSON对象
-            JSONObject jsonData = buildJsonFromLineData(line, headers, 0);
-            //TODO 组装数据
+            JSONObject jsonData = buildJsonFromLineData(line, headers, actualRowIndex);
+            if (jsonData == null) {
+                log.error("文件{},第{}行数据解析失败，跳过处理: {}", fileName,actualRowIndex, line);
+                continue;
+            }
+            jsonArray.add(jsonData);
+        }
+        return jsonArray;
+    }
+
+    @Override
+    public void fileUploadCleanPre(List<List<RuleCleaningResult>> resultList, List<MarketingDataCleanGeneralRuleConfig> ruleList,
+                                   MarketingCleanDataFile cleanDataFile,Integer actualNum) {
+        List<JSONObject> jsonObjects = JSON.parseObject(cleanDataFile.getTestRunData(), new TypeReference<List<JSONObject>>() {});
+        MarketingPreUserDTO marketingPreUserDTO = cleanData(jsonObjects,ruleList,cleanDataFile.getApiCode(),cleanDataFile.getFileName(),Boolean.TRUE);
+        //查询明细表
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(marketingCommonConfig.getDatacleanTestRunApiCode()
+                ,marketingPreUserDTO.getRequestId());
+        if(CollectionUtils.isEmpty(syncUserList)){
+            return;
+        }
+        Map<String,String> ruleMap =  ruleList.stream().collect(Collectors.toMap(MarketingDataCleanGeneralRuleConfig::getMappingField,
+                MarketingDataCleanGeneralRuleConfig::getCleanFields, (existing, replacement) -> existing));
+        //组装数据
+        int size = actualNum > jsonObjects.size() ? jsonObjects.size() : actualNum;
+        for (int i = 0; i < size; i++) {
+            List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
+            JSONObject item = jsonObjects.get(i);
+            String custNum = (String) JsonParseUtils.findFirstValueByKey(item, ruleMap.get("custNum"));
+            MarketingSyncUser result = syncUserList.stream().filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum)).findFirst().orElse(null);
+            ruleMap.forEach((mappingField,cleanField)->{
+                RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
+                ruleCleaningResult.setCleanFields(cleanField);
+                ruleCleaningResult.setCleanValue((String) JsonParseUtils.findFirstValueByKey(item, cleanField));
+                ruleCleaningResult.setMappingField(mappingField);
+                ruleCleaningResult.setMappingValue((String) JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), mappingField));
+                cleaningResultItems.add(ruleCleaningResult);
+            });
+            resultList.add(cleaningResultItems);
         }
     }
 

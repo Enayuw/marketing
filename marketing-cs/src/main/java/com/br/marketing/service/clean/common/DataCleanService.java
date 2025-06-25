@@ -36,4 +36,7 @@ public interface DataCleanService {
 
     void fileUploadCleanPre(List<List<RuleCleaningResult>> ruleCleaningResultList, List<MarketingDataCleanGeneralRuleConfig> ruleList,
                             MarketingCleanDataFile marketingCleanDataFile,Integer actualNum);
+
+    List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex);
+
 }

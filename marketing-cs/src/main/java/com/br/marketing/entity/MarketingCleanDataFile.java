@@ -43,6 +43,11 @@ public class MarketingCleanDataFile implements Serializable {
     private String fileData;
 
     /**
+     * 试跑数据：存储为json结构，用于试跑
+     */
+    private String testRunData;
+
+    /**
      * 目标sftp路径
      */
     private String targetSftpPath;

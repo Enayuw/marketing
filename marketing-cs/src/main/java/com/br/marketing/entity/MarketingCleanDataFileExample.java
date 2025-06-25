@@ -565,6 +565,76 @@ public class MarketingCleanDataFileExample {
             return (Criteria) this;
         }
 
+        public Criteria andTestRunDataIsNull() {
+            addCriterion("test_run_data is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataIsNotNull() {
+            addCriterion("test_run_data is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataEqualTo(String value) {
+            addCriterion("test_run_data =", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataNotEqualTo(String value) {
+            addCriterion("test_run_data <>", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataGreaterThan(String value) {
+            addCriterion("test_run_data >", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataGreaterThanOrEqualTo(String value) {
+            addCriterion("test_run_data >=", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataLessThan(String value) {
+            addCriterion("test_run_data <", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataLessThanOrEqualTo(String value) {
+            addCriterion("test_run_data <=", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataLike(String value) {
+            addCriterion("test_run_data like", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataNotLike(String value) {
+            addCriterion("test_run_data not like", value, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataIn(List<String> values) {
+            addCriterion("test_run_data in", values, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataNotIn(List<String> values) {
+            addCriterion("test_run_data not in", values, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataBetween(String value1, String value2) {
+            addCriterion("test_run_data between", value1, value2, "testRunData");
+            return (Criteria) this;
+        }
+
+        public Criteria andTestRunDataNotBetween(String value1, String value2) {
+            addCriterion("test_run_data not between", value1, value2, "testRunData");
+            return (Criteria) this;
+        }
+
         public Criteria andTargetSftpPathIsNull() {
             addCriterion("target_sftp_path is null");
             return (Criteria) this;

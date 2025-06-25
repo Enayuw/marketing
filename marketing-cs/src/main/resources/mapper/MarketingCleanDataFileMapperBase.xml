@@ -9,6 +9,7 @@
     <result column="file_name" jdbcType="VARCHAR" property="fileName" />
     <result column="file_header" jdbcType="VARCHAR" property="fileHeader" />
     <result column="file_data" jdbcType="VARCHAR" property="fileData" />
+    <result column="test_run_data" jdbcType="VARCHAR" property="testRunData" />
     <result column="target_sftp_path" jdbcType="VARCHAR" property="targetSftpPath" />
     <result column="local_path" jdbcType="VARCHAR" property="localPath" />
     <result column="status" jdbcType="INTEGER" property="status" />
@@ -78,9 +79,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, clean_type, db_operate_type, file_name, file_header, file_data, target_sftp_path, 
-    local_path, `status`, create_time, update_time, is_del, sync_config_id, md5_value, 
-    receive_date
+    id, api_code, clean_type, db_operate_type, file_name, file_header, file_data, test_run_data, 
+    target_sftp_path, local_path, `status`, create_time, update_time, is_del, sync_config_id, 
+    md5_value, receive_date
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample" resultMap="BaseResultMap">
     select
@@ -115,16 +116,16 @@
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataFile" useGeneratedKeys="true">
     insert into b_marketing_clean_data_file (api_code, clean_type, db_operate_type, 
       file_name, file_header, file_data, 
-      target_sftp_path, local_path, `status`, 
-      create_time, update_time, is_del, 
-      sync_config_id, md5_value, receive_date
-      )
+      test_run_data, target_sftp_path, local_path, 
+      `status`, create_time, update_time, 
+      is_del, sync_config_id, md5_value, 
+      receive_date)
     values (#{apiCode,jdbcType=VARCHAR}, #{cleanType,jdbcType=INTEGER}, #{dbOperateType,jdbcType=INTEGER}, 
       #{fileName,jdbcType=VARCHAR}, #{fileHeader,jdbcType=VARCHAR}, #{fileData,jdbcType=VARCHAR}, 
-      #{targetSftpPath,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, 
-      #{syncConfigId,jdbcType=BIGINT}, #{md5Value,jdbcType=VARCHAR}, #{receiveDate,jdbcType=VARCHAR}
-      )
+      #{testRunData,jdbcType=VARCHAR}, #{targetSftpPath,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{isDel,jdbcType=INTEGER}, #{syncConfigId,jdbcType=BIGINT}, #{md5Value,jdbcType=VARCHAR}, 
+      #{receiveDate,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataFile" useGeneratedKeys="true">
     insert into b_marketing_clean_data_file
@@ -146,6 +147,9 @@
       </if>
       <if test="fileData != null">
         file_data,
+      </if>
+      <if test="testRunData != null">
+        test_run_data,
       </if>
       <if test="targetSftpPath != null">
         target_sftp_path,
@@ -193,6 +197,9 @@
       </if>
       <if test="fileData != null">
         #{fileData,jdbcType=VARCHAR},
+      </if>
+      <if test="testRunData != null">
+        #{testRunData,jdbcType=VARCHAR},
       </if>
       <if test="targetSftpPath != null">
         #{targetSftpPath,jdbcType=VARCHAR},
@@ -253,6 +260,9 @@
       <if test="record.fileData != null">
         file_data = #{record.fileData,jdbcType=VARCHAR},
       </if>
+      <if test="record.testRunData != null">
+        test_run_data = #{record.testRunData,jdbcType=VARCHAR},
+      </if>
       <if test="record.targetSftpPath != null">
         target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
       </if>
@@ -294,6 +304,7 @@
       file_name = #{record.fileName,jdbcType=VARCHAR},
       file_header = #{record.fileHeader,jdbcType=VARCHAR},
       file_data = #{record.fileData,jdbcType=VARCHAR},
+      test_run_data = #{record.testRunData,jdbcType=VARCHAR},
       target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
       local_path = #{record.localPath,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=INTEGER},
@@ -327,6 +338,9 @@
       </if>
       <if test="fileData != null">
         file_data = #{fileData,jdbcType=VARCHAR},
+      </if>
+      <if test="testRunData != null">
+        test_run_data = #{testRunData,jdbcType=VARCHAR},
       </if>
       <if test="targetSftpPath != null">
         target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
@@ -366,6 +380,7 @@
       file_name = #{fileName,jdbcType=VARCHAR},
       file_header = #{fileHeader,jdbcType=VARCHAR},
       file_data = #{fileData,jdbcType=VARCHAR},
+      test_run_data = #{testRunData,jdbcType=VARCHAR},
       target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
       local_path = #{localPath,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=INTEGER},
@@ -378,28 +393,29 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
 
-    <select id="getLastMonthDataDates" resultType="java.lang.String">
-        SELECT
-          receive_date
-        FROM b_marketing_clean_data_file
-        WHERE api_code = #{apiCode}
-          AND target_sftp_path = #{sftpPath}
-          AND receive_date BETWEEN DATE_SUB(CURDATE(),INTERVAL 1 month) AND CURDATE()
-          AND is_del = 1
-        GROUP BY receive_date
-        ORDER BY receive_date DESC
-    </select>
 
-    <select id="getCleanDataFileByDate" resultType="com.br.marketing.entity.MarketingCleanDataFile">
-        SELECT
-            *
-        FROM b_marketing_clean_data_file
-        WHERE api_code = #{apiCode}
-          AND target_sftp_path = #{sftpPath}
-          AND receive_date = #{appletDate}
-          AND is_del = 1
-        ORDER BY
-          rand()
-        limit 1
-    </select>
+  <select id="getLastMonthDataDates" resultType="java.lang.String">
+    SELECT
+      receive_date
+    FROM b_marketing_clean_data_file
+    WHERE api_code = #{apiCode}
+      AND target_sftp_path = #{sftpPath}
+      AND receive_date BETWEEN DATE_SUB(CURDATE(),INTERVAL 1 month) AND CURDATE()
+      AND is_del = 1
+    GROUP BY receive_date
+    ORDER BY receive_date DESC
+  </select>
+
+  <select id="getCleanDataFileByDate" resultType="com.br.marketing.entity.MarketingCleanDataFile">
+    SELECT
+      *
+    FROM b_marketing_clean_data_file
+    WHERE api_code = #{apiCode}
+      AND target_sftp_path = #{sftpPath}
+      AND receive_date = #{appletDate}
+      AND is_del = 1
+    ORDER BY
+      rand()
+      limit 1
+  </select>
 </mapper>

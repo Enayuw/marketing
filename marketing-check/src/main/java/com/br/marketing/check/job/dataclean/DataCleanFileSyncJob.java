@@ -1,5 +1,7 @@
 package com.br.marketing.check.job.dataclean;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -13,6 +15,7 @@ import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.Lists;
@@ -28,6 +31,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -52,6 +56,9 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
 
     @Autowired
     MarketingCleanDataFileMapper marketingCleanDataFileMapper;
+
+    @Resource
+    private DataCleanServiceImpl dataCleanService;
 
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
@@ -105,51 +112,68 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     private void fillHeaderAndData(MarketingCleanDataFile cleanDataFile) {
         MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
         File file = new File(cleanDataFile.getLocalPath().concat(cleanDataFile.getFileName()));
+        List<String> batchLines = new ArrayList<>();
         Integer line = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
-            while (line < 2 && (row = br.readLine()) != null) {
+            while (line < 10 && (row = br.readLine()) != null) {
                 // 跳过空行（包含空白字符行）
                 if (row.trim().isEmpty()) {
                     continue;
                 }
                 if (line == 0) {
+                    // 第一行作为表头
                     dataFile.setFileHeader(row);
                 } else {
-                    dataFile.setFileData(row);
+                    // 除表头外的所有数据行都添加到batchLines
+                    batchLines.add(row);
+                    if (line == 1) {
+                        // 第一行数据设置为FileData
+                        dataFile.setFileData(row);
+                    }
                 }
                 line++;
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+        List<JSONObject> jsonList = dataCleanService.fileDataAssemble(batchLines,dataFile.getFileHeader().split(","),cleanDataFile.getFileName(),0);
         dataFile.setId(cleanDataFile.getId());
         dataFile.setReceiveDate(LocalDate.now().toString());
+        dataFile.setTestRunData(JSON.toJSONString(jsonList));
         marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
     }
 
     private void fileSyncTable(SyncConfig syncConfig, String path, String fileName) {
         MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
         String fileStr = path.concat(fileName);
+        List<String> batchLines = new ArrayList<>();
         File file = new File(fileStr);
         Integer line = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
-            while (line < 2 && (row = br.readLine()) != null) {
+            while (line < 10 && (row = br.readLine()) != null) {
                 // 跳过空行（包含空白字符行）
                 if (row.trim().isEmpty()) {
                     continue;
                 }
                 if (line == 0) {
+                    // 第一行作为表头
                     dataFile.setFileHeader(row);
                 } else {
-                    dataFile.setFileData(row);
+                    // 除表头外的所有数据行都添加到batchLines
+                    batchLines.add(row);
+                    if (line == 1) {
+                        // 第一行数据设置为FileData
+                        dataFile.setFileData(row);
+                    }
                 }
                 line++;
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+        List<JSONObject> jsonList = dataCleanService.fileDataAssemble(batchLines,dataFile.getFileHeader().split(","),fileName,0);
         dataFile.setApiCode(syncConfig.getApiCode());
         dataFile.setFileName(fileName);
         dataFile.setLocalPath(path);
@@ -158,6 +182,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setCreateTime(new Date());
         dataFile.setUpdateTime(new Date());
         dataFile.setReceiveDate(LocalDate.now().toString());
+        dataFile.setTestRunData(JSON.toJSONString(jsonList));
         marketingCleanDataFileMapper.insertSelective(dataFile);
 
     }
