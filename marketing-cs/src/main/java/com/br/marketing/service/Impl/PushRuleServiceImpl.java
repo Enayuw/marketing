@@ -2666,7 +2666,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
             CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
             if (null == routingKeyConfig) {
+                log.warn("RocketMQ发送开始：" + topic + "_{}数据id：{}", tag, infoId);
                 rocketMqSwitch.syncSend(topic, tag, infoId);
+                log.warn("RocketMQ发送结束：" + topic + "_{}数据id：{}", tag, infoId);
             } else {
                 // RocketMQ不支持优先级
                 String tagFromDb = routingKeyConfig.getRoutingKey();
