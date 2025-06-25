@@ -1751,46 +1751,22 @@ public class PushDataServiceImpl implements PushDataService {
                         redisChgService.unlock(key, value);
                         return;
                     }
-
-                    Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                    XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
-                    vtExample.createCriteria()
-                            .andSha256CodeListEqualTo(sha256Tel)
-                            .andStatusEqualTo(2)
-                            .andSendDateEqualTo(day);
-                    List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
-                    if (xieChengSmsCollidingDataLogVts.size() <= 0) {
-                        resultData.setDataMessage("没有获取到当日撞库结果");
+                    XieChengSmsCollidingDataLogVt dataLogVt = xieChengSmsCollidingDataLogVtMapper.selectLatestVtLog(sha256Tel);
+                    if (null == dataLogVt) {
+                        resultData.setDataMessage("撞库释放时间小于当前时间或无返回true的撞库日志");
                         resultData.setStatus(2);
                         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                         redisChgService.unlock(key, value);
                         return;
                     }
-                    XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVts.get(0);
-                    if (!xieChengSmsCollidingDataLogVt.getResult()) {
-                        resultData.setDataMessage("命中当日撞库结果为false");
+                    if (StringUtils.isBlank(dataLogVt.getOrgChannel())) {
+                        resultData.setDataMessage("撞库日志获取orgChannel为空");
                         resultData.setStatus(2);
                         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                         redisChgService.unlock(key, value);
                         return;
                     }
-                    if (StringUtils.isBlank(xieChengSmsCollidingDataLogVt.getOrgChannel())) {
-                        resultData.setDataMessage("命中当日OrgChannel为空,id=" + xieChengSmsCollidingDataLogVt.getSmsCollidingDataVtId());
-                        resultData.setStatus(2);
-                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                        redisChgService.unlock(key, value);
-                        return;
-                    }
-                    //endregion
-                    adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
-                    Boolean isPushFlag = xieChengSmsCollidingDataVtMapper.selectMaxNextPushTimetikv_(sha256Tel);
-                    if (!isPushFlag) {
-                        resultData.setDataMessage("撞库释放时间小于当前时间");
-                        resultData.setStatus(2);
-                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                        redisChgService.unlock(key, value);
-                        return;
-                    }
+                    adReqDTO.setMktChannel(dataLogVt.getOrgChannel());
                 }
                 //endregion
                 Boolean isPush;

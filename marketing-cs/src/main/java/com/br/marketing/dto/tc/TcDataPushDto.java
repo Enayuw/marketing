@@ -9,6 +9,9 @@ import javax.validation.constraints.NotNull;
 @Data
 public class TcDataPushDto extends TcDataDto{
 
+    @ApiModelProperty(value = "resetPushFlag")
+    private Boolean resetPushFlag;
+
     @ApiModelProperty(value = "fileUrl")
     @NotNull(message = "fileUrl必传")
     @NotEmpty(message = "fileUrl必传")

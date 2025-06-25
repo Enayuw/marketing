@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SanLiuLingPpDataMapper" >
+
+    <select id="getTrafficData" resultType="com.br.marketing.entity.SanLiuLingPpData">
+        SELECT a.*
+        FROM b_sanliuling_pp_data a
+        LEFT JOIN b_sanliuling_pp_data b ON a.mobile_no_md5 = b.mobile_no_md5
+        AND b.push_status = 2
+        AND b.create_date = DATE_FORMAT(now(), '%Y%m%d')
+        WHERE a.local_id = #{localId}
+        AND a.status = 1
+        AND a.push_status = 1
+        AND b.mobile_no_md5 IS NULL
+        <if test="minId != null and minId>0">
+            AND a.id > #{minId}
+        </if>
+        ORDER BY a.id ASC
+        LIMIT 2000
+    </select>
+
+    <update id="batchUpdatePushStatusAndResult" parameterType="java.util.List">
+        UPDATE b_sanliuling_pp_data
+        <set>
+            push_status = CASE id
+            <foreach collection="list" item="item">
+                WHEN #{item.id,jdbcType=BIGINT} THEN #{item.pushStatus,jdbcType=INTEGER}
+            </foreach>
+            ELSE push_status
+            END,
+            mobile_result = CASE id
+            <foreach collection="list" item="item">
+                WHEN #{item.id,jdbcType=BIGINT} THEN #{item.mobileResult,jdbcType=VARCHAR}
+            </foreach>
+            ELSE mobile_result
+            END,
+            update_time = now()
+        </set>
+        WHERE id IN (
+        <foreach collection="list" item="item" separator=",">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+        )
+    </update>
+
+</mapper>

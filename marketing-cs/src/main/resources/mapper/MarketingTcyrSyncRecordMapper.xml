@@ -20,19 +20,19 @@
     </select>
 
 
-    <update id="updageTcyrRecordDownStatus">
+    <update id="updateTcyrRecordDownStatus">
         update b_marketing_tcyr_sync_record set down_status = #{downStatus} where batch_no = #{batchNo}
     </update>
 
 
     <insert id="batchAdd">
         INSERT INTO marketing.b_marketing_tcyr_sync
-        (api_code,batch_no,user_key,terminal,create_time,update_time,status)
+        (api_code,batch_no,user_key,terminal,create_time,update_time,status,extend)
         values
          <foreach collection="dataList" item="item" separator=",">
              (
               #{item.apiCode},#{item.batchNo},#{item.userKey},#{item.terminal},
-              #{item.createTime},#{item.updateTime},#{item.status}
+              #{item.createTime},#{item.updateTime},#{item.status},#{item.extend}
              )
          </foreach>
     </insert>
@@ -71,6 +71,20 @@
         ) t
         WHERE rn = 1
     </select>
+
+
+    <select id="selectSingleLastCustNumCelltikv_" resultType="java.lang.String">
+        SELECT
+            cell_md5 AS cell
+        FROM
+            b_marketing_sync_${apiCode}
+        WHERE status = 1
+              AND cust_num =#{userKey}
+              AND is_repeat in (1,2)
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
     <select id="selectSingleLastCustNumCell" resultType="java.util.Map">
         SELECT cust_num AS custNum,cell_md5 AS cell
         FROM b_marketing_sync_${apiCode}

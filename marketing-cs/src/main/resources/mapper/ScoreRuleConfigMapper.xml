@@ -16,7 +16,7 @@
         , src.is_online as isOnline
         , src.priority as priority
         , bmc.cid
-        , group_concat(bmc.api_code) as apiCode
+        , group_concat(bmc.api_code) as api_code
         , case src.status
         when 1 then '开启'
         when 2 then '禁用'

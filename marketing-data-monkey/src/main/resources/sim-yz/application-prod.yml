@@ -294,6 +294,10 @@ api:
     marketPubklicKey: "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJzyrv8l9l/xb4pGbY+RfD38K11EMEXxCyX08eqG/fm2JqV4v/9arc0VJpggJCXGikU1ZtVT+kbnBNxR077UodirHsPQnlWApo/fhtNYVNOBfkyqOZ0ZFXskAOxDr9d8wqu27USigzXz7ndGJ5H9mT5Ed3AN6PGtU3mPrzTH6qAwIDAQAB"
     marketPrivateKey: "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAInPKu/yX2X/FvikZtj5F8PfwrXUQwRfELJfTx6ob9+bYmpXi//1qtzRUmmCAkJcaKRTVm1VP6RucE3FHTvtSh2Ksew9CeVYCmj9+G01hU04F+TKo5nRkVeyQA7EOv13zCq7btRKKDNfPud0Ynkf2ZPkR3cA3o8a1TeY+vNMfqoDAgMBAAECgYAv5q7KELlQPsbBToPhT1QPZavMgCd7UYAAQFjEE1AvrVccF6o2IjJt5uR6gBJA9tX4qG8WOdeRVEH9BlMPDYABFTsvgdJKUJDXfJQgaqypLsoJIQaTkXtQG6iFY1ms1rjdlVW0GezOpxRWgqIvfAlPq136XPLMjs0PzTaHygrRYQJBAPcfQMwXJiZ9b4jEV86b1O69yZlVduDeTJjZEZ+Nai55D4QtvXOXIlADN+IXUdLV1Oq7w2wMccLp0TyC0nQti08CQQCOwpR1peC9ii/VXAjUOPIzpipaFGlsgkw+7g6WAwbDTe71aHNl3M3En+kIA6gQAZd0YVZok0FU7zyH0kpItjkNAkEAjg34KJnSA2QtvjfnpcvsbkTI44y+ZmtDKsX1HHulIwvSQJAujIi/X7FJ6XywO3tSBpFit/S7XGkeLyOgqMoZfwJAQouXEmQZJ6EDfQwinXJSDBtXwJelMMxn6CmlqO2OOHnaepCOwhuz2wTDZlX2AEgNplU9JxAFMyc1awZuVAiE/QJBAItiFslEOkneVDAFMuWneWkpasSdVExNEGC8sRJCw2ppeoaXv9eTC1dYDOGPhoWnvTjK3JlYmyZM5mUmZWxI2as="
     isProxy: true
+  sanliuling:
+    baseUrl: http://promote.daikuan.360.cn
+    batch: ${api.sanliuling.baseUrl}/open_api/v1/apply/batch
+    isProxy: true
   hxCar:
     baseUrl: http://haoyunlailai.cn:6001
     carList: ${api.hxCar.baseUrl}/open_api/v1/car_list

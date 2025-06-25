@@ -45,11 +45,11 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
 
             Long lastSearchId = 0L;
             String apiCode = marketingCommonConfig.getTcyrApiCode();
-            Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
             ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
                     marketingCommonConfig.getTcGzBatDBThreadPool(),
                     marketingCommonConfig.getTcGzBatDBThreadPool());
             while (true) {
+                Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
                 actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
                 actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
                 List<MarketingTcyrSync> tcyrSyncList = tcSyncDataMatchService.selectUnMatchSyncList(apiCode,lastSearchId,searchSize);
@@ -58,10 +58,6 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
                 }
                 //多线程 批量match
                 tcSyncDataMatchService.matchTcyrSyncList(apiCode,tcyrSyncList);
-                // 多线程单个match
-//                tcyrSyncList.forEach(tcyrSync ->
-//                        actionPool.submit(() -> tcSyncDataMatchService.processUnMatchSingleData(apiCode, tcyrSync))
-//                );
                 lastSearchId = tcyrSyncList.get(tcyrSyncList.size() - 1).getId();
             }
             shutdownThreadPool(actionPool);
@@ -74,21 +70,15 @@ public class TcSyncDataMatchJob extends AbstractSimpleElasticJob {
 
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
         log.warn(TITLE + "shutdownThreadPool开始");
-        long taskCount = -1;
         executor.shutdown();
         try {
-            while (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
-                long completedTaskCount = executor.getCompletedTaskCount();
-                if (taskCount == completedTaskCount) {
-                    log.warn(TITLE + "业务线程等待超时");
-                    break;
-                }
-                taskCount = completedTaskCount;
+            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
+                log.info("{},线程池关闭",TITLE);
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ex) {
+            executor.shutdownNow();
+            log.error("{},日志保存线程池结束异常！",TITLE,ex);
             Thread.currentThread().interrupt();
-        } catch (Throwable e) {
-            log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }
