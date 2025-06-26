@@ -401,7 +401,7 @@ public class SnowflakeRedisGeneratorHandle {
                     } else if (currentSeq >= segment.end) {
                         // 段真正耗尽，使用指数退避
                         long waitTime = Math.min(1000000L, // 最大1ms
-                            1000L * (currentSeq - segment.end + 1)); // 基于超出量计算等待时间
+                                1000L * (currentSeq - segment.end + 1)); // 基于超出量计算等待时间
                         LockSupport.parkNanos(waitTime);
                         continue;
                     }
@@ -421,7 +421,7 @@ public class SnowflakeRedisGeneratorHandle {
                             timestamp = timestampAtomic.get();
                             newTimestamp = timestamp + 1;
                         } while (!timestampAtomic.compareAndSet(timestamp, newTimestamp));
-                        
+
                         timestamp = newTimestamp;
                         syncUpdateTimestamp(timestamp);
                     }
@@ -441,7 +441,7 @@ public class SnowflakeRedisGeneratorHandle {
                     recordGeneration();
                     return id;
                 }
-                
+
                 // CAS失败时使用纳秒级精确等待
                 LockSupport.parkNanos(ThreadLocalRandom.current().nextLong(100, 1000)); // 100-1000纳秒随机等待
             }
@@ -474,7 +474,7 @@ public class SnowflakeRedisGeneratorHandle {
                     // 立即同步切换预分配的段
                     currentSegment.set(next);
                     nextSegment.set(null);
-                    
+
                     // 异步预分配下一个段
                     asyncExecutor.submit(this::preAllocateNextSegment);
                 } else {
@@ -482,7 +482,7 @@ public class SnowflakeRedisGeneratorHandle {
                     try {
                         SequenceSegment emergency = allocateSequenceSegment();
                         currentSegment.set(emergency);
-                        
+
                         // 异步预分配下一个段
                         asyncExecutor.submit(this::preAllocateNextSegment);
                     } catch (Exception e) {
@@ -598,15 +598,15 @@ public class SnowflakeRedisGeneratorHandle {
 
                 // 步骤3: 原子性设置时间戳（单key操作）
                 String updateScript =
-                    "local timestampKey = KEYS[1] " +
-                    "local newTime = tonumber(ARGV[1]) " +
-                    "local currentStored = redis.call('GET', timestampKey) " +
-                    "local finalTime = newTime " +
-                    "if currentStored then " +
-                    "    finalTime = math.max(newTime, tonumber(currentStored) + 1) " +
-                    "end " +
-                    "redis.call('SET', timestampKey, finalTime) " +
-                    "return finalTime";
+                        "local timestampKey = KEYS[1] " +
+                                "local newTime = tonumber(ARGV[1]) " +
+                                "local currentStored = redis.call('GET', timestampKey) " +
+                                "local finalTime = newTime " +
+                                "if currentStored then " +
+                                "    finalTime = math.max(newTime, tonumber(currentStored) + 1) " +
+                                "end " +
+                                "redis.call('SET', timestampKey, finalTime) " +
+                                "return finalTime";
 
                 Object result = redisChgService.eval(updateScript, ScriptOutputType.INTEGER,
                         new String[]{timestampKey}, String.valueOf(safeTime));
@@ -616,11 +616,11 @@ public class SnowflakeRedisGeneratorHandle {
 
                 // 步骤4: 分离记录节点信息（使用相同Hash Tag）
                 String nodeInfoKey = RedisKeyConstant.SNOWFLAKE +
-                    "{" + applicationName + "_" + shardIndex + "}" + ":nodes";
+                        "{" + applicationName + "_" + shardIndex + "}" + ":nodes";
                 redisChgService.hset(nodeInfoKey, nodeIdentifier, String.valueOf(finalTimestamp));
 
                 LOGGER.warn("分片{}集群兼容时间戳初始化完成: {}", shardIndex, finalTimestamp);
-                
+
             } catch (Exception e) {
                 if (retryCount < 3) {
                     try {
@@ -747,40 +747,40 @@ public class SnowflakeRedisGeneratorHandle {
                 String nodeIdentifier = String.format("%s_shard_%d", uniqueInstanceId, shardIndex);
                 long currentTimestamp = timestampAtomic.get();
                 long currentSystemTime = System.currentTimeMillis();
-                
+
                 long syncTimestamp = Math.max(currentTimestamp + 1, currentSystemTime);
-                
+
                 // 单key原子更新时间戳
                 String syncScript =
-                    "local timestampKey = KEYS[1] " +
-                    "local syncTime = tonumber(ARGV[1]) " +
-                    "local storedTime = redis.call('GET', timestampKey) " +
-                    "local finalTime = syncTime " +
-                    "if storedTime then " +
-                    "    finalTime = math.max(syncTime, tonumber(storedTime) + 1) " +
-                    "end " +
-                    "redis.call('SET', timestampKey, finalTime) " +
-                    "return finalTime";
-                    
+                        "local timestampKey = KEYS[1] " +
+                                "local syncTime = tonumber(ARGV[1]) " +
+                                "local storedTime = redis.call('GET', timestampKey) " +
+                                "local finalTime = syncTime " +
+                                "if storedTime then " +
+                                "    finalTime = math.max(syncTime, tonumber(storedTime) + 1) " +
+                                "end " +
+                                "redis.call('SET', timestampKey, finalTime) " +
+                                "return finalTime";
+
                 Object result = redisChgService.eval(syncScript, ScriptOutputType.INTEGER,
                         new String[]{timestampKey}, String.valueOf(syncTimestamp));
-                    
+
                 long finalTimestamp = ((Number) result).longValue();
                 timestampAtomic.set(finalTimestamp);
-                
+
                 // 分离记录节点信息（使用相同Hash Tag确保同集群节点）
-                String nodeInfoKey = RedisKeyConstant.SNOWFLAKE + 
-                    "{" + applicationName + "_" + shardIndex + "}" + ":nodes";
-                String recoveryKey = RedisKeyConstant.SNOWFLAKE + 
-                    "{" + applicationName + "_" + shardIndex + "}" + ":recovery";
-                    
+                String nodeInfoKey = RedisKeyConstant.SNOWFLAKE +
+                        "{" + applicationName + "_" + shardIndex + "}" + ":nodes";
+                String recoveryKey = RedisKeyConstant.SNOWFLAKE +
+                        "{" + applicationName + "_" + shardIndex + "}" + ":recovery";
+
                 redisChgService.hset(nodeInfoKey, nodeIdentifier, String.valueOf(finalTimestamp));
                 redisChgService.hset(recoveryKey, nodeIdentifier, String.valueOf(finalTimestamp));
-                
+
                 LOGGER.warn("Redis恢复后时间戳同步完成 - 分片: {}, 同步前: {}, 同步后: {}",
                         shardIndex, currentTimestamp, finalTimestamp);
                 return true;
-                
+
             } catch (Exception e) {
                 LOGGER.warn("Redis恢复后时间戳同步失败 - 分片: {}, 继续使用本地时间戳", shardIndex, e);
                 return false;
@@ -1160,21 +1160,21 @@ public class SnowflakeRedisGeneratorHandle {
             try {
                 Map<String, Object> allWorkerIds = redisChgService.hgetall(persistentKey);
                 Map<String, Object> allWorkerTimes = redisChgService.hgetall(persistentTimeKey);
-                
+
                 Set<Long> usedIds = new HashSet<>();
                 List<String> expiredNodes = new ArrayList<>();
                 long currentTime = System.currentTimeMillis();
-                
+
                 // 安全的类型转换
                 for (Map.Entry<String, Object> entry : allWorkerIds.entrySet()) {
                     String key = entry.getKey();
                     Object workerIdStr = entry.getValue();
-                    
+
                     if (workerIdStr != null) {
                         try {
                             long workerId = Long.parseLong((String) workerIdStr);
                             Object lastTimeStr = allWorkerTimes.get(key);
-                            
+
                             if (lastTimeStr != null) {
                                 long lastTime = Long.parseLong((String) lastTimeStr);
                                 if (currentTime - lastTime <= NODE_EXPIRE_SECONDS * 1000L) {
@@ -1193,13 +1193,13 @@ public class SnowflakeRedisGeneratorHandle {
                         expiredNodes.add(key);
                     }
                 }
-                
+
                 // 清理过期记录
                 for (String expiredNode : expiredNodes) {
                     redisChgService.hdel(persistentKey, expiredNode);
                     redisChgService.hdel(persistentTimeKey, expiredNode);
                 }
-                
+
                 // 找到第一个未使用的WorkerId
                 for (long id = 0; id <= MAX_WORKER_ID; id++) {
                     if (!usedIds.contains(id)) {
@@ -1207,16 +1207,17 @@ public class SnowflakeRedisGeneratorHandle {
                         redisChgService.hset(persistentKey, nodeKey, String.valueOf(id));
                         redisChgService.hset(persistentTimeKey, nodeKey, String.valueOf(currentTime));
                         redisChgService.setex(heartbeatKey, "1", NODE_EXPIRE_SECONDS);
-                        
-                        LOGGER.info("分配新WorkerId: {} for nodeKey: {}", id, nodeKey);
+                        if (LOGGER.isInfoEnabled()) {
+                            LOGGER.info("分配新WorkerId: {} for nodeKey: {}", id, nodeKey);
+                        }
                         return id;
                     }
                 }
-                
+
                 throw new RuntimeException(String.format(
                         "所有WorkerId(0-%d)都已被占用，请考虑增加MAX_WORKER_ID或清理过期节点",
                         MAX_WORKER_ID));
-                
+
             } catch (Exception e) {
                 LOGGER.error("WorkerId分配失败 - nodeKey: {}", nodeKey, e);
                 throw new RuntimeException("WorkerId分配失败: " + e.getMessage(), e);
@@ -1227,7 +1228,9 @@ public class SnowflakeRedisGeneratorHandle {
             try {
                 redisChgService.setex(heartbeatKey, "1", NODE_EXPIRE_SECONDS);
                 redisChgService.hset(persistentTimeKey, nodeKey, String.valueOf(System.currentTimeMillis()));
-                LOGGER.warn("更新心跳成功 - nodeKey: {}", nodeKey);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("更新心跳成功 - nodeKey: {}", nodeKey);
+                }
             } catch (Exception e) {
                 LOGGER.error("更新心跳失败 - nodeKey: {}", nodeKey, e);
             }
@@ -1267,8 +1270,9 @@ public class SnowflakeRedisGeneratorHandle {
                     LOGGER.error("心跳更新失败 - 实例: {}", uniqueInstanceId, e);
                 }
             }, heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
-
-            LOGGER.warn("启动心跳任务 - 实例: {}, 间隔: {}秒", uniqueInstanceId, heartbeatInterval);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("启动心跳任务 - 实例: {}, 间隔: {}秒", uniqueInstanceId, heartbeatInterval);
+            }
         }
 
         private String getLocalIp() {
