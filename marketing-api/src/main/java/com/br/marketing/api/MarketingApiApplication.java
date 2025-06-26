@@ -75,7 +75,7 @@ public class MarketingApiApplication {
 
     private static void rocketMqLog() {
         //加入下面配置开启日志功能
-        System.setProperty("rocketmq.client.logUseSIf4j", "true");
+//        System.setProperty("rocketmq.client.logUseSIf4j", "true");
         //配置客户端日志级别
         System.setProperty("rocketmq.log.level", "WARN");
         //修改日志输入目录 配置 服务YAML配置的APP_HOME环境变量，例如：/opt/SpringCloud
