@@ -17,6 +17,8 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
+import java.io.File;
+
 
 /**
  * 程序主类
@@ -50,6 +52,7 @@ public class MarketingApiApplication {
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
         log.warn("marketing-api开始启动！");
+        rocketMqLog();
         ConfigurableApplicationContext context = SpringApplication.run(MarketingApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -70,6 +73,16 @@ public class MarketingApiApplication {
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
         }
+    }
+
+    private static void rocketMqLog() {
+        //加入下面配置开启日志功能
+        System.setProperty("rocketmq.client.logUseSIf4j", "true");
+        //配置客户端日志级别
+        System.setProperty("rocketmq.log.level", "WARN");
+        //修改日志输入目录 配置 服务YAML配置的APP_HOME环境变量，例如：/opt/SpringCloud
+        System.setProperty("rocketmq.log.root", System.getenv("APP_HOME") + File.separator + "logs" + File.separator +
+                System.getenv("APP_NAME") + File.separator + System.getenv("POD_NAME"));
     }
 
 }
