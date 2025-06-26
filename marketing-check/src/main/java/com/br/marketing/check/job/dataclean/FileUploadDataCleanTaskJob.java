@@ -68,6 +68,7 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
         queryParam.setAcceptType(DataProcessEnum.AcceptTypeEnum.FTP.getCode());
         queryParam.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
         queryParam.setApiCode(apiCode);
+        queryParam.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
         // 执行查询
         List<MarketingDataCleanGeneralConfig> ruleList = cleanGeneralConfigMapper.selectRuleList(queryParam);
         ruleList.forEach(config -> {

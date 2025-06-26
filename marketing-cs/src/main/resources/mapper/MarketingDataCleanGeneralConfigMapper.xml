@@ -52,7 +52,7 @@
 
         select * from b_marketing_data_clean_general_config config
         where
-        data_type = 0 and accept_type =1 and custom_run_status =0 and is_del = 1
+        data_type = 0 and accept_type =1 and custom_run_status =0 and is_del = 1 and status =1
         <if test="apiCode != null">
             and config.api_code = #{apiCode}
         </if>
