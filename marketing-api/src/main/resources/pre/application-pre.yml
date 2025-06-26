@@ -107,7 +107,7 @@ rocketmq:
     # 发送同一类消息的设置为同一个group，保证唯一
     group: Marketing_Default_Group
     # 发送消息失败重试次数，默认2
-    retryTimesWhenSendFailed: 3
+    retryTimesWhenSendFailed: 5
     # 异步消息重试此处，默认2
     retryTimesWhenSendAsyncFailed: 2
     # 发送消息超时时间，默认3000
@@ -123,7 +123,7 @@ rocketmq:
     # secret-key
     #secretKey: xxx
     # 是否启用消息跟踪，默认false
-    enableMsgTrace: false
+    enableMsgTrace: true
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
   consumer:
