@@ -3145,5 +3145,15 @@ public class MarketingCommonConfig {
      * 奇富促完件提取表头字段
      */
     private String qiFuTransferTableHead;
+
+    /**
+     * 携程CPS撞库数据同步分页条数
+     */
+    private Integer xieChengCpsCollidingDataSyncPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengCpsCollidingConfig;
 }
 
