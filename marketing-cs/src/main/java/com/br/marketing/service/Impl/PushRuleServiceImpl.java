@@ -2913,7 +2913,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = new HashMap<>();
         if (Objects.nonNull(marketingSyncInfo.getDataSourceType()) && (0 == marketingSyncInfo.getDataSourceType())) {
             configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
-                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(),DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
             if (!CollectionUtils.isEmpty(configRule)) {
                 //剔除规则中的基础字段
                 List<String> generalFields = Lists.newArrayList("dataItems", "requestId", "item", "reserveField1", "reserveField2");

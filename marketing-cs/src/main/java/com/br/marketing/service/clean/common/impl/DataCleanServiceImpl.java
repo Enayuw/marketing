@@ -333,7 +333,7 @@ public class DataCleanServiceImpl implements DataCleanService {
 
 
     @Override
-    public Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType) {
+    public Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType,Integer status) {
         String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode).concat(":").concat(dataType.toString()).concat(":").concat(acceptType.toString());
         Map<String, Object> ruleMap = redisChgService.hgetall(redisKey);
         if (!CollectionUtils.isEmpty(ruleMap)) {
@@ -347,7 +347,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             return resultMap;
         }
         //查询数据库
-        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.getRuleConfigList(apiCode, dataType, acceptType);
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.getRuleConfigList(apiCode, dataType, acceptType,status);
         if (CollectionUtils.isEmpty(ruleConfigList)) {
             return null;
         }
@@ -432,7 +432,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             String apiCode = originalData.getApiCode();
             Long id = originalData.getId();
             MarketingPreUserDTO marketingPreUserDTO = dataClean(originalData,ruleConfigList);
-            insertInfo(apiCode,marketingPreUserDTO,id);
+            insertInfo(apiCode,marketingPreUserDTO,id,Boolean.FALSE);
         } catch (Exception e) {
             log.error(TITLE + "清洗处理异常", e);
         }
@@ -491,7 +491,28 @@ public class DataCleanServiceImpl implements DataCleanService {
         return marketingPreUserDTO;
     }
 
-    public void insertInfo(String apiCode, MarketingPreUserDTO marketingPreUserDTO, Long id){
+    public void insertInfo(String apiCode, MarketingPreUserDTO marketingPreUserDTO, Long id,Boolean isTest){
+        //试跑
+        if(isTest){
+            //插入上传info表
+            MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+            try {
+                syncInfo.setApiCode(marketingCommonConfig.getDatacleanTestRunApiCode());
+                syncInfo.setCusBatch(marketingPreUserDTO.getTaskId());
+                syncInfo.setRequestBatch(marketingPreUserDTO.getRequestId());
+                syncInfo.setCreateTime(new Date());
+                syncInfo.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+                syncInfo.setActualNum(marketingPreUserDTO.getDataItems().size());
+                marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+            } catch (DuplicateKeyException keyException) {
+                log.error("数据清洗上传数据request_batch重复，requestBatch = {}", marketingPreUserDTO.getRequestId());
+            } catch (Exception ex) {
+                log.error("数据清洗上传数据插入异常", ex.getMessage());
+            }
+            //插入上传明细表
+            pushRuleService.insertMarketingPreUserSync(syncInfo.getId());
+            return;
+        }
         //写入到info表
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);

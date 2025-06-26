@@ -499,23 +499,11 @@
         SELECT *
         FROM b_marketing_sync_info
         WHERE api_code = #{apiCode}
-          AND DATE_FORMAT(create_time, '%Y-%m-%d') = #{appletDate}
-          AND (
-            (actual_num IS NOT NULL AND actual_num > #{actualNum}
-                OR (SELECT COUNT(*)
-                    FROM b_marketing_sync_info
-                    WHERE api_code = #{apiCode}
-                      AND DATE_FORMAT(create_time, '%Y-%m-%d') = #{appletDate}
-                      AND actual_num IS NOT NULL
-                      AND actual_num > #{actualNum}) = 0
-                ))
-        ORDER BY
-            CASE
-                WHEN actual_num IS NOT NULL AND actual_num > #{actualNum} THEN 1
-                ELSE 2
-                END,
-            RAND()
-            LIMIT 1
+        AND DATE_FORMAT(create_time, '%Y-%m-%d') = #{appletDate}
+        <if test="actualNum != null">
+            and actual_num >=#{actualNum}
+        </if>
+        LIMIT 1
     </select>
 
     <select id="getMarketingSyncInfoByRequestBatch" resultType="com.br.marketing.entity.MarketingSyncUser">

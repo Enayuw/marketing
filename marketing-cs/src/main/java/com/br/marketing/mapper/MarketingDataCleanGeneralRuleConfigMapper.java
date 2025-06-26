@@ -11,7 +11,7 @@ public interface MarketingDataCleanGeneralRuleConfigMapper extends MarketingData
 
 
     List<MarketingDataCleanGeneralRuleConfig> getRuleConfigList(@Param("apiCode")String apiCode,@Param("dataType")Integer dataType,
-                                                                @Param("acceptType")Integer acceptType);
+                                                                @Param("acceptType")Integer acceptType,@Param("status")Integer status);
 
 
 }

@@ -17,7 +17,7 @@ public interface DataCleanService {
     Result<Boolean> customerDataJsonParse(String t);
 
 
-    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType);
+    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType,Integer status);
 
 
     Object getCleanResult(JSONObject jsonObject, MarketingDataCleanGeneralRuleConfig rule);
