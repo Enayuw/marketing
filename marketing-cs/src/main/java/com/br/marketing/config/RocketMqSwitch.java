@@ -230,7 +230,7 @@ public class RocketMqSwitch {
                 return getGroupValue(entity, tag, key, localValue, tClass);
             }
             T value = jsonObject.getObject(key, tClass);
-            if (value == null) {
+            if (value == null || "".equals(value)) {
                 return getGroupValue(entity, tag, key, localValue, tClass);
             }
             return value;
