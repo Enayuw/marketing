@@ -2127,7 +2127,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 throw new BusinessException("通用上传清洗试跑失败，请检查配置");
             }
             List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCommonResult(marketingSyncInfo, actualNum, ruleConfigMap, syncUserList);
-            deleteRuleToTest(ruleId,,ruleTrialConfigDTO);
+            deleteRuleToTest(ruleId,ruleTrialConfigDTO);
             return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList)
                     .setMessage("数据处理成功").success();
         }
