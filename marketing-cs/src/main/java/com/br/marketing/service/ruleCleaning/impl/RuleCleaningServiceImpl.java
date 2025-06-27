@@ -2209,7 +2209,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(ruleId).andIsDelEqualTo(1);
         marketingDataCleanGeneralRuleConfigMapper.deleteByExample(ruleConfigExample);
-        dataCleanService.delConfigRule(ruleTrialConfigDTO.getApiCode(), ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+        dataCleanService.delConfigRule(marketingCommonConfig.getDatacleanTestRunApiCode(), ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
     }
 
     private Long insertRuleToTest(Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap, String testApiCode,RuleTrialConfigDTO ruleTrialConfigDTO) {
@@ -2228,7 +2228,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             ruleField.setApiCode(testApiCode);
             marketingDataCleanGeneralRuleConfigMapper.insertSelective(ruleField);
         });
-        dataCleanService.delConfigRule(ruleTrialConfigDTO.getApiCode(), ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+        dataCleanService.delConfigRule(testApiCode, ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
         return config.getId();
     }
 
