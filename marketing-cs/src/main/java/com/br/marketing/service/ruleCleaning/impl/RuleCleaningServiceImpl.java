@@ -30,6 +30,7 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -2026,6 +2027,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
         MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configDTO.getConfigId());
         if (!CollectionUtils.isEmpty(cleaningConfigs)) {
+            List<String> mappingFields = cleaningConfigs.stream().map(FieldCleaningConfigDTO::getMappingField).collect(Collectors.toList());
+            List<String> uploadMustField = Lists.newArrayList("custNum", "cell", "userType");
+            if (DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())) {
+                if (!mappingFields.containsAll(uploadMustField)) {
+                    throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
+                }
+            }
             // 提取所有清洗字段
             List<String> cleanFields = cleaningConfigs.stream()
                     .map(FieldCleaningConfigDTO::getCleanField)
@@ -2061,6 +2069,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         return Boolean.TRUE;
     }
+
 
     private void getFileField(List<FieldSampleDTO> result, MarketingDataCleanGeneralConfig config, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
 
