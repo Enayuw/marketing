@@ -51,12 +51,12 @@ public class MockPolicy {
     /**
      * 创建时间
      */
-    private Date createTime;
+    private String createTime;
 
     /**
-     * 
+     * 更新时间
      */
-    private Date updateTime;
+    private String updateTime;
 
     /**
      * 1-有效；9-无效
@@ -135,19 +135,19 @@ public class MockPolicy {
         this.createDate = createDate == null ? null : createDate.trim();
     }
 
-    public Date getCreateTime() {
+    public String getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
 
-    public Date getUpdateTime() {
+    public String getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(Date updateTime) {
+    public void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
     }
 

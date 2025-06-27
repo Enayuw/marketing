@@ -120,7 +120,7 @@
       #{optUserName,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
       #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MockPolicy" >
+  <insert id="insertSelective" useGeneratedKeys="true" parameterType="com.br.marketing.entity.MockPolicy" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>

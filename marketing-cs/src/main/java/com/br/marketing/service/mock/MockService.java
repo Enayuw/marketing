@@ -2,7 +2,12 @@ package com.br.marketing.service.mock;
 
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.mock.MockQueryDTO;
+import com.br.marketing.entity.MockCase;
+import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @ClassName MockService
@@ -12,5 +17,28 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 public interface MockService {
 
     PageResultReturn getMockPolicyList(MockQueryDTO dto, MarketingUserDetail userDetail);
+
+    List<MockCase> getMockCaseList(String mockName);
+
+    /**
+     * 添加Mock用例
+     */
+    Boolean addMockCase(com.br.marketing.entity.MockCase mockCase);
+
+    /**
+     * 批量删除Mock用例
+     */
+    Boolean deleteMockCases(java.util.List<Long> ids);
+
+    Boolean saveOrUpdateMockPolicy(MockPolicy mockPolicy);
+
+    Boolean deleteMockPolicies(List<Long> ids);
+
+    Boolean enableMockPolicies(List<Long> ids);
+
+    Boolean disableMockPolicies(List<Long> ids);
+
+    Object testMockPolicy();
+
 
 }

@@ -7,6 +7,8 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.mock.MockQueryDTO;
+import com.br.marketing.entity.MockCase;
+import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.mock.MockService;
@@ -16,13 +18,13 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName MarketingMockController
@@ -37,7 +39,7 @@ import javax.validation.Valid;
 @Api(value = "Mock系统", tags = "Mock系统", produces = "application/json", consumes = "application/json", protocols = "http")
 public class MarketingMockController {
 
-    @Resource
+    @Resource(name = "newMockService")
     private MockService mockService;
 
     @PostMapping("/getMockPolicyList")
@@ -55,6 +57,142 @@ public class MarketingMockController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "获取Mock策略列表接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/getMockCaseList")
+    @ApiOperation(value = "获取Mock策略下的所有用例", notes = "获取Mock策略下的所有用例")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "mockName", value = "mock策略名称", paramType = "query", dataType = "string"),
+    })
+    public ApiResult<List<MockCase>> getMockCaseList(@RequestParam(name = "mockName") String mockName){
+        try {
+            List<MockCase> mockCase = mockService.getMockCaseList(mockName);
+            return new ApiResult<List<MockCase>>().success(mockCase);
+        }catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "获取Mock策略列表接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<MockCase>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    /**
+     * 添加mock用例
+     */
+    @PostMapping("/addMockCase")
+    @ApiOperation(value = "添加Mock用例", notes = "添加Mock用例")
+    public ApiResult<Boolean> addMockCase(@RequestBody MockCase mockCase) {
+        try {
+            Boolean result = mockService.addMockCase(mockCase);
+            return new ApiResult<Boolean>().success(result);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "添加Mock用例接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    /**
+     * 删除mock用例（支持批量删除）
+     */
+    @PostMapping("/deleteMockCases")
+    @ApiOperation(value = "删除Mock用例", notes = "批量删除Mock用例")
+    @ApiImplicitParam(name = "ids", value = "要删除的Mock用例ID列表", required = true, dataType = "List<Long>")
+    public ApiResult<Boolean> deleteMockCases(@RequestBody List<Long> ids) {
+        try {
+            Boolean result = mockService.deleteMockCases(ids);
+            return new ApiResult<Boolean>().success(result);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "删除Mock用例接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/saveOrUpdateMockPolicy")
+    @ApiOperation(value = "新增或修改Mock策略列表", notes = "新增或修改Mock策略列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "MockQueryDTO")
+    })
+    @AddDataAuthBusiness
+    public ApiResult<Boolean> saveOrUpdateMockPolicy(@RequestBody @Valid MockPolicy mockPolicy){
+        try {
+            Boolean result = mockService.saveOrUpdateMockPolicy(mockPolicy);
+            return new ApiResult<Boolean>().success(result);
+        }catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "新增或修改Mock策略列表接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    /**
+     * 删除mock规则（支持批量删除）
+     */
+    @PostMapping("/deleteMockPolicies")
+    @ApiOperation(value = "删除Mock规则", notes = "批量删除Mock规则")
+    @ApiImplicitParam(name = "ids", value = "要删除的Mock规则ID列表", required = true, dataType = "List<Long>")
+    public ApiResult<Boolean> deleteMockPolicies(@RequestBody List<Long> ids) {
+        try {
+            Boolean result = mockService.deleteMockPolicies(ids);
+            return new ApiResult<Boolean>().success(result);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "删除Mock规则接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    /**
+     * 启用mock规则（支持批量启用）
+     */
+    @PostMapping("/enableMockPolicies")
+    @ApiOperation(value = "启用Mock规则", notes = "批量启用Mock规则")
+    @ApiImplicitParam(name = "ids", value = "要启用的Mock规则ID列表", required = true, dataType = "List<Long>")
+    public ApiResult<Boolean> enableMockPolicies(@RequestBody List<Long> ids) {
+        try {
+            Boolean result = mockService.enableMockPolicies(ids);
+            return new ApiResult<Boolean>().success(result);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "启用Mock规则接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    /**
+     * 禁用mock规则（支持批量禁用）
+     */
+    @PostMapping("/disableMockPolicies")
+    @ApiOperation(value = "禁用Mock规则", notes = "批量禁用Mock规则")
+    @ApiImplicitParam(name = "ids", value = "要禁用的Mock规则ID列表", required = true, dataType = "List<Long>")
+    public ApiResult<Boolean> disableMockPolicies(@RequestBody List<Long> ids) {
+        try {
+            Boolean result = mockService.disableMockPolicies(ids);
+            return new ApiResult<Boolean>().success(result);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "禁用Mock规则接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    /**
+     *  测试mock规则
+     */
+    @PostMapping("/testMockPolicy")
+    @ApiOperation(value = "测试Mock规则", notes = "测试Mock规则")
+    public ApiResult<Object> testMockPolicy() {
+        try {
+            Object result = mockService.testMockPolicy();
+            return new ApiResult<Object>().success(result);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "测试Mock规则接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Object>().fail(ServiceResultEnum.FAILED);
         }
     }
 

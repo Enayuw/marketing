@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.Min;
+import java.util.Date;
 
 /**
  * @ClassName MockQueryDTO
@@ -27,5 +28,8 @@ public class MockQueryDTO {
 
     @ApiModelProperty("是否启用 0-启动 1-关闭")
     private Integer enabled;
+
+    @ApiModelProperty("更新时间")
+    private Date updateTime;
 
 }
