@@ -2124,6 +2124,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             //根据requestBatch查询b_marketing_sync_#{apiCode}的所有数据
             List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getMarketingSyncInfoByRequestBatch(testApiCode, marketingSyncInfo.getRequestBatch());
             if (CollectionUtils.isEmpty(syncUserList)) {
+                deleteRuleToTest(ruleId,ruleTrialConfigDTO);
                 throw new BusinessException("通用上传清洗试跑失败，请检查配置");
             }
             List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCommonResult(marketingSyncInfo, actualNum, ruleConfigMap, syncUserList);
@@ -2208,12 +2209,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         config.setDataType(ruleTrialConfigDTO.getDataType());
         config.setAcceptType(ruleTrialConfigDTO.getAcceptType());
         config.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+        config.setAccountType("测试");
         cleanGeneralConfigMapper.insertSelective(config);
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigs =  ruleConfigMap.values().stream().collect(Collectors.toList());
         ruleConfigs.forEach(ruleField->{
             ruleField.setCleanConfigId(config.getId());
             ruleField.setCreateTime(new Date());
             ruleField.setUpdateTime(new Date());
+            ruleField.setApiCode(testApiCode);
             marketingDataCleanGeneralRuleConfigMapper.insertSelective(ruleField);
         });
         dataCleanService.delConfigRule(ruleTrialConfigDTO.getApiCode(), ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
