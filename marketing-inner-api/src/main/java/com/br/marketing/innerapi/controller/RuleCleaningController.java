@@ -340,7 +340,7 @@ public class RuleCleaningController {
         }catch (BusinessException be) {
             return new ApiResult<List<List<RuleCleaningResult>>>().fail("",be.getMsg());
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_TRIALPROCESSERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "规则试跑接口错误！错误信息：" + e.getMessage()), e);
             return new ApiResult<List<List<RuleCleaningResult>>>().fail(ServiceResultEnum.FAILED);
         }

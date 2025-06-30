@@ -2061,12 +2061,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         }
         dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
+        //更新配置表状态
+        MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
+        update.setId(configDTO.getConfigId());
         if (DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode().equals(config.getStatus())) {
-            MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
-            update.setId(configDTO.getConfigId());
             update.setStatus(DataProcessEnum.RuleStatusEnum.READY.getCode());
-            cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
         }
+        update.setUpdateTime(new Date());
+        cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
         return Boolean.TRUE;
     }
 
