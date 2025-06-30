@@ -116,7 +116,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         Integer line = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
-            while (line < 10 && (row = br.readLine()) != null) {
+            while (line < 11 && (row = br.readLine()) != null) {
                 // 跳过空行（包含空白字符行）
                 if (row.trim().isEmpty()) {
                     continue;
@@ -152,7 +152,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         Integer line = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
-            while (line < 10 && (row = br.readLine()) != null) {
+            while (line < 11 && (row = br.readLine()) != null) {
                 // 跳过空行（包含空白字符行）
                 if (row.trim().isEmpty()) {
                     continue;
