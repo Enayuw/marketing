@@ -3180,5 +3180,10 @@ public class MarketingCommonConfig {
      * 携程上报线程池开启开关 false 开启线程池  true 关闭线程池
      */
     private Boolean xcMqReportHandlerSwitch;
+
+    /**
+     * 轮询线程轮询频率
+     */
+    private Integer mockPollingInterval;
 }
 

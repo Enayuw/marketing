@@ -1,6 +1,7 @@
 package com.br.marketing.origin;
 
 import com.br.marketing.entity.CustomerRoutingKeyConfig;
+import com.br.marketing.entity.MockLocalCache;
 import com.br.marketing.service.CustomerRoutingKeyConfigService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -28,6 +29,9 @@ public class CaffeineCache {
     // 添加一个新的缓存用于存储标识
     private Cache<String, String> identifierCache = null;
 
+    //添加缓存用于存储mock开关状态
+    private Cache<String, MockLocalCache> mockLocalCache = null;
+
     @PostConstruct
     private void init() {
         routingKeyCache = Caffeine.newBuilder()
@@ -37,6 +41,12 @@ public class CaffeineCache {
 
         // 初始化标识缓存
         identifierCache = Caffeine.newBuilder()
+                .maximumSize(1000)
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .build();
+
+        //初始化mock开关状态
+        mockLocalCache = Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterWrite(1, TimeUnit.MINUTES)
                 .build();
@@ -66,6 +76,32 @@ public class CaffeineCache {
     public boolean hasIdentifier(String identifier) {
         String value = identifierCache.getIfPresent(identifier);
         return value != null;
+    }
+
+    /**
+     * 存储一个mock开关状态
+     * @param key   唯一key
+     * @param value 开关状态
+     */
+    public void storeMockSwitchStatus(String key, MockLocalCache value) {
+        mockLocalCache.put(key,value);
+    }
+
+    /**
+     * 获取mock开关状态
+     * @param key 唯一key
+     * @return mock开关状态，如果不存在则返回null
+     */
+    public MockLocalCache getMockSwitchStatus(String key) {
+        return mockLocalCache.getIfPresent(key);
+    }
+
+    /**
+     * 删除mock开关状态
+     * @param key 唯一key
+     */
+    public void deleteMockSwitchStatus(String key) {
+        mockLocalCache.invalidate(key);
     }
 
 }
