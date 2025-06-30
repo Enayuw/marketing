@@ -359,4 +359,6 @@ public class RedisKeyConstant {
      */
         public static final String tcyrSyncMatch = prefix.concat("tcyr_sync:match");
 
+        public static final String MOCK_POLICY = prefix.concat("mock:policy");
+
 }
