@@ -1,23 +1,17 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
-import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
-import com.br.marketing.entity.MockLocalCache;
 import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
-import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.service.mock.MockService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.alibaba.fastjson.JSON;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -26,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
