@@ -594,6 +594,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         List<String> batchLines = new ArrayList<>();
         int totalProcessed = 0;
         File file = new File(filePath + fileName);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5,50);
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             boolean isFirstLine = true;
@@ -615,7 +616,14 @@ public class DataCleanServiceImpl implements DataCleanService {
                 batchLines.add(line);
                 // 当达到批次大小时，处理这一批数据
                 if (batchLines.size() >= BATCH_SIZE) {
-                    processBatchDataSync(batchLines, headers, ruleConfigList, apiCode, fileName, totalProcessed);
+                    modifyFilePoolSize(pool);
+                    String[] finalHeaders = headers;
+                    int finalTotalProcessed = totalProcessed;
+                    pool.submit(() -> {
+                        List<String> dataList = new ArrayList<>();
+                        dataList.addAll(batchLines);
+                        processBatchDataSync(dataList, finalHeaders, ruleConfigList, apiCode, fileName, finalTotalProcessed);
+                    });
                     totalProcessed += batchLines.size();
                     batchLines.clear();
                 }
@@ -629,6 +637,16 @@ public class DataCleanServiceImpl implements DataCleanService {
             
         } catch (IOException e) {
             log.error("读取文件失败，文件路径: " + filePath, e);
+        }
+        // 关闭线程池
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "文件上传数据清洗线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
         }
     }
     
@@ -801,6 +819,17 @@ public class DataCleanServiceImpl implements DataCleanService {
             pool.setMaximumPoolSize(threadNum);
         }
         log.warn(TITLE + "处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+    }
+
+
+    private void modifyFilePoolSize(ThreadPoolExecutor pool) {
+        Integer threadNum =
+                marketingCommonConfig.getUploadFileCleanThreadNum();
+        if (!Objects.isNull(threadNum)) {
+            pool.setCorePoolSize(threadNum);
+            pool.setMaximumPoolSize(threadNum);
+        }
+        log.warn( "文件清洗处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }
 }
 
