@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * @ClassName MockBaffleConfigServiceImpl
@@ -34,6 +34,8 @@ public class MockBaffleConfigServiceImpl {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
+
     ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10);
 
     @PostConstruct
@@ -43,23 +45,21 @@ public class MockBaffleConfigServiceImpl {
                     ? marketingCommonConfig.getMockPollingInterval() : 60;
 
             List<Integer> allCodes = MockNameEnum.getAllCodes();
-
             for (Integer code : allCodes) {
                 pool.submit(() -> checkAndUpdateMockCache(code));
+
+                ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(
+                        () -> {
+                            try {
+                                checkAndUpdateMockCache(code);
+                            } catch (Exception e) {
+                                log.error("Mock轮询异常", e);
+                            }
+                        },
+                        0, interval, TimeUnit.SECONDS
+                );
             }
-            // 按照配置的间隔时间休眠
-            Thread.sleep(interval * 1000L);
-            //try {
-            //    pool.shutdown();
-            //    while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
-            //        log.warn("线程终止");
-            //    }
-            //} catch (Exception ex) {
-            //    pool.shutdownNow();
-            //    log.error(ex.getMessage(), ex);
-            //    Thread.currentThread().interrupt();
-            //}
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn("");
         }
     }
