@@ -38,6 +38,8 @@ public enum ThreadPoolNameEnum {
 
     XIECHENG_CPS_DATA_PROCESS_3710090(8,"xiecheng_cps_data_process_3710090", "携程cps撞库数据清洗"),
     XIECHENG_CPS_LOOP_CYCLE_3710090(9,"xiecheng_cps_loop_cycle_3710090", "携程cps周期数据撞库"),
+    XIECHENG_CPS_ROB_3710090(10,"xiecheng_cps_rob_3710090", "携程cps非周期数据撞库"),
+    XIECHENG_CPS_RETRY_3710090(11,"xiecheng_cps_retry_3710090", "携程cps重试数据撞库"),
     ;
 
     private Integer order;

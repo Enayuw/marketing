@@ -2,7 +2,7 @@ package com.br.marketing.service.Impl.xc;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.entity.XieChengCollidingDataLog;
+import com.br.marketing.entity.XieChengCpsCollidingDataLog;
 
 import java.util.List;
 
@@ -18,11 +18,10 @@ public interface XieChengCpsCollidingDataLogService {
      * @param returnData 返回数据
      * @param httpcode httpcode
      * @param businessCode 客户返回Code码
-     * @return {@link XieChengCollidingDataLog }
-     * @author senyang.zheng
+     * @return {@link XieChengCpsCollidingDataLog }
      * @date 2024/03/23
      */
-    XieChengCollidingDataLog buildSuccessXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+    XieChengCpsCollidingDataLog buildSuccessXieChengCpsCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
         JSONObject returnData, String httpcode, Integer businessCode);
 
     /**
@@ -34,29 +33,33 @@ public interface XieChengCpsCollidingDataLogService {
      * @param dataSourceType 数据源类型 T True数据,F False数据
      * @param cellSha256CodeList 手机号
      * @param resJson res json
-     * @return {@link XieChengCollidingDataLog }
-     * @author senyang.zheng
+     * @return {@link XieChengCpsCollidingDataLog }
+
      * @date 2024/03/23
      */
-    XieChengCollidingDataLog buildFailXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+    XieChengCpsCollidingDataLog buildFailXieChengCpsCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
         String cellSha256CodeList, JSONObject resJson);
 
     /**
-     * 推送保存log消息
-     *
+     * 生产者-推送保存log消息
      * @param collidingLogs 碰撞日志
-     * @author senyang.zheng
      * @date 2024/03/23
      */
-    void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs);
+    void pushLogMessage(List<XieChengCpsCollidingDataLog> collidingLogs);
 
     /**
-     * 批量保存撞库log
+     * 生产者-推送外呼消息
+     * @param collidingLogs 碰撞日志
+     * @date 2024/03/23
+     */
+    void pushRobotMessage(List<XieChengCpsCollidingDataLog> collidingLogs);
+
+    /**
+     * 消费者-批量保存撞库log
      *
      * @param collidingLogs 碰撞日志
      * @return {@link Result }<{@link Boolean }>
-     * @author senyang.zheng
      * @date 2024/03/23
      */
-    Result<Boolean> saveXieChengCollidingDataLog(List<XieChengCollidingDataLog> collidingLogs);
+    Result<Boolean> saveXieChengCpsCollidingDataLog(List<XieChengCpsCollidingDataLog> collidingLogs);
 }

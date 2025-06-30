@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.entity.XieChengCpsCollidingDataLog;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,19 +36,18 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class XieChengCpsCollidingResultHandleService {
-    
+
     @Resource
     private XieChengCpsCollidingDataLoopCycleMapper cpsLoopCycleMapper;
-    
+
     @Resource
     private XieChengCpsCollidingDataRobMapper cpsRobMapper;
-    
+
     @Resource
     private XieChengCpsCollidingDataLogService cpsLogService;
 
     /**
      * CPS周期数据处理：将FALSE结果从周期表删除并插入非周期表
-     * 
      * @param loopCycleDto CPS周期数据
      */
     @Transactional(rollbackFor = Exception.class)
@@ -73,145 +73,93 @@ public class XieChengCpsCollidingResultHandleService {
 
     /**
      * CPS非周期数据撞库结果处理
-     * 
      * @param collidingResult 撞库结果
-     * @param cellMap 手机号映射
+     * @param cellMap         手机号映射
      */
     public void robDataHandle(Result collidingResult, Map<String, XieChengCpsCollidingDataRob> cellMap) {
-        JSONObject resJson = JSONObject.parseObject((String)collidingResult.getData());
+        JSONObject resJson = JSONObject.parseObject((String) collidingResult.getData());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
-        List<XieChengCollidingDataLog> collidingLogs = Lists.newArrayList();
+        List<XieChengCpsCollidingDataLog> collidingLogs = Lists.newArrayList();
         String httpcode = resJson.getString("httpcode");
-        
+
         if (success) {
+            // httpcode200且code为0
             JSONObject contentJson = JSONObject.parseObject(resJson.getString("content"));
             Integer businessCode = contentJson.getInteger("code");
             JSONArray returnDataList = contentJson.getJSONArray("data");
-            
+
             for (int i = 0; i < returnDataList.size(); i++) {
                 JSONObject returnData = returnDataList.getJSONObject(i);
                 String cell = returnData.getString("sha256Code");
                 Boolean result = returnData.getBoolean("result");
+                String releaseTime = returnData.getString("releaseTime");
                 XieChengCpsCollidingDataRob robData = cellMap.getOrDefault(cell, new XieChengCpsCollidingDataRob());
-                
+
                 if (result) {
                     // TRUE结果：转入周期表
                     try {
-                        trueDataHandle(cellMap, cell, returnData, robData);
+                        trueDataHandle(cell, releaseTime, robData);
                     } catch (Exception e) {
-                        log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), 
+                        log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                                 e.getMessage(), "CPS非周期数据撞得True，处理异常，手机号：" + cell), e);
                     }
                 } else {
-                    // FALSE结果：更新非周期表
+                    // FALSE结果：从非周期表中做剔除
                     robData.setPushTime(new Date());
-                    robData.setRetryCount(0);
                     robData.setUpdateTime(new Date());
+                    robData.setIsDelete(1);
                     cpsRobMapper.updateByPrimaryKeySelective(robData);
                 }
-                
-                collidingLogs.add(cpsLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
-                    null, "F", returnData, httpcode, businessCode));
+
+                collidingLogs.add(cpsLogService.buildSuccessXieChengCpsCollidingDataLog(robData.getId(), robData.getPackageId(),
+                        null, "F", returnData, httpcode, businessCode));
             }
-            
+
             cpsLogService.pushLogMessage(collidingLogs);
-            
+            cpsLogService.pushRobotMessage(collidingLogs);
         } else {
-            // 撞库失败：更新重试次数
+            // httpcode非200或code非0：更新重试次数
             for (Map.Entry<String, XieChengCpsCollidingDataRob> entry : cellMap.entrySet()) {
                 XieChengCpsCollidingDataRob robData = entry.getValue();
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 robData.setUpdateTime(new Date());
                 cpsRobMapper.updateByPrimaryKeySelective(robData);
-                
-                collidingLogs.add(cpsLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
-                    null, "F", robData.getCellSha256CodeList(), resJson));
+
+                collidingLogs.add(cpsLogService.buildFailXieChengCpsCollidingDataLog(robData.getId(), robData.getPackageId(),
+                        null, "F", robData.getCellSha256CodeList(), resJson));
             }
-            
+
             cpsLogService.pushLogMessage(collidingLogs);
         }
     }
 
     /**
      * CPS TRUE数据处理：从非周期表转入周期表
-     * 
-     * @param cellMap 手机号映射
-     * @param cell 手机号
-     * @param returnData 返回数据
+     * @param cell    手机号
      * @param robData 非周期数据
      */
     @Transactional(rollbackFor = Exception.class)
-    public void trueDataHandle(Map<String, XieChengCpsCollidingDataRob> cellMap, String cell, JSONObject returnData, XieChengCpsCollidingDataRob robData) {
+    public void trueDataHandle(String cell, String releaseTime, XieChengCpsCollidingDataRob robData) {
         // 周期表中新增True的数据
         XieChengCpsCollidingDataLoopCycle cpsLoopCycle = new XieChengCpsCollidingDataLoopCycle();
-        cpsLoopCycle.setPackageId(cellMap.getOrDefault(cell, new XieChengCpsCollidingDataRob()).getPackageId());
+        cpsLoopCycle.setPackageId(robData.getPackageId());
         cpsLoopCycle.setDataSourceType("F"); // 来源于非周期数据
-        cpsLoopCycle.setCellSha256CodeList(returnData.getString("sha256Code"));
-        
+        cpsLoopCycle.setCellSha256CodeList(cell);
+
         // 解析释放时间
-        String releaseTimeStr = returnData.getString("releaseTime");
-        if (StringUtils.isNotEmpty(releaseTimeStr)) {
-            try {
-                cpsLoopCycle.setReleaseTime(DateUtil.parse(releaseTimeStr, DatePattern.NORM_DATETIME_PATTERN));
-            } catch (Exception e) {
-                log.warn("CPS解析释放时间异常，使用默认时间，releaseTime：{}，error：{}", releaseTimeStr, e.getMessage());
-                // 默认24小时后释放
-                cpsLoopCycle.setReleaseTime(DateUtil.offsetHour(new Date(), 24));
-            }
-        } else {
-            // 默认24小时后释放
-            cpsLoopCycle.setReleaseTime(DateUtil.offsetHour(new Date(), 24));
-        }
-        
+        cpsLoopCycle.setReleaseTime(DateUtil.parse(releaseTime, DatePattern.NORM_DATETIME_PATTERN));
         cpsLoopCycle.setPushTime(new Date());
         cpsLoopCycle.setRetryCount(0);
         cpsLoopCycle.setIsDelete(0);
         cpsLoopCycle.setCreateTime(new Date());
         cpsLoopCycle.setUpdateTime(new Date());
-        cpsLoopCycle.setExtend("CPS非周期数据TRUE结果转入");
-        
         cpsLoopCycleMapper.insertSelective(cpsLoopCycle);
-        
+
         // 非周期表中做剔除
         robData.setIsDelete(1);
-        robData.setRetryCount(0);
         robData.setPushTime(new Date());
         robData.setUpdateTime(new Date());
         cpsRobMapper.updateByPrimaryKeySelective(robData);
-        
-        log.info("CPS非周期数据处理成功，手机号：{}，从非周期表转入周期表，释放时间：{}", 
-                cell, DateUtil.formatDateTime(cpsLoopCycle.getReleaseTime()));
     }
-
-    /**
-     * CPS促活数据处理：从非周期表转入周期表
-     * 
-     * @param robData 非周期数据
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void activateDataByFalseToTrue(XieChengCpsCollidingDataRob robData) {
-        // 周期表中新增
-        XieChengCpsCollidingDataLoopCycle cpsLoopCycle = new XieChengCpsCollidingDataLoopCycle();
-        cpsLoopCycle.setReleaseTime(DateUtil.offsetHour(new Date(), 24)); // 默认24小时后释放
-        cpsLoopCycle.setPackageId(robData.getPackageId());
-        cpsLoopCycle.setDataSourceType("F"); // 来源于非周期数据
-        cpsLoopCycle.setCellSha256CodeList(robData.getCellSha256CodeList());
-        cpsLoopCycle.setPushTime(robData.getPushTime());
-        cpsLoopCycle.setRetryCount(0);
-        cpsLoopCycle.setIsDelete(0);
-        cpsLoopCycle.setCreateTime(new Date());
-        cpsLoopCycle.setUpdateTime(new Date());
-        cpsLoopCycle.setExtend("CPS促活数据转入");
-        
-        cpsLoopCycleMapper.insertSelective(cpsLoopCycle);
-
-        // 非周期表剔除
-        robData.setIsDelete(1);
-        robData.setRetryCount(0);
-        robData.setUpdateTime(new Date());
-        cpsRobMapper.updateByPrimaryKeySelective(robData);
-        
-        log.info("CPS促活数据处理成功，手机号：{}，从非周期表转入周期表", robData.getCellSha256CodeList());
-    }
-} 
+}

@@ -12,6 +12,7 @@ import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -29,6 +30,8 @@ import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import com.br.marketing.common.utils.BrExecutors;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,8 +85,7 @@ public class XieChengCpsLoopCycleDataServiceImpl implements XieChengCpsLoopCycle
 
     private final static int PARTITION_SIZE = 50;
 
-    private final ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
-
+    TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_LOOP_CYCLE_3710090.getName(), 5, 10);
 
     @Override
     public void process() {
@@ -129,13 +131,13 @@ public class XieChengCpsLoopCycleDataServiceImpl implements XieChengCpsLoopCycle
                 List<Long> ids = list.stream().map(XieChengCpsCollidingDataLoopCycle::getId).collect(Collectors.toList());
                 dataLoopCycleMapper.updateBatchByIdOfRetryCount(ids);
 
-                // todo 发送mq记录日志
-//                List<XieChengCpsCollidingDataLog> collidingLogs = list.stream()
-//                        .map(t -> logService.buildFailXieChengCollidingDataLog(t.getId(), t.getPackageId(), null, "T", t.getCellSha256CodeList(),
-//                        resMap))
-//                        .collect(Collectors.toList());
-//
-//                logService.pushLogMessage(collidingLogs);
+                // 发送mq记录日志
+                List<XieChengCpsCollidingDataLog> collidingLogs = list.stream()
+                        .map(t -> logService.buildFailXieChengCpsCollidingDataLog(t.getId(), t.getPackageId(), null, "T", t.getCellSha256CodeList(),
+                        resMap))
+                        .collect(Collectors.toList());
+
+                logService.pushLogMessage(collidingLogs);
                 return;
             }
 
@@ -160,14 +162,16 @@ public class XieChengCpsLoopCycleDataServiceImpl implements XieChengCpsLoopCycle
             // false数据处理
             falseHandle(returnDataList, cellMaps);
 
-//            // todo 发送mq记录日志
-//            List<XieChengCollidingDataLog> collidingLogs = returnDataList.stream().map(t -> (JSONObject)t)
-//                    .map(t -> logService.buildSuccessXieChengCollidingDataLog(cellMaps.get(t.get("sha256Code")).getId(),
-//                            cellMaps.get(t.get("sha256Code")).getPackageId(), null, "T", t, httpcode, businessCode))
-//                    .collect(Collectors.toList());
-//
-//            logService.pushLogMessage(collidingLogs);
-            // todo 推送外呼
+            // 发送mq记录日志
+            List<XieChengCpsCollidingDataLog> collidingLogs = returnDataList.stream().map(t -> (JSONObject)t)
+                    .map(t -> logService.buildSuccessXieChengCpsCollidingDataLog(cellMaps.get(t.get("sha256Code")).getId(),
+                            cellMaps.get(t.get("sha256Code")).getPackageId(), null, "T", t, httpcode, businessCode))
+                    .collect(Collectors.toList());
+
+            logService.pushLogMessage(collidingLogs);
+
+            // 推送外呼
+            logService.pushRobotMessage(collidingLogs);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()

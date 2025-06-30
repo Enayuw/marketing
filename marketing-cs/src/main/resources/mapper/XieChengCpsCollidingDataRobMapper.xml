@@ -14,6 +14,33 @@
     </foreach>
   </select>
 
+  <!-- 查询未撞库数据 -->
+  <select id="selectUnprocessedRobData" resultType="com.br.marketing.entity.XieChengCpsCollidingDataRob">
+    select
+    id, cell_sha256_code_list, package_id, retry_count, data_source_type
+    from b_xiecheng_cps_colliding_data_rob
+    where is_delete = 0
+      and retry_count = 0
+      and push_time is null
+    <if test="minId != null and minId>0">
+      and id > #{minId}
+    </if>
+    order by id asc limit #{pageSize};
+  </select>
+
+  <!-- 查询重试数据 -->
+  <select id="selectRobByRetryCount" resultType="com.br.marketing.entity.XieChengCpsCollidingDataRob">
+    select
+    id, cell_sha256_code_list, package_id, retry_count, push_time, data_source_type
+    from b_xiecheng_cps_colliding_data_rob
+    where is_delete = 0
+       <![CDATA[ and retry_count > 0 and retry_count <= 3]]>
+    <if test="minId != null and minId>0">
+      and id > #{minId}
+    </if>
+    order by id asc limit #{pageSize};
+  </select>
+
   <!-- 批量保存数据 -->
   <insert id="batchSaveData">
     insert into b_xiecheng_cps_colliding_data_rob (package_id, cell_sha256_code_list, is_delete, create_time, update_time)

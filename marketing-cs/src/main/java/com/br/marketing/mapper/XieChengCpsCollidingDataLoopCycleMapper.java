@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 携程CPS周期撞库数据Mapper
  * @Author chenh
- * @Date 2025-06-26
+ * @Date 2024-12-19
  */
 public interface XieChengCpsCollidingDataLoopCycleMapper extends XieChengCpsCollidingDataLoopCycleMapperBase {
     
@@ -22,6 +22,16 @@ public interface XieChengCpsCollidingDataLoopCycleMapper extends XieChengCpsColl
      */
     List<XieChengCpsCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId,
             @Param("endDate") Date endDate,
+            @Param("pageSize") Integer pageSize);
+
+    /**
+     * 查询重试数据
+     * 查询正常重试数据：is_delete = 0 and retry_count > 0 and retry_count <= 3
+     * @param minId 最小ID
+     * @param pageSize 分页大小
+     * @return 周期撞库数据列表
+     */
+    List<XieChengCpsCollidingDataLoopCycle> selectCycleByRetryCount(@Param("minId") Long minId,
             @Param("pageSize") Integer pageSize);
 
     /**
@@ -61,9 +71,8 @@ public interface XieChengCpsCollidingDataLoopCycleMapper extends XieChengCpsColl
     int batchSaveData(@Param("list") List<XieChengCpsCollidingDataLoopCycle> list);
 
     /**
-     * 批量删除数据
-     * @param cells 手机号列表
-     * @return 更新行数
+     * 查询当天周期数据总数
+     * @return 当天周期数据总数
      */
-    int batchDeleteByCell(@Param("cells") List<String> cells);
+    Integer selectTodayCycleCountByExample();
 }
