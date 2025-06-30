@@ -1,8 +1,8 @@
 package com.br.marketing.aspect;
 
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.entity.MockCase;
-import com.br.marketing.entity.MockLocalCache;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.service.mock.MockService;
 import com.br.marketing.service.mock.impl.MockPolicyImpl;
@@ -54,14 +54,13 @@ public class MockableAspect {
             String mockName = mockable.mockName();
             String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + mockName);
             // 获取本地缓存
-            MockLocalCache localCache = caffeineCache.getMockSwitchStatus(localCacheKey);
+            MockInitDTO localCache = caffeineCache.getMockSwitchStatus(localCacheKey);
             if (localCache != null) {
                 //判断是否启用
                 Integer enabled = localCache.getEnabled();
                 //未启用则执行原方法
                 if (enabled == 1) {
-                    result = joinPoint.proceed();
-                    return result;
+                    return joinPoint.proceed();
                 }
                 // 获取Redis缓存
                 String redisValue = mockService.getMockRedisValue(localCacheKey);
