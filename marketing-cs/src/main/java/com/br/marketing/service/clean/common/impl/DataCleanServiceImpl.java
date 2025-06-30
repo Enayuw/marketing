@@ -491,6 +491,15 @@ public class DataCleanServiceImpl implements DataCleanService {
         return marketingPreUserDTO;
     }
 
+        /**
+     * 插入清洗后的数据信息
+     * 
+     * @param apiCode API编码，用于标识数据来源
+     * @param marketingPreUserDTO 营销预处理用户数据DTO，包含清洗后的用户信息
+     * @param id 原始数据的ID，用于更新清洗状态
+     * @param isTest 是否为测试模式
+     *               true：试跑模式，数据插入到测试表中，使用测试API码
+     */
     public void insertInfo(String apiCode, MarketingPreUserDTO marketingPreUserDTO, Long id,Boolean isTest){
         //试跑
         if(isTest){

@@ -2069,6 +2069,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         update.setUpdateTime(new Date());
         cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
+        entityOptService.writeOptLog(update.getId(), update, config);
         return Boolean.TRUE;
     }
 
@@ -2080,7 +2081,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andTargetSftpPathEqualTo(config.getSftpPath());
         fileExample.setOrderByClause("create_time desc limit 1");
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
-        if (CollectionUtils.isEmpty(cleanDataFiles)) {
+        if (CollectionUtils.isEmpty(cleanDataFiles) || StringUtils.isEmpty(cleanDataFiles.get(0).getFileHeader())) {
             return;
         }
         MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
