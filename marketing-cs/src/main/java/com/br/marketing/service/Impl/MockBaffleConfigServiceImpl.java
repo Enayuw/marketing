@@ -44,8 +44,8 @@ public class MockBaffleConfigServiceImpl {
             final int interval = marketingCommonConfig.getMockPollingInterval() != null && marketingCommonConfig.getMockPollingInterval() > 0
                     ? marketingCommonConfig.getMockPollingInterval() : 60;
 
-            List<Integer> allCodes = MockNameEnum.getAllCodes();
-            for (Integer code : allCodes) {
+            List<String> allCodes = MockNameEnum.getAllCodes();
+            for (String code : allCodes) {
                 pool.submit(() -> checkAndUpdateMockCache(code));
 
                 ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(
@@ -68,7 +68,7 @@ public class MockBaffleConfigServiceImpl {
      * 检查并更新Mock缓存
      * 比较本地缓存和Redis版本，如果不一致则更新本地缓存
      */
-    private void checkAndUpdateMockCache(Integer code) {
+    private void checkAndUpdateMockCache(String code) {
         try {
             String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + code);
             // 获取本地缓存

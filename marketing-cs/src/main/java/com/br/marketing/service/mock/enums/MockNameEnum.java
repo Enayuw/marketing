@@ -14,19 +14,19 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum MockNameEnum {
-    TEST_POLLING(1001, "测试轮询"),
-    TEST_RANDOM(1002, "测试随机");
+    TEST_POLLING("1001", "测试轮询"),
+    TEST_RANDOM("1002", "测试随机");
 
-    MockNameEnum(Integer code, String desc) {
+    MockNameEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    private Integer code;
+    private String code;
     private String desc;
 
     // 获取所有code的列表
-    public static List<Integer> getAllCodes() {
+    public static List<String> getAllCodes() {
         return Arrays.stream(values())
                 .map(MockNameEnum::getCode)
                 .collect(Collectors.toList());

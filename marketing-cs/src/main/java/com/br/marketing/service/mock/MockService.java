@@ -5,7 +5,6 @@ import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
 import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -32,11 +31,11 @@ public interface MockService {
 
     Boolean saveOrUpdateMockPolicy(MockPolicy mockPolicy);
 
-    Boolean deleteMockPolicies(List<Long> ids);
+    Boolean deleteMockPolicies(List<String> mockNames);
 
-    Boolean enableMockPolicies(List<Long> ids);
+    Boolean enableMockPolicies(List<String> mockNames);
 
-    Boolean disableMockPolicies(List<Long> ids);
+    Boolean disableMockPolicies(List<String> mockNames);
 
     Object testMockPolicy();
 
