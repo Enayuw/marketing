@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName MockServiceImpl
@@ -52,14 +50,14 @@ public class MockServiceImpl implements MockService {
             // 执行分页查询
             PageHelper.startPage(dto.getCurrent(), dto.getSize());
             MockPolicyExample example = new MockPolicyExample();
-            MockPolicyExample.Criteria criteria = example.createCriteria();
+            MockPolicyExample.Criteria criteria = example.createCriteria().andIsDelEqualTo(1);
             if (dto.getMockName() != null && !dto.getMockName().isEmpty()) {
                 criteria.andMockNameLike("%" + dto.getMockName() + "%");
             }
             if (dto.getEnabled() != null) {
                 criteria.andEnabledEqualTo(dto.getEnabled());
             }
-            if (dto.getUpdateTime() != null){
+            if (dto.getUpdateTime() != null) {
                 criteria.andUpdateTimeGreaterThan(dto.getUpdateTime());
             }
 
@@ -79,9 +77,9 @@ public class MockServiceImpl implements MockService {
 
         try {
             MockCaseExample mockCaseExample = new MockCaseExample();
-            mockCaseExample.createCriteria().andMockNameEqualTo(mockName);
+            mockCaseExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(1);
             return mockCaseMapper.selectByExample(mockCaseExample);
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "获取Mock用例列表失败！mockName: " + mockName), e);
@@ -93,8 +91,8 @@ public class MockServiceImpl implements MockService {
     public Boolean addMockCase(MockCase mockCase) {
         try {
             mockCase.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
-            mockCase.setCreateTime(DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
-            mockCase.setUpdateTime(DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+            mockCase.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+            mockCase.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
             int inserted = mockCaseMapper.insertSelective(mockCase);
             return inserted > 0;
         } catch (Exception e) {
@@ -110,9 +108,11 @@ public class MockServiceImpl implements MockService {
             return false;
         }
         try {
+            MockCase mockCase = new MockCase();
+            mockCase.setIsDel(9);
             MockCaseExample example = new MockCaseExample();
             example.createCriteria().andIdIn(ids);
-            int deleted = mockCaseMapper.deleteByExample(example);
+            int deleted = mockCaseMapper.updateByExampleSelective(mockCase, example);
             return deleted > 0;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
@@ -127,20 +127,20 @@ public class MockServiceImpl implements MockService {
             if (mockPolicy.getId() == null) {
                 // 新增
                 mockPolicy.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
-                mockPolicy.setCreateTime(DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
-                mockPolicy.setUpdateTime(DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
                 int inserted = mockPolicyMapper.insertSelective(mockPolicy);
                 if (inserted > 0) {
-                    syncPolicyToCache(mockPolicy.getId(),mockPolicy);
+                    syncPolicyToCache(mockPolicy.getId(), mockPolicy);
                 }
                 return inserted > 0;
             } else {
                 // 更新
-                mockPolicy.setUpdateTime(DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
                 int updated = mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
                 if (updated > 0) {
                     // 更新redis
-                    syncPolicyToCache(mockPolicy.getId(),mockPolicy);
+                    syncPolicyToCache(mockPolicy.getId(), mockPolicy);
                 }
                 return updated > 0;
             }
@@ -158,22 +158,25 @@ public class MockServiceImpl implements MockService {
             return false;
         }
         try {
+            MockPolicy mockPolicy = new MockPolicy();
+            mockPolicy.setIsDel(9);
+            mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
             MockPolicyExample example = new MockPolicyExample();
             example.createCriteria().andIdIn(ids);
-            int deleted = mockPolicyMapper.deleteByExample(example);
-            if (deleted > 0){
-                for (Long id : ids){
+            int updated = mockPolicyMapper.updateByExampleSelective(mockPolicy, example);
+            if (updated > 0) {
+                for (Long id : ids) {
                     removePolicyFromCache(id);
                 }
             }
-            return deleted > 0;
+            return updated > 0;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "删除Mock策略失败！ids: " + ids), e);
             return false;
         }
-    
+
     }
 
     @Override
@@ -184,7 +187,7 @@ public class MockServiceImpl implements MockService {
         try {
             MockPolicy mockPolicy = new MockPolicy();
             mockPolicy.setEnabled(0); // 0-启动
-            mockPolicy.setUpdateTime(DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+            mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
             MockPolicyExample example = new MockPolicyExample();
             example.createCriteria().andIdIn(ids);
             int updated = mockPolicyMapper.updateByExampleSelective(mockPolicy, example);
@@ -205,7 +208,7 @@ public class MockServiceImpl implements MockService {
         try {
             MockPolicy mockPolicy = new MockPolicy();
             mockPolicy.setEnabled(1); // 1-关闭
-            mockPolicy.setUpdateTime(DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+            mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
             MockPolicyExample example = new MockPolicyExample();
             example.createCriteria().andIdIn(ids);
             int updated = mockPolicyMapper.updateByExampleSelective(mockPolicy, example);
@@ -224,14 +227,14 @@ public class MockServiceImpl implements MockService {
         return "Mock策略测试成功";
     }
 
-    void syncPolicyToCache(long policyId,MockPolicy mockPolicy){
+    void syncPolicyToCache(long policyId, MockPolicy mockPolicy) {
         // 写入redis
         String redisKey = MOCK_POLICY.concat(String.valueOf(policyId));
         String jsonObject = JSON.toJSONString(mockPolicy);
         redisChgService.set(redisKey, jsonObject);
     }
 
-    void removePolicyFromCache(long policyId){
+    void removePolicyFromCache(long policyId) {
         // 删除redis
         String redisKey = MOCK_POLICY.concat(String.valueOf(policyId));
         redisChgService.del(redisKey);
