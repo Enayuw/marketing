@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum MockNameEnum {
-    TEST_POLLING("1001", "测试轮询"),
-    TEST_RANDOM("1002", "测试随机");
+    TEST_POLLING("test_polling", "测试轮询"),
+    TEST_RANDOM("test_random", "测试随机");
 
     MockNameEnum(String code, String desc) {
         this.code = code;

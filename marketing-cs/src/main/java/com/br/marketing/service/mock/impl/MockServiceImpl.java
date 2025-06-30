@@ -13,12 +13,14 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.MockCaseMapper;
 import com.br.marketing.mapper.MockPolicyMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.MockPolicyFactory;
 import com.br.marketing.service.mock.MockService;
 import com.br.marketing.service.mock.enums.MockNameEnum;
 import com.br.marketing.util.TimeUtils;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,9 @@ public class MockServiceImpl implements MockService {
 
     @Resource
     private EntityOptServiceImpl entityOptService;
+
+    @Autowired
+    MockPolicyImpl mockPolicy;
 
     @Override
     public PageResultReturn getMockPolicyList(MockQueryDTO dto, MarketingUserDetail userDetail) {
@@ -324,6 +329,22 @@ public class MockServiceImpl implements MockService {
     public Object testMockPolicy() {
         // 这里只做简单返回，具体业务逻辑可根据实际需求补充
         return "Mock策略测试成功";
+    }
+
+    @Override
+    public String getMockRedisValue(String localCacheKey) {
+        return redisChgService.get(localCacheKey);
+    }
+
+    @Override
+    public MockCase action(String redisValue) {
+        MockPolicy policy = com.alibaba.fastjson.JSON.parseObject(redisValue, MockPolicy.class);
+        //获取执行策略
+        MockPolicyFactory mockPolicyFactory = mockPolicy.getMockPolicyFactory(policy.getMockPolicyType());
+        if(mockPolicyFactory == null){
+            return new MockCase();
+        }
+        return mockPolicyFactory.action(policy);
     }
 
     void syncPolicyToCache(String mockName, MockPolicy mockPolicy) {

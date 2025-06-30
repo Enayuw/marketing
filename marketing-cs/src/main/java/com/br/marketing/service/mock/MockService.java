@@ -39,5 +39,7 @@ public interface MockService {
 
     Object testMockPolicy();
 
+    String getMockRedisValue(String localCacheKey);
 
+    MockCase action(String redisValue);
 }
