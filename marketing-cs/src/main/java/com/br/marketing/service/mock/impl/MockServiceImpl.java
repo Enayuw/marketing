@@ -349,14 +349,14 @@ public class MockServiceImpl implements MockService {
 
     void syncPolicyToCache(String mockName, MockPolicy mockPolicy) {
         // 写入redis
-        String redisKey = RedisKeyConstant.MOCK_POLICY.concat(mockName);
+        String redisKey = RedisKeyConstant.MOCK_POLICY.concat(":").concat(mockName);
         String jsonObject = JSON.toJSONString(mockPolicy);
         redisChgService.set(redisKey, jsonObject);
     }
 
     void removePolicyFromCache(String mockName) {
         // 删除redis
-        String redisKey = RedisKeyConstant.MOCK_POLICY.concat(mockName);
+        String redisKey = RedisKeyConstant.MOCK_POLICY.concat(":").concat(mockName);
         redisChgService.del(redisKey);
     }
 

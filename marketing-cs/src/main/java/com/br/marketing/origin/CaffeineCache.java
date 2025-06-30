@@ -1,7 +1,7 @@
 package com.br.marketing.origin;
 
+import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.entity.CustomerRoutingKeyConfig;
-import com.br.marketing.entity.MockLocalCache;
 import com.br.marketing.service.CustomerRoutingKeyConfigService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -30,7 +30,7 @@ public class CaffeineCache {
     private Cache<String, String> identifierCache = null;
 
     //添加缓存用于存储mock开关状态
-    private Cache<String, MockLocalCache> mockLocalCache = null;
+    private Cache<String, MockInitDTO> mockLocalCache = null;
 
     @PostConstruct
     private void init() {
@@ -83,7 +83,7 @@ public class CaffeineCache {
      * @param key   唯一key
      * @param value 开关状态
      */
-    public void storeMockSwitchStatus(String key, MockLocalCache value) {
+    public void storeMockSwitchStatus(String key, MockInitDTO value) {
         mockLocalCache.put(key,value);
     }
 
@@ -92,7 +92,7 @@ public class CaffeineCache {
      * @param key 唯一key
      * @return mock开关状态，如果不存在则返回null
      */
-    public MockLocalCache getMockSwitchStatus(String key) {
+    public MockInitDTO getMockSwitchStatus(String key) {
         return mockLocalCache.getIfPresent(key);
     }
 
