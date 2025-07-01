@@ -14,6 +14,9 @@ import lombok.Data;
 @ApiModel("Mock新增修改用例DTO")
 public class MockCreateCaseDTO {
 
+    @ApiModelProperty("id")
+    private Long id;
+
     @ApiModelProperty("Mock名称")
     private String mockName;
 

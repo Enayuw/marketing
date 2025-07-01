@@ -1,5 +1,7 @@
 package com.br.marketing.aspect;
 
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.entity.MockCase;
@@ -40,28 +42,38 @@ public class MockableAspect {
     @Around("@annotation(mockable)")
     public Object handleMockableMethod(ProceedingJoinPoint joinPoint, Mockable mockable) throws Throwable {
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
-        String methodName = method.getName();  // 记录方法名，便于日志追踪
+        Class<?> returnType = method.getReturnType();
+        String methodName = method.getName();
 
         try {
             String mockName = mockable.mockName();
-            String cacheKey = RedisKeyConstant.MOCK_POLICY + ":" + mockName;  // 构造缓存Key
+            String cacheKey = RedisKeyConstant.MOCK_POLICY + ":" + mockName;
 
-            // 1. 先查本地缓存（Caffeine），命中且 enabled=1 则直接执行原方法
             MockInitDTO localCache = caffeineCache.getMockSwitchStatus(cacheKey);
             if (localCache != null && localCache.getEnabled() == 1) {
                 return joinPoint.proceed();
             }
 
-            // 2. 本地缓存未命中或未启用，则查Redis
             String redisMockConfig = mockService.getMockRedisValue(cacheKey);
             if (redisMockConfig != null) {
                 MockCase mockCase = mockService.action(redisMockConfig);
                 if (mockCase != null) {
-                    return mockCase.getResponseBody();
+                    Object responseBody = mockCase.getResponseBody();
+                    // 适配返回类型
+                    if (ApiResult.class.isAssignableFrom(returnType)) {
+                        // 泛型构造方法
+                        ApiResult<Object> apiResult = new ApiResult<>().success(responseBody);
+                        return apiResult;
+                    } else if (Result.class.isAssignableFrom(returnType)) {
+                        Result<Object> result = new Result<>().success().setDate(responseBody);
+                        return result;
+                    } else if (Void.TYPE.equals(returnType)) {
+                        return null;
+                    } else {
+                        return responseBody;
+                    }
                 }
             }
-
-            // 3. 默认情况：执行原方法
             return joinPoint.proceed();
 
         } catch (Exception e) {

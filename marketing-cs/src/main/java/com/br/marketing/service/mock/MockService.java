@@ -17,33 +17,36 @@ import java.util.List;
  */
 public interface MockService {
 
-    PageResultReturn getMockPolicyList(MockQueryDTO dto, MarketingUserDetail userDetail);
-
-    List<MockCase> getMockCaseList(String mockName);
-
-    /**
-     * 添加Mock用例
-     */
-    Boolean addMockCase(MockCreateCaseDTO mockCase, MarketingUserDetail userDetail);
-
-    /**
-     * 批量删除Mock用例
-     */
-    Boolean deleteMockCases(java.util.List<Long> ids);
+    PageResultReturn getMockPolicyList(MockQueryDTO dto);
 
     Boolean saveOrUpdateMockPolicy(MockCreatePolicyDTO mockPolicy, MarketingUserDetail userDetail);
 
-    Boolean deleteMockPolicies(List<String> mockNames);
+    Boolean deleteMockPolicies(List<Long> ids, MarketingUserDetail userDetail);
 
-    Boolean enableMockPolicies(List<String> mockNames);
+    List<MockCase> getMockCaseList(String mockName);
 
-    Boolean disableMockPolicies(List<String> mockNames);
+    Boolean saveOrUpdateMockCase(MockCreateCaseDTO mockCase, MarketingUserDetail userDetail);
+
+    Boolean deleteMockCases(List<Long> ids, MarketingUserDetail userDetail);
+
 
     ApiResult<String> testMockPolicy(String mockName);
 
+    ApiResult<String> testNote();
+
+    /**
+     * 提供给客户端获取redis缓存
+     * @param localCacheKey
+     * @return
+     */
     String getMockRedisValue(String localCacheKey);
 
+    /**
+     * 提供给客户端执行策略
+     * @param redisValue
+     * @return
+     */
     MockCase action(String redisValue);
 
-    ApiResult<String> testNote();
+
 }
