@@ -628,9 +628,9 @@ public class DataCleanServiceImpl implements DataCleanService {
                     modifyFilePoolSize(pool);
                     String[] finalHeaders = headers;
                     int finalTotalProcessed = totalProcessed;
+                    List<String> dataList = new ArrayList<>();
+                    dataList.addAll(batchLines);
                     pool.submit(() -> {
-                        List<String> dataList = new ArrayList<>();
-                        dataList.addAll(batchLines);
                         processBatchDataSync(dataList, finalHeaders, ruleConfigList, apiCode, fileName, finalTotalProcessed);
                     });
                     totalProcessed += batchLines.size();
