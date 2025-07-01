@@ -365,4 +365,13 @@
         and (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
   </select>
 
+  <select id="getLastMonthDataDates" resultType="java.lang.String">
+    SELECT
+      applet_date
+    FROM b_marketing_sync_report
+    WHERE api_code = #{apiCode}
+      AND applet_date BETWEEN DATE_SUB(CURDATE(),INTERVAL 1 month) AND CURDATE()
+    GROUP BY applet_date
+    ORDER BY applet_date DESC
+  </select>
 </mapper>

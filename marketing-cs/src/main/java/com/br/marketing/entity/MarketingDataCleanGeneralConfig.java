@@ -41,6 +41,16 @@ public class MarketingDataCleanGeneralConfig implements Serializable {
     private Integer customRunStatus;
 
     /**
+     * 规则状态：0:待生效,1:试跑成功
+     */
+    private Integer status;
+
+    /**
+     * SFTP路径
+     */
+    private String sftpPath;
+
+    /**
      * 是否删除：1-正常；9-删除
      */
     private Integer isDel;

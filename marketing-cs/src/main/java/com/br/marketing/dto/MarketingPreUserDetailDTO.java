@@ -56,4 +56,10 @@ public class MarketingPreUserDetailDTO implements Serializable {
     private Integer status;
 
     private String cusBatch;
+
+    /**
+     * 任务id
+     */
+    private String taskId;
+
 }

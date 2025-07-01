@@ -485,6 +485,136 @@ public class MarketingDataCleanGeneralConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andStatusIsNull() {
+            addCriterion("`status` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIsNotNull() {
+            addCriterion("`status` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusEqualTo(Integer value) {
+            addCriterion("`status` =", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotEqualTo(Integer value) {
+            addCriterion("`status` <>", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThan(Integer value) {
+            addCriterion("`status` >", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("`status` >=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThan(Integer value) {
+            addCriterion("`status` <", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("`status` <=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIn(List<Integer> values) {
+            addCriterion("`status` in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotIn(List<Integer> values) {
+            addCriterion("`status` not in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusBetween(Integer value1, Integer value2) {
+            addCriterion("`status` between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("`status` not between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathIsNull() {
+            addCriterion("sftp_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathIsNotNull() {
+            addCriterion("sftp_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathEqualTo(String value) {
+            addCriterion("sftp_path =", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathNotEqualTo(String value) {
+            addCriterion("sftp_path <>", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathGreaterThan(String value) {
+            addCriterion("sftp_path >", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathGreaterThanOrEqualTo(String value) {
+            addCriterion("sftp_path >=", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathLessThan(String value) {
+            addCriterion("sftp_path <", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathLessThanOrEqualTo(String value) {
+            addCriterion("sftp_path <=", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathLike(String value) {
+            addCriterion("sftp_path like", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathNotLike(String value) {
+            addCriterion("sftp_path not like", value, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathIn(List<String> values) {
+            addCriterion("sftp_path in", values, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathNotIn(List<String> values) {
+            addCriterion("sftp_path not in", values, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathBetween(String value1, String value2) {
+            addCriterion("sftp_path between", value1, value2, "sftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpPathNotBetween(String value1, String value2) {
+            addCriterion("sftp_path not between", value1, value2, "sftpPath");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

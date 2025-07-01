@@ -15,4 +15,14 @@ public interface MarketingCustomerOriginalDataMapper extends MarketingCustomerOr
 
     List<MarketingCustomerOriginalData> getCustomUploadData(@Param("apiCode")String apiCode, @Param("appletDate")String appletDate,
                                                             @Param("indexId")Long indexId);
+
+    /**
+     * 获取近一个月有数据的日期集合
+     *
+     * @param apiCode API编码
+     * @return 日期列表，格式：yyyy-MM-dd
+     */
+    List<String> getLastMonthDataDates(@Param("apiCode") String apiCode);
+
+    MarketingCustomerOriginalData getCustomDataByDate(@Param("apiCode") String apiCode, @Param("appletDate")String appletDate, @Param("actualNum")Integer actualNum);
 }

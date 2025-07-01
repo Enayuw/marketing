@@ -64,4 +64,18 @@ public class FieldSampleDTO implements Serializable {
      * 节点层级
      */
     private Integer level;
+
+    /**
+     * 父节点完整路径
+     */
+    private String parentPath;
+
+    /**
+     * 节点类型: object, array, primitive
+     */
+    private String nodeType;
+
+
+
+
 } 
