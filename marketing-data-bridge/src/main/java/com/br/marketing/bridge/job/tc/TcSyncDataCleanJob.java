@@ -143,6 +143,15 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         for(List<MarketingTcyrSync> tcyrSyncItemList : partitionList){
             List<Long> idList =tcyrSyncItemList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
             try {
+                    //剔除column_1、column_2无用字段
+                    for (MarketingTcyrSync tcyrSyncItem : tcyrSyncItemList) {
+                        JSONObject extendJson = JSONObject.parseObject(tcyrSyncItem.getExtend());
+                        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncCleanExcludeFieldList();
+                        for (String excludeField : tcyrSyncExcludeFieldList) {
+                            extendJson.remove(excludeField);
+                        }
+                        tcyrSyncItem.setExtend(extendJson.toJSONString());
+                    }
                     List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncItemList), JSONObject.class);
                     Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
                     log.warn("{},apiCode:{},batchNo:{},syncDataClen调用uploadClean结果 code:{},isSuccess:{},msg:{}",

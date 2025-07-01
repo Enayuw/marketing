@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.enums.FileTypeEnum;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.TransferFileTaskService;
 import com.br.marketing.vo.TransferFileTaskVO;
@@ -18,10 +19,7 @@ import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -40,6 +38,8 @@ public class TransferFileTaskServiceImpl implements TransferFileTaskService {
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
+    final static List<Integer> FILE_TYPE_LIST = Arrays.asList(FileTypeEnum.CAR_DATA.getValue(), FileTypeEnum.SHORK_LINK_DATA.getValue());
+
     @Override
     public PageResultReturn getTransferFileList(int current, int size, String serach, String startDateStart, String startDateEnd) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
@@ -53,7 +53,9 @@ public class TransferFileTaskServiceImpl implements TransferFileTaskService {
         PageHelper.startPage(current, size);
         List<TransferFileTaskVO> list = transferFileTaskMapper.getTransferFileList(serach,startDateStart,startDateEnd);
         list.stream().map(transferFileTaskVO -> {
-            if(transferFileTaskVO.getStatus()==4 && yyyyMMdd.equals(transferFileTaskVO.getStartDate())){
+            if(transferFileTaskVO.getStatus()==4
+                    && yyyyMMdd.equals(transferFileTaskVO.getStartDate())
+                    && !FILE_TYPE_LIST.contains(transferFileTaskVO.getFileType())){
                 transferFileTaskVO.setIsOperation(1);
             }else {
                 transferFileTaskVO.setIsOperation(0);
