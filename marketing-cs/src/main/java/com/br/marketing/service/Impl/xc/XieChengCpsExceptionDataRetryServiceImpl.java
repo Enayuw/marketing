@@ -21,7 +21,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 携程CPS异常数据重试服务实现类
@@ -45,21 +44,21 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
     @Resource
     XieChengCpsRobDataCollidingService robDataCollidingService;
     private final static int PARTITION_SIZE = 50;
+    TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_RETRY_3710090.getName(), 5, 10);
 
     @Override
     public void process() {
-        // 创建线程池
-        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_RETRY_3710090.getName(), 5, 10);
+        try {
+            // 分页大小
+            Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
 
-        // 分页大小
-        Integer pageSize = marketingCommonConfig.getXieChengCpsCollidingDataSyncPageSize();
-
-        // 先撞周期表 再撞非周期表
-        processByCycle(threadPool, pageSize);
-        processByRob(threadPool, pageSize);
-
-        // 关闭线程池
-        threadPool.shutdownAndAwaitTermination();
+            // 先撞周期表 再撞非周期表
+            processByCycle(threadPool, pageSize);
+            processByRob(threadPool, pageSize);
+        } catch (Exception e) {
+            String subject = "携程CPS异常重试作业异常";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage(), subject), e);
+        }
     }
 
     /**
@@ -67,7 +66,7 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
      * @param threadPool 线程池
      * @param pageSize   分页大小
      */
-    private void processByCycle(ThreadPoolExecutor threadPool, Integer pageSize) {
+    private void processByCycle(TpDynamicExecutor threadPool, Integer pageSize) {
         Long minId = null;
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
@@ -95,7 +94,6 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
 
         // 等待所有任务完成
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        log.warn("携程CPS周期数据重试撞库完成，处理批次数：{}", futures.size());
     }
 
     /**
@@ -103,7 +101,7 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
      * @param threadPool 线程池
      * @param pageSize   分页大小
      */
-    private void processByRob(ThreadPoolExecutor threadPool, Integer pageSize) {
+    private void processByRob(TpDynamicExecutor threadPool, Integer pageSize) {
         Long minId = null;
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
@@ -131,6 +129,5 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
 
         // 等待所有任务完成
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        log.warn("携程CPS非周期数据重试撞库完成，处理批次数：{}", futures.size());
     }
 }

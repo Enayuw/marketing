@@ -39,7 +39,6 @@ public class XieChengCpsCollidingDataBusinessServiceImpl implements XieChengCpsC
         } catch (Exception e) {
             String subject = "携程CPS同步撞库数据作业，数据入库，子线程处理异常！";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage(), subject), e);
-            throw e;
         }
     }
 } 

@@ -66,6 +66,7 @@ public class XieChengCpsCollidingDataProcessServiceImpl implements XieChengCpsCo
         LocalFileExample example = new LocalFileExample();
         // 查询待处理文件 查询条件b_local_file：fileType="xiechengsmscollidingvt"，fileName包含yyyyMMdd，status=2，pushstatus=null
         example.createCriteria()
+                // todo 换新的路径
                 .andFileTypeEqualTo("xiechengsmscollidingvt")
                 .andFileNameLike("%" + formatted + "%")
                 .andStatusEqualTo("2")
@@ -82,7 +83,7 @@ public class XieChengCpsCollidingDataProcessServiceImpl implements XieChengCpsCo
                 processFile(localFile);
                 // 只有process执行成功，才更新push_status，否则下次调度时会重新执行
                 updatePushStatus(localFile, "2");
-                log.info("携程CPS撞库数据同步作业，文件处理完成，localFileId: {}", localFile.getId());
+                log.warn("携程CPS撞库数据同步作业，文件处理完成，localFileId: {}", localFile.getId());
             } catch (Exception e) {
                 String subject = "携程CPS撞库数据同步作业异常,localFileId:" + localFile.getId();
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage(), subject), e);

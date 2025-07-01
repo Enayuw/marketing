@@ -25,7 +25,7 @@
     <if test="minId != null and minId>0">
       and id > #{minId}
     </if>
-    order by id asc limit #{pageSize};
+    order by id limit #{pageSize};
   </select>
 
   <!-- 查询重试数据 -->

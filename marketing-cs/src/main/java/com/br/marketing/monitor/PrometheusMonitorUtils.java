@@ -77,6 +77,9 @@ public class PrometheusMonitorUtils {
      */
     public static final String CUSTOMER_APICODE_METRIC_NAME = "customerApiCodeMetricName";
 
-
+    /**
+     * 携程cps撞库量级统计
+     */
+    public static final String COUNT_XIECHENG_CPS_COLLIDING_DATA_METRIC_NAME = "countXieChengCpsCollidingDataMetricName";
 
 }

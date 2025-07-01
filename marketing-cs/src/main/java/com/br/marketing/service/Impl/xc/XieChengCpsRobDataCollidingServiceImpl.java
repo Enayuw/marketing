@@ -67,7 +67,7 @@ public class XieChengCpsRobDataCollidingServiceImpl implements XieChengCpsRobDat
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_ROB_3710090.getName(), 5, 10);
 
         // 分页大小
-        Integer pageSize = marketingCommonConfig.getXieChengCpsCollidingDataSyncPageSize();
+        Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
 
         Long minId = null;
         List<CompletableFuture<Void>> futures = new ArrayList<>();

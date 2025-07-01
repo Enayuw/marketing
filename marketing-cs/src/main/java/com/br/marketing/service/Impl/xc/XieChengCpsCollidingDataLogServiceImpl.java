@@ -61,7 +61,6 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
         XieChengCpsCollidingDataLog.setHttpCode(Integer.valueOf(httpcode));
         XieChengCpsCollidingDataLog.setBusinessCode(businessCode);
         XieChengCpsCollidingDataLog.setReturnContent(returnData.toString(SerializerFeature.WriteMapNullValue));
-        XieChengCpsCollidingDataLog.setExtend(returnData.toJSONString());
         XieChengCpsCollidingDataLog.setCreateTime(new Date());
         XieChengCpsCollidingDataLog.setUpdateTime(new Date());
         return XieChengCpsCollidingDataLog;

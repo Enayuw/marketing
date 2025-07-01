@@ -1,14 +1,14 @@
 package com.br.marketing.xcconsumer.consumer.rocketmq;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.TypeReference;
+import com.br.cloud.counter.BrCounter;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
-import com.br.marketing.entity.XieChengCollidingDataLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.XieChengCpsCollidingDataLog;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengCpsCollidingDataLogService;
-import com.br.marketing.service.Impl.xc.XieChengReportService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
@@ -56,6 +56,13 @@ public class MarketingXiechengCpsCollidingLogQueueConsumer extends BaseMqMessage
                     , messageExt.getBrokerName(), messageExt.getTopic()
                     , messageExt.getTags(), bodyString);
         List<XieChengCpsCollidingDataLog> collidingDataLogList = JSONArray.parseArray(bodyString, XieChengCpsCollidingDataLog.class);
+        try {
+            //调用数量监控
+            BrCounter.count(PrometheusMonitorUtils.COUNT_XIECHENG_CPS_COLLIDING_DATA_METRIC_NAME, "3710090", "xc-consumer",
+                    collidingDataLogList.size());
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服转化接口统计异常！"), ex);
+        }
         consumerService.consumerRun(messageExt, xieChengCpsCollidingDataLogService::saveXieChengCpsCollidingDataLog, collidingDataLogList);
     }
 

@@ -1,5 +1,7 @@
 package com.br.marketing.client.xiecheng;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -574,9 +577,13 @@ public class XieChengService {
             dataMap.put("sha256Code",s);
             if(i%2==0){
                 dataMap.put("result",true);
+                dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
             }else {
                 dataMap.put("result",false);
             }
+            dataMap.put("md5Code",null);
+            dataMap.put("releaseDate",null);
+            dataMap.put("hitRequestNo", RandomUtil.randomString(29).toUpperCase());
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
             dataMap.put("info","测试info");

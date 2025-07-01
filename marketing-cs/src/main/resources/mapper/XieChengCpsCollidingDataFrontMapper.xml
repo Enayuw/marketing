@@ -5,7 +5,7 @@
     <select id="selectNoDupDataByLocalIdtikv_" resultType="com.br.marketing.entity.XieChengCpsCollidingDataFront">
         select c.*
         from (SELECT a.id, a.sha256_code_list, a.local_id, a.api_code,
-                     ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
+                     ROW_NUMBER() OVER (PARTITION BY a.sha256_code_list ORDER BY a.id) AS row_num
               from b_xiecheng_cps_colliding_data_front a
               where a.is_deleted = 0
                 and a.local_id = #{localId}

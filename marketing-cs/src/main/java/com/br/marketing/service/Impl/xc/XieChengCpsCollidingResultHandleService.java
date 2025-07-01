@@ -146,7 +146,6 @@ public class XieChengCpsCollidingResultHandleService {
         cpsLoopCycle.setPackageId(robData.getPackageId());
         cpsLoopCycle.setDataSourceType("F"); // 来源于非周期数据
         cpsLoopCycle.setCellSha256CodeList(cell);
-
         // 解析释放时间
         cpsLoopCycle.setReleaseTime(DateUtil.parse(releaseTime, DatePattern.NORM_DATETIME_PATTERN));
         cpsLoopCycle.setPushTime(new Date());
