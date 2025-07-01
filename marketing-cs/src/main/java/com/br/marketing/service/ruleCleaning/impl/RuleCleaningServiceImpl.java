@@ -755,7 +755,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      */
     @Override
     public Object previewFieldCleaning(String fieldSample, String cleaningRule) {
-        log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
+        //log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
 
         // 尝试解析为规则列表（支持多规则按顺序执行）
         JSONArray jsonArray = null;
@@ -767,29 +767,28 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (jsonArray != null && !jsonArray.isEmpty()) {
             // 初始化结果为输入值，这是关键点
             String currentValue = fieldSample;
-            log.warn("进入多规则处理流程，规则数量: {}, 初始值: {}", jsonArray.size(), currentValue);
 
             // 按顺序执行每条规则
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject ruleConfig = jsonArray.getJSONObject(i);
                 // 输出当前规则配置，便于调试
-                log.warn("规则#{} 配置: {}", i + 1, ruleConfig);
+                //log.warn("规则#{} 配置: {}", i + 1, ruleConfig);
 
                 if (ruleConfig.containsKey("expression")) {
                     // 提取表达式执行
                     Object expression = ruleConfig.get("expression");
                     String expressionJson = JSON.toJSONString(expression);
 
-                    log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
+                    //log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
 
                     // 关键：使用当前值作为输入，执行规则
                     Object stepResult = executeSingleRule(currentValue, expressionJson, null);
                     currentValue = String.valueOf(stepResult);
 
-                    log.warn("规则#{} 处理后的值: {}", i + 1, currentValue);
+                    //log.warn("规则#{} 处理后的值: {}", i + 1, currentValue);
                 }
             }
-            log.warn("多规则处理完成，最终结果: {}", currentValue);
+            //log.warn("多规则处理完成，最终结果: {}", currentValue);
             // 返回最终处理结果
             return currentValue;
         }
@@ -849,7 +848,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * 执行单个清洗规则
      */
     private Object executeSingleRule(String fieldSample, String cleaningRule, Object nodeParse) {
-        log.warn("执行单个规则 - 输入值: {}, 规则: {}", fieldSample, cleaningRule);
+        //log.warn("执行单个规则 - 输入值: {}, 规则: {}", fieldSample, cleaningRule);
         
         Map<String, Object> ruleMap = null;
         try {
@@ -859,18 +858,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         
         if (ruleMap == null || ruleMap.isEmpty()) {
-            log.warn("规则映射为空，返回原值");
+            //log.warn("规则映射为空，返回原值");
             return fieldSample;
         }
         
         // 获取操作类型
         String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
         if (StringUtils.isBlank(operator)) {
-            log.warn("操作类型为空，返回原值");
+            //log.warn("操作类型为空，返回原值");
             return fieldSample;
         }
 
-        log.warn("操作类型: {}", operator);
+        //log.warn("操作类型: {}", operator);
         
         // 根据操作类型执行不同的清洗逻辑
         Object result = fieldSample;
@@ -925,7 +924,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 break;
         }
 
-        log.warn("单个规则处理结果: {}", result);
+        //log.warn("单个规则处理结果: {}", result);
         return result;
 
     }
@@ -1109,7 +1108,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 去除关键字（忽略大小写）
             String regex = "(?i)" + Pattern.quote(patternField);
             String result = fieldSample.replaceAll(regex, "");
-            log.warn("去除关键字操作（忽略大小写）：原值 '{}' 去除关键字 '{}' 结果为 '{}'", fieldSample, patternField, result);
+            //log.warn("去除关键字操作（忽略大小写）：原值 '{}' 去除关键字 '{}' 结果为 '{}'", fieldSample, patternField, result);
             return result;
         } else if ("retain".equals(operator)) {
             // 保留关键字，去除其他内容（忽略大小写）
@@ -1118,7 +1117,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             Matcher matcher = pattern.matcher(fieldSample);
             
             if (!matcher.find()) {
-                log.warn("保留关键字操作（忽略大小写）：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
+                //log.warn("保留关键字操作（忽略大小写）：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
                 return fieldSample;
             }
             
@@ -1130,8 +1129,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             while (matcher.find()) {
                 result.append(matcher.group());
             }
-            
-            log.warn("保留关键字操作（忽略大小写）：原值 '{}' 提取关键字 '{}' 结果为 '{}'", fieldSample, patternField, result.toString());
+
+            //log.warn("保留关键字操作（忽略大小写）：原值 '{}' 提取关键字 '{}' 结果为 '{}'", fieldSample, patternField, result.toString());
             return result.toString();
         }
 
@@ -1152,7 +1151,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 使用正则表达式进行忽略大小写的替换
         String regex = "(?i)" + Pattern.quote(oldValue);
         String result = fieldSample.replaceAll(regex, newValue);
-        log.warn("替换操作（忽略大小写）：原值 '{}' 替换 '{}' 为 '{}' 结果是 '{}'", fieldSample, oldValue, newValue, result);
+        //log.warn("替换操作（忽略大小写）：原值 '{}' 替换 '{}' 为 '{}' 结果是 '{}'", fieldSample, oldValue, newValue, result);
         
         return result;
     }
@@ -1179,7 +1178,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
 
-        log.warn("执行截取操作 - 原始输入: '{}'", fieldSample);
+        //log.warn("执行截取操作 - 原始输入: '{}'", fieldSample);
 
         // 默认值 - 索引从1开始计算
         // 默认从第1个字符开始
@@ -1203,15 +1202,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         int length = fieldSample.length();
-        log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
+        //log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
                 length, startIndex, endIndex, startLocation);
         
         // 转换为Java的0基索引
         int javaStartIndex = startIndex - 1;
         // endIndex就表示要包含的字符数
         int javaEndIndex = endIndex;
-        
-        log.warn("转换为Java的0基索引: 开始索引={}, 结束索引={}", javaStartIndex, javaEndIndex);
+
+        //log.warn("转换为Java的0基索引: 开始索引={}, 结束索引={}", javaStartIndex, javaEndIndex);
 
         if ("right".equals(startLocation)) {
             // 从右侧开始计算
@@ -1219,8 +1218,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             int rightStartIndex = length - endIndex;
             // 从右数第startIndex个字符再+1(substring右开)
             int rightEndIndex = length - startIndex + 1;
-            
-            log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
+
+            //log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
                     rightStartIndex, rightEndIndex);
             
             // 不需要交换，只需要确保索引有效
@@ -1231,8 +1230,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 确保索引有效
         javaStartIndex = Math.max(0, Math.min(javaStartIndex, length));
         javaEndIndex = Math.max(javaStartIndex, Math.min(javaEndIndex, length));
-        
-        log.warn("最终Java索引: startIndex={}, endIndex={}", javaStartIndex, javaEndIndex);
+
+        //log.warn("最终Java索引: startIndex={}, endIndex={}", javaStartIndex, javaEndIndex);
         
         // 如果开始和结束索引相同，返回空字符串
         if (javaStartIndex == javaEndIndex) {
@@ -1241,7 +1240,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         String result = fieldSample.substring(javaStartIndex, javaEndIndex);
-        log.warn("截取结果: '{}'", result);
+        //log.warn("截取结果: '{}'", result);
 
         return result;
     }
