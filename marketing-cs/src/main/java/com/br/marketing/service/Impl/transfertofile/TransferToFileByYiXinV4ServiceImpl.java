@@ -130,7 +130,8 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                     List<String> yinXinTransferRealTimeApiCodes = marketingCommonConfig.getYinXinTransferV4ApiCodes();
                     String fileName;
                     if(null != yinXinTransferRealTimeApiCodes && yinXinTransferRealTimeApiCodes.size()>0){
-                        fileName = String.format("%s_%s.csv", yinXinTransferRealTimeApiCodes.get(0), today);
+                        String newToday = today.replace("-", "");
+                        fileName = String.format("%s_%s.csv", yinXinTransferRealTimeApiCodes.get(0), newToday);
                     }else{
                         fileName = String.format("yixinzhuanhua_all_%s.csv", today);
                     }
