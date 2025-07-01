@@ -58,6 +58,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
+import com.br.marketing.service.Impl.xc.XieChengCpsCollidingDataLogService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
@@ -250,7 +251,8 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     UpdatePhoneSaleMapper updatePhoneSaleMapper;
-
+    @Resource
+    private XieChengCpsCollidingDataLogService cpsLogService;
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
@@ -1580,9 +1582,15 @@ public class PushDataServiceImpl implements PushDataService {
                             }
                         });
                     }
-                    // mq 消息发送
-                    sendMqData(xieChengSmsCollidingDataLogVtList);
 
+                    // 推送外呼
+                    List<XieChengCpsCollidingDataLog> xieChengCpsCollidingDataLogList = xieChengSmsCollidingDataLogVtList.stream().map(t -> {
+                        XieChengCpsCollidingDataLog xieChengCpsCollidingDataLog = new XieChengCpsCollidingDataLog();
+                        xieChengCpsCollidingDataLog.setCellSha256CodeList(t.getSha256CodeList());
+                        xieChengCpsCollidingDataLog.setResult(t.getResult());
+                        return xieChengCpsCollidingDataLog;
+                    }).collect(Collectors.toList());
+                    cpsLogService.pushRobotMessage(xieChengCpsCollidingDataLogList);
                 } else {
                     // 异常请求 只更新日志表状态3
                     String msg = resultJson.getString("msg");

@@ -1,39 +1,25 @@
 package com.br.marketing.service.Impl.xc;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.entity.XieChengCollidingDataHitRequestNoMapping;
 import com.br.marketing.entity.XieChengCpsCollidingDataLog;
-import com.br.marketing.entity.XieChengCpsCollidingDataLog;
-import com.br.marketing.entity.XieChengCpsCollidingDataLog;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
-import com.br.marketing.mapper.XieChengCollidingDataHitRequestNoMappingMapper;
 import com.br.marketing.mapper.XieChengCpsCollidingDataLogMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.retry.DatabaseOperationService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -115,6 +101,10 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
 
     @Override
     public void pushRobotMessage(List<XieChengCpsCollidingDataLog> collidingLogs) {
+        if (CollectionUtils.isEmpty(collidingLogs)) {
+            return;
+        }
+
         List<String> sha256CodeListFalseList = collidingLogs.stream()
                 .filter(item -> !item.getResult())
                 .map(XieChengCpsCollidingDataLog::getCellSha256CodeList)
