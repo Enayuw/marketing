@@ -1,5 +1,6 @@
 package com.br.marketing.service.mock;
 
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
@@ -37,7 +38,7 @@ public interface MockService {
 
     Boolean disableMockPolicies(List<String> mockNames);
 
-    Object testMockPolicy();
+    ApiResult<String> testMockPolicy(String mockName);
 
     String getMockRedisValue(String localCacheKey);
 

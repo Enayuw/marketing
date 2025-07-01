@@ -3,7 +3,9 @@ package com.br.marketing.service.mock.impl;
 import com.alibaba.fastjson2.JSON;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
+import com.br.common.util.StringUtils;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -326,9 +328,16 @@ public class MockServiceImpl implements MockService {
     }
 
     @Override
-    public Object testMockPolicy() {
-        // 这里只做简单返回，具体业务逻辑可根据实际需求补充
-        return "Mock策略测试成功";
+    public ApiResult<String> testMockPolicy(String mockName) {
+        String mockRedisValue = getMockRedisValue(mockName);
+        if(StringUtils.isEmpty(mockRedisValue)){
+            return new ApiResult<String>().fail("Mock策略测试失败，redis不存在该mock：" + mockName);
+        }
+        MockCase action = action(mockRedisValue);
+        if(action == null){
+            return new ApiResult<String>().fail("Mock策略测试失败，未配置该mock：" + mockName);
+        }
+        return new ApiResult<String>().success().setData(action.getResponseBody());
     }
 
     @Override
@@ -338,7 +347,7 @@ public class MockServiceImpl implements MockService {
 
     @Override
     public MockCase action(String redisValue) {
-        MockPolicy policy = com.alibaba.fastjson.JSON.parseObject(redisValue, MockPolicy.class);
+        MockPolicy policy = JSON.parseObject(redisValue, MockPolicy.class);
         //获取执行策略
         MockPolicyFactory mockPolicyFactory = mockPolicy.getMockPolicyFactory(policy.getMockPolicyType());
         if(mockPolicyFactory == null){

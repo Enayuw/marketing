@@ -1,9 +1,8 @@
-package com.br.marketing.service.Impl;
+package com.br.marketing.service.mock.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.origin.CaffeineCache;
@@ -15,7 +14,10 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ClassName MockBaffleConfigServiceImpl
@@ -33,32 +35,25 @@ public class MockBaffleConfigServiceImpl {
     CaffeineCache caffeineCache;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
-
-    ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10);
-
+    
     @PostConstruct
-    public void init() throws InterruptedException {
+    public void init() {
         try {
             final int interval = marketingCommonConfig.getMockPollingInterval() != null && marketingCommonConfig.getMockPollingInterval() > 0
                     ? marketingCommonConfig.getMockPollingInterval() : 60;
 
-            List<String> allCodes = MockNameEnum.getAllCodes();
-            for (String code : allCodes) {
-                pool.submit(() -> checkAndUpdateMockCache(code));
+            ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(
+                    () -> {
+                        try {
+                            checkAndUpdateMockCache();
+                        } catch (Exception e) {
+                            log.error("Mock轮询异常", e);
+                        }
+                    },
+                    0, interval, TimeUnit.SECONDS
+            );
 
-                ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(
-                        () -> {
-                            try {
-                                checkAndUpdateMockCache(code);
-                            } catch (Exception e) {
-                                log.error("Mock轮询异常", e);
-                            }
-                        },
-                        0, interval, TimeUnit.SECONDS
-                );
-            }
         } catch (Exception e) {
             log.warn("");
         }
@@ -68,28 +63,33 @@ public class MockBaffleConfigServiceImpl {
      * 检查并更新Mock缓存
      * 比较本地缓存和Redis版本，如果不一致则更新本地缓存
      */
-    private void checkAndUpdateMockCache(String code) {
+    private void checkAndUpdateMockCache() {
         try {
-            String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + code);
-            // 获取本地缓存
-            MockInitDTO mockInitDTO = caffeineCache.getMockSwitchStatus(localCacheKey);
 
-            // 获取Redis缓存
-            String redisValue = null;
-            try {
-                redisValue = redisChgService.get(localCacheKey);
-            } catch (Exception e) {
-                log.warn("获取Redis缓存失败，key: {}", localCacheKey, e);
-            }
-            //如果redis查询为空 则返回
-            if (redisValue == null) {
-                return;
-            }
+            List<String> allCodes = MockNameEnum.getAllCodes();
 
-            // 比较版本
-            if (mockInitDTO == null || !isVersionConsistent(mockInitDTO, redisValue)) {
-                // 版本不一致，更新本地缓存
-                updateLocalCache(localCacheKey, redisValue);
+            for (String code : allCodes) {
+                String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + code);
+                // 获取本地缓存
+                MockInitDTO mockInitDTO = caffeineCache.getMockSwitchStatus(localCacheKey);
+
+                // 获取Redis缓存
+                String redisValue = null;
+                try {
+                    redisValue = redisChgService.get(localCacheKey);
+                } catch (Exception e) {
+                    log.warn("获取Redis缓存失败，key: {}", localCacheKey, e);
+                }
+                //如果redis查询为空 则返回
+                if (redisValue == null) {
+                    return;
+                }
+
+                // 比较版本
+                if (mockInitDTO == null || !isVersionConsistent(mockInitDTO, redisValue)) {
+                    // 版本不一致，更新本地缓存
+                    updateLocalCache(localCacheKey, redisValue);
+                }
             }
 
         } catch (Exception e) {

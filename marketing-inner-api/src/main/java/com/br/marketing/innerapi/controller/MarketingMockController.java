@@ -177,20 +177,15 @@ public class MarketingMockController {
         }
     }
 
-
-    /**
-     * 测试mock规则
-     */
     @PostMapping("/testMockPolicy")
     @ApiOperation(value = "测试Mock规则", notes = "测试Mock规则")
-    public ApiResult<Object> testMockPolicy() {
+    public ApiResult<String> testMockPolicy(@RequestParam(name = "mockName") String mockName) {
         try {
-            Object result = mockService.testMockPolicy();
-            return new ApiResult<Object>().success(result);
+            return  mockService.testMockPolicy(mockName);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "测试Mock规则接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<Object>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
         }
     }
 
