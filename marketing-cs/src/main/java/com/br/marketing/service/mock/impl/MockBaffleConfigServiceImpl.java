@@ -82,7 +82,7 @@ public class MockBaffleConfigServiceImpl {
                 }
                 //如果redis查询为空 则返回
                 if (redisValue == null) {
-                    return;
+                    continue;
                 }
 
                 // 比较版本

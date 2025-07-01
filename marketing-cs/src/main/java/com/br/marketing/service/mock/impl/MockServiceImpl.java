@@ -1,16 +1,25 @@
 package com.br.marketing.service.mock.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
+import com.br.marketing.client.MockClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.mock.MockCreateCaseDTO;
+import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MockCase;
+import com.br.marketing.entity.MockCaseExample;
+import com.br.marketing.entity.MockPolicy;
+import com.br.marketing.entity.MockPolicyExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.MockCaseMapper;
 import com.br.marketing.mapper.MockPolicyMapper;
@@ -50,6 +59,8 @@ public class MockServiceImpl implements MockService {
 
     @Resource
     private EntityOptServiceImpl entityOptService;
+    @Resource
+    private MockClient mockClient;
 
     @Autowired
     MockPolicyImpl mockPolicy;
@@ -99,8 +110,20 @@ public class MockServiceImpl implements MockService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean addMockCase(MockCase mockCase) {
+    public Boolean addMockCase(MockCreateCaseDTO dto, MarketingUserDetail userDetail) {
         try {
+            MockCase mockCase = new MockCase();
+            mockCase.setMockName(dto.getMockName());
+            mockCase.setApiCode(dto.getApiCode());
+            mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
+            mockCase.setStatusCode(dto.getStatusCode());
+            mockCase.setDelayMs(dto.getDelayMs());
+            mockCase.setDelayFluctuation(dto.getDelayFluctuation());
+            mockCase.setDescription(dto.getDescription());
+            mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
+            mockCase.setOptUserName(userDetail.getUserName());
+            mockCase.setEnabled(dto.getEnabled());
+            mockCase.setIsDel(Constants.DATA_VALID);
             mockCase.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
             mockCase.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
             mockCase.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
@@ -115,7 +138,7 @@ public class MockServiceImpl implements MockService {
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                    "添加Mock用例失败！mockName: " + mockCase.getMockName()), e);
+                    "添加Mock用例失败！mockName: " + dto.getMockName()), e);
             return false;
         }
     }
@@ -152,22 +175,30 @@ public class MockServiceImpl implements MockService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean saveOrUpdateMockPolicy(MockPolicy mockPolicy) {
+    public Boolean saveOrUpdateMockPolicy(MockCreatePolicyDTO dto, MarketingUserDetail userDetail) {
         try {
             //判断mockName在枚举值中是否存在
-            boolean isExist = MockNameEnum.getAllCodes().contains(mockPolicy.getMockName());
+            boolean isExist = MockNameEnum.getAllCodes().contains(dto.getMockName());
             if (!isExist) {
-                log.warn("当前mockName不存在，请确认mockName是否正确！mockName:{}", mockPolicy.getMockName());
+                log.warn("当前mockName不存在，请确认mockName是否正确！mockName:{}", dto.getMockName());
                 return false;
             }
             //判断请求实体中是否包含id，若不包含则为新增，反之为更新
-            boolean isInsert = (mockPolicy.getId() == null);
+            boolean isInsert = (dto.getId() == null);
+            MockPolicy mockPolicy = new MockPolicy();
             if (isInsert) {
                 // 新增
+                mockPolicy.setMockName(dto.getMockName());
+                mockPolicy.setMockPolicyType(dto.getMockPolicyType());
+                mockPolicy.setEnabled(dto.getEnabled());
+                mockPolicy.setVersion("1");
+                mockPolicy.setDescription(dto.getDescription());
+                mockPolicy.setOptUserId(Long.valueOf(userDetail.getId()));
+                mockPolicy.setOptUserName(userDetail.getUserName());
                 mockPolicy.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
                 mockPolicy.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
                 mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-                mockPolicy.setVersion("1");
+                mockPolicy.setIsDel(Constants.DATA_VALID);
                 mockPolicyMapper.insertSelective(mockPolicy);
                 //增加日志
                 Long id = mockPolicy.getId();
@@ -175,22 +206,21 @@ public class MockServiceImpl implements MockService {
             } else {
                 // 更新
                 int newVersion;
-                MockPolicy newMockPolicy = new MockPolicy();
-                BeanUtils.copyProperties(mockPolicy, newMockPolicy);
-                newVersion = Integer.parseInt(mockPolicy.getVersion()) + 1;
-                newMockPolicy.setVersion(String.valueOf(newVersion));
-                newMockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-                mockPolicyMapper.updateByPrimaryKeySelective(newMockPolicy);
+                BeanUtils.copyProperties(dto, mockPolicy);
+                newVersion = Integer.parseInt(dto.getVersion()) + 1;
+                mockPolicy.setVersion(String.valueOf(newVersion));
+                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
                 //增加操作日志
-                Long id = mockPolicy.getId();
-                entityOptService.writeOptLog(id, newMockPolicy, mockPolicy);
+                Long id = dto.getId();
+                entityOptService.writeOptLog(id, mockPolicy, dto);
             }
             // Redis更新，失败重试3次
             redisRetry(mockPolicy);
 
-            log.warn("MockPolicy保存/更新成功，mockName: {}, version: {}", mockPolicy.getMockName(), mockPolicy.getVersion());
+            log.warn("MockPolicy保存/更新成功，mockName: {}, version: {}", dto.getMockName(), dto.getVersion());
         } catch (Exception e) {
-            log.error("MockPolicy保存/更新失败，mockName: {}, 错误信息: {}", mockPolicy.getMockName(), e.getMessage(), e);
+            log.error("MockPolicy保存/更新失败，mockName: {}, 错误信息: {}", dto.getMockName(), e.getMessage(), e);
         }
         return true;
     }
@@ -330,11 +360,11 @@ public class MockServiceImpl implements MockService {
     @Override
     public ApiResult<String> testMockPolicy(String mockName) {
         String mockRedisValue = getMockRedisValue(mockName);
-        if(StringUtils.isEmpty(mockRedisValue)){
+        if (StringUtils.isEmpty(mockRedisValue)) {
             return new ApiResult<String>().fail("Mock策略测试失败，redis不存在该mock：" + mockName);
         }
         MockCase action = action(mockRedisValue);
-        if(action == null){
+        if (action == null) {
             return new ApiResult<String>().fail("Mock策略测试失败，未配置该mock：" + mockName);
         }
         return new ApiResult<String>().success().setData(action.getResponseBody());
@@ -350,10 +380,23 @@ public class MockServiceImpl implements MockService {
         MockPolicy policy = JSON.parseObject(redisValue, MockPolicy.class);
         //获取执行策略
         MockPolicyFactory mockPolicyFactory = mockPolicy.getMockPolicyFactory(policy.getMockPolicyType());
-        if(mockPolicyFactory == null){
+        if (mockPolicyFactory == null) {
             return new MockCase();
         }
         return mockPolicyFactory.action(policy);
+    }
+
+    @Override
+    public ApiResult<String> testNote() {
+        Result<String> stringResult = null;
+        try {
+            stringResult = mockClient.testMock();
+            log.warn("mock策略执行: {}", JSONObject.toJSONString(stringResult));
+        } catch (Exception e) {
+            log.error("mock策略执行失败: {}", e.getMessage());
+            return new ApiResult<String>().fail().setData(JSONObject.toJSONString(stringResult));
+        }
+        return new ApiResult<String>().success().setData(JSONObject.toJSONString(stringResult));
     }
 
     void syncPolicyToCache(String mockName, MockPolicy mockPolicy) {

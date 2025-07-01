@@ -5,13 +5,11 @@ import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.entity.MockCase;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.service.mock.MockService;
-import com.br.marketing.service.mock.impl.MockPolicyImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -31,52 +29,44 @@ import java.lang.reflect.Method;
 public class MockableAspect {
 
     @Resource
-    CaffeineCache caffeineCache;
-
-    @Autowired
-    MockPolicyImpl mockPolicy;
+    private CaffeineCache caffeineCache;
 
     @Resource(name = "newMockService")
     private MockService mockService;
 
-    @Around("@annotation(com.br.marketing.aspect.Mockable)")
-    public Object handleCustomAnnotation(ProceedingJoinPoint joinPoint) throws Throwable {
+    /**
+     * 拦截带有 @Mockable 注解的方法，动态决定是否走Mock逻辑
+     */
+    @Around("@annotation(mockable)")
+    public Object handleMockableMethod(ProceedingJoinPoint joinPoint, Mockable mockable) throws Throwable {
+        Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
+        String methodName = method.getName();  // 记录方法名，便于日志追踪
 
-        // 获取方法签名
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-
-        // 获取注解
-        Mockable mockable = method.getAnnotation(Mockable.class);
         try {
-            //解析mock名称
-            Object result = null;
             String mockName = mockable.mockName();
-            String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + mockName);
-            // 获取本地缓存
-            MockInitDTO localCache = caffeineCache.getMockSwitchStatus(localCacheKey);
-            if (localCache != null) {
-                //判断是否启用
-                Integer enabled = localCache.getEnabled();
-                //未启用则执行原方法
-                if (enabled == 1) {
-                    return joinPoint.proceed();
-                }
-                // 获取Redis缓存
-                String redisValue = mockService.getMockRedisValue(localCacheKey);
-                if (redisValue == null) {
-                    return result;
-                }
-                //策略执行
-                MockCase mockCase = mockService.action(redisValue);
-                return mockCase.getResponseBody();
+            String cacheKey = RedisKeyConstant.MOCK_POLICY + ":" + mockName;  // 构造缓存Key
+
+            // 1. 先查本地缓存（Caffeine），命中且 enabled=1 则直接执行原方法
+            MockInitDTO localCache = caffeineCache.getMockSwitchStatus(cacheKey);
+            if (localCache != null && localCache.getEnabled() == 1) {
+                return joinPoint.proceed();
             }
-            return result;
+
+            // 2. 本地缓存未命中或未启用，则查Redis
+            String redisMockConfig = mockService.getMockRedisValue(cacheKey);
+            if (redisMockConfig != null) {
+                MockCase mockCase = mockService.action(redisMockConfig);
+                if (mockCase != null) {
+                    return mockCase.getResponseBody();
+                }
+            }
+
+            // 3. 默认情况：执行原方法
+            return joinPoint.proceed();
+
         } catch (Exception e) {
-            log.error("方法执行异常: {}", method.getName(), e);
+            log.error("【Mock拦截异常】方法 {} 执行失败，原因：{}", methodName, e.getMessage(), e);
             throw e;
         }
     }
-
-
 }

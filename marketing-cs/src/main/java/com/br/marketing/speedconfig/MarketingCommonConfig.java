@@ -3185,5 +3185,10 @@ public class MarketingCommonConfig {
      * 轮询线程轮询频率
      */
     private Integer mockPollingInterval;
+
+    /**
+     * Mock接口挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, Object> mockBaffle;
 }
 

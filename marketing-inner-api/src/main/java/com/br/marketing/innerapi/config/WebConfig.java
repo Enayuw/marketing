@@ -45,6 +45,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/car/**")
                 .addPathPatterns("/ruleCleaning/**")
                 .addPathPatterns("/carChannel/**")
+                .addPathPatterns("/mock/**")
                 .addPathPatterns("/tag/**");
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/rule/**")
@@ -61,6 +62,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/car/**")
                 .addPathPatterns("/ruleCleaning/**")
                 .addPathPatterns("/carChannel/**")
+                .addPathPatterns("/mock/**")
                 .addPathPatterns("/tag/**");
         super.addInterceptors(registry);
     }

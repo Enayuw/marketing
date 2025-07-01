@@ -6,9 +6,10 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.dto.mock.MockCreateCaseDTO;
+import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
-import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.mock.MockService;
@@ -80,9 +81,10 @@ public class MarketingMockController {
      */
     @PostMapping("/addMockCase")
     @ApiOperation(value = "添加Mock用例", notes = "添加Mock用例")
-    public ApiResult<Boolean> addMockCase(@RequestBody MockCase mockCase) {
+    public ApiResult<Boolean> addMockCase(@RequestBody MockCreateCaseDTO dto) {
         try {
-            Boolean result = mockService.addMockCase(mockCase);
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            Boolean result = mockService.addMockCase(dto,userDetail);
             return new ApiResult<Boolean>().success(result);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
@@ -114,9 +116,10 @@ public class MarketingMockController {
             @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "MockQueryDTO")
     })
     @AddDataAuthBusiness
-    public ApiResult<Boolean> saveOrUpdateMockPolicy(@RequestBody @Valid MockPolicy mockPolicy) {
+    public ApiResult<Boolean> saveOrUpdateMockPolicy(@RequestBody @Valid MockCreatePolicyDTO dto) {
         try {
-            Boolean result = mockService.saveOrUpdateMockPolicy(mockPolicy);
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            Boolean result = mockService.saveOrUpdateMockPolicy(dto,userDetail);
             return new ApiResult<Boolean>().success(result);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
@@ -185,6 +188,18 @@ public class MarketingMockController {
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "测试Mock规则接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/testNote")
+    @ApiOperation(value = "测试Mock注解", notes = "测试Mock注解")
+    public ApiResult<String> testNote() {
+        try {
+            return mockService.testNote();
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "测试Mock注解接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
         }
     }
