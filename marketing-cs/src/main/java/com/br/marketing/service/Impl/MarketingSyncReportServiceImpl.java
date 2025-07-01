@@ -928,4 +928,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         syncReport.setUpdateTime(new Date());
         return stringMap;
     }
+
+    @Override
+    public List<String> getLastMonthDataDates(String apiCode) {
+        return syncReportMapper.getLastMonthDataDates(apiCode);
+    }
 }
