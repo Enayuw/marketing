@@ -1202,8 +1202,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         int length = fieldSample.length();
-        //log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
-                length, startIndex, endIndex, startLocation);
+        /*log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
+                length, startIndex, endIndex, startLocation);*/
         
         // 转换为Java的0基索引
         int javaStartIndex = startIndex - 1;
@@ -1219,8 +1219,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 从右数第startIndex个字符再+1(substring右开)
             int rightEndIndex = length - startIndex + 1;
 
-            //log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
-                    rightStartIndex, rightEndIndex);
+            /*log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
+                    rightStartIndex, rightEndIndex);*/
             
             // 不需要交换，只需要确保索引有效
             javaStartIndex = Math.max(0, rightStartIndex);
