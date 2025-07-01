@@ -162,16 +162,11 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
     public void writeXieChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
-        LocalDate date = LocalDate.now();
-        //定义日期格式
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        //使用格式化字符串将LocalDate对象格式化为字符串
-        int day = Integer.valueOf(date.format(formatter));
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
-            Result<List<MarketingNewTransferData>> transferData = getOrderTransferData(day , page);
+            Result<List<MarketingNewTransferData>> transferData = getOrderTransferData(page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -244,13 +239,12 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
 
     /**
      * 获取撞库数据
-     * @param day
      * @param pageIndex
      * @return
      */
-    private Result<List<MarketingNewTransferData>> getOrderTransferData(int day, Integer pageIndex) {
+    private Result<List<MarketingNewTransferData>> getOrderTransferData(Integer pageIndex) {
         Integer limitStart = pageIndex * 2000;
-        List<MarketingNewTransferData> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferNewData(day, limitStart);
+        List<MarketingNewTransferData> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferByCpsLog(limitStart);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

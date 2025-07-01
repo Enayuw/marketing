@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.XieChengCpsCollidingDataLogMapperBase" >
+<mapper namespace="com.br.marketing.mapper.XieChengCpsCollidingDataLogMapper" >
+    <select id="selectLatestCpsLog" resultType="com.br.marketing.entity.XieChengCpsCollidingDataLog">
+        select release_time, org_channel from b_xiecheng_cps_colliding_data_log
+        where cell_sha256_code_list = #{sha256Tel}
+          and release_time >= NOW()
+          and result = 1 and is_delete = 0
+        order by release_time desc limit 1
+    </select>
 </mapper>

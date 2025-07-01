@@ -77,9 +77,7 @@ public class MarketingXiechengCpsCollidingLogQueueConsumer extends BaseMqMessage
 
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
-        defaultMQPushConsumer.setPullBatchSize(2);
-        // todo
-//        defaultMQPushConsumer.setPopBatchNums(2);
         defaultMQPushConsumer.setClientRebalance(false);
+        defaultMQPushConsumer.setPopInvisibleTime(300000L);
     }
 }

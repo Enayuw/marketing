@@ -1,15 +1,16 @@
 package com.br.marketing.xcconsumer.consumer.rocketmq;
 
-import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ import java.nio.charset.StandardCharsets;
         consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_CPS_PUSH_ROBOT_QUEUE,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_PUSH_ROBOT,
         consumeThreadNumber = 2, consumeThreadMax = 5, awaitTerminationMillisWhenShutdown = 10000)
-public class MarketingXieChengCpsPushRobotConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+public class MarketingXieChengCpsPushRobotConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> , RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -68,4 +69,9 @@ public class MarketingXieChengCpsPushRobotConsumer extends BaseMqMessageListener
         super.dispatchMessage(messageExt);
     }
 
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setClientRebalance(false);
+        defaultMQPushConsumer.setPopInvisibleTime(300000L);
+    }
 }
