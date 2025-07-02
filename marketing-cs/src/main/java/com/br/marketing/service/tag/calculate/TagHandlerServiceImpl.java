@@ -3,12 +3,14 @@ package com.br.marketing.service.tag.calculate;
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tag.MaterializedViewDTO;
 import com.br.marketing.entity.tag.*;
 import com.br.marketing.enums.SourceTypeEnum;
 import com.br.marketing.enums.tag.DeleteFlagEnum;
+import com.br.marketing.enums.tag.SourceCodeEnum;
 import com.br.marketing.enums.tag.TagData;
 import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
@@ -23,8 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import javax.swing.text.html.HTML;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -304,35 +309,29 @@ public class TagHandlerServiceImpl implements TagHandleService {
     private void insertDataDoris(String sourceName, Integer sourceType, List<String> sourceCodes,
                                  TagDataRule tagDataRule) {
         String sourcecode = sourceCodes.get(0);
-        String cell;
-        String custNum;
-        String timeField;
-        String contiditionSql;
 
         // 根据表类型确定字段名
-        boolean isCallSource = SourceTypeEnum.CALL.getCode().equals(sourcecode);
+        FieldMappingStrategy fieldMappingStrategy = getFieldMappingStrategy(sourceType);
 
-        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
-            // 基础表字段处理
-            cell = isCallSource ? "phone_num_encoded" : "cell";
-            custNum = isCallSource ? "case_num" : "cust_num";
-            timeField = isCallSource ? "case_log_create_time" : "create_time";
-            contiditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
-        } else {
-            // 非基础表字段处理
-            String prefix = sourcecode.concat("_");
-            cell = isCallSource ? prefix.concat("phone_num_encoded") : prefix.concat("cell");
-            custNum = isCallSource ? prefix.concat("case_num") : prefix.concat("cust_num");
-            timeField = isCallSource ? prefix.concat("case_log_create_time") : prefix.concat("create_time");
-            contiditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
-        }
+        FieldMappingResult mappingResult = fieldMappingStrategy.mapFields(sourcecode,tagDataRule);
+        String cell = mappingResult.getCell();
+        String custNum = mappingResult.getCustNum();
+        String timeField = mappingResult.getTimeField();
+        String contiditionSql = mappingResult.getConditionSql();
 
         // 构建插入SQL
         StringBuilder insertBuilder = new StringBuilder();
-        insertBuilder.append(String.format(
+        if (SourceTypeEnum.SHORTLINK.getCode().equals(sourcecode) && TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
+            insertBuilder.append(String.format(
+                "insert into t_tag_data_detail(tag_code,calculate_date,cell,create_time,update_time) " +
+                        "SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, now() AS create_time, now() AS update_time from %s",
+                tagDataRule.getTagCode(), cell, sourceName));
+        }else {
+            insertBuilder.append(String.format(
                 "insert into t_tag_data_detail(tag_code,calculate_date,cell,cust_num,create_time,update_time) " +
-                        "SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now(), now() from %s",
+                        "SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
                 tagDataRule.getTagCode(), cell, custNum, sourceName));
+        }
 
         // 添加条件子句
         insertBuilder.append(" where ");
@@ -344,8 +343,18 @@ public class TagHandlerServiceImpl implements TagHandleService {
         // 添加其他条件
         insertBuilder.append("(").append(contiditionSql).append(")");
         // 执行插入操作
-        log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", insertBuilder);
+        log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", tagDataRule.getTagCode(), insertBuilder);
         flagDataMapper.insertbI_(insertBuilder.toString());
+    }
+
+    private static FieldMappingStrategy getFieldMappingStrategy(Integer sourceType) {
+        FieldMappingStrategy fieldMappingStrategy;
+        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
+            fieldMappingStrategy = new BaseFieldMappingStrategy();
+        } else {
+            fieldMappingStrategy = new ViewFieldMappingStrategy();
+        }
+        return fieldMappingStrategy;
     }
 
     private List<TagDataRuleCalculate> getTagCalculateRecord(String tagCode, String calculateDate, Integer status) {
@@ -418,10 +427,14 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
             String sourceCode = sourceCodes.get(i);
+            SourceCodeEnum sourceCodeEnum = SourceCodeEnum.fromCode(sourceCode);
+            if (sourceCodeEnum == null) {
+                throw new BusinessException("当前数据源编码不存在！");
+            }
             String sourceName = sourceConfigList.stream().filter(sourceConfig -> sourceConfig.getSourceCode()
                     .equals(sourceCode)).findFirst().get().getSourceName().replace("${apiCode}", apiCode);
             // 时间条件
-            StringBuilder whereSql = new StringBuilder().append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "case_log_create_time" : "create_time")
+            StringBuilder whereSql = new StringBuilder().append(sourceCodeEnum.getTimeField())
                     .append(">=").append("\"").append(DateHelper.getPreviousDate("m", 3)).append("\"");
             // 添加字段
             List<String> fieldNameList = flagDataMapper.queryColumnNamebI_(sourceName);
@@ -433,12 +446,12 @@ public class TagHandlerServiceImpl implements TagHandleService {
             if (i == 0) {
                 joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode);
                 relateField = sourceCode.concat(".")
-                        .concat(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell");
+                        .concat(sourceCodeEnum.getCellField());
             } else {
                 joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode)
                         .append(" on ")
                         .append(sourceCode).append(".")
-                        .append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell")
+                        .append(sourceCodeEnum.getCellField())
                         .append("=").append(relateField);
             }
         }
