@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.xc;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
@@ -66,8 +67,7 @@ public class XieChengCpsCollidingDataProcessServiceImpl implements XieChengCpsCo
         LocalFileExample example = new LocalFileExample();
         // 查询待处理文件 查询条件b_local_file：fileType="xiechengsmscollidingvt"，fileName包含yyyyMMdd，status=2，pushstatus=null
         example.createCriteria()
-                // todo 换新的路径
-                .andFileTypeEqualTo("xiechengsmscollidingvt")
+                .andFileTypeEqualTo(SftpFileTypeEnum.XIECHENG_CPS_COLLIDING.getValue())
                 .andFileNameLike("%" + formatted + "%")
                 .andStatusEqualTo("2")
                 .andPushStatusIsNull();
