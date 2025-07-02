@@ -43,10 +43,10 @@
 
   <!-- 批量保存数据 -->
   <insert id="batchSaveData">
-    insert into b_xiecheng_cps_colliding_data_rob (package_id, cell_sha256_code_list, is_delete, create_time, update_time)
+    insert into b_xiecheng_cps_colliding_data_rob (package_id, cell_sha256_code_list, is_delete, create_time, update_time, data_source_type)
     values
     <foreach collection="list" item="item" separator=",">
-      (#{packageId}, #{item.sha256CodeList}, 0, now(), now())
+      (#{packageId}, #{item.sha256CodeList}, 0, now(), now(), 'F')
     </foreach>
   </insert>
 
