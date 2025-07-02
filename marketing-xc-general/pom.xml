@@ -68,13 +68,6 @@
             <artifactId>okhttp</artifactId>
             <version>3.14.9</version>
         </dependency>
-
-        <!-- 线程池动态配置客户端 -->
-        <dependency>
-            <groupId>org.middleheavenframework.boot</groupId>
-            <artifactId>tp-dynamic-metric-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
     <build>
         <resources>
