@@ -12,9 +12,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
-import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
+import com.br.marketing.entity.XieChengCpsCollidingDataLog;
+import com.br.marketing.entity.XieChengCpsCollidingDataLogExample;
+import com.br.marketing.mapper.XieChengCpsCollidingDataLogMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -28,7 +28,6 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,6 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.time.ZoneId;
 
 
 /**
@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTransferService {
     public static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
     @Resource
-    XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
+    XieChengCpsCollidingDataLogMapper xieChengCpsCollidingDataLogMapper;
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
@@ -72,7 +72,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         Date nowDayEndTime = DateHelper.getNowDayEndTime();
         String xieChengSmsApiCode = marketingCommonConfig.getXieChengSmsApiCode();
         String cid = tableCreateService.getCId(xieChengSmsApiCode);
-        Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 
         List<String> sha256CodeList = new ArrayList<>();
         for (Object o : jsonArray) {
@@ -83,10 +82,20 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
             // ack
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
-        XieChengSmsCollidingDataLogVtExample xieChengSmsCollidingDataLogVtExample = new XieChengSmsCollidingDataLogVtExample();
-        xieChengSmsCollidingDataLogVtExample.createCriteria().andSha256CodeListIn(sha256CodeList).andSendDateEqualTo(sendDate);
-        List<XieChengSmsCollidingDataLogVt> selectByExample =
-                xieChengSmsCollidingDataLogVtMapper.selectByExample(xieChengSmsCollidingDataLogVtExample);
+        
+        // 修改为查询CPS撞库日志表，条件是手机号和当天创建时间
+        Date todayStart = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date todayEnd = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        
+        XieChengCpsCollidingDataLogExample cpsLogExample = new XieChengCpsCollidingDataLogExample();
+        cpsLogExample.createCriteria()
+                .andCellSha256CodeListIn(sha256CodeList)
+                .andCreateTimeGreaterThanOrEqualTo(todayStart)
+                .andCreateTimeLessThan(todayEnd)
+                .andIsDeleteEqualTo(0);
+        
+        List<XieChengCpsCollidingDataLog> selectByExample = 
+                xieChengCpsCollidingDataLogMapper.selectByExample(cpsLogExample);
 
         // 推送客服数据集合
         List<ConversionData> conversionDataList = new CopyOnWriteArrayList<>();
@@ -95,9 +104,9 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         modifyCorePoolSize();
 
         CountDownLatch countDownLatch = new CountDownLatch(selectByExample.size());
-        for (XieChengSmsCollidingDataLogVt vt : selectByExample) {
-            final String dataId = vt.getId().toString();
-            final String sha256Code = vt.getSha256CodeList();
+        for (XieChengCpsCollidingDataLog cpsLog : selectByExample) {
+            final String dataId = cpsLog.getId().toString();
+            final String sha256Code = cpsLog.getCellSha256CodeList();
             pool.submit(() -> buildConversionDataList(nowDayEndTime, cid, sha256Code, dataId, countDownLatch, conversionDataList));
         }
         try {
