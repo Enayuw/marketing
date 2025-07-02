@@ -108,6 +108,11 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
                 .filter(item -> !item.getResult())
                 .map(XieChengCpsCollidingDataLog::getCellSha256CodeList)
                 .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(sha256CodeListFalseList)) {
+            return;
+        }
+
         String jsonString = JSON.toJSONString(sha256CodeListFalseList);
         rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC
                 , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_PUSH_ROBOT, jsonString);

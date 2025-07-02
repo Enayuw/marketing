@@ -64,7 +64,7 @@ public class XieChengCpsCollidingResultHandleService {
         robDto.setCellSha256CodeList(loopCycleDto.getCellSha256CodeList());
         robDto.setPushTime(new Date());
         robDto.setRetryCount(0);
-        robDto.setIsDelete(0);
+        robDto.setIsDelete(1);
         robDto.setCreateTime(new Date());
         robDto.setUpdateTime(new Date());
 

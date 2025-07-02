@@ -176,6 +176,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Resource
+    private XieChengCpsCollidingDataLogMapper xieChengCpsCollidingDataLogMapper;
     @Resource
     @Qualifier("xieChengThreadPool")
     ThreadPoolExecutor xieChengThreadPool;
@@ -1433,6 +1436,12 @@ public class PushDataServiceImpl implements PushDataService {
 
             // 发送异常统计信息
             sendAlertMessage(sendDate);
+
+            // 更新文件推送状态
+            LocalFile localFile = new LocalFile();
+            localFile.setId(localId);
+            localFile.setPushStatus("2");
+            localFileMapper.updateByPrimaryKeySelective(localFile);
         } catch (Exception e) {
             log.error("携程短信撞库【VT】推送异常: {}", e);
 
@@ -1759,7 +1768,7 @@ public class PushDataServiceImpl implements PushDataService {
                         redisChgService.unlock(key, value);
                         return;
                     }
-                    XieChengSmsCollidingDataLogVt dataLogVt = xieChengSmsCollidingDataLogVtMapper.selectLatestVtLog(sha256Tel);
+                    XieChengCpsCollidingDataLog dataLogVt = xieChengCpsCollidingDataLogMapper.selectLatestCpsLog(sha256Tel);
                     if (null == dataLogVt) {
                         resultData.setDataMessage("撞库释放时间小于当前时间或无返回true的撞库日志");
                         resultData.setStatus(2);

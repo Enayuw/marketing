@@ -33,7 +33,7 @@ import java.util.List;
 @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
         consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_CPS_COLLIDING_LOG_QUEUE,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_COLLIDING_LOG_QUEUE,
-        consumeThreadNumber = 2, consumeThreadMax = 5, awaitTerminationMillisWhenShutdown = 10000)
+        consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 10000)
 public class MarketingXiechengCpsCollidingLogQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> , RocketMQPushConsumerLifecycleListener {
 
     @Autowired

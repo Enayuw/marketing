@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
         consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_CPS_PUSH_ROBOT_QUEUE,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_PUSH_ROBOT,
-        consumeThreadNumber = 2, consumeThreadMax = 5, awaitTerminationMillisWhenShutdown = 10000)
+        consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 10000)
 public class MarketingXieChengCpsPushRobotConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> , RocketMQPushConsumerLifecycleListener {
 
     @Autowired
@@ -34,8 +34,6 @@ public class MarketingXieChengCpsPushRobotConsumer extends BaseMqMessageListener
 
     @Autowired
     XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
 
     @Override
     protected String consumerName() {
