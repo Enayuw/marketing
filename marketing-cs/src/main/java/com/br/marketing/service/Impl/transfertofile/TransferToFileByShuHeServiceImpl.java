@@ -104,10 +104,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
             ",clc_usr_adt_lmt_lv0,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
 
-    private final static String TABLE_HEADER_CHONGSHEN = "apicode,taskid,usertype,custNum,cell,is_turn,is_black," +
-            "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim" +
-            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
-
     static {
         FILE_NAME_PART = new HashMap<>(8);
         FILE_NAME_PART.put("促首登", "%s_cushoudeng_%s%s");
