@@ -61,9 +61,6 @@ public class XieChengCpsCollidingDataProcessServiceImpl implements XieChengCpsCo
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        // 获取当天日期格式
-        String formatted = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
         LocalFileExample example = new LocalFileExample();
         // 查询待处理文件 查询条件b_local_file：fileType="xiecheng_cps_colliding"，status=2，pushstatus=null
         example.createCriteria()
