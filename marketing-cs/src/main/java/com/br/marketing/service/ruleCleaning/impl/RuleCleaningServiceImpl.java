@@ -5,12 +5,17 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
+import com.br.marketing.client.rulecleaning.CleanConfigDTO;
+import com.br.marketing.client.rulecleaning.*;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.clean.DataProcessEnum;
@@ -19,11 +24,13 @@ import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralFieldConfigMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
-import com.br.marketing.client.rulecleaning.FieldSampleDTO;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -36,12 +43,11 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
 
 /**
  * 规则数据清洗接口实现
@@ -69,6 +75,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
 
     @Resource
+    private MarketingSyncReportMapper marketingSyncReportMapper;
+
+    @Resource
+    private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
+
+    @Resource
     private MarketingDataCleanGeneralFieldConfigMapper marketingDataCleanGeneralFieldConfigMapper;
 
     @Resource
@@ -79,6 +91,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private DataCleanServiceImpl dataCleanService;
+
+    @Resource
+    SyncConfigMapper syncConfigMapper;
+
+    @Resource
+    private PushRuleService pushRuleService;
+
+    @Resource
+    private MarketingDataCleanGeneralRuleConfigMapper marketingDataCleanGeneralRuleConfigMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 规则列表查询
@@ -731,7 +755,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      */
     @Override
     public Object previewFieldCleaning(String fieldSample, String cleaningRule) {
-        log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
+        //log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
 
         // 尝试解析为规则列表（支持多规则按顺序执行）
         JSONArray jsonArray = null;
@@ -743,29 +767,28 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (jsonArray != null && !jsonArray.isEmpty()) {
             // 初始化结果为输入值，这是关键点
             String currentValue = fieldSample;
-            log.warn("进入多规则处理流程，规则数量: {}, 初始值: {}", jsonArray.size(), currentValue);
 
             // 按顺序执行每条规则
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject ruleConfig = jsonArray.getJSONObject(i);
                 // 输出当前规则配置，便于调试
-                log.warn("规则#{} 配置: {}", i + 1, ruleConfig);
+                //log.warn("规则#{} 配置: {}", i + 1, ruleConfig);
 
                 if (ruleConfig.containsKey("expression")) {
                     // 提取表达式执行
                     Object expression = ruleConfig.get("expression");
                     String expressionJson = JSON.toJSONString(expression);
 
-                    log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
+                    //log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
 
                     // 关键：使用当前值作为输入，执行规则
                     Object stepResult = executeSingleRule(currentValue, expressionJson, null);
                     currentValue = String.valueOf(stepResult);
 
-                    log.warn("规则#{} 处理后的值: {}", i + 1, currentValue);
+                    //log.warn("规则#{} 处理后的值: {}", i + 1, currentValue);
                 }
             }
-            log.warn("多规则处理完成，最终结果: {}", currentValue);
+            //log.warn("多规则处理完成，最终结果: {}", currentValue);
             // 返回最终处理结果
             return currentValue;
         }
@@ -825,7 +848,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * 执行单个清洗规则
      */
     private Object executeSingleRule(String fieldSample, String cleaningRule, Object nodeParse) {
-        log.warn("执行单个规则 - 输入值: {}, 规则: {}", fieldSample, cleaningRule);
+        //log.warn("执行单个规则 - 输入值: {}, 规则: {}", fieldSample, cleaningRule);
         
         Map<String, Object> ruleMap = null;
         try {
@@ -835,18 +858,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         
         if (ruleMap == null || ruleMap.isEmpty()) {
-            log.warn("规则映射为空，返回原值");
+            //log.warn("规则映射为空，返回原值");
             return fieldSample;
         }
         
         // 获取操作类型
         String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
         if (StringUtils.isBlank(operator)) {
-            log.warn("操作类型为空，返回原值");
+            //log.warn("操作类型为空，返回原值");
             return fieldSample;
         }
 
-        log.warn("操作类型: {}", operator);
+        //log.warn("操作类型: {}", operator);
         
         // 根据操作类型执行不同的清洗逻辑
         Object result = fieldSample;
@@ -901,7 +924,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 break;
         }
 
-        log.warn("单个规则处理结果: {}", result);
+        //log.warn("单个规则处理结果: {}", result);
         return result;
 
     }
@@ -1085,7 +1108,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 去除关键字（忽略大小写）
             String regex = "(?i)" + Pattern.quote(patternField);
             String result = fieldSample.replaceAll(regex, "");
-            log.warn("去除关键字操作（忽略大小写）：原值 '{}' 去除关键字 '{}' 结果为 '{}'", fieldSample, patternField, result);
+            //log.warn("去除关键字操作（忽略大小写）：原值 '{}' 去除关键字 '{}' 结果为 '{}'", fieldSample, patternField, result);
             return result;
         } else if ("retain".equals(operator)) {
             // 保留关键字，去除其他内容（忽略大小写）
@@ -1094,7 +1117,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             Matcher matcher = pattern.matcher(fieldSample);
             
             if (!matcher.find()) {
-                log.warn("保留关键字操作（忽略大小写）：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
+                //log.warn("保留关键字操作（忽略大小写）：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
                 return fieldSample;
             }
             
@@ -1106,8 +1129,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             while (matcher.find()) {
                 result.append(matcher.group());
             }
-            
-            log.warn("保留关键字操作（忽略大小写）：原值 '{}' 提取关键字 '{}' 结果为 '{}'", fieldSample, patternField, result.toString());
+
+            //log.warn("保留关键字操作（忽略大小写）：原值 '{}' 提取关键字 '{}' 结果为 '{}'", fieldSample, patternField, result.toString());
             return result.toString();
         }
 
@@ -1128,7 +1151,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 使用正则表达式进行忽略大小写的替换
         String regex = "(?i)" + Pattern.quote(oldValue);
         String result = fieldSample.replaceAll(regex, newValue);
-        log.warn("替换操作（忽略大小写）：原值 '{}' 替换 '{}' 为 '{}' 结果是 '{}'", fieldSample, oldValue, newValue, result);
+        //log.warn("替换操作（忽略大小写）：原值 '{}' 替换 '{}' 为 '{}' 结果是 '{}'", fieldSample, oldValue, newValue, result);
         
         return result;
     }
@@ -1155,7 +1178,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
 
-        log.warn("执行截取操作 - 原始输入: '{}'", fieldSample);
+        //log.warn("执行截取操作 - 原始输入: '{}'", fieldSample);
 
         // 默认值 - 索引从1开始计算
         // 默认从第1个字符开始
@@ -1179,15 +1202,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         int length = fieldSample.length();
-        log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
-                length, startIndex, endIndex, startLocation);
+        /*log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
+                length, startIndex, endIndex, startLocation);*/
         
         // 转换为Java的0基索引
         int javaStartIndex = startIndex - 1;
         // endIndex就表示要包含的字符数
         int javaEndIndex = endIndex;
-        
-        log.warn("转换为Java的0基索引: 开始索引={}, 结束索引={}", javaStartIndex, javaEndIndex);
+
+        //log.warn("转换为Java的0基索引: 开始索引={}, 结束索引={}", javaStartIndex, javaEndIndex);
 
         if ("right".equals(startLocation)) {
             // 从右侧开始计算
@@ -1195,9 +1218,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             int rightStartIndex = length - endIndex;
             // 从右数第startIndex个字符再+1(substring右开)
             int rightEndIndex = length - startIndex + 1;
-            
-            log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
-                    rightStartIndex, rightEndIndex);
+
+            /*log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
+                    rightStartIndex, rightEndIndex);*/
             
             // 不需要交换，只需要确保索引有效
             javaStartIndex = Math.max(0, rightStartIndex);
@@ -1207,8 +1230,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 确保索引有效
         javaStartIndex = Math.max(0, Math.min(javaStartIndex, length));
         javaEndIndex = Math.max(javaStartIndex, Math.min(javaEndIndex, length));
-        
-        log.warn("最终Java索引: startIndex={}, endIndex={}", javaStartIndex, javaEndIndex);
+
+        //log.warn("最终Java索引: startIndex={}, endIndex={}", javaStartIndex, javaEndIndex);
         
         // 如果开始和结束索引相同，返回空字符串
         if (javaStartIndex == javaEndIndex) {
@@ -1217,7 +1240,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         String result = fieldSample.substring(javaStartIndex, javaEndIndex);
-        log.warn("截取结果: '{}'", result);
+        //log.warn("截取结果: '{}'", result);
 
         return result;
     }
@@ -1287,7 +1310,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 处理优先级操作
      */
-    private Object handlePriorityOperation(String fieldSample, Map<String, Object> ruleMap) {
+    private Object handlePriorityOperation(Object fieldSample, Map<String, Object> ruleMap) {
         // 如果字段值是列表类型
         if (!"List".equals(ruleMap.get("fieldType")) || !ruleMap.containsKey("fieldValue")) {
             return fieldSample;
@@ -1295,11 +1318,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         // 获取并处理fieldValue，支持多种格式
         List<String> fieldValues = new ArrayList<>();
-        Object rawFieldValue = ruleMap.get("fieldValue");
         
-        if (rawFieldValue instanceof List) {
+        if (fieldSample instanceof List) {
             // 已经是列表，直接使用
-            List<?> rawList = (List<?>) rawFieldValue;
+            List<?> rawList = (List<?>) fieldSample;
             for (Object item : rawList) {
                 if (item instanceof String) {
                     fieldValues.add((String) item);
@@ -1318,8 +1340,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     fieldValues.add(String.valueOf(item));
                 }
             }
-        } else if (rawFieldValue instanceof String) {
-            String strValue = (String) rawFieldValue;
+        } else if (fieldSample instanceof String) {
+            String strValue = (String) fieldSample;
             
             // 尝试判断是否为JSON数组格式
             if (strValue.startsWith("[") && strValue.endsWith("]")) {
@@ -1355,14 +1377,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         
         log.warn("解析fieldValue得到的值列表: {}", fieldValues);
-        
-        if (fieldValues.isEmpty() || fieldValues.size() == 1) {
-            // 如果有默认值则返回默认值
-            if (ruleMap.containsKey("defaultValue")) {
-                return ruleMap.get("defaultValue");
-            }
-            return fieldSample;
-        }
 
         // 获取优先级条件
         List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
@@ -1370,6 +1384,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 没有条件，返回列表中的第一个值
             log.warn("没有优先级条件，返回列表中的第一个值: {}", fieldValues.get(0));
             return fieldValues.get(0);
+        }
+
+        // 检查优先级规则数量限制（最多6个）
+        if (conditions.size() > 6) {
+            log.warn("优先级规则数量超过限制(6个)，只处理前6个规则");
+            conditions = conditions.subList(0, 6);
         }
 
         // 优先级排序后的结果
@@ -1391,29 +1411,45 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 按数字排序
                 String sort = condition.containsKey("sort") ? String.valueOf(condition.get("sort")) : "desc";
 
-                // 处理包含数字和非数字的情况
-                List<NumberStringPair> pairs = new ArrayList<>();
-                for (String value : processedValues) {
-                    pairs.add(new NumberStringPair(value));
-                }
-
-                // 根据数字大小排序
-                if ("desc".equals(sort)) {
-                    // 降序（从大到小）
-                    Collections.sort(pairs, (p1, p2) -> Double.compare(p2.getNumber(), p1.getNumber()));
+                // 检查是否所有值都是纯字符串（不包含数字）
+                boolean allPureStrings = processedValues.stream()
+                        .allMatch(v -> !v.matches(".*\\d+.*"));
+                
+                if (allPureStrings) {
+                    // 纯字符串按字母排序
+                    if ("desc".equals(sort)) {
+                        // 降序（Z到A）
+                        Collections.sort(processedValues, Collections.reverseOrder());
+                    } else {
+                        // 升序（A到Z）
+                        Collections.sort(processedValues);
+                    }
+                    log.warn("纯字符串按字母排序后: {}", processedValues);
                 } else {
-                    // 升序（从小到大）
-                    Collections.sort(pairs, (p1, p2) -> Double.compare(p1.getNumber(), p2.getNumber()));
-                }
+                    // 包含数字的字符串，使用原有的数字排序逻辑
+                    List<NumberStringPair> pairs = new ArrayList<>();
+                    for (String value : processedValues) {
+                        pairs.add(new NumberStringPair(value));
+                    }
 
-                log.warn("数字排序后: {}", pairs.stream()
-                        .map(p -> p.getOriginalString() + "(" + p.getNumber() + ")")
-                        .collect(java.util.stream.Collectors.joining(", ")));
+                    // 根据数字大小排序
+                    if ("desc".equals(sort)) {
+                        // 降序（从大到小）
+                        Collections.sort(pairs, (p1, p2) -> Double.compare(p2.getNumber(), p1.getNumber()));
+                    } else {
+                        // 升序（从小到大）
+                        Collections.sort(pairs, (p1, p2) -> Double.compare(p1.getNumber(), p2.getNumber()));
+                    }
 
-                // 更新处理后的值列表
-                processedValues.clear();
-                for (NumberStringPair pair : pairs) {
-                    processedValues.add(pair.getOriginalString());
+                    log.warn("数字排序后: {}", pairs.stream()
+                            .map(p -> p.getOriginalString() + "(" + p.getNumber() + ")")
+                            .collect(java.util.stream.Collectors.joining(", ")));
+
+                    // 更新处理后的值列表
+                    processedValues.clear();
+                    for (NumberStringPair pair : pairs) {
+                        processedValues.add(pair.getOriginalString());
+                    }
                 }
                 anyConditionMatched = true;
                 
@@ -1445,23 +1481,35 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return processedValues.get(0);
         }
         
-        // 如果没有条件匹配，使用defaultValue作为索引从原始列表中选择
+        // 如果没有条件匹配或处理后没有值，使用兜底方案
+        log.warn("没有条件匹配或处理后没有值，使用兜底方案");
+        
+        // 使用defaultValue作为索引从原始列表中选择（下标从1开始）
         if (ruleMap.containsKey("defaultValue")) {
             try {
                 // 获取defaultValue值(从1开始计数)
                 int defaultIdx = Integer.parseInt(String.valueOf(ruleMap.get("defaultValue")));
+                
+                // 验证defaultValue不能为空且必须大于0
+                if (defaultIdx <= 0) {
+                    log.warn("兜底方案索引值必须大于0，当前值: {}", defaultIdx);
+                    return fieldSample;
+                }
+                
                 // 转换为0基索引
                 defaultIdx = defaultIdx - 1;
                 // 确保索引在有效范围内
                 if (defaultIdx >= 0 && defaultIdx < fieldValues.size()) {
-                    log.warn("使用默认索引值 {} 选择: {}", defaultIdx+1, fieldValues.get(defaultIdx));
+                    log.warn("使用兜底方案索引值 {} (从1开始) 选择: {}", defaultIdx+1, fieldValues.get(defaultIdx));
                     return fieldValues.get(defaultIdx);
                 } else {
-                    log.warn("默认索引值 {} 超出范围 [1-{}], 返回原值", defaultIdx+1, fieldValues.size());
+                    log.warn("兜底方案索引值 {} 超出范围 [1-{}], 返回原值", defaultIdx+1, fieldValues.size());
                 }
             } catch (NumberFormatException e) {
-                log.warn("默认值解析为索引失败: {}", ruleMap.get("defaultValue"));
+                log.warn("兜底方案索引值解析失败: {}, 错误: {}", ruleMap.get("defaultValue"), e.getMessage());
             }
+        } else {
+            log.warn("未配置兜底方案，返回原值");
         }
 
         // 如果前面的处理都没有返回结果，返回原始样例
@@ -1812,6 +1860,474 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         
         return "";
     }
+
+    @Override
+    public List<String> getLastMonthDataDates(String apiCode, Integer acceptType, String sftpPath){
+        List<String> dates = new ArrayList<>();
+
+        //通用上传：根据apiCode查询上传记录表b_marketing_sync_report
+        if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())){
+            dates = marketingSyncReportMapper.getLastMonthDataDates(apiCode);
+        }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode())){
+            //定制上传：根据apiCode查询b_marketing_customer_original_data，查询数据日期
+            dates = marketingCustomerOriginalDataMapper.getLastMonthDataDates(apiCode);
+        }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())){
+            //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
+            if (StringUtils.isNotBlank(sftpPath)){
+                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,sftpPath);
+            }else {
+                throw new BusinessException("sftpPath不能为空！");
+            }
+        }else {
+            throw new BusinessException("Invalid acceptType");
+        }
+        return dates;
+    }
+
+
+    @Override
+    public boolean saveCleanConfig(CleanConfigDTO configDTO) {
+        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
+        configExample.createCriteria()
+                .andApiCodeEqualTo(configDTO.getApiCode())
+                .andDataTypeEqualTo(configDTO.getDataType())
+                .andAcceptTypeEqualTo(configDTO.getAcceptType())
+                .andIsDelEqualTo(1);
+        if (StringUtils.isNotEmpty(configDTO.getSftpPath())) {
+            configExample.createCriteria().andSftpPathEqualTo(configDTO.getSftpPath());
+        }
+        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+        if (!CollectionUtils.isEmpty(configs)) {
+            throw new BusinessException("清洗规则已存在");
+        }
+        // 构建规则配置对象
+        MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
+        config.setApiCode(configDTO.getApiCode());
+        config.setDataType(configDTO.getDataType());
+        config.setAcceptType(configDTO.getAcceptType());
+        config.setSftpPath(configDTO.getSftpPath());
+        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+        MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
+        criteria.andApiCodeEqualTo(config.getApiCode());
+        marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
+        List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+        Integer accountType = customers.get(0).getAccountType();
+        if (accountType != null && accountType.equals(DataProcessEnum.AccountTypeEnum.CUSTOM.getCode())) {
+            config.setAccountType("正式");
+        } else if (accountType != null && accountType.equals(DataProcessEnum.AccountTypeEnum.GENERAL.getCode())) {
+            config.setAccountType("测试");
+        } else {
+            config.setAccountType("未知");
+        }
+
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        Long userId = Long.valueOf(user.getId());
+        String userName = user.getUserName();
+        config.setOptUserId(userId);
+        config.setOptUserName(userName);
+        cleanGeneralConfigMapper.insertSelective(config);
+        return Boolean.TRUE;
+    }
+
+    @Override
+    public List<String> getFileSftpPath(String apiCode, Integer fileType) {
+
+        SyncConfigExample syncConfigExample = new SyncConfigExample();
+        SyncConfigExample.Criteria criteria = syncConfigExample.createCriteria();
+        if (org.apache.commons.lang.StringUtils.isNotBlank(apiCode)) {
+            criteria.andApiCodeEqualTo(apiCode);
+        }
+        criteria.andStatusEqualTo(1).andDataTypeEqualTo(fileType).andTypeEqualTo(1);
+        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
+        List<String> sftpPaths = syncConfigs.stream().map(SyncConfig::getSrcPath).collect(Collectors.toList());
+        return sftpPaths;
+    }
+
+    @Override
+    public List<FieldSampleDTO> getRuleDetail(Long configId) {
+        List<FieldSampleDTO> result = new ArrayList<>();
+        MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configId);
+        String apiCode = config.getApiCode();
+        Integer dataType = config.getDataType();
+        Integer acceptType = config.getAcceptType();
+        MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+        generalRuleConfigExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andCleanConfigIdEqualTo(configId)
+                .andIsDelEqualTo(1);
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = cleanGeneralRuleConfigMapper.selectByExample(generalRuleConfigExample);
+        if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.FTP.getCode())) {
+            getFileField(result, config, ruleConfigList);
+            return result;
+        }
+        MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+        nodeExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType);
+        List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+        if (CollectionUtils.isEmpty(nodes)) {
+            return result;
+        }
+        for (MarketingJsonNodeParse node : nodes) {
+            String nodeName = node.getNodeName();
+            Integer level = node.getLevel();
+            if (level == 0) {
+                continue;
+            }
+            if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
+                if ("requestId".equals(nodeName)) {
+                    continue;
+                }
+            }
+            String nodeValue = node.getNodeValue();
+            Date createTime = node.getCreateTime();
+            if (StringUtil.isBlank(nodeName)) {
+                continue;
+            }
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(nodeName)).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(ruleConfigs)) {
+                ruleConfigs.forEach(ruleConfig -> {
+                    FieldSampleDTO dto = new FieldSampleDTO();
+                    dto.setFieldName(nodeName);
+                    dto.setLevel(level);
+                    dto.setParentPath(node.getParentPath());
+                    dto.setNodeType(node.getNodeType());
+                    dto.setFieldSample(nodeValue);
+                    dto.setFirstUploadTime(createTime);
+                    dto.setFieldType(0);
+                    dto.setMappingRule(ruleConfig.getMappingRule());
+                    dto.setRelatedField(ruleConfig.getMappingField());
+                    dto.setResultPreview(ruleConfig.getResultPreview());
+                    dto.setNeedCleaning(ruleConfig.getIsMapping());
+                    dto.setFieldType(ruleConfig.getIsDerived());
+                    // 添加到结果列表
+                    result.add(dto);
+                });
+            } else {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                dto.setFieldName(nodeName);
+                dto.setLevel(level);
+                dto.setParentPath(node.getParentPath());
+                dto.setNodeType(node.getNodeType());
+                dto.setFieldSample(nodeValue);
+                dto.setFirstUploadTime(createTime);
+                dto.setFieldType(0);
+                dto.setNeedCleaning(false);
+                result.add(dto);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean saveCleanRule(RuleCleaningConfigDTO configDTO) {
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configDTO.getConfigId());
+        if (!CollectionUtils.isEmpty(cleaningConfigs)) {
+            List<String> mappingFields = cleaningConfigs.stream().map(FieldCleaningConfigDTO::getMappingField).collect(Collectors.toList());
+            List<String> uploadMustField = Lists.newArrayList("custNum", "cell", "userType");
+            if (DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())) {
+                if (!mappingFields.containsAll(uploadMustField)) {
+                    throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
+                }
+            }
+            // 提取所有清洗字段
+            List<String> cleanFields = cleaningConfigs.stream()
+                    .map(FieldCleaningConfigDTO::getCleanField)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            // 删除不在当前配置中的规则
+            boolean deleteResult = deleteRule(config, cleanFields);
+            if (!deleteResult) {
+                // 继续处理，不要因为删除失败而中断整个流程
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                        "删除不在当前配置中的规则失败！"));
+            }
+            // 保存清洗配置
+            for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
+                if(StringUtils.isEmpty(fieldConfig.getMappingField())){
+                    continue;
+                }
+                // 设置API编码信息
+                fieldConfig.setApiCode(configDTO.getApiCode());
+                fieldConfig.setDataType(configDTO.getDataType());
+                fieldConfig.setAcceptType(configDTO.getAcceptType());
+                // 2. 保存字段清洗规则
+                saveFieldCleaningRule(configDTO.getConfigId(), fieldConfig);
+            }
+        }
+        dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
+        //更新配置表状态
+        MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
+        update.setId(configDTO.getConfigId());
+        if (DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode().equals(config.getStatus())) {
+            update.setStatus(DataProcessEnum.RuleStatusEnum.READY.getCode());
+        }
+        update.setUpdateTime(new Date());
+        cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
+        entityOptService.writeOptLog(update.getId(), update, config);
+        return Boolean.TRUE;
+    }
+
+
+    private void getFileField(List<FieldSampleDTO> result, MarketingDataCleanGeneralConfig config, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+
+        // b_marketing_clean_data_file
+        MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
+        fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andTargetSftpPathEqualTo(config.getSftpPath());
+        fileExample.setOrderByClause("create_time desc limit 1");
+        List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
+        if (CollectionUtils.isEmpty(cleanDataFiles) || StringUtils.isEmpty(cleanDataFiles.get(0).getFileHeader())) {
+            return;
+        }
+        MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
+        List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
+        List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(","));
+        for (int i = 0; i < fileHeader.size(); i++) {
+            FieldSampleDTO dto = new FieldSampleDTO();
+            // 设置字段名称
+            dto.setFieldName(fileHeader.get(i));
+            dto.setFieldSample(fileData.get(i));
+            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+            dto.setFieldType(0);
+            dto.setNeedCleaning(false);
+            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
+                    .findFirst().orElse(null);
+            if (!Objects.isNull(ruleConfig)) {
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
+                dto.setNeedCleaning(ruleConfig.getIsMapping());
+                dto.setFieldType(ruleConfig.getIsDerived());
+            }
+            // 添加到结果列表
+            result.add(dto);
+        }
+    }
+
+    @Override
+    public Result<List<List<RuleCleaningResult>>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO) {
+        String apiCode = ruleTrialConfigDTO.getApiCode();
+        Integer acceptType = ruleTrialConfigDTO.getAcceptType();
+        Integer dataType = ruleTrialConfigDTO.getDataType();
+        String appletDate = ruleTrialConfigDTO.getAppletDate();
+        Integer actualNum = ruleTrialConfigDTO.getActualNum();
+        String testApiCode = marketingCommonConfig.getDatacleanTestRunApiCode();
+        // 通用上传处理
+        if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
+            MarketingSyncInfo marketingSyncInfo = marketingSyncInfoMapper.getMarketingSyncInfoByDate(apiCode, appletDate, actualNum);
+            if (Objects.isNull(marketingSyncInfo)) {
+                marketingSyncInfo = marketingSyncInfoMapper.getMarketingSyncInfoByDate(apiCode, appletDate, null);
+            }
+            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
+            if (Objects.isNull(marketingSyncInfo)||CollectionUtils.isEmpty(ruleConfigMap)) {
+                throw new BusinessException("未找到符合条件的通用上传数据");
+            }
+            Long ruleId = insertRuleToTest(ruleConfigMap,testApiCode,ruleTrialConfigDTO);
+            marketingSyncInfo.setCreateTime(new Date());
+            marketingSyncInfo.setApiCode(testApiCode);
+            marketingSyncInfo.setRequestBatch(apiCode + "_" + LocalDate.now() + "_" + UUID.randomUUID());
+            marketingSyncInfoMapper.insertSelective(marketingSyncInfo);
+            Result<Boolean> result = pushRuleService.insertMarketingPreUserSync(marketingSyncInfo.getId());
+            //根据requestBatch查询b_marketing_sync_#{apiCode}的所有数据
+            List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getMarketingSyncInfoByRequestBatch(testApiCode, marketingSyncInfo.getRequestBatch());
+            if (CollectionUtils.isEmpty(syncUserList)) {
+                deleteRuleToTest(ruleId,ruleTrialConfigDTO);
+                throw new BusinessException("通用上传清洗试跑失败，请检查配置");
+            }
+            List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCommonResult(marketingSyncInfo, actualNum, ruleConfigMap, syncUserList);
+            deleteRuleToTest(ruleId,ruleTrialConfigDTO);
+            return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList)
+                    .setMessage("数据处理成功").success();
+        }
+
+        // 定制上传处理
+        if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode())) {
+            MarketingCustomerOriginalData marketingCustomerOriginalData =
+                    marketingCustomerOriginalDataMapper.getCustomDataByDate(apiCode, appletDate, actualNum);
+            if (Objects.isNull(marketingCustomerOriginalData)) {
+                marketingCustomerOriginalData = marketingCustomerOriginalDataMapper.getCustomDataByDate(apiCode, appletDate, null);
+
+            }
+            // 查询规则
+            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = ruleConfigMap.values().stream().collect(Collectors.toList());
+            //定制清洗
+            String jsonData = marketingCustomerOriginalData.getJsonData();
+            MarketingPreUserDTO marketingPreUserDTO = dataCleanService.dataClean(marketingCustomerOriginalData, ruleConfigList);
+            //上传info表，明细表
+            dataCleanService.insertInfo(apiCode, marketingPreUserDTO, marketingCustomerOriginalData.getId(), Boolean.TRUE);
+            //根据requestBatch查询b_marketing_sync_#{apiCode}的所有数据
+            List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getMarketingSyncInfoByRequestBatch(testApiCode, marketingPreUserDTO.getRequestId());
+            if (CollectionUtils.isEmpty(syncUserList)) {
+                throw new BusinessException("定制上传清洗试跑失败，请检查配置");
+            }
+            List<List<RuleCleaningResult>> ruleCleaningResultList = assembleCleanResult(jsonData, actualNum, ruleConfigList, marketingPreUserDTO);
+            return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList)
+                    .setMessage("数据处理成功").success();
+        }
+
+        // SFTP上传处理
+        if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())) {
+            String sftpPath = ruleTrialConfigDTO.getSftpPath();
+            if (StringUtils.isEmpty(sftpPath)) {
+                throw new BusinessException("SFTP路径不能为空");
+            }
+            MarketingCleanDataFile marketingCleanDataFile =
+                    marketingCleanDataFileMapper.getCleanDataFileByDate(apiCode, appletDate, sftpPath);
+            if (Objects.isNull(marketingCleanDataFile)) {
+                throw new BusinessException("未找到符合条件的SFTP文件数据");
+            }
+            //查询规则条件
+            MarketingDataCleanGeneralConfig queryParam = new MarketingDataCleanGeneralConfig();
+            queryParam.setAcceptType(DataProcessEnum.AcceptTypeEnum.FTP.getCode());
+            queryParam.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+            queryParam.setApiCode(apiCode);
+            queryParam.setSftpPath(sftpPath);
+            List<MarketingDataCleanGeneralConfig> ruleList = cleanGeneralConfigMapper.selectRuleList(queryParam);
+            //查询规则
+            MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+            ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(ruleList.get(0).getId()).andIsDelEqualTo(1);
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+            if (CollectionUtils.isEmpty(ruleConfigList)) {
+                throw new BusinessException("文件清洗规则配置不存在");
+            }
+            List<List<RuleCleaningResult>> ruleCleaningResultList = new ArrayList<>();
+            dataCleanService.fileUploadCleanPre(ruleCleaningResultList, ruleConfigList, marketingCleanDataFile, actualNum);
+            if (CollectionUtils.isEmpty(ruleCleaningResultList)) {
+                throw new BusinessException("文件清洗试跑失败，请检查配置");
+            }
+            return new Result<List<List<RuleCleaningResult>>>().setDate(ruleCleaningResultList).success();
+        }
+        return new Result<List<List<RuleCleaningResult>>>().setDate(null)
+                .setMessage("试跑失败").failure();
+    }
+
+    private void deleteRuleToTest(Long ruleId,RuleTrialConfigDTO ruleTrialConfigDTO) {
+        cleanGeneralConfigMapper.deleteByPrimaryKey(ruleId);
+        MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+        ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(ruleId).andIsDelEqualTo(1);
+        marketingDataCleanGeneralRuleConfigMapper.deleteByExample(ruleConfigExample);
+        dataCleanService.delConfigRule(marketingCommonConfig.getDatacleanTestRunApiCode(), ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+    }
+
+    private Long insertRuleToTest(Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap, String testApiCode,RuleTrialConfigDTO ruleTrialConfigDTO) {
+        MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
+        config.setApiCode(testApiCode);
+        config.setDataType(ruleTrialConfigDTO.getDataType());
+        config.setAcceptType(ruleTrialConfigDTO.getAcceptType());
+        config.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+        config.setAccountType("测试");
+        cleanGeneralConfigMapper.insertSelective(config);
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigs =  ruleConfigMap.values().stream().collect(Collectors.toList());
+        ruleConfigs.forEach(ruleField->{
+            ruleField.setCleanConfigId(config.getId());
+            ruleField.setCreateTime(new Date());
+            ruleField.setUpdateTime(new Date());
+            ruleField.setApiCode(testApiCode);
+            marketingDataCleanGeneralRuleConfigMapper.insertSelective(ruleField);
+        });
+        dataCleanService.delConfigRule(testApiCode, ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+        return config.getId();
+    }
+
+    @Override
+    public boolean ruleEffect(Long ruleId) {
+        MarketingDataCleanGeneralConfig generalConfig = cleanGeneralConfigMapper.selectByPrimaryKey(ruleId);
+        generalConfig.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+        cleanGeneralConfigMapper.updateByPrimaryKeySelective(generalConfig);
+        return Boolean.TRUE;
+    }
+
+    /**
+     * 通用上传结果展示
+     * @param syncInfo  原始数据
+     * @param ruleConfigMap 规则列表
+     * @return 清洗前后的结果
+     */
+    public List<List<RuleCleaningResult>> assembleCommonResult(MarketingSyncInfo syncInfo, Integer actualNum, Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap
+    ,List<MarketingSyncUser> marketingSyncInfoByRequestBatch){
+        List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
+        //获取字段映射关系
+        Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
+        for (Map.Entry<String, MarketingDataCleanGeneralRuleConfig> entry : ruleConfigMap.entrySet()) {
+            cleaningToMappingFieldMap.put(entry.getKey(),entry.getValue().getCleanFields());
+        }
+        //解析jsonData，获取清洗字段及其原始值
+        JSONObject jsonObject = JSON.parseObject(syncInfo.getJsonData());
+        JSONArray dataItems = jsonObject.getJSONArray("dataItems");
+        int size = actualNum > dataItems.size() ? dataItems.size() : actualNum;
+        for (int i = 0; i < size; i++) {
+            List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
+            JSONObject item = dataItems.getJSONObject(i);
+            item.put("taskId",syncInfo.getCusBatch());
+            String custNum = (String) JsonParseUtils.findFirstValueByKey(item, "custNum");
+            MarketingSyncUser result = marketingSyncInfoByRequestBatch.stream().filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum)).findFirst().orElse(null);
+            for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
+                RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
+                ruleCleaningResult.setCleanFields(entry.getValue());
+                ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(item, entry.getValue())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getValue())).toString() : "");
+                ruleCleaningResult.setMappingField(entry.getKey());
+                ruleCleaningResult.setMappingValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())).toString() : "");
+                cleaningResultItems.add(ruleCleaningResult);
+            }
+            cleaningResults.add(cleaningResultItems);
+        }
+        return cleaningResults;
+    }
+
+    /**
+     * 定制上传结果展示
+     * @param jsonData  原始数据
+     * @param ruleConfigList    规则列表
+     * @return  清洗前后的结果
+     */
+    public List<List<RuleCleaningResult>> assembleCleanResult(String jsonData, Integer actualNum, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDTO marketingPreUserDTO){
+        List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
+        List<MarketingPreUserDetailDTO> preUserDetailDTOS = marketingPreUserDTO.getDataItems();
+        //获取字段映射关系
+        Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+            cleaningToMappingFieldMap.put(ruleConfig.getMappingField(),ruleConfig.getCleanFields());
+        }
+        JSONObject jsonObject = JSON.parseObject(jsonData);
+        List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
+        if (cleaningToMappingFieldMap.containsKey("dataItems")){
+            JSONArray dataItems = jsonObject.getJSONArray(cleaningToMappingFieldMap.get("dataItems"));
+            cleaningToMappingFieldMap.remove("dataItems");
+            int size = actualNum > dataItems.size() ? dataItems.size() : actualNum;
+            for (int i = 0; i < size; i++) {
+                JSONObject item = dataItems.getJSONObject(i);
+                MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, "custNum")).toString())).findFirst().orElse(null);
+                for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
+                    RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
+                    ruleCleaningResult.setCleanFields(entry.getValue());
+                    ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getKey())).toString());
+                    ruleCleaningResult.setMappingField(entry.getKey());
+                    ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
+                    cleaningResultItems.add(ruleCleaningResult);
+                }
+                cleaningResults.add(cleaningResultItems);
+            }
+        }else {
+            MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, "custNum")).toString())).findFirst().orElse(null);
+            for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
+                RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
+                ruleCleaningResult.setCleanFields(entry.getValue());
+                ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey())).toString());
+                ruleCleaningResult.setMappingField(entry.getKey());
+                ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
+                cleaningResultItems.add(ruleCleaningResult);
+            }
+            cleaningResults.add(cleaningResultItems);
+        }
+
+        return cleaningResults;
+    }
+
 }
 
 

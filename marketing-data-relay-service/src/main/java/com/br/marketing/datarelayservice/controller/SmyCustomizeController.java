@@ -32,14 +32,14 @@ public class SmyCustomizeController {
 
     @ApiOperation(value = "萨摩耶代运营数据上传接口")
     @PostMapping("/upload")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public SmyResponseDTO receiveSmyUploadData(@RequestBody String jsonData, HttpServletRequest request) {
         return smyUploadDataService.receiveSmyUploadData(jsonData, request);
     }
 
     @ApiOperation(value = "萨摩耶回传数据上传接口")
     @PostMapping("/transfer")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public SmyResponseDTO receiveSmyTransferData(@RequestBody String jsonData, HttpServletRequest request) {
         return smyTransferDataService.receiveSmyTransferData(jsonData, request);
     }

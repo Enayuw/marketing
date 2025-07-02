@@ -173,4 +173,11 @@
         desc ${tableName}
     </select>
 
+    <select id="getCidByApiCode" resultType="com.br.marketing.entity.MarketingCustomer">
+        select name, short_name, cid, api_code
+        from b_marketing_customer
+        where api_code = #{apiCode}
+        and status = 1
+    </select>
+
 </mapper>

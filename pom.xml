@@ -312,5 +312,6 @@
         <module>marketing-data-relay-service</module>
         <module>marketing-ai-mq-consumer</module>
         <module>marketing-ai-data-push-down</module>
+        <module>marketing-xc-consumer</module>
     </modules>
 </project>

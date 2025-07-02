@@ -1850,6 +1850,11 @@ public class MarketingCommonConfig {
     private JSONObject xieChengSmsCollidingConfig;
 
     /**
+     *  携程短信撞库接口参数配置90
+     */
+    private JSONObject xieChengSmsCollidingConfigVt;
+
+    /**
      * 奇富360数据清洗调用转化接口线程数
      */
     private Integer dataCleanQiFu360CoreAndMaxNum;
@@ -2853,6 +2858,10 @@ public class MarketingCommonConfig {
      */
     private List<String> xieChengQueueApiCodes;
 
+    /**
+     * 携程上报消息开关
+     */
+    private JSONObject xieChengReportMqConfig;
 
     /**
      * 携程定制转化清洗apicode
@@ -2926,9 +2935,45 @@ public class MarketingCommonConfig {
     private Integer  tcPageSearchSize;
 
     /**
+     * 同城易融-match时batchUpdateSize
+     */
+    private Integer  tcPartSize;
+
+    /**
      * 同城易融-撤销清洗job每页查询条数
      */
     private Integer tcRevokePageSize;
+
+
+
+
+    /**
+     * 同程易融-txtFile-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":5000,"partSize":1000,
+     * "dbCountWaitTime":60000
+     * }
+     */
+    private JSONObject tcTxtFileShardConfig;
+
+
+    /**
+     * 同程易融-match-shard  job参数
+     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000}
+     */
+    private JSONObject tcMatchShardConfig;
+
+
+    /**
+     * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
+     */
+    private List<String> tcyrSyncSaveExcludeFieldList;
+
+
+    /**
+     * 同程易融-转化清洗 extend 排除的字段(column_1,column_2)
+     */
+    private List<String> tcyrSyncCleanExcludeFieldList;
 
     /**
      * 58查询非金融延期zip接口参数配置
@@ -3012,5 +3057,135 @@ public class MarketingCommonConfig {
      * 上传数据清洗线程数
      */
     private Integer pushDassThreadNum;
+
+
+
+
+    /**
+     * uMeng apiCodes
+     */
+    private List<String> apiCodeOfUMeng;
+
+    /**
+     * uMeng apiCode-创建智能时机任务的配置参数
+     * eg  uMengTaskParamMap=
+     * {"111111":{"event_type":"1001","touch_type":3,"callback_url":"url","status":1,
+     * "callback_period":"10-16","start_time":"yyyy-MM-dd 10:00:00",
+     * "end_time":"yyyy-MM-dd 20:00:00"}}
+     */
+    private HashMap<String,JSONObject> uMengTaskParamMap;
+
+    /**
+     * uMeng bizId、bizSecret配置 {"bizId":"sqg11746598977wccp","bizSecret":"b9073f30a7837609b97f5ce0e962d42e"}
+     */
+    private HashMap<String,String> uMengBizInfoMap;
+
+
+    /**
+     * uMeng requestUrl配置
+     * eg {"timingTaskUrl":"https://udata.umeng.com/occa/v1/task/create?sign=%s","deviceAddUrl":"https://udata.umeng.com/occa/v1/device/add?sign=%s"}
+     */
+    private HashMap<String,String> uMengUrlInfoMap;
+
+
+    /**
+     * uMeng 设备注册 批量注册设备
+     */
+    private Integer uMengDeviceAddPool;
+
+    /**
+     * uMeng 设备注册 每页查询条数
+     */
+    private Integer  uMengDeviceAddPageSize;
+
+    /**
+     * uMeng deviceAdd 设备注册 切片数量(目前设置200 <200)
+     */
+    private Integer uMengDevicePartCount;
+
+
+    /**
+     * uMeng 推决策    批量操作线程
+     */
+    private Integer uMengCallPolicyPool;
+
+    /**
+     * uMeng 推决策 每页查询数量
+     */
+    private Integer  uMengCallPolicyPageSize;
+
+    /**
+     * uMeng callPolicy 推决策切片数量(目前设置为500， <=2000)
+     */
+    private Integer uMengPolicyPartCount;
+
+    /**
+     * uMeng 智能时机-调用决策，根据情况配置对应的决策参数 strategyCode
+     * 说明：
+     * {
+     *   "apiCode":"策略编号"
+     * }
+     * 样例：
+     * {
+     * "7492800": "CASTR0142044",
+     * 	"4004643":"CASTR0000864"
+     * }
+     */
+    private HashMap<String, String> uMengPushPolicyStrategyCode;
+
+
+    /**
+     * uMeng 每日回调结束的时间(eg: yyyy-MM-dd 16:00:00)
+     */
+    private String uMengCallBackEndTime;
+
+
+    /**
+     * 携程上报线程池数量
+     */
+    private Integer xieChengReportThreadPoolNum;
+    /**
+     * 奇富促动支上传数据apiCode
+     */
+    private String qiFuActuationApiCode;
+
+    /**
+     * 奇富促动支上传数据参数配置
+     */
+    private JSONObject qiFuActuationServerConfig;
+
+    /**
+     * 奇富促完件提取表头字段
+     */
+    private String qiFuTransferTableHead;
+
+    /**
+     * 360-pp流量业务营销挡板
+     * {"switch":"0","code":1,"message":"","data":""}
+     * switch:1开启 0关闭
+     * code：200成功 其他失败
+     *
+     */
+    private HashMap<String, Object> sanLiuLingTrafficMock;
+
+    /**
+     * 360-pp流量业务营销接口线程数
+     */
+    private Integer sanLiuLingTrafficThreadNum;
+
+    /**
+     * 携程线程池上报
+     */
+    private Integer xcMqReportHandlerThreadNum;
+    /**
+     * 携程上报线程池开启开关 false 开启线程池  true 关闭线程池
+     */
+    private Boolean xcMqReportHandlerSwitch;
+
+    /**
+     * 上传文件清洗线程数
+     */
+    private Integer uploadFileCleanThreadNum;
+
 }
 

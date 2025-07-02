@@ -350,6 +350,16 @@ public class RedisKeyConstant {
     public static final String updateInitMapping = prefix.concat("updateInitMapping");
 
     /**
+     * 同程易融-处理txt文件数据锁
+     */
+    public static final String tcyrSyncTxtToDb = prefix.concat("tcyr_sync:txtToDb");
+
+    /**
+     * 同程易融-match数据锁
+     */
+        public static final String tcyrSyncMatch = prefix.concat("tcyr_sync:match");
+
+    /**
      * 雪花算法
      */
     public static final String SNOWFLAKE = prefix.concat("snowflake:");

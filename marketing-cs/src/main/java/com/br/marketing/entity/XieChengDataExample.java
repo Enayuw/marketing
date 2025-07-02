@@ -295,73 +295,133 @@ public class XieChengDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andCallRecordIdIsNull() {
+            addCriterion("call_record_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdIsNotNull() {
+            addCriterion("call_record_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdEqualTo(Long value) {
+            addCriterion("call_record_id =", value, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdNotEqualTo(Long value) {
+            addCriterion("call_record_id <>", value, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdGreaterThan(Long value) {
+            addCriterion("call_record_id >", value, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("call_record_id >=", value, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdLessThan(Long value) {
+            addCriterion("call_record_id <", value, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdLessThanOrEqualTo(Long value) {
+            addCriterion("call_record_id <=", value, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdIn(List<Long> values) {
+            addCriterion("call_record_id in", values, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdNotIn(List<Long> values) {
+            addCriterion("call_record_id not in", values, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdBetween(Long value1, Long value2) {
+            addCriterion("call_record_id between", value1, value2, "callRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallRecordIdNotBetween(Long value1, Long value2) {
+            addCriterion("call_record_id not between", value1, value2, "callRecordId");
+            return (Criteria) this;
+        }
+
         public Criteria andTypeIsNull() {
-            addCriterion("type is null");
+            addCriterion("`type` is null");
             return (Criteria) this;
         }
 
         public Criteria andTypeIsNotNull() {
-            addCriterion("type is not null");
+            addCriterion("`type` is not null");
             return (Criteria) this;
         }
 
         public Criteria andTypeEqualTo(String value) {
-            addCriterion("type =", value, "type");
+            addCriterion("`type` =", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotEqualTo(String value) {
-            addCriterion("type <>", value, "type");
+            addCriterion("`type` <>", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThan(String value) {
-            addCriterion("type >", value, "type");
+            addCriterion("`type` >", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("type >=", value, "type");
+            addCriterion("`type` >=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThan(String value) {
-            addCriterion("type <", value, "type");
+            addCriterion("`type` <", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThanOrEqualTo(String value) {
-            addCriterion("type <=", value, "type");
+            addCriterion("`type` <=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLike(String value) {
-            addCriterion("type like", value, "type");
+            addCriterion("`type` like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotLike(String value) {
-            addCriterion("type not like", value, "type");
+            addCriterion("`type` not like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeIn(List<String> values) {
-            addCriterion("type in", values, "type");
+            addCriterion("`type` in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotIn(List<String> values) {
-            addCriterion("type not in", values, "type");
+            addCriterion("`type` not in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeBetween(String value1, String value2) {
-            addCriterion("type between", value1, value2, "type");
+            addCriterion("`type` between", value1, value2, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotBetween(String value1, String value2) {
-            addCriterion("type not between", value1, value2, "type");
+            addCriterion("`type` not between", value1, value2, "type");
             return (Criteria) this;
         }
 
@@ -636,62 +696,62 @@ public class XieChengDataExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(Integer value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -762,6 +822,76 @@ public class XieChengDataExample {
 
         public Criteria andDataMessageNotBetween(String value1, String value2) {
             addCriterion("data_message not between", value1, value2, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIsNull() {
+            addCriterion("extend is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIsNotNull() {
+            addCriterion("extend is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendEqualTo(String value) {
+            addCriterion("extend =", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotEqualTo(String value) {
+            addCriterion("extend <>", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThan(String value) {
+            addCriterion("extend >", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("extend >=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThan(String value) {
+            addCriterion("extend <", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThanOrEqualTo(String value) {
+            addCriterion("extend <=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLike(String value) {
+            addCriterion("extend like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotLike(String value) {
+            addCriterion("extend not like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIn(List<String> values) {
+            addCriterion("extend in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotIn(List<String> values) {
+            addCriterion("extend not in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendBetween(String value1, String value2) {
+            addCriterion("extend between", value1, value2, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotBetween(String value1, String value2) {
+            addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
 
@@ -942,6 +1072,76 @@ public class XieChengDataExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelIsNull() {
+            addCriterion("sha256_tel is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelIsNotNull() {
+            addCriterion("sha256_tel is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelEqualTo(String value) {
+            addCriterion("sha256_tel =", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelNotEqualTo(String value) {
+            addCriterion("sha256_tel <>", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelGreaterThan(String value) {
+            addCriterion("sha256_tel >", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelGreaterThanOrEqualTo(String value) {
+            addCriterion("sha256_tel >=", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelLessThan(String value) {
+            addCriterion("sha256_tel <", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelLessThanOrEqualTo(String value) {
+            addCriterion("sha256_tel <=", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelLike(String value) {
+            addCriterion("sha256_tel like", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelNotLike(String value) {
+            addCriterion("sha256_tel not like", value, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelIn(List<String> values) {
+            addCriterion("sha256_tel in", values, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelNotIn(List<String> values) {
+            addCriterion("sha256_tel not in", values, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelBetween(String value1, String value2) {
+            addCriterion("sha256_tel between", value1, value2, "sha256Tel");
+            return (Criteria) this;
+        }
+
+        public Criteria andSha256TelNotBetween(String value1, String value2) {
+            addCriterion("sha256_tel not between", value1, value2, "sha256Tel");
             return (Criteria) this;
         }
     }

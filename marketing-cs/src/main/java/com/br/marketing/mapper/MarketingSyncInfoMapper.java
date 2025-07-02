@@ -270,4 +270,9 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<String> getCusBatchByAppletDate(@Param("appletDate") String appletDate,@Param("apiCode") String apiCode);
 
     List<MarketingSyncUser> getDataByIdList(@Param("apiCode") String apiCode, @Param("idList") List<Long> idList);
+
+    MarketingSyncInfo getMarketingSyncInfoByDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate, @Param("actualNum") Integer actualNum);
+
+    List<MarketingSyncUser> getMarketingSyncInfoByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
+
 }

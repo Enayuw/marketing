@@ -493,6 +493,76 @@ public class NfsFileTOBiRecordExample {
             addCriterion("task_id not between", value1, value2, "taskId");
             return (Criteria) this;
         }
+
+        public Criteria andExecuteDateIsNull() {
+            addCriterion("execute_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateIsNotNull() {
+            addCriterion("execute_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateEqualTo(String value) {
+            addCriterion("execute_date =", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateNotEqualTo(String value) {
+            addCriterion("execute_date <>", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateGreaterThan(String value) {
+            addCriterion("execute_date >", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateGreaterThanOrEqualTo(String value) {
+            addCriterion("execute_date >=", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateLessThan(String value) {
+            addCriterion("execute_date <", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateLessThanOrEqualTo(String value) {
+            addCriterion("execute_date <=", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateLike(String value) {
+            addCriterion("execute_date like", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateNotLike(String value) {
+            addCriterion("execute_date not like", value, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateIn(List<String> values) {
+            addCriterion("execute_date in", values, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateNotIn(List<String> values) {
+            addCriterion("execute_date not in", values, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateBetween(String value1, String value2) {
+            addCriterion("execute_date between", value1, value2, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteDateNotBetween(String value1, String value2) {
+            addCriterion("execute_date not between", value1, value2, "executeDate");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

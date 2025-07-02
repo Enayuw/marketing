@@ -82,4 +82,34 @@ public enum DataProcessEnum {
         private  Integer code;
         private  String desc;
     }
+
+    /**
+     * 规则状态
+     */
+    @Getter
+    @AllArgsConstructor
+    public enum RuleStatusEnum {
+        READY(0, "待生效"),
+        PRE_SUCCESS(1, "试跑成功");
+
+        private  Integer code;
+        private  String desc;
+    }
+
+    /**
+     * 清洗文件状态
+     */
+    @Getter
+    @AllArgsConstructor
+    public enum FileStatusEnum {
+        READY(0, "待开始"),
+        RUNNING(1, "清洗中"),
+        SUCCESS(2, "清洗完成");
+
+        private  Integer code;
+        private  String desc;
+    }
+
+
+
 }

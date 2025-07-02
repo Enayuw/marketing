@@ -2748,10 +2748,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = new HashMap<>();
         if (Objects.nonNull(marketingSyncInfo.getDataSourceType()) && (0 == marketingSyncInfo.getDataSourceType())) {
             configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
-                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(),DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
             if (!CollectionUtils.isEmpty(configRule)) {
                 //剔除规则中的基础字段
-                List<String> generalFields = Lists.newArrayList("taskId", "dataItems", "requestId", "item", "reserveField1", "reserveField2");
+                List<String> generalFields = Lists.newArrayList("dataItems", "requestId", "item", "reserveField1", "reserveField2");
                 configRule.keySet().removeIf(key -> generalFields.contains(key));
             }
         }
@@ -2759,6 +2759,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
+            if(Objects.nonNull(marketingPreUserDetailDTO)&&StringUtils.isEmpty(marketingPreUserDetailDTO.getTaskId())){
+                marketingPreUserDetailDTO.setTaskId(marketingSyncInfo.getCusBatch());
+            }
             Integer finalIsCheck = isCheck;
             Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
             list.add(() -> {
@@ -2778,7 +2781,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 //3 未来客户：只有userType
                 String reserveField1Str = marketingPreUserDetailDTO.getReserveField1();
                 ReserveField1DTO reserveField1 = null;
-                JSONObject reserveFileld1Json = null;
+                JSONObject reserveFileld1Json = new JSONObject();
                 if (StringUtils.isBlank(reserveField1Str)) {
                     reserveField1 = new ReserveField1DTO();
                     reserveField1.setUserType(marketingPreUserDetailDTO.getGroupType());
@@ -2797,6 +2800,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
                 ReserveField1DTO finalReserveField = reserveField1;
+                //扩展字段添加手机号
+                addCellReserveFileld1(reserveFileld1Json,marketingPreUserDetailDTO.getCell(),finalIsCheck);
                 JSONObject finalReserveFileld1Json = reserveFileld1Json;
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -3026,6 +3031,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
+    }
+
+    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck) {
+        if (StringUtils.isNotEmpty(cell)) {
+            //明文规则校验
+            UserValidator userValidator = new UserValidator(isCheck);
+            if (userValidator.validatePhone(cell)) {
+                reserveFileld1Json.put("originalCell", BrCipherMaker.getInstance().encode(cell));
+            } else {
+                reserveFileld1Json.put("originalCell", cell);
+
+            }
+
+        }
     }
 
     private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode) {
