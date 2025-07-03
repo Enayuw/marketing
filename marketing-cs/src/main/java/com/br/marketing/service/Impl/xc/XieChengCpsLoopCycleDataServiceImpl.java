@@ -57,7 +57,14 @@ public class XieChengCpsLoopCycleDataServiceImpl implements XieChengCpsLoopCycle
 
     private final static int PARTITION_SIZE = 50;
 
-    TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_LOOP_CYCLE_3710090.getName(), 5, 10);
+    private TpDynamicExecutor threadPool;
+
+    private TpDynamicExecutor getThreadPool(){
+        if (threadPool == null) {
+            threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_LOOP_CYCLE_3710090.getName(), 5, 10);
+        }
+        return threadPool;
+    }
 
     @Override
     public void process() {
@@ -78,7 +85,7 @@ public class XieChengCpsLoopCycleDataServiceImpl implements XieChengCpsLoopCycle
 
             List<List<XieChengCpsCollidingDataLoopCycle>> partitions = Lists.partition(list, PARTITION_SIZE);
             for (List<XieChengCpsCollidingDataLoopCycle> partition : partitions) {
-                futures.add(CompletableFuture.runAsync(() -> pushDataAndHandleResult(partition), threadPool));
+                futures.add(CompletableFuture.runAsync(() -> pushDataAndHandleResult(partition), getThreadPool()));
             }
         }
 

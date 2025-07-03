@@ -44,7 +44,14 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
     @Resource
     XieChengCpsRobDataCollidingService robDataCollidingService;
     private final static int PARTITION_SIZE = 50;
-    TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_RETRY_3710090.getName(), 5, 10);
+    private TpDynamicExecutor threadPool;
+
+    private TpDynamicExecutor getThreadPool(){
+        if (threadPool == null) {
+            threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_RETRY_3710090.getName(), 5, 10);
+        }
+        return threadPool;
+    }
 
     @Override
     public void process() {
@@ -53,8 +60,8 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
             Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
 
             // 先撞周期表 再撞非周期表
-            processByCycle(threadPool, pageSize);
-            processByRob(threadPool, pageSize);
+            processByCycle(getThreadPool(), pageSize);
+            processByRob(getThreadPool(), pageSize);
         } catch (Exception e) {
             String subject = "携程CPS异常重试作业异常";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage(), subject), e);
