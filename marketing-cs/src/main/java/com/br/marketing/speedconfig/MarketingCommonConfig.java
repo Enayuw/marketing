@@ -3196,5 +3196,9 @@ public class MarketingCommonConfig {
      */
     private Integer uploadFileCleanThreadNum;
 
+    /**
+     * 数禾重申提取表头字段
+     */
+    private String shuHeChongShenTransferTableHead;
 }
 
