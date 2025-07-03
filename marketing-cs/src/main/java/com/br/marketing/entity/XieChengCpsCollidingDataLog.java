@@ -9,6 +9,11 @@ public class XieChengCpsCollidingDataLog {
     private Long id;
 
     /**
+     * 幂等键
+     */
+    private String idempotentKey;
+
+    /**
      * 
      */
     private Long dataId;
@@ -69,6 +74,11 @@ public class XieChengCpsCollidingDataLog {
     private Integer businessCode;
 
     /**
+     * 接口返回内容
+     */
+    private String returnContent;
+
+    /**
      * 扩展字段
      */
     private String extend;
@@ -88,17 +98,20 @@ public class XieChengCpsCollidingDataLog {
      */
     private Date updateTime;
 
-    /**
-     * 接口返回内容
-     */
-    private String returnContent;
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getIdempotentKey() {
+        return idempotentKey;
+    }
+
+    public void setIdempotentKey(String idempotentKey) {
+        this.idempotentKey = idempotentKey == null ? null : idempotentKey.trim();
     }
 
     public Long getDataId() {
@@ -197,6 +210,14 @@ public class XieChengCpsCollidingDataLog {
         this.businessCode = businessCode;
     }
 
+    public String getReturnContent() {
+        return returnContent;
+    }
+
+    public void setReturnContent(String returnContent) {
+        this.returnContent = returnContent == null ? null : returnContent.trim();
+    }
+
     public String getExtend() {
         return extend;
     }
@@ -227,13 +248,5 @@ public class XieChengCpsCollidingDataLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getReturnContent() {
-        return returnContent;
-    }
-
-    public void setReturnContent(String returnContent) {
-        this.returnContent = returnContent == null ? null : returnContent.trim();
     }
 }

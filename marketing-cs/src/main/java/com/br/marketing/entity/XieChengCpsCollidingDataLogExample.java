@@ -165,6 +165,76 @@ public class XieChengCpsCollidingDataLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andIdempotentKeyIsNull() {
+            addCriterion("idempotent_key is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyIsNotNull() {
+            addCriterion("idempotent_key is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyEqualTo(String value) {
+            addCriterion("idempotent_key =", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotEqualTo(String value) {
+            addCriterion("idempotent_key <>", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyGreaterThan(String value) {
+            addCriterion("idempotent_key >", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyGreaterThanOrEqualTo(String value) {
+            addCriterion("idempotent_key >=", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyLessThan(String value) {
+            addCriterion("idempotent_key <", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyLessThanOrEqualTo(String value) {
+            addCriterion("idempotent_key <=", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyLike(String value) {
+            addCriterion("idempotent_key like", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotLike(String value) {
+            addCriterion("idempotent_key not like", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyIn(List<String> values) {
+            addCriterion("idempotent_key in", values, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotIn(List<String> values) {
+            addCriterion("idempotent_key not in", values, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyBetween(String value1, String value2) {
+            addCriterion("idempotent_key between", value1, value2, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotBetween(String value1, String value2) {
+            addCriterion("idempotent_key not between", value1, value2, "idempotentKey");
+            return (Criteria) this;
+        }
+
         public Criteria andDataIdIsNull() {
             addCriterion("data_id is null");
             return (Criteria) this;
@@ -952,6 +1022,76 @@ public class XieChengCpsCollidingDataLogExample {
 
         public Criteria andBusinessCodeNotBetween(Integer value1, Integer value2) {
             addCriterion("business_code not between", value1, value2, "businessCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentIsNull() {
+            addCriterion("return_content is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentIsNotNull() {
+            addCriterion("return_content is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentEqualTo(String value) {
+            addCriterion("return_content =", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotEqualTo(String value) {
+            addCriterion("return_content <>", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentGreaterThan(String value) {
+            addCriterion("return_content >", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentGreaterThanOrEqualTo(String value) {
+            addCriterion("return_content >=", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentLessThan(String value) {
+            addCriterion("return_content <", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentLessThanOrEqualTo(String value) {
+            addCriterion("return_content <=", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentLike(String value) {
+            addCriterion("return_content like", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotLike(String value) {
+            addCriterion("return_content not like", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentIn(List<String> values) {
+            addCriterion("return_content in", values, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotIn(List<String> values) {
+            addCriterion("return_content not in", values, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentBetween(String value1, String value2) {
+            addCriterion("return_content between", value1, value2, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotBetween(String value1, String value2) {
+            addCriterion("return_content not between", value1, value2, "returnContent");
             return (Criteria) this;
         }
 

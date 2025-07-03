@@ -8,12 +8,14 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.XieChengCpsCollidingDataLog;
 import com.br.marketing.mapper.XieChengCpsCollidingDataLogMapper;
 import com.br.marketing.retry.DatabaseOperationService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -36,6 +38,8 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
     XieChengCpsCollidingDataLogMapper xieChengCpsCollidingDataLogMapper;
     @Resource
     private DatabaseOperationService dbService;
+    @Resource
+    private SnowflakeIdGenerator snowflakeIdGenerator;
 
 
     @Override
@@ -48,6 +52,7 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
         String releaseTime = returnData.getString("releaseTime");
         String hitRequestNo = returnData.getString("hitRequestNo");
         XieChengCpsCollidingDataLog XieChengCpsCollidingDataLog = new XieChengCpsCollidingDataLog();
+        XieChengCpsCollidingDataLog.setIdempotentKey(snowflakeIdGenerator.nextIdString());
         XieChengCpsCollidingDataLog.setDataId(id);
         XieChengCpsCollidingDataLog.setPackageId(packageId);
         XieChengCpsCollidingDataLog.setDataSourceType(dataSourceType);
@@ -70,6 +75,7 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
     public XieChengCpsCollidingDataLog buildFailXieChengCpsCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType, String cellSha256CodeList, JSONObject resJson) {
         String httpcode = resJson.getString("httpcode");
         XieChengCpsCollidingDataLog XieChengCpsCollidingDataLog = new XieChengCpsCollidingDataLog();
+        XieChengCpsCollidingDataLog.setIdempotentKey(snowflakeIdGenerator.nextIdString());
         XieChengCpsCollidingDataLog.setDataId(id);
         XieChengCpsCollidingDataLog.setPackageId(packageId);
         XieChengCpsCollidingDataLog.setDataSourceType(dataSourceType);
@@ -123,6 +129,9 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
         for (XieChengCpsCollidingDataLog collidingLog : collidingLogs) {
             try {
                 xieChengCpsCollidingDataLogMapper.insertSelective(collidingLog);
+            } catch (DuplicateKeyException e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                        , "携程CPS撞库保存日志，发现重复消息，幂等键：" + collidingLog.getIdempotentKey()), e);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                         , "携程CPS撞库保存日志异常！"), e);
