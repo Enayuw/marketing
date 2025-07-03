@@ -16,7 +16,6 @@ import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.mapper.tag.*;
-import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import javax.swing.text.html.HTML;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -153,7 +148,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         try {
             // 解析数据源配置
             List<String> sourceCodes = Arrays.asList(tagDataRule.getSourceCode().split(","));
-            Collections.sort(sourceCodes);
+//            Collections.sort(sourceCodes);
 
             // 圈选的ApiCode范围
             List<String> apiCodes = Arrays.asList(tagDataRule.getApiCodeScope().split(","));
@@ -308,45 +303,33 @@ public class TagHandlerServiceImpl implements TagHandleService {
      */
     private void insertDataDoris(String sourceName, Integer sourceType, List<String> sourceCodes,
                                  TagDataRule tagDataRule) {
-        String sourcecode = sourceCodes.get(0);
+
+        String sourceCode = "";
+        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
+            sourceCode = sourceCodes.get(0);
+        }else {
+            for (String code : sourceCodes) {
+                if (SourceTypeEnum.CALL.getCode().equals(code) || SourceTypeEnum.TRANSFORM.getCode().equals(code)) {
+                    sourceCode = code;
+                }
+            }
+        }
 
         // 根据表类型确定字段名
-        FieldMappingStrategy fieldMappingStrategy = getFieldMappingStrategy(sourceType);
-
-        FieldMappingResult mappingResult = fieldMappingStrategy.mapFields(sourcecode,tagDataRule);
-        String cell = mappingResult.getCell();
-        String custNum = mappingResult.getCustNum();
-        String timeField = mappingResult.getTimeField();
-        String conditionSql = mappingResult.getConditionSql();
+        SourceFieldStrategy sourceFieldStrategy = getFieldMappingStrategy(sourceCode);
 
         // 构建插入SQL
         StringBuilder insertBuilder = new StringBuilder();
-        insertBuilder.append("insert into t_tag_data_detail(tag_code,calculate_date,cell");
+        String conditionSql = "";
 
-        if (SourceTypeEnum.SHORTLINK.getCode().equals(sourcecode)){
-            if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
-                insertBuilder.append(",create_time,update_time");
-                insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, now() AS create_time, now() AS update_time from %s",
-                        tagDataRule.getTagCode(), cell, sourceName));
-            }else {
-                custNum = sourceCodes.get(1).concat("_cust_num");
-                insertBuilder.append(",cust_num,create_time,update_time");
-                insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
-                        tagDataRule.getTagCode(), cell, custNum, sourceName));
-            }
+        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
+            conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
         }else {
-            insertBuilder.append(",cust_num,create_time,update_time");
-            insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
-                    tagDataRule.getTagCode(), cell, custNum, sourceName));
+            conditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
         }
 
-        // 添加条件子句
-        insertBuilder.append(" where ");
-        // 添加时间范围条件
-        String beforeDate = DateHelper.getPreviousDate(tagDataRule.getTimeUnit(), tagDataRule.getTimeNumber())
-                .toString();
-        insertBuilder.append(timeField).append(">=\"").append(beforeDate).append("\" and ")
-                .append(timeField).append("<\"").append(LocalDate.now()).append("\" and ");
+        insertBuilder.append(sourceFieldStrategy.mapFields(sourceType,sourceCode,sourceName, tagDataRule));
+
         // 添加其他条件
         insertBuilder.append("(").append(conditionSql).append(")");
 
@@ -355,14 +338,23 @@ public class TagHandlerServiceImpl implements TagHandleService {
         flagDataMapper.insertbI_(insertBuilder.toString());
     }
 
-    private static FieldMappingStrategy getFieldMappingStrategy(Integer sourceType) {
-        FieldMappingStrategy fieldMappingStrategy;
-        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
-            fieldMappingStrategy = new BaseFieldMappingStrategy();
-        } else {
-            fieldMappingStrategy = new ViewFieldMappingStrategy();
+    private SourceFieldStrategy getFieldMappingStrategy(String sourceCode) {
+        SourceFieldStrategy sourceFieldStrategy;
+        switch (sourceCode) {
+            case "SHORTLINK":
+                sourceFieldStrategy = new ShortLinkFieldStrategy();
+                break;
+            case "CALL":
+                sourceFieldStrategy = new CallFieldStrategy();
+                break;
+            case "TRANSFORM":
+                sourceFieldStrategy = new TransformFieldStrategy();
+                break;
+            default:
+                sourceFieldStrategy = null;
+                break;
         }
-        return fieldMappingStrategy;
+        return sourceFieldStrategy;
     }
 
     private List<TagDataRuleCalculate> getTagCalculateRecord(String tagCode, String calculateDate, Integer status) {

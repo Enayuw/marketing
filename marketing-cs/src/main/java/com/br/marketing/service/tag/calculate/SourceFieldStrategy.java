@@ -3,8 +3,8 @@ package com.br.marketing.service.tag.calculate;
 import com.br.marketing.entity.tag.FieldMappingResult;
 import com.br.marketing.entity.tag.TagDataRule;
 
-public interface FieldMappingStrategy {
+public interface SourceFieldStrategy {
 
-    FieldMappingResult mapFields(String sourceCode, TagDataRule tagDataRule);
+    String mapFields(Integer tableType, String sourceCode, String sourceName, TagDataRule tagDataRule);
 
 }
