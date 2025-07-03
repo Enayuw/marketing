@@ -3,7 +3,6 @@ package com.br.marketing.service.tag.calculate;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.entity.tag.FieldMappingResult;
 import com.br.marketing.entity.tag.TagDataRule;
-import com.br.marketing.enums.SourceTypeEnum;
 import com.br.marketing.enums.tag.SourceCodeEnum;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 

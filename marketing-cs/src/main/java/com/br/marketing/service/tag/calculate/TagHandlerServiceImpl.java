@@ -317,20 +317,23 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String cell = mappingResult.getCell();
         String custNum = mappingResult.getCustNum();
         String timeField = mappingResult.getTimeField();
-        String contiditionSql = mappingResult.getConditionSql();
+        String conditionSql = mappingResult.getConditionSql();
 
         // 构建插入SQL
         StringBuilder insertBuilder = new StringBuilder();
+        insertBuilder.append("insert into t_tag_data_detail(tag_code,calculate_date,cell");
+
         if (SourceTypeEnum.SHORTLINK.getCode().equals(sourcecode) && TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
-            insertBuilder.append(String.format(
-                "insert into t_tag_data_detail(tag_code,calculate_date,cell,create_time,update_time) " +
-                        "SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, now() AS create_time, now() AS update_time from %s",
-                tagDataRule.getTagCode(), cell, sourceName));
+            insertBuilder.append(",create_time,update_time");
+            insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, now() AS create_time, now() AS update_time from %s",
+                    tagDataRule.getTagCode(), cell, sourceName));
         }else {
-            insertBuilder.append(String.format(
-                "insert into t_tag_data_detail(tag_code,calculate_date,cell,cust_num,create_time,update_time) " +
-                        "SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
-                tagDataRule.getTagCode(), cell, custNum, sourceName));
+            if (TagData.TableTypeEnum.MATERIALIZED_VIEW.getLabel().equals(sourceType)){
+                custNum = sourceCodes.get(1).concat("_cust_num");
+            }
+            insertBuilder.append(",cust_num,create_time,update_time");
+            insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
+                    tagDataRule.getTagCode(), cell, custNum, sourceName));
         }
 
         // 添加条件子句
@@ -341,7 +344,8 @@ public class TagHandlerServiceImpl implements TagHandleService {
         insertBuilder.append(timeField).append(">=\"").append(beforeDate).append("\" and ")
                 .append(timeField).append("<\"").append(LocalDate.now()).append("\" and ");
         // 添加其他条件
-        insertBuilder.append("(").append(contiditionSql).append(")");
+        insertBuilder.append("(").append(conditionSql).append(")");
+
         // 执行插入操作
         log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", tagDataRule.getTagCode(), insertBuilder);
         flagDataMapper.insertbI_(insertBuilder.toString());
