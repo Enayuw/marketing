@@ -43,7 +43,8 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
 
 
     @Override
-    public XieChengCpsCollidingDataLog buildSuccessXieChengCpsCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType, JSONObject returnData, String httpcode, Integer businessCode) {
+    public XieChengCpsCollidingDataLog buildSuccessXieChengCpsCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+                                                                               JSONObject returnData, String httpcode, Integer businessCode) {
         String sha256Code = returnData.getString("sha256Code");
         Boolean result = returnData.getBoolean("result");
         String orgChannel = returnData.getString("orgChannel");
@@ -72,7 +73,8 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
     }
 
     @Override
-    public XieChengCpsCollidingDataLog buildFailXieChengCpsCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType, String cellSha256CodeList, JSONObject resJson) {
+    public XieChengCpsCollidingDataLog buildFailXieChengCpsCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+                                                                            String cellSha256CodeList, JSONObject resJson) {
         String httpcode = resJson.getString("httpcode");
         XieChengCpsCollidingDataLog XieChengCpsCollidingDataLog = new XieChengCpsCollidingDataLog();
         XieChengCpsCollidingDataLog.setIdempotentKey(snowflakeIdGenerator.nextIdString());
@@ -128,32 +130,40 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
     public Result<Boolean> saveXieChengCpsCollidingDataLog(List<XieChengCpsCollidingDataLog> collidingLogs) {
         for (XieChengCpsCollidingDataLog collidingLog : collidingLogs) {
             try {
-                xieChengCpsCollidingDataLogMapper.insertSelective(collidingLog);
-            } catch (DuplicateKeyException e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                        , "携程CPS撞库保存日志，发现重复消息，幂等键：" + collidingLog.getIdempotentKey()), e);
+                try {
+                    xieChengCpsCollidingDataLogMapper.insertSelective(collidingLog);
+                } catch (DuplicateKeyException e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                            , "携程CPS撞库保存日志，发现重复消息，幂等键：" + collidingLog.getIdempotentKey()), e);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                            , "携程CPS撞库保存日志异常！"), e);
+                    DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
+                    dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
+                        @Override
+                        public void execute() {
+                            xieChengCpsCollidingDataLogMapper.insertSelective(collidingLog);
+                        }
+
+                        @Override
+                        public Object getParams() {
+                            return collidingLog;
+                        }
+
+                        @Override
+                        public String getMapperClass() {
+                            return "com.br.marketing.mapper.XieChengCpsCollidingDataLogMapperBase";
+                        }
+
+                        @Override
+                        public String getMapperMethod() {
+                            return "insertSelective";
+                        }
+                    }, "携程cps撞库日志写入", config);
+                }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                        , "携程CPS撞库保存日志异常！"), e);
-                DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
-                dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
-                    @Override
-                    public void execute() {
-                        xieChengCpsCollidingDataLogMapper.insertSelective(collidingLog);
-                    }
-                    @Override
-                    public Object getParams() {
-                        return collidingLog;
-                    }
-                    @Override
-                    public String getMapperClass() {
-                        return "com.br.marketing.mapper.XieChengCpsCollidingDataLogMapperBase";
-                    }
-                    @Override
-                    public String getMapperMethod() {
-                        return "insertSelective";
-                    }
-                },"携程cps撞库日志写入", config);
+                        , "携程CPS撞库保存日志，3次重试异常，需要人工处理，log：" + JSON.toJSONString(collidingLog)), e);
             }
         }
 
