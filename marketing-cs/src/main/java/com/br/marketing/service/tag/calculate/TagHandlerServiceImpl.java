@@ -323,14 +323,18 @@ public class TagHandlerServiceImpl implements TagHandleService {
         StringBuilder insertBuilder = new StringBuilder();
         insertBuilder.append("insert into t_tag_data_detail(tag_code,calculate_date,cell");
 
-        if (SourceTypeEnum.SHORTLINK.getCode().equals(sourcecode) && TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
-            insertBuilder.append(",create_time,update_time");
-            insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, now() AS create_time, now() AS update_time from %s",
-                    tagDataRule.getTagCode(), cell, sourceName));
-        }else {
-            if (TagData.TableTypeEnum.MATERIALIZED_VIEW.getLabel().equals(sourceType)){
+        if (SourceTypeEnum.SHORTLINK.getCode().equals(sourcecode)){
+            if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
+                insertBuilder.append(",create_time,update_time");
+                insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, now() AS create_time, now() AS update_time from %s",
+                        tagDataRule.getTagCode(), cell, sourceName));
+            }else {
                 custNum = sourceCodes.get(1).concat("_cust_num");
+                insertBuilder.append(",cust_num,create_time,update_time");
+                insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
+                        tagDataRule.getTagCode(), cell, custNum, sourceName));
             }
+        }else {
             insertBuilder.append(",cust_num,create_time,update_time");
             insertBuilder.append(String.format("SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
                     tagDataRule.getTagCode(), cell, custNum, sourceName));
