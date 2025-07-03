@@ -10,6 +10,8 @@ import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -1874,7 +1876,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())){
             //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
             if (StringUtils.isNotBlank(sftpPath)){
-                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,sftpPath);
+                SyncConfigExample syncConfigCycle = new SyncConfigExample();
+                SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
+                criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
+                        .andSrcPathEqualTo(sftpPath).andTypeEqualTo(1);
+                List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
+                String localPath = syncCycleConfigs.get(0).getTargetPath();
+                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,localPath);
             }else {
                 throw new BusinessException("sftpPath不能为空！");
             }
@@ -2074,10 +2082,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
 
     private void getFileField(List<FieldSampleDTO> result, MarketingDataCleanGeneralConfig config, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
-
+        SyncConfigExample syncConfigCycle = new SyncConfigExample();
+        SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
+        criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(config.getApiCode())
+                .andSrcPathEqualTo(config.getSftpPath()).andTypeEqualTo(1);
+        List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
+        String localPath = syncCycleConfigs.get(0).getTargetPath();
         // b_marketing_clean_data_file
         MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
-        fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andTargetSftpPathEqualTo(config.getSftpPath());
+        fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andLocalPathEqualTo(localPath);
         fileExample.setOrderByClause("create_time desc limit 1");
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
         if (CollectionUtils.isEmpty(cleanDataFiles) || StringUtils.isEmpty(cleanDataFiles.get(0).getFileHeader())) {
@@ -2176,8 +2189,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (StringUtils.isEmpty(sftpPath)) {
                 throw new BusinessException("SFTP路径不能为空");
             }
+            SyncConfigExample syncConfigCycle = new SyncConfigExample();
+            SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
+            criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
+                    .andSrcPathEqualTo(sftpPath).andTypeEqualTo(1);
+            List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
+            String localPath = syncCycleConfigs.get(0).getTargetPath();
             MarketingCleanDataFile marketingCleanDataFile =
-                    marketingCleanDataFileMapper.getCleanDataFileByDate(apiCode, appletDate, sftpPath);
+                    marketingCleanDataFileMapper.getCleanDataFileByDate(apiCode, appletDate, localPath);
             if (Objects.isNull(marketingCleanDataFile)) {
                 throw new BusinessException("未找到符合条件的SFTP文件数据");
             }
