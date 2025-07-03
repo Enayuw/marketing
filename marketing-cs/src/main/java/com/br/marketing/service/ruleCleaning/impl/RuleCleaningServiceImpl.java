@@ -1876,7 +1876,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())){
             //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
             if (StringUtils.isNotBlank(sftpPath)){
-                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,sftpPath);
+                SyncConfigExample syncConfigCycle = new SyncConfigExample();
+                SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
+                criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
+                        .andSrcPathEqualTo(apiCode).andTypeEqualTo(1);
+                List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
+                String localPath = syncCycleConfigs.get(0).getTargetPath();
+                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,localPath);
             }else {
                 throw new BusinessException("sftpPath不能为空！");
             }

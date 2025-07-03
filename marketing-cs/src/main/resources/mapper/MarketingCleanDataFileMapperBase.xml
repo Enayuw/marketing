@@ -399,7 +399,7 @@
       receive_date
     FROM b_marketing_clean_data_file
     WHERE api_code = #{apiCode}
-      AND target_sftp_path = #{sftpPath}
+      AND local_path = #{sftpPath}
       AND receive_date BETWEEN DATE_SUB(CURDATE(),INTERVAL 1 month) AND CURDATE()
       AND is_del = 1
     GROUP BY receive_date
