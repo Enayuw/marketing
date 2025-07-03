@@ -34,8 +34,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -218,10 +220,45 @@ public class MockServiceImpl implements MockService {
     }
 
     @Override
+    public ApiResult<String> batchAddMockCase(List<MockCreateCaseDTO> list, MarketingUserDetail userDetail) {
+        if(CollectionUtils.isEmpty(list)){
+            return new ApiResult<String>().fail("批量添加Mock用例失败,入参为空");
+        }
+        try {
+            List<MockCase> mockCaseList = new ArrayList<>();
+            for (MockCreateCaseDTO dto : list){
+                MockCase mockCase = new MockCase();
+                mockCase.setMockName(dto.getMockName());
+                mockCase.setApiCode(dto.getApiCode());
+                mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
+                mockCase.setStatusCode(dto.getStatusCode());
+                mockCase.setDelayMs(dto.getDelayMs());
+                mockCase.setDelayFluctuation(dto.getDelayFluctuation());
+                mockCase.setDescription(dto.getDescription());
+                mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
+                mockCase.setOptUserName(userDetail.getUserName());
+                mockCase.setEnabled(dto.getEnabled());
+                mockCase.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
+                mockCase.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockCase.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockCase.setIsDel(Constants.DATA_VALID);
+                mockCaseList.add(mockCase);
+            }
+            mockCaseMapper.batchInsert(mockCaseList);
+            return new ApiResult<String>().success();
+        }catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "批量添加Mock用例失败！"), e);
+            return new ApiResult<String>().fail("批量添加Mock用例失败");
+        }
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean saveOrUpdateMockCase(MockCreateCaseDTO dto, MarketingUserDetail userDetail) {
+    public Boolean updateMockCase(MockCreateCaseDTO dto, MarketingUserDetail userDetail) {
         try {
             MockCase mockCase = new MockCase();
+            mockCase.setId(dto.getId());
             mockCase.setMockName(dto.getMockName());
             mockCase.setApiCode(dto.getApiCode());
             mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
@@ -235,17 +272,9 @@ public class MockServiceImpl implements MockService {
             mockCase.setIsDel(Constants.DATA_VALID);
             mockCase.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
 
-            if (dto.getId() == null) {
-                mockCase.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
-                mockCase.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-                mockCaseMapper.insertSelective(mockCase);
-                entityOptService.writeOptLog(mockCase.getId(), mockCase, null);
-            } else {
-                MockCase mockCaseOld = mockCaseMapper.selectByPrimaryKey(dto.getId());
-                mockCase.setId(dto.getId());
-                mockCaseMapper.updateByPrimaryKeySelective(mockCase);
-                entityOptService.writeOptLog(mockCase.getId(), mockCase, mockCaseOld);
-            }
+            MockCase mockCaseOld = mockCaseMapper.selectByPrimaryKey(dto.getId());
+            mockCaseMapper.updateByPrimaryKeySelective(mockCase);
+            entityOptService.writeOptLog(mockCase.getId(), mockCase, mockCaseOld);
             return true;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),

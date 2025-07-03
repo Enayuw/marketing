@@ -25,7 +25,9 @@ public interface MockService {
 
     List<MockCase> getMockCaseList(String mockName);
 
-    Boolean saveOrUpdateMockCase(MockCreateCaseDTO mockCase, MarketingUserDetail userDetail);
+    ApiResult<String> batchAddMockCase(List<MockCreateCaseDTO> list, MarketingUserDetail userDetail);
+
+    Boolean updateMockCase(MockCreateCaseDTO mockCase, MarketingUserDetail userDetail);
 
     Boolean deleteMockCases(List<Long> ids, MarketingUserDetail userDetail);
 
@@ -47,6 +49,7 @@ public interface MockService {
      * @return
      */
     MockCase action(String redisValue);
+
 
 
 }

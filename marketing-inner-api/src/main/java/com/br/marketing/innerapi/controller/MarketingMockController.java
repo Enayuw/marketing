@@ -110,19 +110,36 @@ public class MarketingMockController {
         }
     }
 
+
     /**
-     * 添加mock用例
+     * 批量添加mock用例
      */
-    @PostMapping("/addAndUpdateMockCase")
-    @ApiOperation(value = "添加/修改Mock用例", notes = "添加Mock用例")
-    public ApiResult<Boolean> saveOrUpdateMockCase(@RequestBody MockCreateCaseDTO dto) {
+    @PostMapping("/batchAddMockCase")
+    @ApiOperation(value = "批量添加mock用例", notes = "批量添加mock用例")
+    public ApiResult<String> batchAddMockCase(@RequestBody List<MockCreateCaseDTO> list) {
         try {
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
-            Boolean result = mockService.saveOrUpdateMockCase(dto,userDetail);
+            return mockService.batchAddMockCase(list,userDetail);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "批量添加mock用例接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    /**
+     * 修改mock用例
+     */
+    @PostMapping("/updateMockCase")
+    @ApiOperation(value = "修改Mock用例", notes = "修改Mock用例")
+    public ApiResult<Boolean> updateMockCase(@RequestBody MockCreateCaseDTO dto) {
+        try {
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            Boolean result = mockService.updateMockCase(dto,userDetail);
             return new ApiResult<Boolean>().success(result);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                    "添加Mock用例接口错误！错误信息：" + ex.getMessage()), ex);
+                    "修改Mock用例接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
