@@ -1879,7 +1879,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 SyncConfigExample syncConfigCycle = new SyncConfigExample();
                 SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
                 criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
-                        .andSrcPathEqualTo(apiCode).andTypeEqualTo(1);
+                        .andSrcPathEqualTo(sftpPath).andTypeEqualTo(1);
                 List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
                 String localPath = syncCycleConfigs.get(0).getTargetPath();
                 dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,localPath);

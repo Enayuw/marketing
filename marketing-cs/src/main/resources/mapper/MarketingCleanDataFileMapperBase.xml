@@ -411,7 +411,7 @@
       *
     FROM b_marketing_clean_data_file
     WHERE api_code = #{apiCode}
-      AND target_sftp_path = #{sftpPath}
+      AND local_path = #{sftpPath}
       AND receive_date = #{appletDate}
       AND is_del = 1
     ORDER BY
