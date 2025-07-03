@@ -3,7 +3,6 @@ package com.br.marketing.check.service.Impl.clean.transfer;
 import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataItemDTO;
@@ -11,6 +10,8 @@ import com.br.marketing.service.IFileToMarketingRuleTransferService;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -51,9 +52,17 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
                     dto.setCustNum(value);
                     break;
                 case "ifLogin":
+                    if("1".equals(value)){
+                        String formattedDate = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        dto.setLoginTime(formattedDate);
+                    }
                     dto.setIfLogin(value);
                     break;
                 case "ifLent":
+                    if("1".equals(value)){
+                        String formattedDate = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        dto.setLentTime(formattedDate);
+                    }
                     dto.setIfLent(value);
                     break;
                 case "caseEffective":
@@ -68,12 +77,16 @@ public class ZhaoLianFileToMarketingRuleTransferServiceImpl implements IFileToMa
                     reserveFieldJo.put("crd_typ", value);
                     break;
                 case "qy_typ":
-                    handleQyTyp(reserveFieldJo, value); // 提取特殊逻辑
+                    handleQyTyp(reserveFieldJo, value);
                     break;
                 case "qy_rat":
                     reserveFieldJo.put("qy_rat", value);
                     break;
                 case "applyLoan":
+                    if("1".equals(value)){
+                        String formattedDate = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        reserveFieldJo.put("applyLoanTime", formattedDate);
+                    }
                     reserveFieldJo.put("applyLoan", value);
                     break;
                 case "cmpn_value_typ":
