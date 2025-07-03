@@ -97,15 +97,23 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             }
         }
         Date date = Date.from(LocalDate.now().minusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        //填充b_marketing_clean_data_file表的表头及字段
-        MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
-        fileExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(date).andFileHeaderIsNull();
-        fileExample.setOrderByClause("create_time desc");
-        List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
-        cleanDataFiles.forEach(cleanDataFile -> {
-            log.warn("开始填充文件表头及样例,fileName={}", cleanDataFile.getFileName());
-            fillHeaderAndData(cleanDataFile);
-        });
+        SyncConfigExample syncConfigCycle = new SyncConfigExample();
+        SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
+        criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue())
+                .andTypeEqualTo(1);
+        List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
+        for (SyncConfig syncCycleConfig : syncCycleConfigs) {
+            //填充b_marketing_clean_data_file表的表头及字段
+            MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
+            fileExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(date).andApiCodeEqualTo(syncCycleConfig.getApiCode())
+                    .andTargetSftpPathEqualTo(syncCycleConfig.getSrcPath()).andFileHeaderIsNull();
+            fileExample.setOrderByClause("create_time desc");
+            List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
+            cleanDataFiles.forEach(cleanDataFile -> {
+                log.warn("开始填充文件表头及样例,fileName={}", cleanDataFile.getFileName());
+                fillHeaderAndData(cleanDataFile);
+            });
+        }
 
     }
 
