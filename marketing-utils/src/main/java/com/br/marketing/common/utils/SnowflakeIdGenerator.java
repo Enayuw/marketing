@@ -1,5 +1,7 @@
 package com.br.marketing.common.utils;
 
+import org.springframework.stereotype.Component;
+
 import java.net.InetAddress;
 import java.security.SecureRandom;
 
@@ -7,6 +9,7 @@ import java.security.SecureRandom;
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-11-12
  */
+@Component
 public class SnowflakeIdGenerator {
 
     /**
