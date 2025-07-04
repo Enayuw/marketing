@@ -11,6 +11,7 @@ public enum SourceTypeEnum {
     UPLOAD("UPLOAD", "上传"),
     TRANSFORM("TRANSFORM", "转化"),
     CALL("CALL", "外呼"),
+    SHORTLINK("SHORTLINK","短链"),
     CALLBACK("CALLBACK", "回调"),
     KNOWLEDGE("KNOWLEDGE", "知识库");
 

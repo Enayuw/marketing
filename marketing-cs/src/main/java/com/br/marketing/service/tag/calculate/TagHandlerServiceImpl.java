@@ -3,6 +3,7 @@ package com.br.marketing.service.tag.calculate;
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tag.MaterializedViewDTO;
@@ -14,7 +15,6 @@ import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.mapper.tag.*;
-import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.LocalDate;
 import java.util.*;
@@ -148,7 +147,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
         try {
             // 解析数据源配置
             List<String> sourceCodes = Arrays.asList(tagDataRule.getSourceCode().split(","));
-            Collections.sort(sourceCodes);
 
             // 圈选的ApiCode范围
             List<String> apiCodes = Arrays.asList(tagDataRule.getApiCodeScope().split(","));
@@ -303,49 +301,66 @@ public class TagHandlerServiceImpl implements TagHandleService {
      */
     private void insertDataDoris(String sourceName, Integer sourceType, List<String> sourceCodes,
                                  TagDataRule tagDataRule) {
-        String sourcecode = sourceCodes.get(0);
-        String cell;
-        String custNum;
-        String timeField;
-        String contiditionSql;
 
-        // 根据表类型确定字段名
-        boolean isCallSource = SourceTypeEnum.CALL.getCode().equals(sourcecode);
+        String sourceCode = "";
+        String conditionSql = "";
 
         if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
-            // 基础表字段处理
-            cell = isCallSource ? "phone_num_encoded" : "cell";
-            custNum = isCallSource ? "case_num" : "cust_num";
-            timeField = isCallSource ? "case_log_create_time" : "create_time";
-            contiditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
+            sourceCode = sourceCodes.get(0);
+            conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
         } else {
-            // 非基础表字段处理
-            String prefix = sourcecode.concat("_");
-            cell = isCallSource ? prefix.concat("phone_num_encoded") : prefix.concat("cell");
-            custNum = isCallSource ? prefix.concat("case_num") : prefix.concat("cust_num");
-            timeField = isCallSource ? prefix.concat("case_log_create_time") : prefix.concat("create_time");
-            contiditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
+            //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
+            for (String code : sourceCodes) {
+                if (SourceTypeEnum.CALL.getCode().equals(code) || SourceTypeEnum.TRANSFORM.getCode().equals(code)) {
+                    sourceCode = code;
+                    break;
+                }
+            }
+            conditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
+        }
+
+        // 根据表类型确定字段名
+        SourceFieldStrategy sourceFieldStrategy = null;
+        try {
+            sourceFieldStrategy = getFieldMappingStrategy(SourceTypeEnum.valueOf(sourceCode));
+            //判空
+            if (sourceFieldStrategy == null) {
+                log.warn("该数据源类型不存在，sourceCode:{}", sourceCode);
+            }
+        } catch (Exception e) {
+            log.error("获取数据源失败，sourceCode:{}", sourceCode);
+            throw new BusinessException(e.getMessage());
         }
 
         // 构建插入SQL
         StringBuilder insertBuilder = new StringBuilder();
-        insertBuilder.append(String.format(
-                "insert into t_tag_data_detail(tag_code,calculate_date,cell,cust_num,create_time,update_time) " +
-                        "SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now(), now() from %s",
-                tagDataRule.getTagCode(), cell, custNum, sourceName));
+        insertBuilder.append(sourceFieldStrategy.mapFields(sourceType, sourceCode, sourceName, tagDataRule));
 
-        // 添加条件子句
-        insertBuilder.append(" where ");
-        // 添加时间范围条件
-        String beforeDate = DateHelper.getPreviousDate(tagDataRule.getTimeUnit(), tagDataRule.getTimeNumber())
-                .toString();
-        insertBuilder.append(timeField).append(">=\"").append(beforeDate).append("\" and ")
-                .append(timeField).append("<\"").append(LocalDate.now()).append("\" and ");
         // 添加其他条件
-        insertBuilder.append("(").append(contiditionSql).append(")");
+        insertBuilder.append("(").append(conditionSql).append(")");
+
         // 执行插入操作
-        log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", insertBuilder);
+        log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", tagDataRule.getTagCode(), insertBuilder);
         flagDataMapper.insertbI_(insertBuilder.toString());
+    }
+
+    private SourceFieldStrategy getFieldMappingStrategy(SourceTypeEnum sourceTypeEnum) {
+        SourceFieldStrategy sourceFieldStrategy;
+        switch (sourceTypeEnum) {
+            case SHORTLINK:
+                sourceFieldStrategy = new ShortLinkFieldStrategy();
+                break;
+            case CALL:
+                sourceFieldStrategy = new CallFieldStrategy();
+                break;
+            case TRANSFORM:
+                sourceFieldStrategy = new TransformFieldStrategy();
+                break;
+            default:
+                sourceFieldStrategy = null;
+                break;
+        }
+        return sourceFieldStrategy;
     }
 
     private List<TagDataRuleCalculate> getTagCalculateRecord(String tagCode, String calculateDate, Integer status) {
