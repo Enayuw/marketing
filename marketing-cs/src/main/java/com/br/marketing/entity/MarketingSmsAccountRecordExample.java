@@ -6,14 +6,14 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-public class MarketingLineSmsAccountRecordExample {
+public class MarketingSmsAccountRecordExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public MarketingLineSmsAccountRecordExample() {
+    public MarketingSmsAccountRecordExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -193,66 +193,6 @@ public class MarketingLineSmsAccountRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andTypeIsNull() {
-            addCriterion("`type` is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIsNotNull() {
-            addCriterion("`type` is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeEqualTo(Integer value) {
-            addCriterion("`type` =", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotEqualTo(Integer value) {
-            addCriterion("`type` <>", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeGreaterThan(Integer value) {
-            addCriterion("`type` >", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("`type` >=", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeLessThan(Integer value) {
-            addCriterion("`type` <", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeLessThanOrEqualTo(Integer value) {
-            addCriterion("`type` <=", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIn(List<Integer> values) {
-            addCriterion("`type` in", values, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotIn(List<Integer> values) {
-            addCriterion("`type` not in", values, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeBetween(Integer value1, Integer value2) {
-            addCriterion("`type` between", value1, value2, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotBetween(Integer value1, Integer value2) {
-            addCriterion("`type` not between", value1, value2, "type");
-            return (Criteria) this;
-        }
-
         public Criteria andVendorNameIsNull() {
             addCriterion("vendor_name is null");
             return (Criteria) this;
@@ -323,73 +263,73 @@ public class MarketingLineSmsAccountRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesIsNull() {
-            addCriterion("call_channel_names is null");
+        public Criteria andChannelsNameIsNull() {
+            addCriterion("channels_name is null");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesIsNotNull() {
-            addCriterion("call_channel_names is not null");
+        public Criteria andChannelsNameIsNotNull() {
+            addCriterion("channels_name is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesEqualTo(String value) {
-            addCriterion("call_channel_names =", value, "callChannelNames");
+        public Criteria andChannelsNameEqualTo(String value) {
+            addCriterion("channels_name =", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesNotEqualTo(String value) {
-            addCriterion("call_channel_names <>", value, "callChannelNames");
+        public Criteria andChannelsNameNotEqualTo(String value) {
+            addCriterion("channels_name <>", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesGreaterThan(String value) {
-            addCriterion("call_channel_names >", value, "callChannelNames");
+        public Criteria andChannelsNameGreaterThan(String value) {
+            addCriterion("channels_name >", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesGreaterThanOrEqualTo(String value) {
-            addCriterion("call_channel_names >=", value, "callChannelNames");
+        public Criteria andChannelsNameGreaterThanOrEqualTo(String value) {
+            addCriterion("channels_name >=", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesLessThan(String value) {
-            addCriterion("call_channel_names <", value, "callChannelNames");
+        public Criteria andChannelsNameLessThan(String value) {
+            addCriterion("channels_name <", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesLessThanOrEqualTo(String value) {
-            addCriterion("call_channel_names <=", value, "callChannelNames");
+        public Criteria andChannelsNameLessThanOrEqualTo(String value) {
+            addCriterion("channels_name <=", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesLike(String value) {
-            addCriterion("call_channel_names like", value, "callChannelNames");
+        public Criteria andChannelsNameLike(String value) {
+            addCriterion("channels_name like", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesNotLike(String value) {
-            addCriterion("call_channel_names not like", value, "callChannelNames");
+        public Criteria andChannelsNameNotLike(String value) {
+            addCriterion("channels_name not like", value, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesIn(List<String> values) {
-            addCriterion("call_channel_names in", values, "callChannelNames");
+        public Criteria andChannelsNameIn(List<String> values) {
+            addCriterion("channels_name in", values, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesNotIn(List<String> values) {
-            addCriterion("call_channel_names not in", values, "callChannelNames");
+        public Criteria andChannelsNameNotIn(List<String> values) {
+            addCriterion("channels_name not in", values, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesBetween(String value1, String value2) {
-            addCriterion("call_channel_names between", value1, value2, "callChannelNames");
+        public Criteria andChannelsNameBetween(String value1, String value2) {
+            addCriterion("channels_name between", value1, value2, "channelsName");
             return (Criteria) this;
         }
 
-        public Criteria andCallChannelNamesNotBetween(String value1, String value2) {
-            addCriterion("call_channel_names not between", value1, value2, "callChannelNames");
+        public Criteria andChannelsNameNotBetween(String value1, String value2) {
+            addCriterion("channels_name not between", value1, value2, "channelsName");
             return (Criteria) this;
         }
 

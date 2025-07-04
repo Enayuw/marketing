@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingLineSmsAccountDetailMapperBase" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingLineSmsAccountDetail" >
+<mapper namespace="com.br.marketing.mapper.MarketingSmsAccountLogMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSmsAccountLog" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="type" property="type" jdbcType="INTEGER" />
     <result column="record_id" property="recordId" jdbcType="BIGINT" />
-    <result column="vendor_id" property="vendorId" jdbcType="BIGINT" />
     <result column="vendor_name" property="vendorName" jdbcType="VARCHAR" />
-    <result column="call_channel_id" property="callChannelId" jdbcType="BIGINT" />
-    <result column="call_channel_name" property="callChannelName" jdbcType="VARCHAR" />
+    <result column="channels_name" property="channelsName" jdbcType="VARCHAR" />
     <result column="price" property="price" jdbcType="DECIMAL" />
     <result column="effect_start_date" property="effectStartDate" jdbcType="DATE" />
     <result column="effect_end_date" property="effectEndDate" jdbcType="DATE" />
+    <result column="created_by" property="createdBy" jdbcType="VARCHAR" />
+    <result column="ope_type" property="opeType" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
@@ -75,16 +74,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, `type`, record_id, vendor_id, vendor_name, call_channel_id, call_channel_name, 
-    price, effect_start_date, effect_end_date, create_time, update_time, is_delete
+    id, record_id, vendor_name, channels_name, price, effect_start_date, effect_end_date, 
+    created_by, ope_type, create_time, update_time, is_delete
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingLineSmsAccountDetailExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingSmsAccountLogExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_marketing_line_sms_account_detail
+    from b_marketing_sms_account_log
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -95,57 +94,46 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from b_marketing_line_sms_account_detail
+    from b_marketing_sms_account_log
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_marketing_line_sms_account_detail
+    delete from b_marketing_sms_account_log
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingLineSmsAccountDetailExample" >
-    delete from b_marketing_line_sms_account_detail
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingSmsAccountLogExample" >
+    delete from b_marketing_sms_account_log
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingLineSmsAccountDetail" >
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingSmsAccountLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_line_sms_account_detail (`type`, record_id, vendor_id, 
-      vendor_name, call_channel_id, call_channel_name, 
+    insert into b_marketing_sms_account_log (record_id, vendor_name, channels_name, 
       price, effect_start_date, effect_end_date, 
-      create_time, update_time, is_delete
-      )
-    values (#{type,jdbcType=INTEGER}, #{recordId,jdbcType=BIGINT}, #{vendorId,jdbcType=BIGINT}, 
-      #{vendorName,jdbcType=VARCHAR}, #{callChannelId,jdbcType=BIGINT}, #{callChannelName,jdbcType=VARCHAR}, 
+      created_by, ope_type, create_time, 
+      update_time, is_delete)
+    values (#{recordId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR}, #{channelsName,jdbcType=VARCHAR}, 
       #{price,jdbcType=DECIMAL}, #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}
-      )
+      #{createdBy,jdbcType=VARCHAR}, #{opeType,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingLineSmsAccountDetail" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSmsAccountLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_line_sms_account_detail
+    insert into b_marketing_sms_account_log
     <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="type != null" >
-        `type`,
-      </if>
       <if test="recordId != null" >
         record_id,
-      </if>
-      <if test="vendorId != null" >
-        vendor_id,
       </if>
       <if test="vendorName != null" >
         vendor_name,
       </if>
-      <if test="callChannelId != null" >
-        call_channel_id,
-      </if>
-      <if test="callChannelName != null" >
-        call_channel_name,
+      <if test="channelsName != null" >
+        channels_name,
       </if>
       <if test="price != null" >
         price,
@@ -155,6 +143,12 @@
       </if>
       <if test="effectEndDate != null" >
         effect_end_date,
+      </if>
+      <if test="createdBy != null" >
+        created_by,
+      </if>
+      <if test="opeType != null" >
+        ope_type,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -167,23 +161,14 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="type != null" >
-        #{type,jdbcType=INTEGER},
-      </if>
       <if test="recordId != null" >
         #{recordId,jdbcType=BIGINT},
-      </if>
-      <if test="vendorId != null" >
-        #{vendorId,jdbcType=BIGINT},
       </if>
       <if test="vendorName != null" >
         #{vendorName,jdbcType=VARCHAR},
       </if>
-      <if test="callChannelId != null" >
-        #{callChannelId,jdbcType=BIGINT},
-      </if>
-      <if test="callChannelName != null" >
-        #{callChannelName,jdbcType=VARCHAR},
+      <if test="channelsName != null" >
+        #{channelsName,jdbcType=VARCHAR},
       </if>
       <if test="price != null" >
         #{price,jdbcType=DECIMAL},
@@ -193,6 +178,12 @@
       </if>
       <if test="effectEndDate != null" >
         #{effectEndDate,jdbcType=DATE},
+      </if>
+      <if test="createdBy != null" >
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="opeType != null" >
+        #{opeType,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -205,35 +196,26 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingLineSmsAccountDetailExample" resultType="java.lang.Integer" >
-    select count(*) from b_marketing_line_sms_account_detail
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingSmsAccountLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_sms_account_log
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_marketing_line_sms_account_detail
+    update b_marketing_sms_account_log
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.type != null" >
-        `type` = #{record.type,jdbcType=INTEGER},
-      </if>
       <if test="record.recordId != null" >
         record_id = #{record.recordId,jdbcType=BIGINT},
-      </if>
-      <if test="record.vendorId != null" >
-        vendor_id = #{record.vendorId,jdbcType=BIGINT},
       </if>
       <if test="record.vendorName != null" >
         vendor_name = #{record.vendorName,jdbcType=VARCHAR},
       </if>
-      <if test="record.callChannelId != null" >
-        call_channel_id = #{record.callChannelId,jdbcType=BIGINT},
-      </if>
-      <if test="record.callChannelName != null" >
-        call_channel_name = #{record.callChannelName,jdbcType=VARCHAR},
+      <if test="record.channelsName != null" >
+        channels_name = #{record.channelsName,jdbcType=VARCHAR},
       </if>
       <if test="record.price != null" >
         price = #{record.price,jdbcType=DECIMAL},
@@ -243,6 +225,12 @@
       </if>
       <if test="record.effectEndDate != null" >
         effect_end_date = #{record.effectEndDate,jdbcType=DATE},
+      </if>
+      <if test="record.createdBy != null" >
+        created_by = #{record.createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.opeType != null" >
+        ope_type = #{record.opeType,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -259,17 +247,16 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_marketing_line_sms_account_detail
+    update b_marketing_sms_account_log
     set id = #{record.id,jdbcType=BIGINT},
-      `type` = #{record.type,jdbcType=INTEGER},
       record_id = #{record.recordId,jdbcType=BIGINT},
-      vendor_id = #{record.vendorId,jdbcType=BIGINT},
       vendor_name = #{record.vendorName,jdbcType=VARCHAR},
-      call_channel_id = #{record.callChannelId,jdbcType=BIGINT},
-      call_channel_name = #{record.callChannelName,jdbcType=VARCHAR},
+      channels_name = #{record.channelsName,jdbcType=VARCHAR},
       price = #{record.price,jdbcType=DECIMAL},
       effect_start_date = #{record.effectStartDate,jdbcType=DATE},
       effect_end_date = #{record.effectEndDate,jdbcType=DATE},
+      created_by = #{record.createdBy,jdbcType=VARCHAR},
+      ope_type = #{record.opeType,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_delete = #{record.isDelete,jdbcType=INTEGER}
@@ -277,26 +264,17 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingLineSmsAccountDetail" >
-    update b_marketing_line_sms_account_detail
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingSmsAccountLog" >
+    update b_marketing_sms_account_log
     <set >
-      <if test="type != null" >
-        `type` = #{type,jdbcType=INTEGER},
-      </if>
       <if test="recordId != null" >
         record_id = #{recordId,jdbcType=BIGINT},
-      </if>
-      <if test="vendorId != null" >
-        vendor_id = #{vendorId,jdbcType=BIGINT},
       </if>
       <if test="vendorName != null" >
         vendor_name = #{vendorName,jdbcType=VARCHAR},
       </if>
-      <if test="callChannelId != null" >
-        call_channel_id = #{callChannelId,jdbcType=BIGINT},
-      </if>
-      <if test="callChannelName != null" >
-        call_channel_name = #{callChannelName,jdbcType=VARCHAR},
+      <if test="channelsName != null" >
+        channels_name = #{channelsName,jdbcType=VARCHAR},
       </if>
       <if test="price != null" >
         price = #{price,jdbcType=DECIMAL},
@@ -306,6 +284,12 @@
       </if>
       <if test="effectEndDate != null" >
         effect_end_date = #{effectEndDate,jdbcType=DATE},
+      </if>
+      <if test="createdBy != null" >
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="opeType != null" >
+        ope_type = #{opeType,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -319,17 +303,16 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingLineSmsAccountDetail" >
-    update b_marketing_line_sms_account_detail
-    set `type` = #{type,jdbcType=INTEGER},
-      record_id = #{recordId,jdbcType=BIGINT},
-      vendor_id = #{vendorId,jdbcType=BIGINT},
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSmsAccountLog" >
+    update b_marketing_sms_account_log
+    set record_id = #{recordId,jdbcType=BIGINT},
       vendor_name = #{vendorName,jdbcType=VARCHAR},
-      call_channel_id = #{callChannelId,jdbcType=BIGINT},
-      call_channel_name = #{callChannelName,jdbcType=VARCHAR},
+      channels_name = #{channelsName,jdbcType=VARCHAR},
       price = #{price,jdbcType=DECIMAL},
       effect_start_date = #{effectStartDate,jdbcType=DATE},
       effect_end_date = #{effectEndDate,jdbcType=DATE},
+      created_by = #{createdBy,jdbcType=VARCHAR},
+      ope_type = #{opeType,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_delete = #{isDelete,jdbcType=INTEGER}

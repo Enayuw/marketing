@@ -3,7 +3,7 @@ package com.br.marketing.entity;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class MarketingLineSmsAccountLog {
+public class MarketingSmsAccountDetail {
     /**
      * 
      */
@@ -15,9 +15,9 @@ public class MarketingLineSmsAccountLog {
     private Long recordId;
 
     /**
-     * 对账类别 1-线路 2-短信
+     * 供应商id
      */
-    private Integer type;
+    private Long vendorId;
 
     /**
      * 供应商名称
@@ -25,12 +25,17 @@ public class MarketingLineSmsAccountLog {
     private String vendorName;
 
     /**
-     * 主叫号码或渠道名称集合
+     * 渠道id
      */
-    private String callChannelNames;
+    private Long channelId;
 
     /**
-     * 单价，元/条
+     * 渠道名称
+     */
+    private String channelName;
+
+    /**
+     * 短信单价，元/条
      */
     private BigDecimal price;
 
@@ -43,11 +48,6 @@ public class MarketingLineSmsAccountLog {
      * 生效结束日期
      */
     private Date effectEndDate;
-
-    /**
-     * 操作人
-     */
-    private String createdBy;
 
     /**
      * 创建时间
@@ -80,12 +80,12 @@ public class MarketingLineSmsAccountLog {
         this.recordId = recordId;
     }
 
-    public Integer getType() {
-        return type;
+    public Long getVendorId() {
+        return vendorId;
     }
 
-    public void setType(Integer type) {
-        this.type = type;
+    public void setVendorId(Long vendorId) {
+        this.vendorId = vendorId;
     }
 
     public String getVendorName() {
@@ -96,12 +96,20 @@ public class MarketingLineSmsAccountLog {
         this.vendorName = vendorName == null ? null : vendorName.trim();
     }
 
-    public String getCallChannelNames() {
-        return callChannelNames;
+    public Long getChannelId() {
+        return channelId;
     }
 
-    public void setCallChannelNames(String callChannelNames) {
-        this.callChannelNames = callChannelNames == null ? null : callChannelNames.trim();
+    public void setChannelId(Long channelId) {
+        this.channelId = channelId;
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public void setChannelName(String channelName) {
+        this.channelName = channelName == null ? null : channelName.trim();
     }
 
     public BigDecimal getPrice() {
@@ -126,14 +134,6 @@ public class MarketingLineSmsAccountLog {
 
     public void setEffectEndDate(Date effectEndDate) {
         this.effectEndDate = effectEndDate;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy == null ? null : createdBy.trim();
     }
 
     public Date getCreateTime() {
