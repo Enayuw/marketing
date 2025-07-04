@@ -838,7 +838,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(pushRuleThreadNum, pushRuleThreadNum, pushRuleQueueNum);
                 for (int i = 0; i < parNum; i++) {
                     int finalI = i;
-                    resList.add(threadPool.submit(() -> federatedQueryTotal(dto, queryBaseBean, finalI, tagCode, type)));
+                    QueryBaseBean queryBaseBean1 = new QueryBaseBean();
+                    BeanUtils.copyProperties(queryBaseBean, queryBaseBean1);
+                    resList.add(threadPool.submit(() -> federatedQueryTotal(dto, queryBaseBean1, finalI, tagCode, type)));
                 }
                 try {
                     for (Future<Result<Integer>> pushFuture : resList) {
