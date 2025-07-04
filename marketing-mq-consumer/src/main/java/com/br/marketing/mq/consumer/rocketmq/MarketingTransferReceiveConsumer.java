@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingTransferConstants.TOPIC,
         consumerGroup = MarketingTransferConstants.MARKETING_TRANSFER_RECEIVE,
         selectorExpression = MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE,
-        consumeThreadNumber = 1, consumeThreadMax = 3, awaitTerminationMillisWhenShutdown = 5000)
+        consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 5000)
 public class MarketingTransferReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
@@ -46,7 +46,7 @@ public class MarketingTransferReceiveConsumer extends BaseMqMessageListener impl
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(messageExt, pushRuleService::consumerTransferData, o,8);
+        consumerService.consumerRun(messageExt, pushRuleService::consumerTransferData, o);
     }
 
     @Override

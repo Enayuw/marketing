@@ -6,7 +6,6 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.handle.CachedMessageIdempotentHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.stereotype.Service;
@@ -29,8 +28,6 @@ public class RocketMqConsumerService {
 
     @Resource
     private RocketMqSwitch rocketMqSwitch;
-    @Resource
-    private CachedMessageIdempotentHandler cachedMessageIdempotentHandler;
 
     /**
      * RocketMQ消费端 重试、延时队列、消息幂等、服务异常退出后，消费消息的重试机制
@@ -44,11 +41,9 @@ public class RocketMqConsumerService {
      *                              使用时去marketing-utils/src/main/java/com/br/marketing/common/constants/rocketmq 包中核对
      * @param delayTime             消息延时时间（单位：秒） delayTime
      *                              delayTime>0时，发送到延时Topic下
-     * @param isMsgIdempotence      是否开启消息幂等
-     * @param allowReprocessSeconds 允许重复消费时间（单位：秒）
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
-            , String delayTopic, String retryTag, long delayTime, boolean isMsgIdempotence, int allowReprocessSeconds) {
+            , String delayTopic, String retryTag, long delayTime) {
         try {
             if (ConsumerService.consumerDownStatus) {
                 log.warn("服务下线，消费者不在接收新的流量");
@@ -64,15 +59,6 @@ public class RocketMqConsumerService {
         String topic = messageExt.getTopic();
         String tags = messageExt.getTags();
         String msgId = messageExt.getMsgId();
-        boolean idemFlag = rocketMqSwitch.msgIdemFlag(tags, isMsgIdempotence);
-        if (idemFlag) {
-            allowReprocessSeconds = rocketMqSwitch.getAllowReprocessSeconds(tags, allowReprocessSeconds);
-            if (!cachedMessageIdempotentHandler.checkAndMarkMessageProcessed(topic, keys, allowReprocessSeconds)) {
-                log.warn("消息重复消费，topic：{},tags：{},msgId：{},keys：{}", topic, tags, msgId, keys);
-                rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
-                return;
-            }
-        }
         try {
             Result<Boolean> apply = method.apply(t);
             /*
@@ -81,9 +67,6 @@ public class RocketMqConsumerService {
              * code 为False 任务消费失败，重推队列
              */
             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-                if (idemFlag) {
-                    cachedMessageIdempotentHandler.markMessageCompleted(topic, keys, allowReprocessSeconds);
-                }
                 if (null != apply.getData() && apply.getData()) {
                     if (StringUtils.isNotBlank(delayTopic) && StringUtils.isNotBlank(retryTag)) {
                         if (delayTime > 0) {
@@ -102,15 +85,9 @@ public class RocketMqConsumerService {
                 String msg = String.format("RocketMQ消息重试topic:%s,Tags：%s,keys:%s,msgId:%s,message:%s,messageExt:%s"
                         , topic, tags, keys, msgId, t, messageExt);
                 log.warn(msg);
-                if (idemFlag) {
-                    cachedMessageIdempotentHandler.markMessageProcessFailed(topic, keys);
-                }
                 throw new RuntimeException();
             }
         } catch (Exception e) {
-            if (idemFlag) {
-                cachedMessageIdempotentHandler.markMessageProcessFailed(topic, keys);
-            }
             String error = String.format("RocketMQ消费异常topic:%s,Tags:%s,keys:%s,msgId:%s,message:%s，messageExt:%s，\r\n错误信息:%s"
                     , topic, tags, keys, msgId, t, e.getMessage(), messageExt);
             log.warn(error, e);
@@ -121,100 +98,14 @@ public class RocketMqConsumerService {
     }
 
     /**
-     * RocketMQ消费端，默认消息幂等
-     *
-     * @param messageExt 消息体
-     * @param method     业务
-     * @param t          消费信息
-     * @param delayTopic 延时队列
-     * @param retryTag   重试Tag
-     * @param delayTime  延时时间（单位：秒）
-     */
-    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
-            , String delayTopic, String retryTag, long delayTime) {
-        consumerRun(messageExt, method, t, delayTopic, retryTag, delayTime, true);
-    }
-
-    /**
-     * RocketMQ消费端，消息幂等
-     *
-     * @param messageExt       消息体
-     * @param method           业务
-     * @param t                信息
-     * @param delayTopic       延时队列
-     * @param retryTag         重试Tag
-     * @param delayTime        延时时间（单位：秒）
-     * @param isMsgIdempotence 是否开启消息幂等
-     */
-    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
-            , String delayTopic, String retryTag, long delayTime, boolean isMsgIdempotence) {
-        consumerRun(messageExt, method, t, delayTopic, retryTag, delayTime, isMsgIdempotence, -1);
-    }
-
-    /**
-     * RocketMQ消费端，默认消息幂等，支持重复消费时间
-     *
-     * @param messageExt            消息体
-     * @param method                业务
-     * @param t                     信息
-     * @param delayTopic            延时队列
-     * @param retryTag              重试Tag
-     * @param delayTime             延时时间（单位：秒）
-     * @param allowReprocessSeconds 允许重复消费时间（单位：秒）
-     */
-    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
-            , String delayTopic, String retryTag, long delayTime, int allowReprocessSeconds) {
-        consumerRun(messageExt, method, t, delayTopic, retryTag, delayTime, true, allowReprocessSeconds);
-    }
-
-
-    /**
-     * RocketMQ消费端，默认消息幂等
-     *
-     * @param messageExt 消息体
-     * @param method     业务
-     * @param t          信息
-     */
-    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t) {
-        consumerRun(messageExt, method, t, true);
-    }
-
-
-    /**
-     * RocketMQ消费端，消息幂等
-     *
-     * @param messageExt 消息体
-     * @param method     业务
-     * @param t          信息
-     */
-    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, boolean isMsgIdempotence) {
-        consumerRun(messageExt, method, t, isMsgIdempotence, -1);
-    }
-
-    /**
-     * RocketMQ消费端，默认消息幂等，支持重复消费时间
-     *
-     * @param messageExt            消息体
-     * @param method                业务
-     * @param t                     信息
-     * @param allowReprocessSeconds 允许重复消费时间（单位：秒）
-     */
-    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, int allowReprocessSeconds) {
-        consumerRun(messageExt, method, t, true, allowReprocessSeconds);
-    }
-
-
-    /**
      * RocketMQ消费端，消息幂等，支持重复消费时间
      *
      * @param messageExt            消息体
      * @param method                业务
      * @param t                     信息
-     * @param isMsgIdempotence      是否开启消息幂等
-     * @param allowReprocessSeconds 允许重复消费时间（单位：秒）
      */
-    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, boolean isMsgIdempotence, int allowReprocessSeconds) {
-        consumerRun(messageExt, method, t, null, null, 0L, isMsgIdempotence, allowReprocessSeconds);
+    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t) {
+        consumerRun(messageExt, method, t, null, null, 0L);
     }
 
     /**

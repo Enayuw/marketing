@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingUploadEmergencyConstants.TOPIC,
         consumerGroup = MarketingUploadEmergencyConstants.MARKETING_PRE_USER_RECEIVE_EMERGENCY,
         selectorExpression = MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY,
-        consumeThreadNumber = 1, consumeThreadMax = 2,awaitTerminationMillisWhenShutdown = 3000)
+        consumeThreadNumber = 1, consumeThreadMax = 10,awaitTerminationMillisWhenShutdown = 3000)
 public class MarketingPreUserReceiveEmergencyConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
@@ -46,7 +46,7 @@ public class MarketingPreUserReceiveEmergencyConsumer extends BaseMqMessageListe
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o,10);
+        consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o);
     }
 
     @Override
