@@ -17,21 +17,15 @@ public interface XieChengCpsCollidingDataLogMapperBase {
 
     int insertSelective(XieChengCpsCollidingDataLog record);
 
-    List<XieChengCpsCollidingDataLog> selectByExampleWithBLOBs(XieChengCpsCollidingDataLogExample example);
-
     List<XieChengCpsCollidingDataLog> selectByExample(XieChengCpsCollidingDataLogExample example);
 
     XieChengCpsCollidingDataLog selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") XieChengCpsCollidingDataLog record, @Param("example") XieChengCpsCollidingDataLogExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") XieChengCpsCollidingDataLog record, @Param("example") XieChengCpsCollidingDataLogExample example);
-
     int updateByExample(@Param("record") XieChengCpsCollidingDataLog record, @Param("example") XieChengCpsCollidingDataLogExample example);
 
     int updateByPrimaryKeySelective(XieChengCpsCollidingDataLog record);
-
-    int updateByPrimaryKeyWithBLOBs(XieChengCpsCollidingDataLog record);
 
     int updateByPrimaryKey(XieChengCpsCollidingDataLog record);
 }
