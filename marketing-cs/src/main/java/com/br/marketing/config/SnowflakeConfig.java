@@ -1,6 +1,7 @@
 package com.br.marketing.config;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -32,5 +33,16 @@ public class SnowflakeConfig {
     @Order()
     public SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle() {
         return new SnowflakeRedisGeneratorHandle(redisChgService, applicationName, datacenterId);
+    }
+
+    /**
+     * 2025/7/4 16:38
+     * 旧雪花算法，保留
+     */
+    @Bean
+    @Order()
+    @Deprecated
+    public SnowflakeIdGenerator snowflakeIdGenerator() {
+        return new SnowflakeIdGenerator(datacenterId);
     }
 }
