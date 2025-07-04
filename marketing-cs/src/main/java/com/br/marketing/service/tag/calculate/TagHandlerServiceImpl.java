@@ -148,7 +148,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
         try {
             // 解析数据源配置
             List<String> sourceCodes = Arrays.asList(tagDataRule.getSourceCode().split(","));
-//            Collections.sort(sourceCodes);
 
             // 圈选的ApiCode范围
             List<String> apiCodes = Arrays.asList(tagDataRule.getApiCodeScope().split(","));
@@ -305,8 +304,11 @@ public class TagHandlerServiceImpl implements TagHandleService {
                                  TagDataRule tagDataRule) {
 
         String sourceCode = "";
+        String conditionSql = "";
+
         if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
             sourceCode = sourceCodes.get(0);
+            conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
         }else {
             //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
             for (String code : sourceCodes) {
@@ -315,6 +317,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
                     break;
                 }
             }
+            conditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
         }
 
         // 根据表类型确定字段名
@@ -322,14 +325,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
 
         // 构建插入SQL
         StringBuilder insertBuilder = new StringBuilder();
-        String conditionSql = "";
-
-        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
-            conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
-        }else {
-            conditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
-        }
-
         insertBuilder.append(sourceFieldStrategy.mapFields(sourceType,sourceCode,sourceName, tagDataRule));
 
         // 添加其他条件
