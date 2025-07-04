@@ -306,10 +306,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String sourceCode = "";
         String conditionSql = "";
 
-        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
+        if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
             sourceCode = sourceCodes.get(0);
             conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
-        }else {
+        } else {
             //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
             for (String code : sourceCodes) {
                 if (SourceTypeEnum.CALL.getCode().equals(code) || SourceTypeEnum.TRANSFORM.getCode().equals(code)) {
@@ -321,11 +321,21 @@ public class TagHandlerServiceImpl implements TagHandleService {
         }
 
         // 根据表类型确定字段名
-        SourceFieldStrategy sourceFieldStrategy = getFieldMappingStrategy(sourceCode);
+        SourceFieldStrategy sourceFieldStrategy = null;
+        try {
+            sourceFieldStrategy = getFieldMappingStrategy(SourceTypeEnum.valueOf(sourceCode));
+            //判空
+            if (sourceFieldStrategy == null) {
+                log.warn("该数据源类型不存在，sourceCode:{}", sourceCode);
+            }
+        } catch (Exception e) {
+            log.error("获取数据源失败，sourceCode:{}", sourceCode);
+            throw new BusinessException(e.getMessage());
+        }
 
         // 构建插入SQL
         StringBuilder insertBuilder = new StringBuilder();
-        insertBuilder.append(sourceFieldStrategy.mapFields(sourceType,sourceCode,sourceName, tagDataRule));
+        insertBuilder.append(sourceFieldStrategy.mapFields(sourceType, sourceCode, sourceName, tagDataRule));
 
         // 添加其他条件
         insertBuilder.append("(").append(conditionSql).append(")");
@@ -335,16 +345,16 @@ public class TagHandlerServiceImpl implements TagHandleService {
         flagDataMapper.insertbI_(insertBuilder.toString());
     }
 
-    private SourceFieldStrategy getFieldMappingStrategy(String sourceCode) {
+    private SourceFieldStrategy getFieldMappingStrategy(SourceTypeEnum sourceTypeEnum) {
         SourceFieldStrategy sourceFieldStrategy;
-        switch (sourceCode) {
-            case "SHORTLINK":
+        switch (sourceTypeEnum) {
+            case SHORTLINK:
                 sourceFieldStrategy = new ShortLinkFieldStrategy();
                 break;
-            case "CALL":
+            case CALL:
                 sourceFieldStrategy = new CallFieldStrategy();
                 break;
-            case "TRANSFORM":
+            case TRANSFORM:
                 sourceFieldStrategy = new TransformFieldStrategy();
                 break;
             default:
@@ -424,14 +434,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
             String sourceCode = sourceCodes.get(i);
-            SourceCodeEnum sourceCodeEnum = SourceCodeEnum.fromCode(sourceCode);
-            if (sourceCodeEnum == null) {
-                throw new BusinessException("当前数据源编码不存在！");
-            }
             String sourceName = sourceConfigList.stream().filter(sourceConfig -> sourceConfig.getSourceCode()
                     .equals(sourceCode)).findFirst().get().getSourceName().replace("${apiCode}", apiCode);
             // 时间条件
-            StringBuilder whereSql = new StringBuilder().append(sourceCodeEnum.getTimeField())
+            StringBuilder whereSql = new StringBuilder().append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "case_log_create_time" : "create_time")
                     .append(">=").append("\"").append(DateHelper.getPreviousDate("m", 3)).append("\"");
             // 添加字段
             List<String> fieldNameList = flagDataMapper.queryColumnNamebI_(sourceName);
@@ -443,12 +449,12 @@ public class TagHandlerServiceImpl implements TagHandleService {
             if (i == 0) {
                 joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode);
                 relateField = sourceCode.concat(".")
-                        .concat(sourceCodeEnum.getCellField());
+                        .concat(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell");
             } else {
                 joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode)
                         .append(" on ")
                         .append(sourceCode).append(".")
-                        .append(sourceCodeEnum.getCellField())
+                        .append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell")
                         .append("=").append(relateField);
             }
         }
