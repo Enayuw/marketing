@@ -308,9 +308,11 @@ public class TagHandlerServiceImpl implements TagHandleService {
         if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)){
             sourceCode = sourceCodes.get(0);
         }else {
+            //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
             for (String code : sourceCodes) {
                 if (SourceTypeEnum.CALL.getCode().equals(code) || SourceTypeEnum.TRANSFORM.getCode().equals(code)) {
                     sourceCode = code;
+                    break;
                 }
             }
         }
