@@ -47,6 +47,9 @@
     <result column="is_output_data_product" property="isOutputDataProduct" jdbcType="TINYINT" />
     <result column="apply_loan_type" property="applyLoanType" jdbcType="INTEGER" />
     <result column="api_type" property="apiType" jdbcType="VARCHAR" />
+    <result column="sms_category" property="smsCategory" jdbcType="VARCHAR" />
+    <result column="first_department" property="firstDepartment" jdbcType="VARCHAR" />
+    <result column="second_department" property="secondDepartment" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -107,13 +110,14 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cid, api_code, message, `type`, thread_num, task_time, finish_date, push_customer, 
-    check_black_list, check_redis_number, save_log, sort, `status`, extend_config_info, 
-    push_thread_num, push_type, push_url, `name`, short_name, create_time, update_time, 
-    is_check, is_charging, request_code, response_code, account_type, account_status, 
-    start_time, end_time, transport, meal_json, official_time, modify_user, encryption_key, 
-    decrypt_key, sn_ver, call_method, file_encryption_methods, file_encryption_algorithm, 
-    file_encryption_key, create_user, is_output_data_product, apply_loan_type, api_type
+    id, cid, api_code, message, `type`, thread_num, task_time, finish_date, push_customer,
+    check_black_list, check_redis_number, save_log, sort, `status`, extend_config_info,
+    push_thread_num, push_type, push_url, `name`, short_name, create_time, update_time,
+    is_check, is_charging, request_code, response_code, account_type, account_status,
+    start_time, end_time, transport, meal_json, official_time, modify_user, encryption_key,
+    decrypt_key, sn_ver, call_method, file_encryption_methods, file_encryption_algorithm,
+    file_encryption_key, create_user, is_output_data_product, apply_loan_type, api_type,
+    sms_category, first_department,second_department
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomerExample" >
     select
@@ -130,7 +134,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_customer
     where id = #{id,jdbcType=BIGINT}
@@ -149,36 +153,37 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_customer (cid, api_code, message, 
-      `type`, thread_num, task_time, 
-      finish_date, push_customer, check_black_list, 
-      check_redis_number, save_log, sort, 
-      `status`, extend_config_info, push_thread_num, 
-      push_type, push_url, `name`, 
-      short_name, create_time, update_time, 
-      is_check, is_charging, request_code, 
-      response_code, account_type, account_status, 
-      start_time, end_time, transport, 
-      meal_json, official_time, modify_user, 
-      encryption_key, decrypt_key, sn_ver, 
-      call_method, file_encryption_methods, file_encryption_algorithm, 
-      file_encryption_key, create_user, is_output_data_product, 
-      apply_loan_type, api_type)
-    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR}, 
-      #{type,jdbcType=VARCHAR}, #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT}, 
-      #{finishDate,jdbcType=TINYINT}, #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT}, 
-      #{checkRedisNumber,jdbcType=TINYINT}, #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT}, 
-      #{status,jdbcType=TINYINT}, #{extendConfigInfo,jdbcType=VARCHAR}, #{pushThreadNum,jdbcType=INTEGER}, 
-      #{pushType,jdbcType=INTEGER}, #{pushUrl,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
-      #{shortName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{isCheck,jdbcType=TINYINT}, #{isCharging,jdbcType=TINYINT}, #{requestCode,jdbcType=VARCHAR}, 
-      #{responseCode,jdbcType=VARCHAR}, #{accountType,jdbcType=TINYINT}, #{accountStatus,jdbcType=TINYINT}, 
-      #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{transport,jdbcType=VARCHAR}, 
-      #{mealJson,jdbcType=VARCHAR}, #{officialTime,jdbcType=TIMESTAMP}, #{modifyUser,jdbcType=VARCHAR}, 
-      #{encryptionKey,jdbcType=VARCHAR}, #{decryptKey,jdbcType=VARCHAR}, #{snVer,jdbcType=VARCHAR}, 
-      #{callMethod,jdbcType=INTEGER}, #{fileEncryptionMethods,jdbcType=INTEGER}, #{fileEncryptionAlgorithm,jdbcType=INTEGER}, 
-      #{fileEncryptionKey,jdbcType=VARCHAR}, #{createUser,jdbcType=VARCHAR}, #{isOutputDataProduct,jdbcType=TINYINT}, 
-      #{applyLoanType,jdbcType=INTEGER}, #{apiType,jdbcType=VARCHAR})
+    insert into b_marketing_customer (cid, api_code, message,
+      `type`, thread_num, task_time,
+      finish_date, push_customer, check_black_list,
+      check_redis_number, save_log, sort,
+      `status`, extend_config_info, push_thread_num,
+      push_type, push_url, `name`,
+      short_name, create_time, update_time,
+      is_check, is_charging, request_code,
+      response_code, account_type, account_status,
+      start_time, end_time, transport,
+      meal_json, official_time, modify_user,
+      encryption_key, decrypt_key, sn_ver,
+      call_method, file_encryption_methods, file_encryption_algorithm,
+      file_encryption_key, create_user, is_output_data_product,
+      apply_loan_type, api_type, sms_category, first_department, second_department)
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR},
+      #{type,jdbcType=VARCHAR}, #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT},
+      #{finishDate,jdbcType=TINYINT}, #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT},
+      #{checkRedisNumber,jdbcType=TINYINT}, #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT},
+      #{status,jdbcType=TINYINT}, #{extendConfigInfo,jdbcType=VARCHAR}, #{pushThreadNum,jdbcType=INTEGER},
+      #{pushType,jdbcType=INTEGER}, #{pushUrl,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+      #{shortName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+      #{isCheck,jdbcType=TINYINT}, #{isCharging,jdbcType=TINYINT}, #{requestCode,jdbcType=VARCHAR},
+      #{responseCode,jdbcType=VARCHAR}, #{accountType,jdbcType=TINYINT}, #{accountStatus,jdbcType=TINYINT},
+      #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{transport,jdbcType=VARCHAR},
+      #{mealJson,jdbcType=VARCHAR}, #{officialTime,jdbcType=TIMESTAMP}, #{modifyUser,jdbcType=VARCHAR},
+      #{encryptionKey,jdbcType=VARCHAR}, #{decryptKey,jdbcType=VARCHAR}, #{snVer,jdbcType=VARCHAR},
+      #{callMethod,jdbcType=INTEGER}, #{fileEncryptionMethods,jdbcType=INTEGER}, #{fileEncryptionAlgorithm,jdbcType=INTEGER},
+      #{fileEncryptionKey,jdbcType=VARCHAR}, #{createUser,jdbcType=VARCHAR}, #{isOutputDataProduct,jdbcType=TINYINT},
+      #{applyLoanType,jdbcType=INTEGER}, #{apiType,jdbcType=VARCHAR}, #{smsCategory,jdbcType=VARCHAR},
+    #{firstDepartment,jdbcType=VARCHAR}, #{secondDepartment,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomer" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -318,6 +323,15 @@
       <if test="apiType != null" >
         api_type,
       </if>
+      <if test="smsCategory != null" >
+        sms_category,
+      </if>
+      <if test="firstDepartment != null" >
+        first_department,
+      </if>
+      <if test="secondDepartment != null" >
+        second_department,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cid != null" >
@@ -451,6 +465,15 @@
       </if>
       <if test="apiType != null" >
         #{apiType,jdbcType=VARCHAR},
+      </if>
+      <if test="smsCategory != null" >
+        #{smsCategory,jdbcType=VARCHAR},
+      </if>
+      <if test="firstDepartment != null" >
+        #{firstDepartment,jdbcType=VARCHAR},
+      </if>
+      <if test="secondDepartment != null" >
+        #{secondDepartment,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -598,6 +621,15 @@
       <if test="record.apiType != null" >
         api_type = #{record.apiType,jdbcType=VARCHAR},
       </if>
+      <if test="record.smsCategory != null" >
+        sms_category = #{record.smsCategory,jdbcType=VARCHAR},
+      </if>
+      <if test="record.firstDepartment != null" >
+        first_department = #{record.firstDepartment,jdbcType=VARCHAR},
+      </if>
+      <if test="record.secondDepartment != null" >
+        second_department = #{record.secondDepartment,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -649,7 +681,10 @@
       create_user = #{record.createUser,jdbcType=VARCHAR},
       is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT},
       apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER},
-      api_type = #{record.apiType,jdbcType=VARCHAR}
+      api_type = #{record.apiType,jdbcType=VARCHAR},
+      sms_category = #{record.smsCategory,jdbcType=VARCHAR},
+      first_department = #{record.firstDepartment,jdbcType=VARCHAR},
+      second_department = #{record.secondDepartment,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -789,6 +824,15 @@
       <if test="apiType != null" >
         api_type = #{apiType,jdbcType=VARCHAR},
       </if>
+      <if test="smsCategory != null" >
+        sms_category = #{smsCategory,jdbcType=VARCHAR},
+      </if>
+      <if test="firstDepartment != null" >
+        first_department = #{firstDepartment,jdbcType=VARCHAR},
+      </if>
+      <if test="secondDepartment != null" >
+        second_department = #{secondDepartment,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -838,6 +882,9 @@
       is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
       apply_loan_type = #{applyLoanType,jdbcType=INTEGER},
       api_type = #{apiType,jdbcType=VARCHAR}
+      sms_category = #{smsCategory,jdbcType=VARCHAR},
+      first_department = #{firstDepartment,jdbcType=VARCHAR},
+      second_department = #{secondDepartment,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
