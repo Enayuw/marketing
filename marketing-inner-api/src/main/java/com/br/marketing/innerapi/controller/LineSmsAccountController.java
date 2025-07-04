@@ -43,14 +43,14 @@ public class LineSmsAccountController {
     }
 
     @ApiOperation(value = "短信对账配置列表查询")
-    @PatchMapping("/getSmsAccounts")
+    @GetMapping("/getSmsAccounts")
     @LogAnnotation
     public ApiResult getSmsAccounts() {
         return null;
     }
 
     @ApiOperation(value = "短信对账配置列表查询")
-    @PatchMapping("/getSmsAccountLogs")
+    @GetMapping("/getSmsAccountLogs")
     @LogAnnotation
     public ApiResult getSmsAccountLogs() {
         return null;
