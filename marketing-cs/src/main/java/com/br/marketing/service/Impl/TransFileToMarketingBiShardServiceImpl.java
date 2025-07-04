@@ -59,7 +59,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     @Resource
     private RedisChgService redisChgService;
 
-    private static final int BATCH_SIZE = 50;
+    private static final int BATCH_SIZE = 1000;
 
     @Override
     public void process(String jobParameter, List<Integer> shardingItems) {
@@ -83,6 +83,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
                 nfsFileTOBiRecordMapper.insertSelective(buildNfsRecord(configRecord, dataDate));
                 redisChgService.unlock(lockKey, lockValue);
 
+                // ndf文件落库处理
                 dealOldBIData(configRecord, dataDate);
                 processTransferFile(configRecord, dataDate);
             } catch (Exception e) {
