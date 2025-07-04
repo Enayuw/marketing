@@ -10,7 +10,6 @@ import com.br.marketing.dto.tag.MaterializedViewDTO;
 import com.br.marketing.entity.tag.*;
 import com.br.marketing.enums.SourceTypeEnum;
 import com.br.marketing.enums.tag.DeleteFlagEnum;
-import com.br.marketing.enums.tag.SourceCodeEnum;
 import com.br.marketing.enums.tag.TagData;
 import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
