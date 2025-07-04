@@ -3,16 +3,11 @@ package com.br.marketing.entity;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class MarketingLineSmsAccountDetail {
+public class MarketingSmsAccountLog {
     /**
      * 
      */
     private Long id;
-
-    /**
-     * 对账类别 1-线路 2-短信
-     */
-    private Integer type;
 
     /**
      * 汇总记录id
@@ -20,27 +15,17 @@ public class MarketingLineSmsAccountDetail {
     private Long recordId;
 
     /**
-     * 供应商id
-     */
-    private Long vendorId;
-
-    /**
      * 供应商名称
      */
     private String vendorName;
 
     /**
-     * 主叫号码或渠道id
+     * 渠道名称集合
      */
-    private Long callChannelId;
+    private String channelsName;
 
     /**
-     * 主叫号码或渠道名称
-     */
-    private String callChannelName;
-
-    /**
-     * 单价，元/条
+     * 短信单价，元/条
      */
     private BigDecimal price;
 
@@ -53,6 +38,16 @@ public class MarketingLineSmsAccountDetail {
      * 生效结束日期
      */
     private Date effectEndDate;
+
+    /**
+     * 操作人
+     */
+    private String createdBy;
+
+    /**
+     * 业务删除 1-新增 2-变更 3-删除
+     */
+    private Integer opeType;
 
     /**
      * 创建时间
@@ -77,28 +72,12 @@ public class MarketingLineSmsAccountDetail {
         this.id = id;
     }
 
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
-    }
-
     public Long getRecordId() {
         return recordId;
     }
 
     public void setRecordId(Long recordId) {
         this.recordId = recordId;
-    }
-
-    public Long getVendorId() {
-        return vendorId;
-    }
-
-    public void setVendorId(Long vendorId) {
-        this.vendorId = vendorId;
     }
 
     public String getVendorName() {
@@ -109,20 +88,12 @@ public class MarketingLineSmsAccountDetail {
         this.vendorName = vendorName == null ? null : vendorName.trim();
     }
 
-    public Long getCallChannelId() {
-        return callChannelId;
+    public String getChannelsName() {
+        return channelsName;
     }
 
-    public void setCallChannelId(Long callChannelId) {
-        this.callChannelId = callChannelId;
-    }
-
-    public String getCallChannelName() {
-        return callChannelName;
-    }
-
-    public void setCallChannelName(String callChannelName) {
-        this.callChannelName = callChannelName == null ? null : callChannelName.trim();
+    public void setChannelsName(String channelsName) {
+        this.channelsName = channelsName == null ? null : channelsName.trim();
     }
 
     public BigDecimal getPrice() {
@@ -147,6 +118,22 @@ public class MarketingLineSmsAccountDetail {
 
     public void setEffectEndDate(Date effectEndDate) {
         this.effectEndDate = effectEndDate;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy == null ? null : createdBy.trim();
+    }
+
+    public Integer getOpeType() {
+        return opeType;
+    }
+
+    public void setOpeType(Integer opeType) {
+        this.opeType = opeType;
     }
 
     public Date getCreateTime() {

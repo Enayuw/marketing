@@ -3,16 +3,11 @@ package com.br.marketing.entity;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class MarketingLineSmsAccountRecord {
+public class MarketingSmsAccountRecord {
     /**
      * 
      */
     private Long id;
-
-    /**
-     * 对账类别 1-线路 2-短信
-     */
-    private Integer type;
 
     /**
      * 供应商名称
@@ -20,12 +15,12 @@ public class MarketingLineSmsAccountRecord {
     private String vendorName;
 
     /**
-     * 主叫号码或渠道名称集合
+     * 渠道名称集合
      */
-    private String callChannelNames;
+    private String channelsName;
 
     /**
-     * 单价，元/条
+     * 短信单价，元/条
      */
     private BigDecimal price;
 
@@ -62,14 +57,6 @@ public class MarketingLineSmsAccountRecord {
         this.id = id;
     }
 
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
-    }
-
     public String getVendorName() {
         return vendorName;
     }
@@ -78,12 +65,12 @@ public class MarketingLineSmsAccountRecord {
         this.vendorName = vendorName == null ? null : vendorName.trim();
     }
 
-    public String getCallChannelNames() {
-        return callChannelNames;
+    public String getChannelsName() {
+        return channelsName;
     }
 
-    public void setCallChannelNames(String callChannelNames) {
-        this.callChannelNames = callChannelNames == null ? null : callChannelNames.trim();
+    public void setChannelsName(String channelsName) {
+        this.channelsName = channelsName == null ? null : channelsName.trim();
     }
 
     public BigDecimal getPrice() {
