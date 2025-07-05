@@ -24,4 +24,6 @@ public interface MarketingTcyrSyncMapper extends MarketingTcyrSyncMapperBase {
 
     //统计单个txt 最后入库id数量
     Long selecFileDbCount(@Param("apiCode") String apiCode,@Param("syncFileId") Long syncFileId);
+
+    void insertDataToDb(@Param("insertDbSql") String insertDbSql);
 }

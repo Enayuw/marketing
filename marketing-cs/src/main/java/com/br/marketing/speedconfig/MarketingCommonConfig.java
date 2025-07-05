@@ -2972,6 +2972,16 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcQuickDealShardConfig;
 
+
+    /**
+     * 同程易融-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"batchSize":1000,"partSize":1000,
+     * "lockRetryTimes":2,"lockRetryIntervalMs":1000
+     * }
+     */
+    private JSONObject tcDbDealShardConfig;
+
     /**
      * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
      */

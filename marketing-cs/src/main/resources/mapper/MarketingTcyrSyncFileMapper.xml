@@ -40,7 +40,13 @@
         UPDATE
             b_marketing_tcyr_sync_file
         SET quick_deal_status = #{quickDealStatus}
-        WHERE id=#{id}\
+        WHERE id=#{id}
+    </update>
+    <update id="updateDbDealStatus">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET db_deal_status = #{dbDealStatus}
+        WHERE id=#{id}
     </update>
 
 </mapper>

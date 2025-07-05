@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-public interface MarketingTcyrSyncFileMapper extends MarketingTcyrSyncFileMapperBase{
+public interface MarketingTcyrSyncFileMapper extends MarketingTcyrSyncFileMapperBase {
 
     MarketingTcyrSyncFile selectSingleSyncFile(
             @Param("apiCode") String apiCode,
@@ -21,10 +21,13 @@ public interface MarketingTcyrSyncFileMapper extends MarketingTcyrSyncFileMapper
     MarketingTcyrSyncFile selectNoDealSingleSyncFile(
             @Param("apiCode") String apiCode,
             @Param("quickDealStatus") Integer quickDealStatus,
-            @Param("dbDealStatus")Integer dbDealStatus
+            @Param("dbDealStatus") Integer dbDealStatus
     );
 
     void updateQuickDealStatus(
-            @Param("id")Long id,
+            @Param("id") Long id,
             @Param("quickDealStatus") Integer quickDealStatus);
+
+    void updateDbDealStatus(@Param("id") Long id,
+                            @Param("dbDealStatus") Integer dbDealStatus);
 }

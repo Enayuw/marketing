@@ -164,7 +164,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             List<String> batchData = new ArrayList<>();
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
-                if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("batchSize")) {
+                if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("pageSize")) {
                     modifyThreadPool(actionPool);
                     List<String> batchDealData = new ArrayList<>(batchData);
                     actionPool.submit(()->quickDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData));
