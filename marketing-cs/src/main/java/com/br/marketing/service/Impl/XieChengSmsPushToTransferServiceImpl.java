@@ -28,6 +28,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -82,20 +83,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
             // ack
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
-        
-        // 修改为查询CPS撞库日志表，条件是手机号和当天创建时间
-        Date todayStart = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date todayEnd = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        
-        XieChengCpsCollidingDataLogExample cpsLogExample = new XieChengCpsCollidingDataLogExample();
-        cpsLogExample.createCriteria()
-                .andCellSha256CodeListIn(sha256CodeList)
-                .andCreateTimeGreaterThanOrEqualTo(todayStart)
-                .andCreateTimeLessThan(todayEnd)
-                .andIsDeleteEqualTo(0);
-        
-        List<XieChengCpsCollidingDataLog> selectByExample = 
-                xieChengCpsCollidingDataLogMapper.selectByExample(cpsLogExample);
 
         // 推送客服数据集合
         List<ConversionData> conversionDataList = new CopyOnWriteArrayList<>();
@@ -103,10 +90,10 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         // 动态修改线程池
         modifyCorePoolSize();
 
-        CountDownLatch countDownLatch = new CountDownLatch(selectByExample.size());
-        for (XieChengCpsCollidingDataLog cpsLog : selectByExample) {
-            final String dataId = cpsLog.getId().toString();
-            final String sha256Code = cpsLog.getCellSha256CodeList();
+        CountDownLatch countDownLatch = new CountDownLatch(sha256CodeList.size());
+        String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        for (String sha256Code : sha256CodeList) {
+            String dataId = sha256Code.hashCode() + currentDate;
             pool.submit(() -> buildConversionDataList(nowDayEndTime, cid, sha256Code, dataId, countDownLatch, conversionDataList));
         }
         try {
