@@ -199,7 +199,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
 
         // 写入数据到Doris
         Long start = System.currentTimeMillis();
-        insertDataDoris(sourceName, sourceType, sourceCodes, tagDataRule);
+        insertDataDoris(apiCode, sourceName, sourceType, sourceCodes, tagDataRule);
         log.warn(TITLE + "tagCode={},apiCode={},写入数据到Doris明细表,耗时={}ms", tagCode, apiCode,
                 System.currentTimeMillis() - start);
 
@@ -294,19 +294,25 @@ public class TagHandlerServiceImpl implements TagHandleService {
     /**
      * 将数据插入到Doris数据库
      *
+     * @param apiCode     apiCode
      * @param sourceName  数据源名称
      * @param sourceType  数据源类型
      * @param sourceCodes 数据源代码列表
      * @param tagDataRule 标签数据规则
      */
-    private void insertDataDoris(String sourceName, Integer sourceType, List<String> sourceCodes,
+    private void insertDataDoris(String apiCode, String sourceName, Integer sourceType, List<String> sourceCodes,
                                  TagDataRule tagDataRule) {
 
         String sourceCode = "";
         String conditionSql = "";
+        String groupSql = "";
 
         if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
             sourceCode = sourceCodes.get(0);
+            //如果是短链，还需要对cell去重
+            if (SourceTypeEnum.SHORTLINK.getCode().equals(sourceCode)) {
+                groupSql = " group by cell";
+            }
             conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
         } else {
             //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
@@ -319,25 +325,28 @@ public class TagHandlerServiceImpl implements TagHandleService {
             conditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
         }
 
+        // 构建插入SQL
+        StringBuilder insertBuilder = new StringBuilder();
+        SourceTypeEnum sourceCodeEnum = SourceTypeEnum.fromCode(sourceCode);
+        if (sourceCodeEnum == null) {
+            throw new BusinessException("当前数据源编码不存在！");
+        }
+
         // 根据表类型确定字段名
         SourceFieldStrategy sourceFieldStrategy = null;
         try {
             sourceFieldStrategy = getFieldMappingStrategy(SourceTypeEnum.valueOf(sourceCode));
             //判空
-            if (sourceFieldStrategy == null) {
-                log.warn("该数据源类型不存在，sourceCode:{}", sourceCode);
+            if (sourceFieldStrategy != null) {
+                insertBuilder.append(sourceFieldStrategy.mapFields(apiCode, sourceType, sourceCode, sourceCodeEnum, sourceName, tagDataRule));
             }
         } catch (Exception e) {
             log.error("获取数据源失败，sourceCode:{}", sourceCode);
             throw new BusinessException(e.getMessage());
         }
 
-        // 构建插入SQL
-        StringBuilder insertBuilder = new StringBuilder();
-        insertBuilder.append(sourceFieldStrategy.mapFields(sourceType, sourceCode, sourceName, tagDataRule));
-
         // 添加其他条件
-        insertBuilder.append("(").append(conditionSql).append(")");
+        insertBuilder.append("(").append(conditionSql).append(")").append(groupSql);
 
         // 执行插入操作
         log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", tagDataRule.getTagCode(), insertBuilder);
@@ -429,15 +438,25 @@ public class TagHandlerServiceImpl implements TagHandleService {
         // 视图基本定义
         StringBuilder viewSql = new StringBuilder(500)
                 .append(String.format(viewSqlPrefix, viewName));
+        String groupSql = "";
         StringBuilder joinBuilder = new StringBuilder();
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
             String sourceCode = sourceCodes.get(i);
+            SourceTypeEnum sourceCodeEnum = SourceTypeEnum.fromCode(sourceCode);
+            if (sourceCodeEnum == null) {
+                throw new BusinessException("当前数据源编码不存在！");
+            }
+
             String sourceName = sourceConfigList.stream().filter(sourceConfig -> sourceConfig.getSourceCode()
                     .equals(sourceCode)).findFirst().get().getSourceName().replace("${apiCode}", apiCode);
             // 时间条件
-            StringBuilder whereSql = new StringBuilder().append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "case_log_create_time" : "create_time")
+            StringBuilder whereSql = new StringBuilder().append(sourceCodeEnum.getTimeField())
                     .append(">=").append("\"").append(DateHelper.getPreviousDate("m", 3)).append("\"");
+            if (SourceTypeEnum.SHORTLINK.getCode().equals(sourceCode)) {
+                whereSql.append(" and api_code = \"").append(apiCode).append("\"");
+                groupSql = " order by target_key ";
+            }
             // 添加字段
             List<String> fieldNameList = flagDataMapper.queryColumnNamebI_(sourceName);
             fieldNameList.forEach(field -> {
@@ -446,14 +465,14 @@ public class TagHandlerServiceImpl implements TagHandleService {
             });
             // 构建FROM和JOIN
             if (i == 0) {
-                joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode);
+                joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(groupSql).append(") ").append(sourceCode);
                 relateField = sourceCode.concat(".")
-                        .concat(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell");
+                        .concat(sourceCodeEnum.getCellField());
             } else {
-                joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode)
+                joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(groupSql).append(") ").append(sourceCode)
                         .append(" on ")
                         .append(sourceCode).append(".")
-                        .append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell")
+                        .append(sourceCodeEnum.getCellField())
                         .append("=").append(relateField);
             }
         }

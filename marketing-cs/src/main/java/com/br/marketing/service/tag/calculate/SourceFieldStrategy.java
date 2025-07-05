@@ -1,10 +1,10 @@
 package com.br.marketing.service.tag.calculate;
 
-import com.br.marketing.entity.tag.FieldMappingResult;
 import com.br.marketing.entity.tag.TagDataRule;
+import com.br.marketing.enums.SourceTypeEnum;
 
 public interface SourceFieldStrategy {
 
-    String mapFields(Integer tableType, String sourceCode, String sourceName, TagDataRule tagDataRule);
+    String mapFields(String apiCode, Integer tableType, String sourceCode, SourceTypeEnum sourceCodeEnum, String sourceName, TagDataRule tagDataRule);
 
 }
