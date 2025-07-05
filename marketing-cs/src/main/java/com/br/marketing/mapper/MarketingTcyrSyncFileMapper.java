@@ -16,4 +16,15 @@ public interface MarketingTcyrSyncFileMapper extends MarketingTcyrSyncFileMapper
     List<MarketingTcyrSyncFile> selectSyncFileList(
             @Param("apiCode") String apiCode,
             @Param("dealStatus") Integer dealStatus);
+
+
+    MarketingTcyrSyncFile selectNoDealSingleSyncFile(
+            @Param("apiCode") String apiCode,
+            @Param("quickDealStatus") Integer quickDealStatus,
+            @Param("dbDealStatus")Integer dbDealStatus
+    );
+
+    void updateQuickDealStatus(
+            @Param("id")Long id,
+            @Param("quickDealStatus") Integer quickDealStatus);
 }

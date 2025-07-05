@@ -23,4 +23,24 @@
           and total_count > success_count
     </select>
 
+    <select id="selectNoDealSingleSyncFile" resultType="com.br.marketing.entity.MarketingTcyrSyncFile">
+        SELECT id, api_code, batch_no, file_name, file_path,
+               total_count, success_count, deal_status,
+               is_del, create_time, update_time, sync_record_id
+        FROM b_marketing_tcyr_sync_file
+        WHERE api_code=#{apiCode}
+          and quick_deal_status=#{quickDealStatus}
+          and db_deal_status=#{dbDealStatus}
+          and is_del=1
+            LIMIT 1
+    </select>
+
+
+    <update id="updateQuickDealStatus">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET quick_deal_status = #{quickDealStatus}
+        WHERE id=#{id}\
+    </update>
+
 </mapper>
