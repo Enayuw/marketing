@@ -72,6 +72,7 @@ public class TransferFieldProcessByZhaoLianFactory  implements TransferFieldProc
                 if(syncUserValidityPeriodsBO != null){
                     List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
                     MarketingSyncUser marketingSyncUser = syncUsers.get(0);
+                    log.warn("招联转化清洗匹配有效上传数据：" + JSONObject.toJSONString(marketingSyncUser));
                     dto.setUserType(marketingSyncUser.getUserType());
                     JSONObject jsonObject = JSONObject.parseObject(dto.getReserveField1());
                     jsonObject.put("cell",marketingSyncUser.getCellSha256());
