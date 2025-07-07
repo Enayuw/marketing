@@ -51,5 +51,5 @@ public interface MockService {
     MockCase action(String redisValue);
 
 
-
+    ApiResult<List<String>> getMockName();
 }

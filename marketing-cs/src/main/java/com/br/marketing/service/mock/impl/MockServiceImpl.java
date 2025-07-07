@@ -356,6 +356,11 @@ public class MockServiceImpl implements MockService {
         return mockPolicyFactory.action(policy);
     }
 
+    @Override
+    public ApiResult<List<String>> getMockName() {
+        return new ApiResult<List<String>>().success().setData(MockNameEnum.getAllCodes());
+    }
+
     void syncPolicyToCache(String mockName, MockPolicy mockPolicy) {
         // 写入redis
         String redisKey = RedisKeyConstant.MOCK_POLICY.concat(":").concat(mockName);

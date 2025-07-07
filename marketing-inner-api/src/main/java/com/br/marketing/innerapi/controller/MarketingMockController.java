@@ -162,6 +162,18 @@ public class MarketingMockController {
         }
     }
 
+    @GetMapping("/getMockName")
+    @ApiOperation(value = "查询所有的mock名称", notes = "查询所有的mock名称")
+    public ApiResult<List<String>> getMockName() {
+        try {
+            return mockService.getMockName();
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "查询所有的mock名称接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
     @PostMapping("/testMockPolicy")
     @ApiOperation(value = "测试Mock规则", notes = "测试Mock规则")
     public ApiResult<String> testMockPolicy(@RequestParam(name = "mockName") String mockName) {
