@@ -8,6 +8,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import org.apache.commons.collections4.ListUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
@@ -109,6 +110,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
         }
         MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
         //2.csvFileDbDeal流程
+        long totalCount = 0L;
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
             List<String> batchData = new ArrayList<>();
@@ -120,12 +122,19 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                     actionPool.submit(()->dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData));
                     batchData.clear();
                 }
+                totalCount++;
             }
             if (!batchData.isEmpty()) {
                 actionPool.submit(()->dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchData));
             }
-            //3.修改csvFile quickDeal流程完成状态
-            tcyrSyncFileMapper.updateDbDealStatus(tcyrSyncFile.getId(),2);
+            //3.修改csvFile totalCount数量、dbDeal状态、上传明细表中的入库数量successCount
+            tcyrSyncFile.setTotalCount(totalCount);
+            //TODO 计算上传明细中 syncFileId 入库的条数
+            //tcyrSyncFile.setSuccessCount();
+            tcyrSyncFile.setDealStatus(2);
+            tcyrSyncFile.setUpdateTime(new Date());
+            //tcyrSyncFileMapper.updateDbDealStatus(tcyrSyncFile.getId(),2);
+            tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态
             tcyrSyncFileMapper.updateDbDealStatus(tcyrSyncFile.getId(),3);
@@ -135,64 +144,49 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     }
 
     private void dbDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData) {
-        //TODO line逐行读取，动态拼接sql
-        int count = 0;
-        StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal,cell,is_match,extend,status) VALUES");
-        
-        for (String line : batchData) {
-            if (count > 0) {
-                sqlBuilder.append(",");
-            }
-            String[] data = line.split(",");
-            // 修复：为字符串值添加引号并转义
-            sqlBuilder.append("('").append(escapeSqlString(apiCode)).append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
-            
-            if (data.length == 1) {
-                String userKey = data[0].trim();
-                sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("',NULL,NULL,0,NULL,0)");
-            } else if (data.length >= 2) {
-                String userKey = data[0].trim();
-                //cell is_match
-                String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
-                sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("','").append(escapeSqlString(data[1].trim()));
-                if (StringUtils.isNotBlank(cell)) {
-                    sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
-                } else {
-                    sqlBuilder.append(",NULL,0");
+        List<List<String>> partitions = ListUtils.partition(batchData, marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize"));
+        for (List<String> partition : partitions) {
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal,cell,is_match,extend,status) VALUES");
+            int count = 0;
+            for (String line : partition) {
+                if (count > 0) {
+                    sqlBuilder.append(",");
                 }
-                //extend
-                JSONObject extentJson = new JSONObject();
-                for (int i = 0; i < data.length; i++) {
-                    extentJson.put("column_" + (i + 1), data[i]);
-                }
-                JSONObject customJson = JSONObject.parseObject(customerData);
-                List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
-                for (String key : customJson.keySet()) {
-                    if (!tcyrSyncExcludeFieldList.contains(key)) {
-                        extentJson.put(key, customJson.get(key));
+                String[] data = line.split(",");
+                sqlBuilder.append("('").append(escapeSqlString(apiCode)).append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
+                if (data.length == 1) {
+                    String userKey = data[0].trim();
+                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("',NULL,NULL,0,NULL,0)");
+                } else if (data.length >= 2) {
+                    String userKey = data[0].trim();
+                    //cell is_match
+                    String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
+                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("','").append(escapeSqlString(data[1].trim()));
+                    if (StringUtils.isNotBlank(cell)) {
+                        sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
+                    } else {
+                        sqlBuilder.append(",NULL,0");
                     }
+                    //extend
+                    JSONObject extentJson = new JSONObject();
+                    for (int i = 0; i < data.length; i++) {
+                        extentJson.put("column_" + (i + 1), data[i]);
+                    }
+                    JSONObject customJson = JSONObject.parseObject(customerData);
+                    List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
+                    for (String key : customJson.keySet()) {
+                        if (!tcyrSyncExcludeFieldList.contains(key)) {
+                            extentJson.put(key, customJson.get(key));
+                        }
+                    }
+                    extentJson.put("syncFileId", syncFileId);
+                    sqlBuilder.append(",'").append(escapeSqlString(extentJson.toJSONString())).append("',1)");
                 }
-                extentJson.put("syncFileId", syncFileId);
-                // 修复：转义 JSON 字符串
-                sqlBuilder.append(",'").append(escapeSqlString(extentJson.toJSONString())).append("',1)");
+                count++;
             }
-            count++;
-            if (count == marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize")) {
-                //TODO insertSQL - 执行批量插入
-                log.info("{}执行批量插入，apiCode:{}, batchNo:{}, count:{}", TITLE, apiCode, batchNo, count);
-                // 这里需要调用数据库插入方法
-                tcyrSyncMapper.insertDataToDb(sqlBuilder.toString());
-                sqlBuilder = new StringBuilder();
-                sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal,cell,is_match,extend,status) VALUES");
-                count = 0;
-            }
-        }
-        
-        // 处理最后一批数据（count < dbPartSize的情况）
-        if (count > 0) {
-            log.info("{}执行最后一批插入，apiCode:{}, batchNo:{}, count:{}", TITLE, apiCode, batchNo, count);
-            // 这里需要调用数据库插入方法
+            // 执行批量插入
+            log.info("{}执行批量插入，apiCode:{}, batchNo:{}, count:{}", TITLE, apiCode, batchNo, count);
             tcyrSyncMapper.insertDataToDb(sqlBuilder.toString());
         }
     }
