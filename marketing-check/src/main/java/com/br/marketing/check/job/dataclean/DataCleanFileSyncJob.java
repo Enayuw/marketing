@@ -6,6 +6,7 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
 import com.br.marketing.entity.SyncConfig;
@@ -106,7 +107,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             //填充b_marketing_clean_data_file表的表头及字段
             MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
             fileExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(date).andApiCodeEqualTo(syncCycleConfig.getApiCode())
-                    .andTargetSftpPathEqualTo(syncCycleConfig.getSrcPath()).andFileHeaderIsNull();
+                    .andLocalPathEqualTo(syncCycleConfig.getTargetPath()).andFileHeaderIsNull();
             fileExample.setOrderByClause("create_time desc");
             List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
             cleanDataFiles.forEach(cleanDataFile -> {
