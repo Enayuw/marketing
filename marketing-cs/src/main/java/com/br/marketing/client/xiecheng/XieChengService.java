@@ -561,7 +561,7 @@ public class XieChengService {
             BrCounter.count(PrometheusMonitorUtils.COUNT_XIECHENG_CPS_COLLIDING_DATA_METRIC_NAME, "3710090", "xc-cps",
                     sha256CodeList.size());
         } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.XIECHENG_INTERFACEERROR.getCode(), "携程CPS记录撞库日志量级异常！"), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.XIECHENG_INTERFACEERROR.getCode(), "携程CPS记录撞库量级异常！"), ex);
         }
 
         if (code == 0) {
