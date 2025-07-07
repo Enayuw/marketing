@@ -3190,5 +3190,10 @@ public class MarketingCommonConfig {
      *  携程短信撞库接口参数配置
      */
     private JSONObject xieChengCpsCollidingConfig;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengCpsCollidingRetrySwitch;
 }
 

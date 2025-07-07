@@ -128,42 +128,43 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
 
     @Override
     public Result<Boolean> saveXieChengCpsCollidingDataLog(List<XieChengCpsCollidingDataLog> collidingLogs) {
-        for (XieChengCpsCollidingDataLog collidingLog : collidingLogs) {
+        try {
+            // 批量插入数据
+            xieChengCpsCollidingDataLogMapper.batchInsert(collidingLogs);
+        } catch (DuplicateKeyException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程CPS撞库保存日志，发现重复消息"), e);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程CPS撞库批量保存日志异常！"), e);
+
+            // 批量插入失败，尝试重试机制
+            DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
             try {
-                try {
-                    xieChengCpsCollidingDataLogMapper.insertSelective(collidingLog);
-                } catch (DuplicateKeyException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                            , "携程CPS撞库保存日志，发现重复消息，幂等键：" + collidingLog.getIdempotentKey()), e);
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                            , "携程CPS撞库保存日志异常！"), e);
-                    DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
-                    dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
-                        @Override
-                        public void execute() {
-                            xieChengCpsCollidingDataLogMapper.insertSelective(collidingLog);
-                        }
+                dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
+                    @Override
+                    public void execute() {
+                        xieChengCpsCollidingDataLogMapper.batchInsert(collidingLogs);
+                    }
 
-                        @Override
-                        public Object getParams() {
-                            return collidingLog;
-                        }
+                    @Override
+                    public Object getParams() {
+                        return collidingLogs;
+                    }
 
-                        @Override
-                        public String getMapperClass() {
-                            return "com.br.marketing.mapper.XieChengCpsCollidingDataLogMapperBase";
-                        }
+                    @Override
+                    public String getMapperClass() {
+                        return "com.br.marketing.mapper.XieChengCpsCollidingDataLogMapper";
+                    }
 
-                        @Override
-                        public String getMapperMethod() {
-                            return "insertSelective";
-                        }
-                    }, "携程cps撞库日志写入", config);
-                }
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                        , "携程CPS撞库保存日志，3次重试异常，需要人工处理，log：" + JSON.toJSONString(collidingLog)), e);
+                    @Override
+                    public String getMapperMethod() {
+                        return "batchInsert";
+                    }
+                }, "携程cps撞库日志批量写入", config);
+            } catch (Exception ex) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), ex.getMessage()
+                        , "携程CPS撞库保存日志，3次重试后仍然异常，需要人工处理，log：" + JSON.toJSONString(collidingLogs)), ex);
             }
         }
 

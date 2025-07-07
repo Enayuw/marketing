@@ -56,13 +56,6 @@ public class MarketingXiechengCpsCollidingLogQueueConsumer extends BaseMqMessage
                     , messageExt.getBrokerName(), messageExt.getTopic()
                     , messageExt.getTags(), bodyString);
         List<XieChengCpsCollidingDataLog> collidingDataLogList = JSONArray.parseArray(bodyString, XieChengCpsCollidingDataLog.class);
-        try {
-            //调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_XIECHENG_CPS_COLLIDING_DATA_METRIC_NAME, "3710090", "xc-consumer",
-                    collidingDataLogList.size());
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.XIECHENG_INTERFACEERROR.getCode(), "携程CPS记录撞库日志量级异常！"), ex);
-        }
         consumerService.consumerRun(messageExt, xieChengCpsCollidingDataLogService::saveXieChengCpsCollidingDataLog, collidingDataLogList);
     }
 

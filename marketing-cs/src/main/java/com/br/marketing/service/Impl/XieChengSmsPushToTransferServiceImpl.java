@@ -12,9 +12,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.XieChengCpsCollidingDataLog;
-import com.br.marketing.entity.XieChengCpsCollidingDataLogExample;
-import com.br.marketing.mapper.XieChengCpsCollidingDataLogMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -36,8 +33,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.time.ZoneId;
 
 
 /**
@@ -49,9 +44,6 @@ import java.time.ZoneId;
 @Slf4j
 public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTransferService {
     public static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
-    @Resource
-    XieChengCpsCollidingDataLogMapper xieChengCpsCollidingDataLogMapper;
-
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
@@ -145,17 +137,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         pool.setMaximumPoolSize(threadNum);
     }
 
-    private void shutDownTreadPool() {
-        pool.shutdown();
-        try {
-            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("xieChengSmsThreadPool线程池结束");
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        }
-    }
-
     private void buildConversionDataList(Date nowDayEndTime, String cid, String sha256Code,
                                          String dataId, CountDownLatch countDownLatch, List<ConversionData> conversionDataList) {
         try {
@@ -181,6 +162,5 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         } finally {
             countDownLatch.countDown();
         }
-
     }
 }
