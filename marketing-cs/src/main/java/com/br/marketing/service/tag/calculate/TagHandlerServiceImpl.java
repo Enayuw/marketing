@@ -150,6 +150,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         try {
             // 解析数据源配置
             List<String> sourceCodes = Arrays.asList(tagDataRule.getSourceCode().split(","));
+            Collections.sort(sourceCodes);
 
             // 圈选的ApiCode范围
             List<String> apiCodes = Arrays.asList(tagDataRule.getApiCodeScope().split(","));
@@ -309,13 +310,13 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String sourceCode = "";
         String conditionSql = "";
         String groupSql = "";
+        if (sourceCodes.contains(SourceTypeEnum.SHORTLINK.getCode())) {
+            //如果数据源中存在短链，还需要对cell去重
+            groupSql = " group by cell";
+        }
 
         if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
             sourceCode = sourceCodes.get(0);
-            //如果是短链，还需要对cell去重
-            if (SourceTypeEnum.SHORTLINK.getCode().equals(sourceCode)) {
-                groupSql = " group by cell";
-            }
             conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
         } else {
             //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
@@ -457,7 +458,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
                     .append(">=").append("\"").append(DateHelper.getPreviousDate("m", 3)).append("\"");
             if (SourceTypeEnum.SHORTLINK.getCode().equals(sourceCode)) {
                 whereSql.append(" and api_code = \"").append(apiCode).append("\"");
-                groupSql = " order by target_key ";
             }
             // 添加字段
             List<String> fieldNameList = flagDataMapper.queryColumnNamebI_(sourceName);
@@ -467,11 +467,11 @@ public class TagHandlerServiceImpl implements TagHandleService {
             });
             // 构建FROM和JOIN
             if (i == 0) {
-                joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(groupSql).append(") ").append(sourceCode);
+                joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode);
                 relateField = sourceCode.concat(".")
                         .concat(sourceCodeEnum.getCellField());
             } else {
-                joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(groupSql).append(") ").append(sourceCode)
+                joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode)
                         .append(" on ")
                         .append(sourceCode).append(".")
                         .append(sourceCodeEnum.getCellField())
