@@ -78,7 +78,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                     continue;
                 }
                 //2.查询单条未处理的csvFile(查询quick_deal_status=1,db_deal_status=0的数据)
-                MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectNoDealSingleSyncFile(apiCode, 1,0);
+                MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectNoDealSingleSyncFile(apiCode, 2,0);
                 if (ObjectUtil.isEmpty(tcyrSyncFile)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
@@ -127,13 +127,10 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
             if (!batchData.isEmpty()) {
                 actionPool.submit(()->dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchData));
             }
-            //3.修改csvFile totalCount数量、dbDeal状态、上传明细表中的入库数量successCount
+            //3.修改csvFile totalCount数量、dbDeal状态、
             tcyrSyncFile.setTotalCount(totalCount);
-            //TODO 计算上传明细中 syncFileId 入库的条数
-            //tcyrSyncFile.setSuccessCount();
             tcyrSyncFile.setDealStatus(2);
             tcyrSyncFile.setUpdateTime(new Date());
-            //tcyrSyncFileMapper.updateDbDealStatus(tcyrSyncFile.getId(),2);
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态

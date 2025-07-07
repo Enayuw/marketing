@@ -159,6 +159,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         }
         MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
         //2.csvFileQuickDeal流程
+        long successCount = 0L;
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
             List<String> batchData = new ArrayList<>();
@@ -170,12 +171,16 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     actionPool.submit(()->quickDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData));
                     batchData.clear();
                 }
+                successCount++;
             }
             if (!batchData.isEmpty()) {
                 actionPool.submit(()->quickDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchData));
             }
-            //3.修改csvFile quickDeal流程完成状态
-            tcyrSyncFileMapper.updateQuickDealStatus(tcyrSyncFile.getId(),2);
+            //3.修改csvFile quickDeal状态、successCount
+            tcyrSyncFile.setSuccessCount(successCount);
+            tcyrSyncFile.setQuickDealStatus(2);
+            tcyrSyncFile.setUpdateTime(new Date());
+            tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态
             tcyrSyncFileMapper.updateQuickDealStatus(tcyrSyncFile.getId(),3);
