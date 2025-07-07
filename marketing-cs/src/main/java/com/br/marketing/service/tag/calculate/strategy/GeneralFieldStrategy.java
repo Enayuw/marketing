@@ -1,4 +1,4 @@
-package com.br.marketing.service.tag.calculate;
+package com.br.marketing.service.tag.calculate.strategy;
 
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.tag.TagDataRule;
@@ -7,16 +7,14 @@ import com.br.marketing.enums.tag.TagData;
 
 import java.time.LocalDate;
 
-public class TransformFieldStrategy implements SourceFieldStrategy {
+public class GeneralFieldStrategy {
 
-    @Override
     public String mapFields(String apiCode, Integer tableType, String sourceCode, SourceTypeEnum sourceCodeEnum, String sourceName, TagDataRule tagDataRule) {
 
         StringBuilder stringBuilder = new StringBuilder();
         if (TagData.TableTypeEnum.MATERIALIZED_VIEW.getLabel().equals(tableType)) {
             stringBuilder.append(sourceCode).append("_");
         }
-
         String cell = stringBuilder.toString().concat(sourceCodeEnum.getCellField());
         String custNum = stringBuilder.toString().concat(sourceCodeEnum.getCustNumField());
         String timeField = stringBuilder.toString().concat(sourceCodeEnum.getTimeField());
@@ -35,5 +33,6 @@ public class TransformFieldStrategy implements SourceFieldStrategy {
 
         return insertBuilder.toString();
     }
+
 
 }

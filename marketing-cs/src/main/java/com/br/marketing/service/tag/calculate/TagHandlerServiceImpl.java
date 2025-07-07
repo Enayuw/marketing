@@ -15,6 +15,9 @@ import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.mapper.tag.*;
+import com.br.marketing.service.tag.calculate.strategy.CallFieldStrategy;
+import com.br.marketing.service.tag.calculate.strategy.ShortLinkFieldStrategy;
+import com.br.marketing.service.tag.calculate.strategy.TransformFieldStrategy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -336,7 +339,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
         SourceFieldStrategy sourceFieldStrategy = null;
         try {
             sourceFieldStrategy = getFieldMappingStrategy(SourceTypeEnum.valueOf(sourceCode));
-            //判空
             if (sourceFieldStrategy != null) {
                 insertBuilder.append(sourceFieldStrategy.mapFields(apiCode, sourceType, sourceCode, sourceCodeEnum, sourceName, tagDataRule));
             }
