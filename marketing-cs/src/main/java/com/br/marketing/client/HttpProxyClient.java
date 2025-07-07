@@ -701,7 +701,7 @@ public class HttpProxyClient {
             HttpGet httpGet = new HttpGet(uri);
             RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
             httpGet.setConfig(requestConfig);
-            log.warn("请求url={},proxy={}", httpGet.getURI().toString(),isPorxy);
+            log.warn("get请求url={},proxy={}", httpGet.getURI().toString(),isPorxy);
             HttpResponse response = httpClient.execute(httpGet);
             Long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
