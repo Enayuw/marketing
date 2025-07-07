@@ -3,7 +3,6 @@ package com.br.marketing.service.Impl.transferfieldprocess;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.br.common.util.StringUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
@@ -74,14 +73,7 @@ public class TransferFieldProcessByZhaoLianFactory  implements TransferFieldProc
                     List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
                     MarketingSyncUser marketingSyncUser = syncUsers.get(0);
                     dto.setUserType(marketingSyncUser.getUserType());
-
                     JSONObject jsonObject = JSONObject.parseObject(dto.getReserveField1());
-                    String reserveField1 = marketingSyncUser.getReserveField1();
-                    if(StringUtils.isNotEmpty(reserveField1)){
-                        JSONObject reserveField = JSONObject.parseObject(reserveField1);
-                        jsonObject.put("firstName",reserveField.getString("firstName"));
-                        jsonObject.put("gender",reserveField.getString("gender"));
-                    }
                     jsonObject.put("cell",marketingSyncUser.getCellSha256());
                     dto.setReserveField1(jsonObject.toJSONString());
                 }
