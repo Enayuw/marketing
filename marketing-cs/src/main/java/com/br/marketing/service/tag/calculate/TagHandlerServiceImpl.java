@@ -440,10 +440,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
         // 视图基本定义
         StringBuilder viewSql = new StringBuilder(500)
                 .append(String.format(viewSqlPrefix, viewName));
-        String groupSql = "";
         StringBuilder joinBuilder = new StringBuilder();
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
+            String groupSql = "";
             String sourceCode = sourceCodes.get(i);
             SourceTypeEnum sourceCodeEnum = SourceTypeEnum.fromCode(sourceCode);
             if (sourceCodeEnum == null) {
