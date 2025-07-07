@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingSmsAccountLogMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSmsAccountLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="record_id" property="recordId" jdbcType="BIGINT" />
+    <result column="vendor_name" property="vendorName" jdbcType="VARCHAR" />
+    <result column="channels_name" property="channelsName" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="effect_start_date" property="effectStartDate" jdbcType="DATE" />
+    <result column="effect_end_date" property="effectEndDate" jdbcType="DATE" />
+    <result column="created_by" property="createdBy" jdbcType="VARCHAR" />
+    <result column="ope_type" property="opeType" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+  </resultMap>
+
+  <select id="selectSmsAccountLogs" resultType="com.br.marketing.entity.MarketingSmsAccountLog">
+    select
+        id, record_id, vendor_name, channels_name, price, effect_start_date, effect_end_date,
+        created_by, ope_type, create_time, update_time, is_delete
+    FROM b_marketing_sms_account_log
+    <where>
+      is_delete=0
+      <if test="recordId !=null">
+        AND record_id = #{recordId}
+      </if>
+      <if test="vendorName!=null and vendorName!=''">
+        AND vendor_name =#{vendorName}
+      </if>
+      <if test="optUserName!=null and  optUserName != ''">
+        AND created_by = #{optUserName}
+      </if>
+      <if test="optType != null">
+        AND opt_type = #{optType}
+      </if>
+    </where>
+  </select>
+
+</mapper>

@@ -6,6 +6,8 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.service.LineSmsAccountService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,7 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccountBasInfo")
     @LogAnnotation
     public ApiResult getSmsAccountBasInfo() {
-        return null;
+        return lineSmsAccountService.getSmsAccountBasInfo();
     }
 
     @ApiOperation(value = "短信对账配置新增")
@@ -54,15 +56,36 @@ public class LineSmsAccountController {
     @ApiOperation(value = "短信对账配置列表查询")
     @GetMapping("/getSmsAccounts")
     @LogAnnotation
-    public ApiResult getSmsAccounts() {
-        return null;
+    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "string")
+    })
+    public ApiResult getSmsAccounts(@RequestParam(defaultValue = "1") Integer current,
+                                    @RequestParam(defaultValue = "10") Integer size,
+                                    @RequestParam(required = false) String vendorName) {
+        PageResultReturn list = lineSmsAccountService.getSmsAccounts(current,size,vendorName);
+        return new ApiResult<PageResultReturn>().success(list);
     }
 
-    @ApiOperation(value = "短信对账配置列表查询")
+    @ApiOperation(value = "短信对账配置变更查询")
     @GetMapping("/getSmsAccountLogs")
     @LogAnnotation
-    public ApiResult getSmsAccountLogs() {
-        return null;
+    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @ApiImplicitParam(name = "recordId", value = "汇总记录id", paramType = "query", dataType = "Long")
+            , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "String")
+            , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "String")
+            , @ApiImplicitParam(name = "optUserName", value = "操作人", paramType = "query", dataType = "String")
+            , @ApiImplicitParam(name = "optType", value = "操作类型 1-新增 2-变更 3-删除", paramType = "query", dataType = "int")
+    })
+    public ApiResult getSmsAccountLogs(@RequestParam(defaultValue = "1") Integer current,
+                                       @RequestParam(defaultValue = "10") Integer size,
+                                       @RequestParam(required = false) Long recordId,
+                                       @RequestParam(required = false) String vendorName,
+                                       @RequestParam(required = false) String optUserName,
+                                       @RequestParam(required = false) Integer optType) {
+        PageResultReturn list = lineSmsAccountService.getSmsAccountLogs(current,size,recordId,vendorName,optUserName,optType);
+        return new ApiResult<PageResultReturn>().success(list);
     }
 
 

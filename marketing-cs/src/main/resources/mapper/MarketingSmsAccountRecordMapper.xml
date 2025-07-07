@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingSmsAccountRecordMapper" >
+
+  <select id="selectList" resultType="com.br.marketing.entity.MarketingSmsAccountRecord">
+    SELECT id, vendor_name, channels_name, price, effect_start_date, effect_end_date, create_time,
+           update_time, is_delete
+    FROM b_marketing_sms_account_record
+    <where>
+        is_delete =0
+      <if test="vendorName!=null and vendorName!=''">
+        AND vendor_name =#{vendorName}
+      </if>
+    </where>
+  </select>
+</mapper>
