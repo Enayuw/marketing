@@ -2,11 +2,13 @@ package com.br.marketing.dto.account;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
 import java.util.List;
 
 @Data
 public class SmsAccountDto {
+
+    @ApiModelProperty(value = "recordId")
+    private Integer recordId;
 
     @ApiModelProperty(value = "供应商id")
     private Integer vendorId;
