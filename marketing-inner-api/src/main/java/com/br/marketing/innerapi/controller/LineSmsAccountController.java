@@ -6,6 +6,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.service.LineSmsAccountService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -49,7 +50,11 @@ public class LineSmsAccountController {
     @PostMapping("/addSmsAccount")
     @LogAnnotation
     public ApiResult addSmsAccount(SmsAccountDto dto) {
-        return new ApiResult().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
+        try {
+            return new ApiResult().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @ApiOperation(value = "短信对账配置变更")

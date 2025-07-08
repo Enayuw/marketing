@@ -19,6 +19,7 @@ import com.br.marketing.mapper.MarketingSmsAccountRecordMapper;
 import com.br.marketing.service.LineSmsAccountDataService;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,10 +55,10 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
 
     @Override
-    public Result addSmsAccount(SmsAccountDto dto) {
+    public Result addSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
         //1.校验渠道有无存在的配置
-        List<Integer> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
-        List<Integer> existChannelIds = smsAccountDetailMapper.selectChannelIfExist(channelIds);
+        List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
+        List<Long> existChannelIds = smsAccountDetailMapper.selectChannelIfExist(channelIds);
         if (existChannelIds.size() > 0) {
             List<String> existChannelNames = dto.getChannels().stream()
                     .filter(channel -> existChannelIds.contains(channel.getChannelId()))
@@ -75,10 +76,10 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
         for (int i = 0; i < priceDates.size(); i++) {
             if (i != priceDates.size() - 1) {
-                priceDates.get(i).setEffectStartDate(priceDates.get(i+1).getEffectStartDate().minusDays(1));
+                priceDates.get(i).setEffectStartDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
             }
         }
-        //4.保存
+        //4.事务保存
         lineSmsAccountDataService.addSmsAccount(dto);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }

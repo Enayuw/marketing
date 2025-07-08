@@ -10,11 +10,11 @@ import java.util.List;
 public class SmsAccountDto {
 
     @ApiModelProperty(value = "configId")
-    private Integer configId;
+    private Long configId;
 
     @ApiModelProperty(value = "供应商id")
     @NotNull(message = "供应商id不能为空")
-    private Integer vendorId;
+    private Long vendorId;
 
     @ApiModelProperty(value = "供应商名称")
     @NotEmpty(message = "供应商名称不能为空")

@@ -5,6 +5,6 @@ import org.apache.ibatis.annotations.Param;
 
 public interface MarketingSmsAccountDetailMapper extends MarketingSmsAccountDetailMapperBase{
 
-    List<Integer> selectChannelIfExist(@Param("channelIds") List<Integer> channelIds);
+    List<Long> selectChannelIfExist(@Param("channelIds") List<Long> channelIds);
 
 }

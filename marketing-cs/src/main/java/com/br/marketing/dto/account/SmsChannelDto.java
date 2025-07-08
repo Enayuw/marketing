@@ -7,7 +7,7 @@ import lombok.Data;
 public class SmsChannelDto {
 
     @ApiModelProperty(value = "渠道id")
-    private Integer channelId;
+    private Long channelId;
 
     @ApiModelProperty(value = "渠道名称")
     private String channelName;
