@@ -6,7 +6,9 @@ import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.account.PriceDateDTO;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingSmsAccountLog;
 import com.br.marketing.entity.MarketingSmsAccountRecord;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +43,16 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
     @Override
     public Result addSmsAccount(SmsAccountDto dto) {
-        return null;
+        //1.判断日期没有重复
+        long esDateSize = dto.getPriceDates().stream().map(PriceDateDTO::getEffectStartDate).distinct().count();
+        if (esDateSize != dto.getPriceDates().size()) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("价格有效期不能重复！");
+        }
+        //2.日期排序，从低到高
+        dto.getPriceDates().sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
+        //2.校验渠道下有无交叉价格
+
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
 

@@ -1,10 +1,12 @@
 package com.br.marketing.dto.account;
 
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Data
 public class PriceDateDTO {
 
     @ApiModelProperty(value = "价格")

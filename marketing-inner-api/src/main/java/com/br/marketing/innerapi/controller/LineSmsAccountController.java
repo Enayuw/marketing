@@ -42,8 +42,8 @@ public class LineSmsAccountController {
     @ApiOperation(value = "短信对账配置新增")
     @PostMapping("/addSmsAccount")
     @LogAnnotation
-    public ApiResult<Boolean> addSmsAccount(SmsAccountDto dto) {
-        return new ApiResult<Boolean>().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
+    public ApiResult addSmsAccount(SmsAccountDto dto) {
+        return new ApiResult().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
     }
 
     @ApiOperation(value = "短信对账配置变更")
