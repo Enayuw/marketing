@@ -15,10 +15,10 @@ import com.br.marketing.entity.MarketingSmsAccountRecord;
 import com.br.marketing.mapper.MarketingSmsAccountLogMapper;
 import com.br.marketing.mapper.MarketingSmsAccountRecordMapper;
 import com.br.marketing.service.LineSmsAccountService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -31,8 +31,11 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
     private static final Logger log = LoggerFactory.getLogger(LineSmsAccountServiceImpl.class);
 
-    @Autowired
-    RobotaiApiServiceClient robotaiApiServiceClient;
+    @Resource
+    private RobotaiApiServiceClient robotaiApiServiceClient;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private MarketingSmsAccountRecordMapper smsAccountRecordMapper;
@@ -69,12 +72,22 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         ApiResult apiResult = new ApiResult().fail();
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         TransferJsonDataDTO jsonDataDTO = new TransferJsonDataDTO();
-        jsonDataDTO.setMethod("getSmsVendors");
+        jsonDataDTO.setMethod(marketingCommonConfig.getAccountSmsConfig().getString("smsMethod"));
         jsonDataDTO.setAccessNumber(UUID.randomUUID().toString());
-        robotOutboundDTO.setApiCode("7410733");
+        robotOutboundDTO.setApiCode(marketingCommonConfig.getAccountSmsConfig().getString("apiCode"));
         robotOutboundDTO.setJsonData(jsonDataDTO);
         TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.getSmsBaseInfo(robotOutboundDTO);
         if ("00".equals(transferRobotOutboundVO.getCode())) {
+            //TODO 是否要过滤掉 没有具体通道的供应商
+//            JSONArray resultArray = new JSONArray();
+//            JSONArray jsonArray = JSONArray.parseArray(transferRobotOutboundVO.getData().toString());
+//            for(Object objItem:jsonArray){
+//                JSONObject jsonObject = (JSONObject)objItem;
+//                if(jsonObject.getJSONArray("channelDTOList")!=null && !jsonObject.getJSONArray("channelDTOList").isEmpty()){
+//                    resultArray.add(jsonObject);
+//                }
+//            }
+//            apiResult =  new ApiResult().success(resultArray);
             apiResult =  new ApiResult().success(transferRobotOutboundVO.getData());
         }
         return apiResult;
@@ -83,14 +96,14 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     @Override
     public PageResultReturn getSmsAccounts(Integer current, Integer size, String vendorName) {
         PageHelper.startPage(current, size);
-        List<MarketingSmsAccountRecord> fastTaskRuleListVOS = smsAccountRecordMapper.selectList(vendorName);
-        return PageResultReturn.setPageResult(fastTaskRuleListVOS, current, size);
+        List<MarketingSmsAccountRecord> smsAccountRecordList = smsAccountRecordMapper.selectList(vendorName);
+        return PageResultReturn.setPageResult(smsAccountRecordList, current, size);
     }
 
     @Override
     public PageResultReturn getSmsAccountLogs(Integer current, Integer size, Long recordId,String vendorName,String optUserName,Integer optType) {
         PageHelper.startPage(current, size);
-        List<MarketingSmsAccountLog> fastTaskRuleListVOS = smsAccountLogMapper.selectSmsAccountLogs(recordId,vendorName,optUserName,optType);
-        return PageResultReturn.setPageResult(fastTaskRuleListVOS, current, size);
+        List<MarketingSmsAccountLog> selectSmsAccountLogList = smsAccountLogMapper.selectSmsAccountLogs(recordId,vendorName,optUserName,optType);
+        return PageResultReturn.setPageResult(selectSmsAccountLogList, current, size);
     }
 }

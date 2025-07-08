@@ -281,9 +281,8 @@ public class RobotaiApiServiceClient {
             if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
-            TransferRobotOutboundVO result = JSON.parseObject(transfer.getResult()
+            return JSON.parseObject(transfer.getResult()
                     ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
-            return result;
         }catch (Exception ex){
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             TransferRobotOutboundVO result = new TransferRobotOutboundVO();
