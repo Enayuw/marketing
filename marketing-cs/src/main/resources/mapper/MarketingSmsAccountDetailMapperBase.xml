@@ -11,6 +11,7 @@
     <result column="price" property="price" jdbcType="DECIMAL" />
     <result column="effect_start_date" property="effectStartDate" jdbcType="DATE" />
     <result column="effect_end_date" property="effectEndDate" jdbcType="DATE" />
+    <result column="enabled" property="enabled" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, record_id, vendor_id, vendor_name, channel_id, channel_name, price, effect_start_date, 
-    effect_end_date, create_time, update_time, is_delete
+    id, record_id, vendor_id, vendor_name, channel_id, channel_name, price, effect_start_date,
+    effect_end_date, enabled, create_time, update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingSmsAccountDetailExample" >
     select
@@ -92,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_sms_account_detail
     where id = #{id,jdbcType=BIGINT}
@@ -111,14 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_sms_account_detail (record_id, vendor_id, vendor_name, 
-      channel_id, channel_name, price, 
-      effect_start_date, effect_end_date, create_time, 
-      update_time, is_delete)
-    values (#{recordId,jdbcType=BIGINT}, #{vendorId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR}, 
-      #{channelId,jdbcType=BIGINT}, #{channelName,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL}, 
-      #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
+    insert into b_marketing_sms_account_detail (record_id, vendor_id, vendor_name,
+    channel_id, channel_name, price,
+    effect_start_date, effect_end_date, enabled,
+    create_time, update_time, is_delete
+    )
+    values (#{recordId,jdbcType=BIGINT}, #{vendorId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR},
+    #{channelId,jdbcType=BIGINT}, #{channelName,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL},
+    #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE}, #{enabled,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSmsAccountDetail" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -149,6 +152,9 @@
       </if>
       <if test="effectEndDate != null" >
         effect_end_date,
+      </if>
+      <if test="enabled != null" >
+        enabled,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -184,6 +190,9 @@
       </if>
       <if test="effectEndDate != null" >
         #{effectEndDate,jdbcType=DATE},
+      </if>
+      <if test="enabled != null" >
+        #{enabled,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -232,6 +241,9 @@
       <if test="record.effectEndDate != null" >
         effect_end_date = #{record.effectEndDate,jdbcType=DATE},
       </if>
+      <if test="record.enabled != null" >
+        enabled = #{record.enabled,jdbcType=INTEGER},
+      </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
@@ -249,17 +261,18 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_sms_account_detail
     set id = #{record.id,jdbcType=BIGINT},
-      record_id = #{record.recordId,jdbcType=BIGINT},
-      vendor_id = #{record.vendorId,jdbcType=BIGINT},
-      vendor_name = #{record.vendorName,jdbcType=VARCHAR},
-      channel_id = #{record.channelId,jdbcType=BIGINT},
-      channel_name = #{record.channelName,jdbcType=VARCHAR},
-      price = #{record.price,jdbcType=DECIMAL},
-      effect_start_date = #{record.effectStartDate,jdbcType=DATE},
-      effect_end_date = #{record.effectEndDate,jdbcType=DATE},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER}
+    record_id = #{record.recordId,jdbcType=BIGINT},
+    vendor_id = #{record.vendorId,jdbcType=BIGINT},
+    vendor_name = #{record.vendorName,jdbcType=VARCHAR},
+    channel_id = #{record.channelId,jdbcType=BIGINT},
+    channel_name = #{record.channelName,jdbcType=VARCHAR},
+    price = #{record.price,jdbcType=DECIMAL},
+    effect_start_date = #{record.effectStartDate,jdbcType=DATE},
+    effect_end_date = #{record.effectEndDate,jdbcType=DATE},
+    enabled = #{record.enabled,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -291,6 +304,9 @@
       <if test="effectEndDate != null" >
         effect_end_date = #{effectEndDate,jdbcType=DATE},
       </if>
+      <if test="enabled != null" >
+        enabled = #{enabled,jdbcType=INTEGER},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -306,16 +322,17 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSmsAccountDetail" >
     update b_marketing_sms_account_detail
     set record_id = #{recordId,jdbcType=BIGINT},
-      vendor_id = #{vendorId,jdbcType=BIGINT},
-      vendor_name = #{vendorName,jdbcType=VARCHAR},
-      channel_id = #{channelId,jdbcType=BIGINT},
-      channel_name = #{channelName,jdbcType=VARCHAR},
-      price = #{price,jdbcType=DECIMAL},
-      effect_start_date = #{effectStartDate,jdbcType=DATE},
-      effect_end_date = #{effectEndDate,jdbcType=DATE},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER}
+        vendor_id = #{vendorId,jdbcType=BIGINT},
+        vendor_name = #{vendorName,jdbcType=VARCHAR},
+        channel_id = #{channelId,jdbcType=BIGINT},
+        channel_name = #{channelName,jdbcType=VARCHAR},
+        price = #{price,jdbcType=DECIMAL},
+        effect_start_date = #{effectStartDate,jdbcType=DATE},
+        effect_end_date = #{effectEndDate,jdbcType=DATE},
+        enabled = #{enabled,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

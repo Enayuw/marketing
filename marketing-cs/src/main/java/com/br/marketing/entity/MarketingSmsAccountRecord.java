@@ -10,6 +10,11 @@ public class MarketingSmsAccountRecord {
     private Long id;
 
     /**
+     * 配置id
+     */
+    private Long configId;
+
+    /**
      * 供应商名称
      */
     private String vendorName;
@@ -35,6 +40,11 @@ public class MarketingSmsAccountRecord {
     private Date effectEndDate;
 
     /**
+     * 禁用标志 0-禁用 1-启用
+     */
+    private Integer enabled;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -55,6 +65,14 @@ public class MarketingSmsAccountRecord {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(Long configId) {
+        this.configId = configId;
     }
 
     public String getVendorName() {
@@ -95,6 +113,14 @@ public class MarketingSmsAccountRecord {
 
     public void setEffectEndDate(Date effectEndDate) {
         this.effectEndDate = effectEndDate;
+    }
+
+    public Integer getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Integer enabled) {
+        this.enabled = enabled;
     }
 
     public Date getCreateTime() {

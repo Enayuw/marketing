@@ -38,7 +38,7 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
             }
             int recordId = smsAccountRecordMapper.insertSelective(record);
             MarketingSmsAccountLog log = new MarketingSmsAccountLog();
-            log.setRecordId((long) recordId);
+//            log.setRecordId((long) recordId);
             log.setOpeType(1);
             BeanUtils.copyProperties(record, log);
             for (SmsChannelDto channel : dto.getChannels()) {

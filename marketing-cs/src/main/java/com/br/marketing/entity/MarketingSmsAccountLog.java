@@ -10,9 +10,9 @@ public class MarketingSmsAccountLog {
     private Long id;
 
     /**
-     * 汇总记录id
+     * 配置id
      */
-    private Long recordId;
+    private Long configId;
 
     /**
      * 供应商名称
@@ -40,12 +40,22 @@ public class MarketingSmsAccountLog {
     private Date effectEndDate;
 
     /**
-     * 操作人
+     * 操作人id
      */
-    private String createdBy;
+    private Long userId;
 
     /**
-     * 业务删除 1-新增 2-变更 3-删除
+     * 操作人userName
+     */
+    private String userName;
+
+    /**
+     * 操作人realName
+     */
+    private String realName;
+
+    /**
+     * 业务删除 1-新增 2-变更 3-删除 4-禁用
      */
     private Integer opeType;
 
@@ -72,12 +82,12 @@ public class MarketingSmsAccountLog {
         this.id = id;
     }
 
-    public Long getRecordId() {
-        return recordId;
+    public Long getConfigId() {
+        return configId;
     }
 
-    public void setRecordId(Long recordId) {
-        this.recordId = recordId;
+    public void setConfigId(Long configId) {
+        this.configId = configId;
     }
 
     public String getVendorName() {
@@ -120,12 +130,28 @@ public class MarketingSmsAccountLog {
         this.effectEndDate = effectEndDate;
     }
 
-    public String getCreatedBy() {
-        return createdBy;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy == null ? null : createdBy.trim();
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName == null ? null : userName.trim();
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName == null ? null : realName.trim();
     }
 
     public Integer getOpeType() {

@@ -50,6 +50,11 @@ public class MarketingSmsAccountDetail {
     private Date effectEndDate;
 
     /**
+     * 禁用标志 0-禁用 1-启用
+     */
+    private Integer enabled;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -134,6 +139,14 @@ public class MarketingSmsAccountDetail {
 
     public void setEffectEndDate(Date effectEndDate) {
         this.effectEndDate = effectEndDate;
+    }
+
+    public Integer getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Integer enabled) {
+        this.enabled = enabled;
     }
 
     public Date getCreateTime() {

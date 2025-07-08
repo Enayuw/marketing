@@ -193,6 +193,66 @@ public class MarketingSmsAccountRecordExample {
             return (Criteria) this;
         }
 
+        public Criteria andConfigIdIsNull() {
+            addCriterion("config_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdIsNotNull() {
+            addCriterion("config_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdEqualTo(Long value) {
+            addCriterion("config_id =", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdNotEqualTo(Long value) {
+            addCriterion("config_id <>", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdGreaterThan(Long value) {
+            addCriterion("config_id >", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("config_id >=", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdLessThan(Long value) {
+            addCriterion("config_id <", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdLessThanOrEqualTo(Long value) {
+            addCriterion("config_id <=", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdIn(List<Long> values) {
+            addCriterion("config_id in", values, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdNotIn(List<Long> values) {
+            addCriterion("config_id not in", values, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdBetween(Long value1, Long value2) {
+            addCriterion("config_id between", value1, value2, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdNotBetween(Long value1, Long value2) {
+            addCriterion("config_id not between", value1, value2, "configId");
+            return (Criteria) this;
+        }
+
         public Criteria andVendorNameIsNull() {
             addCriterion("vendor_name is null");
             return (Criteria) this;
@@ -510,6 +570,66 @@ public class MarketingSmsAccountRecordExample {
 
         public Criteria andEffectEndDateNotBetween(Date value1, Date value2) {
             addCriterionForJDBCDate("effect_end_date not between", value1, value2, "effectEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledIsNull() {
+            addCriterion("enabled is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledIsNotNull() {
+            addCriterion("enabled is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledEqualTo(Integer value) {
+            addCriterion("enabled =", value, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledNotEqualTo(Integer value) {
+            addCriterion("enabled <>", value, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledGreaterThan(Integer value) {
+            addCriterion("enabled >", value, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledGreaterThanOrEqualTo(Integer value) {
+            addCriterion("enabled >=", value, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledLessThan(Integer value) {
+            addCriterion("enabled <", value, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledLessThanOrEqualTo(Integer value) {
+            addCriterion("enabled <=", value, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledIn(List<Integer> values) {
+            addCriterion("enabled in", values, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledNotIn(List<Integer> values) {
+            addCriterion("enabled not in", values, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledBetween(Integer value1, Integer value2) {
+            addCriterion("enabled between", value1, value2, "enabled");
+            return (Criteria) this;
+        }
+
+        public Criteria andEnabledNotBetween(Integer value1, Integer value2) {
+            addCriterion("enabled not between", value1, value2, "enabled");
             return (Criteria) this;
         }
 
