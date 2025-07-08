@@ -8,6 +8,9 @@
     <foreach collection="channelIds" item="channelId" open="(" separator="," close=")">
       #{channelId}
     </foreach>
+    <if test="configId != null and cusBatch !=''">
+      and config_id != #{configId}
+    </if>
     and is_delete = 0
   </select>
 </mapper>

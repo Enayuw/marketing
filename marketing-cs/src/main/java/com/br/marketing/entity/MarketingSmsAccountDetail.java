@@ -10,6 +10,11 @@ public class MarketingSmsAccountDetail {
     private Long id;
 
     /**
+     * 配置id
+     */
+    private Long configId;
+
+    /**
      * 汇总记录id
      */
     private Long recordId;
@@ -75,6 +80,14 @@ public class MarketingSmsAccountDetail {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(Long configId) {
+        this.configId = configId;
     }
 
     public Long getRecordId() {

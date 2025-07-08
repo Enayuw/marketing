@@ -15,7 +15,7 @@ public interface LineSmsAccountService {
 
     Result addSmsAccount(@Valid SmsAccountDto dto) throws JsonProcessingException;
 
-    Result updSmsAccount(SmsAccountDto dto);
+    Result updSmsAccount(SmsAccountDto dto) throws JsonProcessingException;
 
     ApiResult getSmsAccountBasInfo();
 

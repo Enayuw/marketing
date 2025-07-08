@@ -3,6 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingSmsAccountDetailMapperBase" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSmsAccountDetail" >
     <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="config_id" property="configId" jdbcType="BIGINT" />
     <result column="record_id" property="recordId" jdbcType="BIGINT" />
     <result column="vendor_id" property="vendorId" jdbcType="BIGINT" />
     <result column="vendor_name" property="vendorName" jdbcType="VARCHAR" />
@@ -75,8 +76,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, record_id, vendor_id, vendor_name, channel_id, channel_name, price, effect_start_date,
-    effect_end_date, enabled, create_time, update_time, is_delete
+    id, config_id, record_id, vendor_id, vendor_name, channel_id, channel_name, price,
+    effect_start_date, effect_end_date, enabled, create_time, update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingSmsAccountDetailExample" >
     select
@@ -112,16 +113,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_sms_account_detail (record_id, vendor_id, vendor_name,
-    channel_id, channel_name, price,
-    effect_start_date, effect_end_date, enabled,
-    create_time, update_time, is_delete
-    )
-    values (#{recordId,jdbcType=BIGINT}, #{vendorId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR},
-    #{channelId,jdbcType=BIGINT}, #{channelName,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL},
-    #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE}, #{enabled,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}
-    )
+    insert into b_marketing_sms_account_detail (config_id, record_id, vendor_id,
+    vendor_name, channel_id, channel_name,
+    price, effect_start_date, effect_end_date,
+    enabled, create_time, update_time,
+    is_delete)
+    values (#{configId,jdbcType=BIGINT}, #{recordId,jdbcType=BIGINT}, #{vendorId,jdbcType=BIGINT},
+    #{vendorName,jdbcType=VARCHAR}, #{channelId,jdbcType=BIGINT}, #{channelName,jdbcType=VARCHAR},
+    #{price,jdbcType=DECIMAL}, #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE},
+    #{enabled,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{isDelete,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSmsAccountDetail" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -129,6 +130,9 @@
     </selectKey>
     insert into b_marketing_sms_account_detail
     <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="configId != null" >
+        config_id,
+      </if>
       <if test="recordId != null" >
         record_id,
       </if>
@@ -167,6 +171,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="configId != null" >
+        #{configId,jdbcType=BIGINT},
+      </if>
       <if test="recordId != null" >
         #{recordId,jdbcType=BIGINT},
       </if>
@@ -217,6 +224,9 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
+      <if test="record.configId != null" >
+        config_id = #{record.configId,jdbcType=BIGINT},
+      </if>
       <if test="record.recordId != null" >
         record_id = #{record.recordId,jdbcType=BIGINT},
       </if>
@@ -261,6 +271,7 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_sms_account_detail
     set id = #{record.id,jdbcType=BIGINT},
+    config_id = #{record.configId,jdbcType=BIGINT},
     record_id = #{record.recordId,jdbcType=BIGINT},
     vendor_id = #{record.vendorId,jdbcType=BIGINT},
     vendor_name = #{record.vendorName,jdbcType=VARCHAR},
@@ -280,6 +291,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingSmsAccountDetail" >
     update b_marketing_sms_account_detail
     <set >
+      <if test="configId != null" >
+        config_id = #{configId,jdbcType=BIGINT},
+      </if>
       <if test="recordId != null" >
         record_id = #{recordId,jdbcType=BIGINT},
       </if>
@@ -321,7 +335,8 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSmsAccountDetail" >
     update b_marketing_sms_account_detail
-    set record_id = #{recordId,jdbcType=BIGINT},
+    set config_id = #{configId,jdbcType=BIGINT},
+        record_id = #{recordId,jdbcType=BIGINT},
         vendor_id = #{vendorId,jdbcType=BIGINT},
         vendor_name = #{vendorName,jdbcType=VARCHAR},
         channel_id = #{channelId,jdbcType=BIGINT},

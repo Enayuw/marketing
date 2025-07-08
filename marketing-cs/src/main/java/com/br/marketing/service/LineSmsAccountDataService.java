@@ -12,4 +12,6 @@ public interface LineSmsAccountDataService {
 
     void addSmsAccount(SmsAccountDto dto) throws JsonProcessingException;
 
+    void updSmsAccount(SmsAccountDto dto) throws JsonProcessingException;
+
 }

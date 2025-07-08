@@ -58,7 +58,7 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     public Result addSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
         //1.校验渠道有无存在的配置
         List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
-        List<Long> existChannelIds = smsAccountDetailMapper.selectChannelIfExist(channelIds);
+        List<Long> existChannelIds = smsAccountDetailMapper.selectChannelIfExist(channelIds, dto.getConfigId());
         if (existChannelIds.size() > 0) {
             List<String> existChannelNames = dto.getChannels().stream()
                     .filter(channel -> existChannelIds.contains(channel.getChannelId()))
@@ -86,8 +86,33 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
 
     @Override
-    public Result updSmsAccount(SmsAccountDto dto) {
-        return null;
+    public Result updSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
+        //1.校验渠道有无存在的配置
+        List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
+        List<Long> existChannelIds = smsAccountDetailMapper.selectChannelIfExist(channelIds, dto.getConfigId());
+        if (existChannelIds.size() > 0) {
+            List<String> existChannelNames = dto.getChannels().stream()
+                    .filter(channel -> existChannelIds.contains(channel.getChannelId()))
+                    .map(SmsChannelDto::getChannelName).collect(Collectors.toList());
+            return new Result<String>().setCode(ResultCode.FAIL.getValue())
+                    .setMessage("渠道：" + String.join(",", existChannelNames) + "已存在配置，无法新增，请在列表页面变更对应渠道配置！");
+        }
+        //2.判断日期没有重复
+        List<PriceDateDTO> priceDates = dto.getPriceDates();
+        long esDateSize = priceDates.stream().map(PriceDateDTO::getEffectStartDate).distinct().count();
+        if (esDateSize != priceDates.size()) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("价格有效期不能重复！");
+        }
+        //3.日期排序，从低到高
+        priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
+        for (int i = 0; i < priceDates.size(); i++) {
+            if (i != priceDates.size() - 1) {
+                priceDates.get(i).setEffectStartDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
+            }
+        }
+        //4.事务保存
+        lineSmsAccountDataService.updSmsAccount(dto);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
 

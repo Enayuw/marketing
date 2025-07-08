@@ -193,6 +193,66 @@ public class MarketingSmsAccountDetailExample {
             return (Criteria) this;
         }
 
+        public Criteria andConfigIdIsNull() {
+            addCriterion("config_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdIsNotNull() {
+            addCriterion("config_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdEqualTo(Long value) {
+            addCriterion("config_id =", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdNotEqualTo(Long value) {
+            addCriterion("config_id <>", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdGreaterThan(Long value) {
+            addCriterion("config_id >", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("config_id >=", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdLessThan(Long value) {
+            addCriterion("config_id <", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdLessThanOrEqualTo(Long value) {
+            addCriterion("config_id <=", value, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdIn(List<Long> values) {
+            addCriterion("config_id in", values, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdNotIn(List<Long> values) {
+            addCriterion("config_id not in", values, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdBetween(Long value1, Long value2) {
+            addCriterion("config_id between", value1, value2, "configId");
+            return (Criteria) this;
+        }
+
+        public Criteria andConfigIdNotBetween(Long value1, Long value2) {
+            addCriterion("config_id not between", value1, value2, "configId");
+            return (Criteria) this;
+        }
+
         public Criteria andRecordIdIsNull() {
             addCriterion("record_id is null");
             return (Criteria) this;

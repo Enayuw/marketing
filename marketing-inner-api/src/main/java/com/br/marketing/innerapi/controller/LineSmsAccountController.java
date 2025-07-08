@@ -52,7 +52,7 @@ public class LineSmsAccountController {
     @ApiOperation(value = "短信对账配置新增")
     @PostMapping("/addSmsAccount")
     @LogAnnotation
-    public ApiResult addSmsAccount(SmsAccountDto dto) {
+    public ApiResult addSmsAccount(@RequestBody SmsAccountDto dto) {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
         } catch (Exception e) {
@@ -63,8 +63,12 @@ public class LineSmsAccountController {
     @ApiOperation(value = "短信对账配置变更")
     @PatchMapping("/updSmsAccount")
     @LogAnnotation
-    public ApiResult updSmsAccount(SmsAccountDto dto) {
-        return null;
+    public ApiResult updSmsAccount(@RequestBody SmsAccountDto dto) {
+        try {
+            return new ApiResult().fromResult(lineSmsAccountService.updSmsAccount(dto), CODE_1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @ApiOperation(value = "短信对账配置列表查询")
