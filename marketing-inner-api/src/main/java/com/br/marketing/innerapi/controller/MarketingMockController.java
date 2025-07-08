@@ -8,6 +8,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
+import com.br.marketing.dto.mock.MockPolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
 import com.br.marketing.entity.auth.MarketingUserDetail;
@@ -171,6 +172,22 @@ public class MarketingMockController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "查询所有的mock名称接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    /**
+     * 批量启用/禁用Mock规则（支持批量启用）
+     */
+    @PostMapping("/enableMockPolicies")
+    @ApiOperation(value = "批量启用/禁用Mock规则", notes = "批量启用/禁用Mock规则")
+    public ApiResult<Boolean> enableMockPolicies(@RequestBody MockPolicyDTO list) {
+        try {
+            Boolean result = mockService.enableMockPolicies(list);
+            return new ApiResult<Boolean>().success(result);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "批量启用/禁用Mock规则接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 

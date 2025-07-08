@@ -15,6 +15,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
+import com.br.marketing.dto.mock.MockPolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
 import com.br.marketing.entity.MockCaseExample;
@@ -359,6 +360,48 @@ public class MockServiceImpl implements MockService {
     @Override
     public ApiResult<List<String>> getMockName() {
         return new ApiResult<List<String>>().success().setData(MockNameEnum.getAllCodes());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean enableMockPolicies(MockPolicyDTO list) {
+        if (list == null) {
+            return false;
+        }
+        boolean allSuccess = true;
+
+        List<Long> ids = list.getIds();
+        for (Long id : ids){
+            try {
+                MockPolicy mockPolicyOld = mockPolicyMapper.selectByPrimaryKey(id);
+                if(mockPolicyOld == null){
+                    continue;
+                }
+                MockPolicy mockPolicy = new MockPolicy();
+                BeanUtils.copyProperties(mockPolicyOld, mockPolicy);
+                int newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
+                mockPolicy.setEnabled(list.getEnabled());
+                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setVersion(String.valueOf(newVersion));
+                int updated = mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
+                if (updated <= 0) {
+                    allSuccess = false;
+                    log.error("启用/禁用Mock策略失败，mockName: {}", mockPolicyOld.getMockName());
+                    continue;
+                }
+                //增加操作日志
+                entityOptService.writeOptLog(mockPolicy.getId(), mockPolicy, mockPolicyOld);
+
+                // Redis更新，失败重试3次
+                redisRetry(mockPolicy);
+
+                log.warn("MockPolicy启用/禁用成功，mockName: {}, version: {}", mockPolicyOld.getMockName(), mockPolicy.getVersion());
+            } catch (Exception e) {
+                log.error("批量启用/禁用MockPolicy失败，id: {}, 错误信息: {}", id, e.getMessage(), e);
+            }
+        }
+
+        return allSuccess;
     }
 
     void syncPolicyToCache(String mockName, MockPolicy mockPolicy) {
