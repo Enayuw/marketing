@@ -3,7 +3,6 @@ package com.br.marketing.service.mock.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.MockClient;
 import com.br.marketing.client.RedisChgService;
@@ -390,7 +389,7 @@ public class MockServiceImpl implements MockService {
                 BeanUtils.copyProperties(mockPolicyOld, mockPolicy);
                 int newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
                 mockPolicy.setEnabled(list.getEnabled());
-                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setUpdateTime(new Date());
                 mockPolicy.setVersion(String.valueOf(newVersion));
                 int updated = mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
                 if (updated <= 0) {

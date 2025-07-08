@@ -4,11 +4,13 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
+import com.br.marketing.dto.mock.MockPolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.dto.mock.MockPolicyDTO;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName MockService
