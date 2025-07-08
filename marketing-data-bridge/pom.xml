@@ -87,6 +87,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.dangdang</groupId>
             <artifactId>br-elastic-job-spring</artifactId>
             <version>1.1.7-SNAPSHOT</version>

@@ -20,9 +20,13 @@ spring:
   mail:
     host: mail.brgroup.com
     port: 25
-    username: marketing-br@brgroup.com
-    password: 1S9D9ocaNwk#
+    username: jgz@brgroup.com
+    password: FxDV2WZHFmhSAyNq
     default-encoding: UTF-8
+    protocol: imaps
+    properties:
+      mail.imap.ssl.enable: true
+      mail.imap.auth: true
 
 
 server:
