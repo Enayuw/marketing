@@ -49,4 +49,11 @@
         WHERE id=#{id}
     </update>
 
+    <update id="updateSuccessCount">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET success_count = success_count +#{addSuccessCount}
+        where id = #{syncFileId}
+    </update>
+
 </mapper>

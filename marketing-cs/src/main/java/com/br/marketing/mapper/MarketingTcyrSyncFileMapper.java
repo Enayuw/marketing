@@ -28,6 +28,11 @@ public interface MarketingTcyrSyncFileMapper extends MarketingTcyrSyncFileMapper
             @Param("id") Long id,
             @Param("quickDealStatus") Integer quickDealStatus);
 
-    void updateDbDealStatus(@Param("id") Long id,
-                            @Param("dbDealStatus") Integer dbDealStatus);
+    void updateDbDealStatus(
+            @Param("id") Long id,
+            @Param("dbDealStatus") Integer dbDealStatus);
+
+    void updateSuccessCount(
+            @Param("syncFileId") Long syncFileId,
+            @Param("addSuccessCount") Integer addSuccessCount);
 }
