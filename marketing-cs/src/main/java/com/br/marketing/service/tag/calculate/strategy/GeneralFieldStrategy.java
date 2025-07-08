@@ -21,7 +21,7 @@ public class GeneralFieldStrategy {
 
         StringBuilder insertBuilder = new StringBuilder();
         insertBuilder.append("insert into t_tag_data_detail(tag_code,calculate_date,cell,cust_num,create_time,update_time)");
-        insertBuilder.append(String.format(" SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, any_value(%s) AS cust_num, now() AS create_time, now() AS update_time from %s",
+        insertBuilder.append(String.format(" SELECT \"%s\" AS tag_code, CURDATE() AS calculate_date, %s AS cell, %s AS cust_num, now() AS create_time, now() AS update_time from %s",
                 tagDataRule.getTagCode(), cell, custNum, sourceName));
         // 添加条件子句
         insertBuilder.append(" where ");
@@ -33,6 +33,5 @@ public class GeneralFieldStrategy {
 
         return insertBuilder.toString();
     }
-
 
 }

@@ -310,14 +310,14 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String sourceCode = "";
         String conditionSql = "";
         String groupSql = "";
-        if (sourceCodes.contains(SourceTypeEnum.SHORTLINK.getCode())) {
-            //如果数据源中存在短链，还需要对cell去重
-            groupSql = " group by cell";
-        }
 
         if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
             sourceCode = sourceCodes.get(0);
             conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
+            if (sourceCode.equals(SourceTypeEnum.SHORTLINK.getCode())) {
+                //如果数据源为短链，还需要对cell去重
+                groupSql = " group by cell";
+            }
         } else {
             //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
             for (String code : sourceCodes) {
