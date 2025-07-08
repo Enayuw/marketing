@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class MockCase {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -14,14 +14,14 @@ public class MockCase {
     private String mockName;
 
     /**
+     * mock用例名称
+     */
+    private String mockCaseName;
+
+    /**
      * 商户编号
      */
     private String apiCode;
-
-    /**
-     * Mock响应体
-     */
-    private String responseBody;
 
     /**
      * 响应状态码
@@ -66,17 +66,22 @@ public class MockCase {
     /**
      * 创建时间
      */
-    private String createTime;
+    private Date createTime;
 
     /**
-     * 
+     *
      */
-    private String updateTime;
+    private Date updateTime;
 
     /**
      * 1-有效；9-无效
      */
     private Integer isDel;
+
+    /**
+     * Mock响应体
+     */
+    private String responseBody;
 
     public Long getId() {
         return id;
@@ -94,20 +99,20 @@ public class MockCase {
         this.mockName = mockName == null ? null : mockName.trim();
     }
 
+    public String getMockCaseName() {
+        return mockCaseName;
+    }
+
+    public void setMockCaseName(String mockCaseName) {
+        this.mockCaseName = mockCaseName == null ? null : mockCaseName.trim();
+    }
+
     public String getApiCode() {
         return apiCode;
     }
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getResponseBody() {
-        return responseBody;
-    }
-
-    public void setResponseBody(String responseBody) {
-        this.responseBody = responseBody == null ? null : responseBody.trim();
     }
 
     public Integer getStatusCode() {
@@ -174,19 +179,19 @@ public class MockCase {
         this.createDate = createDate == null ? null : createDate.trim();
     }
 
-    public String getCreateTime() {
+    public Date getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(String createTime) {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 
-    public String getUpdateTime() {
+    public Date getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(String updateTime) {
+    public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
 
@@ -196,5 +201,13 @@ public class MockCase {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public String getResponseBody() {
+        return responseBody;
+    }
+
+    public void setResponseBody(String responseBody) {
+        this.responseBody = responseBody == null ? null : responseBody.trim();
     }
 }

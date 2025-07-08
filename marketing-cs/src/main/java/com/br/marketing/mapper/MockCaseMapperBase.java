@@ -17,15 +17,21 @@ public interface MockCaseMapperBase {
 
     int insertSelective(MockCase record);
 
+    List<MockCase> selectByExampleWithBLOBs(MockCaseExample example);
+
     List<MockCase> selectByExample(MockCaseExample example);
 
     MockCase selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MockCase record, @Param("example") MockCaseExample example);
 
+    int updateByExampleWithBLOBs(@Param("record") MockCase record, @Param("example") MockCaseExample example);
+
     int updateByExample(@Param("record") MockCase record, @Param("example") MockCaseExample example);
 
     int updateByPrimaryKeySelective(MockCase record);
+
+    int updateByPrimaryKeyWithBLOBs(MockCase record);
 
     int updateByPrimaryKey(MockCase record);
 }

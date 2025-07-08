@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class MockPolicy {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -51,12 +51,12 @@ public class MockPolicy {
     /**
      * 创建时间
      */
-    private String createTime;
+    private Date createTime;
 
     /**
-     * 更新时间
+     *
      */
-    private String updateTime;
+    private Date updateTime;
 
     /**
      * 1-有效；9-无效
@@ -135,19 +135,19 @@ public class MockPolicy {
         this.createDate = createDate == null ? null : createDate.trim();
     }
 
-    public String getCreateTime() {
+    public Date getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(String createTime) {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 
-    public String getUpdateTime() {
+    public Date getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(String updateTime) {
+    public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
 

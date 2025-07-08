@@ -235,6 +235,76 @@ public class MockCaseExample {
             return (Criteria) this;
         }
 
+        public Criteria andMockCaseNameIsNull() {
+            addCriterion("mock_case_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameIsNotNull() {
+            addCriterion("mock_case_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameEqualTo(String value) {
+            addCriterion("mock_case_name =", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameNotEqualTo(String value) {
+            addCriterion("mock_case_name <>", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameGreaterThan(String value) {
+            addCriterion("mock_case_name >", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameGreaterThanOrEqualTo(String value) {
+            addCriterion("mock_case_name >=", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameLessThan(String value) {
+            addCriterion("mock_case_name <", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameLessThanOrEqualTo(String value) {
+            addCriterion("mock_case_name <=", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameLike(String value) {
+            addCriterion("mock_case_name like", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameNotLike(String value) {
+            addCriterion("mock_case_name not like", value, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameIn(List<String> values) {
+            addCriterion("mock_case_name in", values, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameNotIn(List<String> values) {
+            addCriterion("mock_case_name not in", values, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameBetween(String value1, String value2) {
+            addCriterion("mock_case_name between", value1, value2, "mockCaseName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMockCaseNameNotBetween(String value1, String value2) {
+            addCriterion("mock_case_name not between", value1, value2, "mockCaseName");
+            return (Criteria) this;
+        }
+
         public Criteria andApiCodeIsNull() {
             addCriterion("api_code is null");
             return (Criteria) this;
@@ -302,76 +372,6 @@ public class MockCaseExample {
 
         public Criteria andApiCodeNotBetween(String value1, String value2) {
             addCriterion("api_code not between", value1, value2, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyIsNull() {
-            addCriterion("response_body is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyIsNotNull() {
-            addCriterion("response_body is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyEqualTo(String value) {
-            addCriterion("response_body =", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyNotEqualTo(String value) {
-            addCriterion("response_body <>", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyGreaterThan(String value) {
-            addCriterion("response_body >", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyGreaterThanOrEqualTo(String value) {
-            addCriterion("response_body >=", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyLessThan(String value) {
-            addCriterion("response_body <", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyLessThanOrEqualTo(String value) {
-            addCriterion("response_body <=", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyLike(String value) {
-            addCriterion("response_body like", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyNotLike(String value) {
-            addCriterion("response_body not like", value, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyIn(List<String> values) {
-            addCriterion("response_body in", values, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyNotIn(List<String> values) {
-            addCriterion("response_body not in", values, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyBetween(String value1, String value2) {
-            addCriterion("response_body between", value1, value2, "responseBody");
-            return (Criteria) this;
-        }
-
-        public Criteria andResponseBodyNotBetween(String value1, String value2) {
-            addCriterion("response_body not between", value1, value2, "responseBody");
             return (Criteria) this;
         }
 

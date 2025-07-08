@@ -27,6 +27,7 @@ import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.MockPolicyFactory;
 import com.br.marketing.service.mock.MockService;
 import com.br.marketing.service.mock.enums.MockNameEnum;
+import com.br.marketing.service.mock.enums.MockPolicyEnum;
 import com.br.marketing.util.TimeUtils;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName MockServiceImpl
@@ -118,8 +120,8 @@ public class MockServiceImpl implements MockService {
                 mockPolicy.setOptUserId(Long.valueOf(userDetail.getId()));
                 mockPolicy.setOptUserName(userDetail.getUserName());
                 mockPolicy.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
-                mockPolicy.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setCreateTime(new Date());
+                mockPolicy.setUpdateTime(new Date());
                 mockPolicy.setIsDel(Constants.DATA_VALID);
                 mockPolicyMapper.insertSelective(mockPolicy);
                 //增加日志
@@ -132,7 +134,7 @@ public class MockServiceImpl implements MockService {
                 MockPolicy mockPolicy1 = mockPolicyMapper.selectByPrimaryKey(dto.getId());
                 newVersion = Integer.parseInt(mockPolicy1.getVersion()) + 1;
                 mockPolicy.setVersion(String.valueOf(newVersion));
-                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setUpdateTime(new Date());
                 mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
                 //增加操作日志
                 Long id = dto.getId();
@@ -165,7 +167,7 @@ public class MockServiceImpl implements MockService {
                 MockPolicy mockPolicy = new MockPolicy();
                 mockPolicy.setId(mockPolicyOld.getId());
                 mockPolicy.setIsDel(9);
-                mockPolicy.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockPolicy.setUpdateTime(new Date());
                 mockPolicy.setVersion(String.valueOf(newVersion));
                 mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
                 //增加操作日志
@@ -230,6 +232,7 @@ public class MockServiceImpl implements MockService {
                 MockCase mockCase = new MockCase();
                 mockCase.setMockName(dto.getMockName());
                 mockCase.setApiCode(dto.getApiCode());
+                mockCase.setMockCaseName(dto.getMockCaseName());
                 mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
                 mockCase.setStatusCode(dto.getStatusCode());
                 mockCase.setDelayMs(dto.getDelayMs());
@@ -239,8 +242,8 @@ public class MockServiceImpl implements MockService {
                 mockCase.setOptUserName(userDetail.getUserName());
                 mockCase.setEnabled(dto.getEnabled());
                 mockCase.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
-                mockCase.setCreateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-                mockCase.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockCase.setCreateTime(new Date());
+                mockCase.setUpdateTime(new Date());
                 mockCase.setIsDel(Constants.DATA_VALID);
                 mockCaseList.add(mockCase);
             }
@@ -261,6 +264,7 @@ public class MockServiceImpl implements MockService {
             mockCase.setId(dto.getId());
             mockCase.setMockName(dto.getMockName());
             mockCase.setApiCode(dto.getApiCode());
+            mockCase.setMockCaseName(dto.getMockCaseName());
             mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
             mockCase.setStatusCode(dto.getStatusCode());
             mockCase.setDelayMs(dto.getDelayMs());
@@ -270,7 +274,7 @@ public class MockServiceImpl implements MockService {
             mockCase.setOptUserName(userDetail.getUserName());
             mockCase.setEnabled(dto.getEnabled());
             mockCase.setIsDel(Constants.DATA_VALID);
-            mockCase.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+            mockCase.setUpdateTime(new Date());
 
             MockCase mockCaseOld = mockCaseMapper.selectByPrimaryKey(dto.getId());
             mockCaseMapper.updateByPrimaryKeySelective(mockCase);
@@ -296,7 +300,7 @@ public class MockServiceImpl implements MockService {
                 MockCase mockCase = new MockCase();
                 mockCase.setId(id);
                 mockCase.setIsDel(9);
-                mockCase.setUpdateTime(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+                mockCase.setUpdateTime(new Date());
                 int deleted = mockCaseMapper.updateByPrimaryKeySelective(mockCase);
                 if (deleted <= 0) {
                     allSuccess = false;
@@ -359,6 +363,11 @@ public class MockServiceImpl implements MockService {
     @Override
     public ApiResult<List<String>> getMockName() {
         return new ApiResult<List<String>>().success().setData(MockNameEnum.getAllCodes());
+    }
+
+    @Override
+    public ApiResult<Map<Integer, String>> getMockType() {
+        return new ApiResult<Map<Integer, String>>().success().setData(MockPolicyEnum.getAllMockPolicyEnum());
     }
 
     void syncPolicyToCache(String mockName, MockPolicy mockPolicy) {

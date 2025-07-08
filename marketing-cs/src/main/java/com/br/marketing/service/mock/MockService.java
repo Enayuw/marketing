@@ -9,6 +9,7 @@ import com.br.marketing.entity.MockCase;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName MockService
@@ -52,4 +53,6 @@ public interface MockService {
 
 
     ApiResult<List<String>> getMockName();
+
+    ApiResult<Map<Integer,String>> getMockType();
 }
