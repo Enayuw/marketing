@@ -13,10 +13,12 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.MarketingTcyrErrorInterfaceLog;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper;
+import com.br.marketing.mapper.MarketingTcyrErrorInterfaceLogMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.PushInfoService;
@@ -35,6 +37,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 //TODO 需排查所有历史代码影响
 /**
@@ -67,7 +71,10 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
 
     @Resource
-    MarketingTcyrCustCellMappingMapper tcyrCustCellMappingMapper;
+    private MarketingTcyrCustCellMappingMapper tcyrCustCellMappingMapper;
+
+    @Resource
+    private MarketingTcyrErrorInterfaceLogMapper errorInterfaceLogMapper;
 
 
     @Override
@@ -112,38 +119,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     }
 
     /**
-     * 带重试机制的获取锁
-     * @param lockKey 锁的key
-     * @param lockValue 锁的值
-     * @return 是否成功获取锁
-     */
-    private boolean acquireLockWithRetry(String lockKey, String lockValue) {
-        int maxRetryTimes = marketingCommonConfig.getTcQuickDealShardConfig().getInteger("lockRetryTimes");
-        long retryIntervalMs = marketingCommonConfig.getTcQuickDealShardConfig().getLong("lockRetryIntervalMs");
-        for (int retryCount = 0; retryCount <= maxRetryTimes; retryCount++) {
-            try {
-                redisChgService.lock(lockKey, lockValue);
-                return true;
-            } catch (Exception e) {
-                if (retryCount < maxRetryTimes) {
-                    log.warn("{}获取锁失败，apiCode:{}，重试次数:{}/{}，错误信息:{}", 
-                            TITLE, lockKey, retryCount + 1, maxRetryTimes, e.getMessage());
-                    try {
-                        Thread.sleep(retryIntervalMs);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.warn("{}重试等待被中断", TITLE);
-                        return false;
-                    }
-                } else {
-                    log.error("{}获取锁最终失败，apiCode:{}，已重试{}次，错误信息:{}", TITLE, lockKey, maxRetryTimes, e.getMessage());
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * 具体csvFile文件处理-读取文件
      * @param tcyrSyncFile
      * @param actionPool
@@ -159,7 +134,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         }
         MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
         //2.csvFileQuickDeal流程
-        long successCount = 0L;
+        AtomicLong successCount = new AtomicLong(0L);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
             List<String> batchData = new ArrayList<>();
@@ -168,16 +144,24 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("pageSize")) {
                     modifyThreadPool(actionPool);
                     List<String> batchDealData = new ArrayList<>(batchData);
-                    actionPool.submit(()->quickDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData));
+                    CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
+                            quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
+                                    syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount),
+                            actionPool);
+                    futures.add(future);
                     batchData.clear();
                 }
-                successCount++;
             }
             if (!batchData.isEmpty()) {
-                actionPool.submit(()->quickDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchData));
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
+                        quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
+                                syncRecord.getData(),tcyrSyncFile.getId(),batchData, successCount),
+                        actionPool);
+                futures.add(future);
             }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             //3.修改csvFile quickDeal状态、successCount
-            tcyrSyncFile.setSuccessCount(successCount);
+            tcyrSyncFile.setSuccessCount(successCount.get());
             tcyrSyncFile.setQuickDealStatus(2);
             tcyrSyncFile.setUpdateTime(new Date());
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
@@ -186,19 +170,16 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             tcyrSyncFileMapper.updateQuickDealStatus(tcyrSyncFile.getId(),3);
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
-        log.warn("TITLE:{},sync_file_id:{} quick_deal执行结束,耗时:{}", TITLE, tcyrSyncFile.getId(), System.currentTimeMillis() - startTime);
+        log.warn("TITLE:{},sync_file_id:{} quick_deal执行结束,耗时:{},成功处理数量:{}", TITLE, tcyrSyncFile.getId(), System.currentTimeMillis() - startTime, successCount.get());
     }
 
     /**
      * 批次数据处理，匹配封装->上传清洗->上传调用
      */
-    private void  quickDealBatchLine(String apiCode,String batchNo,String customerData,Long syncFileId,List<String> batchData){
+    private void quickDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData, AtomicLong successCount) {
         try {
             // 1.数据匹配和封装
             List<MarketingTcyrSync> tcyrSyncList = processBatchData(apiCode, batchNo, customerData, syncFileId, batchData);
-            if (tcyrSyncList.isEmpty()) {
-                return;
-            }
             // 2.上传清洗
             List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(tcyrSyncList, 1000);
             for(List<MarketingTcyrSync> tcyrSyncItemList : partitionList){
@@ -209,10 +190,13 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
                     UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS);
                     Result<Boolean> pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                    log.warn("{},apiCode:{},batchNo:{},syncDataClen调用push接口结果:{}", TITLE,apiCode,batchNo,JSONObject.toJSONString(pushResult));
-                    if (pushResult == null || !pushResult.isSuccess()) {
-                        //TODO 记录上传清洗的异常请求
-                        log.error("{}推送失败，apiCode:{}, batchNo:{}, 错误信息:{}", TITLE, apiCode, batchNo, pushResult != null ? pushResult.getMessage() : "pushResult为null");
+                    if (pushResult != null && pushResult.isSuccess()) {
+                        successCount.addAndGet(tcyrSyncItemList.size());
+                    } else {
+                        log.error("{}推送失败，apiCode:{}, batchNo:{}syncFileId:{}, 错误信息:{}",
+                                TITLE, apiCode, batchNo,syncFileId, pushResult != null ? pushResult.getMessage() : "pushResult为null");
+                        saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
+                                JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult));
                     }
                 }
             }
@@ -221,15 +205,15 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         }
     }
 
+
+
     /**
      * 动态调整线程池大小
      */
     private void modifyThreadPool(ThreadPoolExecutor actionPool) {
         Integer threadNum = marketingCommonConfig.getTcQuickDealShardConfig().getInteger("threadPool");
         Integer corePoolSize = actionPool.getCorePoolSize();
-        // 只在配置真正发生变化时才调整线程池
         if (!corePoolSize.equals(threadNum)) {
-            log.info(TITLE + "检测到线程池配置变更，调整线程池大小: {} -> {}", corePoolSize, threadNum);
             actionPool.setCorePoolSize(threadNum);
             actionPool.setMaximumPoolSize(threadNum);
         }
@@ -248,7 +232,9 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 String cell = tcyrCustCellMappingMapper.selectCustNumtiflash_(userKey);
                 if (StringUtils.isNotBlank(cell)) {
                     MarketingTcyrSync syncItem = new MarketingTcyrSync();
+                    syncItem.setApiCode(apiCode);
                     syncItem.setBatchNo(batchNo);
+                    syncItem.setSyncFileId(syncFileId);
                     syncItem.setUserKey(userKey);
                     syncItem.setTerminal(terminal);
                     syncItem.setIsMatch(1);
@@ -293,6 +279,51 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         return uploadDataDTO;
     }
 
+    /**
+     * 保存错误请求记录
+     */
+    private void saveErrorIneterfaceLog(String apiCode, String batchNo, Long syncFileId, Integer elementSize, String requestParam, String pushResult) {
+        MarketingTcyrErrorInterfaceLog errorInterfaceLog = new MarketingTcyrErrorInterfaceLog();
+        errorInterfaceLog.setApiCode(apiCode);
+        errorInterfaceLog.setBatchNo(batchNo);
+        errorInterfaceLog.setSyncFileId(syncFileId);
+        errorInterfaceLog.setElementCount(elementSize);
+        errorInterfaceLog.setRequestParam(requestParam);
+        errorInterfaceLog.setPushResult(pushResult);
+        errorInterfaceLogMapper.insertSelective(errorInterfaceLog);
+    }
+
+    /**
+     * 带重试机制的获取锁
+     * @param lockKey 锁的key
+     * @param lockValue 锁的值
+     * @return 是否成功获取锁
+     */
+    private boolean acquireLockWithRetry(String lockKey, String lockValue) {
+        int maxRetryTimes = marketingCommonConfig.getTcQuickDealShardConfig().getInteger("lockRetryTimes");
+        long retryIntervalMs = marketingCommonConfig.getTcQuickDealShardConfig().getLong("lockRetryIntervalMs");
+        for (int retryCount = 0; retryCount <= maxRetryTimes; retryCount++) {
+            try {
+                redisChgService.lock(lockKey, lockValue);
+                return true;
+            } catch (Exception e) {
+                if (retryCount < maxRetryTimes) {
+                    log.warn("{}获取锁失败，apiCode:{}，重试次数:{}/{}，错误信息:{}",
+                            TITLE, lockKey, retryCount + 1, maxRetryTimes, e.getMessage());
+                    try {
+                        Thread.sleep(retryIntervalMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.warn("{}重试等待被中断", TITLE);
+                        return false;
+                    }
+                } else {
+                    log.warn("{}获取锁最终失败，apiCode:{}，已重试{}次，错误信息:{}", TITLE, lockKey, maxRetryTimes, e.getMessage());
+                }
+            }
+        }
+        return false;
+    }
 
     public  void shutdownThreadPool(ThreadPoolExecutor executor) {
         log.warn(TITLE + "shutdownThreadPool开始");
