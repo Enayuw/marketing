@@ -46,7 +46,7 @@ public class RsxkClient {
             data.put("operateType", 2);
             data.put("sign", DigestUtils.md5Hex(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
             String reqUrl = String.format("%s?%s", queryCallStatusUrl, param(data));
-            HashMap<String, String> resMap = httpProxyClient.get(reqUrl, isProxy, null);
+            HashMap<String, String> resMap = httpProxyClient.getWithLog(reqUrl, isProxy, null);
             if (!"200".equals(resMap.get("httpcode"))
                     || StringUtils.isBlank(resMap.get("content"))) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RSXK_INTERFACE.getCode(),
