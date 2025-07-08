@@ -496,9 +496,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
     private Boolean waitForViewCreationComplete(String viewName) {
         long beginTime = System.currentTimeMillis();
         Long maxTime = marketingCommonConfig.getCreateMVMaxWaitTime();
+        String database = marketingCommonConfig.getDatabase();
         while (System.currentTimeMillis() - beginTime < maxTime) {
             try {
-                MaterializedViewDTO materializedView = tagDataRuleCalculateMapper.getMViewInfobI_(viewName);
+                MaterializedViewDTO materializedView = tagDataRuleCalculateMapper.getMViewInfobI_(viewName, database);
 
                 if (materializedView != null &&
                         "NORMAL".equals(materializedView.getState()) && "SUCCESS".equals(materializedView.getRefreshState()) &&

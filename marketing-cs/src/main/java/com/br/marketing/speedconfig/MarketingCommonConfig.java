@@ -2829,6 +2829,11 @@ public class MarketingCommonConfig {
     private Long createMVMaxWaitTime;
 
     /**
+     * 标签:物化视图所属的数据库名,预发为marketing,线上为marketing_bi
+     */
+    private String database;
+
+    /**
      * 标签计算配置
      */
     private Map<String,String> tagCalculateConfig;
