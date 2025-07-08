@@ -11,6 +11,8 @@ public interface MarketingSmsAccountRecordMapper extends MarketingSmsAccountReco
     List<MarketingSmsAccountRecord> selectList(
             @Param("vendorName") String vendorName,
             @Param("channelsName") String channelsName,
-            @Param("price") Double price
-    );
+            @Param("price") Double price);
+
+    List<MarketingSmsAccountRecord> getSmsAccountsByConfigId(
+            @Param("configId") Long configId);
 }

@@ -8,11 +8,6 @@ import java.util.List;
 public interface MarketingSmsAccountLogMapper extends MarketingSmsAccountLogMapperBase{
 
     List<MarketingSmsAccountLog> selectSmsAccountLogs(
-            @Param("recordId") Long recordId,
-            @Param("vendorName")String vendorName,
-            @Param("optUserName")String optUserName,
-            @Param("optType")Integer optType
-    );
-
+            @Param("configId") Long configId);
 
 }
