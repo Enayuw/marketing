@@ -4,8 +4,9 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSmsAccountRecord" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="config_id" property="configId" jdbcType="BIGINT" />
+    <result column="vendor_id" property="vendorId" jdbcType="BIGINT" />
     <result column="vendor_name" property="vendorName" jdbcType="VARCHAR" />
-    <result column="channels_name" property="channelsName" jdbcType="VARCHAR" />
+    <result column="channels_info" property="channelsInfo" jdbcType="VARCHAR" />
     <result column="price" property="price" jdbcType="DECIMAL" />
     <result column="effect_start_date" property="effectStartDate" jdbcType="DATE" />
     <result column="effect_end_date" property="effectEndDate" jdbcType="DATE" />
@@ -73,7 +74,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, config_id, vendor_name, channels_name, price, effect_start_date, effect_end_date,
+    id, config_id, vendor_id, vendor_name, channels_info, price, effect_start_date, effect_end_date,
     enabled, create_time, update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingSmsAccountRecordExample" >
@@ -110,14 +111,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_sms_account_record (config_id, vendor_name, channels_name,
-    price, effect_start_date, effect_end_date,
-    enabled, create_time, update_time,
-    is_delete)
-    values (#{configId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR}, #{channelsName,jdbcType=VARCHAR},
-    #{price,jdbcType=DECIMAL}, #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE},
-    #{enabled,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-    #{isDelete,jdbcType=INTEGER})
+    insert into b_marketing_sms_account_record (config_id, vendor_id, vendor_name,
+    channels_info, price, effect_start_date,
+    effect_end_date, enabled, create_time,
+    update_time, is_delete)
+    values (#{configId,jdbcType=BIGINT}, #{vendorId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR},
+    #{channelsInfo,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL}, #{effectStartDate,jdbcType=DATE},
+    #{effectEndDate,jdbcType=DATE}, #{enabled,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSmsAccountRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -128,11 +129,14 @@
       <if test="configId != null" >
         config_id,
       </if>
+      <if test="vendorId != null" >
+        vendor_id,
+      </if>
       <if test="vendorName != null" >
         vendor_name,
       </if>
-      <if test="channelsName != null" >
-        channels_name,
+      <if test="channelsInfo != null" >
+        channels_info,
       </if>
       <if test="price != null" >
         price,
@@ -160,11 +164,14 @@
       <if test="configId != null" >
         #{configId,jdbcType=BIGINT},
       </if>
+      <if test="vendorId != null" >
+        #{vendorId,jdbcType=BIGINT},
+      </if>
       <if test="vendorName != null" >
         #{vendorName,jdbcType=VARCHAR},
       </if>
-      <if test="channelsName != null" >
-        #{channelsName,jdbcType=VARCHAR},
+      <if test="channelsInfo != null" >
+        #{channelsInfo,jdbcType=VARCHAR},
       </if>
       <if test="price != null" >
         #{price,jdbcType=DECIMAL},
@@ -204,11 +211,14 @@
       <if test="record.configId != null" >
         config_id = #{record.configId,jdbcType=BIGINT},
       </if>
+      <if test="record.vendorId != null" >
+        vendor_id = #{record.vendorId,jdbcType=BIGINT},
+      </if>
       <if test="record.vendorName != null" >
         vendor_name = #{record.vendorName,jdbcType=VARCHAR},
       </if>
-      <if test="record.channelsName != null" >
-        channels_name = #{record.channelsName,jdbcType=VARCHAR},
+      <if test="record.channelsInfo != null" >
+        channels_info = #{record.channelsInfo,jdbcType=VARCHAR},
       </if>
       <if test="record.price != null" >
         price = #{record.price,jdbcType=DECIMAL},
@@ -240,8 +250,9 @@
     update b_marketing_sms_account_record
     set id = #{record.id,jdbcType=BIGINT},
     config_id = #{record.configId,jdbcType=BIGINT},
+    vendor_id = #{record.vendorId,jdbcType=BIGINT},
     vendor_name = #{record.vendorName,jdbcType=VARCHAR},
-    channels_name = #{record.channelsName,jdbcType=VARCHAR},
+    channels_info = #{record.channelsInfo,jdbcType=VARCHAR},
     price = #{record.price,jdbcType=DECIMAL},
     effect_start_date = #{record.effectStartDate,jdbcType=DATE},
     effect_end_date = #{record.effectEndDate,jdbcType=DATE},
@@ -259,11 +270,14 @@
       <if test="configId != null" >
         config_id = #{configId,jdbcType=BIGINT},
       </if>
+      <if test="vendorId != null" >
+        vendor_id = #{vendorId,jdbcType=BIGINT},
+      </if>
       <if test="vendorName != null" >
         vendor_name = #{vendorName,jdbcType=VARCHAR},
       </if>
-      <if test="channelsName != null" >
-        channels_name = #{channelsName,jdbcType=VARCHAR},
+      <if test="channelsInfo != null" >
+        channels_info = #{channelsInfo,jdbcType=VARCHAR},
       </if>
       <if test="price != null" >
         price = #{price,jdbcType=DECIMAL},
@@ -292,8 +306,9 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSmsAccountRecord" >
     update b_marketing_sms_account_record
     set config_id = #{configId,jdbcType=BIGINT},
+        vendor_id = #{vendorId,jdbcType=BIGINT},
         vendor_name = #{vendorName,jdbcType=VARCHAR},
-        channels_name = #{channelsName,jdbcType=VARCHAR},
+        channels_info = #{channelsInfo,jdbcType=VARCHAR},
         price = #{price,jdbcType=DECIMAL},
         effect_start_date = #{effectStartDate,jdbcType=DATE},
         effect_end_date = #{effectEndDate,jdbcType=DATE},

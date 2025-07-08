@@ -9,6 +9,6 @@ import javax.validation.Valid;
 
 public interface LineSmsAccountDataService {
 
-    public void addSmsAccount(SmsAccountDto dto);
+    void addSmsAccount(SmsAccountDto dto);
 
 }

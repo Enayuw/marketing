@@ -1,6 +1,5 @@
 package com.br.marketing.entity;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 public class MarketingSmsAccountLog {
@@ -20,24 +19,9 @@ public class MarketingSmsAccountLog {
     private String vendorName;
 
     /**
-     * 渠道名称集合
+     * 日志信息
      */
-    private String channelsName;
-
-    /**
-     * 短信单价，元/条
-     */
-    private BigDecimal price;
-
-    /**
-     * 生效开始日期
-     */
-    private Date effectStartDate;
-
-    /**
-     * 生效结束日期
-     */
-    private Date effectEndDate;
+    private String detail;
 
     /**
      * 操作人id
@@ -98,36 +82,12 @@ public class MarketingSmsAccountLog {
         this.vendorName = vendorName == null ? null : vendorName.trim();
     }
 
-    public String getChannelsName() {
-        return channelsName;
+    public String getDetail() {
+        return detail;
     }
 
-    public void setChannelsName(String channelsName) {
-        this.channelsName = channelsName == null ? null : channelsName.trim();
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public Date getEffectStartDate() {
-        return effectStartDate;
-    }
-
-    public void setEffectStartDate(Date effectStartDate) {
-        this.effectStartDate = effectStartDate;
-    }
-
-    public Date getEffectEndDate() {
-        return effectEndDate;
-    }
-
-    public void setEffectEndDate(Date effectEndDate) {
-        this.effectEndDate = effectEndDate;
+    public void setDetail(String detail) {
+        this.detail = detail == null ? null : detail.trim();
     }
 
     public Long getUserId() {

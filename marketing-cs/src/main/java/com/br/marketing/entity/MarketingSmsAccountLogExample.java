@@ -1,9 +1,7 @@
 package com.br.marketing.entity;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 public class MarketingSmsAccountLogExample {
@@ -105,32 +103,6 @@ public class MarketingSmsAccountLogExample {
                 throw new RuntimeException("Between values for " + property + " cannot be null");
             }
             criteria.add(new Criterion(condition, value1, value2));
-        }
-
-        protected void addCriterionForJDBCDate(String condition, Date value, String property) {
-            if (value == null) {
-                throw new RuntimeException("Value for " + property + " cannot be null");
-            }
-            addCriterion(condition, new java.sql.Date(value.getTime()), property);
-        }
-
-        protected void addCriterionForJDBCDate(String condition, List<Date> values, String property) {
-            if (values == null || values.size() == 0) {
-                throw new RuntimeException("Value list for " + property + " cannot be null or empty");
-            }
-            List<java.sql.Date> dateList = new ArrayList<java.sql.Date>();
-            Iterator<Date> iter = values.iterator();
-            while (iter.hasNext()) {
-                dateList.add(new java.sql.Date(iter.next().getTime()));
-            }
-            addCriterion(condition, dateList, property);
-        }
-
-        protected void addCriterionForJDBCDate(String condition, Date value1, Date value2, String property) {
-            if (value1 == null || value2 == null) {
-                throw new RuntimeException("Between values for " + property + " cannot be null");
-            }
-            addCriterion(condition, new java.sql.Date(value1.getTime()), new java.sql.Date(value2.getTime()), property);
         }
 
         public Criteria andIdIsNull() {
@@ -323,253 +295,73 @@ public class MarketingSmsAccountLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameIsNull() {
-            addCriterion("channels_name is null");
+        public Criteria andDetailIsNull() {
+            addCriterion("detail is null");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameIsNotNull() {
-            addCriterion("channels_name is not null");
+        public Criteria andDetailIsNotNull() {
+            addCriterion("detail is not null");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameEqualTo(String value) {
-            addCriterion("channels_name =", value, "channelsName");
+        public Criteria andDetailEqualTo(String value) {
+            addCriterion("detail =", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameNotEqualTo(String value) {
-            addCriterion("channels_name <>", value, "channelsName");
+        public Criteria andDetailNotEqualTo(String value) {
+            addCriterion("detail <>", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameGreaterThan(String value) {
-            addCriterion("channels_name >", value, "channelsName");
+        public Criteria andDetailGreaterThan(String value) {
+            addCriterion("detail >", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameGreaterThanOrEqualTo(String value) {
-            addCriterion("channels_name >=", value, "channelsName");
+        public Criteria andDetailGreaterThanOrEqualTo(String value) {
+            addCriterion("detail >=", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameLessThan(String value) {
-            addCriterion("channels_name <", value, "channelsName");
+        public Criteria andDetailLessThan(String value) {
+            addCriterion("detail <", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameLessThanOrEqualTo(String value) {
-            addCriterion("channels_name <=", value, "channelsName");
+        public Criteria andDetailLessThanOrEqualTo(String value) {
+            addCriterion("detail <=", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameLike(String value) {
-            addCriterion("channels_name like", value, "channelsName");
+        public Criteria andDetailLike(String value) {
+            addCriterion("detail like", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameNotLike(String value) {
-            addCriterion("channels_name not like", value, "channelsName");
+        public Criteria andDetailNotLike(String value) {
+            addCriterion("detail not like", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameIn(List<String> values) {
-            addCriterion("channels_name in", values, "channelsName");
+        public Criteria andDetailIn(List<String> values) {
+            addCriterion("detail in", values, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameNotIn(List<String> values) {
-            addCriterion("channels_name not in", values, "channelsName");
+        public Criteria andDetailNotIn(List<String> values) {
+            addCriterion("detail not in", values, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameBetween(String value1, String value2) {
-            addCriterion("channels_name between", value1, value2, "channelsName");
+        public Criteria andDetailBetween(String value1, String value2) {
+            addCriterion("detail between", value1, value2, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andChannelsNameNotBetween(String value1, String value2) {
-            addCriterion("channels_name not between", value1, value2, "channelsName");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceIsNull() {
-            addCriterion("price is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceIsNotNull() {
-            addCriterion("price is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceEqualTo(BigDecimal value) {
-            addCriterion("price =", value, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceNotEqualTo(BigDecimal value) {
-            addCriterion("price <>", value, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceGreaterThan(BigDecimal value) {
-            addCriterion("price >", value, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceGreaterThanOrEqualTo(BigDecimal value) {
-            addCriterion("price >=", value, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceLessThan(BigDecimal value) {
-            addCriterion("price <", value, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceLessThanOrEqualTo(BigDecimal value) {
-            addCriterion("price <=", value, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceIn(List<BigDecimal> values) {
-            addCriterion("price in", values, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceNotIn(List<BigDecimal> values) {
-            addCriterion("price not in", values, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceBetween(BigDecimal value1, BigDecimal value2) {
-            addCriterion("price between", value1, value2, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andPriceNotBetween(BigDecimal value1, BigDecimal value2) {
-            addCriterion("price not between", value1, value2, "price");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateIsNull() {
-            addCriterion("effect_start_date is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateIsNotNull() {
-            addCriterion("effect_start_date is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_start_date =", value, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateNotEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_start_date <>", value, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateGreaterThan(Date value) {
-            addCriterionForJDBCDate("effect_start_date >", value, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_start_date >=", value, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateLessThan(Date value) {
-            addCriterionForJDBCDate("effect_start_date <", value, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_start_date <=", value, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateIn(List<Date> values) {
-            addCriterionForJDBCDate("effect_start_date in", values, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateNotIn(List<Date> values) {
-            addCriterionForJDBCDate("effect_start_date not in", values, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("effect_start_date between", value1, value2, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectStartDateNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("effect_start_date not between", value1, value2, "effectStartDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateIsNull() {
-            addCriterion("effect_end_date is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateIsNotNull() {
-            addCriterion("effect_end_date is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_end_date =", value, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateNotEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_end_date <>", value, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateGreaterThan(Date value) {
-            addCriterionForJDBCDate("effect_end_date >", value, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_end_date >=", value, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateLessThan(Date value) {
-            addCriterionForJDBCDate("effect_end_date <", value, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("effect_end_date <=", value, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateIn(List<Date> values) {
-            addCriterionForJDBCDate("effect_end_date in", values, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateNotIn(List<Date> values) {
-            addCriterionForJDBCDate("effect_end_date not in", values, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("effect_end_date between", value1, value2, "effectEndDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andEffectEndDateNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("effect_end_date not between", value1, value2, "effectEndDate");
+        public Criteria andDetailNotBetween(String value1, String value2) {
+            addCriterion("detail not between", value1, value2, "detail");
             return (Criteria) this;
         }
 

@@ -15,6 +15,11 @@ public class MarketingSmsAccountRecord {
     private Long configId;
 
     /**
+     * 供应商id
+     */
+    private Long vendorId;
+
+    /**
      * 供应商名称
      */
     private String vendorName;
@@ -22,7 +27,7 @@ public class MarketingSmsAccountRecord {
     /**
      * 渠道名称集合
      */
-    private String channelsName;
+    private String channelsInfo;
 
     /**
      * 短信单价，元/条
@@ -75,6 +80,14 @@ public class MarketingSmsAccountRecord {
         this.configId = configId;
     }
 
+    public Long getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(Long vendorId) {
+        this.vendorId = vendorId;
+    }
+
     public String getVendorName() {
         return vendorName;
     }
@@ -83,12 +96,12 @@ public class MarketingSmsAccountRecord {
         this.vendorName = vendorName == null ? null : vendorName.trim();
     }
 
-    public String getChannelsName() {
-        return channelsName;
+    public String getChannelsInfo() {
+        return channelsInfo;
     }
 
-    public void setChannelsName(String channelsName) {
-        this.channelsName = channelsName == null ? null : channelsName.trim();
+    public void setChannelsInfo(String channelsInfo) {
+        this.channelsInfo = channelsInfo == null ? null : channelsInfo.trim();
     }
 
     public BigDecimal getPrice() {

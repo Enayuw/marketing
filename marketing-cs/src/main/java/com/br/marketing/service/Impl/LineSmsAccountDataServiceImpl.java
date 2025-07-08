@@ -15,6 +15,8 @@ import javax.annotation.Resource;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,11 +28,14 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
     @Override
     @Transactional
     public void addSmsAccount(SmsAccountDto dto) {
+        String s = ThreadLocalRandom.current().nextInt(10000, 100000) + String.valueOf(System.currentTimeMillis());
+
+
         List<String> channelNames = dto.getChannels().stream().map(SmsChannelDto::getChannelName).collect(Collectors.toList());
         for (PriceDateDTO priceDate : dto.getPriceDates()) {
             MarketingSmsAccountRecord record = new MarketingSmsAccountRecord();
             record.setVendorName(dto.getVendorName());
-            record.setChannelsName(String.join(",", channelNames));
+//            record.setChannelsName(String.join(",", channelNames));
             record.setPrice(priceDate.getPrice());
             record.setEffectStartDate(Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
             if (priceDate.getEffectEndDate() != null) {
