@@ -8,6 +8,8 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.MarketingTcyrCustCellMapping;
+import com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper;
 import org.apache.commons.collections4.ListUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
@@ -50,6 +52,8 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     @Resource
     private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
 
+    @Resource
+    private MarketingTcyrCustCellMappingMapper custCellMappingMapper;
 
     @Resource
     private MarketingTcyrSyncMapper tcyrSyncMapper;
@@ -116,7 +120,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
             List<String> batchData = new ArrayList<>();
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
-                if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("pageSize")) {
+                if (batchData.size() == marketingCommonConfig.getTcDbDealShardConfig().getInteger("pageSize")) {
                     modifyThreadPool(actionPool);
                     List<String> batchDealData = new ArrayList<>(batchData);
                     actionPool.submit(()->dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData));
@@ -141,27 +145,43 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     }
 
     private void dbDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData) {
-        List<List<String>> partitions = ListUtils.partition(batchData, marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize"));
-        for (List<String> partition : partitions) {
+        List<List<String>> partitionList = ListUtils.partition(batchData, marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize"));
+        for (List<String> partitionItemList : partitionList) {
             StringBuilder sqlBuilder = new StringBuilder();
             sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal,cell,is_match,extend,status) VALUES");
             int count = 0;
-            for (String line : partition) {
+            for (String line : partitionItemList) {
                 if (count > 0) {
                     sqlBuilder.append(",");
                 }
                 String[] data = line.split(",");
                 sqlBuilder.append("('").append(escapeSqlString(apiCode)).append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
+
                 if (data.length == 1) {
                     String userKey = data[0].trim();
-                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("',NULL,NULL,0,NULL,0)");
+                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("',NULL,NULL,NULL");
+                    JSONObject extentJson = new JSONObject();
+                    for (int i = 0; i < data.length; i++) {
+                        extentJson.put("column_" + (i + 1), data[i]);
+                    }
+                    sqlBuilder.append(",'").append(JSONObject.toJSONString(extentJson)).append("',0)");
                 } else if (data.length >= 2) {
                     String userKey = data[0].trim();
+                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("','").append(escapeSqlString(data[1].trim()));
                     //cell is_match
                     String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
-                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("','").append(escapeSqlString(data[1].trim()));
                     if (StringUtils.isNotBlank(cell)) {
                         sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
+
+                        //TODO 匹配命中的数据插入 cust_num-cell 映射表
+                        try {
+                            MarketingTcyrCustCellMapping custCellMapping = new MarketingTcyrCustCellMapping();
+                            custCellMapping.setCell(cell);
+                            custCellMapping.setCustNum(userKey);
+                            custCellMappingMapper.insertSelective(custCellMapping);
+                        }catch (Exception e) {
+                            //TODO 此处会报 unique插入异常，直接跳过(是否需要输出日志)
+                        }
                     } else {
                         sqlBuilder.append(",NULL,0");
                     }
@@ -207,8 +227,8 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
      * @return 是否成功获取锁
      */
     private boolean acquireLockWithRetry(String lockKey, String lockValue) {
-        int maxRetryTimes = marketingCommonConfig.getTcQuickDealShardConfig().getInteger("lockRetryTimes");
-        long retryIntervalMs = marketingCommonConfig.getTcQuickDealShardConfig().getLong("lockRetryIntervalMs");
+        int maxRetryTimes = marketingCommonConfig.getTcDbDealShardConfig().getInteger("lockRetryTimes");
+        long retryIntervalMs = marketingCommonConfig.getTcDbDealShardConfig().getLong("lockRetryIntervalMs");
         for (int retryCount = 0; retryCount <= maxRetryTimes; retryCount++) {
             try {
                 redisChgService.lock(lockKey, lockValue);
@@ -237,7 +257,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
      * 动态调整线程池大小
      */
     private void modifyThreadPool(ThreadPoolExecutor actionPool) {
-        Integer threadNum = marketingCommonConfig.getTcQuickDealShardConfig().getInteger("threadPool");
+        Integer threadNum = marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool");
         Integer corePoolSize = actionPool.getCorePoolSize();
         // 只在配置真正发生变化时才调整线程池
         if (!corePoolSize.equals(threadNum)) {

@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
-//TODO 需排查所有历史代码影响
 /**
  * 同程易融快速处理流程(file->上传明细表)
  * @author zhiyong.zhang
@@ -144,20 +143,19 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("pageSize")) {
                     modifyThreadPool(actionPool);
                     List<String> batchDealData = new ArrayList<>(batchData);
-                    CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
-                            quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                    syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount),
-                            actionPool);
-                    futures.add(future);
+                    futures.add(CompletableFuture.runAsync(() ->
+                                    quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
+                                            syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount),
+                                actionPool));
                     batchData.clear();
                 }
             }
             if (!batchData.isEmpty()) {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
-                        quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                syncRecord.getData(),tcyrSyncFile.getId(),batchData, successCount),
-                        actionPool);
-                futures.add(future);
+                futures.add(CompletableFuture.runAsync(() ->
+                                quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
+                                        syncRecord.getData(),tcyrSyncFile.getId(),batchData, successCount),
+                            actionPool));
+                batchData.clear();
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             //3.修改csvFile quickDeal状态、successCount
