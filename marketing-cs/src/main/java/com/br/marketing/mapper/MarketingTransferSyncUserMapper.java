@@ -710,4 +710,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("endId") Long endId);
 
 
+    List<MarketingTransferSyncUser> getYXMarketingTransferByLiveTypetikv_
+            (@Param("tCid") String tCid, @Param("apiCode")String apiCode, @Param("requestData")String requestDate, @Param("indexId")Long indexId,
+             @Param("liveType")String liveType, @Param("pageSize")Integer yiXinSearchPageSize);
+
 }
