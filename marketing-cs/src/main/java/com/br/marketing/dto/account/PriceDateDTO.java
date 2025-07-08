@@ -14,4 +14,6 @@ public class PriceDateDTO {
 
     @ApiModelProperty(value = "生效开始日期")
     private LocalDate effectStartDate;
+
+    private LocalDate effectEndDate;
 }
