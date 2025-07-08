@@ -103,25 +103,15 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         robotOutboundDTO.setJsonData(jsonDataDTO);
         TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.getSmsBaseInfo(robotOutboundDTO);
         if ("00".equals(transferRobotOutboundVO.getCode())) {
-            //TODO 是否要过滤掉 没有具体通道的供应商
-//            JSONArray resultArray = new JSONArray();
-//            JSONArray jsonArray = JSONArray.parseArray(transferRobotOutboundVO.getData().toString());
-//            for(Object objItem:jsonArray){
-//                JSONObject jsonObject = (JSONObject)objItem;
-//                if(jsonObject.getJSONArray("channelDTOList")!=null && !jsonObject.getJSONArray("channelDTOList").isEmpty()){
-//                    resultArray.add(jsonObject);
-//                }
-//            }
-//            apiResult =  new ApiResult().success(resultArray);
             apiResult =  new ApiResult().success(transferRobotOutboundVO.getData());
         }
         return apiResult;
     }
 
     @Override
-    public PageResultReturn getSmsAccounts(Integer current, Integer size, String vendorName) {
+    public PageResultReturn getSmsAccounts(Integer current, Integer size, String vendorName,String channelsName,Double price) {
         PageHelper.startPage(current, size);
-        List<MarketingSmsAccountRecord> smsAccountRecordList = smsAccountRecordMapper.selectList(vendorName);
+        List<MarketingSmsAccountRecord> smsAccountRecordList = smsAccountRecordMapper.selectList(vendorName,channelsName,price);
         return PageResultReturn.setPageResult(smsAccountRecordList, current, size);
     }
 

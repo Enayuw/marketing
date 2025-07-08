@@ -65,12 +65,16 @@ public class LineSmsAccountController {
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
             , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "channelsName", value = "渠道名称", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "price", value = "价格", paramType = "query", dataType = "double")
     })
     public ApiResult getSmsAccounts(@RequestParam(defaultValue = "1") Integer current,
                                     @RequestParam(defaultValue = "10") Integer size,
-                                    @RequestParam(required = false) String vendorName) {
+                                    @RequestParam(required = false) String vendorName,
+                                    @RequestParam(required = false) String channelsName,
+                                    @RequestParam(required = false) Double price) {
         try {
-            PageResultReturn list = lineSmsAccountService.getSmsAccounts(current,size,vendorName);
+            PageResultReturn list = lineSmsAccountService.getSmsAccounts(current,size,vendorName,channelsName,price);
             return new ApiResult<PageResultReturn>().success(list);
         }catch (Exception e) {
             log.error(e.getMessage(), e);

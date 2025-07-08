@@ -9,7 +9,13 @@
     <where>
         is_delete =0
       <if test="vendorName!=null and vendorName!=''">
-        AND vendor_name =#{vendorName}
+        AND vendor_name LIKE CONCAT('%', #{vendorName}, '%')
+      </if>
+      <if test="channelsName!=null and channelsName!=''">
+        AND channels_name LIKE CONCAT('%', #{channelsName}, '%')
+      </if>
+      <if test="price != null">
+        AND price = #{price}
       </if>
     </where>
   </select>

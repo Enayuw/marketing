@@ -14,7 +14,7 @@ public interface LineSmsAccountService {
 
     ApiResult getSmsAccountBasInfo();
 
-    PageResultReturn getSmsAccounts(Integer current, Integer size, String smsVendor);
+    PageResultReturn getSmsAccounts(Integer current, Integer size,String vendorName,String channelsName,Double price);
 
 
     PageResultReturn getSmsAccountLogs(Integer current, Integer size, Long recordId,String vendorName,String optUserName,Integer optType);
