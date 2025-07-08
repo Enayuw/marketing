@@ -2,6 +2,10 @@ package com.br.marketing.service.mock.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * @ClassName MockPolicyEnum
  * @Description mock策略类型
@@ -20,5 +24,14 @@ public enum MockPolicyEnum {
 
     private Integer code;
     private String desc;
+
+    public static Map<Integer, String> getAllMockPolicyEnum() {
+        return Arrays.stream(MockPolicyEnum.values())
+                .collect(Collectors.toMap(
+                        MockPolicyEnum::getCode,
+                        MockPolicyEnum::getDesc,
+                        (oldValue, newValue) -> oldValue
+                ));
+    }
 
 }

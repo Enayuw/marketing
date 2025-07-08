@@ -20,6 +20,9 @@ public class MockCreateCaseDTO {
     @ApiModelProperty("Mock名称")
     private String mockName;
 
+    @ApiModelProperty("Mock用例名称")
+    private String mockCaseName;
+
     @ApiModelProperty("apiCode")
     private String apiCode;
 

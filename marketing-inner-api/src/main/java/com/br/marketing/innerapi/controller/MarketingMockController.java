@@ -8,7 +8,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
-import com.br.marketing.dto.mock.MockPolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
 import com.br.marketing.entity.MockCase;
 import com.br.marketing.entity.auth.MarketingUserDetail;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName MarketingMockController
@@ -95,7 +95,7 @@ public class MarketingMockController {
         }
     }
 
-    @PostMapping("/getMockCaseList")
+    @GetMapping("/getMockCaseList")
     @ApiOperation(value = "获取Mock策略下的所有用例", notes = "获取Mock策略下的所有用例")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "mockName", value = "mock策略名称", paramType = "query", dataType = "string"),
@@ -172,6 +172,18 @@ public class MarketingMockController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "查询所有的mock名称接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getMockType")
+    @ApiOperation(value = "查询策略类型", notes = "查询策略类型")
+    public ApiResult<Map<Integer, String>> getMockType() {
+        try {
+            return mockService.getMockType();
+        }catch (Exception ex){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "查询策略类型接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Map<Integer, String>>().fail(ServiceResultEnum.FAILED);
         }
     }
 
