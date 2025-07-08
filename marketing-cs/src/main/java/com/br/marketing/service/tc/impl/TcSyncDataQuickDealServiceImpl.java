@@ -187,15 +187,24 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     //3.调用定制化上传接口
                     List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
                     UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS);
-                    Result<Boolean> pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                    if (pushResult != null && pushResult.isSuccess()) {
-                        successCount.addAndGet(tcyrSyncItemList.size());
-                    } else {
+                    Result<Boolean> pushResult = new Result<>();
+                    try {
+                        pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                        if (pushResult != null && pushResult.isSuccess()) {
+                            successCount.addAndGet(tcyrSyncItemList.size());
+                        } else {
+                            log.error("{}推送失败，apiCode:{}, batchNo:{}syncFileId:{}, 错误信息:{}",
+                                    TITLE, apiCode, batchNo,syncFileId, pushResult != null ? pushResult.getMessage() : "pushResult为null");
+                            saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
+                                    JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),1);
+                        }
+                    }catch (Exception e) {
                         log.error("{}推送失败，apiCode:{}, batchNo:{}syncFileId:{}, 错误信息:{}",
                                 TITLE, apiCode, batchNo,syncFileId, pushResult != null ? pushResult.getMessage() : "pushResult为null");
                         saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
-                                JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult));
+                                JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),2);
                     }
+
                 }
             }
         }catch (Exception e) {
@@ -280,7 +289,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     /**
      * 保存错误请求记录
      */
-    private void saveErrorIneterfaceLog(String apiCode, String batchNo, Long syncFileId, Integer elementSize, String requestParam, String pushResult) {
+    private void saveErrorIneterfaceLog(String apiCode, String batchNo, Long syncFileId, Integer elementSize, String requestParam, String pushResult,Integer errorType) {
         MarketingTcyrErrorInterfaceLog errorInterfaceLog = new MarketingTcyrErrorInterfaceLog();
         errorInterfaceLog.setApiCode(apiCode);
         errorInterfaceLog.setBatchNo(batchNo);
@@ -288,6 +297,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         errorInterfaceLog.setElementCount(elementSize);
         errorInterfaceLog.setRequestParam(requestParam);
         errorInterfaceLog.setPushResult(pushResult);
+        errorInterfaceLog.setErrorType(errorType);
         errorInterfaceLogMapper.insertSelective(errorInterfaceLog);
     }
 

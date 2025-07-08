@@ -804,6 +804,66 @@ public class MarketingTcyrErrorInterfaceLogExample {
             addCriterion("push_result not between", value1, value2, "pushResult");
             return (Criteria) this;
         }
+
+        public Criteria andErrorTypeIsNull() {
+            addCriterion("error_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeIsNotNull() {
+            addCriterion("error_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeEqualTo(Integer value) {
+            addCriterion("error_type =", value, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeNotEqualTo(Integer value) {
+            addCriterion("error_type <>", value, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeGreaterThan(Integer value) {
+            addCriterion("error_type >", value, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("error_type >=", value, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeLessThan(Integer value) {
+            addCriterion("error_type <", value, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("error_type <=", value, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeIn(List<Integer> values) {
+            addCriterion("error_type in", values, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeNotIn(List<Integer> values) {
+            addCriterion("error_type not in", values, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeBetween(Integer value1, Integer value2) {
+            addCriterion("error_type between", value1, value2, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("error_type not between", value1, value2, "errorType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

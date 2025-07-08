@@ -58,6 +58,11 @@ public class MarketingTcyrErrorInterfaceLog {
      */
     private String pushResult;
 
+    /**
+     * 错误类型 1:返回错误 2:请求异常
+     */
+    private Integer errorType;
+
     public Long getId() {
         return id;
     }
@@ -144,5 +149,13 @@ public class MarketingTcyrErrorInterfaceLog {
 
     public void setPushResult(String pushResult) {
         this.pushResult = pushResult == null ? null : pushResult.trim();
+    }
+
+    public Integer getErrorType() {
+        return errorType;
+    }
+
+    public void setErrorType(Integer errorType) {
+        this.errorType = errorType;
     }
 }
