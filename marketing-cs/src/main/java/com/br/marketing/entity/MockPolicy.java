@@ -63,6 +63,9 @@ public class MockPolicy {
      */
     private Integer isDel;
 
+    // mock用例数量，非数据库字段
+    private Integer caseCount;
+
     public Long getId() {
         return id;
     }
@@ -157,5 +160,13 @@ public class MockPolicy {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public Integer getCaseCount() {
+        return caseCount;
+    }
+
+    public void setCaseCount(Integer caseCount) {
+        this.caseCount = caseCount;
     }
 }

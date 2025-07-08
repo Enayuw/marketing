@@ -147,6 +147,23 @@ public class MarketingMockController {
     }
 
     /**
+     * 批量全量更新Mock用例
+     * @param list MockCreateCaseDTO列表
+     */
+    @PostMapping("/updateMockCase")
+    @ApiOperation(value = "修改Mock用例", notes = "修改Mock用例")
+    public ApiResult<String> updateMockCase(@RequestBody List<MockCreateCaseDTO> list) {
+        try {
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            return mockService.batchUpdateMockCases(list,userDetail);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "修改Mock用例接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    /**
      * 删除mock用例（支持批量删除）
      */
     @PostMapping("/deleteMockCases")

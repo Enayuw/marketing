@@ -87,6 +87,13 @@ public class MockServiceImpl implements MockService {
             }
 
             List<MockPolicy> mockPolicies = mockPolicyMapper.selectByExample(example);
+            // 统计每个MockPolicy下的MockCase数量并回填
+            for (MockPolicy policy : mockPolicies) {
+                MockCaseExample caseExample = new MockCaseExample();
+                caseExample.createCriteria().andMockNameEqualTo(policy.getMockName()).andIsDelEqualTo(1);
+                int count = mockCaseMapper.countByExample(caseExample);
+                policy.setCaseCount(count);
+            }
             return PageResultReturn.setPageResult(mockPolicies, dto.getCurrent(), dto.getSize(), 1L);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
@@ -253,6 +260,52 @@ public class MockServiceImpl implements MockService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "批量添加Mock用例失败！"), e);
             return new ApiResult<String>().fail("批量添加Mock用例失败");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResult<String> batchUpdateMockCases(List<MockCreateCaseDTO> list, MarketingUserDetail userDetail) {
+        if (CollectionUtils.isEmpty(list)) {
+            return new ApiResult<String>().fail("批量全量更新Mock用例失败,入参为空");
+        }
+        boolean allSuccess = true;
+        for (MockCreateCaseDTO dto : list) {
+            try {
+                MockCase mockCase = new MockCase();
+                mockCase.setId(dto.getId());
+                mockCase.setMockName(dto.getMockName());
+                mockCase.setApiCode(dto.getApiCode());
+                mockCase.setMockCaseName(dto.getMockCaseName());
+                mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
+                mockCase.setStatusCode(dto.getStatusCode());
+                mockCase.setDelayMs(dto.getDelayMs());
+                mockCase.setDelayFluctuation(dto.getDelayFluctuation());
+                mockCase.setDescription(dto.getDescription());
+                mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
+                mockCase.setOptUserName(userDetail.getUserName());
+                mockCase.setEnabled(dto.getEnabled());
+                mockCase.setIsDel(com.br.marketing.common.utils.Constants.DATA_VALID);
+                mockCase.setUpdateTime(new java.util.Date());
+
+                MockCase mockCaseOld = mockCaseMapper.selectByPrimaryKey(dto.getId());
+                int updated = mockCaseMapper.updateByPrimaryKey(mockCase); // 全量更新
+                if (updated <= 0) {
+                    allSuccess = false;
+                    log.error("更新Mock用例失败，mockCaseName: {}", mockCase.getMockCaseName());
+                    continue;
+                }
+                entityOptService.writeOptLog(mockCase.getId(), mockCase, mockCaseOld);
+            } catch (Exception e) {
+                allSuccess = false;
+                log.warn(com.br.common.log.AlertLog.buildWarnMessage(com.br.marketing.common.enums.AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                        "批量全量更新Mock用例失败！mockName: " + dto.getMockName()), e);
+            }
+        }
+        if (allSuccess) {
+            return new ApiResult<String>().success();
+        } else {
+            return new ApiResult<String>().fail("部分或全部Mock用例更新失败");
         }
     }
 
@@ -449,4 +502,6 @@ public class MockServiceImpl implements MockService {
             throw new RuntimeException("Redis更新失败", redisException);
         }
     }
+
+
 }

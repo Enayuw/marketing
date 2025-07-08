@@ -31,6 +31,8 @@ public interface MockService {
 
     Boolean updateMockCase(MockCreateCaseDTO mockCase, MarketingUserDetail userDetail);
 
+    ApiResult<String> batchUpdateMockCases(List<MockCreateCaseDTO> mockCases, MarketingUserDetail userDetail);
+
     Boolean deleteMockCases(List<Long> ids, MarketingUserDetail userDetail);
 
 
