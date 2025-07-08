@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.service.LineSmsAccountService;
@@ -36,7 +37,12 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccountBasInfo")
     @LogAnnotation
     public ApiResult getSmsAccountBasInfo() {
-        return lineSmsAccountService.getSmsAccountBasInfo();
+        try {
+            return lineSmsAccountService.getSmsAccountBasInfo();
+        }catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
     }
 
     @ApiOperation(value = "短信对账配置新增")
@@ -63,8 +69,13 @@ public class LineSmsAccountController {
     public ApiResult getSmsAccounts(@RequestParam(defaultValue = "1") Integer current,
                                     @RequestParam(defaultValue = "10") Integer size,
                                     @RequestParam(required = false) String vendorName) {
-        PageResultReturn list = lineSmsAccountService.getSmsAccounts(current,size,vendorName);
-        return new ApiResult<PageResultReturn>().success(list);
+        try {
+            PageResultReturn list = lineSmsAccountService.getSmsAccounts(current,size,vendorName);
+            return new ApiResult<PageResultReturn>().success(list);
+        }catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
     }
 
     @ApiOperation(value = "短信对账配置变更查询")
@@ -73,7 +84,6 @@ public class LineSmsAccountController {
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
             , @ApiImplicitParam(name = "recordId", value = "汇总记录id", paramType = "query", dataType = "Long")
-            , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "String")
             , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "String")
             , @ApiImplicitParam(name = "optUserName", value = "操作人", paramType = "query", dataType = "String")
             , @ApiImplicitParam(name = "optType", value = "操作类型 1-新增 2-变更 3-删除", paramType = "query", dataType = "int")
@@ -84,9 +94,13 @@ public class LineSmsAccountController {
                                        @RequestParam(required = false) String vendorName,
                                        @RequestParam(required = false) String optUserName,
                                        @RequestParam(required = false) Integer optType) {
-        PageResultReturn list = lineSmsAccountService.getSmsAccountLogs(current,size,recordId,vendorName,optUserName,optType);
-        return new ApiResult<PageResultReturn>().success(list);
+        try {
+            PageResultReturn list = lineSmsAccountService.getSmsAccountLogs(current,size,recordId,vendorName,optUserName,optType);
+            return new ApiResult<PageResultReturn>().success(list);
+        }catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
     }
-
 
 }

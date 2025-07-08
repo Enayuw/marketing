@@ -241,7 +241,7 @@ api:
     apiCode: 4000296
   pushTransfer:
     robotAi:
-      #baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service/api
+      #isito baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service/api
       baseUrl: http://k8stest.brapp.com/compass-api/api/robotai-api-service
       robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
       tailor:
