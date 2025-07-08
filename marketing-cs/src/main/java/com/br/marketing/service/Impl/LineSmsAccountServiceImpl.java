@@ -117,9 +117,14 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     }
 
     @Override
-    public PageResultReturn getSmsAccountLogs(Integer current, Integer size, Long recordId,String vendorName,String optUserName,Integer optType) {
-        PageHelper.startPage(current, size);
-        List<MarketingSmsAccountLog> selectSmsAccountLogList = smsAccountLogMapper.selectSmsAccountLogs(recordId,vendorName,optUserName,optType);
-        return PageResultReturn.setPageResult(selectSmsAccountLogList, current, size);
+    public List<MarketingSmsAccountRecord> getSmsAccountsByConfigId(Long configId) {
+        return smsAccountRecordMapper.getSmsAccountsByConfigId(configId);
     }
+
+    @Override
+    public List<MarketingSmsAccountLog> getSmsAccountLogs(Long configId) {
+        return smsAccountLogMapper.selectSmsAccountLogs(configId);
+    }
+
+
 }
