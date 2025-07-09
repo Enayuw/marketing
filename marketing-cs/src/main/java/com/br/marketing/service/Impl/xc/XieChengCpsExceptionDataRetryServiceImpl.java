@@ -56,12 +56,9 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
     @Override
     public void process() {
         try {
-            // 分页大小
-            Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
-
             // 先撞周期表 再撞非周期表
-            processByCycle(getThreadPool(), pageSize);
-            processByRob(getThreadPool(), pageSize);
+            processByCycle(getThreadPool());
+            processByRob(getThreadPool());
         } catch (Exception e) {
             String subject = "携程CPS异常重试作业异常";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage(), subject), e);
@@ -71,13 +68,15 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
     /**
      * 处理周期表重试数据
      * @param threadPool 线程池
-     * @param pageSize   分页大小
      */
-    private void processByCycle(TpDynamicExecutor threadPool, Integer pageSize) {
+    private void processByCycle(TpDynamicExecutor threadPool) {
         Long minId = null;
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         while (true) {
+            // 分页大小
+            Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
+
             List<XieChengCpsCollidingDataLoopCycle> list = loopCycleMapper.selectCycleByRetryCount(minId, pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 break;
@@ -106,13 +105,15 @@ public class XieChengCpsExceptionDataRetryServiceImpl implements XieChengCpsExce
     /**
      * 处理非周期表重试数据
      * @param threadPool 线程池
-     * @param pageSize   分页大小
      */
-    private void processByRob(TpDynamicExecutor threadPool, Integer pageSize) {
+    private void processByRob(TpDynamicExecutor threadPool) {
         Long minId = null;
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         while (true) {
+            // 分页大小
+            Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
+
             List<XieChengCpsCollidingDataRob> list = robMapper.selectRobByRetryCount(minId, pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 break;
