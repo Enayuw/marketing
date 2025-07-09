@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
@@ -12,6 +14,7 @@ import com.br.marketing.dto.account.PriceDateDTO;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.dto.account.SmsChannelDto;
 import com.br.marketing.entity.MarketingSmsAccountLog;
+import com.br.marketing.entity.MarketingSmsAccountLogExample;
 import com.br.marketing.entity.MarketingSmsAccountRecord;
 import com.br.marketing.mapper.MarketingSmsAccountDetailMapper;
 import com.br.marketing.mapper.MarketingSmsAccountLogMapper;
@@ -20,12 +23,15 @@ import com.br.marketing.service.LineSmsAccountDataService;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -53,6 +59,7 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     @Resource
     private LineSmsAccountDataService lineSmsAccountDataService;
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Result addSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
@@ -76,7 +83,7 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
         for (int i = 0; i < priceDates.size(); i++) {
             if (i != priceDates.size() - 1) {
-                priceDates.get(i).setEffectStartDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
+                priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
             }
         }
         //4.事务保存
@@ -86,7 +93,7 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
 
     @Override
-    public Result updSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
+    public Result updSmsAccount(SmsAccountDto dto) throws IOException {
         //1.校验渠道有无存在的配置
         List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
         List<Long> existChannelIds = smsAccountDetailMapper.selectChannelIfExist(channelIds, dto.getConfigId());
@@ -107,15 +114,35 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
         for (int i = 0; i < priceDates.size(); i++) {
             if (i != priceDates.size() - 1) {
-                priceDates.get(i).setEffectStartDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
+                priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
             }
+        }
+        //4.校验供应商是否变更，数据是否需要更新
+        MarketingSmsAccountLogExample accountLogExample = new MarketingSmsAccountLogExample();
+        accountLogExample.createCriteria().andConfigIdEqualTo(dto.getConfigId()).andIsDeleteEqualTo(0);
+        accountLogExample.setOrderByClause("create_time desc limit 1");
+        MarketingSmsAccountLog oldAccountLog = smsAccountLogMapper.selectByExample(accountLogExample).get(0);
+        if (!oldAccountLog.getVendorId().equals(dto.getVendorId())) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("供应商不允许变更，请重新配置！");
+        }
+        JSONObject oldAccountLogDetail = JSONObject.parseObject(oldAccountLog.getDetail());
+        List<Long> oldChannelIds = JSON.parseArray(oldAccountLogDetail.getString("channelIds"), Long.class);
+        boolean channelEqualFlag = new HashSet<>(oldChannelIds).equals(new HashSet<>(channelIds));
+        List<PriceDateDTO> oldPriceDates = JSON.parseArray(oldAccountLogDetail.getString("priceDates"), PriceDateDTO.class);
+        boolean priceDateEqualFlag = new HashSet<>(oldPriceDates).equals(new HashSet<>(priceDates));
+        if(channelEqualFlag && priceDateEqualFlag){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("配置无修改，无需变更");
         }
         //4.事务保存
         lineSmsAccountDataService.updSmsAccount(dto);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
-
+    @Override
+    public Result forbSmsAccount(Long configId) {
+        lineSmsAccountDataService.forbSmsAccount(configId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
 
 
     @Override

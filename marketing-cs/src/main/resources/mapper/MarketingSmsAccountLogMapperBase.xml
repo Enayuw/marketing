@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSmsAccountLog" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="config_id" property="configId" jdbcType="BIGINT" />
+    <result column="vendor_id" property="vendorId" jdbcType="BIGINT" />
     <result column="vendor_name" property="vendorName" jdbcType="VARCHAR" />
     <result column="detail" property="detail" jdbcType="VARCHAR" />
     <result column="user_id" property="userId" jdbcType="BIGINT" />
@@ -73,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, config_id, vendor_name, detail, user_id, user_name, real_name, ope_type, create_time,
-    update_time, is_delete
+    id, config_id, vendor_id, vendor_name, detail, user_id, user_name, real_name, ope_type,
+    create_time, update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingSmsAccountLogExample" >
     select
@@ -110,14 +111,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_sms_account_log (config_id, vendor_name, detail,
-    user_id, user_name, real_name,
-    ope_type, create_time, update_time,
-    is_delete)
-    values (#{configId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR}, #{detail,jdbcType=VARCHAR},
-    #{userId,jdbcType=BIGINT}, #{userName,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR},
-    #{opeType,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-    #{isDelete,jdbcType=INTEGER})
+    insert into b_marketing_sms_account_log (config_id, vendor_id, vendor_name,
+    detail, user_id, user_name,
+    real_name, ope_type, create_time,
+    update_time, is_delete)
+    values (#{configId,jdbcType=BIGINT}, #{vendorId,jdbcType=BIGINT}, #{vendorName,jdbcType=VARCHAR},
+    #{detail,jdbcType=VARCHAR}, #{userId,jdbcType=BIGINT}, #{userName,jdbcType=VARCHAR},
+    #{realName,jdbcType=VARCHAR}, #{opeType,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSmsAccountLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -127,6 +128,9 @@
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="configId != null" >
         config_id,
+      </if>
+      <if test="vendorId != null" >
+        vendor_id,
       </if>
       <if test="vendorName != null" >
         vendor_name,
@@ -159,6 +163,9 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="configId != null" >
         #{configId,jdbcType=BIGINT},
+      </if>
+      <if test="vendorId != null" >
+        #{vendorId,jdbcType=BIGINT},
       </if>
       <if test="vendorName != null" >
         #{vendorName,jdbcType=VARCHAR},
@@ -204,6 +211,9 @@
       <if test="record.configId != null" >
         config_id = #{record.configId,jdbcType=BIGINT},
       </if>
+      <if test="record.vendorId != null" >
+        vendor_id = #{record.vendorId,jdbcType=BIGINT},
+      </if>
       <if test="record.vendorName != null" >
         vendor_name = #{record.vendorName,jdbcType=VARCHAR},
       </if>
@@ -240,6 +250,7 @@
     update b_marketing_sms_account_log
     set id = #{record.id,jdbcType=BIGINT},
     config_id = #{record.configId,jdbcType=BIGINT},
+    vendor_id = #{record.vendorId,jdbcType=BIGINT},
     vendor_name = #{record.vendorName,jdbcType=VARCHAR},
     detail = #{record.detail,jdbcType=VARCHAR},
     user_id = #{record.userId,jdbcType=BIGINT},
@@ -258,6 +269,9 @@
     <set >
       <if test="configId != null" >
         config_id = #{configId,jdbcType=BIGINT},
+      </if>
+      <if test="vendorId != null" >
+        vendor_id = #{vendorId,jdbcType=BIGINT},
       </if>
       <if test="vendorName != null" >
         vendor_name = #{vendorName,jdbcType=VARCHAR},
@@ -292,6 +306,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSmsAccountLog" >
     update b_marketing_sms_account_log
     set config_id = #{configId,jdbcType=BIGINT},
+        vendor_id = #{vendorId,jdbcType=BIGINT},
         vendor_name = #{vendorName,jdbcType=VARCHAR},
         detail = #{detail,jdbcType=VARCHAR},
         user_id = #{userId,jdbcType=BIGINT},

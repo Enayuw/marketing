@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Data
 public class PriceDateDTO {
@@ -16,4 +17,17 @@ public class PriceDateDTO {
     private LocalDate effectStartDate;
 
     private LocalDate effectEndDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PriceDateDTO that = (PriceDateDTO) o;
+        return Objects.equals(price, that.price) && Objects.equals(effectStartDate, that.effectStartDate) && Objects.equals(effectEndDate, that.effectEndDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(price, effectStartDate, effectEndDate);
+    }
 }

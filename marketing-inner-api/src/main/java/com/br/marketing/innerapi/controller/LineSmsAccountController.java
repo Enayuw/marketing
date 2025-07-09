@@ -71,6 +71,17 @@ public class LineSmsAccountController {
         }
     }
 
+    @ApiOperation(value = "短信对账配置禁用")
+    @PatchMapping("/forbSmsAccount")
+    @LogAnnotation
+    public ApiResult forbSmsAccount(@RequestParam Long configId) {
+        try {
+            return new ApiResult().fromResult(lineSmsAccountService.forbSmsAccount(configId), CODE_1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @ApiOperation(value = "短信对账配置列表查询")
     @GetMapping("/getSmsAccounts")
     @LogAnnotation

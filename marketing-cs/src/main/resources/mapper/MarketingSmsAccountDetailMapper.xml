@@ -8,7 +8,7 @@
     <foreach collection="channelIds" item="channelId" open="(" separator="," close=")">
       #{channelId}
     </foreach>
-    <if test="configId != null and cusBatch !=''">
+    <if test="configId != null and configId !=''">
       and config_id != #{configId}
     </if>
     and is_delete = 0

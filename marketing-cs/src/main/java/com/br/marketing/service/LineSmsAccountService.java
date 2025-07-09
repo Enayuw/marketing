@@ -9,13 +9,16 @@ import com.br.marketing.entity.MarketingSmsAccountRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 
 public interface LineSmsAccountService {
 
     Result addSmsAccount(@Valid SmsAccountDto dto) throws JsonProcessingException;
 
-    Result updSmsAccount(SmsAccountDto dto) throws JsonProcessingException;
+    Result updSmsAccount(SmsAccountDto dto) throws IOException;
+
+    Result forbSmsAccount(Long configId);
 
     ApiResult getSmsAccountBasInfo();
 

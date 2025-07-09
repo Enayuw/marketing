@@ -14,6 +14,11 @@ public class MarketingSmsAccountLog {
     private Long configId;
 
     /**
+     * 供应商id
+     */
+    private Long vendorId;
+
+    /**
      * 供应商名称
      */
     private String vendorName;
@@ -72,6 +77,14 @@ public class MarketingSmsAccountLog {
 
     public void setConfigId(Long configId) {
         this.configId = configId;
+    }
+
+    public Long getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(Long vendorId) {
+        this.vendorId = vendorId;
     }
 
     public String getVendorName() {
