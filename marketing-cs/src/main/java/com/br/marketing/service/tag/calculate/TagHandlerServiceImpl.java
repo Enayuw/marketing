@@ -192,8 +192,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
                     .getSourceName()
                     .replace("${apiCode}", apiCode);
         }
+        //生产环境视图名称为小写，此处对视图名称进行小写处理
+        String lowerSourceName = sourceName.toLowerCase();
         // 处理数据源映射
-        String sourceMappingCode = handleSourceMapping(tagCode, apiCode, sourceName, sourceType, sourceCodes, sourceConfigList);
+        String sourceMappingCode = handleSourceMapping(tagCode, apiCode, lowerSourceName, sourceType, sourceCodes, sourceConfigList);
         if (sourceMappingCode == null) {
             return Boolean.FALSE;
         }
@@ -203,7 +205,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
 
         // 写入数据到Doris
         Long start = System.currentTimeMillis();
-        insertDataDoris(apiCode, sourceName, sourceType, sourceCodes, tagDataRule);
+        insertDataDoris(apiCode, lowerSourceName, sourceType, sourceCodes, tagDataRule);
         log.warn(TITLE + "tagCode={},apiCode={},写入数据到Doris明细表,耗时={}ms", tagCode, apiCode,
                 System.currentTimeMillis() - start);
 
@@ -444,7 +446,6 @@ public class TagHandlerServiceImpl implements TagHandleService {
         StringBuilder joinBuilder = new StringBuilder();
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
-            String groupSql = "";
             String sourceCode = sourceCodes.get(i);
             SourceTypeEnum sourceCodeEnum = SourceTypeEnum.fromCode(sourceCode);
             if (sourceCodeEnum == null) {
