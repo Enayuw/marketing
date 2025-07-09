@@ -4,6 +4,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.List;
+
 /**
  * @ClassName MockCreatePolicyDTO
  * @Description Mock新增修改策略
@@ -12,7 +15,7 @@ import lombok.Data;
  */
 @Data
 @ApiModel("Mock新增修改策略DTO")
-public class MockCreatePolicyDTO {
+public class MockCreatePolicyDTO implements Serializable {
 
     @ApiModelProperty("id")
     private Long id;
@@ -31,5 +34,8 @@ public class MockCreatePolicyDTO {
 
     @ApiModelProperty("描述")
     private String description;
+
+    @ApiModelProperty("mock用例")
+    private List<MockCreateCaseDTO> mockCreateCaseDTOS;
 
 }

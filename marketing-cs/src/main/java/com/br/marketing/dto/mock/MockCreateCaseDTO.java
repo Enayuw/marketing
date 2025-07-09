@@ -4,6 +4,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @ClassName MockCreateCaseDTO
  * @Description Mock新增修改用例
@@ -12,7 +14,7 @@ import lombok.Data;
  */
 @Data
 @ApiModel("Mock新增修改用例DTO")
-public class MockCreateCaseDTO {
+public class MockCreateCaseDTO implements Serializable {
 
     @ApiModelProperty("id")
     private Long id;

@@ -101,24 +101,115 @@ public class MockServiceImpl implements MockService {
                     "获取Mock策略列表失败！mockName: " + dto.getMockName()), e);
             return null;
         }
+    }
 
+    @Override
+    public ApiResult<MockCreatePolicyDTO> getMockDetails(Long id) {
+        if (id == null) {
+            return new ApiResult<MockCreatePolicyDTO>().fail("入参为空！");
+        }
+
+        MockPolicy mockPolicy = mockPolicyMapper.selectByPrimaryKey(id);
+        if (mockPolicy == null) {
+            return new ApiResult<MockCreatePolicyDTO>().fail("未查询到该策略！id：" + id);
+        }
+
+        String mockName = mockPolicy.getMockName();
+        MockCaseExample mockCaseExample = new MockCaseExample();
+        mockCaseExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(1);
+        List<MockCase> mockCaseList = mockCaseMapper.selectByExample(mockCaseExample);
+
+        MockCreatePolicyDTO mockCreatePolicyDTO = new MockCreatePolicyDTO();
+        mockCreatePolicyDTO.setId(mockPolicy.getId());
+        mockCreatePolicyDTO.setMockName(mockPolicy.getMockName());
+        mockCreatePolicyDTO.setMockPolicyType(mockPolicy.getMockPolicyType());
+        mockCreatePolicyDTO.setEnabled(mockPolicy.getEnabled());
+        mockCreatePolicyDTO.setVersion(mockPolicy.getVersion());
+        mockCreatePolicyDTO.setDescription(mockPolicy.getDescription());
+
+        List<MockCreateCaseDTO> mockCreateCaseDTOS = new ArrayList<>();
+        for (MockCase mockCase : mockCaseList) {
+            MockCreateCaseDTO createCaseDTO = new MockCreateCaseDTO();
+            createCaseDTO.setId(mockCase.getId());
+            createCaseDTO.setMockName(mockCase.getMockName());
+            createCaseDTO.setMockCaseName(mockCase.getMockCaseName());
+            createCaseDTO.setApiCode(mockCase.getApiCode());
+            createCaseDTO.setResponseBody(mockCase.getResponseBody());
+            createCaseDTO.setStatusCode(mockCase.getStatusCode());
+            createCaseDTO.setDelayMs(mockCase.getDelayMs());
+            createCaseDTO.setDelayFluctuation(mockCase.getDelayFluctuation());
+            createCaseDTO.setDescription(mockCase.getDescription());
+            createCaseDTO.setEnabled(mockCase.getEnabled());
+            mockCreateCaseDTOS.add(createCaseDTO);
+        }
+        mockCreatePolicyDTO.setMockCreateCaseDTOS(mockCreateCaseDTOS);
+        return new ApiResult<MockCreatePolicyDTO>().success().setData(mockCreatePolicyDTO);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean saveOrUpdateMockPolicy(MockCreatePolicyDTO dto, MarketingUserDetail userDetail) {
-        try {
-            //判断mockName在枚举值中是否存在
-            boolean isExist = MockNameEnum.getAllCodes().contains(dto.getMockName());
-            if (!isExist) {
-                log.warn("当前mockName不存在，请确认mockName是否正确！mockName:{}", dto.getMockName());
-                return false;
+    public ApiResult<Boolean> enableMockPolicies(MockPolicyDTO list) {
+        if (list == null) {
+            return new ApiResult<Boolean>().fail("入参为空！");
+        }
+        List<Long> ids = list.getIds();
+        for (Long id : ids) {
+            MockPolicy mockPolicyOld = new MockPolicy();
+            try {
+                mockPolicyOld = mockPolicyMapper.selectByPrimaryKey(id);
+                if (mockPolicyOld == null) {
+                    continue;
+                }
+                MockPolicy mockPolicy = new MockPolicy();
+                BeanUtils.copyProperties(mockPolicyOld, mockPolicy);
+                int newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
+                mockPolicy.setEnabled(list.getEnabled());
+                mockPolicy.setUpdateTime(new Date());
+                mockPolicy.setVersion(String.valueOf(newVersion));
+                int updated = mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
+                if (updated <= 0) {
+                    log.error("启用/禁用Mock策略失败，mockName: {}", mockPolicyOld.getMockName());
+                    continue;
+                }
+                //增加操作日志
+                entityOptService.writeOptLog(mockPolicy.getId(), mockPolicy, mockPolicyOld);
+                String redisKey = RedisKeyConstant.MOCK_POLICY.concat(":").concat(mockPolicy.getMockName());
+                String mockData = redisChgService.get(redisKey);
+                if (StringUtils.isEmpty(mockData)) {
+                    return new ApiResult<Boolean>().fail("查询redis缓存为空！mockName：" + mockPolicy.getMockName());
+                }
+                MockCreatePolicyDTO mockCreatePolicyDTO = JSONObject.parseObject(mockData, MockCreatePolicyDTO.class);
+
+                // Redis更新，失败重试3次
+                redisRetry(mockCreatePolicyDTO);
+            } catch (Exception e) {
+                log.error("批量启用/禁用MockPolicy失败，id: {}, 错误信息: {}", id, e.getMessage(), e);
+                return new ApiResult<Boolean>().fail("批量启用/禁用MockPolicy失败！mockName：" + mockPolicyOld.getMockName());
             }
-            //判断请求实体中是否包含id，若不包含则为新增，反之为更新
-            boolean isInsert = (dto.getId() == null);
-            MockPolicy mockPolicy = new MockPolicy();
-            if (isInsert) {
-                // 新增
+        }
+        return new ApiResult<Boolean>().success();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResult<Boolean> saveOrUpdateMockPolicy(MockCreatePolicyDTO dto, MarketingUserDetail userDetail) {
+
+        if (dto == null) {
+            return new ApiResult<Boolean>().fail("入参为空，请修改后重新请求！");
+        }
+
+        if (CollectionUtils.isEmpty(dto.getMockCreateCaseDTOS())) {
+            return new ApiResult<Boolean>().fail("Mock用例不能为空，请修改后重新请求！");
+        }
+
+        if (!MockNameEnum.getAllCodes().contains(dto.getMockName())) {
+            return new ApiResult<Boolean>().fail("当前mockName不存在，请确认mockName是否正确！mockName:" + dto.getMockName());
+        }
+
+        try {
+            // 新增策略
+            if (dto.getId() == null) {
+                MockPolicy mockPolicy = new MockPolicy();
                 mockPolicy.setMockName(dto.getMockName());
                 mockPolicy.setMockPolicyType(dto.getMockPolicyType());
                 mockPolicy.setEnabled(dto.getEnabled());
@@ -131,30 +222,66 @@ public class MockServiceImpl implements MockService {
                 mockPolicy.setUpdateTime(new Date());
                 mockPolicy.setIsDel(Constants.DATA_VALID);
                 mockPolicyMapper.insertSelective(mockPolicy);
-                //增加日志
-                Long id = mockPolicy.getId();
-                entityOptService.writeOptLog(id, mockPolicy, null);
-            } else {
-                // 更新
-                int newVersion;
-                BeanUtils.copyProperties(dto, mockPolicy);
-                MockPolicy mockPolicy1 = mockPolicyMapper.selectByPrimaryKey(dto.getId());
-                newVersion = Integer.parseInt(mockPolicy1.getVersion()) + 1;
+                // 记录操作日志
+                entityOptService.writeOptLog(mockPolicy.getId(), mockPolicy, null);
+            } else { // 更新
+                MockPolicy mockPolicyOld = mockPolicyMapper.selectByPrimaryKey(dto.getId());
+
+                MockPolicy mockPolicy = new MockPolicy();
+                mockPolicy.setId(dto.getId());
+                mockPolicy.setMockName(dto.getMockName());
+                mockPolicy.setMockPolicyType(dto.getMockPolicyType());
+                mockPolicy.setEnabled(dto.getEnabled());
+                mockPolicy.setDescription(dto.getDescription());
+                mockPolicy.setOptUserId(Long.valueOf(userDetail.getId()));
+                mockPolicy.setOptUserName(userDetail.getUserName());
+                mockPolicy.setUpdateTime(new Date());
+                mockPolicy.setCaseCount(dto.getMockCreateCaseDTOS().size());
+
+                int newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
                 mockPolicy.setVersion(String.valueOf(newVersion));
                 mockPolicy.setUpdateTime(new Date());
                 mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
-                //增加操作日志
-                Long id = dto.getId();
-                entityOptService.writeOptLog(id, mockPolicy, dto);
+                // 记录操作日志
+                entityOptService.writeOptLog(dto.getId(), mockPolicy, mockPolicyOld);
+                // 删除该Mock策略下的所有用例
+                MockCaseExample mockCaseExample = new MockCaseExample();
+                mockCaseExample.createCriteria().andMockNameEqualTo(dto.getMockName());
+                mockCaseMapper.deleteByExample(mockCaseExample);
             }
-            // Redis更新，失败重试3次
-            redisRetry(mockPolicy);
 
-            log.warn("MockPolicy保存/更新成功，mockName: {}, version: {}", dto.getMockName(), dto.getVersion());
+            // 批量新增用例
+            List<MockCreateCaseDTO> mockCreateCaseDTOS = dto.getMockCreateCaseDTOS();
+            List<MockCase> mockCaseList = new ArrayList<>();
+            for (MockCreateCaseDTO createCaseDTO : mockCreateCaseDTOS) {
+                MockCase mockCase = new MockCase();
+                mockCase.setMockName(createCaseDTO.getMockName());
+                mockCase.setMockCaseName(createCaseDTO.getMockCaseName());
+                mockCase.setApiCode(createCaseDTO.getApiCode());
+                mockCase.setMockCaseName(createCaseDTO.getMockCaseName());
+                mockCase.setResponseBody(JSONObject.toJSONString(createCaseDTO.getResponseBody()));
+                mockCase.setStatusCode(createCaseDTO.getStatusCode());
+                mockCase.setDelayMs(createCaseDTO.getDelayMs());
+                mockCase.setDelayFluctuation(createCaseDTO.getDelayFluctuation());
+                mockCase.setDescription(dto.getDescription());
+                mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
+                mockCase.setOptUserName(userDetail.getUserName());
+                mockCase.setEnabled(dto.getEnabled());
+                mockCase.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
+                mockCase.setCreateTime(new Date());
+                mockCase.setUpdateTime(new Date());
+                mockCase.setIsDel(Constants.DATA_VALID);
+                mockCaseList.add(mockCase);
+            }
+            mockCaseMapper.batchInsert(mockCaseList);
+
+            // Redis更新，失败重试3次
+            redisRetry(dto);
+            log.warn("Mock保存/更新成功，mockName: {}, version: {}", dto.getMockName(), dto.getVersion());
         } catch (Exception e) {
-            log.error("MockPolicy保存/更新失败，mockName: {}, 错误信息: {}", dto.getMockName(), e.getMessage(), e);
+            log.error("Mock保存/更新失败，mockName: {}, 错误信息: {}", dto.getMockName(), e.getMessage(), e);
         }
-        return true;
+        return new ApiResult<Boolean>().success("添加成功");
     }
 
     @Override
@@ -167,20 +294,21 @@ public class MockServiceImpl implements MockService {
         boolean allSuccess = true;
         for (Long id : ids) {
             try {
-
                 MockPolicy mockPolicyOld = mockPolicyMapper.selectByPrimaryKey(id);
-                int newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
-
                 MockPolicy mockPolicy = new MockPolicy();
                 mockPolicy.setId(mockPolicyOld.getId());
                 mockPolicy.setIsDel(9);
                 mockPolicy.setUpdateTime(new Date());
-                mockPolicy.setVersion(String.valueOf(newVersion));
                 mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
                 //增加操作日志
                 entityOptService.writeOptLog(mockPolicyOld.getId(), mockPolicy, mockPolicyOld);
 
                 String mockName = mockPolicyOld.getMockName();
+
+                MockCaseExample mockCaseExample = new MockCaseExample();
+                mockCaseExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(Constants.DATA_VALID);
+                mockCaseMapper.deleteByExample(mockCaseExample);
+
                 // Redis删除，失败重试3次
                 boolean redisSuccess = false;
                 int retry = 0;
@@ -229,160 +357,15 @@ public class MockServiceImpl implements MockService {
     }
 
     @Override
-    public ApiResult<String> batchAddMockCase(List<MockCreateCaseDTO> list, MarketingUserDetail userDetail) {
-        if(CollectionUtils.isEmpty(list)){
-            return new ApiResult<String>().fail("批量添加Mock用例失败,入参为空");
-        }
-        try {
-            List<MockCase> mockCaseList = new ArrayList<>();
-            for (MockCreateCaseDTO dto : list){
-                MockCase mockCase = new MockCase();
-                mockCase.setMockName(dto.getMockName());
-                mockCase.setApiCode(dto.getApiCode());
-                mockCase.setMockCaseName(dto.getMockCaseName());
-                mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
-                mockCase.setStatusCode(dto.getStatusCode());
-                mockCase.setDelayMs(dto.getDelayMs());
-                mockCase.setDelayFluctuation(dto.getDelayFluctuation());
-                mockCase.setDescription(dto.getDescription());
-                mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
-                mockCase.setOptUserName(userDetail.getUserName());
-                mockCase.setEnabled(dto.getEnabled());
-                mockCase.setCreateDate(TimeUtils.parseDateToString3return(new Date()));
-                mockCase.setCreateTime(new Date());
-                mockCase.setUpdateTime(new Date());
-                mockCase.setIsDel(Constants.DATA_VALID);
-                mockCaseList.add(mockCase);
-            }
-            mockCaseMapper.batchInsert(mockCaseList);
-            return new ApiResult<String>().success();
-        }catch (Exception e){
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                    "批量添加Mock用例失败！"), e);
-            return new ApiResult<String>().fail("批量添加Mock用例失败");
-        }
+    public ApiResult<List<String>> getMockName() {
+        return new ApiResult<List<String>>().success().setData(MockNameEnum.getAllCodes());
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public ApiResult<String> batchUpdateMockCases(List<MockCreateCaseDTO> list, MarketingUserDetail userDetail) {
-        if (CollectionUtils.isEmpty(list)) {
-            return new ApiResult<String>().fail("批量全量更新Mock用例失败,入参为空");
-        }
-        boolean allSuccess = true;
-        for (MockCreateCaseDTO dto : list) {
-            try {
-                MockCase mockCase = new MockCase();
-                mockCase.setId(dto.getId());
-                mockCase.setMockName(dto.getMockName());
-                mockCase.setApiCode(dto.getApiCode());
-                mockCase.setMockCaseName(dto.getMockCaseName());
-                mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
-                mockCase.setStatusCode(dto.getStatusCode());
-                mockCase.setDelayMs(dto.getDelayMs());
-                mockCase.setDelayFluctuation(dto.getDelayFluctuation());
-                mockCase.setDescription(dto.getDescription());
-                mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
-                mockCase.setOptUserName(userDetail.getUserName());
-                mockCase.setEnabled(dto.getEnabled());
-                mockCase.setIsDel(com.br.marketing.common.utils.Constants.DATA_VALID);
-                mockCase.setUpdateTime(new java.util.Date());
-
-                MockCase mockCaseOld = mockCaseMapper.selectByPrimaryKey(dto.getId());
-                int updated = mockCaseMapper.updateByPrimaryKey(mockCase); // 全量更新
-                if (updated <= 0) {
-                    allSuccess = false;
-                    log.error("更新Mock用例失败，mockCaseName: {}", mockCase.getMockCaseName());
-                    continue;
-                }
-                entityOptService.writeOptLog(mockCase.getId(), mockCase, mockCaseOld);
-            } catch (Exception e) {
-                allSuccess = false;
-                log.warn(com.br.common.log.AlertLog.buildWarnMessage(com.br.marketing.common.enums.AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                        "批量全量更新Mock用例失败！mockName: " + dto.getMockName()), e);
-            }
-        }
-        if (allSuccess) {
-            return new ApiResult<String>().success();
-        } else {
-            return new ApiResult<String>().fail("部分或全部Mock用例更新失败");
-        }
+    public ApiResult<Map<Integer, String>> getMockType() {
+        return new ApiResult<Map<Integer, String>>().success().setData(MockPolicyEnum.getAllMockPolicyEnum());
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Boolean updateMockCase(MockCreateCaseDTO dto, MarketingUserDetail userDetail) {
-        try {
-            MockCase mockCase = new MockCase();
-            mockCase.setId(dto.getId());
-            mockCase.setMockName(dto.getMockName());
-            mockCase.setApiCode(dto.getApiCode());
-            mockCase.setMockCaseName(dto.getMockCaseName());
-            mockCase.setResponseBody(JSONObject.toJSONString(dto.getResponseBody()));
-            mockCase.setStatusCode(dto.getStatusCode());
-            mockCase.setDelayMs(dto.getDelayMs());
-            mockCase.setDelayFluctuation(dto.getDelayFluctuation());
-            mockCase.setDescription(dto.getDescription());
-            mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
-            mockCase.setOptUserName(userDetail.getUserName());
-            mockCase.setEnabled(dto.getEnabled());
-            mockCase.setIsDel(Constants.DATA_VALID);
-            mockCase.setUpdateTime(new Date());
-
-            MockCase mockCaseOld = mockCaseMapper.selectByPrimaryKey(dto.getId());
-            mockCaseMapper.updateByPrimaryKeySelective(mockCase);
-            entityOptService.writeOptLog(mockCase.getId(), mockCase, mockCaseOld);
-            return true;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                    "添加Mock用例失败！mockName: " + dto.getMockName()), e);
-            return false;
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Boolean deleteMockCases(List<Long> ids, MarketingUserDetail userDetail) {
-        if (ids == null || ids.isEmpty()) {
-            return false;
-        }
-        boolean allSuccess = true;
-        try {
-            for (Long id : ids) {
-                MockCase mockCaseOld = mockCaseMapper.selectByPrimaryKey(id);
-                MockCase mockCase = new MockCase();
-                mockCase.setId(id);
-                mockCase.setIsDel(9);
-                mockCase.setUpdateTime(new Date());
-                int deleted = mockCaseMapper.updateByPrimaryKeySelective(mockCase);
-                if (deleted <= 0) {
-                    allSuccess = false;
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                            "删除Mock用例失败！失败用例id:{} " + id));
-                }
-                //增加操作日志
-                entityOptService.writeOptLog(id, mockCase, mockCaseOld);
-            }
-            return allSuccess;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                    "删除Mock用例失败！ids: " + ids), e);
-            return false;
-        }
-    }
-
-    @Override
-    public ApiResult<String> testMockPolicy(String mockName) {
-        String mockRedisValue = getMockRedisValue(mockName);
-        if (StringUtils.isEmpty(mockRedisValue)) {
-            return new ApiResult<String>().fail("Mock策略测试失败，redis不存在该mock：" + mockName);
-        }
-        MockCase action = action(mockRedisValue);
-        if (action == null) {
-            return new ApiResult<String>().fail("Mock策略测试失败，未配置该mock：" + mockName);
-        }
-        return new ApiResult<String>().success().setData(action.getResponseBody());
-    }
 
     @Override
     public ApiResult<String> testNote() {
@@ -413,62 +396,10 @@ public class MockServiceImpl implements MockService {
         return mockPolicyFactory.action(policy);
     }
 
-    @Override
-    public ApiResult<List<String>> getMockName() {
-        return new ApiResult<List<String>>().success().setData(MockNameEnum.getAllCodes());
-    }
-
-    @Override
-    public ApiResult<Map<Integer, String>> getMockType() {
-        return new ApiResult<Map<Integer, String>>().success().setData(MockPolicyEnum.getAllMockPolicyEnum());
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Boolean enableMockPolicies(MockPolicyDTO list) {
-        if (list == null) {
-            return false;
-        }
-        boolean allSuccess = true;
-
-        List<Long> ids = list.getIds();
-        for (Long id : ids){
-            try {
-                MockPolicy mockPolicyOld = mockPolicyMapper.selectByPrimaryKey(id);
-                if(mockPolicyOld == null){
-                    continue;
-                }
-                MockPolicy mockPolicy = new MockPolicy();
-                BeanUtils.copyProperties(mockPolicyOld, mockPolicy);
-                int newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
-                mockPolicy.setEnabled(list.getEnabled());
-                mockPolicy.setUpdateTime(new Date());
-                mockPolicy.setVersion(String.valueOf(newVersion));
-                int updated = mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
-                if (updated <= 0) {
-                    allSuccess = false;
-                    log.error("启用/禁用Mock策略失败，mockName: {}", mockPolicyOld.getMockName());
-                    continue;
-                }
-                //增加操作日志
-                entityOptService.writeOptLog(mockPolicy.getId(), mockPolicy, mockPolicyOld);
-
-                // Redis更新，失败重试3次
-                redisRetry(mockPolicy);
-
-                log.warn("MockPolicy启用/禁用成功，mockName: {}, version: {}", mockPolicyOld.getMockName(), mockPolicy.getVersion());
-            } catch (Exception e) {
-                log.error("批量启用/禁用MockPolicy失败，id: {}, 错误信息: {}", id, e.getMessage(), e);
-            }
-        }
-
-        return allSuccess;
-    }
-
-    void syncPolicyToCache(String mockName, MockPolicy mockPolicy) {
+    void syncPolicyToCache(String mockName, MockCreatePolicyDTO dto) {
         // 写入redis
         String redisKey = RedisKeyConstant.MOCK_POLICY.concat(":").concat(mockName);
-        String jsonObject = JSON.toJSONString(mockPolicy);
+        String jsonObject = JSON.toJSONString(dto);
         redisChgService.set(redisKey, jsonObject);
     }
 
@@ -478,18 +409,18 @@ public class MockServiceImpl implements MockService {
         redisChgService.del(redisKey);
     }
 
-    void redisRetry(MockPolicy mockPolicy) {
+    void redisRetry(MockCreatePolicyDTO dto) {
         boolean redisSuccess = false;
         int retry = 0;
         Exception redisException = null;
         while (retry < 3 && !redisSuccess) {
             try {
-                syncPolicyToCache(mockPolicy.getMockName(), mockPolicy);
+                syncPolicyToCache(dto.getMockName(), dto);
                 redisSuccess = true;
             } catch (Exception e) {
                 redisException = e;
                 retry++;
-                log.error("Redis更新失败，准备进行第{}次重试，mockName: {}", retry, mockPolicy.getMockName(), redisException);
+                log.error("Redis更新失败，准备进行第{}次重试，mockName: {}", retry, dto.getMockName(), redisException);
 
                 try {
                     Thread.sleep(1000L * retry);
@@ -498,7 +429,7 @@ public class MockServiceImpl implements MockService {
             }
         }
         if (!redisSuccess) {
-            log.error("Redis更新失败，已重试3次，mockName: {}", mockPolicy.getMockName(), redisException);
+            log.error("Redis更新失败，已重试3次，mockName: {}", dto.getMockName(), redisException);
             throw new RuntimeException("Redis更新失败", redisException);
         }
     }

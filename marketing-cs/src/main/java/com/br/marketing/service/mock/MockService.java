@@ -2,7 +2,6 @@ package com.br.marketing.service.mock;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockPolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
@@ -21,30 +20,22 @@ public interface MockService {
 
     PageResultReturn getMockPolicyList(MockQueryDTO dto);
 
-    Boolean saveOrUpdateMockPolicy(MockCreatePolicyDTO mockPolicy, MarketingUserDetail userDetail);
+    ApiResult<MockCreatePolicyDTO> getMockDetails(Long id);
+
+    ApiResult<Boolean> enableMockPolicies(MockPolicyDTO list);
+
+    ApiResult<Boolean> saveOrUpdateMockPolicy(MockCreatePolicyDTO mockPolicy, MarketingUserDetail userDetail);
 
     Boolean deleteMockPolicies(List<Long> ids, MarketingUserDetail userDetail);
 
     List<MockCase> getMockCaseList(String mockName);
 
-    ApiResult<String> batchAddMockCase(List<MockCreateCaseDTO> list, MarketingUserDetail userDetail);
+    ApiResult<List<String>> getMockName();
 
-    Boolean updateMockCase(MockCreateCaseDTO mockCase, MarketingUserDetail userDetail);
-
-    ApiResult<String> batchUpdateMockCases(List<MockCreateCaseDTO> mockCases, MarketingUserDetail userDetail);
-
-    Boolean deleteMockCases(List<Long> ids, MarketingUserDetail userDetail);
+    ApiResult<Map<Integer,String>> getMockType();
 
 
-    ApiResult<String> testMockPolicy(String mockName);
 
-    ApiResult<String> testNote();
-
-    /**
-     * 提供给客户端获取redis缓存
-     * @param localCacheKey
-     * @return
-     */
     String getMockRedisValue(String localCacheKey);
 
     /**
@@ -54,10 +45,6 @@ public interface MockService {
      */
     MockCase action(String redisValue);
 
+    ApiResult<String> testNote();
 
-    ApiResult<List<String>> getMockName();
-
-    ApiResult<Map<Integer,String>> getMockType();
-
-    Boolean enableMockPolicies(MockPolicyDTO list);
 }
