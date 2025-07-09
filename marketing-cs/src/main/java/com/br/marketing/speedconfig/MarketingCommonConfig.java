@@ -3195,5 +3195,20 @@ public class MarketingCommonConfig {
      * 数禾重申提取表头字段
      */
     private String shuHeChongShenTransferTableHead;
+
+    /**
+     * 携程CPS撞库数据同步分页条数
+     */
+    private Integer xieChengCpsCollidingDataSyncPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengCpsCollidingConfig;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengCpsCollidingRetrySwitch;
 }
 

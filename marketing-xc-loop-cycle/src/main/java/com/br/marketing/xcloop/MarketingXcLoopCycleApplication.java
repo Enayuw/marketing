@@ -1,6 +1,7 @@
 package com.br.marketing.xcloop;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
+import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
@@ -25,6 +26,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
+@EnableBrCounter(namespace = "marketing_xc_loop_cycle")
 @Slf4j
 public class MarketingXcLoopCycleApplication {
     public static ConfigurableApplicationContext ac;

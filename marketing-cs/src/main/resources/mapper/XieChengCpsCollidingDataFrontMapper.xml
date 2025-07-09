@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCpsCollidingDataFrontMapper">
+    <!-- 使用窗口函数查询去重数据，按localId分页查询 -->
+    <select id="selectNoDupDataByLocalIdtikv_" resultType="com.br.marketing.entity.XieChengCpsCollidingDataFront">
+        select c.*
+        from (SELECT a.id, a.sha256_code_list, a.local_id, a.api_code,
+                     ROW_NUMBER() OVER (PARTITION BY a.sha256_code_list ORDER BY a.id) AS row_num
+              from b_xiecheng_cps_colliding_data_front a
+              where a.is_deleted = 0
+                and a.local_id = #{localId}
+                and a.push_status = 1
+                and a.status = 1) as c
+        where c.row_num = 1
+        <if test="minId != null and minId!=''">
+            and c.id > #{minId}
+        </if>
+        order by c.id
+        limit #{pageSize}
+    </select>
+
+    <!-- 批量更新推送状态 -->
+    <update id="batchUpdatePushStatusByCell">
+        update b_xiecheng_cps_colliding_data_front set push_status = 2, update_time = now()
+        where is_deleted = 0 and local_id = #{localId} and sha256_code_list in
+        <foreach collection="list" item="front" open="(" separator="," close=")">
+            #{front.sha256CodeList}
+        </foreach>
+    </update>
+</mapper>
