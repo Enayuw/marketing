@@ -128,6 +128,11 @@ public class MarketingSyncUser {
      */
     private String reserveField2;
 
+    /**
+     * 数据指纹(内部使用，不对外展示)
+     */
+    private Long fingerprint;
+
     public Long getId() {
         return id;
     }
@@ -326,5 +331,13 @@ public class MarketingSyncUser {
 
     public void setOperateType(String operateType) {
         this.operateType = operateType;
+    }
+
+    public Long getFingerprint() {
+        return fingerprint;
+    }
+
+    public void setFingerprint(Long fingerprint) {
+        this.fingerprint = fingerprint;
     }
 }

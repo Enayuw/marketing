@@ -209,6 +209,11 @@ public class MarketingTransferSyncUser {
      */
     private String channel;
 
+    /**
+     * 数据指纹(内部使用，不对外展示)
+     */
+    private Long fingerprint;
+
     public String getChannel() {
         return channel;
     }
@@ -535,5 +540,13 @@ public class MarketingTransferSyncUser {
 
     public void settCid(String tCid) {
         this.tCid = tCid == null ? null : tCid.trim();
+    }
+
+    public Long getFingerprint() {
+        return fingerprint;
+    }
+
+    public void setFingerprint(Long fingerprint) {
+        this.fingerprint = fingerprint;
     }
 }
