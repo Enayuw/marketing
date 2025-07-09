@@ -109,10 +109,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_nfsfile_bi_record (api_code, file_type, file_name,
-    file_path, task_id, execute_date
+    file_path, task_id, execute_date, send_time
     )
     values (#{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR},
     #{filePath,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{executeDate,jdbcType=VARCHAR}
+    , #{sendTime,jdbcType=VARCHAR}
     )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.NfsFileTOBiRecord" >
@@ -197,6 +198,9 @@
       <if test="record.executeDate != null" >
         execute_date = #{record.executeDate,jdbcType=VARCHAR},
       </if>
+      <if test="record.sendTime != null" >
+        send_time = #{sendTime, jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -210,7 +214,8 @@
     file_name = #{record.fileName,jdbcType=VARCHAR},
     file_path = #{record.filePath,jdbcType=VARCHAR},
     task_id = #{record.taskId,jdbcType=BIGINT},
-    execute_date = #{record.executeDate,jdbcType=VARCHAR}
+    execute_date = #{record.executeDate,jdbcType=VARCHAR},
+    send_time = #{record.sendTime,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -236,6 +241,9 @@
       <if test="executeDate != null" >
         execute_date = #{executeDate,jdbcType=VARCHAR},
       </if>
+      <if test="sendTime != null" >
+        send_time = #{sendTime,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -246,7 +254,8 @@
     file_name = #{fileName,jdbcType=VARCHAR},
     file_path = #{filePath,jdbcType=VARCHAR},
     task_id = #{taskId,jdbcType=BIGINT},
-    execute_date = #{executeDate,jdbcType=VARCHAR}
+    execute_date = #{executeDate,jdbcType=VARCHAR},
+    send_time = #{sendTime,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
