@@ -79,10 +79,10 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
 
         LocalDate startDate = Optional.ofNullable(param.getString("startDate"))
                 .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
-                .orElseGet(() -> LocalDate.now().minusDays(2));
+                .orElseGet(LocalDate::now);
         LocalDate endDate = Optional.ofNullable(param.getString("endDate"))
                 .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
-                .orElseGet(() -> LocalDate.now().minusDays(2));
+                .orElseGet(LocalDate::now);
 
         // 使用Stream生成日期序列并构造邮件标题列表
         List<String> dates = Stream.iterate(startDate, date -> date.plusDays(1))
