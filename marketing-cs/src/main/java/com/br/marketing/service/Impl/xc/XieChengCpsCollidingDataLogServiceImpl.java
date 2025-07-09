@@ -101,7 +101,7 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
     @Override
     public void pushLogMessage(List<XieChengCpsCollidingDataLog> collidingLogs) {
         rocketMqSwitch.syncSend(
-                MarketingXieChengConstants.TOPIC,
+                MarketingXieChengConstants.CPS_LOG_TOPIC,
                 MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_COLLIDING_LOG_QUEUE,
                 JSONObject.toJSONString(collidingLogs));
     }
@@ -122,7 +122,7 @@ public class XieChengCpsCollidingDataLogServiceImpl implements XieChengCpsCollid
         }
 
         String jsonString = JSON.toJSONString(sha256CodeListFalseList);
-        rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC
+        rocketMqSwitch.syncSend(MarketingXieChengConstants.CPS_PUSH_ROBOT_TOPIC
                 , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_PUSH_ROBOT, jsonString);
     }
 

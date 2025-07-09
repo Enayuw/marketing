@@ -30,7 +30,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingXieChengConstants.CPS_LOG_TOPIC,
         consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_CPS_COLLIDING_LOG_QUEUE,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_COLLIDING_LOG_QUEUE,
         consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 10000)

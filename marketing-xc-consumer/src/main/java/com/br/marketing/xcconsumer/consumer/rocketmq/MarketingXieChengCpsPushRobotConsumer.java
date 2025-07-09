@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingXieChengConstants.CPS_PUSH_ROBOT_TOPIC,
         consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_CPS_PUSH_ROBOT_QUEUE,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPS_PUSH_ROBOT,
         consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 10000)
