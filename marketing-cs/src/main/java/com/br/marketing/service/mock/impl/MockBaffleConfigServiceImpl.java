@@ -3,6 +3,7 @@ package com.br.marketing.service.mock.impl;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.origin.CaffeineCache;
@@ -119,6 +120,10 @@ public class MockBaffleConfigServiceImpl {
             return false;
         }
         String currentVersion = policy.getVersion();
+        if(StringUtils.isEmpty(currentVersion)){
+            return false;
+        }
+
         if (!currentVersion.equals(mockInitDTO.getVersion())) {
             return false;
         }
