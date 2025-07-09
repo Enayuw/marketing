@@ -59,6 +59,7 @@ import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.origin.*;
@@ -125,6 +126,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -259,6 +261,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     @Qualifier("clusterEnvironment")
     private String clusterEnvironment;
+
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -2390,6 +2395,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(Objects.isNull(dataSourceType)){
             dataSourceType =0;
         }
+        MarketingPreUserDTO preUserDTO = dto.getJsonData();
+        List<MarketingPreUserDetailDTO> dataItems = preUserDTO.getDataItems();
+        batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
         //region 数据入库
         try {
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -2399,7 +2407,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setLast(last);
             syncInfo.setTotal(total);
             syncInfo.setCreateTime(new Date());
-            syncInfo.setJsonData(jsonData);
+            syncInfo.setJsonData(JSON.toJSONString(preUserDTO));
             syncInfo.setActualNum(size);
             syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
@@ -2454,6 +2462,30 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+
+    /**
+     * 批量添加唯一ID
+     *
+     * @param list 数据列表
+     * @param setConsumer 赋值函数
+     * @param getFunction 获取ID函数，如果获取ID为空，则添加ID,可为 null
+     */
+    public <T> void batchAddUniqueId(List<T> list, BiConsumer<T, Long> setConsumer, Function<T, Long> getFunction) {
+        int size = list.size();
+        List<Long> ids = snowflakeRedisGeneratorHandle.nextIds(size);
+        if (getFunction == null) {
+            for (int i = 0; i < size; i++) {
+                setConsumer.accept(list.get(i), ids.get(i));
+            }
+            return;
+        }
+        for (int i = 0; i < size; i++) {
+            if (getFunction.apply(list.get(i)) == null) {
+                setConsumer.accept(list.get(i), ids.get(i));
+            }
+        }
     }
 
     /**
@@ -2845,6 +2877,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setFailType(marketingPreUserDetailDTO.getFailType());
                 marketingSyncUser.setAppletTime(marketingSyncInfo.getCreateTime());
                 marketingSyncUser.setUserType(finalReserveField.getUserType());
+                marketingSyncUser.setFingerprint(marketingPreUserDetailDTO.getFingerprint());
                 try {
                     Long st1 = System.currentTimeMillis();
                     Long et1;
@@ -2881,6 +2914,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                             );
                         }
                     }
+                } catch (DuplicateKeyException e) {
+                    log.warn("insertMarketingSyncUser数据重复,{},{}", e.getMessage(), JSON.toJSON(marketingSyncUser), e);
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -3281,7 +3316,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String transferInfoId = "";
         Boolean dbException = Boolean.FALSE;
-
+        batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
         try {
             //todo 测试pulsar 上线删除
             if ("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())) {
@@ -3292,7 +3327,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setRequestId(transferDataDTO.getRequestId());
             transferInfo.setOrgName(transferDataDTO.getOrgName());
             transferInfo.setCreateTime(new Date());
-            transferInfo.setJsonData(jsonData);
+            transferInfo.setJsonData(JSON.toJSONString(transferDataDTO));
             transferInfo.setActualNum(size);
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
@@ -3474,6 +3509,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setLentTime(dateTimeComplet(transferDataItemDTO.getLentTime()));
                 transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
+                transferSyncUser.setFingerprint(transferDataItemDTO.getFingerprint());
                 if (transferFieldProcessFactory != null) {
                     transferFieldProcessFactory.fieldProcess(transferSyncUser, transferDataItemDTO);
                 }
@@ -3495,6 +3531,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     } catch (Exception ex) {
                         log.error("客户转化接口统计异常" + ex.getMessage(), ex);
                     }
+                } catch (DuplicateKeyException e) {
+                    log.warn("insertMarketingTransferSyncUser数据重复,{},{}", e.getMessage(), JSON.toJSON(transferSyncUser), e);
                 } catch (Exception ex) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());

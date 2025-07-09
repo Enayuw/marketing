@@ -1,6 +1,5 @@
 package com.br.marketing.service.clean.common.impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -9,26 +8,21 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningResult;
-import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
-import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.service.PushInfoService;
@@ -36,9 +30,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -49,13 +41,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -99,6 +89,9 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
 
     private static final String TITLE = "【定制上传数据清洗】";
@@ -480,10 +473,13 @@ public class DataCleanServiceImpl implements DataCleanService {
         ruleConfigListTmp.removeIf(config -> config.getMappingField().equals("requestId") || config.getMappingField().equals("taskId"));
         //根据规则进行清洗处理
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+        List<Long> ids = snowflakeRedisGeneratorHandle.nextIds(jsonObjectList.size());
+        AtomicInteger index = new AtomicInteger(0);
         jsonObjectList.forEach(jsonObject -> {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
             //数据清洗
             dataCleanHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
+            marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));
             syncUsers.add(marketingPreUserDetailDTO);
         });
         marketingPreUserDTO.setDataItems(syncUsers);
@@ -686,10 +682,13 @@ public class DataCleanServiceImpl implements DataCleanService {
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         // 处理数据清洗
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        AtomicInteger index = new AtomicInteger(0);
+        List<Long> ids = snowflakeRedisGeneratorHandle.nextIds(jsonObjectList.size());
         jsonObjectList.forEach(jsonData -> {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
             // 调用数据清洗处理方法
             dataCleanHandler(jsonData, ruleConfigList, marketingPreUserDetailDTO);
+            marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));
             syncUsers.add(marketingPreUserDetailDTO);
 
         });
