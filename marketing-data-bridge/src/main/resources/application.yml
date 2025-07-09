@@ -23,10 +23,13 @@ spring:
     username: marketing-br@brgroup.com
     password: 1S9D9ocaNwk#
     default-encoding: UTF-8
+    protocol: imaps
+    properties:
+      mail.imap.ssl.enable: true
+      mail.imap.auth: true
 
 
 server:
-  port: 19708
   port: 19809
 
 #生成结果文件目录
