@@ -3182,6 +3182,16 @@ public class MarketingCommonConfig {
     private Boolean xcMqReportHandlerSwitch;
 
     /**
+     * 上传文件清洗线程数
+     */
+    private Integer uploadFileCleanThreadNum;
+
+    /**
+     * 数禾重申提取表头字段
+     */
+    private String shuHeChongShenTransferTableHead;
+
+    /**
      * 携程CPS撞库数据同步分页条数
      */
     private Integer xieChengCpsCollidingDataSyncPageSize;

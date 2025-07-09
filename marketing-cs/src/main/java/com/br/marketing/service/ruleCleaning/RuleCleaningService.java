@@ -1,9 +1,8 @@
 package com.br.marketing.service.ruleCleaning;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
-import com.br.marketing.client.rulecleaning.FieldSampleDTO;
-import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
+import com.br.marketing.client.rulecleaning.*;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
@@ -104,4 +103,18 @@ public interface RuleCleaningService {
      * @return 操作结果
      */
     boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO);
+
+    List<String> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
+
+    boolean saveCleanConfig(CleanConfigDTO configDTO);
+
+    List<String> getFileSftpPath(String apiCode, Integer fileType);
+
+    List<FieldSampleDTO> getRuleDetail(Long configId);
+
+    boolean saveCleanRule(RuleCleaningConfigDTO ruleCleaningConfigDTO);
+
+    Result<List<List<RuleCleaningResult>>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO);
+
+    boolean ruleEffect(Long ruleId);
 }

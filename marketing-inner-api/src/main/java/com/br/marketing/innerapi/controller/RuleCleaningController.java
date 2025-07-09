@@ -2,9 +2,9 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.rulecleaning.FieldCleaningConfigDTO;
-import com.br.marketing.client.rulecleaning.FieldCleaningPreviewDTO;
+import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
@@ -13,8 +13,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
-import com.br.marketing.client.rulecleaning.FieldSampleDTO;
-import com.br.marketing.client.rulecleaning.RuleCleaningConfigDTO;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +20,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import com.br.marketing.client.rulecleaning.CleanConfigDTO;
+
 
 /**
  * 规则数据清洗
@@ -229,6 +230,127 @@ public class RuleCleaningController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "获取模版字段配置接口错误！错误信息：" + e.getMessage()), e);
             return new ApiResult<MarketingDataCleanGeneralFieldConfig>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getLastMonthDataDates")
+    @ApiOperation(value = "查询近一个月有数据的日期集合", notes = "查询近一个月有数据的日期集合", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
+            @ApiImplicitParam(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true),
+            @ApiImplicitParam(name = "sftpPath", value = "sftp地址，接口类型为FTP则必填", paramType = "query", dataType = "String", required = false)
+    })
+    public ApiResult<List<String>> getLastMonthDataDates(@RequestParam("apiCode") String apiCode, @RequestParam("acceptType") Integer acceptType, @RequestParam(required = false) String sftpPath) {
+
+        try {
+            List<String> result = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
+            return new ApiResult<List<String>>().success(result);
+        }catch (BusinessException be){
+            return new ApiResult<List<String>>().fail(be.getMsg());
+        }catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.LASTMONTHDATDDATES_SERVICEERROR.getCode(),
+                    "获取近一个月有数据的日期失败！错误信息：" + e.getMessage()),e);
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    @PostMapping("/config/save")
+    @ApiOperation(value = "清洗配置保存", notes = "清洗配置保存", httpMethod = "POST")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    public ApiResult<Boolean> saveConfig(@RequestBody @Validated CleanConfigDTO configDTO) {
+        try {
+            // 调用Service处理业务逻辑
+            boolean result = ruleCleaningService.saveCleanConfig(configDTO);
+            return new ApiResult<Boolean>().success(result);
+        } catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false, be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "规则配置保存接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    @GetMapping("/getFileSftpPath")
+    @ApiOperation(value = "获取文件SFTP路径", notes = "获取文件SFTP路径", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
+            @ApiImplicitParam(name = "fileType", value = "文件类型：13:上传清洗周期文件,14:转化清洗周期文件", paramType = "query", dataType = "integer", required = true)
+
+    })
+    public ApiResult<List<String>> getFileSftpPath(@RequestParam("apiCode") String apiCode,@RequestParam("fileType") Integer fileType) {
+        try {
+            List<String> dates = ruleCleaningService.getFileSftpPath(apiCode, fileType);
+            return new ApiResult<List<String>>().success(dates);
+        } catch (BusinessException be) {
+            return new ApiResult<List<String>>().fail(be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "获取文件SFTP路径失败！错误信息：" + e.getMessage()), e);
+            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getRuleDetail")
+    @ApiOperation(value = "获取清洗规则配置", notes = "获取清洗规则配置", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "configId", value = "配置Id", paramType = "query", dataType = "Long", required = true)
+
+    })
+    public ApiResult<List<FieldSampleDTO>> getRuleDetail(@RequestParam("configId") Long configId) {
+        try {
+            List<FieldSampleDTO> ruleDetails = ruleCleaningService.getRuleDetail(configId);
+            return new ApiResult<List<FieldSampleDTO>>().success(ruleDetails);
+        } catch (BusinessException be) {
+            return new ApiResult<List<FieldSampleDTO>>().fail(be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "获取清洗规则配置！错误信息：" + e.getMessage()), e);
+            return new ApiResult<List<FieldSampleDTO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+    @PostMapping("/rule/save")
+    @ApiOperation(value = "清洗规则保存", notes = "清洗规则保存", httpMethod = "POST")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    public ApiResult<Boolean> saveCleanRule(@RequestBody @Validated RuleCleaningConfigDTO ruleCleaningConfigDTO) {
+        // 调用Service处理业务逻辑
+        boolean result = ruleCleaningService.saveCleanRule(ruleCleaningConfigDTO);
+        return new ApiResult<Boolean>().success(result);
+
+    }
+
+
+    @PostMapping("/trailProcess")
+    @ApiOperation(value = "试跑验证规则有效性",notes = "试跑验证规则有效性",httpMethod = "POST")
+    public ApiResult<List<List<RuleCleaningResult>>> trailProcess(@RequestBody RuleTrialConfigDTO ruleTrialConfigDTO){
+        try {
+            Result<List<List<RuleCleaningResult>>> result = ruleCleaningService.trialProcess(ruleTrialConfigDTO);
+            return new ApiResult<List<List<RuleCleaningResult>>>().setData(result.getData()).success(result.getMessage());
+        }catch (BusinessException be) {
+            return new ApiResult<List<List<RuleCleaningResult>>>().fail("",be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "规则试跑接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<List<List<RuleCleaningResult>>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/ruleEffect")
+    @ApiOperation(value = "规则生效处理",notes = "规则生效处理",httpMethod = "POST")
+    public ApiResult<Boolean> ruleEffect(@RequestParam("ruleId") Long ruleId){
+        try {
+            boolean result = ruleCleaningService.ruleEffect(ruleId);
+            return new ApiResult<Boolean>().success(result);
+        }catch (BusinessException be) {
+            return new ApiResult<Boolean>().fail(false,be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "规则生效处理接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 
