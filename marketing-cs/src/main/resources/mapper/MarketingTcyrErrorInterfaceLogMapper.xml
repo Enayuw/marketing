@@ -19,4 +19,15 @@
         SET deal_status = #{dealStatus}
         WHERE id=#{id}
     </update>
+
+    <update id="batchUpdateDealStatus">
+        UPDATE
+            b_marketing_tcyr_error_interface_log
+        SET deal_status = #{dealStatus}
+        WHERE  id IN (
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id}
+        </foreach>
+        )
+    </update>
 </mapper>

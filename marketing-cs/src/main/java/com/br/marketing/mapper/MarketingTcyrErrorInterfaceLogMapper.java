@@ -14,4 +14,8 @@ public interface MarketingTcyrErrorInterfaceLogMapper extends MarketingTcyrError
     void updateDealStatus(
             @Param("id") Long id,
             @Param("dealStatus") Integer dealStatus);
+
+    void batchUpdateDealStatus(
+            @Param("idList") List<Long> idList,
+            @Param("dealStatus") Integer dealStatus);
 }
