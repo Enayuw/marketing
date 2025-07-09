@@ -34,6 +34,7 @@ import javax.mail.search.SubjectTerm;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -49,7 +50,9 @@ import java.util.stream.Stream;
 @Slf4j
 public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsInfoService {
 
-    private static final String MAIL_PREFIX = "三方营销效果监控-百融";
+    private static final String API_CODE = "3710012";
+
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -80,32 +83,26 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
         LocalDate endDate = Optional.ofNullable(param.getString("endDate"))
                 .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
                 .orElseGet(() -> LocalDate.now().minusDays(2));
-        boolean forceOverride = Optional.ofNullable(param.getBoolean("forceOverride")).orElse(false);
 
-        // 使用Stream生成日期序列并构造结果列表
+        // 使用Stream生成日期序列并构造邮件标题列表
         List<String> dates = Stream.iterate(startDate, date -> date.plusDays(1))
                 .limit(startDate.until(endDate).getDays() + 1L)
                 .map(date -> date.format(FORMATTER))
                 .collect(Collectors.toList());
-        List<String> fileNames = dates.stream().map(MAIL_PREFIX::concat).collect(Collectors.toList());
+        String mailPrefix = marketingCommonConfig.getMailApiCodeSubjectMap().get(API_CODE);
+        List<String> fileNames = dates.stream().map(mailPrefix::concat).collect(Collectors.toList());
         NfsFileTOBiRecordExample nfsFileTOBiRecordExample = new NfsFileTOBiRecordExample();
         nfsFileTOBiRecordExample.createCriteria().andFileNameIn(fileNames);
-        // 这里认为执行日期等于数据日期
-        List<String> executedDates = nfsFileTOBiRecordMapper.selectByExample(nfsFileTOBiRecordExample)
-                .stream().map(NfsFileTOBiRecord::getExecuteDate).collect(Collectors.toList());
-        if (!forceOverride) {
-            dates = dates.stream().filter(fileName -> !executedDates.contains(fileName)).collect(Collectors.toList());
-        }
-        if (CollectionUtils.isEmpty(dates)) {
-            return;
-        }
+        // 按照邮件主题分组，获取邮件发送时间
+        Map<String, List<String>> mailSendTimesMap = nfsFileTOBiRecordMapper.selectByExample(nfsFileTOBiRecordExample)
+                .stream().collect(Collectors.groupingBy(NfsFileTOBiRecord::getFileName,
+                        Collectors.mapping(NfsFileTOBiRecord::getSendTime, Collectors.toList())));
 
         Map<String, String> YiXinMailConfig = marketingCommonConfig.getYiXinMailConfigMap();
         String userName = YiXinMailConfig.get("userName");
         String password = YiXinMailConfig.get("password");
 
-        String apiCode = marketingCommonConfig.getMailSubjectApiCodeMap().get(MAIL_PREFIX);
-        BFileBiConfig bFileBiConfig = getBFileBiConfig(apiCode, "2").get(0);
+        BFileBiConfig bFileBiConfig = getBFileBiConfig().get(0);
         List<String> columns = Arrays.asList(bFileBiConfig.getDbFields().split(","));
 
         Properties props = mailSender.getJavaMailProperties();
@@ -127,14 +124,23 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
             for (String date : dates) {
                 log.warn("宜信邮件统计数据抓取任务，开始处理日期:{}", date);
                 String mailDate = LocalDate.parse(date, FORMATTER).format(OUTPUT_FORMATTER);
-                SearchTerm term = new SubjectTerm(MAIL_PREFIX.concat(mailDate));
+                SearchTerm term = new SubjectTerm(mailPrefix.concat(mailDate));
                 try {
                     Message[] messages = inbox.search(term);
                     if (ArrayUtils.isEmpty(messages)) {
-                        log.warn("未找到邮件:{}", MAIL_PREFIX.concat(date));
+                        log.warn("未找到邮件:{}", mailPrefix.concat(date));
+                        continue;
                     }
-                    Message message = messages[messages.length - 1];
-                    dealDailyMail(date, message, bFileBiConfig, columns);
+                    for (Message message : messages) {
+                        try {
+                            String sendTime = SIMPLE_DATE_FORMAT.format(message.getSentDate());
+                            if (!mailSendTimesMap.get(mailPrefix.concat(date)).contains(sendTime)) {
+                                dealDailyMail(date, message, bFileBiConfig, columns, mailPrefix, sendTime);
+                            }
+                        } catch (Exception e) {
+                            log.warn("宜信邮件统计数据抓取任务异常获取邮件发送时间获取异常:{}", mailPrefix.concat(mailDate));
+                        }
+                    }
                 } catch (Exception e) {
                     String errMsg = "宜信邮件统计数据抓取任务异常: " + date + " Exception: " + e.getMessage();
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
@@ -161,7 +167,8 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
         }
     }
 
-    private void dealDailyMail(String date, Message message, BFileBiConfig bFileBiConfig, List<String> columns) throws Exception {
+    private void dealDailyMail(String date, Message message, BFileBiConfig bFileBiConfig,
+                               List<String> columns, String mailPrefix, String sendTime) throws Exception {
         List<BodyPart> attachments = getExcelAttachments(message);
         if (CollectionUtils.isEmpty(attachments)) {
             return;
@@ -185,29 +192,24 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
             if (insertSql.charAt(insertSql.length() - 1) == ',') {
                 insertSql.setLength(insertSql.length() - 1);
             }
-            String delSql = "DELETE FROM " + bFileBiConfig.getDbName() + " WHERE execute_date = '" + date + "'";
-            transferFileExtractToDorisBIMapper.deleteDataFromMarketingBiTablebI_(delSql);
             transferFileExtractToDorisBIMapper.insertDataToMarketingBiTablebI_(insertSql.toString());
 
-            NfsFileTOBiRecordExample example = new NfsFileTOBiRecordExample();
-            example.createCriteria().andFileNameEqualTo(MAIL_PREFIX.concat(date));
-            nfsFileTOBiRecordMapper.deleteByExample(example);
-
             NfsFileTOBiRecord record = new NfsFileTOBiRecord();
-            record.setApiCode(marketingCommonConfig.getMailSubjectApiCodeMap().get(MAIL_PREFIX));
-            record.setFilePath(MAIL_PREFIX.concat(date));
-            record.setFileName(MAIL_PREFIX.concat(date));
+            record.setApiCode(API_CODE);
+            record.setFilePath(mailPrefix.concat(date));
+            record.setFileName(mailPrefix.concat(date));
             record.setExecuteDate(date);
+            record.setSendTime(sendTime);
             nfsFileTOBiRecordMapper.insertSelective(record);
         }
     }
 
-    private List<BFileBiConfig> getBFileBiConfig(String apiCode, String busType) {
+    private List<BFileBiConfig> getBFileBiConfig() {
         BFileBiConfigExample example = new BFileBiConfigExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andBusTypeEqualTo(busType);
+        example.createCriteria().andApiCodeEqualTo(API_CODE).andBusTypeEqualTo("9");
         List<BFileBiConfig> bFileBiConfigs = bFileBiConfigMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(bFileBiConfigs)) {
-            String errMsg = "apiCode: " + apiCode + " nfs转化提取文件落库到marketingBI没有找到对应的配置信息";
+            String errMsg = "apiCode: " + API_CODE + " nfs转化提取文件落库到marketingBI没有找到对应的配置信息";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
             return new ArrayList<>();
         }

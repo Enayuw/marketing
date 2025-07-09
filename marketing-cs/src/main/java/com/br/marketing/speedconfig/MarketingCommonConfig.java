@@ -9,6 +9,7 @@ import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
+import shaded.com.google.common.collect.ImmutableMap;
 import shaded.com.google.common.collect.Lists;
 
 import java.util.*;
@@ -3193,9 +3194,9 @@ public class MarketingCommonConfig {
 
     /**
      * 邮件主题和API Code对应关系
-     * {"三方营销效果监控-百融":"3710012"}
+     * {"3710012":"三方营销效果监控-百融"}
      */
-    private Map<String, String> mailSubjectApiCodeMap;
+    private Map<String, String> mailApiCodeSubjectMap;
 
     /**
      * 邮件主题和API Code对应关系

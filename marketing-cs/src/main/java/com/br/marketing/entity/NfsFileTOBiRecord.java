@@ -1,5 +1,10 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
+import java.util.Date;
+
+@Data
 public class NfsFileTOBiRecord {
     /**
      * 
@@ -35,6 +40,21 @@ public class NfsFileTOBiRecord {
      * 执行日期
      */
     private String executeDate;
+
+    /**
+     * 文件传输时间
+     */
+    private String sendTime;
+
+    /**
+     * 入库时间，推送时间
+     */
+    private Date createTime;
+
+    /**
+     * 更新记录时间
+     */
+    private Date updateTime;
 
     public Long getId() {
         return id;
