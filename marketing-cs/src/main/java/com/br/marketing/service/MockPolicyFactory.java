@@ -1,7 +1,7 @@
 package com.br.marketing.service;
 
+import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.entity.MockCase;
-import com.br.marketing.entity.MockPolicy;
 
 /**
  * @ClassName MockPolicyFactory
@@ -19,6 +19,6 @@ public interface MockPolicyFactory {
     /**
      * 策略执行
      */
-    MockCase action(MockPolicy policy);
+    MockCase action(MockCreatePolicyDTO policy);
 
 }

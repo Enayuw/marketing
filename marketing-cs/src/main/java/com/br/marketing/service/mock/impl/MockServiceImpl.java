@@ -399,7 +399,7 @@ public class MockServiceImpl implements MockService {
 
     @Override
     public MockCase action(String redisValue) {
-        MockPolicy policy = JSON.parseObject(redisValue, MockPolicy.class);
+        MockCreatePolicyDTO policy = JSON.parseObject(redisValue, MockCreatePolicyDTO.class);
         //获取执行策略
         MockPolicyFactory mockPolicyFactory = mockPolicy.getMockPolicyFactory(policy.getMockPolicyType());
         if (mockPolicyFactory == null) {

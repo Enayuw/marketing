@@ -2,8 +2,8 @@ package com.br.marketing.service.mock.impl;
 
 import com.br.common.util.StringUtils;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.entity.MockCase;
-import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.service.MockPolicyFactory;
 import com.br.marketing.service.mock.MockService;
 import com.br.marketing.service.mock.enums.MockPolicyEnum;
@@ -34,7 +34,7 @@ public class MockPolicyFactoryByFixedFactory implements MockPolicyFactory {
     }
 
     @Override
-    public MockCase action(MockPolicy policy) {
+    public MockCase action(MockCreatePolicyDTO policy) {
         // 参数校验
         if (policy == null || StringUtils.isBlank(policy.getMockName())) {
             log.warn("Mock策略或mockName为空");
