@@ -12,7 +12,7 @@
         AND vendor_name LIKE CONCAT('%', #{vendorName}, '%')
       </if>
       <if test="channelsName!=null and channelsName!=''">
-        AND channels_name LIKE CONCAT('%', #{channelsName}, '%')
+        AND channels_info LIKE CONCAT('%', #{channelsName}, '%')
       </if>
       <if test="price != null">
         AND price = #{price}
