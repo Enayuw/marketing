@@ -85,7 +85,8 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         CountDownLatch countDownLatch = new CountDownLatch(sha256CodeList.size());
         String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         for (String sha256Code : sha256CodeList) {
-            String dataId = sha256Code.hashCode() + currentDate;
+            long hashCodeLong = sha256Code.hashCode() & 0x7FFFFFFFL;
+            String dataId = hashCodeLong + currentDate;
             pool.submit(() -> buildConversionDataList(nowDayEndTime, cid, sha256Code, dataId, countDownLatch, conversionDataList));
         }
         try {
