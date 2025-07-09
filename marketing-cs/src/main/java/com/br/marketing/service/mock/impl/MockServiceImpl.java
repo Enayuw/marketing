@@ -209,6 +209,12 @@ public class MockServiceImpl implements MockService {
         try {
             // 新增策略
             if (dto.getId() == null) {
+                MockPolicyExample mockPolicyExample = new MockPolicyExample();
+                mockPolicyExample.createCriteria().andMockNameEqualTo(dto.getMockName()).andIsDelEqualTo(Constants.DATA_VALID);
+                int i = mockPolicyMapper.countByExample(mockPolicyExample);
+                if(i > 0){
+                    return new ApiResult<Boolean>().fail("该Mock规则已存在，请检查！mockName:" + dto.getMockName());
+                }
                 MockPolicy mockPolicy = new MockPolicy();
                 mockPolicy.setMockName(dto.getMockName());
                 mockPolicy.setMockPolicyType(dto.getMockPolicyType());
@@ -259,11 +265,11 @@ public class MockServiceImpl implements MockService {
                 mockCase.setMockCaseName(createCaseDTO.getMockCaseName());
                 mockCase.setApiCode(createCaseDTO.getApiCode());
                 mockCase.setMockCaseName(createCaseDTO.getMockCaseName());
-                mockCase.setResponseBody(JSONObject.toJSONString(createCaseDTO.getResponseBody()));
+                mockCase.setResponseBody(createCaseDTO.getResponseBody());
                 mockCase.setStatusCode(createCaseDTO.getStatusCode());
                 mockCase.setDelayMs(createCaseDTO.getDelayMs());
                 mockCase.setDelayFluctuation(createCaseDTO.getDelayFluctuation());
-                mockCase.setDescription(dto.getDescription());
+                mockCase.setDescription(createCaseDTO.getDescription());
                 mockCase.setOptUserId(Long.valueOf(userDetail.getId()));
                 mockCase.setOptUserName(userDetail.getUserName());
                 mockCase.setEnabled(dto.getEnabled());
@@ -277,9 +283,9 @@ public class MockServiceImpl implements MockService {
 
             // Redis更新，失败重试3次
             redisRetry(dto);
-            log.warn("Mock保存/更新成功，mockName: {}, version: {}", dto.getMockName(), dto.getVersion());
         } catch (Exception e) {
             log.error("Mock保存/更新失败，mockName: {}, 错误信息: {}", dto.getMockName(), e.getMessage(), e);
+            return new ApiResult<Boolean>().fail("Mock保存/更新失败，mockName: "+ dto.getMockName()+ "，错误信息: "+  e.getMessage());
         }
         return new ApiResult<Boolean>().success("添加成功");
     }
@@ -342,17 +348,13 @@ public class MockServiceImpl implements MockService {
     }
 
     @Override
-    public List<MockCase> getMockCaseList(String mockName) {
-
+    public ApiResult<List<MockCase>> getMockCaseList(String mockName) {
         try {
             MockCaseExample mockCaseExample = new MockCaseExample();
             mockCaseExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(1);
-            return mockCaseMapper.selectByExample(mockCaseExample);
+            return new ApiResult<List<MockCase>>().success(mockCaseMapper.selectByExample(mockCaseExample));
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(
-                    AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                    "获取Mock用例列表失败！mockName: " + mockName), e);
-            return null;
+            return new ApiResult<List<MockCase>>().fail("获取Mock用例列表失败！mockName: " + mockName);
         }
     }
 

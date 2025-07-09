@@ -1,6 +1,7 @@
 package com.br.marketing.service.mock.impl;
 
 import com.br.common.util.StringUtils;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.entity.MockCase;
 import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.service.MockPolicyFactory;
@@ -42,7 +43,8 @@ public class MockPolicyFactoryByFixedFactory implements MockPolicyFactory {
 
         try {
             String mockName = policy.getMockName();
-            List<MockCase> mockCaseList = mockService.getMockCaseList(mockName);
+            ApiResult<List<MockCase>> apiResult = mockService.getMockCaseList(mockName);
+            List<MockCase> mockCaseList = apiResult.getData();
 
             // 处理空列表情况
             if (CollectionUtils.isEmpty(mockCaseList)) {

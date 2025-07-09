@@ -6,6 +6,7 @@
     <result column="mock_name" property="mockName" jdbcType="VARCHAR" />
     <result column="mock_case_name" property="mockCaseName" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="response_body" property="responseBody" jdbcType="VARCHAR" />
     <result column="status_code" property="statusCode" jdbcType="INTEGER" />
     <result column="delay_ms" property="delayMs" jdbcType="INTEGER" />
     <result column="delay_fluctuation" property="delayFluctuation" jdbcType="INTEGER" />
@@ -17,9 +18,6 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MockCase" extends="BaseResultMap" >
-    <result column="response_body" property="responseBody" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -80,29 +78,10 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, mock_name, mock_case_name, api_code, status_code, delay_ms, delay_fluctuation,
-    description, opt_user_id, opt_user_name, enabled, create_date, create_time, update_time,
+    id, mock_name, mock_case_name, api_code, response_body, status_code, delay_ms, delay_fluctuation, 
+    description, opt_user_id, opt_user_name, enabled, create_date, create_time, update_time, 
     is_del
   </sql>
-  <sql id="Blob_Column_List" >
-    response_body
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MockCaseExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_marketing_mock_case
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MockCaseExample" >
     select
     <if test="distinct" >
@@ -117,11 +96,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_marketing_mock_case
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -139,18 +116,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_mock_case (mock_name, mock_case_name, api_code,
-    status_code, delay_ms, delay_fluctuation,
-    description, opt_user_id, opt_user_name,
-    enabled, create_date, create_time,
-    update_time, is_del, response_body
-    )
-    values (#{mockName,jdbcType=VARCHAR}, #{mockCaseName,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR},
-    #{statusCode,jdbcType=INTEGER}, #{delayMs,jdbcType=INTEGER}, #{delayFluctuation,jdbcType=INTEGER},
-    #{description,jdbcType=VARCHAR}, #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR},
-    #{enabled,jdbcType=INTEGER}, #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
-    #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, #{responseBody,jdbcType=LONGVARCHAR}
-    )
+    insert into b_marketing_mock_case (mock_name, mock_case_name, api_code, 
+      response_body, status_code, delay_ms, 
+      delay_fluctuation, description, opt_user_id, 
+      opt_user_name, enabled, create_date, 
+      create_time, update_time, is_del
+      )
+    values (#{mockName,jdbcType=VARCHAR}, #{mockCaseName,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
+      #{responseBody,jdbcType=VARCHAR}, #{statusCode,jdbcType=INTEGER}, #{delayMs,jdbcType=INTEGER}, 
+      #{delayFluctuation,jdbcType=INTEGER}, #{description,jdbcType=VARCHAR}, #{optUserId,jdbcType=BIGINT}, 
+      #{optUserName,jdbcType=VARCHAR}, #{enabled,jdbcType=INTEGER}, #{createDate,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MockCase" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -166,6 +143,9 @@
       </if>
       <if test="apiCode != null" >
         api_code,
+      </if>
+      <if test="responseBody != null" >
+        response_body,
       </if>
       <if test="statusCode != null" >
         status_code,
@@ -200,9 +180,6 @@
       <if test="isDel != null" >
         is_del,
       </if>
-      <if test="responseBody != null" >
-        response_body,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="mockName != null" >
@@ -213,6 +190,9 @@
       </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="responseBody != null" >
+        #{responseBody,jdbcType=VARCHAR},
       </if>
       <if test="statusCode != null" >
         #{statusCode,jdbcType=INTEGER},
@@ -247,9 +227,6 @@
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="responseBody != null" >
-        #{responseBody,jdbcType=LONGVARCHAR},
-      </if>
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.br.marketing.entity.MockCaseExample" resultType="java.lang.Integer" >
@@ -272,6 +249,9 @@
       </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.responseBody != null" >
+        response_body = #{record.responseBody,jdbcType=VARCHAR},
       </if>
       <if test="record.statusCode != null" >
         status_code = #{record.statusCode,jdbcType=INTEGER},
@@ -306,32 +286,7 @@
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.responseBody != null" >
-        response_body = #{record.responseBody,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_marketing_mock_case
-    set id = #{record.id,jdbcType=BIGINT},
-    mock_name = #{record.mockName,jdbcType=VARCHAR},
-    mock_case_name = #{record.mockCaseName,jdbcType=VARCHAR},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    status_code = #{record.statusCode,jdbcType=INTEGER},
-    delay_ms = #{record.delayMs,jdbcType=INTEGER},
-    delay_fluctuation = #{record.delayFluctuation,jdbcType=INTEGER},
-    description = #{record.description,jdbcType=VARCHAR},
-    opt_user_id = #{record.optUserId,jdbcType=BIGINT},
-    opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
-    enabled = #{record.enabled,jdbcType=INTEGER},
-    create_date = #{record.createDate,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    is_del = #{record.isDel,jdbcType=INTEGER},
-    response_body = #{record.responseBody,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -339,20 +294,21 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_mock_case
     set id = #{record.id,jdbcType=BIGINT},
-    mock_name = #{record.mockName,jdbcType=VARCHAR},
-    mock_case_name = #{record.mockCaseName,jdbcType=VARCHAR},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    status_code = #{record.statusCode,jdbcType=INTEGER},
-    delay_ms = #{record.delayMs,jdbcType=INTEGER},
-    delay_fluctuation = #{record.delayFluctuation,jdbcType=INTEGER},
-    description = #{record.description,jdbcType=VARCHAR},
-    opt_user_id = #{record.optUserId,jdbcType=BIGINT},
-    opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
-    enabled = #{record.enabled,jdbcType=INTEGER},
-    create_date = #{record.createDate,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    is_del = #{record.isDel,jdbcType=INTEGER}
+      mock_name = #{record.mockName,jdbcType=VARCHAR},
+      mock_case_name = #{record.mockCaseName,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      response_body = #{record.responseBody,jdbcType=VARCHAR},
+      status_code = #{record.statusCode,jdbcType=INTEGER},
+      delay_ms = #{record.delayMs,jdbcType=INTEGER},
+      delay_fluctuation = #{record.delayFluctuation,jdbcType=INTEGER},
+      description = #{record.description,jdbcType=VARCHAR},
+      opt_user_id = #{record.optUserId,jdbcType=BIGINT},
+      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+      enabled = #{record.enabled,jdbcType=INTEGER},
+      create_date = #{record.createDate,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_del = #{record.isDel,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -368,6 +324,9 @@
       </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="responseBody != null" >
+        response_body = #{responseBody,jdbcType=VARCHAR},
       </if>
       <if test="statusCode != null" >
         status_code = #{statusCode,jdbcType=INTEGER},
@@ -402,47 +361,26 @@
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="responseBody != null" >
-        response_body = #{responseBody,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MockCase" >
-    update b_marketing_mock_case
-    set mock_name = #{mockName,jdbcType=VARCHAR},
-        mock_case_name = #{mockCaseName,jdbcType=VARCHAR},
-        api_code = #{apiCode,jdbcType=VARCHAR},
-        status_code = #{statusCode,jdbcType=INTEGER},
-        delay_ms = #{delayMs,jdbcType=INTEGER},
-        delay_fluctuation = #{delayFluctuation,jdbcType=INTEGER},
-        description = #{description,jdbcType=VARCHAR},
-        opt_user_id = #{optUserId,jdbcType=BIGINT},
-        opt_user_name = #{optUserName,jdbcType=VARCHAR},
-        enabled = #{enabled,jdbcType=INTEGER},
-        create_date = #{createDate,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        is_del = #{isDel,jdbcType=INTEGER},
-        response_body = #{responseBody,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MockCase" >
     update b_marketing_mock_case
     set mock_name = #{mockName,jdbcType=VARCHAR},
-        mock_case_name = #{mockCaseName,jdbcType=VARCHAR},
-        api_code = #{apiCode,jdbcType=VARCHAR},
-        status_code = #{statusCode,jdbcType=INTEGER},
-        delay_ms = #{delayMs,jdbcType=INTEGER},
-        delay_fluctuation = #{delayFluctuation,jdbcType=INTEGER},
-        description = #{description,jdbcType=VARCHAR},
-        opt_user_id = #{optUserId,jdbcType=BIGINT},
-        opt_user_name = #{optUserName,jdbcType=VARCHAR},
-        enabled = #{enabled,jdbcType=INTEGER},
-        create_date = #{createDate,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        is_del = #{isDel,jdbcType=INTEGER}
+      mock_case_name = #{mockCaseName,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      response_body = #{responseBody,jdbcType=VARCHAR},
+      status_code = #{statusCode,jdbcType=INTEGER},
+      delay_ms = #{delayMs,jdbcType=INTEGER},
+      delay_fluctuation = #{delayFluctuation,jdbcType=INTEGER},
+      description = #{description,jdbcType=VARCHAR},
+      opt_user_id = #{optUserId,jdbcType=BIGINT},
+      opt_user_name = #{optUserName,jdbcType=VARCHAR},
+      enabled = #{enabled,jdbcType=INTEGER},
+      create_date = #{createDate,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

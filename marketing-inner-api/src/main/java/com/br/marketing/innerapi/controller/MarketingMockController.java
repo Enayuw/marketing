@@ -123,8 +123,7 @@ public class MarketingMockController {
     })
     public ApiResult<List<MockCase>> getMockCaseList(@RequestParam(name = "mockName") String mockName) {
         try {
-            List<MockCase> mockCase = mockService.getMockCaseList(mockName);
-            return new ApiResult<List<MockCase>>().success(mockCase);
+            return mockService.getMockCaseList(mockName);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "获取Mock策略列表接口错误！错误信息：" + ex.getMessage()), ex);

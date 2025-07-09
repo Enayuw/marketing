@@ -28,7 +28,7 @@ public interface MockService {
 
     Boolean deleteMockPolicies(List<Long> ids, MarketingUserDetail userDetail);
 
-    List<MockCase> getMockCaseList(String mockName);
+    ApiResult<List<MockCase>> getMockCaseList(String mockName);
 
     ApiResult<List<String>> getMockName();
 

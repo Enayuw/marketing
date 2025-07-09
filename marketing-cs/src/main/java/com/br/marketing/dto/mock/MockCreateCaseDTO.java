@@ -29,7 +29,7 @@ public class MockCreateCaseDTO implements Serializable {
     private String apiCode;
 
     @ApiModelProperty("返回响应")
-    private Object responseBody;
+    private String responseBody;
 
     @ApiModelProperty("响应状态码")
     private Integer statusCode;

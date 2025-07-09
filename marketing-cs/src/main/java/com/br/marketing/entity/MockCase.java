@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class MockCase {
     /**
-     *
+     * 
      */
     private Long id;
 
@@ -22,6 +22,11 @@ public class MockCase {
      * 商户编号
      */
     private String apiCode;
+
+    /**
+     * Mock响应体
+     */
+    private String responseBody;
 
     /**
      * 响应状态码
@@ -69,7 +74,7 @@ public class MockCase {
     private Date createTime;
 
     /**
-     *
+     * 
      */
     private Date updateTime;
 
@@ -77,11 +82,6 @@ public class MockCase {
      * 1-有效；9-无效
      */
     private Integer isDel;
-
-    /**
-     * Mock响应体
-     */
-    private String responseBody;
 
     public Long getId() {
         return id;
@@ -113,6 +113,14 @@ public class MockCase {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getResponseBody() {
+        return responseBody;
+    }
+
+    public void setResponseBody(String responseBody) {
+        this.responseBody = responseBody == null ? null : responseBody.trim();
     }
 
     public Integer getStatusCode() {
@@ -201,13 +209,5 @@ public class MockCase {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
-    }
-
-    public String getResponseBody() {
-        return responseBody;
-    }
-
-    public void setResponseBody(String responseBody) {
-        this.responseBody = responseBody == null ? null : responseBody.trim();
     }
 }

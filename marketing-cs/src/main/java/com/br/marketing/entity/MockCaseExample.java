@@ -375,6 +375,76 @@ public class MockCaseExample {
             return (Criteria) this;
         }
 
+        public Criteria andResponseBodyIsNull() {
+            addCriterion("response_body is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyIsNotNull() {
+            addCriterion("response_body is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyEqualTo(String value) {
+            addCriterion("response_body =", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyNotEqualTo(String value) {
+            addCriterion("response_body <>", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyGreaterThan(String value) {
+            addCriterion("response_body >", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyGreaterThanOrEqualTo(String value) {
+            addCriterion("response_body >=", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyLessThan(String value) {
+            addCriterion("response_body <", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyLessThanOrEqualTo(String value) {
+            addCriterion("response_body <=", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyLike(String value) {
+            addCriterion("response_body like", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyNotLike(String value) {
+            addCriterion("response_body not like", value, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyIn(List<String> values) {
+            addCriterion("response_body in", values, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyNotIn(List<String> values) {
+            addCriterion("response_body not in", values, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyBetween(String value1, String value2) {
+            addCriterion("response_body between", value1, value2, "responseBody");
+            return (Criteria) this;
+        }
+
+        public Criteria andResponseBodyNotBetween(String value1, String value2) {
+            addCriterion("response_body not between", value1, value2, "responseBody");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusCodeIsNull() {
             addCriterion("status_code is null");
             return (Criteria) this;
