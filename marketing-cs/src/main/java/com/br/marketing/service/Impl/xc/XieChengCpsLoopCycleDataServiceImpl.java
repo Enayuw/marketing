@@ -68,12 +68,11 @@ public class XieChengCpsLoopCycleDataServiceImpl implements XieChengCpsLoopCycle
 
     @Override
     public void process() {
-        // 分页大小
-        Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
-
         Long minId = null;
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
+            // 分页大小
+            Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
             // 结束时间：当前时间
             Date endDate = new Date();
             List<XieChengCpsCollidingDataLoopCycle> list = dataLoopCycleMapper.selectCycleDataByReleaseTime(minId, endDate, pageSize);
