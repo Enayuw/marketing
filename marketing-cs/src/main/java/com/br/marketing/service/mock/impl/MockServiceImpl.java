@@ -207,6 +207,7 @@ public class MockServiceImpl implements MockService {
         }
 
         try {
+            int newVersion;
             // 新增策略
             if (dto.getId() == null) {
                 MockPolicyExample mockPolicyExample = new MockPolicyExample();
@@ -216,10 +217,11 @@ public class MockServiceImpl implements MockService {
                     return new ApiResult<Boolean>().fail("该Mock规则已存在，请检查！mockName:" + dto.getMockName());
                 }
                 MockPolicy mockPolicy = new MockPolicy();
+                newVersion = 1;
                 mockPolicy.setMockName(dto.getMockName());
                 mockPolicy.setMockPolicyType(dto.getMockPolicyType());
                 mockPolicy.setEnabled(dto.getEnabled());
-                mockPolicy.setVersion("1");
+                mockPolicy.setVersion(String.valueOf(newVersion));
                 mockPolicy.setDescription(dto.getDescription());
                 mockPolicy.setOptUserId(Long.valueOf(userDetail.getId()));
                 mockPolicy.setOptUserName(userDetail.getUserName());
@@ -244,7 +246,7 @@ public class MockServiceImpl implements MockService {
                 mockPolicy.setUpdateTime(new Date());
                 mockPolicy.setCaseCount(dto.getMockCreateCaseDTOS().size());
 
-                int newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
+                newVersion = Integer.parseInt(mockPolicyOld.getVersion()) + 1;
                 mockPolicy.setVersion(String.valueOf(newVersion));
                 mockPolicy.setUpdateTime(new Date());
                 mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
@@ -282,7 +284,15 @@ public class MockServiceImpl implements MockService {
             mockCaseMapper.batchInsert(mockCaseList);
 
             // Redis更新，失败重试3次
-            redisRetry(dto);
+            MockCreatePolicyDTO mockCreatePolicyDTO = new MockCreatePolicyDTO();
+            mockCreatePolicyDTO.setId(dto.getId());
+            mockCreatePolicyDTO.setMockName(dto.getMockName());
+            mockCreatePolicyDTO.setMockPolicyType(dto.getMockPolicyType());
+            mockCreatePolicyDTO.setEnabled(dto.getEnabled());
+            mockCreatePolicyDTO.setVersion(String.valueOf(newVersion));
+            mockCreatePolicyDTO.setDescription(dto.getDescription());
+            mockCreatePolicyDTO.setMockCreateCaseDTOS(dto.getMockCreateCaseDTOS());
+            redisRetry(mockCreatePolicyDTO);
         } catch (Exception e) {
             log.error("Mock保存/更新失败，mockName: {}, 错误信息: {}", dto.getMockName(), e.getMessage(), e);
             return new ApiResult<Boolean>().fail("Mock保存/更新失败，mockName: "+ dto.getMockName()+ "，错误信息: "+  e.getMessage());

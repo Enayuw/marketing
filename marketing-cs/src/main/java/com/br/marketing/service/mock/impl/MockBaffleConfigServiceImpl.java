@@ -1,11 +1,12 @@
 package com.br.marketing.service.mock.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
-import com.br.marketing.entity.MockPolicy;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.service.mock.enums.MockNameEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -38,42 +39,76 @@ public class MockBaffleConfigServiceImpl {
     private MarketingCommonConfig marketingCommonConfig;
 
     private ScheduledExecutorService scheduler;
+    private volatile boolean running = true;
+
+    private static final String TITLE = "【Mock初始化】";
 
     @PostConstruct
     public void init() {
         try {
-            final int interval = marketingCommonConfig.getMockPollingInterval() != null && marketingCommonConfig.getMockPollingInterval() > 0
-                    ? marketingCommonConfig.getMockPollingInterval() : 60;
+            scheduler = Executors.newSingleThreadScheduledExecutor();
 
-            scheduler = Executors.newScheduledThreadPool(2);
-            scheduler.scheduleAtFixedRate(
-                    () -> {
-                        try {
-                            checkAndUpdateMockCache();
-                        } catch (Exception e) {
-                            log.error("Mock轮询异常", e);
-                        }
-                    },
-                    0, interval, TimeUnit.SECONDS
-            );
-            log.info("Mock定时任务已启动，轮询间隔:{}秒，线程池:2线程", interval);
+            // 首次立即执行，后续按 interval 动态调度
+            scheduler.execute(() -> {
+                try {
+                    checkAndUpdateMockCache();
+                } catch (Exception e) {
+                    log.error(TITLE + "首次轮询异常", e);
+                }
+                // 安排下一次
+                scheduleNextRun();
+            });
+
         } catch (Exception e) {
-            log.warn("Mock定时任务初始化异常", e);
+            log.error(TITLE + "定时任务初始化失败", e);
         }
+    }
+
+    private void scheduleNextRun() {
+        if (!running) {
+            return;
+        }
+
+        int interval = getValidInterval();
+        scheduler.schedule(() -> {
+            try {
+                checkAndUpdateMockCache();
+            } catch (Exception e) {
+                log.error(TITLE + "轮询异常", e);
+            } finally {
+                // 无论成功与否，继续调度
+                scheduleNextRun();
+            }
+        }, interval, TimeUnit.SECONDS);
+    }
+
+    private int getValidInterval() {
+        //Integer configInterval = marketingCommonConfig.getMockPollingInterval();
+        //return (configInterval != null && configInterval > 0) ? configInterval : 60;
+        return 30;
     }
 
     @PreDestroy
     public void destroy() {
+        // 停止后续调度
+        running = false;
         if (scheduler != null && !scheduler.isShutdown()) {
+            // 禁止新任务提交，等待已提交任务完成
             scheduler.shutdown();
             try {
                 if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                    scheduler.shutdownNow();
+                    log.warn(TITLE + "Mock定时任务线程池未在5秒内优雅关闭，尝试强制关闭...");
+                    scheduler.shutdownNow(); // 强制终止
+                    if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                        log.error(TITLE + "Mock定时任务线程池强制关闭仍未完成！");
+                    }
                 }
             } catch (InterruptedException e) {
+                log.error(TITLE + "Mock定时任务线程池关闭时被中断", e);
+                scheduler.shutdownNow();
                 Thread.currentThread().interrupt();
             }
-            log.info("Mock定时任务线程池已关闭");
+            log.warn(TITLE + "Mock定时任务线程池已关闭");
         }
     }
 
@@ -91,16 +126,18 @@ public class MockBaffleConfigServiceImpl {
                 try {
                     redisValue = redisChgService.get(localCacheKey);
                 } catch (Exception e) {
-                    log.warn("获取Redis缓存失败，key: {}", localCacheKey, e);
+                    log.warn(TITLE + "获取Redis缓存失败，key: {}", localCacheKey, e);
                 }
                 if (redisValue == null) {
+                    // 删除本地缓存
+                    caffeineCache.deleteMockSwitchStatus(localCacheKey);
                     continue;
                 }
                 if (mockInitDTO == null || !isVersionConsistent(mockInitDTO, redisValue)) {
                     updateLocalCache(localCacheKey, redisValue);
                 }
             } catch (Exception e) {
-                log.error("处理Mock缓存key={}时异常", localCacheKey, e);
+                log.error(TITLE + "处理Mock缓存key={}时异常", localCacheKey, e);
             }
         }
     }
@@ -109,25 +146,24 @@ public class MockBaffleConfigServiceImpl {
      * 检查版本是否一致
      */
     private boolean isVersionConsistent(MockInitDTO mockInitDTO, String redisValue) {
-        MockPolicy policy = null;
         try {
-            policy = JSON.parseObject(redisValue, MockPolicy.class);
+            MockCreatePolicyDTO policy = JSON.parseObject(redisValue, MockCreatePolicyDTO.class);
+            if (policy == null) {
+                return false;
+            }
+            String currentVersion = policy.getVersion();
+            if (StringUtils.isEmpty(currentVersion)) {
+                log.warn(TITLE + "redis中版本号为空, value={}", JSONObject.toJSONString(policy));
+                return false;
+            }
+            if (!currentVersion.equals(mockInitDTO.getVersion())) {
+                return false;
+            }
+            if (!mockInitDTO.getEnabled().equals(policy.getEnabled())) {
+                return false;
+            }
         } catch (Exception e) {
-            log.warn("反序列化MockPolicy失败, value={}", redisValue, e);
-            return false;
-        }
-        if (mockInitDTO == null || policy == null) {
-            return false;
-        }
-        String currentVersion = policy.getVersion();
-        if(StringUtils.isEmpty(currentVersion)){
-            return false;
-        }
-
-        if (!currentVersion.equals(mockInitDTO.getVersion())) {
-            return false;
-        }
-        if (!mockInitDTO.getEnabled().equals(policy.getEnabled())) {
+            log.warn(TITLE + "反序列化MockPolicy失败, value={}", redisValue, e);
             return false;
         }
         return true;
@@ -137,14 +173,14 @@ public class MockBaffleConfigServiceImpl {
      * 更新本地缓存
      */
     private void updateLocalCache(String localCacheKey, String redisValue) {
-        MockPolicy policy = null;
+        MockCreatePolicyDTO policy;
         try {
-            policy = JSON.parseObject(redisValue, MockPolicy.class);
+            policy = JSON.parseObject(redisValue, MockCreatePolicyDTO.class);
         } catch (Exception e) {
-            log.warn("反序列化MockPolicy失败, value={}", redisValue, e);
+            log.warn(TITLE + "反序列化MockPolicy失败, value={}", redisValue, e);
             return;
         }
-        String mockName = localCacheKey.substring(localCacheKey.lastIndexOf(":") + 1);
+        String mockName = policy.getMockName();
         int maxRetries = 3;
         int retryCount = 0;
         while (retryCount < maxRetries) {
@@ -154,21 +190,21 @@ public class MockBaffleConfigServiceImpl {
                 newMockInitDTO.setEnabled(policy.getEnabled());
                 newMockInitDTO.setVersion(String.valueOf(policy.getVersion()));
                 caffeineCache.storeMockSwitchStatus(localCacheKey, newMockInitDTO);
-                log.info("成功更新Mock本地缓存，key: {}, version: {}", localCacheKey, newMockInitDTO.getVersion());
+                log.warn(TITLE + "成功更新Mock本地缓存，key: {}, version: {}", localCacheKey, newMockInitDTO.getVersion());
                 return;
             } catch (Exception e) {
                 retryCount++;
-                log.warn("更新Mock本地缓存失败，重试次数: {}/{}, key: {}", retryCount, maxRetries, localCacheKey, e);
+                log.warn(TITLE + "更新Mock本地缓存失败，重试次数: {}/{}, key: {}", retryCount, maxRetries, localCacheKey, e);
                 if (retryCount >= maxRetries) {
                     caffeineCache.deleteMockSwitchStatus(localCacheKey);
-                    log.error("更新Mock本地缓存失败，已达到最大重试次数，删除本地缓存，key: {}", localCacheKey);
+                    log.error(TITLE + "更新Mock本地缓存失败，已达到最大重试次数，删除本地缓存，key: {}", localCacheKey);
                     return;
                 }
                 try {
                     Thread.sleep(1000L * retryCount);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    log.error("更新Mock本地缓存时线程被中断", ie);
+                    log.error(TITLE + "更新Mock本地缓存时线程被中断", ie);
                     return;
                 }
             }
