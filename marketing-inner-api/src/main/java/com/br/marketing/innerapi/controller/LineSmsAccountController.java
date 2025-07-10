@@ -7,11 +7,10 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
-import com.br.marketing.entity.MarketingSmsAccountLog;
-import com.br.marketing.entity.MarketingSmsAccountRecord;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.service.MarketingCustomerService;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.br.marketing.vo.MarketingSmsAccountLogVo;
+import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -111,8 +110,8 @@ public class LineSmsAccountController {
 
             if (StringUtils.isNotEmpty(configIdStr)) {
                 Long configId = Long.parseLong(configIdStr);
-                List<MarketingSmsAccountRecord> smsAccountRecordList= lineSmsAccountService.getSmsAccountsByConfigId(configId);
-                apiResult = new ApiResult<List<MarketingSmsAccountRecord>>().success(smsAccountRecordList);
+                List<MarketingSmsAccountRecordVo> smsAccountRecordList= lineSmsAccountService.getSmsAccountsByConfigId(configId);
+                apiResult = new ApiResult<List<MarketingSmsAccountRecordVo>>().success(smsAccountRecordList);
             }else{
                 PageResultReturn list = lineSmsAccountService.getSmsAccounts(current,size,vendorName,channelsName,price);
                 apiResult=  new ApiResult<PageResultReturn>().success(list);
@@ -136,7 +135,7 @@ public class LineSmsAccountController {
                 return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
             }
             Long configId = Long.parseLong(configIdStr);
-            List<MarketingSmsAccountLog> list = lineSmsAccountService.getSmsAccountLogs(configId);
+            List<MarketingSmsAccountLogVo> list = lineSmsAccountService.getSmsAccountLogs(configId);
             return new ApiResult<>().success(list);
         }catch (Exception e) {
             log.error(e.getMessage(), e);

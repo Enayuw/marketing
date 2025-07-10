@@ -5,8 +5,8 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
-import com.br.marketing.entity.MarketingSmsAccountLog;
-import com.br.marketing.entity.MarketingSmsAccountRecord;
+import com.br.marketing.vo.MarketingSmsAccountLogVo;
+import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import javax.validation.Valid;
@@ -27,9 +27,9 @@ public interface LineSmsAccountService {
     PageResultReturn getSmsAccounts(Integer current, Integer size,String vendorName,String channelsName,Double price);
 
 
-    List<MarketingSmsAccountLog> getSmsAccountLogs(Long configId);
+    List<MarketingSmsAccountLogVo> getSmsAccountLogs(Long configId);
 
-    List<MarketingSmsAccountRecord> getSmsAccountsByConfigId(Long configId);
+    List<MarketingSmsAccountRecordVo> getSmsAccountsByConfigId(Long configId);
 
 
     /**

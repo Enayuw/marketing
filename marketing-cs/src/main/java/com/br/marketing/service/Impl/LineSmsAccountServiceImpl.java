@@ -25,8 +25,11 @@ import com.br.marketing.mapper.MarketingSmsAccountRecordMapper;
 import com.br.marketing.service.LineSmsAccountDataService;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.MarketingSmsAccountLogVo;
+import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,21 +171,23 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     public PageResultReturn getSmsAccounts(Integer current, Integer size, String vendorName,String channelsName,Double price) {
         PageHelper.startPage(current, size);
         List<MarketingSmsAccountRecord> smsAccountRecordList = smsAccountRecordMapper.selectList(vendorName,channelsName,price);
-        return PageResultReturn.setPageResult(smsAccountRecordList, current, size);
+        Page<MarketingSmsAccountRecord> page = (Page<MarketingSmsAccountRecord>) smsAccountRecordList;
+        List<MarketingSmsAccountRecordVo> voList = convertToSmsAccountRecordVoList(smsAccountRecordList);
+        return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());
     }
 
     @Override
-    public List<MarketingSmsAccountRecord> getSmsAccountsByConfigId(Long configId) {
-        return smsAccountRecordMapper.getSmsAccountsByConfigId(configId);
+    public List<MarketingSmsAccountRecordVo> getSmsAccountsByConfigId(Long configId) {
+        List<MarketingSmsAccountRecord>  smsAccountRecordList = smsAccountRecordMapper.getSmsAccountsByConfigId(configId);
+        return convertToSmsAccountRecordVoList(smsAccountRecordList);
     }
-
-
 
 
     @Override
-    public List<MarketingSmsAccountLog> getSmsAccountLogs(Long configId) {
-        return smsAccountLogMapper.selectSmsAccountLogs(configId);
+    public List<MarketingSmsAccountLogVo> getSmsAccountLogs(Long configId) {
+        return convertSmsAccountLogVoList(smsAccountLogMapper.selectSmsAccountLogs(configId));
     }
+
 
     @Override
     public Map<String, List<MarketingDict>> getDictInfo(String dictType) {
@@ -196,5 +201,53 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         return result;
     }
 
+
+    private List<MarketingSmsAccountRecordVo> convertToSmsAccountRecordVoList(List<MarketingSmsAccountRecord> recordList) {
+        if (recordList == null) {
+            return Collections.emptyList();
+        }
+        List<MarketingSmsAccountRecordVo> voList = new ArrayList<>();
+        for (MarketingSmsAccountRecord record : recordList) {
+            MarketingSmsAccountRecordVo vo = new MarketingSmsAccountRecordVo();
+            vo.setId(record.getId());
+            vo.setConfigId(record.getConfigId() == null ? null : String.valueOf(record.getConfigId()));
+            vo.setVendorId(record.getVendorId());
+            vo.setVendorName(record.getVendorName());
+            vo.setChannelsInfo(record.getChannelsInfo());
+            vo.setPrice(record.getPrice());
+            vo.setEffectStartDate(record.getEffectStartDate());
+            vo.setEffectEndDate(record.getEffectEndDate());
+            vo.setEnabled(record.getEnabled());
+            vo.setCreateTime(record.getCreateTime());
+            vo.setUpdateTime(record.getUpdateTime());
+            vo.setIsDelete(record.getIsDelete());
+            voList.add(vo);
+        }
+        return voList;
+    }
+
+    private List<MarketingSmsAccountLogVo> convertSmsAccountLogVoList(List<MarketingSmsAccountLog> marketingSmsAccountLogs) {
+        if (marketingSmsAccountLogs == null) {
+            return Collections.emptyList();
+        }
+        List<MarketingSmsAccountLogVo> voList = new ArrayList<>();
+        for (MarketingSmsAccountLog log : marketingSmsAccountLogs) {
+            MarketingSmsAccountLogVo vo = new MarketingSmsAccountLogVo();
+            vo.setId(log.getId());
+            vo.setConfigId(log.getConfigId() == null ? null : String.valueOf(log.getConfigId()));
+            vo.setVendorId(log.getVendorId());
+            vo.setVendorName(log.getVendorName());
+            vo.setDetail(log.getDetail());
+            vo.setUserId(log.getUserId());
+            vo.setUserName(log.getUserName());
+            vo.setRealName(log.getRealName());
+            vo.setOpeType(log.getOpeType());
+            vo.setCreateTime(log.getCreateTime());
+            vo.setUpdateTime(log.getUpdateTime());
+            vo.setIsDelete(log.getIsDelete());
+            voList.add(vo);
+        }
+        return voList;
+    }
 
 }
