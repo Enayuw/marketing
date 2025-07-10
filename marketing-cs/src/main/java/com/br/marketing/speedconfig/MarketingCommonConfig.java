@@ -3210,5 +3210,17 @@ public class MarketingCommonConfig {
      * 携程短信撞库挡板及异常 [true,true]
      */
     private List<Boolean> xieChengCpsCollidingRetrySwitch;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"3710012":"三方营销效果监控-百融"}
+     */
+    private Map<String, String> mailApiCodeSubjectMap;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"userName":"xxx", "password":"xxx"}
+     */
+    private Map<String, String> YiXinMailConfigMap;
 }
 
