@@ -152,6 +152,7 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
         }
         MarketingSmsAccountLog accountLog = new MarketingSmsAccountLog();
         accountLog.setConfigId(dto.getConfigId());
+        accountLog.setVendorId(dto.getVendorId());
         accountLog.setVendorName(dto.getVendorName());
         JSONObject detail = new JSONObject();
         detail.put("channelIds", objectMapper.writeValueAsString(channelIds));
