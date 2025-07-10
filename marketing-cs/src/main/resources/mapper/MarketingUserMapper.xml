@@ -425,7 +425,8 @@
 			KEY `idx_marketing_sync_code_cust_t_u_r_a` (`cust_num`,`cus_batch`,`user_type`,`is_repeat`,`applet_date`),
 		    KEY `idx_appletTime` (`applet_time`),
 			KEY `idx_ad_ut_s` (`applet_date`,`user_type`,`status`),
-			KEY `idx_reqid` (`request_batch`)
+			KEY `idx_reqid` (`request_batch`),
+			UNIQUE KEY `uk_bmarketingsyncapicode_fingerprint` (`fingerprint`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_ID_CACHE=1 COMMENT='客户上传数据表'
 	</update>
 
@@ -493,7 +494,8 @@
 		KEY `idx_transfer_syncinfo_cust_num`
 	(
 		`cust_num`
-	)
+	),
+		UNIQUE KEY `uk_bmarketingsyncapicode_fingerprint` (`fingerprint`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE =utf8_bin COMMENT='客户转化数据记录表';
 </update>
 
