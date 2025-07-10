@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
@@ -97,17 +98,19 @@ public class LineSmsAccountController {
             , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "channelsName", value = "渠道名称", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "price", value = "价格", paramType = "query", dataType = "double")
-            , @ApiImplicitParam(name = "configId", value = "汇总配置d", paramType = "query", dataType = "Long")
+            , @ApiImplicitParam(name = "configIdStr", value = "汇总配置id(string)", paramType = "query", dataType = "string")
     })
     public ApiResult getSmsAccounts(@RequestParam(defaultValue = "1") Integer current,
                                     @RequestParam(defaultValue = "10") Integer size,
                                     @RequestParam(required = false) String vendorName,
                                     @RequestParam(required = false) String channelsName,
                                     @RequestParam(required = false) Double price,
-                                    @RequestParam(required = false) Long configId) {
+                                    @RequestParam(required = false) String configIdStr) {
         try {
             ApiResult apiResult = new ApiResult();
-            if (configId != null && configId>0L) {
+
+            if (StringUtils.isNotEmpty(configIdStr)) {
+                Long configId = Long.parseLong(configIdStr);
                 List<MarketingSmsAccountRecord> smsAccountRecordList= lineSmsAccountService.getSmsAccountsByConfigId(configId);
                 apiResult = new ApiResult<List<MarketingSmsAccountRecord>>().success(smsAccountRecordList);
             }else{
@@ -125,15 +128,19 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccountLogs")
     @LogAnnotation
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "configId", value = "汇总配置id", paramType = "query", dataType = "Long")
+            @ApiImplicitParam(name = "configIdStr", value = "汇总配置id(string)", paramType = "query", dataType = "string")
     })
-    public ApiResult getSmsAccountLogs(@RequestParam(name = "configId") Long configId) {
+    public ApiResult getSmsAccountLogs(@RequestParam(name = "configId") String configIdStr) {
         try {
+            if (StringUtils.isEmpty(configIdStr)) {
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            Long configId = Long.parseLong(configIdStr);
             List<MarketingSmsAccountLog> list = lineSmsAccountService.getSmsAccountLogs(configId);
             return new ApiResult<>().success(list);
         }catch (Exception e) {
             log.error(e.getMessage(), e);
-            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);
         }
     }
 
