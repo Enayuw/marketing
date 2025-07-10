@@ -104,4 +104,8 @@ public class CaffeineCache {
         mockLocalCache.invalidate(key);
     }
 
+    public Cache<String, MockInitDTO> getAllMockLocalCache() {
+        return mockLocalCache;
+    }
+
 }
