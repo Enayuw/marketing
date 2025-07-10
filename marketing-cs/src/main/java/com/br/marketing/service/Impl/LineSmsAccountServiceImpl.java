@@ -195,7 +195,8 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         Map<String, List<MarketingDict>> result = new HashMap<>();
         for (DictEnum dictEnum : DictEnum.values()) {
             String dictTypeItem = dictEnum.getDictType();
-            List<MarketingDict> dictItemList = dictList.stream().filter(dictItem -> dictItem.getDictType().equals(dictTypeItem)).collect(Collectors.toList());
+            List<MarketingDict> dictItemList = dictList.stream().filter(
+                    dictItem -> dictItem.getDictType().equals(dictTypeItem)).collect(Collectors.toList());
             result.put(dictTypeItem, dictItemList);
         }
         return result;
