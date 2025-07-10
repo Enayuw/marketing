@@ -179,7 +179,8 @@ public class MockServiceImpl implements MockService {
                     return new ApiResult<Boolean>().fail("查询redis缓存为空！mockName：" + mockPolicy.getMockName());
                 }
                 MockCreatePolicyDTO mockCreatePolicyDTO = JSONObject.parseObject(mockData, MockCreatePolicyDTO.class);
-
+                mockCreatePolicyDTO.setEnabled(list.getEnabled());
+                mockCreatePolicyDTO.setVersion(String.valueOf(newVersion));
                 // Redis更新，失败重试3次
                 redisRetry(mockCreatePolicyDTO);
             } catch (Exception e) {
@@ -340,7 +341,7 @@ public class MockServiceImpl implements MockService {
                 return new ApiResult<Boolean>().fail("批量删除MockPolicy失败，ids:  "+ids + ",错误信息:" +e.getMessage());
             }
         }
-        return new ApiResult<Boolean>().success("添加成功");
+        return new ApiResult<Boolean>().success("删除成功");
     }
 
     @Override
