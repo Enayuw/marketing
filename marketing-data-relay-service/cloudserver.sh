@@ -59,9 +59,9 @@ HOSTNAME=`hostname`
         else exit 5; fi; }
 
 
-CLOUDSERVER_PID_FILE="$CLOUDSERVER_HOME/pid" 
+CLOUDSERVER_PID_FILE="$CLOUDSERVER_HOME/pid"
 
-CLOUDSERVER_JAVA_CMD="$JAVA_HOME/bin/java" 
+CLOUDSERVER_JAVA_CMD="$JAVA_HOME/bin/java"
 
 GC_LOG_PATH="$CLOUDSERVER_HOME/logs/$NAME/$POD_NAME"
 { ls $GC_LOG_PATH &>/dev/null || { echo "pod子文件夹不存在，开始创建... ...";mkdir -p $GC_LOG_PATH && echo "创建pod子文件夹成功！" || exit 1; };  }
@@ -132,20 +132,20 @@ RETVAL=0
 function checkport(){
     PID=$1
     num=`netstat -ntpl | grep $PID/ | wc -l`
-    print_comm="netstat -ntpl 2>&1 | grep $PID/ " 
-    echo "检查端口监听状态，请稍等!" 
+    print_comm="netstat -ntpl 2>&1 | grep $PID/ "
+    echo "检查端口监听状态，请稍等!"
     while [[ $num -le 0 ]];
     do
-        echo -ne "." 
+        echo -ne "."
         sleep 1
         num=`netstat -ntpl | grep $PID/ | wc -l`
         if [ $num -gt 0 ];then
-            echo "" 
-            echo "端口监听信息如下：" 
-            printline= eval "$print_comm" 
+            echo ""
+            echo "端口监听信息如下："
+            printline= eval "$print_comm"
             echo $printline
-        fi        
-    done 
+        fi
+    done
 
 }
 
@@ -158,17 +158,17 @@ function getstatus() {
 
 #启动服务方法
 function start() {
-    START_COMM="$JAVA_CMD $PARAMS &" 
-    echo "执行启动命令:[$START_COMM]" 
-    eval "$START_COMM" 
+    START_COMM="$JAVA_CMD $PARAMS &"
+    echo "执行启动命令:[$START_COMM]"
+    eval "$START_COMM"
     RETVAL=$?
     if [ $RETVAL = 0 ]; then
         PID=$!
-        echo $PID > "$CLOUDSERVER_PID_FILE" 
+        echo $PID > "$CLOUDSERVER_PID_FILE"
         echo "执行启动命令成功！"
         wait $PID
     else
-        echo "failure" 
+        echo "failure"
     fi
 }
 
@@ -191,9 +191,9 @@ case $1 in
     restart)
         stop
         start
-        ;;        
+        ;;
     *)
-        echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}" 
+        echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
         exit 1
         ;;
 
