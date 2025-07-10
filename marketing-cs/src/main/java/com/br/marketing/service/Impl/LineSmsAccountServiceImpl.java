@@ -108,7 +108,7 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
                     .filter(channel -> existChannelIds.contains(channel.getChannelId()))
                     .map(SmsChannelDto::getChannelName).collect(Collectors.toList());
             return new Result<String>().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("渠道：" + String.join(",", existChannelNames) + "已存在配置，无法新增，请在列表页面变更对应渠道配置！");
+                    .setMessage("渠道：" + String.join(",", existChannelNames) + "已存在配置，无法变更，请在列表页面变更对应渠道配置！");
         }
         //2.判断日期没有重复
         List<PriceDateDTO> priceDates = dto.getPriceDates();
