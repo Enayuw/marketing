@@ -73,7 +73,8 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
                     TransferFileTask transferFileTask = transferFileTasks.get(0);
 
                     NfsFileTOBiRecordExample nfsExample = new NfsFileTOBiRecordExample();
-                    nfsExample.createCriteria().andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType).andExecuteDateEqualTo(dateItem);
+                    nfsExample.createCriteria().andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType)
+                            .andExecuteDateEqualTo(dateItem).andBusTypeEqualTo("1");
                     List<NfsFileTOBiRecord> nfsFileTOBiRecordList = nfsFileTOBiRecordMapper.selectByExample(nfsExample);
                     if (CollectionUtils.isNotEmpty(nfsFileTOBiRecordList)) {
                         if (transferFileTask.getId().equals(nfsFileTOBiRecordList.get(0).getTaskId())) {

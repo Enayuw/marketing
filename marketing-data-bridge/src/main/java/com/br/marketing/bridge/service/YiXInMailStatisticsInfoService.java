@@ -1,4 +1,4 @@
-package com.br.marketing.service;
+package com.br.marketing.bridge.service;
 
 /**
  * @author xiong.luo

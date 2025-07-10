@@ -22,6 +22,12 @@ public class NfsFileTOBiRecord {
     private Integer fileType;
 
     /**
+     * 1-转化提取文件同步至marketing-bi
+     * 9-宜信邮件读取任务的类型
+     */
+    private String busType;
+
+    /**
      * 文件名称
      */
     private String fileName;

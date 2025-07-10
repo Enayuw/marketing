@@ -1,7 +1,8 @@
-package com.br.marketing.service.Impl;
+package com.br.marketing.bridge.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.bridge.service.YiXInMailStatisticsInfoService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.BFileBiConfig;
@@ -11,11 +12,11 @@ import com.br.marketing.entity.NfsFileTOBiRecordExample;
 import com.br.marketing.mapper.BFileBiConfigMapper;
 import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
 import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
-import com.br.marketing.service.YiXInMailStatisticsInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -92,7 +93,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
         String mailPrefix = marketingCommonConfig.getMailApiCodeSubjectMap().get(API_CODE);
         List<String> fileNames = dates.stream().map(mailPrefix::concat).collect(Collectors.toList());
         NfsFileTOBiRecordExample nfsFileTOBiRecordExample = new NfsFileTOBiRecordExample();
-        nfsFileTOBiRecordExample.createCriteria().andFileNameIn(fileNames);
+        nfsFileTOBiRecordExample.createCriteria().andFileNameIn(fileNames).andBusTypeEqualTo("9");
         // 按照邮件主题分组，获取邮件发送时间
         Map<String, List<String>> mailSendTimesMap = nfsFileTOBiRecordMapper.selectByExample(nfsFileTOBiRecordExample)
                 .stream().collect(Collectors.groupingBy(NfsFileTOBiRecord::getFileName,
@@ -134,11 +135,13 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
                     for (Message message : messages) {
                         try {
                             String sendTime = SIMPLE_DATE_FORMAT.format(message.getSentDate());
-                            if (!mailSendTimesMap.get(mailPrefix.concat(date)).contains(sendTime)) {
+                            if (MapUtils.isEmpty(mailSendTimesMap) ||
+                                    !mailSendTimesMap.get(mailPrefix.concat(date)).contains(sendTime)) {
                                 dealDailyMail(date, message, bFileBiConfig, columns, mailPrefix, sendTime);
                             }
                         } catch (Exception e) {
-                            log.warn("宜信邮件统计数据抓取任务异常获取邮件发送时间获取异常:{}", mailPrefix.concat(mailDate));
+                            String errMsg = "宜信邮件统计数据抓取任务异常: " + date + " Exception: " + e.getMessage();
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
                         }
                     }
                 } catch (Exception e) {
@@ -200,6 +203,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
             record.setFileName(mailPrefix.concat(date));
             record.setExecuteDate(date);
             record.setSendTime(sendTime);
+            record.setBusType("9");
             nfsFileTOBiRecordMapper.insertSelective(record);
         }
     }

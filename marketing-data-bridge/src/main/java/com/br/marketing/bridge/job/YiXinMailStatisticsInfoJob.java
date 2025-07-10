@@ -1,6 +1,6 @@
 package com.br.marketing.bridge.job;
 
-import com.br.marketing.service.YiXInMailStatisticsInfoService;
+import com.br.marketing.bridge.service.YiXInMailStatisticsInfoService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
