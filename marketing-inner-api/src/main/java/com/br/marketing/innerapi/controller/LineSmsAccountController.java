@@ -113,8 +113,8 @@ public class LineSmsAccountController {
                 List<MarketingSmsAccountRecordVo> smsAccountRecordList= lineSmsAccountService.getSmsAccountsByConfigId(configId);
                 apiResult = new ApiResult<List<MarketingSmsAccountRecordVo>>().success(smsAccountRecordList);
             }else{
-                PageResultReturn list = lineSmsAccountService.getSmsAccounts(current,size,vendorName,channelsName,price);
-                apiResult=  new ApiResult<PageResultReturn>().success(list);
+                PageResultReturn page = lineSmsAccountService.getSmsAccounts(current,size,vendorName,channelsName,price);
+                apiResult=  new ApiResult<PageResultReturn>().success(page);
             }
             return apiResult;
         }catch (Exception e) {
@@ -127,16 +127,20 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccountLogs")
     @LogAnnotation
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "configIdStr", value = "汇总配置id(string)", paramType = "query", dataType = "string")
+            @ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            ,@ApiImplicitParam(name = "configIdStr", value = "汇总配置id(string)", paramType = "query", dataType = "string")
     })
-    public ApiResult getSmsAccountLogs(@RequestParam(name = "configIdStr") String configIdStr) {
+    public ApiResult getSmsAccountLogs(@RequestParam(defaultValue = "1") Integer current,
+                                       @RequestParam(defaultValue = "10") Integer size,
+                                       @RequestParam(name = "configIdStr") String configIdStr) {
         try {
             if (StringUtils.isEmpty(configIdStr)) {
                 return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
             }
             Long configId = Long.parseLong(configIdStr);
-            List<MarketingSmsAccountLogVo> list = lineSmsAccountService.getSmsAccountLogs(configId);
-            return new ApiResult<>().success(list);
+            PageResultReturn page = lineSmsAccountService.getSmsAccountLogs(current,size,configId);
+            return new ApiResult<>().success(page);
         }catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);

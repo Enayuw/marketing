@@ -27,7 +27,7 @@ public interface LineSmsAccountService {
     PageResultReturn getSmsAccounts(Integer current, Integer size,String vendorName,String channelsName,Double price);
 
 
-    List<MarketingSmsAccountLogVo> getSmsAccountLogs(Long configId);
+    PageResultReturn getSmsAccountLogs(Integer current,Integer size,Long configId);
 
     List<MarketingSmsAccountRecordVo> getSmsAccountsByConfigId(Long configId);
 

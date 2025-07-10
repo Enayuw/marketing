@@ -11,6 +11,7 @@
       <if test="configId !=null">
         AND config_id = #{configId}
       </if>
+     ORDER BY create_time DESC
     </where>
   </select>
 
