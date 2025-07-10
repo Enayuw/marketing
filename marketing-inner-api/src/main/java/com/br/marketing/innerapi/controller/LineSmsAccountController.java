@@ -5,9 +5,11 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
+import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.entity.MarketingSmsAccountLog;
 import com.br.marketing.entity.MarketingSmsAccountRecord;
 import com.br.marketing.service.LineSmsAccountService;
+import com.br.marketing.service.MarketingCustomerService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 线路&短信对账配置管理
@@ -32,6 +35,10 @@ public class LineSmsAccountController {
 
     @Resource
     LineSmsAccountService lineSmsAccountService;
+
+    @Resource
+    private MarketingCustomerService marketingCustomerService;
+
 
     private static final Logger log = LoggerFactory.getLogger(LineSmsAccountController.class);
 
@@ -128,6 +135,23 @@ public class LineSmsAccountController {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
+    }
+
+
+    @GetMapping("/getDictInfo")
+    @ApiOperation(value = "获取部门/短信类别字典列表",notes = "获取部门/短信类别字典列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "dictType",value = "",required = false,dataType = "String")
+    })
+    public ApiResult<Map<String, List<MarketingDict>>> getDictInfo(String dictType){
+        try {
+            Map<String, List<MarketingDict>> resultMap = lineSmsAccountService.getDictInfo(dictType);
+            return new ApiResult<Map<String, List<MarketingDict>>>().success(resultMap);
+        }catch (Exception e){
+            log.error(e.getMessage(), e);
+            return new ApiResult<Map<String, List<MarketingDict>>>().fail(ServiceResultEnum.FAILED);
+        }
+
     }
 
 }

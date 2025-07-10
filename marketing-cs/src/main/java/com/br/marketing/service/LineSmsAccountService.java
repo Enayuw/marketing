@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
+import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.entity.MarketingSmsAccountLog;
 import com.br.marketing.entity.MarketingSmsAccountRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface LineSmsAccountService {
 
@@ -30,5 +32,10 @@ public interface LineSmsAccountService {
     List<MarketingSmsAccountRecord> getSmsAccountsByConfigId(Long configId);
 
 
+    /**
+     * 根据字典类别名称获取字典信息，封装为Map<dictType, List<MarketingDict>>
+     * @return Map<String, List<MarketingDict>>
+     */
+    Map<String, List<MarketingDict>> getDictInfo(String dictType);
 
 }

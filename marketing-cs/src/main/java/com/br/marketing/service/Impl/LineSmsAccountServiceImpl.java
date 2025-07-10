@@ -13,9 +13,12 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.PriceDateDTO;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.dto.account.SmsChannelDto;
+import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.entity.MarketingSmsAccountLog;
 import com.br.marketing.entity.MarketingSmsAccountLogExample;
 import com.br.marketing.entity.MarketingSmsAccountRecord;
+import com.br.marketing.enums.DictEnum;
+import com.br.marketing.mapper.MarketingDictMapper;
 import com.br.marketing.mapper.MarketingSmsAccountDetailMapper;
 import com.br.marketing.mapper.MarketingSmsAccountLogMapper;
 import com.br.marketing.mapper.MarketingSmsAccountRecordMapper;
@@ -27,13 +30,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +61,8 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     private LineSmsAccountDataService lineSmsAccountDataService;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private MarketingDictMapper marketingDictMapper;
 
     @Override
     public Result addSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
@@ -173,9 +176,24 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         return smsAccountRecordMapper.getSmsAccountsByConfigId(configId);
     }
 
+
+
+
     @Override
     public List<MarketingSmsAccountLog> getSmsAccountLogs(Long configId) {
         return smsAccountLogMapper.selectSmsAccountLogs(configId);
+    }
+
+    @Override
+    public Map<String, List<MarketingDict>> getDictInfo(String dictType) {
+        List<MarketingDict> dictList = marketingDictMapper.getDictInfo(dictType);
+        Map<String, List<MarketingDict>> result = new HashMap<>();
+        for (DictEnum dictEnum : DictEnum.values()) {
+            String dictTypeItem = dictEnum.getDictType();
+            List<MarketingDict> dictItemList = dictList.stream().filter(dictItem -> dictItem.getDictType().equals(dictTypeItem)).collect(Collectors.toList());
+            result.put(dictTypeItem, dictItemList);
+        }
+        return result;
     }
 
 
