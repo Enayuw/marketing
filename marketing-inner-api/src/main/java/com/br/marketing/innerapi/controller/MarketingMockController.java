@@ -107,8 +107,7 @@ public class MarketingMockController {
     public ApiResult<Boolean> deleteMockPolicies(@RequestBody List<Long> ids) {
         try {
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
-            Boolean result = mockService.deleteMockPolicies(ids, userDetail);
-            return new ApiResult<Boolean>().success(result);
+            return mockService.deleteMockPolicies(ids, userDetail);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "删除Mock策略接口错误！错误信息：" + ex.getMessage()), ex);

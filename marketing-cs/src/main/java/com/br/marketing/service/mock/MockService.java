@@ -2,6 +2,7 @@ package com.br.marketing.service.mock;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockPolicyDTO;
 import com.br.marketing.dto.mock.MockQueryDTO;
@@ -26,7 +27,7 @@ public interface MockService {
 
     ApiResult<Boolean> saveOrUpdateMockPolicy(MockCreatePolicyDTO mockPolicy, MarketingUserDetail userDetail);
 
-    Boolean deleteMockPolicies(List<Long> ids, MarketingUserDetail userDetail);
+    ApiResult<Boolean> deleteMockPolicies(List<Long> ids, MarketingUserDetail userDetail);
 
     ApiResult<List<MockCase>> getMockCaseList(String mockName);
 
@@ -43,7 +44,7 @@ public interface MockService {
      * @param redisValue
      * @return
      */
-    MockCase action(String redisValue);
+    MockCreateCaseDTO action(String redisValue);
 
     ApiResult<String> testNote();
 

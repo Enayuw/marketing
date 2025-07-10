@@ -3,8 +3,8 @@ package com.br.marketing.aspect;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
-import com.br.marketing.entity.MockCase;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.service.mock.MockService;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,7 @@ public class MockableAspect {
 
             String redisMockConfig = mockService.getMockRedisValue(cacheKey);
             if (redisMockConfig != null) {
-                MockCase mockCase = mockService.action(redisMockConfig);
+                MockCreateCaseDTO mockCase = mockService.action(redisMockConfig);
                 if (mockCase != null) {
                     Object responseBody = mockCase.getResponseBody();
                     // 适配返回类型

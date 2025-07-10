@@ -1,9 +1,8 @@
 package com.br.marketing.service.mock.impl;
 
 import com.br.common.util.StringUtils;
-import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
-import com.br.marketing.entity.MockCase;
 import com.br.marketing.service.MockPolicyFactory;
 import com.br.marketing.service.mock.MockService;
 import com.br.marketing.service.mock.enums.MockPolicyEnum;
@@ -34,24 +33,22 @@ public class MockPolicyFactoryByFixedFactory implements MockPolicyFactory {
     }
 
     @Override
-    public MockCase action(MockCreatePolicyDTO policy) {
+    public MockCreateCaseDTO action(MockCreatePolicyDTO policy) {
         // 参数校验
         if (policy == null || StringUtils.isBlank(policy.getMockName())) {
             log.warn("Mock策略或mockName为空");
-            return new MockCase();
+            return new MockCreateCaseDTO();
         }
 
         try {
-            String mockName = policy.getMockName();
-            ApiResult<List<MockCase>> apiResult = mockService.getMockCaseList(mockName);
-            List<MockCase> mockCaseList = apiResult.getData();
-
+            List<MockCreateCaseDTO> mockCreateCaseDTOS = policy.getMockCreateCaseDTOS();
             // 处理空列表情况
-            if (CollectionUtils.isEmpty(mockCaseList)) {
-                log.warn("未查询到响应mock用例，mockName：{}", mockName);
-                return new MockCase();
+            if (CollectionUtils.isEmpty(mockCreateCaseDTOS)) {
+                log.warn("未查询到响应mock用例，mockName：{}", policy.getMockName());
+                return new MockCreateCaseDTO();
             }
-            MockCase mockCase = mockCaseList.get(0);
+
+            MockCreateCaseDTO mockCase = mockCreateCaseDTOS.get(0);
             // 处理延迟（智能波动）
             if (mockCase.getDelayMs() != null && mockCase.getDelayMs() > 0) {
                 applySmartDelay(mockCase.getDelayMs());
@@ -61,7 +58,7 @@ public class MockPolicyFactoryByFixedFactory implements MockPolicyFactory {
 
         } catch (Exception e) {
             log.error("Mock随机策略执行异常，mockName：{}", policy.getMockName(), e);
-            return new MockCase();
+            return new MockCreateCaseDTO();
         }
     }
 

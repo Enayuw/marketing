@@ -85,7 +85,7 @@ public class MockBaffleConfigServiceImpl {
     private int getValidInterval() {
         //Integer configInterval = marketingCommonConfig.getMockPollingInterval();
         //return (configInterval != null && configInterval > 0) ? configInterval : 60;
-        return 30;
+        return 60;
     }
 
     @PreDestroy

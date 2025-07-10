@@ -302,25 +302,16 @@ public class MockServiceImpl implements MockService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean deleteMockPolicies(List<Long> ids, MarketingUserDetail userDetail) {
+    public ApiResult<Boolean> deleteMockPolicies(List<Long> ids, MarketingUserDetail userDetail) {
         if (ids == null || ids.isEmpty()) {
-            return false;
+            return new ApiResult<Boolean>().fail("入参为空！");
         }
 
-        boolean allSuccess = true;
         for (Long id : ids) {
             try {
                 MockPolicy mockPolicyOld = mockPolicyMapper.selectByPrimaryKey(id);
-                MockPolicy mockPolicy = new MockPolicy();
-                mockPolicy.setId(mockPolicyOld.getId());
-                mockPolicy.setIsDel(9);
-                mockPolicy.setUpdateTime(new Date());
-                mockPolicyMapper.updateByPrimaryKeySelective(mockPolicy);
-                //增加操作日志
-                entityOptService.writeOptLog(mockPolicyOld.getId(), mockPolicy, mockPolicyOld);
-
+                mockPolicyMapper.deleteByPrimaryKey(id);
                 String mockName = mockPolicyOld.getMockName();
-
                 MockCaseExample mockCaseExample = new MockCaseExample();
                 mockCaseExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(Constants.DATA_VALID);
                 mockCaseMapper.deleteByExample(mockCaseExample);
@@ -336,8 +327,6 @@ public class MockServiceImpl implements MockService {
                     } catch (Exception e) {
                         redisException = e;
                         retry++;
-                        log.error("Redis更新失败，准备进行第{}次重试，mockName: {}", retry, mockPolicy.getMockName(), redisException);
-
                         try {
                             Thread.sleep(1000L * retry);
                         } catch (InterruptedException ignored) {
@@ -345,16 +334,13 @@ public class MockServiceImpl implements MockService {
                     }
                 }
                 if (!redisSuccess) {
-                    log.error("Redis删除失败，已重试3次，mockName: {}", mockName, redisException);
-                    throw new RuntimeException("Redis删除失败", redisException);
+                    return new ApiResult<Boolean>().fail("Redis删除失败，已重试3次，mockName: "+mockName+ ",错误信息:" +redisException);
                 }
-                log.warn("MockPolicy删除成功，mockName: {}, version: {}", mockName, mockPolicy.getVersion());
             } catch (Exception e) {
-                log.error("批量删除MockPolicy失败，ids: {}, 错误信息: {}", ids, e.getMessage(), e);
-                throw e;
+                return new ApiResult<Boolean>().fail("批量删除MockPolicy失败，ids:  "+ids + ",错误信息:" +e.getMessage());
             }
         }
-        return allSuccess;
+        return new ApiResult<Boolean>().success("添加成功");
     }
 
     @Override
@@ -398,12 +384,12 @@ public class MockServiceImpl implements MockService {
     }
 
     @Override
-    public MockCase action(String redisValue) {
+    public MockCreateCaseDTO action(String redisValue) {
         MockCreatePolicyDTO policy = JSON.parseObject(redisValue, MockCreatePolicyDTO.class);
         //获取执行策略
         MockPolicyFactory mockPolicyFactory = mockPolicy.getMockPolicyFactory(policy.getMockPolicyType());
         if (mockPolicyFactory == null) {
-            return new MockCase();
+            return new MockCreateCaseDTO();
         }
         return mockPolicyFactory.action(policy);
     }
