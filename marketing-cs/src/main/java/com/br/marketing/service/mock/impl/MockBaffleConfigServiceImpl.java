@@ -116,7 +116,7 @@ public class MockBaffleConfigServiceImpl {
      * 比较本地缓存和Redis版本，如果不一致则更新本地缓存
      */
     private void checkAndUpdateMockCache() {
-        log.error(TITLE + "开始轮询线程更新，本地缓存："+JSON.toJSONString(caffeineCache.getAllMockLocalCache().asMap()));
+        log.warn(TITLE + "开始轮询线程更新，本地缓存："+JSON.toJSONString(caffeineCache.getAllMockLocalCache().asMap()));
         List<String> allCodes = MockNameEnum.getAllCodes();
         for (String code : allCodes) {
             String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + code);
@@ -200,7 +200,7 @@ public class MockBaffleConfigServiceImpl {
                 log.warn(TITLE + "更新Mock本地缓存失败，重试次数: {}/{}, key: {}", retryCount, maxRetries, localCacheKey, e);
                 if (retryCount >= maxRetries) {
                     caffeineCache.deleteMockSwitchStatus(localCacheKey);
-                    log.error(TITLE + "更新Mock本地缓存失败，已达到最大重试次数，删除本地缓存，key: {}", localCacheKey);
+                    log.warn(TITLE + "更新Mock本地缓存失败，已达到最大重试次数，删除本地缓存，key: {}", localCacheKey);
                     return;
                 }
                 try {
