@@ -39,6 +39,7 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -88,7 +89,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
 
         // 使用Stream生成日期序列并构造邮件标题列表
         List<String> dates = Stream.iterate(startDate, date -> date.plusDays(1))
-                .limit(startDate.until(endDate).getDays() + 1L)
+                .limit(ChronoUnit.DAYS.between(startDate, endDate) + 1L)
                 .map(date -> date.format(FORMATTER))
                 .collect(Collectors.toList());
         String mailPrefix = marketingCommonConfig.getMailApiCodeSubjectMap().get(API_CODE);
