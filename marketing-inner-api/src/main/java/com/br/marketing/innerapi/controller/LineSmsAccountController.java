@@ -129,7 +129,7 @@ public class LineSmsAccountController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "configIdStr", value = "汇总配置id(string)", paramType = "query", dataType = "string")
     })
-    public ApiResult getSmsAccountLogs(@RequestParam(name = "configId") String configIdStr) {
+    public ApiResult getSmsAccountLogs(@RequestParam(name = "configIdStr") String configIdStr) {
         try {
             if (StringUtils.isEmpty(configIdStr)) {
                 return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
