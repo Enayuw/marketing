@@ -12,7 +12,6 @@ import com.br.marketing.entity.NfsFileTOBiRecordExample;
 import com.br.marketing.mapper.BFileBiConfigMapper;
 import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
 import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
-import com.br.marketing.mapper.TransferFileExtractToDorisMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
