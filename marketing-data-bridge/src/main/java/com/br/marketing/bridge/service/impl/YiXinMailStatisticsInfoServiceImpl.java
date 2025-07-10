@@ -192,7 +192,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
                 if (row == null) {
                     continue;
                 }
-                parseRow(row, sheet, mergedRegions, rowIndex, insertSql, date);
+                parseRow(row, sheet, mergedRegions, rowIndex, insertSql, date, sendTime);
             }
             if (insertSql.charAt(insertSql.length() - 1) == ',') {
                 insertSql.setLength(insertSql.length() - 1);
@@ -243,7 +243,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
 
     // 解析单行数据
     private void parseRow(Row row, Sheet sheet, List<CellRangeAddress> mergedRegions,
-                          int rowIndex, StringBuilder insertSql, String date) {
+                          int rowIndex, StringBuilder insertSql, String date, String sendTime) {
         insertSql.append("\n('").append(getMergedCellValue(sheet, mergedRegions, rowIndex, 0))
                 .append("', '").append(getMergedCellValue(sheet, mergedRegions, rowIndex, 1))
                 .append("'");
@@ -255,7 +255,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
                 insertSql.append(", '").append(rawValue).append("'");
             }
         }
-        insertSql.append(", '").append(date).append("'),");
+        insertSql.append(", '").append(date).append("', '").append(sendTime).append("'),");
     }
 
     // 合并单元格特殊处理
