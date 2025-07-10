@@ -74,7 +74,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TransferFileExtractToDorisMapper transferFileExtractToDorisMapper;
+    private TransferFileExtractToDorisBIMapper transferFileExtractToDorisBIMapper;
 
     @Override
     public void transMailToMarketingBiProcess(String jobParam) {
@@ -197,7 +197,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
             if (insertSql.charAt(insertSql.length() - 1) == ',') {
                 insertSql.setLength(insertSql.length() - 1);
             }
-            transferFileExtractToDorisMapper.insertDataToMarketingBiTable(insertSql.toString());
+            transferFileExtractToDorisBIMapper.insertDataToMarketingBiTablebI_(insertSql.toString());
 
             NfsFileTOBiRecord record = new NfsFileTOBiRecord();
             record.setApiCode(API_CODE);
