@@ -232,20 +232,20 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
             return Collections.emptyList();
         }
         List<MarketingSmsAccountLogVo> voList = new ArrayList<>();
-        for (MarketingSmsAccountLog log : marketingSmsAccountLogs) {
+        for (MarketingSmsAccountLog smsAccountLog : marketingSmsAccountLogs) {
             MarketingSmsAccountLogVo vo = new MarketingSmsAccountLogVo();
-            vo.setId(log.getId());
-            vo.setConfigId(log.getConfigId() == null ? null : String.valueOf(log.getConfigId()));
-            vo.setVendorId(log.getVendorId());
-            vo.setVendorName(log.getVendorName());
-            vo.setDetail(log.getDetail());
-            vo.setUserId(log.getUserId());
-            vo.setUserName(log.getUserName());
-            vo.setRealName(log.getRealName());
-            vo.setOpeType(log.getOpeType());
-            vo.setCreateTime(log.getCreateTime());
-            vo.setUpdateTime(log.getUpdateTime());
-            vo.setIsDelete(log.getIsDelete());
+            vo.setId(smsAccountLog.getId());
+            vo.setConfigId(smsAccountLog.getConfigId() == null ? null : String.valueOf(smsAccountLog.getConfigId()));
+            vo.setVendorId(smsAccountLog.getVendorId());
+            vo.setVendorName(smsAccountLog.getVendorName());
+            vo.setDetail(smsAccountLog.getDetail());
+            vo.setUserId(smsAccountLog.getUserId());
+            vo.setUserName(smsAccountLog.getUserName());
+            vo.setRealName(smsAccountLog.getRealName());
+            vo.setOpeType(smsAccountLog.getOpeType());
+            vo.setCreateTime(smsAccountLog.getCreateTime());
+            vo.setUpdateTime(smsAccountLog.getUpdateTime());
+            vo.setIsDelete(smsAccountLog.getIsDelete());
             voList.add(vo);
         }
         return voList;

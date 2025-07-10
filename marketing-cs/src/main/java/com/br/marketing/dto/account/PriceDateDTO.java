@@ -23,7 +23,9 @@ public class PriceDateDTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PriceDateDTO that = (PriceDateDTO) o;
-        return Objects.equals(price, that.price) && Objects.equals(effectStartDate, that.effectStartDate) && Objects.equals(effectEndDate, that.effectEndDate);
+        return Objects.equals(price, that.price)
+                && Objects.equals(effectStartDate, that.effectStartDate)
+                && Objects.equals(effectEndDate, that.effectEndDate);
     }
 
     @Override
