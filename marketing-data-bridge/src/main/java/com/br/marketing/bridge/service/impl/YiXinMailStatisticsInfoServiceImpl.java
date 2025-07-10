@@ -12,6 +12,7 @@ import com.br.marketing.entity.NfsFileTOBiRecordExample;
 import com.br.marketing.mapper.BFileBiConfigMapper;
 import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
 import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
+import com.br.marketing.mapper.TransferFileExtractToDorisMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +73,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TransferFileExtractToDorisBIMapper transferFileExtractToDorisBIMapper;
+    private TransferFileExtractToDorisMapper transferFileExtractToDorisMapper;
 
     @Override
     public void transMailToMarketingBiProcess(String jobParam) {
@@ -136,7 +137,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
                         try {
                             String sendTime = SIMPLE_DATE_FORMAT.format(message.getSentDate());
                             if (MapUtils.isEmpty(mailSendTimesMap) ||
-                                    !mailSendTimesMap.get(mailPrefix.concat(date)).contains(sendTime)) {
+                                    !mailSendTimesMap.getOrDefault(mailPrefix.concat(date), Lists.newArrayList()).contains(sendTime)) {
                                 dealDailyMail(date, message, bFileBiConfig, columns, mailPrefix, sendTime);
                             }
                         } catch (Exception e) {
@@ -195,7 +196,7 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
             if (insertSql.charAt(insertSql.length() - 1) == ',') {
                 insertSql.setLength(insertSql.length() - 1);
             }
-            transferFileExtractToDorisBIMapper.insertDataToMarketingBiTablebI_(insertSql.toString());
+            transferFileExtractToDorisMapper.insertDataToMarketingBiTable(insertSql.toString());
 
             NfsFileTOBiRecord record = new NfsFileTOBiRecord();
             record.setApiCode(API_CODE);
