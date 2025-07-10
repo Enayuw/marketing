@@ -2966,7 +2966,8 @@ public class MarketingCommonConfig {
     /**
      * 同程易融-quickDeal-shard job参数
      * {
-     * "jobSwitch":true,"threadPool":100,"pageSize":1000,"lockRetryTimes":2,"lockRetryIntervalMs":1000
+     * "jobSwitch":true,"threadPool":100,"pageSize":1000,"lockRetryTimes":2,"lockRetryIntervalMs":1000,
+     * "detailLogSwitch":true
      * }
      */
     private JSONObject tcQuickDealShardConfig;

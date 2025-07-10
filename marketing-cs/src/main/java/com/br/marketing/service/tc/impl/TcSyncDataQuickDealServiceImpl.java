@@ -175,6 +175,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
      * 批次数据处理，匹配封装->上传清洗->上传调用
      */
     private void quickDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData, AtomicLong successCount) {
+        long startTime = System.currentTimeMillis();
         try {
             // 1.数据匹配和封装
             List<MarketingTcyrSync> tcyrSyncList = processBatchData(apiCode, batchNo, customerData, syncFileId, batchData);
@@ -193,22 +194,24 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                         if (pushResult != null && pushResult.isSuccess()) {
                             successCount.addAndGet(tcyrSyncItemList.size());
                         } else {
-                            log.error("{}推送失败，apiCode:{}, batchNo:{}syncFileId:{}, 错误信息:{}",
-                                    TITLE, apiCode, batchNo,syncFileId, pushResult != null ? pushResult.getMessage() : "pushResult为null");
+                            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                                    "上传推送失败,"+JSONObject.toJSONString(pushResult), TITLE));
                             saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
                                     JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),1);
                         }
                     }catch (Exception e) {
-                        log.error("{}推送失败，apiCode:{}, batchNo:{}syncFileId:{}, 错误信息:{}",
-                                TITLE, apiCode, batchNo,syncFileId, pushResult != null ? pushResult.getMessage() : "pushResult为null");
+                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                                "上传推送异常,"+e.getMessage(), TITLE), e);
                         saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
                                 JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),2);
                     }
-
                 }
             }
         }catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
+        }
+        if (marketingCommonConfig.getTcQuickDealShardConfig().getBoolean("detailLogSwitch")) {
+            log.warn("TITLE:{},sync_file_id:{} quick_deal 单批次执行结束,耗时:{},成功处理数量:{}", TITLE, syncFileId, System.currentTimeMillis() - startTime, batchData.size());
         }
     }
 
@@ -236,7 +239,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             if (lineData.length >=2) {
                 String userKey = lineData[0].trim();
                 String terminal = lineData[1].trim();
-                String cell = tcyrCustCellMappingMapper.selectCustNumtiflash_(userKey);
+                String cell = tcyrCustCellMappingMapper.selectCelltiflash_(userKey);
                 if (StringUtils.isNotBlank(cell)) {
                     MarketingTcyrSync syncItem = new MarketingTcyrSync();
                     syncItem.setApiCode(apiCode);
@@ -257,7 +260,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     }
                     extentJson.put("syncFileId", syncFileId);
                     syncItem.setExtend(extentJson.toJSONString());
-                    syncItem.setApiCode(apiCode);
                     tcyrSyncList.add(syncItem);
                 }
             }

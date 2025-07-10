@@ -2,9 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper" >
 
-  <select id="selectCustNum" resultType="java.lang.String">
-  </select>
-  <select id="selectCustNumtiflash_" resultType="java.lang.String">
-    select cust_num from  b_marketing_tcyr_cust_cell_mapping  where cell=#{cell}
+  <select id="selectCelltiflash_" resultType="java.lang.String">
+    select cell from  b_marketing_tcyr_cust_cell_mapping  where cust_num = #{userKey}
   </select>
 </mapper>

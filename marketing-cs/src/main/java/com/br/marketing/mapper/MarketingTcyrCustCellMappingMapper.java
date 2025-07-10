@@ -4,5 +4,5 @@ import org.apache.ibatis.annotations.Param;
 
 public interface MarketingTcyrCustCellMappingMapper extends MarketingTcyrCustCellMappingMapperBase{
 
-    String selectCustNumtiflash_(String userKey);
+    String selectCelltiflash_(@Param("userKey") String userKey);
 }
