@@ -48,7 +48,7 @@ public class CaffeineCache {
         //初始化mock开关状态
         mockLocalCache = Caffeine.newBuilder()
                 .maximumSize(1000)
-                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .expireAfterWrite(7, TimeUnit.DAYS)
                 .build();
 
     }

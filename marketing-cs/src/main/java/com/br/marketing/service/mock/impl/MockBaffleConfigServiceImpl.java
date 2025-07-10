@@ -83,9 +83,8 @@ public class MockBaffleConfigServiceImpl {
     }
 
     private int getValidInterval() {
-        //Integer configInterval = marketingCommonConfig.getMockPollingInterval();
-        //return (configInterval != null && configInterval > 0) ? configInterval : 60;
-        return 60;
+        Integer configInterval = marketingCommonConfig.getMockPollingInterval();
+        return (configInterval != null && configInterval > 0) ? configInterval : 60;
     }
 
     @PreDestroy
@@ -117,6 +116,7 @@ public class MockBaffleConfigServiceImpl {
      * 比较本地缓存和Redis版本，如果不一致则更新本地缓存
      */
     private void checkAndUpdateMockCache() {
+        log.error(TITLE + "开始轮询线程更新");
         List<String> allCodes = MockNameEnum.getAllCodes();
         for (String code : allCodes) {
             String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + code);
@@ -129,8 +129,11 @@ public class MockBaffleConfigServiceImpl {
                     log.warn(TITLE + "获取Redis缓存失败，key: {}", localCacheKey, e);
                 }
                 if (redisValue == null) {
-                    // 删除本地缓存
-                    caffeineCache.deleteMockSwitchStatus(localCacheKey);
+                    if(mockInitDTO != null){
+                        // 删除本地缓存
+                        caffeineCache.deleteMockSwitchStatus(localCacheKey);
+                        log.warn(TITLE + "删除本地缓存，key: {}", localCacheKey);
+                    }
                     continue;
                 }
                 if (mockInitDTO == null || !isVersionConsistent(mockInitDTO, redisValue)) {
@@ -190,7 +193,7 @@ public class MockBaffleConfigServiceImpl {
                 newMockInitDTO.setEnabled(policy.getEnabled());
                 newMockInitDTO.setVersion(String.valueOf(policy.getVersion()));
                 caffeineCache.storeMockSwitchStatus(localCacheKey, newMockInitDTO);
-                log.warn(TITLE + "成功更新Mock本地缓存，key: {}, version: {}", localCacheKey, newMockInitDTO.getVersion());
+                log.warn(TITLE + "成功更新Mock本地缓存，key: {}, data : {}", localCacheKey, JSONObject.toJSONString(newMockInitDTO));
                 return;
             } catch (Exception e) {
                 retryCount++;
