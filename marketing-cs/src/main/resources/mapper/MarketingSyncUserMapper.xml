@@ -1167,4 +1167,18 @@
     </select>
 
 
+    <select id="selectSyncCustCellList" resultType="com.br.marketing.entity.MarketingSyncCustCell">
+        SELECT
+            id,cust_num,cell_md5
+        FROM
+            b_marketing_sync_${apiCode}
+        WHERE
+            status = 1
+            AND is_repeat in (1,2)
+            AND id>#{searchId}
+        ORDER BY id ASC
+        LIMIT #{pageSize}
+    </select>
+
+
 </mapper>

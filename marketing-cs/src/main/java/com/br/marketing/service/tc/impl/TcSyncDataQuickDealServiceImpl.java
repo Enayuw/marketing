@@ -145,7 +145,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     List<String> batchDealData = new ArrayList<>(batchData);
                     futures.add(CompletableFuture.runAsync(() ->
                                     quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                            syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount),
+                                                        syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount
+                                    ),
                                 actionPool));
                     batchData.clear();
                 }
@@ -153,7 +154,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             if (!batchData.isEmpty()) {
                 futures.add(CompletableFuture.runAsync(() ->
                                 quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                        syncRecord.getData(),tcyrSyncFile.getId(),batchData, successCount),
+                                                    syncRecord.getData(),tcyrSyncFile.getId(),batchData, successCount
+                                ),
                             actionPool));
                 batchData.clear();
             }
@@ -239,7 +241,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             if (lineData.length >=2) {
                 String userKey = lineData[0].trim();
                 String terminal = lineData[1].trim();
-                String cell = tcyrCustCellMappingMapper.selectCelltiflash_(userKey);
+                String cell = tcyrCustCellMappingMapper.selectCelltikv_(userKey);
                 if (StringUtils.isNotBlank(cell)) {
                     MarketingTcyrSync syncItem = new MarketingTcyrSync();
                     syncItem.setApiCode(apiCode);

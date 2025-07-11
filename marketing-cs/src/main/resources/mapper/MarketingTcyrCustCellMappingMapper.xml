@@ -2,7 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper" >
 
-  <select id="selectCelltiflash_" resultType="java.lang.String">
-    select cell from  b_marketing_tcyr_cust_cell_mapping  where cust_num = #{userKey}
-  </select>
+    <insert id="batchSaveCustCell">
+        ${insertSql}
+    </insert>
+
+
+    <insert id="saveNewCustCellInfo">
+        INSERT INTO
+            b_marketing_tcyr_cust_cell_mapping (cust_num,cell)
+        values
+            (#{userKey},#{cell})
+        ON DUPLICATE KEY UPDATE cell = VALUES(cell)                                                                                                                                            cell = VALUES(cell)  ;
+    </insert>
+
+
+  <select id="selectCelltikv_" resultType="java.lang.String">
+      select
+          cell
+      from  b_marketing_tcyr_cust_cell_mapping
+      where cust_num = #{userKey}
+    </select>
+
 </mapper>

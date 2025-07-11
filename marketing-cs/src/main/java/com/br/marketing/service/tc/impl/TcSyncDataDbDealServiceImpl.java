@@ -172,16 +172,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                     String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
                     if (StringUtils.isNotBlank(cell)) {
                         sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
-
-                        //TODO 匹配命中的数据插入 cust_num-cell 映射表
-                        try {
-                            MarketingTcyrCustCellMapping custCellMapping = new MarketingTcyrCustCellMapping();
-                            custCellMapping.setCell(cell);
-                            custCellMapping.setCustNum(userKey);
-                            custCellMappingMapper.insertSelective(custCellMapping);
-                        }catch (Exception e) {
-                            //TODO 此处会报 unique插入异常，直接跳过(是否需要输出日志)
-                        }
+                        custCellMappingMapper.saveNewCustCellInfo(userKey,cell);
                     } else {
                         sqlBuilder.append(",NULL,0");
                     }
@@ -259,9 +250,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     private void modifyThreadPool(ThreadPoolExecutor actionPool) {
         Integer threadNum = marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool");
         Integer corePoolSize = actionPool.getCorePoolSize();
-        // 只在配置真正发生变化时才调整线程池
         if (!corePoolSize.equals(threadNum)) {
-            log.info(TITLE + "检测到线程池配置变更，调整线程池大小: {} -> {}", corePoolSize, threadNum);
             actionPool.setCorePoolSize(threadNum);
             actionPool.setMaximumPoolSize(threadNum);
         }
