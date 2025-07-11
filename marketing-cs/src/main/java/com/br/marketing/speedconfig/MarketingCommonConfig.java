@@ -3210,5 +3210,10 @@ public class MarketingCommonConfig {
      * 携程短信撞库挡板及异常 [true,true]
      */
     private List<Boolean> xieChengCpsCollidingRetrySwitch;
+
+    /**
+     * 360ai区间配置
+     */
+    private Integer qiFuConfigNum;
 }
 
