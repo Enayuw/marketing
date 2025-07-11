@@ -357,6 +357,22 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="【bridge】-YiXinMailStatisticsInfoJob"
+                class="com.br.marketing.bridge.job.YiXinMailStatisticsInfoJob"
+                cron="0 */10 10-23 * * ?"
+                description="宜信邮件统计信息抓取任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                job-parameter="{}"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
 
     <job:simple id="【bridge】-TcSyncDataMatchShardJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncDataMatchShardJob"

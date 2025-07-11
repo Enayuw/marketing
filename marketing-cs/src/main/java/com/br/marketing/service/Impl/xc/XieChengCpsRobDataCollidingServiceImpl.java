@@ -50,13 +50,13 @@ public class XieChengCpsRobDataCollidingServiceImpl implements XieChengCpsRobDat
         // 创建线程池
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_ROB_3710090.getName(), 5, 10);
 
-        // 分页大小
-        Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
-
         Long minId = null;
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         while (true) {
+            // 分页大小
+            Integer pageSize = marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize();
+
             // 查询未撞库数据：retryCount=0，push_time=null
             List<XieChengCpsCollidingDataRob> list = cpsRobMapper.selectUnprocessedRobData(minId, pageSize);
             if (CollectionUtils.isEmpty(list)) {

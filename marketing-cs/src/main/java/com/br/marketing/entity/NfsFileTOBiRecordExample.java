@@ -1,6 +1,7 @@
 package com.br.marketing.entity;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class NfsFileTOBiRecordExample {
@@ -294,6 +295,196 @@ public class NfsFileTOBiRecordExample {
             return (Criteria) this;
         }
 
+        public Criteria andSendTimeIsNull() {
+            addCriterion("send_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeIsNotNull() {
+            addCriterion("send_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeEqualTo(String value) {
+            addCriterion("send_time =", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeNotEqualTo(String value) {
+            addCriterion("send_time <>", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeGreaterThan(String value) {
+            addCriterion("send_time >", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeGreaterThanOrEqualTo(String value) {
+            addCriterion("send_time >=", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeLessThan(String value) {
+            addCriterion("send_time <", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeLessThanOrEqualTo(String value) {
+            addCriterion("send_time <=", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeLike(String value) {
+            addCriterion("send_time like", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeNotLike(String value) {
+            addCriterion("send_time not like", value, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeIn(List<String> values) {
+            addCriterion("send_time in", values, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeNotIn(List<String> values) {
+            addCriterion("send_time not in", values, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeBetween(String value1, String value2) {
+            addCriterion("send_time between", value1, value2, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSendTimeNotBetween(String value1, String value2) {
+            addCriterion("send_time not between", value1, value2, "sendTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeIsNull() {
+            addCriterion("create_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeIsNotNull() {
+            addCriterion("create_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeEqualTo(Date value) {
+            addCriterion("create_time =", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeNotEqualTo(Date value) {
+            addCriterion("create_time <>", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeGreaterThan(Date value) {
+            addCriterion("create_time >", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("create_time >=", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeLessThan(Date value) {
+            addCriterion("create_time <", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeLessThanOrEqualTo(Date value) {
+            addCriterion("create_time <=", value, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeIn(List<Date> values) {
+            addCriterion("create_time in", values, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeNotIn(List<Date> values) {
+            addCriterion("create_time not in", values, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeBetween(Date value1, Date value2) {
+            addCriterion("create_time between", value1, value2, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateTimeNotBetween(Date value1, Date value2) {
+            addCriterion("create_time not between", value1, value2, "createTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeIsNull() {
+            addCriterion("update_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeIsNotNull() {
+            addCriterion("update_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeEqualTo(Date value) {
+            addCriterion("update_time =", value, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeNotEqualTo(Date value) {
+            addCriterion("update_time <>", value, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeGreaterThan(Date value) {
+            addCriterion("update_time >", value, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("update_time >=", value, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeLessThan(Date value) {
+            addCriterion("update_time <", value, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeLessThanOrEqualTo(Date value) {
+            addCriterion("update_time <=", value, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeIn(List<Date> values) {
+            addCriterion("update_time in", values, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeNotIn(List<Date> values) {
+            addCriterion("update_time not in", values, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeBetween(Date value1, Date value2) {
+            addCriterion("update_time between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
+            addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
         public Criteria andFileNameIsNull() {
             addCriterion("file_name is null");
             return (Criteria) this;
@@ -561,6 +752,76 @@ public class NfsFileTOBiRecordExample {
 
         public Criteria andExecuteDateNotBetween(String value1, String value2) {
             addCriterion("execute_date not between", value1, value2, "executeDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeIsNull() {
+            addCriterion("bus_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeIsNotNull() {
+            addCriterion("bus_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeEqualTo(String value) {
+            addCriterion("bus_type =", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeNotEqualTo(String value) {
+            addCriterion("bus_type <>", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeGreaterThan(String value) {
+            addCriterion("bus_type >", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("bus_type >=", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeLessThan(String value) {
+            addCriterion("bus_type <", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeLessThanOrEqualTo(String value) {
+            addCriterion("bus_type <=", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeLike(String value) {
+            addCriterion("bus_type like", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeNotLike(String value) {
+            addCriterion("bus_type not like", value, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeIn(List<String> values) {
+            addCriterion("bus_type in", values, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeNotIn(List<String> values) {
+            addCriterion("bus_type not in", values, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeBetween(String value1, String value2) {
+            addCriterion("bus_type between", value1, value2, "busType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusTypeNotBetween(String value1, String value2) {
+            addCriterion("bus_type not between", value1, value2, "busType");
             return (Criteria) this;
         }
     }

@@ -14,14 +14,13 @@
         INSERT INTO b_xiecheng_cps_colliding_data_log 
         (idempotent_key, data_id, package_id, data_source_type, cell_sha256_code_list, 
          release_time, result, info, org_channel, mkt_level, hit_request_no, 
-         http_code, business_code, return_content, extend, is_delete, create_time, update_time)
+         http_code, business_code, return_content, extend)
         VALUES
         <foreach collection="collidingLogs" item="item" separator=",">
             (#{item.idempotentKey}, #{item.dataId}, #{item.packageId}, #{item.dataSourceType}, 
              #{item.cellSha256CodeList}, #{item.releaseTime}, #{item.result}, #{item.info}, 
              #{item.orgChannel}, #{item.mktLevel}, #{item.hitRequestNo}, #{item.httpCode}, 
-             #{item.businessCode}, #{item.returnContent}, #{item.extend}, 
-             #{item.isDelete}, #{item.createTime}, #{item.updateTime})
+             #{item.businessCode}, #{item.returnContent}, #{item.extend})
         </foreach>
     </insert>
 </mapper>
