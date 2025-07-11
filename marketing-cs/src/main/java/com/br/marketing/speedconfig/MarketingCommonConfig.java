@@ -3222,5 +3222,10 @@ public class MarketingCommonConfig {
      * {"userName":"xxx", "password":"xxx"}
      */
     private Map<String, String> YiXinMailConfigMap;
+
+    /**
+     * 360ai区间配置
+     */
+    private Integer qiFuConfigNum;
 }
 
