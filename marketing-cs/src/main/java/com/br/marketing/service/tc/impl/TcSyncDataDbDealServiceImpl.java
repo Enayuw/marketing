@@ -133,7 +133,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
             }
             //3.修改csvFile totalCount数量、dbDeal状态、
             tcyrSyncFile.setTotalCount(totalCount);
-            tcyrSyncFile.setDealStatus(2);
+            tcyrSyncFile.setDbDealStatus(2);
             tcyrSyncFile.setUpdateTime(new Date());
             tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
         } catch (IOException e) {
@@ -145,57 +145,61 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     }
 
     private void dbDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData) {
-        List<List<String>> partitionList = ListUtils.partition(batchData, marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize"));
-        for (List<String> partitionItemList : partitionList) {
-            StringBuilder sqlBuilder = new StringBuilder();
-            sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal,cell,is_match,extend,status) VALUES");
-            int count = 0;
-            for (String line : partitionItemList) {
-                if (count > 0) {
-                    sqlBuilder.append(",");
-                }
-                String[] data = line.split(",");
-                sqlBuilder.append("('").append(escapeSqlString(apiCode)).append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
-
-                if (data.length == 1) {
-                    String userKey = data[0].trim();
-                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("',NULL,NULL,NULL");
-                    JSONObject extentJson = new JSONObject();
-                    for (int i = 0; i < data.length; i++) {
-                        extentJson.put("column_" + (i + 1), data[i]);
+        try {
+            List<List<String>> partitionList = ListUtils.partition(batchData, marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize"));
+            for (List<String> partitionItemList : partitionList) {
+                StringBuilder sqlBuilder = new StringBuilder();
+                sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal,cell,is_match,extend,status,create_time,update_time) VALUES");
+                int count = 0;
+                for (String line : partitionItemList) {
+                    if (count > 0) {
+                        sqlBuilder.append(",");
                     }
-                    sqlBuilder.append(",'").append(JSONObject.toJSONString(extentJson)).append("',0)");
-                } else if (data.length >= 2) {
-                    String userKey = data[0].trim();
-                    sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("','").append(escapeSqlString(data[1].trim()));
-                    //cell is_match
-                    String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
-                    if (StringUtils.isNotBlank(cell)) {
-                        sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
-                        custCellMappingMapper.saveNewCustCellInfo(userKey,cell);
-                    } else {
-                        sqlBuilder.append(",NULL,0");
-                    }
-                    //extend
-                    JSONObject extentJson = new JSONObject();
-                    for (int i = 0; i < data.length; i++) {
-                        extentJson.put("column_" + (i + 1), data[i]);
-                    }
-                    JSONObject customJson = JSONObject.parseObject(customerData);
-                    List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
-                    for (String key : customJson.keySet()) {
-                        if (!tcyrSyncExcludeFieldList.contains(key)) {
-                            extentJson.put(key, customJson.get(key));
+                    String[] data = line.split(",");
+                    sqlBuilder.append("('").append(escapeSqlString(apiCode)).append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
+                    if (data.length == 1) {
+                        String userKey = data[0].trim();
+                        sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("',NULL,NULL,NULL");
+                        JSONObject extentJson = new JSONObject();
+                        for (int i = 0; i < data.length; i++) {
+                            extentJson.put("column_" + (i + 1), data[i]);
                         }
+                        sqlBuilder.append(",'").append(escapeSqlString(JSONObject.toJSONString(extentJson))).append("',0,NOW(),NOW())");
+                    } else if (data.length >= 2) {
+                        String userKey = data[0].trim();
+                        sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("','").append(escapeSqlString(data[1].trim())).append("'");
+                        //cell is_match
+                        String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
+                        if (StringUtils.isNotBlank(cell)) {
+                            sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
+                            custCellMappingMapper.saveNewCustCellInfo(userKey, cell);
+                        } else {
+                            sqlBuilder.append(",NULL,0");
+                        }
+                        //extend
+                        JSONObject extentJson = new JSONObject();
+                        for (int i = 0; i < data.length; i++) {
+                            extentJson.put("column_" + (i + 1), data[i]);
+                        }
+                        JSONObject customJson = JSONObject.parseObject(customerData);
+                        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
+                        for (String key : customJson.keySet()) {
+                            if (!tcyrSyncExcludeFieldList.contains(key)) {
+                                extentJson.put(key, customJson.get(key));
+                            }
+                        }
+                        extentJson.put("syncFileId", syncFileId);
+                        sqlBuilder.append(",'").append(escapeSqlString(extentJson.toJSONString())).append("',1,NOW(),NOW())");
                     }
-                    extentJson.put("syncFileId", syncFileId);
-                    sqlBuilder.append(",'").append(escapeSqlString(extentJson.toJSONString())).append("',1)");
+                    count++;
                 }
-                count++;
+                // 执行批量插入
+                log.info("{}执行批量插入，apiCode:{}, batchNo:{}, count:{},sql:{}", TITLE, apiCode, batchNo, count,sqlBuilder.toString());
+                tcyrSyncMapper.insertDataToDb(sqlBuilder.toString());
             }
-            // 执行批量插入
-            log.info("{}执行批量插入，apiCode:{}, batchNo:{}, count:{}", TITLE, apiCode, batchNo, count);
-            tcyrSyncMapper.insertDataToDb(sqlBuilder.toString());
+        }catch (Exception e) {
+            tcyrSyncFileMapper.updateDbDealStatus(syncFileId,3);
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
     }
 

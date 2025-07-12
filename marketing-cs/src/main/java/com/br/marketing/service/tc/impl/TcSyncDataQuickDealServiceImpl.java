@@ -184,6 +184,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             // 2.上传清洗
             List<List<MarketingTcyrSync>> partitionList = ListUtils.partition(tcyrSyncList, 1000);
             for(List<MarketingTcyrSync> tcyrSyncItemList : partitionList){
+                log.info("处理分片，数据量: {}", tcyrSyncItemList.size());
                 List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncItemList), JSONObject.class);
                 Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
                 if (callResult!=null && callResult.isSuccess()) {
@@ -195,9 +196,9 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                         pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
                         if (pushResult != null && pushResult.isSuccess()) {
                             successCount.addAndGet(tcyrSyncItemList.size());
+                            log.info("分片处理成功，计数增加: {}", tcyrSyncItemList.size());
                         } else {
-                            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                                    "上传推送失败,"+JSONObject.toJSONString(pushResult), TITLE));
+                            log.error("分片处理失败，数据量: {}", tcyrSyncItemList.size());
                             saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
                                     JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),1);
                         }
@@ -263,6 +264,10 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     extentJson.put("syncFileId", syncFileId);
                     syncItem.setExtend(extentJson.toJSONString());
                     tcyrSyncList.add(syncItem);
+                }
+            }else{
+                if (marketingCommonConfig.getTcQuickDealShardConfig().getBoolean("detailLogSwitch")) {
+                    log.warn("TITLE:{},batchNum:{},syncFileId:{} quick_deal流程line异常数据:{}", TITLE, syncFileId, syncFileId,line);
                 }
             }
         });

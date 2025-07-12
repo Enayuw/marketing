@@ -9,10 +9,12 @@
 
     <insert id="saveNewCustCellInfo">
         INSERT INTO
-            b_marketing_tcyr_cust_cell_mapping (cust_num,cell)
-        values
-            (#{userKey},#{cell})
-        ON DUPLICATE KEY UPDATE cell = VALUES(cell)                                                                                                                                            cell = VALUES(cell)  ;
+            b_marketing_tcyr_cust_cell_mapping (cust_num,cell,update_time)
+        VALUES
+            (#{userKey},#{cell},NOW())
+        ON DUPLICATE KEY UPDATE
+            cell = VALUES(cell),
+            update_time = NOW()
     </insert>
 
 
