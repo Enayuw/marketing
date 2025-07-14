@@ -16,6 +16,7 @@ public class TransFileToBiConfigRecordVO {
     private String busType;
     private String dbName;
     private String dbFields;
+    private String dbColFieldsMap;
     // b_transfer_file_task
     private Long taskId;
     private Integer fileType;

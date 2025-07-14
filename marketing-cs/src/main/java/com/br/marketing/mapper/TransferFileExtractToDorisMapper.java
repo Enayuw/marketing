@@ -11,4 +11,6 @@ public interface TransferFileExtractToDorisMapper {
     Integer insertDataToMarketingBiTable(@Param("insertDorisSql") String insertDorisSql);
 
     void deleteDataFromMarketingBiTable(@Param("deleteDorisSqlByDate") String deleteDorisSqlByDate);
+
+    Integer countDataFromMarketingBiTable(@Param("countSql") String countSql);
 }

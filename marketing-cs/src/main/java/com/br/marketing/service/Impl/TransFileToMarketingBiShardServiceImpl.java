@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -9,21 +11,17 @@ import com.br.marketing.entity.NfsFileTOBiRecord;
 import com.br.marketing.entity.NfsFileTOBiRecordExample;
 import com.br.marketing.mapper.BFileBiConfigMapper;
 import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
-import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
+import com.br.marketing.mapper.TransferFileExtractToDorisMapper;
 import com.br.marketing.service.TransFileToMarketingBiShardService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.TransFileToBiConfigRecordVO;
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -48,7 +46,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TransferFileExtractToDorisBIMapper transferFileExtractToDorisBIMapper;
+    private TransferFileExtractToDorisMapper transferFileExtractToDorisMapper;
 
     @Resource
     private BFileBiConfigMapper bFileBiConfigMapper;
@@ -59,7 +57,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     @Resource
     private RedisChgService redisChgService;
 
-    private static final int BATCH_SIZE = 1000;
+    private static final int BATCH_SIZE = 500;
 
     @Override
     public void process(String jobParameter, List<Integer> shardingItems) {
@@ -67,7 +65,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         Integer priorityStatus = marketingCommonConfig.getTransFilePriorityList().containsAll(shardingItems) ? 1 : 0;
         String dateStr = StringUtils.isNotEmpty(jobParameter)
                 ? jobParameter
-                : LocalDate.now().toString().replace("-", "");
+                : LocalDate.of(2025, 7, 11).toString().replace("-", "");
         for (String dataDate : dateStr.split(",")) {
             // 2. 按日期+优先级动态锁
             String lockKey = String.format("trans_file_to_marketing_bi_shard_lock:%s:%s", dataDate, priorityStatus);
@@ -105,12 +103,20 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
                 marketingCommonConfig.getTransFileExtractionBIThread(),
                 marketingCommonConfig.getTransFileExtractionBIThread());
         String filePath = configRecordVO.getFilePath().concat(configRecordVO.getFileName());
-        File file = new File(filePath);
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            List<String> columns = Arrays.asList(configRecordVO.getDbFields().split(","));
+        try (FileInputStream fis = new FileInputStream(filePath);
+             InputStreamReader isr = new InputStreamReader(fis, "GBK");
+             BufferedReader reader = new BufferedReader(isr)) {
+            Map<String, String> colFieldMap = JSON.parseObject(configRecordVO.getDbColFieldsMap(),
+                    new TypeReference<Map<String, String>>() {});
             List<String> batchData = Lists.newArrayList();
             String dataLine;
-            reader.readLine(); // 跳过表头
+
+            String headerLine = reader.readLine();
+            List<String> fileHeaders = Lists.newArrayList(headerLine.split(","))
+                    .stream().map(String::trim).map(x -> x.replace("\uFEFF", "")).collect(Collectors.toList());
+            Map<String, Integer> indexFieldMap = colFieldMap.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getValue, entry -> fileHeaders.indexOf(entry.getKey())));
+
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
 
             String formattedDate = getFormattedDate(dateDate);
@@ -123,14 +129,13 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
                 }
                 ArrayList<String> copyListObj = Lists.newArrayList(batchData);
                 futures.add(CompletableFuture.runAsync(() ->
-                        writeFileDataToTidb(configRecordVO.getDbName(), columns, copyListObj, formattedDate), threadPool));
+                        writeFileDataToTidb(configRecordVO.getDbName(), indexFieldMap, copyListObj, formattedDate), threadPool));
                 batchData.clear();
             }
             // 处理剩余数据
             if (!batchData.isEmpty()) {
                 ArrayList<String> copyListObj = Lists.newArrayList(batchData);
-                futures.add(CompletableFuture.runAsync(() ->
-                        writeFileDataToTidb(configRecordVO.getDbName(), columns, copyListObj, formattedDate), threadPool));
+                writeFileDataToTidb(configRecordVO.getDbName(), indexFieldMap, copyListObj, formattedDate);
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             log.warn("apiCode: {} 日期: {} 文件落库BI完成,耗时:{}", configRecordVO.getApiCode(), dateDate, System.currentTimeMillis() - startTime);
@@ -173,14 +178,14 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         // 批量删除目标表数据，每批2000条
         int batchSize = 2000;
         String countSql = "select count(*) from " + configRecord.getDbName() + " where data_date = '" + dataDate + "'";
-        int totalCount = transferFileExtractToDorisBIMapper.countDataFromMarketingBiTable(countSql);
+        int totalCount = transferFileExtractToDorisMapper.countDataFromMarketingBiTable(countSql);
 
         if (totalCount > 0) {
             int totalBatches = (totalCount + batchSize - 1) / batchSize;
             for (int i = 0; i < totalBatches; i++) {
                 String deleteSql = "delete from " + configRecord.getDbName() +
                         " where data_date = '" + dataDate + "' limit " + batchSize;
-                transferFileExtractToDorisBIMapper.deleteDataFromMarketingBiTablebI_(deleteSql);
+                transferFileExtractToDorisMapper.deleteDataFromMarketingBiTable(deleteSql);
                 log.info("apiCode: {} 日期: {} 批次: {}/{} 删除数据完成",
                         configRecord.getApiCode(), dataDate, (i + 1), totalBatches);
             }
@@ -192,36 +197,42 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     /**
      * 写入文件数据到Tidb
      */
-    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData, String formattedDate) {
-        StringBuilder insertSql = new StringBuilder("INSERT INTO ")
-                .append(tableName).append(" (")
-                .append(columns.stream().map(String::trim).collect(Collectors.joining(", ")))
-                .append(") VALUES ");
+    private void writeFileDataToTidb(String tableName, Map<String, Integer> colFieldMap,
+                                     List<String> batchData, String formattedDate) {
+        StringJoiner valuesJoiner = new StringJoiner(", \n", "", "");
+        String colNames = colFieldMap.keySet().stream()
+                .map(String::trim)
+                .collect(Collectors.joining(", "));
 
         for (String dataLine : batchData) {
             String[] rawValues = dataLine.split(",", -1);
-            insertSql.append("\n(");
-            // 处理非日期字段
-            for (int i = 0; i < columns.size() - 1; i++) {
-                if (i > 0) {
-                    insertSql.append(", ");
-                }
-                String rawValue = (i < rawValues.length) ? rawValues[i].trim() : "";
-                if (rawValue.isEmpty()) {
-                    insertSql.append("NULL");
-                } else {
-                    insertSql.append("'").append(rawValue.replace("'", "''")).append("'");
-                }
-            }
-            // 统一添加日期字段
-            insertSql.append(", ")
-                    .append(formattedDate != null ? "'" + formattedDate + "'" : "NULL")
-                    .append("),");
+            StringJoiner rowJoiner = new StringJoiner(", ", "(", ")");
+
+            colFieldMap.forEach((colName, index) -> {
+                String rawValue = resolveRawValue(rawValues, index, colName, formattedDate);
+                rowJoiner.add(formatSqlValue(rawValue));
+            });
+            valuesJoiner.add(rowJoiner.toString());
         }
-        if (insertSql.charAt(insertSql.length() - 1) == ',') {
-            insertSql.setLength(insertSql.length() - 1);
+
+        String insertSql = "INSERT INTO " + tableName + " (" + colNames + ") VALUES \n" + valuesJoiner;
+        transferFileExtractToDorisMapper.insertDataToMarketingBiTable(insertSql);
+    }
+
+    private String resolveRawValue(String[] rawValues, int index, String colName, String formattedDate) {
+        if (index >= 0 && index < rawValues.length) {
+            return rawValues[index].trim();
+        } else if ("data_date".equals(colName)) {
+            return formattedDate;
         }
-        transferFileExtractToDorisBIMapper.insertDataToMarketingBiTablebI_(insertSql.toString());
+        return "";
+    }
+
+    private String formatSqlValue(String rawValue) {
+        if (StringUtils.isEmpty(rawValue)) {
+            return "NULL";
+        }
+        return "'" + rawValue.replace("'", "''") + "'";
     }
 
     private NfsFileTOBiRecord buildNfsRecord(TransFileToBiConfigRecordVO configTask, String dataDate) {
@@ -232,6 +243,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         record.setFileName(configTask.getFileName());
         record.setTaskId(configTask.getTaskId());
         record.setExecuteDate(dataDate);
+        record.setBusType(configTask.getBusType());
         return record;
     }
 

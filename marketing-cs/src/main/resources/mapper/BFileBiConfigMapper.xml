@@ -6,6 +6,8 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="bus_type" property="busType" jdbcType="VARCHAR" />
     <result column="db_name" property="dbName" jdbcType="VARCHAR" />
+    <result column="db_fields" property="dbFields" jdbcType="VARCHAR" />
+    <result column="db_col_fields_map" property="dbColFieldsMap" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -71,7 +73,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, bus_type, db_name, db_fields, create_time, update_time
+    id, api_code, bus_type, db_name, db_fields, db_col_fields_map, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
     db_fields
@@ -129,10 +131,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_file_bi_config (api_code, bus_type, db_name, 
-      create_time, update_time, db_fields
+      create_time, update_time, db_fields, db_col_fields_map)
       )
     values (#{apiCode,jdbcType=VARCHAR}, #{busType,jdbcType=VARCHAR}, #{dbName,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{dbFields,jdbcType=LONGVARCHAR}
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{dbFields,jdbcType=LONGVARCHAR},
+      #{dbColFieldsMap,jdbcType=LONGVARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.BFileBiConfig" >
@@ -159,6 +162,9 @@
       <if test="dbFields != null" >
         db_fields,
       </if>
+      <if test="dbColFieldsMap != null" >
+        db_col_fields_map,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -178,6 +184,9 @@
       </if>
       <if test="dbFields != null" >
         #{dbFields,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="dbColFieldsMap != null" >
+        #{dbColFieldsMap,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -211,6 +220,9 @@
       <if test="record.dbFields != null" >
         db_fields = #{record.dbFields,jdbcType=LONGVARCHAR},
       </if>
+      <if test="record.dbColFieldsMap != null" >
+        db_col_fields_map = #{record.dbColFieldsMap,jdbcType=LONGVARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -224,7 +236,8 @@
       db_name = #{record.dbName,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      db_fields = #{record.dbFields,jdbcType=LONGVARCHAR}
+      db_fields = #{record.dbFields,jdbcType=LONGVARCHAR},
+      db_col_fields_map = #{record.dbColFieldsMap,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -262,6 +275,9 @@
       <if test="dbFields != null" >
         db_fields = #{dbFields,jdbcType=LONGVARCHAR},
       </if>
+      <if test="dbColFieldsMap != null" >
+        db_col_fields_map = #{dbColFieldsMap,jdbcType=LONGVARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -272,7 +288,8 @@
       db_name = #{dbName,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      db_fields = #{dbFields,jdbcType=LONGVARCHAR}
+      db_fields = #{dbFields,jdbcType=LONGVARCHAR},
+      db_col_fields_map = #{dbColFieldsMap,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.BFileBiConfig" >
@@ -292,6 +309,7 @@
     c.bus_type AS busType,
     c.db_name AS dbName,
     c.db_fields AS dbFields,
+    c.db_col_fields_map AS dbColFieldsMap,
     t.id AS taskId,
     t.file_type AS fileType,
     t.file_name AS fileName,
