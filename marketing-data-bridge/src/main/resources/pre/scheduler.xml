@@ -385,4 +385,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【bridge】-TransFileToMarketingBIShardJob"
+                class="com.br.marketing.bridge.job.TransFileToMarketingBIShardJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="内部服务器的转化文件分片落库到marketingBI"
+                registry-center-ref="regCenter"
+                sharding-total-count="5"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
