@@ -58,6 +58,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
+import com.br.marketing.service.Impl.xc.XieChengCpsCollidingDataLogService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
@@ -175,6 +176,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Resource
+    private XieChengCpsCollidingDataLogMapper xieChengCpsCollidingDataLogMapper;
     @Resource
     @Qualifier("xieChengThreadPool")
     ThreadPoolExecutor xieChengThreadPool;
@@ -250,7 +254,8 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     UpdatePhoneSaleMapper updatePhoneSaleMapper;
-
+    @Resource
+    private XieChengCpsCollidingDataLogService cpsLogService;
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
@@ -1431,6 +1436,12 @@ public class PushDataServiceImpl implements PushDataService {
 
             // 发送异常统计信息
             sendAlertMessage(sendDate);
+
+            // 更新文件推送状态
+            LocalFile localFile = new LocalFile();
+            localFile.setId(localId);
+            localFile.setPushStatus("2");
+            localFileMapper.updateByPrimaryKeySelective(localFile);
         } catch (Exception e) {
             log.error("携程短信撞库【VT】推送异常: {}", e);
 
@@ -1580,9 +1591,15 @@ public class PushDataServiceImpl implements PushDataService {
                             }
                         });
                     }
-                    // mq 消息发送
-                    sendMqData(xieChengSmsCollidingDataLogVtList);
 
+                    // 推送外呼
+                    List<XieChengCpsCollidingDataLog> xieChengCpsCollidingDataLogList = xieChengSmsCollidingDataLogVtList.stream().map(t -> {
+                        XieChengCpsCollidingDataLog xieChengCpsCollidingDataLog = new XieChengCpsCollidingDataLog();
+                        xieChengCpsCollidingDataLog.setCellSha256CodeList(t.getSha256CodeList());
+                        xieChengCpsCollidingDataLog.setResult(t.getResult());
+                        return xieChengCpsCollidingDataLog;
+                    }).collect(Collectors.toList());
+                    cpsLogService.pushRobotMessage(xieChengCpsCollidingDataLogList);
                 } else {
                     // 异常请求 只更新日志表状态3
                     String msg = resultJson.getString("msg");
@@ -1751,7 +1768,7 @@ public class PushDataServiceImpl implements PushDataService {
                         redisChgService.unlock(key, value);
                         return;
                     }
-                    XieChengSmsCollidingDataLogVt dataLogVt = xieChengSmsCollidingDataLogVtMapper.selectLatestVtLog(sha256Tel);
+                    XieChengCpsCollidingDataLog dataLogVt = xieChengCpsCollidingDataLogMapper.selectLatestCpsLog(sha256Tel);
                     if (null == dataLogVt) {
                         resultData.setDataMessage("撞库释放时间小于当前时间或无返回true的撞库日志");
                         resultData.setStatus(2);

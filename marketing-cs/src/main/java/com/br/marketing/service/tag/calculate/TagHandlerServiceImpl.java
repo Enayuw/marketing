@@ -15,6 +15,9 @@ import com.br.marketing.enums.tag.TagStatusEnum;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.mapper.tag.*;
+import com.br.marketing.service.tag.calculate.strategy.CallFieldStrategy;
+import com.br.marketing.service.tag.calculate.strategy.ShortLinkFieldStrategy;
+import com.br.marketing.service.tag.calculate.strategy.TransformFieldStrategy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -147,6 +150,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
         try {
             // 解析数据源配置
             List<String> sourceCodes = Arrays.asList(tagDataRule.getSourceCode().split(","));
+            Collections.sort(sourceCodes);
 
             // 圈选的ApiCode范围
             List<String> apiCodes = Arrays.asList(tagDataRule.getApiCodeScope().split(","));
@@ -188,8 +192,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
                     .getSourceName()
                     .replace("${apiCode}", apiCode);
         }
+        //生产环境视图名称为小写，此处对视图名称进行小写处理
+        String lowerSourceName = sourceName.toLowerCase();
         // 处理数据源映射
-        String sourceMappingCode = handleSourceMapping(tagCode, apiCode, sourceName, sourceType, sourceCodes, sourceConfigList);
+        String sourceMappingCode = handleSourceMapping(tagCode, apiCode, lowerSourceName, sourceType, sourceCodes, sourceConfigList);
         if (sourceMappingCode == null) {
             return Boolean.FALSE;
         }
@@ -199,7 +205,7 @@ public class TagHandlerServiceImpl implements TagHandleService {
 
         // 写入数据到Doris
         Long start = System.currentTimeMillis();
-        insertDataDoris(sourceName, sourceType, sourceCodes, tagDataRule);
+        insertDataDoris(apiCode, lowerSourceName, sourceType, sourceCodes, tagDataRule);
         log.warn(TITLE + "tagCode={},apiCode={},写入数据到Doris明细表,耗时={}ms", tagCode, apiCode,
                 System.currentTimeMillis() - start);
 
@@ -294,20 +300,26 @@ public class TagHandlerServiceImpl implements TagHandleService {
     /**
      * 将数据插入到Doris数据库
      *
+     * @param apiCode     apiCode
      * @param sourceName  数据源名称
      * @param sourceType  数据源类型
      * @param sourceCodes 数据源代码列表
      * @param tagDataRule 标签数据规则
      */
-    private void insertDataDoris(String sourceName, Integer sourceType, List<String> sourceCodes,
+    private void insertDataDoris(String apiCode, String sourceName, Integer sourceType, List<String> sourceCodes,
                                  TagDataRule tagDataRule) {
 
         String sourceCode = "";
         String conditionSql = "";
+        String groupSql = "";
 
         if (TagData.TableTypeEnum.BASE.getLabel().equals(sourceType)) {
             sourceCode = sourceCodes.get(0);
             conditionSql = EsConditionTransferSqlUtil.jsonTransferSql(JSON.parseObject(tagDataRule.getContent()), "");
+            if (sourceCode.equals(SourceTypeEnum.SHORTLINK.getCode())) {
+                //如果数据源为短链，还需要对cell去重
+                groupSql = " group by cell";
+            }
         } else {
             //如果是多表查询，以CALL或TRANSFORM作为sourceCode进行查询
             for (String code : sourceCodes) {
@@ -319,25 +331,27 @@ public class TagHandlerServiceImpl implements TagHandleService {
             conditionSql = EsConditionTransferSqlUtil.jsonTransferSqlByFillKey(JSON.parseObject(tagDataRule.getContent()), "");
         }
 
+        // 构建插入SQL
+        StringBuilder insertBuilder = new StringBuilder();
+        SourceTypeEnum sourceCodeEnum = SourceTypeEnum.fromCode(sourceCode);
+        if (sourceCodeEnum == null) {
+            throw new BusinessException("当前数据源编码不存在！");
+        }
+
         // 根据表类型确定字段名
         SourceFieldStrategy sourceFieldStrategy = null;
         try {
             sourceFieldStrategy = getFieldMappingStrategy(SourceTypeEnum.valueOf(sourceCode));
-            //判空
-            if (sourceFieldStrategy == null) {
-                log.warn("该数据源类型不存在，sourceCode:{}", sourceCode);
+            if (sourceFieldStrategy != null) {
+                insertBuilder.append(sourceFieldStrategy.mapFields(apiCode, sourceType, sourceCode, sourceCodeEnum, sourceName, tagDataRule));
             }
         } catch (Exception e) {
             log.error("获取数据源失败，sourceCode:{}", sourceCode);
             throw new BusinessException(e.getMessage());
         }
 
-        // 构建插入SQL
-        StringBuilder insertBuilder = new StringBuilder();
-        insertBuilder.append(sourceFieldStrategy.mapFields(sourceType, sourceCode, sourceName, tagDataRule));
-
         // 添加其他条件
-        insertBuilder.append("(").append(conditionSql).append(")");
+        insertBuilder.append("(").append(conditionSql).append(")").append(groupSql);
 
         // 执行插入操作
         log.warn(TITLE + "tagCode={},插入Doris明细表的sql={}", tagDataRule.getTagCode(), insertBuilder);
@@ -433,11 +447,19 @@ public class TagHandlerServiceImpl implements TagHandleService {
         String relateField = "";
         for (int i = 0; i < sourceCodes.size(); i++) {
             String sourceCode = sourceCodes.get(i);
+            SourceTypeEnum sourceCodeEnum = SourceTypeEnum.fromCode(sourceCode);
+            if (sourceCodeEnum == null) {
+                throw new BusinessException("当前数据源编码不存在！");
+            }
+
             String sourceName = sourceConfigList.stream().filter(sourceConfig -> sourceConfig.getSourceCode()
                     .equals(sourceCode)).findFirst().get().getSourceName().replace("${apiCode}", apiCode);
             // 时间条件
-            StringBuilder whereSql = new StringBuilder().append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "case_log_create_time" : "create_time")
+            StringBuilder whereSql = new StringBuilder().append(sourceCodeEnum.getTimeField())
                     .append(">=").append("\"").append(DateHelper.getPreviousDate("m", 3)).append("\"");
+            if (SourceTypeEnum.SHORTLINK.getCode().equals(sourceCode)) {
+                whereSql.append(" and api_code = \"").append(apiCode).append("\"");
+            }
             // 添加字段
             List<String> fieldNameList = flagDataMapper.queryColumnNamebI_(sourceName);
             fieldNameList.forEach(field -> {
@@ -448,12 +470,12 @@ public class TagHandlerServiceImpl implements TagHandleService {
             if (i == 0) {
                 joinBuilder.append(" from ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode);
                 relateField = sourceCode.concat(".")
-                        .concat(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell");
+                        .concat(sourceCodeEnum.getCellField());
             } else {
                 joinBuilder.append(" FULL JOIN ( select * from ").append(sourceName).append(" where ").append(whereSql).append(") ").append(sourceCode)
                         .append(" on ")
                         .append(sourceCode).append(".")
-                        .append(SourceTypeEnum.CALL.getCode().equals(sourceCode) ? "phone_num_encoded" : "cell")
+                        .append(sourceCodeEnum.getCellField())
                         .append("=").append(relateField);
             }
         }
@@ -475,9 +497,10 @@ public class TagHandlerServiceImpl implements TagHandleService {
     private Boolean waitForViewCreationComplete(String viewName) {
         long beginTime = System.currentTimeMillis();
         Long maxTime = marketingCommonConfig.getCreateMVMaxWaitTime();
+        String database = marketingCommonConfig.getDatabase();
         while (System.currentTimeMillis() - beginTime < maxTime) {
             try {
-                MaterializedViewDTO materializedView = tagDataRuleCalculateMapper.getMViewInfobI_(viewName);
+                MaterializedViewDTO materializedView = tagDataRuleCalculateMapper.getMViewInfobI_(viewName, database);
 
                 if (materializedView != null &&
                         "NORMAL".equals(materializedView.getState()) && "SUCCESS".equals(materializedView.getRefreshState()) &&

@@ -120,6 +120,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingNewTransferData> getTransferNewData(@Param("day") int day , @Param("limitStart") Integer limitStart);
+    List<MarketingNewTransferData> getTransferByCpsLog(@Param("limitStart") Integer limitStart);
 
     /**
      * 取T日全量转换数据

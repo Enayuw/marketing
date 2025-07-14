@@ -2829,6 +2829,11 @@ public class MarketingCommonConfig {
     private Long createMVMaxWaitTime;
 
     /**
+     * 标签:物化视图所属的数据库名,预发为marketing,线上为marketing_bi
+     */
+    private String database;
+
+    /**
      * 标签计算配置
      */
     private Map<String,String> tagCalculateConfig;
@@ -3190,5 +3195,37 @@ public class MarketingCommonConfig {
      * 数禾重申提取表头字段
      */
     private String shuHeChongShenTransferTableHead;
+
+    /**
+     * 携程CPS撞库数据同步分页条数
+     */
+    private Integer xieChengCpsCollidingDataSyncPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengCpsCollidingConfig;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengCpsCollidingRetrySwitch;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"3710012":"三方营销效果监控-百融"}
+     */
+    private Map<String, String> mailApiCodeSubjectMap;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"userName":"xxx", "password":"xxx"}
+     */
+    private Map<String, String> YiXinMailConfigMap;
+
+    /**
+     * 360ai区间配置
+     */
+    private Integer qiFuConfigNum;
 }
 

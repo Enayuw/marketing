@@ -153,6 +153,13 @@
         order by id desc limit #{limitStart},2000;
     </select>
 
+    <select id="getTransferByCpsLog" resultType="com.br.marketing.entity.MarketingNewTransferData">
+        select cell_sha256_code_list as sha256_code_list, result, org_channel, mkt_level
+        from b_xiecheng_cps_colliding_data_log
+         <![CDATA[  where create_time >= date (now()) and create_time < date (now()) + interval 1 day ]]>
+        order by id desc limit #{limitStart}, 2000;
+    </select>
+
 
     <select id="getTransferDataByDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from

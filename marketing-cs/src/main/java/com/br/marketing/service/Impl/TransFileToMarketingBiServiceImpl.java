@@ -5,10 +5,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.BFileBiConfigMapper;
-import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
-import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
-import com.br.marketing.mapper.TransferFileTaskMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.TransFileToMarketingBiService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +70,8 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
                     TransferFileTask transferFileTask = transferFileTasks.get(0);
 
                     NfsFileTOBiRecordExample nfsExample = new NfsFileTOBiRecordExample();
-                    nfsExample.createCriteria().andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType).andExecuteDateEqualTo(dateItem);
+                    nfsExample.createCriteria().andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType)
+                            .andExecuteDateEqualTo(dateItem).andBusTypeEqualTo("1");
                     List<NfsFileTOBiRecord> nfsFileTOBiRecordList = nfsFileTOBiRecordMapper.selectByExample(nfsExample);
                     if (CollectionUtils.isNotEmpty(nfsFileTOBiRecordList)) {
                         if (transferFileTask.getId().equals(nfsFileTOBiRecordList.get(0).getTaskId())) {

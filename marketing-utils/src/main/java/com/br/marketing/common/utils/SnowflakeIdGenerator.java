@@ -1,5 +1,6 @@
 package com.br.marketing.common.utils;
 
+
 import java.net.InetAddress;
 import java.security.SecureRandom;
 

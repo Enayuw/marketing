@@ -4,8 +4,8 @@ spring:
     name: marketing-data-bridge
   profiles.include: pre
   aop:
-   proxy-target-class: true
-   auto: true
+    proxy-target-class: true
+    auto: true
   threadpool:
     queueCapacity: 10000
     # 线程池所使用的缓冲队列
@@ -23,6 +23,10 @@ spring:
     username: marketing-br@brgroup.com
     password: 1S9D9ocaNwk#
     default-encoding: UTF-8
+    protocol: imaps
+    properties:
+      mail.imap.ssl.enable: true
+      mail.imap.auth: true
 
 
 server:
