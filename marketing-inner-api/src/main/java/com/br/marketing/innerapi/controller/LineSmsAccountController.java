@@ -89,6 +89,17 @@ public class LineSmsAccountController {
         }
     }
 
+    @ApiOperation(value = "短信对账配置启用")
+    @PatchMapping("/allowSmsAccount")
+    @LogAnnotation
+    public ApiResult allowSmsAccount(@RequestParam Long configId) {
+        try {
+            return new ApiResult().fromResult(lineSmsAccountService.allowSmsAccount(configId), CODE_1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @ApiOperation(value = "短信对账配置列表查询")
     @GetMapping("/getSmsAccounts")
     @LogAnnotation
@@ -107,7 +118,6 @@ public class LineSmsAccountController {
                                     @RequestParam(required = false) String configIdStr) {
         try {
             ApiResult apiResult = new ApiResult();
-
             if (StringUtils.isNotEmpty(configIdStr)) {
                 Long configId = Long.parseLong(configIdStr);
                 List<MarketingSmsAccountRecordVo> smsAccountRecordList= lineSmsAccountService.getSmsAccountsByConfigId(configId);

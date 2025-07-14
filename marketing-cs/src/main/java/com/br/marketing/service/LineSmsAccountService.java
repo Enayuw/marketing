@@ -22,6 +22,8 @@ public interface LineSmsAccountService {
 
     Result forbSmsAccount(Long configId);
 
+    Result allowSmsAccount(Long configId);
+
     ApiResult getSmsAccountBasInfo();
 
     PageResultReturn getSmsAccounts(Integer current, Integer size,String vendorName,String channelsName,Double price);

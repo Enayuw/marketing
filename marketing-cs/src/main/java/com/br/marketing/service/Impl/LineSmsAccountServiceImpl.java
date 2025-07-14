@@ -150,6 +150,12 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
+    @Override
+    public Result allowSmsAccount(Long configId) {
+        lineSmsAccountDataService.allowSmsAccount(configId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
 
     @Override
     public ApiResult getSmsAccountBasInfo() {

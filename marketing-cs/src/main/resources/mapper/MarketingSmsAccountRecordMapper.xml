@@ -18,6 +18,7 @@
         AND price = #{price}
       </if>
       AND NOW() BETWEEN effect_start_date AND effect_end_date
+      ORDER BY update_time DESC
     </where>
   </select>
 
@@ -27,5 +28,6 @@
     FROM b_marketing_sms_account_record
     WHERE config_id=#{configId}
     AND is_delete =0
+    ORDER BY update_time DESC
   </select>
 </mapper>

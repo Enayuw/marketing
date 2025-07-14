@@ -16,4 +16,6 @@ public interface LineSmsAccountDataService {
 
     void forbSmsAccount(Long configId);
 
+    void allowSmsAccount(Long configId);
+
 }
