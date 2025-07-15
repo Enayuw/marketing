@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -176,7 +177,8 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     @Override
     public PageResultReturn getSmsAccounts(Integer current, Integer size, String vendorName,String channelsName,Double price) {
         PageHelper.startPage(current, size);
-        List<MarketingSmsAccountRecord> smsAccountRecordList = smsAccountRecordMapper.selectList(vendorName,channelsName,price);
+        Date nowDate = new Date(System.currentTimeMillis());
+        List<MarketingSmsAccountRecord> smsAccountRecordList = smsAccountRecordMapper.selectList(vendorName,channelsName,price,nowDate);
         Page<MarketingSmsAccountRecord> page = (Page<MarketingSmsAccountRecord>) smsAccountRecordList;
         List<MarketingSmsAccountRecordVo> voList = convertToSmsAccountRecordVoList(smsAccountRecordList);
         return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());

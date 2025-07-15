@@ -17,7 +17,9 @@
       <if test="price != null">
         AND price = #{price}
       </if>
-      AND NOW() BETWEEN effect_start_date AND effect_end_date
+      <if test="nowDate !=null">
+        AND #{nowDate} BETWEEN effect_start_date AND effect_end_date
+      </if>
       ORDER BY update_time DESC
     </where>
   </select>
