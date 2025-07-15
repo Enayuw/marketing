@@ -3228,5 +3228,10 @@ public class MarketingCommonConfig {
      * {"userName":"xxx", "password":"xxx"}
      */
     private Map<String, String> YiXinMailConfigMap;
+
+    /**
+     * 转化文件落库BI批量大小
+     */
+    private Integer fileToMarketingBiBatchSize;
 }
 

@@ -394,6 +394,7 @@
                 registry-center-ref="regCenter"
                 sharding-total-count="5"
                 sharding-item-parameters="0=A"
+                job-parameter="{}"
                 monitor-execution="true"
                 failover="false"
                 misfire="false"

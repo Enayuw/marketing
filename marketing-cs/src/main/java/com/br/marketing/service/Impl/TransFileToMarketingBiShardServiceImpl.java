@@ -1,10 +1,12 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.NfsFileTOBiRecord;
@@ -16,6 +18,8 @@ import com.br.marketing.service.TransFileToMarketingBiShardService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.TransFileToBiConfigRecordVO;
 import com.google.common.collect.Lists;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -25,11 +29,14 @@ import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author zhiyong.zhang
@@ -57,16 +64,25 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     @Resource
     private RedisChgService redisChgService;
 
-    private static final int BATCH_SIZE = 500;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
     public void process(String jobParameter, List<Integer> shardingItems) {
+        log.warn("当前作业服务器的分片序列号为:{}", shardingItems);
         // 1. 识别优先级分片组
         Integer priorityStatus = marketingCommonConfig.getTransFilePriorityList().containsAll(shardingItems) ? 1 : 0;
-        String dateStr = StringUtils.isNotEmpty(jobParameter)
-                ? jobParameter
-                : LocalDate.of(2025, 7, 11).toString().replace("-", "");
-        for (String dataDate : dateStr.split(",")) {
+        JSONObject param = JSON.parseObject(jobParameter);
+        LocalDate startDate = Optional.ofNullable(param.getString("startDate"))
+                .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
+                .orElseGet(LocalDate::now);
+        LocalDate endDate = Optional.ofNullable(param.getString("endDate"))
+                .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
+                .orElseGet(LocalDate::now);
+        List<String> dates = Stream.iterate(startDate, date -> date.plusDays(1))
+                .limit(ChronoUnit.DAYS.between(startDate, endDate) + 1L)
+                .map(date -> date.format(FORMATTER))
+                .collect(Collectors.toList());
+        for (String dataDate : dates) {
             // 2. 按日期+优先级动态锁
             String lockKey = String.format("trans_file_to_marketing_bi_shard_lock:%s:%s", dataDate, priorityStatus);
             String lockValue = UUID.randomUUID().toString();
@@ -99,13 +115,12 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     private void processTransferFile(TransFileToBiConfigRecordVO configRecordVO, String dateDate) {
         long startTime = System.currentTimeMillis();
         log.warn("apiCode: {} 日期: {} 文件落库BI开始", configRecordVO.getApiCode(), dateDate);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool("转化文件落库marketingBi",
                 marketingCommonConfig.getTransFileExtractionBIThread(),
                 marketingCommonConfig.getTransFileExtractionBIThread());
         String filePath = configRecordVO.getFilePath().concat(configRecordVO.getFileName());
-        try (FileInputStream fis = new FileInputStream(filePath);
-             InputStreamReader isr = new InputStreamReader(fis, "GBK");
-             BufferedReader reader = new BufferedReader(isr)) {
+        File file = new File(filePath);
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             Map<String, String> colFieldMap = JSON.parseObject(configRecordVO.getDbColFieldsMap(),
                     new TypeReference<Map<String, String>>() {});
             List<String> batchData = Lists.newArrayList();
@@ -122,9 +137,8 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
             String formattedDate = getFormattedDate(dateDate);
 
             while ((dataLine = reader.readLine()) != null) {
-                modifyThreadPool(threadPool);
                 batchData.add(dataLine);
-                if (batchData.size() != BATCH_SIZE) {
+                if (batchData.size() != marketingCommonConfig.getFileToMarketingBiBatchSize()) {
                     continue;
                 }
                 ArrayList<String> copyListObj = Lists.newArrayList(batchData);
