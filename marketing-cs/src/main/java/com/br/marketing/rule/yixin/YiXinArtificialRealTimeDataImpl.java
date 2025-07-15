@@ -102,7 +102,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg8_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             pushMarketingUserDetailByRuleDTO.setStatus(liveType);
             jsonObject.put("batchNumber", "rg8_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        } else if ("3".equals(liveType) || "8".equals(liveType)){
+        } else if ("3".equals(liveType) || "8".equals(liveType) || "9".equals(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             pushMarketingUserDetailByRuleDTO.setStatus(liveType);
             jsonObject.put("batchNumber", "rg9_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
