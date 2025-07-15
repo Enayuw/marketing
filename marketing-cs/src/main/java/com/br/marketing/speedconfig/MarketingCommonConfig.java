@@ -3233,5 +3233,10 @@ public class MarketingCommonConfig {
      * 转化文件落库BI批量大小
      */
     private Integer fileToMarketingBiBatchSize;
+
+    /**
+     * 360ai区间配置
+     */
+    private Integer qiFuConfigNum;
 }
 
