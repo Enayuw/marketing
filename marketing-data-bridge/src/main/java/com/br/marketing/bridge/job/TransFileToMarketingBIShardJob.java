@@ -24,7 +24,7 @@ public class TransFileToMarketingBIShardJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long startTime = System.currentTimeMillis();
         log.warn("内部服务器转化文件提取到marketingBI分片任务开始...");
-        transFileToMarketingBiShardService.process(shardingContext.getJobParameter(),shardingContext.getShardingItems());
+        transFileToMarketingBiShardService.process(shardingContext.getJobParameter(), shardingContext.getShardingItems());
         log.warn("内部服务器转化文件提取到marketingBI分片任务结束,耗时:{}", System.currentTimeMillis() - startTime);
     }
 }

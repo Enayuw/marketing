@@ -388,7 +388,7 @@
 
     <job:simple id="【bridge】-TransFileToMarketingBIShardJob"
                 class="com.br.marketing.bridge.job.TransFileToMarketingBIShardJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 1/10 * * * ?"
                 description="内部服务器的转化文件分片落库到marketingBI"
                 registry-center-ref="regCenter"
                 sharding-total-count="5"

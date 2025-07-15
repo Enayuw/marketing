@@ -135,7 +135,8 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
             // 处理剩余数据
             if (!batchData.isEmpty()) {
                 ArrayList<String> copyListObj = Lists.newArrayList(batchData);
-                writeFileDataToTidb(configRecordVO.getDbName(), indexFieldMap, copyListObj, formattedDate);
+                futures.add(CompletableFuture.runAsync(() ->
+                        writeFileDataToTidb(configRecordVO.getDbName(), indexFieldMap, copyListObj, formattedDate), threadPool));
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             log.warn("apiCode: {} 日期: {} 文件落库BI完成,耗时:{}", configRecordVO.getApiCode(), dateDate, System.currentTimeMillis() - startTime);
@@ -153,6 +154,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
             formattedDate = new SimpleDateFormat("yyyy-MM-dd")
                     .format(new SimpleDateFormat("yyyyMMdd").parse(dateDate));
         } catch (ParseException ignore) {
+            log.warn("日期转换异常: {}", dateDate);
         }
         return formattedDate;
     }
@@ -160,7 +162,6 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     /**
      * 删除dataDate历史已落BI数据
      *
-     * @param configRecord
      */
     private void dealOldBIData(TransFileToBiConfigRecordVO configRecord, String dataDate) {
         NfsFileTOBiRecordExample nfsOtherExample = new NfsFileTOBiRecordExample();
@@ -236,15 +237,15 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     }
 
     private NfsFileTOBiRecord buildNfsRecord(TransFileToBiConfigRecordVO configTask, String dataDate) {
-        NfsFileTOBiRecord record = new NfsFileTOBiRecord();
-        record.setApiCode(configTask.getApiCode());
-        record.setFileType(configTask.getFileType());
-        record.setFilePath(configTask.getFilePath());
-        record.setFileName(configTask.getFileName());
-        record.setTaskId(configTask.getTaskId());
-        record.setExecuteDate(dataDate);
-        record.setBusType(configTask.getBusType());
-        return record;
+        NfsFileTOBiRecord nfsFileTOBiRecord = new NfsFileTOBiRecord();
+        nfsFileTOBiRecord.setApiCode(configTask.getApiCode());
+        nfsFileTOBiRecord.setFileType(configTask.getFileType());
+        nfsFileTOBiRecord.setFilePath(configTask.getFilePath());
+        nfsFileTOBiRecord.setFileName(configTask.getFileName());
+        nfsFileTOBiRecord.setTaskId(configTask.getTaskId());
+        nfsFileTOBiRecord.setExecuteDate(dataDate);
+        nfsFileTOBiRecord.setBusType(configTask.getBusType());
+        return nfsFileTOBiRecord;
     }
 
     /**
