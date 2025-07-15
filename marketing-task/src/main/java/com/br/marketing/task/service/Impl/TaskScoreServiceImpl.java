@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -153,6 +154,9 @@ public class TaskScoreServiceImpl {
 
     @Resource
     private MarketingRetryEsMapper marketingRetryEsMapper;
+
+    @Autowired
+    MarketingTaskOptService marketingTaskOptService;
 
     /**
      * 跑分服务
@@ -613,8 +617,14 @@ public class TaskScoreServiceImpl {
                 if (isVerScore && verNum <= 0) {
                     continue;
                 }
+                // 取分级和自适应的较小值，避免单批过大
+                int totalCount = iDynamicSqlService.countByRuleScoreWithDate(blt.getApiCode(), conditionData);
+                int threadNum = ((ThreadPoolExecutor) warrningExecutor).getCorePoolSize();
+                int totalPages = (int) Math.ceil((double) totalCount / threadNum);
+                // 限定范围
+                totalPages = Math.max(1000, Math.min(totalPages, pageSize));
                 Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData);
-                log.warn("min_id--{},pageSize--{}", minId, isVerScore ? verNum : pageSize);
+                log.warn("min_id--{},pageSize--{}", minId, isVerScore ? verNum : totalPages);
                 if (minId != null && minId > 0L) {
                     Integer actNum = 0;
                     Long begin = 0L;
@@ -632,7 +642,7 @@ public class TaskScoreServiceImpl {
                                         selectDataRuleScoreWithDate(blt.getApiCode()
                                                 , conditionData
                                                 , begin
-                                                , isVerScore ? verNum : pageSize);
+                                                , isVerScore ? verNum : totalPages);
                                 break;
                             } catch (Exception ex) {
                                 log.error(String.format("该跑分任务捞取数据异常：%s;错误信息：%s", blt.getBatchNumber(), ex.getMessage()), ex);
@@ -664,7 +674,7 @@ public class TaskScoreServiceImpl {
                             verNum = verNum - list.size();
                         }
                         begin = list.get(list.size() - 1).getId();
-                        if (!getCoreDataStatus(fileId, currentPage)) {
+                        if (!getCoreDataStatus(blt, fileId, currentPage)) {
                             Map<String, String> param = new HashMap<>();
                             param.put("apiCode", blt.getApiCode());
                             param.put("strategyId", blt.getStrategyId());
@@ -716,19 +726,34 @@ public class TaskScoreServiceImpl {
      * @param page   页码
      * @return false-为暂未跑完；true-已经跑完；
      */
-    boolean getCoreDataStatus(String fileId, Long page) {
+    boolean getCoreDataStatus(MarketingTask task, String fileId, Long page) {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(page.toString());
-        String s = redisChgService.get(key);
-        if (StringUtils.isBlank(s)) {
-            return false;
+        int retryCount = 0;
+        while (retryCount < 3) {
+            try {
+                String s = redisChgService.get(key);
+                if (StringUtils.isBlank(s)) {
+                    return false;
+                }
+                if (s.equals("1")) {
+                    return true;
+                }
+                return false;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount >= 3) {
+                    // 3次都失败，报警
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，Redis查询失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, page),e.getMessage()));
+                    // 禁用跑分任务
+                    marketingTaskService.disableTask(task);
+                } else {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                }
+            }
         }
-        if (s.equals("1")) {
-            return true;
-        } else {
-            return false;
-        }
+        return false;
     }
-
 
     private String createShowTitle(MarketingTask task) {
         SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");

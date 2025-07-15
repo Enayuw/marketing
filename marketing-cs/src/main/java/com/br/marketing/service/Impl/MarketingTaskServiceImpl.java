@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
@@ -27,13 +28,8 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.IApiToDbService;
-import com.br.marketing.service.IDynamicSqlService;
-import com.br.marketing.service.IProductResultSimpleService;
-import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
-import com.br.marketing.service.MarketingTaskService;
-import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
@@ -108,6 +104,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Resource
     private ScoreRuleConfigMapper scoreRuleConfigMapper;
+
+    @Autowired
+    private MarketingTaskOptService marketingTaskOptService;
 
     @Autowired
     private IRuleConfigService iRuleConfigService;
@@ -795,6 +794,35 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
         return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    @Override
+    public void disableTask(MarketingTask task) {
+        int maxAttempts = 2;
+        int attempt = 0;
+        while (attempt < maxAttempts) {
+            try {
+                //暂停跑分任务
+                Result result = marketingTaskOptService.pauseTask(task.getFileId(), 1);
+                if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                    //禁用跑分任务
+                    updateStatusById(String.valueOf(task.getId()), 2);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，已自动禁用该任务，请手动操作删除，任务编号=%s", task.getBatchNumber())));
+                }else {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，自动暂停跑分异常，请手动操作，任务编号=%s", task.getBatchNumber())));
+                }
+                break;
+            } catch (Exception e) {
+                attempt++;
+                if (attempt >= maxAttempts) {
+                    // 最终失败
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，禁用跑分任务失败，请手动操作，任务编号=%s", task.getBatchNumber()), e.getMessage()));
+                }
+            }
+        }
     }
 
     /**

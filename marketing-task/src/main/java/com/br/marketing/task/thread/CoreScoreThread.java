@@ -1,19 +1,18 @@
 package com.br.marketing.task.thread;
-import java.time.LocalDate;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.BrCipherMaker;
+import com.br.common.log.AlertLog;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
-import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.MarketingTaskService;
@@ -21,13 +20,11 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.ResultUtil;
-import com.br.marketing.task.utils.VaildHxResultUtil;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -191,10 +188,25 @@ public class CoreScoreThread implements Callable<String> {
 
     private void setScoreStatus() {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(String.valueOf(currentPage));
-        redisChgService.set(key, "1");
-        redisChgService.expire(key, 60 * 60 * 24 * 10);
+        int retryCount = 0;
+        while (retryCount < 3) {
+            try {
+                redisChgService.set(key, "1");
+                redisChgService.expire(key, 60 * 60 * 24 * 10);
+                return;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount >= 3) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，Redis写入失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, currentPage),e.getMessage()));
+                    // 禁用跑分任务
+                    marketingTaskService.disableTask(marketingTask);
+                } else {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                }
+            }
+        }
     }
-
 
     /**
      * 生成结果文件
