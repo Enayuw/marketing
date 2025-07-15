@@ -7,9 +7,10 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.MarketingTcyrCustCellMapping;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import org.apache.commons.collections4.ListUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
@@ -30,10 +31,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 同程易融快速处理流程(file->原始数据表)
+ * quickDeal流程完毕 此流程
  * @author zhiyong.zhang
  * @date 2025/07/05
  */
@@ -61,14 +62,15 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     @Autowired
     private RedisChgService redisChgService;
 
-
     @Override
     public void shardProcess(String apiCode) {
         String lockKey = RedisKeyConstant.tcyrDbDeal.concat(apiCode);;
         String lockValue = "";
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+        TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
+                ThreadPoolNameEnum.TCYR_DB_DEAL.getName(),
                 marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool"));
+                marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool")
+        );
         try {
             for (;;) {
                 if (!marketingCommonConfig.getTcDbDealShardConfig().getBoolean("jobSwitch")) {
@@ -109,7 +111,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
         //1.判断文件存在
         File txtFile = new File(tcyrSyncFile.getFilePath());
         if (!txtFile.exists()) {
-            tcyrSyncFileMapper.updateDbDealStatus(tcyrSyncFile.getId(), 3);
+            tcyrSyncFileMapper.updateDbDealStatus(tcyrSyncFile.getId(), 4);
             return;
         }
         MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
@@ -121,7 +123,6 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
                 if (batchData.size() == marketingCommonConfig.getTcDbDealShardConfig().getInteger("pageSize")) {
-                    modifyThreadPool(actionPool);
                     List<String> batchDealData = new ArrayList<>(batchData);
                     actionPool.submit(()->dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData));
                     batchData.clear();
@@ -248,31 +249,12 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     }
 
 
-    /**
-     * 动态调整线程池大小
-     */
-    private void modifyThreadPool(ThreadPoolExecutor actionPool) {
-        Integer threadNum = marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool");
-        Integer corePoolSize = actionPool.getCorePoolSize();
-        if (!corePoolSize.equals(threadNum)) {
-            actionPool.setCorePoolSize(threadNum);
-            actionPool.setMaximumPoolSize(threadNum);
-        }
-    }
-
-
-
-    public  void shutdownThreadPool(ThreadPoolExecutor executor) {
+    public  void shutdownThreadPool(TpDynamicExecutor executor) {
         log.warn(TITLE + "shutdownThreadPool开始");
-        executor.shutdown();
         try {
-            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
-                log.info("{},线程池关闭",TITLE);
-            }
-        } catch (InterruptedException ex) {
-            executor.shutdownNow();
-            log.error("{},日志保存线程池结束异常！",TITLE,ex);
-            Thread.currentThread().interrupt();
+            executor.shutdownAndAwaitTermination();
+        }catch (Exception e) {
+            log.error("{},日志保存线程池结束异常！",TITLE,e);
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }

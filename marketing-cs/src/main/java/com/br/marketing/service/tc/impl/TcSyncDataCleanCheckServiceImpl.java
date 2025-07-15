@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTcyrErrorInterfaceLog;
 import com.br.marketing.mapper.MarketingTcyrErrorInterfaceLogMapper;
@@ -12,6 +13,8 @@ import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.tc.TcSyncDataCleanChekService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -35,9 +38,6 @@ public class TcSyncDataCleanCheckServiceImpl implements TcSyncDataCleanChekServi
     private final static String TITLE = "【同程易融-cleanCheck任务】";
 
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
     private PushInfoService pushInfoService;
 
     @Resource
@@ -48,16 +48,11 @@ public class TcSyncDataCleanCheckServiceImpl implements TcSyncDataCleanChekServi
 
     @Override
     public void pocess(String apiCode) {
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
-                marketingCommonConfig.getTcCleanCheckShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcCleanCheckShardConfig().getInteger("threadPool"));
+        TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
+                ThreadPoolNameEnum.TCYR_QUICK_DEAL.getName(), 10, 10);
         try {
             while (true) {
-                if (!marketingCommonConfig.getTcCleanCheckShardConfig().getBoolean("jobSwitch")) {
-                    break;
-                }
-                Integer searchSize = marketingCommonConfig.getTcCleanCheckShardConfig().getInteger("pageSize");
-                List<MarketingTcyrErrorInterfaceLog> errorInterfaceLogList = errorInterfaceLogMapper.selectNoDealList(apiCode,searchSize);
+                List<MarketingTcyrErrorInterfaceLog> errorInterfaceLogList = errorInterfaceLogMapper.selectNoDealList(apiCode,1000);
                 if (CollectionUtils.isEmpty(errorInterfaceLogList)) {
                     break;
                 }
@@ -83,25 +78,20 @@ public class TcSyncDataCleanCheckServiceImpl implements TcSyncDataCleanChekServi
                 errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),2);
                 marketingTcyrSyncFileMapper.updateSuccessCount(errorInterfaceLog.getSyncFileId(),errorInterfaceLog.getElementCount());
             }else {
-                errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),0);
+                errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),3);
             }
         }catch (Exception e) {
-            errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),0);
+            errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),3);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }
 
-    public  void shutdownThreadPool(ThreadPoolExecutor executor) {
+    public  void shutdownThreadPool(TpDynamicExecutor executor) {
         log.warn(TITLE + "shutdownThreadPool开始");
-        executor.shutdown();
         try {
-            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
-                log.info("{},线程池关闭",TITLE);
-            }
-        } catch (InterruptedException ex) {
-            executor.shutdownNow();
-            log.error("{},日志保存线程池结束异常！",TITLE,ex);
-            Thread.currentThread().interrupt();
+            executor.shutdownAndAwaitTermination();
+        }catch (Exception e) {
+            log.error("{},日志保存线程池结束异常！",TITLE,e);
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }
