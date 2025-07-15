@@ -797,7 +797,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     /**
-     * 尝试暂停并禁用跑分任务，最多重试一次，失败会有日志和告警
+     * 尝试暂停并暂停跑分任务，最多重试一次，失败会有日志和告警
      */
     @Override
     public void disableTask(MarketingTask task) {
@@ -807,28 +807,18 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             try {
                 // 暂停跑分任务
                 Result result = marketingTaskOptService.pauseTask(task.getFileId(), 1);
-                if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                    // 禁用跑分任务
-                    boolean updated = updateStatusById(String.valueOf(task.getId()), 2);
-                    if (updated) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
-                                String.format("跑分异常，已自动禁用该任务，请手动操作删除，任务编号=%s", task.getBatchNumber())));
-                    } else {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
-                                String.format("跑分异常，禁用跑分任务状态更新失败，请手动操作禁用并删除，任务编号=%s", task.getBatchNumber())));
-                    }
-                    break;
-                } else {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
-                            String.format("跑分异常，自动暂停跑分异常，请手动操作，任务编号=%s", task.getBatchNumber())));
-                    break;
-                }
+                String logMessage = result.getCode().equals(ResultCode.SUCCESS.getValue())
+                        ? String.format("跑分异常，已暂停该跑分任务，任务编号=%s", task.getBatchNumber())
+                        : String.format("跑分异常，自动暂停跑分异常，请手动操作暂停，任务编号=%s", task.getBatchNumber());
+
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(), logMessage));
+                break;
             } catch (Exception e) {
                 attempt++;
                 if (attempt >= maxAttempts) {
                     // 最终失败
                     log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
-                            String.format("跑分异常，禁用跑分任务失败，请手动操作，任务编号=%s", task.getBatchNumber()), e.getMessage()), e);
+                            String.format("跑分异常，禁用跑分任务失败，请手动操作暂停，任务编号=%s", task.getBatchNumber()), e.getMessage()), e);
                 }
             }
         }

@@ -157,6 +157,8 @@ public class TaskScoreServiceImpl {
 
     @Autowired
     MarketingTaskOptService marketingTaskOptService;
+    @Resource
+    MarketingRetryRedisMapper marketingRetryRedisMapper;
 
     /**
      * 跑分服务
@@ -415,7 +417,7 @@ public class TaskScoreServiceImpl {
                     , marketingTask, noflagproductlist
                     , flagproductlist, marketingTaskExtend
                     , baseHeadConfigVO, fieldInfo, true
-                    , marketingRetryEsMapper, marketingCommonConfig));
+                    , marketingRetryEsMapper, marketingCommonConfig,marketingRetryRedisMapper));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -572,6 +574,28 @@ public class TaskScoreServiceImpl {
     private void core(MarketingTask blt, String descPath, boolean firstTime, String strategyStr, ExecutorService warrningExecutor,
                       String fileId, MarketingCustomer customer) {
         try {
+            // 判断是否存在redis异常待重试数据
+            MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
+            marketingRetryRedisExample.createCriteria().andApiCodeEqualTo(blt.getApiCode())
+                    .andFileIdEqualTo(Long.valueOf(fileId)).andRetryStatusEqualTo(0);
+            List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
+            if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
+                for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
+                    String key = retryRedis.getRedisKey();
+                    boolean success = retrySetRedisOrDisableTask(key, fileId, retryRedis.getPage(), blt);
+                    // 若异常数据未被补充则 禁用跑分任务
+                    if (!success) {
+                        marketingTaskService.disableTask(blt);
+                        return;
+                    }
+                    // 成功
+                    MarketingRetryRedis retryRedis1 = new MarketingRetryRedis();
+                    retryRedis1.setRetryStatus(1);
+                    retryRedis1.setId(retryRedis.getId());
+                    marketingRetryRedisMapper.updateByPrimaryKeySelective(retryRedis1);
+                }
+            }
+
             String noflagproduct = redisChgService.get(RedisKeyConstant.noFlagProduct);
             List<String> noflagproductlist = new ArrayList<>();
             if (StringUtils.isNotBlank(noflagproduct)) {
@@ -694,7 +718,7 @@ public class TaskScoreServiceImpl {
                                     , firstTime, customer, blt
                                     , noflagproductlist, flagproductlist, marketingTaskExtend
                                     , baseHeadConfigVO, fieldInfo, false
-                                    ,marketingRetryEsMapper,marketingCommonConfig));
+                                    ,marketingRetryEsMapper,marketingCommonConfig,marketingRetryRedisMapper));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }
@@ -731,6 +755,9 @@ public class TaskScoreServiceImpl {
         int retryCount = 0;
         while (retryCount < 3) {
             try {
+                // 模拟读redis异常
+                checkMockRedisSwitch("readRedis");
+
                 String s = redisChgService.get(key);
                 if (StringUtils.isBlank(s)) {
                     return false;
@@ -747,6 +774,46 @@ public class TaskScoreServiceImpl {
                             String.format("跑分异常，Redis查询失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, page),e.getMessage()));
                     // 禁用跑分任务
                     marketingTaskService.disableTask(task);
+                    return true;
+                } else {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                }
+            }
+        }
+        return false;
+    }
+
+    private void checkMockRedisSwitch(String key) throws Exception {
+        Map<String, Boolean> mockRedisSwitch =  marketingCommonConfig.getMockRedisSwitch();
+        if(!CollectionUtils.isEmpty(mockRedisSwitch)){
+            if(mockRedisSwitch.get(key)){
+                throw new Exception();
+            }
+        }
+    }
+
+    /**
+     * 尝试写入Redis，失败重试3次，失败后暂停任务并跳出外层循环
+     */
+    private boolean retrySetRedisOrDisableTask(String key, String fileId, String page, MarketingTask blt) {
+        int retryCount = 0;
+        while (retryCount < 3) {
+            try {
+                // 模拟重试redis异常
+                checkMockRedisSwitch("retryRedis");
+
+                redisChgService.set(key, "1");
+                redisChgService.expire(key, 60 * 60 * 24 * 10);
+                // 成功
+                return true;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount >= 3) {
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，Redis异常重试写入失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, page), e.getMessage()));
+                    // 禁用跑分任务
+                    marketingTaskService.disableTask(blt);
+                    return false;
                 } else {
                     try { Thread.sleep(100); } catch (InterruptedException ignored) {}
                 }

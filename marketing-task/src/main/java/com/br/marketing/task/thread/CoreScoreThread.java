@@ -14,6 +14,7 @@ import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingRetryEsMapper;
+import com.br.marketing.mapper.MarketingRetryRedisMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -24,8 +25,10 @@ import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -61,12 +64,14 @@ public class CoreScoreThread implements Callable<String> {
     private String part;
     private MarketingRetryEsMapper marketingRetryEsMapper;
     private MarketingCommonConfig marketingCommonConfig;
+    private MarketingRetryRedisMapper marketingRetryRedisMapper;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , Long currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
             , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo
-            , Boolean isRetry, MarketingRetryEsMapper marketingRetryEsMapper,MarketingCommonConfig marketingCommonConfig) {
+            , Boolean isRetry, MarketingRetryEsMapper marketingRetryEsMapper
+            , MarketingCommonConfig marketingCommonConfig, MarketingRetryRedisMapper marketingRetryRedisMapper) {
         this.list = list;
         this.apiCode = param.get("apiCode");
         this.strategyId = param.get("strategyId");
@@ -93,6 +98,7 @@ public class CoreScoreThread implements Callable<String> {
         this.part = param.get("part");
         this.marketingRetryEsMapper = marketingRetryEsMapper;
         this.marketingCommonConfig = marketingCommonConfig;
+        this.marketingRetryRedisMapper = marketingRetryRedisMapper;
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -191,6 +197,9 @@ public class CoreScoreThread implements Callable<String> {
         int retryCount = 0;
         while (retryCount < 3) {
             try {
+                // 模拟写redis异常
+                checkMockRedisSwitch("writeRedis");
+
                 redisChgService.set(key, "1");
                 redisChgService.expire(key, 60 * 60 * 24 * 10);
                 return;
@@ -199,13 +208,38 @@ public class CoreScoreThread implements Callable<String> {
                 if (retryCount >= 3) {
                     log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
                             String.format("跑分异常，Redis写入失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, currentPage),e.getMessage()));
-                    // 禁用跑分任务
-                    marketingTaskService.disableTask(marketingTask);
+                    insertRetryRedis(key);
                 } else {
                     try { Thread.sleep(100); } catch (InterruptedException ignored) {}
                 }
             }
         }
+    }
+
+    private void checkMockRedisSwitch(String key) throws Exception {
+        Map<String, Boolean> mockRedisSwitch =  marketingCommonConfig.getMockRedisSwitch();
+        if(!CollectionUtils.isEmpty(mockRedisSwitch)){
+            if(mockRedisSwitch.get(key)){
+                throw new Exception();
+            }
+        }
+    }
+
+    /**
+     * redis重试异常记录至异常表
+     * @param key
+     */
+    private void insertRetryRedis(String key) {
+        MarketingRetryRedis marketingRetryRedis = new MarketingRetryRedis();
+        marketingRetryRedis.setApiCode(apiCode);
+        marketingRetryRedis.setFileId(Long.valueOf(fileId));
+        marketingRetryRedis.setPage(String.valueOf(currentPage));
+        marketingRetryRedis.setRedisKey(key);
+        marketingRetryRedis.setRetryStatus(0);
+        marketingRetryRedis.setAppletDate(LocalDate.now().toString());
+        marketingRetryRedis.setCreateTime(new Date());
+        marketingRetryRedis.setUpdateTime(new Date());
+        marketingRetryRedisMapper.insertSelective(marketingRetryRedis);
     }
 
     /**
