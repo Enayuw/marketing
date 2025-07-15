@@ -7,13 +7,12 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.NfsFileTOBiRecord;
 import com.br.marketing.entity.NfsFileTOBiRecordExample;
 import com.br.marketing.mapper.BFileBiConfigMapper;
 import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
-import com.br.marketing.mapper.TransferFileExtractToDorisMapper;
+import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
 import com.br.marketing.service.TransFileToMarketingBiShardService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.TransFileToBiConfigRecordVO;
@@ -53,7 +52,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TransferFileExtractToDorisMapper transferFileExtractToDorisMapper;
+    private TransferFileExtractToDorisBIMapper transferFileExtractToDorisBIMapper;
 
     @Resource
     private BFileBiConfigMapper bFileBiConfigMapper;
@@ -115,7 +114,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     private void processTransferFile(TransFileToBiConfigRecordVO configRecordVO, String dateDate) {
         long startTime = System.currentTimeMillis();
         log.warn("apiCode: {} 日期: {} 文件落库BI开始", configRecordVO.getApiCode(), dateDate);
-        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool("转化文件落库marketingBi",
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.FILE_TO_MARKETING_BI.getName(),
                 marketingCommonConfig.getTransFileExtractionBIThread(),
                 marketingCommonConfig.getTransFileExtractionBIThread());
         String filePath = configRecordVO.getFilePath().concat(configRecordVO.getFileName());
@@ -193,14 +192,14 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         // 批量删除目标表数据，每批2000条
         int batchSize = 2000;
         String countSql = "select count(*) from " + configRecord.getDbName() + " where data_date = '" + dataDate + "'";
-        int totalCount = transferFileExtractToDorisMapper.countDataFromMarketingBiTable(countSql);
+        int totalCount = transferFileExtractToDorisBIMapper.countDataFromMarketingBiTable(countSql);
 
         if (totalCount > 0) {
             int totalBatches = (totalCount + batchSize - 1) / batchSize;
             for (int i = 0; i < totalBatches; i++) {
                 String deleteSql = "delete from " + configRecord.getDbName() +
                         " where data_date = '" + dataDate + "' limit " + batchSize;
-                transferFileExtractToDorisMapper.deleteDataFromMarketingBiTable(deleteSql);
+                transferFileExtractToDorisBIMapper.deleteDataFromMarketingBiTablebI_(deleteSql);
                 log.info("apiCode: {} 日期: {} 批次: {}/{} 删除数据完成",
                         configRecord.getApiCode(), dataDate, (i + 1), totalBatches);
             }
@@ -231,7 +230,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         }
 
         String insertSql = "INSERT INTO " + tableName + " (" + colNames + ") VALUES \n" + valuesJoiner;
-        transferFileExtractToDorisMapper.insertDataToMarketingBiTable(insertSql);
+        transferFileExtractToDorisBIMapper.insertDataToMarketingBiTablebI_(insertSql);
     }
 
     private String resolveRawValue(String[] rawValues, int index, String colName, String formattedDate) {
@@ -260,15 +259,6 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         nfsFileTOBiRecord.setExecuteDate(dataDate);
         nfsFileTOBiRecord.setBusType(configTask.getBusType());
         return nfsFileTOBiRecord;
-    }
-
-    /**
-     * 修改线程池配置
-     */
-    private void modifyThreadPool(ThreadPoolExecutor pool) {
-        Integer threadNum = marketingCommonConfig.getTransFileExtractionBIThread();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
     }
 
 
