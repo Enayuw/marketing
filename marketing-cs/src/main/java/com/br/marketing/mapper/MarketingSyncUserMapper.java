@@ -472,8 +472,4 @@ public interface MarketingSyncUserMapper {
             @Param("pageSize") Integer pageSize);
 
 
-    List<MarketingSyncCustCell> selectSyncCustCellList(
-            @Param("apiCode") String apiCode,
-            @Param("searchId") Long searchId,
-            @Param("pageSize") Integer pageSize);
 }

@@ -2982,15 +2982,6 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcDbDealShardConfig;
 
-
-    /**
-     * 同程易融-quickDeal-shard job参数
-     * {
-     *  "threadPool":100,"pageSize":100,"dbPartSize":500
-     * }
-     */
-    private JSONObject tcCustCellMappingConfig;
-
     /**
      * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
      */
