@@ -40,7 +40,6 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
-        pushData.setPhone(syncUser.getCellSha256());
         pushData.setPhone(get3keyValue(syncUser.getCell(), "cell", customerTagsVO.getPushJc3keyType()));
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
