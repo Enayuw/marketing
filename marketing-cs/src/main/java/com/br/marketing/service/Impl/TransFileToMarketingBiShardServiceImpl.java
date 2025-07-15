@@ -32,21 +32,17 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * @author zhiyong.zhang
+ * @author xiong.luo
  * @description: 内部服务器的转化文件落库到marketingBI(分片)
  * @date 2025/06/30
  */
 @Slf4j
 @Service
 public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarketingBiShardService {
-
-    private static final String TITLE = "【内部服务器的转化文件落库到marketingBI】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -114,9 +110,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
     private void processTransferFile(TransFileToBiConfigRecordVO configRecordVO, String dateDate) {
         long startTime = System.currentTimeMillis();
         log.warn("apiCode: {} 日期: {} 文件落库BI开始", configRecordVO.getApiCode(), dateDate);
-        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.FILE_TO_MARKETING_BI.getName(),
-                marketingCommonConfig.getTransFileExtractionBIThread(),
-                marketingCommonConfig.getTransFileExtractionBIThread());
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.FILE_TO_MARKETING_BI.getName(), 5, 10);
         String filePath = configRecordVO.getFilePath().concat(configRecordVO.getFileName());
         File file = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -157,7 +151,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
             String errMsg = "nfs转化提取文件读取入库异常path: " + filePath + " Exception: " + e.getMessage();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
         } finally {
-            threadPoolShutDown(threadPool);
+            threadPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -259,25 +253,6 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         nfsFileTOBiRecord.setExecuteDate(dataDate);
         nfsFileTOBiRecord.setBusType(configTask.getBusType());
         return nfsFileTOBiRecord;
-    }
-
-
-    /**
-     * 关闭线程池
-     */
-    private void threadPoolShutDown(ThreadPoolExecutor executor) {
-        log.warn("shutdownThreadPool开始");
-        executor.shutdown();
-        try {
-            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
-                log.info("{},线程池关闭", TITLE);
-            }
-        } catch (InterruptedException ex) {
-            executor.shutdownNow();
-            log.error("{},日志保存线程池结束异常！", TITLE, ex);
-            Thread.currentThread().interrupt();
-        }
-        log.warn("shutdownThreadPool结束");
     }
 }
 
