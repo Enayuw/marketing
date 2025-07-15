@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -86,14 +87,18 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         if (esDateSize != priceDates.size()) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("价格有效期不能重复！");
         }
-        //3.日期排序，从低到高
+        //3.校验短信单价
+        if (checkPrice(priceDates)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("短信单价最大值为1元！");
+        }
+        //4.日期排序，从低到高
         priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
         for (int i = 0; i < priceDates.size(); i++) {
             if (i != priceDates.size() - 1) {
                 priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
             }
         }
-        //4.事务保存
+        //5.事务保存
         lineSmsAccountDataService.addSmsAccount(dto);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -117,14 +122,18 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         if (esDateSize != priceDates.size()) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("价格有效期不能重复！");
         }
-        //3.日期排序，从低到高
+        //3.校验短信单价
+        if (checkPrice(priceDates)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("短信单价最大值为1元！");
+        }
+        //4.日期排序，从低到高
         priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
         for (int i = 0; i < priceDates.size(); i++) {
             if (i != priceDates.size() - 1) {
                 priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
             }
         }
-        //4.校验供应商是否变更，数据是否需要更新
+        //5.校验供应商是否变更，数据是否需要更新
         MarketingSmsAccountLogExample accountLogExample = new MarketingSmsAccountLogExample();
         accountLogExample.createCriteria().andConfigIdEqualTo(dto.getConfigId()).andIsDeleteEqualTo(0);
         accountLogExample.setOrderByClause("create_time desc limit 1");
@@ -140,7 +149,7 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         if(channelEqualFlag && priceDateEqualFlag){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("配置无修改，无需变更");
         }
-        //4.事务保存
+        //6.事务保存
         lineSmsAccountDataService.updSmsAccount(dto);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -261,6 +270,11 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
             voList.add(vo);
         }
         return voList;
+    }
+
+    private Boolean checkPrice(List<PriceDateDTO> priceDates) {
+        return priceDates.stream()
+                .anyMatch(priceDate -> priceDate.getPrice() != null && priceDate.getPrice().compareTo(BigDecimal.valueOf(1.0)) > 0);
     }
 
 }

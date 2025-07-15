@@ -74,11 +74,11 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
             accountRecord.setPrice(priceDate.getPrice());
             accountRecord.setEffectStartDate(effectStartDate);
             accountRecord.setEffectEndDate(effectEndDate);
-            int recordId = smsAccountRecordMapper.insertSelective(accountRecord);
+            smsAccountRecordMapper.insertSelective(accountRecord);
             for (SmsChannelDto channel : dto.getChannels()) {
                 MarketingSmsAccountDetail accountDetail = new MarketingSmsAccountDetail();
                 accountDetail.setConfigId(configId);
-                accountDetail.setRecordId((long) recordId);
+                accountDetail.setRecordId(accountRecord.getId());
                 accountDetail.setVendorId(dto.getVendorId());
                 accountDetail.setVendorName(dto.getVendorName());
                 accountDetail.setChannelId(channel.getChannelId());
@@ -135,11 +135,11 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
             accountRecord.setPrice(priceDate.getPrice());
             accountRecord.setEffectStartDate(effectStartDate);
             accountRecord.setEffectEndDate(effectEndDate);
-            int recordId = smsAccountRecordMapper.insertSelective(accountRecord);
+            smsAccountRecordMapper.insertSelective(accountRecord);
             for (SmsChannelDto channel : dto.getChannels()) {
                 MarketingSmsAccountDetail accountDetail = new MarketingSmsAccountDetail();
                 accountDetail.setConfigId(dto.getConfigId());
-                accountDetail.setRecordId((long) recordId);
+                accountDetail.setRecordId(accountRecord.getId());
                 accountDetail.setVendorId(dto.getVendorId());
                 accountDetail.setVendorName(dto.getVendorName());
                 accountDetail.setChannelId(channel.getChannelId());

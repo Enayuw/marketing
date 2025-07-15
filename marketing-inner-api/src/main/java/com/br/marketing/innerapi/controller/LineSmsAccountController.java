@@ -8,8 +8,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.service.LineSmsAccountService;
-import com.br.marketing.service.MarketingCustomerService;
-import com.br.marketing.vo.MarketingSmsAccountLogVo;
 import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -18,7 +16,6 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +32,6 @@ public class LineSmsAccountController {
 
     @Resource
     LineSmsAccountService lineSmsAccountService;
-
-    @Resource
-    private MarketingCustomerService marketingCustomerService;
-
 
     private static final Logger log = LoggerFactory.getLogger(LineSmsAccountController.class);
 
@@ -63,7 +56,8 @@ public class LineSmsAccountController {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
@@ -74,7 +68,8 @@ public class LineSmsAccountController {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.updSmsAccount(dto), CODE_1);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
@@ -85,7 +80,8 @@ public class LineSmsAccountController {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.forbSmsAccount(configId), CODE_1);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
