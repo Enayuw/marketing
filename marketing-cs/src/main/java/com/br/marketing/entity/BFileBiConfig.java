@@ -39,6 +39,11 @@ public class BFileBiConfig {
      */
     private String dbFields;
 
+    /**
+     * 表字段映射
+     */
+    private String dbColFieldsMap;
+
     public Long getId() {
         return id;
     }
@@ -93,5 +98,13 @@ public class BFileBiConfig {
 
     public void setDbFields(String dbFields) {
         this.dbFields = dbFields == null ? null : dbFields.trim();
+    }
+
+    public String getDbColFieldsMap() {
+        return dbColFieldsMap;
+    }
+
+    public void setDbColFieldsMap(String dbColFieldsMap) {
+        this.dbColFieldsMap = dbColFieldsMap == null ? null : dbColFieldsMap.trim();
     }
 }
