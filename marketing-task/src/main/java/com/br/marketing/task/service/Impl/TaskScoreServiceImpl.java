@@ -743,7 +743,7 @@ public class TaskScoreServiceImpl {
                 retryCount++;
                 if (retryCount >= 3) {
                     // 3次都失败，报警
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
                             String.format("跑分异常，Redis查询失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, page),e.getMessage()));
                     // 禁用跑分任务
                     marketingTaskService.disableTask(task);

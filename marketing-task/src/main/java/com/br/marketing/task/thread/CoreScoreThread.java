@@ -197,7 +197,7 @@ public class CoreScoreThread implements Callable<String> {
             } catch (Exception e) {
                 retryCount++;
                 if (retryCount >= 3) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
                             String.format("跑分异常，Redis写入失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, currentPage),e.getMessage()));
                     // 禁用跑分任务
                     marketingTaskService.disableTask(marketingTask);
