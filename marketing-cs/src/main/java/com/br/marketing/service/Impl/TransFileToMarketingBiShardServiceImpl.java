@@ -32,21 +32,17 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * @author zhiyong.zhang
+ * @author xiong.luo
  * @description: 内部服务器的转化文件落库到marketingBI(分片)
  * @date 2025/06/30
  */
 @Slf4j
 @Service
 public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarketingBiShardService {
-
-    private static final String TITLE = "【内部服务器的转化文件落库到marketingBI】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;

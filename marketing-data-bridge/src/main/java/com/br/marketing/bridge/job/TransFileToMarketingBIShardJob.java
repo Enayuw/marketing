@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * @author zhiyong.zhang
+ * @author xiong.luo
  * @description: 内部服务器的转化文件落库到marketingBI(分片)
  * @date 2025/06/30
  */
