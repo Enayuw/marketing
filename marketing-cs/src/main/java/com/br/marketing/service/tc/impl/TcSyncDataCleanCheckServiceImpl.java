@@ -49,7 +49,7 @@ public class TcSyncDataCleanCheckServiceImpl implements TcSyncDataCleanChekServi
     @Override
     public void pocess(String apiCode) {
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_QUICK_DEAL.getName(), 10, 10);
+                ThreadPoolNameEnum.TCYR_CLEAN_CHECK.getName(), 10, 10);
         try {
             while (true) {
                 List<MarketingTcyrErrorInterfaceLog> errorInterfaceLogList = errorInterfaceLogMapper.selectNoDealList(apiCode,1000);
