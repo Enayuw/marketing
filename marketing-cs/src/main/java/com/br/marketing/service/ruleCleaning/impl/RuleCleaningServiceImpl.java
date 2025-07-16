@@ -2283,7 +2283,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
             JSONObject item = dataItems.getJSONObject(i);
             item.put("taskId",syncInfo.getCusBatch());
-            String custNum = (String) JsonParseUtils.findFirstValueByKey(item, "custNum");
+            Object custNumObj = JsonParseUtils.findFirstValueByKey(item, "custNum");
+            String custNum = Objects.nonNull(custNumObj) ? custNumObj.toString() : null;
             MarketingSyncUser result = marketingSyncInfoByRequestBatch.stream().filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum)).findFirst().orElse(null);
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
