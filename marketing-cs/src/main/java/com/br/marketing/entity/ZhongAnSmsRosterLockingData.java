@@ -4,7 +4,7 @@ import java.util.Date;
 import lombok.Data;
 
 @Data
-public class ZhonganRosterLockingData {
+public class ZhongAnSmsRosterLockingData {
     /**
      * 
      */
@@ -14,16 +14,6 @@ public class ZhonganRosterLockingData {
      * 
      */
     private String apiCode;
-
-    /**
-     * 本地文件记录id
-     */
-    private Long localId;
-
-    /**
-     * 类型
-     */
-    private String type;
 
     /**
      * 案件编号
@@ -41,11 +31,6 @@ public class ZhonganRosterLockingData {
     private String bizDate;
 
     /**
-     * 枚举,CG/MG
-     */
-    private String tag;
-
-    /**
      * 状态 1-未推送；2-推送成功；3-已推送,未成功,需要重试；4-已推送,未成功,无需重试
      */
     private Integer pushStatus;
@@ -61,14 +46,9 @@ public class ZhonganRosterLockingData {
     private String userType;
 
     /**
-     * 是否接通(0-否;1-是)
+     * 是否发送成功(0-否;1-是)
      */
-    private Integer isConnect;
-
-    /**
-     * 数据描述
-     */
-    private String dataMessage;
+    private Integer smsSendStatus;
 
     /**
      * 扩展字段
@@ -89,10 +69,4 @@ public class ZhonganRosterLockingData {
      * 修改时间
      */
     private Date updateTime;
-
-    /**
-     * 状态 1-sftp文件;2-拨打明细
-     */
-    private Integer dataSource;
-
 }

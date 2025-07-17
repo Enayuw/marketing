@@ -1,11 +1,9 @@
 package com.br.marketing.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Param;
-
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.entity.ZhonganRosterLockingDataExample;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface ZhonganRosterLockingDataMapperBase {
     int countByExample(ZhonganRosterLockingDataExample example);
