@@ -316,7 +316,7 @@
     t.file_path AS filePath,
     t.start_date AS startDate
     FROM b_file_bi_config c
-    INNER JOIN b_transfer_file_task t ON c.api_code = t.api_code
+    INNER JOIN b_transfer_file_task t ON c.api_code = t.api_code and c.task_id = t.task_id
     LEFT JOIN b_nfsfile_bi_record r ON r.task_id = t.id
     WHERE t.start_date = #{dataDate}
     AND t.status >= 2
