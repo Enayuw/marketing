@@ -9,6 +9,7 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.PriceDateDTO;
 import com.br.marketing.dto.account.SmsAccountDto;
@@ -39,6 +40,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,9 @@ import java.util.stream.Collectors;
 public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
     private static final Logger log = LoggerFactory.getLogger(LineSmsAccountServiceImpl.class);
+
+    private static final String smsMethod ="getSmsVendors";
+    private static final String smsApiCode = "3710012";
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
@@ -172,9 +177,9 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         ApiResult apiResult = new ApiResult().fail();
         TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
         TransferJsonDataDTO jsonDataDTO = new TransferJsonDataDTO();
-        jsonDataDTO.setMethod(marketingCommonConfig.getAccountSmsConfig().getString("smsMethod"));
+        jsonDataDTO.setMethod(smsMethod);
         jsonDataDTO.setAccessNumber(UUID.randomUUID().toString());
-        robotOutboundDTO.setApiCode(marketingCommonConfig.getAccountSmsConfig().getString("apiCode"));
+        robotOutboundDTO.setApiCode(smsApiCode);
         robotOutboundDTO.setJsonData(jsonDataDTO);
         TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.getSmsBaseInfo(robotOutboundDTO);
         if ("00".equals(transferRobotOutboundVO.getCode())) {

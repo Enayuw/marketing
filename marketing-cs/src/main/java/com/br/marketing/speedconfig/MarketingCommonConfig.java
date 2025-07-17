@@ -3187,10 +3187,5 @@ public class MarketingCommonConfig {
     private Integer uploadFileCleanThreadNum;
 
 
-    /**
-     * 短信对账-短信speed配置
-     */
-    private JSONObject accountSmsConfig;
-
 }
 
