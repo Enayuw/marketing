@@ -229,7 +229,9 @@ public class TaskScoreServiceImpl {
                 String hkey = Constants.HXRESULTERROR_RETRY_KEY + ":" + task.getFileId();
                 List<String> hkeys = redisChgService.hkeys(hkey);
                 if (!hkeys.isEmpty() && hkeys.size() > 0) {
-                    warrningExecutor = BrExecutors.getThreadPool(20, 20);
+                    warrningExecutor = BrMonitorExecutor.getThreadPool(20, 20,
+                            PrometheusMonitorUtils.COUNT_RETRY_SCORE_API_THREAD_METRIC_NAME,apiCode,task.getBatchNumber());
+
                     int i = 1;
                     for (String errorFile : hkeys) {
                         if (task != null) {
