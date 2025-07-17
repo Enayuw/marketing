@@ -271,7 +271,6 @@ public class RobotaiApiServiceClient {
      *
      * @return RepQueryBlackPhoneVO
      */
-    @RetryMethod(retryNowNum = 3)
     public TransferRobotOutboundVO getSmsBaseInfo(TransferRobotOutboundDTO dto){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
