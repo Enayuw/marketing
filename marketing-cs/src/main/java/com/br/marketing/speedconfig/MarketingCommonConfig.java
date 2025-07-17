@@ -3235,7 +3235,7 @@ public class MarketingCommonConfig {
     private Integer fileToMarketingBiBatchSize;
 
     /**
-     * 转化文件落库BI批量大小
+     * 转化文件落库BI是否终端
      */
     private boolean fileToMarketingBiInterrupt;
 
