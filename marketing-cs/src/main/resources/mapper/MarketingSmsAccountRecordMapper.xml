@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingSmsAccountRecordMapper" >
+
+  <select id="selectList" resultType="com.br.marketing.entity.MarketingSmsAccountRecord">
+    SELECT id, config_id, vendor_id, vendor_name, channels_info, price, effect_start_date, effect_end_date,
+           enabled, create_time, update_time, is_delete
+    FROM b_marketing_sms_account_record
+    <where>
+        is_delete =0
+      <if test="vendorName!=null and vendorName!=''">
+        AND vendor_name LIKE CONCAT('%', #{vendorName}, '%')
+      </if>
+      <if test="channelsName!=null and channelsName!=''">
+        AND channels_info LIKE CONCAT('%', #{channelsName}, '%')
+      </if>
+      <if test="price != null">
+        AND price = #{price}
+      </if>
+      <if test="nowDate !=null">
+        AND #{nowDate} BETWEEN effect_start_date AND effect_end_date
+      </if>
+      ORDER BY update_time DESC
+    </where>
+  </select>
+
+  <select id="getSmsAccountsByConfigId" resultType="com.br.marketing.entity.MarketingSmsAccountRecord">
+    SELECT id, config_id, vendor_id, vendor_name, channels_info, price, effect_start_date, effect_end_date,
+           enabled, create_time, update_time, is_delete
+    FROM b_marketing_sms_account_record
+    WHERE config_id=#{configId}
+    AND is_delete =0
+    ORDER BY update_time DESC
+  </select>
+</mapper>

@@ -242,4 +242,19 @@ public class CustomerListVo {
      */
     private Integer threeKEncryptType;
 
+    /**
+     * 短信类别
+     */
+    private String smsCategory;
+
+    /**
+     * 一级部门
+     */
+    private String firstDepartment;
+
+    /**
+     * 二级部门
+     */
+    private String secondDepartment;
+
 }

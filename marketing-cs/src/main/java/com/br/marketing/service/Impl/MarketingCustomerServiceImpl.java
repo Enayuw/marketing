@@ -99,7 +99,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
             List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
 
-            List<String> apiCodes = marketingCustomersList.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
+            List<String> apiCodes = marketingCustomersList.stream().map(MarketingCustomer::getApiCode).collect(Collectors.toList());
             HashMap<String, MarketingCustomerConfig> configs = new HashMap();
             if (!CollectionUtils.isEmpty(apiCodes)) {
                 MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
@@ -155,6 +155,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setName(vo.getName());
         marketingCustomer.setShortName(vo.getShortName());
         marketingCustomer.setUpdateTime(date);
+        marketingCustomer.setSmsCategory(vo.getSmsCategory());
+        marketingCustomer.setFirstDepartment(vo.getFirstDepartment());
+        marketingCustomer.setSecondDepartment(vo.getSecondDepartment());
 
         if (StringUtils.isEmpty(vo.getId())) {
             //新增
