@@ -740,8 +740,9 @@ public class QiFuServiceImpl implements IQiFuService {
                 return "";
             }
 
-            int lowerBound = (num - 1) * 1000;
-            int upperBound = num * 1000;
+            Integer qiFuConfigNum = ObjectUtil.isEmpty(marketingCommonConfig.getQiFuConfigNum()) ? 1000 : marketingCommonConfig.getQiFuConfigNum();
+            int lowerBound = (num - 1) * qiFuConfigNum;
+            int upperBound = num * qiFuConfigNum;
             return "[" + lowerBound + " - " + upperBound + ")";
         } catch (NumberFormatException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),

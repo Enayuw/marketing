@@ -838,7 +838,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(pushRuleThreadNum, pushRuleThreadNum, pushRuleQueueNum);
                 for (int i = 0; i < parNum; i++) {
                     int finalI = i;
-                    resList.add(threadPool.submit(() -> federatedQueryTotal(dto, queryBaseBean, finalI, tagCode, type)));
+                    QueryBaseBean queryBaseBean1 = new QueryBaseBean();
+                    BeanUtils.copyProperties(queryBaseBean, queryBaseBean1);
+                    resList.add(threadPool.submit(() -> federatedQueryTotal(dto, queryBaseBean1, finalI, tagCode, type)));
                 }
                 try {
                     for (Future<Result<Integer>> pushFuture : resList) {
@@ -2727,10 +2729,21 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 检查JSON数据是否包含指定的操作类型
+     * 支持字符串和数字格式的操作类型值
+     * @param jsonData JSON数据字符串
+     * @param operateType 操作类型值（字符串格式）
+     * @return 是否包含该操作类型
      */
     private boolean containsOperateType(String jsonData, String operateType) {
-        return jsonData.contains("\"operateType\":\"" + operateType + "\"") ||
+        // 检查字符串格式的操作类型
+        boolean hasStringFormat = jsonData.contains("\"operateType\":\"" + operateType + "\"") ||
                 jsonData.contains("\"operateType\": \"" + operateType + "\"");
+
+        // 检查数字格式的操作类型（不带引号）
+        boolean hasNumberFormat = jsonData.contains("\"operateType\":" + operateType) ||
+                jsonData.contains("\"operateType\": " + operateType);
+
+        return hasStringFormat || hasNumberFormat;
     }
 
     /**

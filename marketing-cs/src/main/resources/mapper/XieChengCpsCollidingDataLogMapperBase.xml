@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCpsCollidingDataLogMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengCpsCollidingDataLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="idempotent_key" property="idempotentKey" jdbcType="VARCHAR" />
+    <result column="data_id" property="dataId" jdbcType="BIGINT" />
+    <result column="package_id" property="packageId" jdbcType="BIGINT" />
+    <result column="data_source_type" property="dataSourceType" jdbcType="VARCHAR" />
+    <result column="cell_sha256_code_list" property="cellSha256CodeList" jdbcType="VARCHAR" />
+    <result column="release_time" property="releaseTime" jdbcType="VARCHAR" />
+    <result column="result" property="result" jdbcType="BIT" />
+    <result column="info" property="info" jdbcType="VARCHAR" />
+    <result column="org_channel" property="orgChannel" jdbcType="VARCHAR" />
+    <result column="mkt_level" property="mktLevel" jdbcType="VARCHAR" />
+    <result column="hit_request_no" property="hitRequestNo" jdbcType="VARCHAR" />
+    <result column="http_code" property="httpCode" jdbcType="INTEGER" />
+    <result column="business_code" property="businessCode" jdbcType="INTEGER" />
+    <result column="return_content" property="returnContent" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, idempotent_key, data_id, package_id, data_source_type, cell_sha256_code_list,
+    release_time, `result`, info, org_channel, mkt_level, hit_request_no, http_code,
+    business_code, return_content, extend, is_delete, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_xiecheng_cps_colliding_data_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_xiecheng_cps_colliding_data_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_xiecheng_cps_colliding_data_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLogExample" >
+    delete from b_xiecheng_cps_colliding_data_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_xiecheng_cps_colliding_data_log (idempotent_key, data_id, package_id,
+    data_source_type, cell_sha256_code_list, release_time,
+    `result`, info, org_channel,
+    mkt_level, hit_request_no, http_code,
+    business_code, return_content, extend,
+    is_delete, create_time, update_time
+    )
+    values (#{idempotentKey,jdbcType=VARCHAR}, #{dataId,jdbcType=BIGINT}, #{packageId,jdbcType=BIGINT},
+    #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR}, #{releaseTime,jdbcType=VARCHAR},
+    #{result,jdbcType=BIT}, #{info,jdbcType=VARCHAR}, #{orgChannel,jdbcType=VARCHAR},
+    #{mktLevel,jdbcType=VARCHAR}, #{hitRequestNo,jdbcType=VARCHAR}, #{httpCode,jdbcType=INTEGER},
+    #{businessCode,jdbcType=INTEGER}, #{returnContent,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR},
+    #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_xiecheng_cps_colliding_data_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="idempotentKey != null" >
+        idempotent_key,
+      </if>
+      <if test="dataId != null" >
+        data_id,
+      </if>
+      <if test="packageId != null" >
+        package_id,
+      </if>
+      <if test="dataSourceType != null" >
+        data_source_type,
+      </if>
+      <if test="cellSha256CodeList != null" >
+        cell_sha256_code_list,
+      </if>
+      <if test="releaseTime != null" >
+        release_time,
+      </if>
+      <if test="result != null" >
+        `result`,
+      </if>
+      <if test="info != null" >
+        info,
+      </if>
+      <if test="orgChannel != null" >
+        org_channel,
+      </if>
+      <if test="mktLevel != null" >
+        mkt_level,
+      </if>
+      <if test="hitRequestNo != null" >
+        hit_request_no,
+      </if>
+      <if test="httpCode != null" >
+        http_code,
+      </if>
+      <if test="businessCode != null" >
+        business_code,
+      </if>
+      <if test="returnContent != null" >
+        return_content,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="idempotentKey != null" >
+        #{idempotentKey,jdbcType=VARCHAR},
+      </if>
+      <if test="dataId != null" >
+        #{dataId,jdbcType=BIGINT},
+      </if>
+      <if test="packageId != null" >
+        #{packageId,jdbcType=BIGINT},
+      </if>
+      <if test="dataSourceType != null" >
+        #{dataSourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="cellSha256CodeList != null" >
+        #{cellSha256CodeList,jdbcType=VARCHAR},
+      </if>
+      <if test="releaseTime != null" >
+        #{releaseTime,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null" >
+        #{result,jdbcType=BIT},
+      </if>
+      <if test="info != null" >
+        #{info,jdbcType=VARCHAR},
+      </if>
+      <if test="orgChannel != null" >
+        #{orgChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="mktLevel != null" >
+        #{mktLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="hitRequestNo != null" >
+        #{hitRequestNo,jdbcType=VARCHAR},
+      </if>
+      <if test="httpCode != null" >
+        #{httpCode,jdbcType=INTEGER},
+      </if>
+      <if test="businessCode != null" >
+        #{businessCode,jdbcType=INTEGER},
+      </if>
+      <if test="returnContent != null" >
+        #{returnContent,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_xiecheng_cps_colliding_data_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_xiecheng_cps_colliding_data_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.idempotentKey != null" >
+        idempotent_key = #{record.idempotentKey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dataId != null" >
+        data_id = #{record.dataId,jdbcType=BIGINT},
+      </if>
+      <if test="record.packageId != null" >
+        package_id = #{record.packageId,jdbcType=BIGINT},
+      </if>
+      <if test="record.dataSourceType != null" >
+        data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cellSha256CodeList != null" >
+        cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.releaseTime != null" >
+        release_time = #{record.releaseTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.result != null" >
+        `result` = #{record.result,jdbcType=BIT},
+      </if>
+      <if test="record.info != null" >
+        info = #{record.info,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgChannel != null" >
+        org_channel = #{record.orgChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mktLevel != null" >
+        mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hitRequestNo != null" >
+        hit_request_no = #{record.hitRequestNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.httpCode != null" >
+        http_code = #{record.httpCode,jdbcType=INTEGER},
+      </if>
+      <if test="record.businessCode != null" >
+        business_code = #{record.businessCode,jdbcType=INTEGER},
+      </if>
+      <if test="record.returnContent != null" >
+        return_content = #{record.returnContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_xiecheng_cps_colliding_data_log
+    set id = #{record.id,jdbcType=BIGINT},
+    idempotent_key = #{record.idempotentKey,jdbcType=VARCHAR},
+    data_id = #{record.dataId,jdbcType=BIGINT},
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    release_time = #{record.releaseTime,jdbcType=VARCHAR},
+    `result` = #{record.result,jdbcType=BIT},
+    info = #{record.info,jdbcType=VARCHAR},
+    org_channel = #{record.orgChannel,jdbcType=VARCHAR},
+    mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
+    hit_request_no = #{record.hitRequestNo,jdbcType=VARCHAR},
+    http_code = #{record.httpCode,jdbcType=INTEGER},
+    business_code = #{record.businessCode,jdbcType=INTEGER},
+    return_content = #{record.returnContent,jdbcType=VARCHAR},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLog" >
+    update b_xiecheng_cps_colliding_data_log
+    <set >
+      <if test="idempotentKey != null" >
+        idempotent_key = #{idempotentKey,jdbcType=VARCHAR},
+      </if>
+      <if test="dataId != null" >
+        data_id = #{dataId,jdbcType=BIGINT},
+      </if>
+      <if test="packageId != null" >
+        package_id = #{packageId,jdbcType=BIGINT},
+      </if>
+      <if test="dataSourceType != null" >
+        data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="cellSha256CodeList != null" >
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+      </if>
+      <if test="releaseTime != null" >
+        release_time = #{releaseTime,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null" >
+        `result` = #{result,jdbcType=BIT},
+      </if>
+      <if test="info != null" >
+        info = #{info,jdbcType=VARCHAR},
+      </if>
+      <if test="orgChannel != null" >
+        org_channel = #{orgChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="mktLevel != null" >
+        mkt_level = #{mktLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="hitRequestNo != null" >
+        hit_request_no = #{hitRequestNo,jdbcType=VARCHAR},
+      </if>
+      <if test="httpCode != null" >
+        http_code = #{httpCode,jdbcType=INTEGER},
+      </if>
+      <if test="businessCode != null" >
+        business_code = #{businessCode,jdbcType=INTEGER},
+      </if>
+      <if test="returnContent != null" >
+        return_content = #{returnContent,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLog" >
+    update b_xiecheng_cps_colliding_data_log
+    set idempotent_key = #{idempotentKey,jdbcType=VARCHAR},
+        data_id = #{dataId,jdbcType=BIGINT},
+        package_id = #{packageId,jdbcType=BIGINT},
+        data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+        release_time = #{releaseTime,jdbcType=VARCHAR},
+        `result` = #{result,jdbcType=BIT},
+        info = #{info,jdbcType=VARCHAR},
+        org_channel = #{orgChannel,jdbcType=VARCHAR},
+        mkt_level = #{mktLevel,jdbcType=VARCHAR},
+        hit_request_no = #{hitRequestNo,jdbcType=VARCHAR},
+        http_code = #{httpCode,jdbcType=INTEGER},
+        business_code = #{businessCode,jdbcType=INTEGER},
+        return_content = #{returnContent,jdbcType=VARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -8,11 +8,102 @@ import lombok.Getter;
 @Getter
 public enum SourceTypeEnum {
     
-    UPLOAD("UPLOAD", "上传"),
-    TRANSFORM("TRANSFORM", "转化"),
-    CALL("CALL", "外呼"),
-    CALLBACK("CALLBACK", "回调"),
-    KNOWLEDGE("KNOWLEDGE", "知识库");
+    UPLOAD("UPLOAD", "上传"){
+        @Override
+        public String getCellField(){
+            return "";
+        }
+
+        @Override
+        public String getTimeField() {
+            return "";
+        }
+
+        @Override
+        public String getCustNumField() {
+            return "";
+        }
+    },
+    TRANSFORM("TRANSFORM", "转化"){
+        @Override
+        public String getCellField(){
+            return "cell";
+        }
+
+        @Override
+        public String getTimeField(){
+            return "create_time";
+        }
+
+        @Override
+        public String getCustNumField(){
+            return "cust_num";
+        }
+    },
+    CALL("CALL", "外呼"){
+        @Override
+        public String getCellField(){
+            return "phone_num_encoded";
+        }
+
+        @Override
+        public String getTimeField(){
+            return "case_log_create_time";
+        }
+
+        @Override
+        public String getCustNumField(){
+            return "case_num";
+        }
+    },
+    SHORTLINK("SHORTLINK","短链"){
+        @Override
+        public String getCellField(){
+            return "target_key";
+        }
+
+        @Override
+        public String getTimeField() {
+            return "create_time";
+        }
+
+        @Override
+        public String getCustNumField() {
+            return "";
+        }
+    },
+    CALLBACK("CALLBACK", "回调"){
+        @Override
+        public String getCellField(){
+            return "";
+        }
+
+        @Override
+        public String getTimeField() {
+            return "";
+        }
+
+        @Override
+        public String getCustNumField() {
+            return "";
+        }
+    },
+    KNOWLEDGE("KNOWLEDGE", "知识库"){
+        @Override
+        public String getCellField(){
+            return "";
+        }
+
+        @Override
+        public String getTimeField() {
+            return "";
+        }
+
+        @Override
+        public String getCustNumField() {
+            return "";
+        }
+    };
 
     /**
      * 数据源编码
@@ -78,5 +169,20 @@ public enum SourceTypeEnum {
     @Override
     public String toString() {
         return this.code;
+    }
+
+    public abstract String getCellField();
+
+    public abstract String getTimeField();
+
+    public abstract String getCustNumField();
+
+    public static SourceTypeEnum fromCode(String code) {
+        for (SourceTypeEnum sourceCode : SourceTypeEnum.values()) {
+            if (sourceCode.getCode().equals(code)) {
+                return sourceCode;
+            }
+        }
+        return null;
     }
 } 

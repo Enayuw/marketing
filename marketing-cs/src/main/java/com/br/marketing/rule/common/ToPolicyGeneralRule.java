@@ -12,6 +12,7 @@ import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -21,6 +22,7 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Resource
@@ -53,9 +55,17 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
                         ? jsonObject.getString("batchNumber")
                         : (appletDate + "_" + apiCode);
             }
-            String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
+            String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
                     ? jsonObject.getString("strategyCode")
                     : "";
+            String strategyCode = strategyCodeOriginal.length() < 12
+                    ? strategyCodeOriginal
+                    : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
+            String userType = strategyCodeOriginal.length() <= 12
+                    ? emptyDefault(syncUser.getUserType())
+                    : strategyCodeOriginal.substring(0, strategyCodeOriginal.length() - 12);
+            userType = StringUtils.isEmpty(userType) ? "" : userType;
+            jsonObject.put("userType", userType);
             String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
                     ? jsonObject.getString("batchName")
                     : (appletDate + "_" + apiCode);
@@ -81,6 +91,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         }
         buildJson(jsonObject, syncUser, customerTagsVO.getPushJc3keyType());
         pushData.setVariables(jsonObject);
+        log.warn("AI自动化推决策_操作类型3,apiCode:{}", apiCode);
         return pushData;
     }
 
@@ -118,7 +129,6 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
         jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
-        jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
         jsonObject.put("operateType", emptyDefault(syncUser.getOperateType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));

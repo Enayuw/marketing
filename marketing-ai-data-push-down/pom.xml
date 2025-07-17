@@ -88,12 +88,6 @@
             <version>2.4.10</version>
         </dependency>
 
-        <!-- 线程池动态配置客户端 -->
-        <dependency>
-            <groupId>org.middleheavenframework.boot</groupId>
-            <artifactId>tp-dynamic-metric-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
         <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
         <!--<dependency>
             <groupId>com.br.cloud</groupId>
