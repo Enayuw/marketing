@@ -22,7 +22,7 @@
       select
           cell
       from  b_marketing_tcyr_cust_cell_mapping
-      where cust_num = #{userKey}
+      where id = #{userKeyId}
     </select>
 
     <select id="selectCellInfotiflash_" resultType="java.util.Map">
@@ -38,10 +38,10 @@
 
     <select id="selectCellInfotikv_" resultType="java.util.Map">
         SELECT
-        cust_num AS custNum,
+        id AS custNum,
         cell AS cell
         FROM b_marketing_tcyr_cust_cell_mapping
-        WHERE cust_num IN
+        WHERE id IN
         <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
             #{userKey}
         </foreach>

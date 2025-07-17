@@ -246,14 +246,16 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     private List<MarketingTcyrSync> processBatchData(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData) {
         List<MarketingTcyrSync> tcyrSyncList = new ArrayList<>();
         if(marketingCommonConfig.getTcQuickDealShardConfig().getBoolean("detailSingleSwitch")) {
-                batchData.forEach(line -> {
+            batchData.forEach(line -> {
                 String[] lineData = line.split(",");
                 if (lineData.length >=2) {
                     String userKey = lineData[0].trim();
-                    String terminal = lineData[1].trim();
-                    //
-                    String cell = tcyrCustCellMappingMapper.selectCelltikv_(userKey);
+                    if (StringUtils.isEmpty(userKey)  || !isLong(userKey)) {
+                        return;
+                    }
+                    String cell = tcyrCustCellMappingMapper.selectCelltikv_(Long.parseLong(userKey));
                     if (StringUtils.isNotBlank(cell)) {
+                        String terminal = lineData[1].trim();
                         MarketingTcyrSync syncItem = new MarketingTcyrSync();
                         syncItem.setApiCode(apiCode);
                         syncItem.setBatchNo(batchNo);
@@ -279,17 +281,17 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             });
         } else {
             // 1. 收集 userKey
-            List<String> userKeyList = batchData.stream()
+            List<Long> userKeyList = batchData.stream()
                     .map(line -> line.split(","))
-                    .filter(lineData -> lineData.length >= 2)
-                    .map(lineData -> lineData[0].trim())
+                    .filter(lineData -> lineData.length >= 2 && StringUtils.isNotBlank(lineData[0].trim()) && isLong(lineData[0].trim()))
+                    .map(lineData -> Long.parseLong(lineData[0].trim()))
                     .collect(Collectors.toList());
             // 2. 批量查库
-            List<Map<String, String>> cellList = tcyrCustCellMappingMapper.selectCellInfotikv_(userKeyList);
+            List<Map<String, Object>> cellList = tcyrCustCellMappingMapper.selectCellInfotikv_(userKeyList);
             // 3. 封装成 Map
             Map<String, String> userKeyToCellMap = new HashMap<>();
-            for (Map<String, String> map : cellList) {
-                userKeyToCellMap.put(map.get("custNum"), map.get("cell"));
+            for (Map<String, Object> map : cellList) {
+                userKeyToCellMap.put(map.get("custNum").toString(), map.get("cell").toString());
             }
             // 4. 一次遍历 batchData，命中才封装
             for (String line : batchData) {
@@ -299,7 +301,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     String terminal = lineData[1].trim();
                     String cell = userKeyToCellMap.get(userKey);
                     if (StringUtils.isNotBlank(cell)) {
-                        // 封装对象
                         MarketingTcyrSync syncItem = new MarketingTcyrSync();
                         syncItem.setApiCode(apiCode);
                         syncItem.setBatchNo(batchNo);
@@ -325,6 +326,16 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
         }
         return tcyrSyncList;
+    }
+
+
+    public static boolean isLong(String userKey) {
+        try {
+            Long.parseLong(userKey);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     /**

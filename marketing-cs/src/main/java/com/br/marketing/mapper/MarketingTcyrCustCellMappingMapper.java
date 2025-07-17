@@ -7,7 +7,7 @@ import java.util.Map;
 
 public interface MarketingTcyrCustCellMappingMapper extends MarketingTcyrCustCellMappingMapperBase{
 
-    String selectCelltikv_(@Param("userKey")String userKey);
+    String selectCelltikv_(@Param("userKeyId")Long userKeyId);
 
     void saveNewCustCellInfo(@Param("userKey")String userKey, @Param("cell")String cell);
 
@@ -15,6 +15,6 @@ public interface MarketingTcyrCustCellMappingMapper extends MarketingTcyrCustCel
 
     List<Map<String, String>> selectCellInfotiflash_(@Param("userKeyList") List<String> userKeyList);
 
-    List<Map<String, String>> selectCellInfotikv_(@Param("userKeyList") List<String> userKeyList);
+    List<Map<String, Object>> selectCellInfotikv_(@Param("userKeyList") List<Long> userKeyList);
 
 }
