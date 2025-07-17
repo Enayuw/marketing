@@ -78,6 +78,8 @@ public class TcSyncDataCleanCheckServiceImpl implements TcSyncDataCleanChekServi
                 errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),2);
                 marketingTcyrSyncFileMapper.updateSuccessCount(errorInterfaceLog.getSyncFileId(),errorInterfaceLog.getElementCount());
             }else {
+                log.error("TITLE:{},上传请求失败，syncFileId: {}, 数据量: {}, resultMsg: {}", TITLE,errorInterfaceLog.getSyncFileId(),
+                        errorInterfaceLog.getElementCount(), pushResult.getMessage());
                 errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),3);
             }
         }catch (Exception e) {

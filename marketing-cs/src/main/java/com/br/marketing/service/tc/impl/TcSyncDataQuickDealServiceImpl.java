@@ -201,7 +201,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     if (pushResult != null && pushResult.isSuccess()) {
                         successCount.addAndGet(tcyrSyncList.size());
                     } else {
-                        log.error("分片处理失败，syncFileId: {}, 数据量: {}, pushResult: {}", syncFileId, tcyrSyncList.size(), pushResult);
+                        log.error("TITLE:{},上传请求失败，syncFileId: {}, 数据量: {}, resultMsg: {}", TITLE,syncFileId, tcyrSyncList.size(), pushResult.getMessage());
                         saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
                                 JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),1);
                     }
