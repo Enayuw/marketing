@@ -78,8 +78,8 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
                 .map(date -> date.format(FORMATTER))
                 .collect(Collectors.toList());
         for (String dataDate : dates) {
-            boolean interrupt = marketingCommonConfig.isFileToMarketingBiInterrupt();
-            if(interrupt) {
+            Boolean interrupt = marketingCommonConfig.getFileToMarketingBiInterrupt();
+            if(Boolean.TRUE.equals(interrupt)) {
                 log.warn("分片处理转化文件落库到marketingBI任务中断，当前执行日期:{}", dataDate);
                 break;
             }
@@ -136,8 +136,8 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
             String formattedDate = getFormattedDate(dateDate);
 
             while ((dataLine = reader.readLine()) != null) {
-                boolean interrupted = marketingCommonConfig.isFileToMarketingBiInterrupt();
-                if (interrupted) {
+                Boolean interrupt = marketingCommonConfig.getFileToMarketingBiInterrupt();
+                if(Boolean.TRUE.equals(interrupt)) {
                     log.warn("任务中断触发，停止文件读取");
                     break;
                 }

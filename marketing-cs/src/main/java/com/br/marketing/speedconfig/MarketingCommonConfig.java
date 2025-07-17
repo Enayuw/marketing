@@ -3237,7 +3237,7 @@ public class MarketingCommonConfig {
     /**
      * 转化文件落库BI是否中断
      */
-    private boolean fileToMarketingBiInterrupt;
+    private Boolean fileToMarketingBiInterrupt;
 
     /**
      * 360ai区间配置
