@@ -126,19 +126,20 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
             while (line < 11 && (row = br.readLine()) != null) {
+                String rowData = row.trim();
                 // 跳过空行（包含空白字符行）
-                if (row.trim().isEmpty()) {
+                if (rowData.isEmpty()) {
                     continue;
                 }
                 if (line == 0) {
                     // 第一行作为表头
-                    dataFile.setFileHeader(row);
+                    dataFile.setFileHeader(rowData);
                 } else {
                     // 除表头外的所有数据行都添加到batchLines
-                    batchLines.add(row);
+                    batchLines.add(rowData);
                     if (line == 1) {
                         // 第一行数据设置为FileData
-                        dataFile.setFileData(row);
+                        dataFile.setFileData(rowData);
                     }
                 }
                 line++;
@@ -162,19 +163,20 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
             while (line < 11 && (row = br.readLine()) != null) {
+                String rowData = row.trim();
                 // 跳过空行（包含空白字符行）
-                if (row.trim().isEmpty()) {
+                if (rowData.isEmpty()) {
                     continue;
                 }
                 if (line == 0) {
                     // 第一行作为表头
-                    dataFile.setFileHeader(row);
+                    dataFile.setFileHeader(rowData);
                 } else {
                     // 除表头外的所有数据行都添加到batchLines
-                    batchLines.add(row);
+                    batchLines.add(rowData);
                     if (line == 1) {
                         // 第一行数据设置为FileData
-                        dataFile.setFileData(row);
+                        dataFile.setFileData(rowData);
                     }
                 }
                 line++;
