@@ -78,6 +78,12 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
                 .map(date -> date.format(FORMATTER))
                 .collect(Collectors.toList());
         for (String dataDate : dates) {
+            boolean interrupt = marketingCommonConfig.isFileToMarketingBiInterrupt();
+            if(interrupt) {
+                log.warn("分片处理转化文件落库到marketingBI任务中断，当前执行日期:{}", dataDate);
+                break;
+            }
+
             // 2. 按日期+优先级动态锁
             String lockKey = String.format("trans_file_to_marketing_bi_shard_lock:%s:%s", dataDate, priorityStatus);
             String lockValue = UUID.randomUUID().toString();
@@ -130,6 +136,11 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
             String formattedDate = getFormattedDate(dateDate);
 
             while ((dataLine = reader.readLine()) != null) {
+                boolean interrupted = marketingCommonConfig.isFileToMarketingBiInterrupt();
+                if (interrupted) {
+                    log.warn("任务中断触发，停止文件读取");
+                    break;
+                }
                 batchData.add(dataLine);
                 if (batchData.size() != marketingCommonConfig.getFileToMarketingBiBatchSize()) {
                     continue;
@@ -146,6 +157,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
                         writeFileDataToTidb(configRecordVO.getDbName(), indexFieldMap, copyListObj, formattedDate), threadPool));
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
             log.warn("apiCode: {} 日期: {} 文件落库BI完成,耗时:{}", configRecordVO.getApiCode(), dateDate, System.currentTimeMillis() - startTime);
         } catch (Exception e) {
             String errMsg = "nfs转化提取文件读取入库异常path: " + filePath + " Exception: " + e.getMessage();
@@ -206,7 +218,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
      * 写入文件数据到Tidb
      */
     private void writeFileDataToTidb(String tableName, Map<String, Integer> colFieldMap,
-                                     List<String> batchData, String formattedDate) {
+                                     List<String> batchData, String formattedDate){
         StringJoiner valuesJoiner = new StringJoiner(", \n", "", "");
         String colNames = colFieldMap.keySet().stream()
                 .map(String::trim)
