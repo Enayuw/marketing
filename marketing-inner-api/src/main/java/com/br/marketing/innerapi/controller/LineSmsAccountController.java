@@ -1,6 +1,5 @@
 package com.br.marketing.innerapi.controller;
 
-import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
@@ -10,8 +9,6 @@ import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +36,6 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账基础信息查询")
     @GetMapping("/getSmsAccountBasInfo")
-    @LogAnnotation
     public ApiResult getSmsAccountBasInfo() {
         try {
             return lineSmsAccountService.getSmsAccountBasInfo();
@@ -51,7 +47,6 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置新增")
     @PostMapping("/addSmsAccount")
-    @LogAnnotation
     public ApiResult addSmsAccount(@RequestBody SmsAccountDto dto) {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
@@ -63,7 +58,6 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置变更")
     @PatchMapping("/updSmsAccount")
-    @LogAnnotation
     public ApiResult updSmsAccount(@RequestBody SmsAccountDto dto) {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.updSmsAccount(dto), CODE_1);
@@ -75,7 +69,6 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置禁用")
     @PatchMapping("/forbSmsAccount")
-    @LogAnnotation
     public ApiResult forbSmsAccount(@RequestParam Long configId) {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.forbSmsAccount(configId), CODE_1);
@@ -87,7 +80,6 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置启用")
     @PatchMapping("/allowSmsAccount")
-    @LogAnnotation
     public ApiResult allowSmsAccount(@RequestParam Long configId) {
         try {
             return new ApiResult().fromResult(lineSmsAccountService.allowSmsAccount(configId), CODE_1);
@@ -98,14 +90,6 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置列表查询")
     @GetMapping("/getSmsAccounts")
-    @LogAnnotation
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "vendorName", value = "供应商名称", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "channelsName", value = "渠道名称", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "price", value = "价格", paramType = "query", dataType = "double")
-            , @ApiImplicitParam(name = "configIdStr", value = "汇总配置id(string)", paramType = "query", dataType = "string")
-    })
     public ApiResult getSmsAccounts(@RequestParam(defaultValue = "1") Integer current,
                                     @RequestParam(defaultValue = "10") Integer size,
                                     @RequestParam(required = false) String vendorName,
@@ -131,12 +115,6 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置变更查询")
     @GetMapping("/getSmsAccountLogs")
-    @LogAnnotation
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            ,@ApiImplicitParam(name = "configIdStr", value = "汇总配置id(string)", paramType = "query", dataType = "string")
-    })
     public ApiResult getSmsAccountLogs(@RequestParam(defaultValue = "1") Integer current,
                                        @RequestParam(defaultValue = "10") Integer size,
                                        @RequestParam(name = "configIdStr") String configIdStr) {
@@ -156,9 +134,6 @@ public class LineSmsAccountController {
 
     @GetMapping("/getDictInfo")
     @ApiOperation(value = "获取部门/短信类别字典列表",notes = "获取部门/短信类别字典列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "dictType",value = "",required = false,dataType = "String")
-    })
     public ApiResult<Map<String, List<MarketingDict>>> getDictInfo(String dictType){
         try {
             Map<String, List<MarketingDict>> resultMap = lineSmsAccountService.getDictInfo(dictType);
