@@ -38,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -83,7 +85,9 @@ public class MockServiceImpl implements MockService {
                 criteria.andEnabledEqualTo(dto.getEnabled());
             }
             if (dto.getUpdateTime() != null) {
-                criteria.andUpdateTimeGreaterThan(dto.getUpdateTime());
+                Date updateStartTime = Date.from(dto.getUpdateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+                Date updateEndTime = Date.from(dto.getUpdateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
+                criteria.andUpdateTimeBetween(updateStartTime, updateEndTime);
             }
 
             List<MockPolicy> mockPolicies = mockPolicyMapper.selectByExample(example);
