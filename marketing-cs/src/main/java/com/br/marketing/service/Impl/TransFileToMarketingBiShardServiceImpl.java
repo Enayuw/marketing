@@ -225,9 +225,6 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
                 .collect(Collectors.joining(", "));
 
         for (String dataLine : batchData) {
-            if (marketingCommonConfig.isFileToMarketingBiInterrupt()) {
-                return;
-            }
             String[] rawValues = dataLine.split(",", -1);
             StringJoiner rowJoiner = new StringJoiner(", ", "(", ")");
 
