@@ -3,15 +3,11 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ThreadContextInfo;
-import com.br.marketing.dto.account.PriceDateDTO;
-import com.br.marketing.dto.account.SmsAccountDto;
-import com.br.marketing.dto.account.SmsChannelDto;
+import com.br.marketing.dto.account.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.OpeTypeEnum;
-import com.br.marketing.mapper.MarketingSmsAccountDetailMapper;
-import com.br.marketing.mapper.MarketingSmsAccountLogMapper;
-import com.br.marketing.mapper.MarketingSmsAccountRecordMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.LineSmsAccountDataService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +32,15 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
 
     @Resource
     MarketingSmsAccountLogMapper smsAccountLogMapper;
+
+    @Resource
+    MarketingLineAccountDetailMapper lineAccountDetailMapper;
+
+    @Resource
+    MarketingLineAccountRecordMapper lineAccountRecordMapper;
+
+    @Resource
+    MarketingLineAccountLogMapper lineAccountLogMapper;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -224,7 +229,152 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
         smsAccountLogMapper.insertSelective(accountLog);
     }
 
+    @Override
+    @Transactional
+    public void addLineAccount(LineAccountDto dto) throws JsonProcessingException {
+        long configId = Long.parseLong(
+                ThreadLocalRandom.current().nextInt(1000, 10000)
+                        + String.valueOf(System.currentTimeMillis()));
+        List<String> outboundNumbers = dto.getLines().stream().map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
+        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        for (PriceDateDTO priceDate : dto.getPriceDates()) {
+            Date effectStartDate = Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date effectEndDate = null;
+            if (priceDate.getEffectEndDate() != null) {
+                effectEndDate = Date.from(priceDate.getEffectEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            }
+            MarketingLineAccountRecord accountRecord = new MarketingLineAccountRecord();
+            accountRecord.setConfigId(configId);
+            accountRecord.setLineSupplier(dto.getLineSupplier());
+            String linesInfo = objectMapper.writeValueAsString(dto.getLines());
+            accountRecord.setLinesInfo(linesInfo);
+            accountRecord.setPrice(priceDate.getPrice());
+            accountRecord.setEffectStartDate(effectStartDate);
+            accountRecord.setEffectEndDate(effectEndDate);
+            lineAccountRecordMapper.insertSelective(accountRecord);
+            for (LineOutboundDto line : dto.getLines()) {
+                MarketingLineAccountDetail accountDetail = new MarketingLineAccountDetail();
+                accountDetail.setConfigId(configId);
+                accountDetail.setRecordId(accountRecord.getId());
+                accountDetail.setLineSupplier(dto.getLineSupplier());
+                accountDetail.setGatewayId(line.getGatewayId());
+                accountDetail.setOutboundNumber(line.getOutboundNumber());
+                accountDetail.setPrice(priceDate.getPrice());
+                accountDetail.setEffectStartDate(effectStartDate);
+                accountDetail.setEffectEndDate(effectEndDate);
+                lineAccountDetailMapper.insertSelective(accountDetail);
+            }
+        }
+        MarketingLineAccountLog accountLog = new MarketingLineAccountLog();
+        accountLog.setConfigId(configId);
+        accountLog.setLineSupplier(dto.getLineSupplier());
+        JSONObject detail = new JSONObject();
+        detail.put("gatewayIds", objectMapper.writeValueAsString(gatewayIds));
+        detail.put("outboundNumbers", objectMapper.writeValueAsString(outboundNumbers));
+        detail.put("priceDates", JSON.toJSONString(dto.getPriceDates()));
+        accountLog.setDetail(detail.toJSONString());
+        userRecord(accountLog);
+        accountLog.setOpeType(OpeTypeEnum.OPE_TYPE_INS.getType());
+        lineAccountLogMapper.insertSelective(accountLog);
+    }
+
+    @Override
+    @Transactional
+    public void updLineAccount(LineAccountDto dto) throws JsonProcessingException {
+        //1.删除record和detail
+        MarketingLineAccountRecordExample accountRecordExample = new MarketingLineAccountRecordExample();
+        accountRecordExample.createCriteria().andConfigIdEqualTo(dto.getConfigId());
+        MarketingLineAccountRecord updateAccountRecord = new MarketingLineAccountRecord();
+        updateAccountRecord.setIsDelete(ISDELETED_DEL);
+        lineAccountRecordMapper.updateByExampleSelective(updateAccountRecord, accountRecordExample);
+        MarketingLineAccountDetailExample accountDetailExample = new MarketingLineAccountDetailExample();
+        accountDetailExample.createCriteria().andConfigIdEqualTo(dto.getConfigId());
+        MarketingLineAccountDetail updateAccountDetail = new MarketingLineAccountDetail();
+        updateAccountDetail.setIsDelete(ISDELETED_DEL);
+        lineAccountDetailMapper.updateByExampleSelective(updateAccountDetail, accountDetailExample);
+        //2.新增
+        List<String> outboundNumbers = dto.getLines().stream().map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
+        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        for (PriceDateDTO priceDate : dto.getPriceDates()) {
+            Date effectStartDate = Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date effectEndDate = null;
+            if (priceDate.getEffectEndDate() != null) {
+                effectEndDate = Date.from(priceDate.getEffectEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            }
+            MarketingLineAccountRecord accountRecord = new MarketingLineAccountRecord();
+            accountRecord.setConfigId(dto.getConfigId());
+            accountRecord.setLineSupplier(dto.getLineSupplier());
+            String linesInfo = objectMapper.writeValueAsString(dto.getLines());
+            accountRecord.setLinesInfo(linesInfo);
+            accountRecord.setPrice(priceDate.getPrice());
+            accountRecord.setEffectStartDate(effectStartDate);
+            accountRecord.setEffectEndDate(effectEndDate);
+            lineAccountRecordMapper.insertSelective(accountRecord);
+            for (LineOutboundDto line : dto.getLines()) {
+                MarketingLineAccountDetail accountDetail = new MarketingLineAccountDetail();
+                accountDetail.setConfigId(dto.getConfigId());
+                accountDetail.setRecordId(accountRecord.getId());
+                accountDetail.setLineSupplier(dto.getLineSupplier());
+                accountDetail.setGatewayId(line.getGatewayId());
+                accountDetail.setPrice(priceDate.getPrice());
+                accountDetail.setEffectStartDate(effectStartDate);
+                accountDetail.setEffectEndDate(effectEndDate);
+                lineAccountDetailMapper.insertSelective(accountDetail);
+            }
+        }
+        MarketingLineAccountLog accountLog = new MarketingLineAccountLog();
+        accountLog.setConfigId(dto.getConfigId());
+        accountLog.setLineSupplier(dto.getLineSupplier());
+        JSONObject detail = new JSONObject();
+        detail.put("gatewayIds", objectMapper.writeValueAsString(gatewayIds));
+        detail.put("outboundNumbers", objectMapper.writeValueAsString(outboundNumbers));
+        detail.put("priceDates", JSON.toJSONString(dto.getPriceDates()));
+        accountLog.setDetail(detail.toJSONString());
+        userRecord(accountLog);
+        accountLog.setOpeType(OpeTypeEnum.OPE_TYPE_UPD.getType());
+        lineAccountLogMapper.insertSelective(accountLog);
+    }
+
+    @Override
+    @Transactional
+    public void forbLineAccount(Long configId) {
+        //1.禁用record
+        MarketingLineAccountRecordExample accountRecordExample = new MarketingLineAccountRecordExample();
+        accountRecordExample.createCriteria().andConfigIdEqualTo(configId).andIsDeleteEqualTo(0);
+        MarketingLineAccountRecord updateAccountRecord = new MarketingLineAccountRecord();
+        updateAccountRecord.setEnabled(ENABLED_FORB);
+        lineAccountRecordMapper.updateByExampleSelective(updateAccountRecord, accountRecordExample);
+        //2.禁用detail
+        MarketingLineAccountDetailExample accountDetailExample = new MarketingLineAccountDetailExample();
+        accountDetailExample.createCriteria().andConfigIdEqualTo(configId).andIsDeleteEqualTo(0);
+        MarketingLineAccountDetail updateAccountDetail = new MarketingLineAccountDetail();
+        updateAccountDetail.setEnabled(ENABLED_FORB);
+        lineAccountDetailMapper.updateByExampleSelective(updateAccountDetail, accountDetailExample);
+        //3.新增禁用日志
+        MarketingLineAccountLogExample accountLogExample = new MarketingLineAccountLogExample();
+        accountLogExample.createCriteria().andConfigIdEqualTo(configId).andIsDeleteEqualTo(0);
+        accountLogExample.setOrderByClause("create_time desc limit 1");
+        MarketingLineAccountLog oldAccountLog = lineAccountLogMapper.selectByExample(accountLogExample).get(0);
+        MarketingLineAccountLog accountLog = new MarketingLineAccountLog();
+        BeanUtils.copyProperties(oldAccountLog, accountLog);
+        accountLog.setId(null);
+        userRecord(accountLog);
+        accountLog.setOpeType(OpeTypeEnum.OPE_TYPE_FOB.getType());
+        accountLog.setCreateTime(null);
+        accountLog.setUpdateTime(null);
+        lineAccountLogMapper.insertSelective(accountLog);
+    }
+
     private void userRecord(MarketingSmsAccountLog accountLog) {
+        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+        if (userDetail != null) {
+            accountLog.setUserId(Long.valueOf(userDetail.getId()));
+            accountLog.setUserName(userDetail.getUserName());
+            accountLog.setRealName(userDetail.getRealName());
+        }
+    }
+
+    private void userRecord(MarketingLineAccountLog accountLog) {
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         if (userDetail != null) {
             accountLog.setUserId(Long.valueOf(userDetail.getId()));

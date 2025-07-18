@@ -3,6 +3,7 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.vo.MarketingSmsAccountLogVo;
@@ -32,6 +33,12 @@ public interface LineSmsAccountService {
     PageResultReturn getSmsAccountLogs(Integer current,Integer size,Long configId);
 
     List<MarketingSmsAccountRecordVo> getSmsAccountsByConfigId(Long configId);
+
+    Result addLineAccount(@Valid LineAccountDto dto) throws JsonProcessingException;
+
+    Result updLineAccount(LineAccountDto dto) throws IOException;
+
+    Result forbLineAccount(Long configId);
 
 
     /**

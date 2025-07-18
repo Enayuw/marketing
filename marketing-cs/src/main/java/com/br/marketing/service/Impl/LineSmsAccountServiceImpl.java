@@ -9,23 +9,13 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.account.PriceDateDTO;
-import com.br.marketing.dto.account.SmsAccountDto;
-import com.br.marketing.dto.account.SmsChannelDto;
-import com.br.marketing.entity.MarketingDict;
-import com.br.marketing.entity.MarketingSmsAccountLog;
-import com.br.marketing.entity.MarketingSmsAccountLogExample;
-import com.br.marketing.entity.MarketingSmsAccountRecord;
+import com.br.marketing.dto.account.*;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.DictEnum;
-import com.br.marketing.mapper.MarketingDictMapper;
-import com.br.marketing.mapper.MarketingSmsAccountDetailMapper;
-import com.br.marketing.mapper.MarketingSmsAccountLogMapper;
-import com.br.marketing.mapper.MarketingSmsAccountRecordMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.LineSmsAccountDataService;
 import com.br.marketing.service.LineSmsAccountService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.MarketingSmsAccountLogVo;
 import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,7 +30,6 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,9 +45,6 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     private RobotaiApiServiceClient robotaiApiServiceClient;
 
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
     private MarketingSmsAccountRecordMapper smsAccountRecordMapper;
 
     @Resource
@@ -66,6 +52,15 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
     @Resource
     private MarketingSmsAccountDetailMapper smsAccountDetailMapper;
+
+    @Resource
+    private MarketingLineAccountRecordMapper lineAccountRecordMapper;
+
+    @Resource
+    private MarketingLineAccountLogMapper lineAccountLogMapper;
+
+    @Resource
+    private MarketingLineAccountDetailMapper lineAccountDetailMapper;
 
     @Resource
     private LineSmsAccountDataService lineSmsAccountDataService;
@@ -202,6 +197,94 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     public List<MarketingSmsAccountRecordVo> getSmsAccountsByConfigId(Long configId) {
         List<MarketingSmsAccountRecord>  smsAccountRecordList = smsAccountRecordMapper.getSmsAccountsByConfigId(configId);
         return convertToSmsAccountRecordVoList(smsAccountRecordList);
+    }
+
+    @Override
+    public Result addLineAccount(LineAccountDto dto) throws JsonProcessingException {
+        //1.校验线路有无存在的配置
+        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        List<Long> existGatewayIds = lineAccountDetailMapper.selectLineIfExist(gatewayIds, dto.getConfigId());
+        if (existGatewayIds.size() > 0) {
+            List<String> outboundNumbers = dto.getLines().stream()
+                    .filter(line -> existGatewayIds.contains(line.getGatewayId()))
+                    .map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
+            return new Result<String>().setCode(ResultCode.FAIL.getValue())
+                    .setMessage("主叫号码：" + String.join(",", outboundNumbers) + "已存在配置，无法新增，请在列表页面变更对应主叫号码配置！");
+        }
+        //2.判断日期没有重复
+        List<PriceDateDTO> priceDates = dto.getPriceDates();
+        long esDateSize = priceDates.stream().map(PriceDateDTO::getEffectStartDate).distinct().count();
+        if (esDateSize != priceDates.size()) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("价格有效期不能重复！");
+        }
+        //3.校验短信单价
+        if (checkPrice(priceDates)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("通话单价最大值为1元/分钟！");
+        }
+        //4.日期排序，从低到高
+        priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
+        for (int i = 0; i < priceDates.size(); i++) {
+            if (i != priceDates.size() - 1) {
+                priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
+            }
+        }
+        //5.事务保存
+        lineSmsAccountDataService.addLineAccount(dto);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result updLineAccount(LineAccountDto dto) throws IOException {
+        //1.校验渠道有无存在的配置
+        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        List<Long> existGatewayIds = lineAccountDetailMapper.selectLineIfExist(gatewayIds, dto.getConfigId());
+        if (existGatewayIds.size() > 0) {
+            List<String> outboundNumbers = dto.getLines().stream()
+                    .filter(line -> existGatewayIds.contains(line.getGatewayId()))
+                    .map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
+            return new Result<String>().setCode(ResultCode.FAIL.getValue())
+                    .setMessage("主叫号码：" + String.join(",", outboundNumbers) + "已存在配置，无法变更，请在列表页面变更对应主叫号码配置！");
+        }
+        //2.判断日期没有重复
+        List<PriceDateDTO> priceDates = dto.getPriceDates();
+        long esDateSize = priceDates.stream().map(PriceDateDTO::getEffectStartDate).distinct().count();
+        if (esDateSize != priceDates.size()) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("价格有效期不能重复！");
+        }
+        //3.校验短信单价
+        if (checkPrice(priceDates)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("通话单价最大值为1元/分钟！");
+        }
+        //4.日期排序，从低到高
+        priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
+        for (int i = 0; i < priceDates.size(); i++) {
+            if (i != priceDates.size() - 1) {
+                priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
+            }
+        }
+        //5.校验供应商是否变更，数据是否需要更新
+        MarketingLineAccountLogExample accountLogExample = new MarketingLineAccountLogExample();
+        accountLogExample.createCriteria().andConfigIdEqualTo(dto.getConfigId()).andIsDeleteEqualTo(0);
+        accountLogExample.setOrderByClause("create_time desc limit 1");
+        MarketingLineAccountLog oldAccountLog = lineAccountLogMapper.selectByExample(accountLogExample).get(0);
+
+        JSONObject oldAccountLogDetail = JSONObject.parseObject(oldAccountLog.getDetail());
+        List<Long> oldGatewayIds = JSON.parseArray(oldAccountLogDetail.getString("gatewayIds"), Long.class);
+        boolean lineEqualFlag = new HashSet<>(oldGatewayIds).equals(new HashSet<>(gatewayIds));
+        List<PriceDateDTO> oldPriceDates = JSON.parseArray(oldAccountLogDetail.getString("priceDates"), PriceDateDTO.class);
+        boolean priceDateEqualFlag = new HashSet<>(oldPriceDates).equals(new HashSet<>(priceDates));
+        if(lineEqualFlag && priceDateEqualFlag){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("配置无修改，无需变更");
+        }
+        //6.事务保存
+        lineSmsAccountDataService.updLineAccount(dto);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result forbLineAccount(Long configId) {
+        lineSmsAccountDataService.forbLineAccount(configId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
 

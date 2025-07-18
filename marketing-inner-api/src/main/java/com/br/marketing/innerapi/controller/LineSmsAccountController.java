@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.service.LineSmsAccountService;
@@ -128,6 +129,39 @@ public class LineSmsAccountController {
         }catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);
+        }
+    }
+
+    @ApiOperation(value = "线路对账配置新增")
+    @PostMapping("/addLineAccount")
+    public ApiResult addLineAccount(@RequestBody LineAccountDto dto) {
+        try {
+            return new ApiResult().fromResult(lineSmsAccountService.addLineAccount(dto), CODE_1);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "线路对账配置变更")
+    @PatchMapping("/updLineAccount")
+    public ApiResult updLineAccount(@RequestBody LineAccountDto dto) {
+        try {
+            return new ApiResult().fromResult(lineSmsAccountService.updLineAccount(dto), CODE_1);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "线路对账配置禁用")
+    @PatchMapping("/forbLineAccount")
+    public ApiResult forbLineAccount(@RequestParam Long configId) {
+        try {
+            return new ApiResult().fromResult(lineSmsAccountService.forbLineAccount(configId), CODE_1);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
