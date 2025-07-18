@@ -9,31 +9,24 @@
 
     <insert id="saveNewCustCellInfo">
         INSERT INTO
-            b_marketing_tcyr_cust_cell_mapping (cust_num,cell,update_time)
+            b_marketing_tcyr_cust_cell_mapping (id,cust_num,cell)
         VALUES
-            (#{userKey},#{cell},NOW())
-        ON DUPLICATE KEY UPDATE
-            cell = VALUES(cell),
-            update_time = NOW()
+            (#{userKeyId},#{cell},#{cell})
     </insert>
 
 
-  <select id="selectCelltikv_" resultType="java.lang.String">
+  <select id="selectNumUserKeyCellBytikv_" resultType="java.lang.String">
       select
           cell
       from  b_marketing_tcyr_cust_cell_mapping
-      where id = #{userKeyId}
+      where id = #{userKey}
     </select>
 
-    <select id="selectCellInfotiflash_" resultType="java.util.Map">
-        SELECT
-            cust_num AS custNum,
-            cell AS cell
-        FROM b_marketing_tcyr_cust_cell_mapping
-        WHERE cust_num IN
-        <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
-            #{userKey}
-        </foreach>
+    <select id="selectStrUserKeyCellBytikv_" resultType="java.lang.String">
+        select
+            cell
+        from  b_marketing_tcyr_cust_cell_mapping
+        where cust_num = #{userKey}
     </select>
 
     <select id="selectCellInfotikv_" resultType="java.util.Map">
@@ -46,5 +39,17 @@
             #{userKey}
         </foreach>
     </select>
+
+    <select id="selectCellByStrCustNumtikv_" resultType="java.util.Map">
+        SELECT
+        cust_num AS custNum,
+        cell AS cell
+        FROM b_marketing_tcyr_cust_cell_mapping
+        WHERE cust_num IN
+        <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
+            #{userKey}
+        </foreach>
+    </select>
+
 
 </mapper>

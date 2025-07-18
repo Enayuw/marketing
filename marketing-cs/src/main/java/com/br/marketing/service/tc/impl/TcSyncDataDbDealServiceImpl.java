@@ -173,7 +173,11 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                         String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
                         if (StringUtils.isNotBlank(cell)) {
                             sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
-                            custCellMappingMapper.saveNewCustCellInfo(userKey, cell);
+                            if (isLong(userKey)) {
+                                custCellMappingMapper.saveNewCustCellInfo(Long.parseLong(userKey), cell);
+                            }else {
+                                //TODO 07-17 userKey是String类型时,中间表数据保存(此处在多线程里面 如何获取此时插入数据的id)
+                            }
                         } else {
                             sqlBuilder.append(",NULL,0");
                         }
@@ -214,6 +218,15 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
             return "";
         }
         return str.replace("'", "''").replace("\\", "\\\\");
+    }
+
+    private Boolean isLong(String userKey) {
+        try {
+            Long.parseLong(userKey);
+            return true;
+        }catch (Exception e) {
+            return false;
+        }
     }
 
     /**

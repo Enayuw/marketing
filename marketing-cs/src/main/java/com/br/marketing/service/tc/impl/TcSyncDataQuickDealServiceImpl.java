@@ -1,6 +1,7 @@
 package com.br.marketing.service.tc.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
@@ -250,10 +251,13 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 String[] lineData = line.split(",");
                 if (lineData.length >=2) {
                     String userKey = lineData[0].trim();
-                    if (StringUtils.isEmpty(userKey)  || !isLong(userKey)) {
+                    if (StringUtils.isEmpty(userKey)) {
                         return;
                     }
-                    String cell = tcyrCustCellMappingMapper.selectCelltikv_(Long.parseLong(userKey));
+                    String cell = tcyrCustCellMappingMapper.selectNumUserKeyCellBytikv_(userKey);
+                    if (StringUtils.isNotBlank(cell)) {
+                        cell = tcyrCustCellMappingMapper.selectStrUserKeyCellBytikv_(userKey);
+                    }
                     if (StringUtils.isNotBlank(cell)) {
                         String terminal = lineData[1].trim();
                         MarketingTcyrSync syncItem = new MarketingTcyrSync();
@@ -280,20 +284,31 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 }
             });
         } else {
-            // 1. 收集 userKey
-            List<Long> userKeyList = batchData.stream()
-                    .map(line -> line.split(","))
-                    .filter(lineData -> lineData.length >= 2 && StringUtils.isNotBlank(lineData[0].trim()) && isLong(lineData[0].trim()))
-                    .map(lineData -> Long.parseLong(lineData[0].trim()))
-                    .collect(Collectors.toList());
-            // 2. 批量查库
-            List<Map<String, Object>> cellList = tcyrCustCellMappingMapper.selectCellInfotikv_(userKeyList);
-            // 3. 封装成 Map
+            //List<String> userKeyList 1.id维度查 2、过滤出id查不到的元素 custNum维度查 3、封装数据
             Map<String, String> userKeyToCellMap = new HashMap<>();
+            List<String> userKeyList = batchData.stream()
+                    .map(line -> line.split(","))
+                    .filter(lineData -> lineData.length >= 2 && StringUtils.isNotBlank(lineData[0].trim()))
+                    .map(lineData -> lineData[0].trim())
+                    .collect(Collectors.toList());
+            // id维度批量查库处理
+            List<Map<String, Object>> cellList = tcyrCustCellMappingMapper.selectCellInfotikv_(userKeyList);
+            List<String> existUserKeyList = new ArrayList<>();
             for (Map<String, Object> map : cellList) {
                 userKeyToCellMap.put(map.get("custNum").toString(), map.get("cell").toString());
+                existUserKeyList.add(map.get("custNum").toString());
             }
-            // 4. 一次遍历 batchData，命中才封装
+            // custNum维度批量查看处理
+            Set<String> existSet = new HashSet<>(existUserKeyList);
+            List<String> notExistUserKeyList = userKeyList.stream().filter(userKey -> !existSet.contains(userKey))
+                    .collect(Collectors.toList());
+            if(!CollectionUtils.isEmpty(notExistUserKeyList)) {
+                List<Map<String,String>> cellList2 = tcyrCustCellMappingMapper.selectCellByStrCustNumtikv_(notExistUserKeyList);
+                for (Map<String, String> map : cellList2) {
+                    userKeyToCellMap.put(map.get("custNum"), map.get("cell"));
+                }
+            }
+            // 3遍历 batchData，命中才封装
             for (String line : batchData) {
                 String[] lineData = line.split(",");
                 if (lineData.length >= 2) {
@@ -326,16 +341,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
         }
         return tcyrSyncList;
-    }
-
-
-    public static boolean isLong(String userKey) {
-        try {
-            Long.parseLong(userKey);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
     /**
