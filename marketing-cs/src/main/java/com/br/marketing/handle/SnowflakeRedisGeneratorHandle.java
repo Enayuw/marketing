@@ -120,7 +120,7 @@ public class SnowflakeRedisGeneratorHandle {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            LOGGER.warn("从缓冲区获取ID被中断", e);
+            LOGGER.warn("从缓冲区获取ID被中断,{}", e.getMessage(), e);
         }
 
         // 缓冲区为空或超时，降级为同步生成单个ID
@@ -206,7 +206,7 @@ public class SnowflakeRedisGeneratorHandle {
                 LOGGER.info("ID缓冲区填充完成，新增 {} 个ID，当前容量: {}", batchIds.size(), idBuffer.size());
             }
         } catch (Exception e) {
-            LOGGER.error("填充ID缓冲区时发生严重错误", e);
+            LOGGER.error("填充ID缓冲区时发生严重错误,{}", e.getMessage(), e);
         } finally {
             isRefilling.set(false);
         }
@@ -229,24 +229,24 @@ public class SnowflakeRedisGeneratorHandle {
 
         // 2. 本地缓存精确判断
         if (idExistenceCache.getIfPresent(id) != null) {
-            LOGGER.warn("ID在本地缓存中重复: {}", id);
+            LOGGER.warn("ID在本地缓存中重复:{}", id);
             return false; // ID在本地已存在
         }
 
         // 3. Redis最终判断
+        String redisKey = RedisKeyConstant.SNOWFLAKE + "id:" + id;
         try {
-            String redisKey = RedisKeyConstant.SNOWFLAKE + ":id:" + id;
             if (redisChgService.setnx(redisKey, "1", 3600)) { // 1小时过期
                 bloomFilter.put(id);
                 idExistenceCache.put(id, true);
                 return true;
             } else {
-                LOGGER.warn("ID在Redis中重复: {}", id);
+                LOGGER.warn("ID在Redis中重复,redisKey={},ID={}", redisKey, id);
                 return false;
             }
         } catch (Exception e) {
-            LOGGER.warn("Redis通信失败，降级为本地唯一性检查. ID: {}", id, e);
-            // Redis故障，唯一性保证依赖于WorkerID。我们只检查本地缓存避免本机重复。
+            LOGGER.warn("Redis通信失败，降级为本地唯一性检查,{},redisKey={},ID={}", e.getMessage(), redisKey, id, e);
+            // Redis故障，唯一性保证依赖于WorkerID。只检查本地缓存避免本机重复。
             if (idExistenceCache.getIfPresent(id) != null) {
                 return false; // 本地缓存发现重复
             }
@@ -264,14 +264,13 @@ public class SnowflakeRedisGeneratorHandle {
      */
     private long generateBackupIdFromRedis() {
         try {
-            String backupKey = RedisKeyConstant.SNOWFLAKE + ":backup_incr";
+            String backupKey = RedisKeyConstant.SNOWFLAKE + "backup_incr";
             long sequence = redisChgService.incr(backupKey);
             long timestamp = System.currentTimeMillis();
             // 构造一个特殊的ID，workerId为最大值以作区分
             return (timestamp << 22) | (datacenterId << 17) | (31L << 12) | (sequence & 4095);
         } catch (Exception e) {
             LOGGER.error("终极备用ID生成方案（Redis INCR）失败！系统处于危险状态！", e);
-            // 极端情况，抛出异常，让上层业务决定如何处理
             throw new RuntimeException("所有ID生成方案均已失效", e);
         }
     }
@@ -356,9 +355,9 @@ public class SnowflakeRedisGeneratorHandle {
         private final Cache<Integer, Long> workerIdCache; // 本地缓存WorkerId
         private final Map<Integer, Long> assignedWorkerIds = new ConcurrentHashMap<>();
 
-        private final String KEY_PREFIX = RedisKeyConstant.SNOWFLAKE + ":worker_assign";
+        private final String KEY_PREFIX = RedisKeyConstant.SNOWFLAKE + "worker_assign";
         private static final long MAX_WORKER_ID = 31;
-        private static final int LOCK_TIMEOUT_SECONDS = 10;
+        private static final long LOCK_TIMEOUT_SECONDS = 10;
         private static final int HEARTBEAT_INTERVAL_SECONDS = 30;
 
         public RedisWorkerIdAssigner() {
@@ -376,10 +375,9 @@ public class SnowflakeRedisGeneratorHandle {
                 return podUid; // POD_UID是K8s中最可靠的唯一标识
             }
             // 降级方案：结合主机名和随机UUID
-            String hostName = System.getenv().getOrDefault("HOSTNAME", System.getenv().getOrDefault("POD_NAME",
-                    System.getenv().getOrDefault("HOSTNAME", System.getenv().getOrDefault("CONTAINER_NAME"
-                            , applicationName + "_"
-                                    + System.nanoTime() + "_" + RandomStringUtils.randomAlphanumeric(5)))));
+            String hostName = System.getenv().getOrDefault("HOSTNAME", System.getenv().getOrDefault("POD_NAME"
+                    , System.getenv().getOrDefault("CONTAINER_NAME", applicationName + "_"
+                            + System.nanoTime() + "_" + RandomStringUtils.randomAlphanumeric(5))));
             return hostName + "_" + UUID.randomUUID();
         }
 
@@ -388,7 +386,7 @@ public class SnowflakeRedisGeneratorHandle {
             Long cachedId = workerIdCache.getIfPresent(shardIndex);
             if (cachedId != null) {
                 assignedWorkerIds.put(shardIndex, cachedId);
-                LOGGER.info("成功从本地缓存恢复WorkerId: {} for 分片: {}", cachedId, shardIndex);
+                LOGGER.warn("成功从本地缓存恢复WorkerId: {} for 分片: {}", cachedId, shardIndex);
                 return cachedId;
             }
 
@@ -396,8 +394,8 @@ public class SnowflakeRedisGeneratorHandle {
             try {
                 return assignWorkerIdWithLock(shardIndex);
             } catch (Exception e) {
-                LOGGER.error("从Redis分配WorkerId失败，且本地无缓存，为保证100%唯一性，服务启动失败", e);
-                throw new IllegalStateException("无法获取唯一的WorkerId，服务无法启动", e);
+                LOGGER.error("从Redis分配WorkerId失败，且本地无缓存，服务启动失败,{},shardIndex={}", e.getMessage(), shardIndex, e);
+                throw new IllegalStateException("无法获取唯一的WorkerId，服务无法启动,shardIndex=" + shardIndex, e);
             }
         }
 
@@ -429,16 +427,17 @@ public class SnowflakeRedisGeneratorHandle {
                             redisChgService.hset(assignedKey, instanceKey, String.valueOf(id));
                             workerIdCache.put(shardIndex, id);
                             assignedWorkerIds.put(shardIndex, id);
-                            LOGGER.info("成功为实例 {} 分片 {} 分配WorkerId: {}", uniqueInstanceId, shardIndex, id);
+                            LOGGER.warn("成功为实例 {} 分片 {} 分配WorkerId: {},redisKey={},hkey={}"
+                                    , uniqueInstanceId, shardIndex, id, assignedKey, instanceKey);
                             return id;
                         }
                     }
-                    throw new RuntimeException("所有WorkerId都已被占用");
+                    throw new RuntimeException("所有WorkerId都已被占用,assignedKey:" + assignedKey + ",instanceKey:" + instanceKey);
                 } finally {
                     releaseDistributedLock(lockKey, lockValue);
                 }
             }
-            throw new RuntimeException("获取WorkerId分配锁超时");
+            throw new RuntimeException("获取WorkerId分配锁超时,lockKey=" + lockKey + ",lockValue=" + lockValue);
         }
 
         public void startHeartbeat() {
@@ -453,20 +452,20 @@ public class SnowflakeRedisGeneratorHandle {
 
         private void sendHeartbeat() {
             if (assignedWorkerIds.isEmpty()) return;
+            String heartbeatKey = KEY_PREFIX + ":heartbeat:" + applicationName;
             try {
-                String heartbeatKey = KEY_PREFIX + ":heartbeat:" + applicationName;
                 String value = String.valueOf(System.currentTimeMillis());
                 redisChgService.hset(heartbeatKey, uniqueInstanceId, value);
             } catch (Exception e) {
-                LOGGER.warn("发送WorkerId心跳失败", e);
+                LOGGER.warn("发送WorkerId心跳失败,{},key={}", e.getMessage(), heartbeatKey, e);
             }
         }
 
-        private boolean acquireDistributedLock(String key, String value, int timeout) {
+        private boolean acquireDistributedLock(String key, String value, Long timeout) {
             try {
-                return redisChgService.setnx(key, value, timeout);
+                return redisChgService.lock(key, value, timeout);
             } catch (Exception e) {
-                LOGGER.error("获取分布式锁时发生异常", e);
+                LOGGER.error("acquireDistributedLock获取分布式锁时发生异常,{},key={},value={},timeout={}", e.getMessage(), key, value, timeout, e);
                 return false;
             }
         }
@@ -476,7 +475,7 @@ public class SnowflakeRedisGeneratorHandle {
             try {
                 redisChgService.eval(script, ScriptOutputType.INTEGER, new String[]{key}, value);
             } catch (Exception e) {
-                LOGGER.error("释放分布式锁时发生异常", e);
+                LOGGER.error("释放分布式锁时发生异常,{},key={},value={}", e.getMessage(), key, value, e);
             }
         }
     }
