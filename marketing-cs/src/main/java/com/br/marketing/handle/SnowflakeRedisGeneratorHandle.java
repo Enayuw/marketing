@@ -34,6 +34,9 @@ public class SnowflakeRedisGeneratorHandle {
     private final ShardedGenerator[] shardedGenerators;
     private final RedisWorkerIdAssigner workerIdAssigner;
 
+    // 为当前服务实例分配的全局唯一WorkerID
+    private long workerId;
+
     // ID缓冲队列，实现高性能的ID获取
     private final BlockingQueue<Long> idBuffer;
     private final AtomicBoolean isRefilling = new AtomicBoolean(false);
@@ -72,25 +75,33 @@ public class SnowflakeRedisGeneratorHandle {
         this.idBuffer = new LinkedBlockingQueue<>(200000); // 20万ID缓冲区
 
         // 初始化核心组件
-        this.workerIdAssigner = new RedisWorkerIdAssigner();
+        // 将datacenterId传入，用于隔离不同数据中心的WorkerID池
+        this.workerIdAssigner = new RedisWorkerIdAssigner(this.datacenterId);
         this.shardedGenerators = new ShardedGenerator[this.shardCount];
         if (redisChgService != null) {
             initializeGenerators();
             warmUp();
         }
-        LOGGER.warn("雪花算法初始化完成 - 分片数: {}, 数据中心ID: {}", this.shardCount, this.datacenterId);
+        LOGGER.warn("雪花算法初始化完成 - 应用: {}, 数据中心ID: {}, WorkerID: {}, 分片数: {}",
+                this.applicationName, this.datacenterId, this.workerId, this.shardCount);
     }
 
     /**
      * 初始化所有分片生成器
      */
     private void initializeGenerators() {
+        // 为当前服务实例分配一个全局唯一的WorkerID
+        this.workerId = workerIdAssigner.assignWorkerId();
+        ShardedGenerator singleGenerator = new ShardedGenerator(datacenterId, this.workerId);
+        // 这样可以重用 refillIdBuffer 中的并行逻辑，同时通过 singleGenerator 内部的 synchronized nextId() 方法保证线程安全。
         for (int i = 0; i < shardCount; i++) {
-            long workerId = workerIdAssigner.assignWorkerId(i);
-            shardedGenerators[i] = new ShardedGenerator(datacenterId, workerId);
+            shardedGenerators[i] = singleGenerator;
         }
+        // 启动心跳，维持当前实例WorkerID的有效性
         workerIdAssigner.startHeartbeat();
+        LOGGER.warn("为实例 {} 分配了 WorkerId: {}", workerIdAssigner.getUniqueInstanceId(), this.workerId);
     }
+
 
     /**
      * 预热系统，填充ID缓冲区
@@ -180,21 +191,21 @@ public class SnowflakeRedisGeneratorHandle {
                 LOGGER.info("开始填充ID缓冲区，当前容量: {}", idBuffer.size());
             }
             int refillCount = 20000; // 每次尝试生成2万个ID
-            List<Long> batchIds = new ArrayList<>(refillCount);
+            final List<Long> batchIds = Collections.synchronizedList(new ArrayList<>(refillCount));
 
-            // 并行从所有分片生成ID
+            // 并行从所有分片生成ID - 此处逻辑保持不变
             int batchPerShard = refillCount / shardCount;
             CompletableFuture<?>[] futures = new CompletableFuture[shardCount];
             for (int i = 0; i < shardCount; i++) {
                 final int shardIndex = i;
                 futures[i] = CompletableFuture.runAsync(() -> {
                     for (int j = 0; j < batchPerShard; j++) {
+                        // 所有任务都从shardedGenerators数组中获取生成器。
+                        // 由于它们都指向同一个对象，其 synchronized nextId() 方法会确保ID生成的原子性。
                         long id = shardedGenerators[shardIndex].nextId();
                         // 校验唯一性
                         if (isIdUnique(id)) {
-                            synchronized (batchIds) { // list非线程安全
-                                batchIds.add(id);
-                            }
+                            batchIds.add(id);
                         }
                     }
                 });
@@ -236,7 +247,8 @@ public class SnowflakeRedisGeneratorHandle {
         // 3. Redis最终判断
         String redisKey = RedisKeyConstant.SNOWFLAKE + "id:" + id;
         try {
-            if (redisChgService.setnx(redisKey, "1", 3600)) { // 1小时过期
+            // 唯一性判断
+            if (redisChgService.lock(redisKey, "1", 3600L)) { // 1小时过期
                 bloomFilter.put(id);
                 idExistenceCache.put(id, true);
                 return true;
@@ -270,7 +282,7 @@ public class SnowflakeRedisGeneratorHandle {
             // 构造一个特殊的ID，workerId为最大值以作区分
             return (timestamp << 22) | (datacenterId << 17) | (31L << 12) | (sequence & 4095);
         } catch (Exception e) {
-            LOGGER.error("终极备用ID生成方案（Redis INCR）失败！系统处于危险状态！", e);
+            LOGGER.error("终极备用ID生成方案（Redis INCR）失败！", e);
             throw new RuntimeException("所有ID生成方案均已失效", e);
         }
     }
@@ -288,8 +300,8 @@ public class SnowflakeRedisGeneratorHandle {
 
         // 位常量
         private static final long SEQUENCE_BITS = 12L;
-        private static final long WORKER_ID_BITS = 5L;
-        private static final long DATACENTER_ID_BITS = 5L;
+        private static final long WORKER_ID_BITS = 8L;
+        private static final long DATACENTER_ID_BITS = 2L;
         private static final long WORKER_ID_SHIFT = SEQUENCE_BITS;
         private static final long DATACENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
         private static final long TIMESTAMP_LEFT_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATACENTER_ID_BITS;
@@ -352,18 +364,20 @@ public class SnowflakeRedisGeneratorHandle {
      */
     private class RedisWorkerIdAssigner {
         private final String uniqueInstanceId;
-        private final Cache<Integer, Long> workerIdCache; // 本地缓存WorkerId
-        private final Map<Integer, Long> assignedWorkerIds = new ConcurrentHashMap<>();
+        private final long datacenterId;
+        private final Cache<String, Long> workerIdCache; // 本地缓存WorkerId，Key: instanceId, Value: workerId
+        private long assignedWorkerId = -1; // 存储当前实例已分配的WorkerID
 
         private final String KEY_PREFIX = RedisKeyConstant.SNOWFLAKE + "worker_assign";
-        private static final long MAX_WORKER_ID = 31;
+        private static final long MAX_WORKER_ID = (1 << ShardedGenerator.WORKER_ID_BITS) - 1;
         private static final long LOCK_TIMEOUT_SECONDS = 10;
         private static final int HEARTBEAT_INTERVAL_SECONDS = 30;
 
-        public RedisWorkerIdAssigner() {
+        public RedisWorkerIdAssigner(long datacenterId) {
+            this.datacenterId = datacenterId;
             this.uniqueInstanceId = generateK8sUniqueInstanceId();
             this.workerIdCache = Caffeine.newBuilder()
-                    .maximumSize(shardCount * 2L)
+                    .maximumSize(10) // 缓存少量ID即可
                     .expireAfterWrite(7, TimeUnit.DAYS)
                     .build();
             LOGGER.warn("WorkerId分配器初始化，唯一实例ID: {}", this.uniqueInstanceId);
@@ -378,40 +392,49 @@ public class SnowflakeRedisGeneratorHandle {
             String hostName = System.getenv().getOrDefault("HOSTNAME", System.getenv().getOrDefault("POD_NAME"
                     , System.getenv().getOrDefault("CONTAINER_NAME", applicationName + "_"
                             + System.nanoTime() + "_" + RandomStringUtils.randomAlphanumeric(5))));
-            return hostName + "_" + UUID.randomUUID();
+            return (StringUtils.isBlank(hostName) ? applicationName + "_" + System.currentTimeMillis() + "_"
+                    + RandomStringUtils.randomAlphanumeric(5) : hostName) + "_" + UUID.randomUUID();
         }
 
-        public long assignWorkerId(int shardIndex) {
+        public long assignWorkerId() {
             // 1. 从本地缓存获取
-            Long cachedId = workerIdCache.getIfPresent(shardIndex);
+            Long cachedId = workerIdCache.getIfPresent(this.uniqueInstanceId);
             if (cachedId != null) {
-                assignedWorkerIds.put(shardIndex, cachedId);
-                LOGGER.warn("成功从本地缓存恢复WorkerId: {} for 分片: {}", cachedId, shardIndex);
+                this.assignedWorkerId = cachedId;
+                LOGGER.warn("成功从本地缓存恢复WorkerId: {} for 实例: {}", cachedId, this.uniqueInstanceId);
                 return cachedId;
             }
 
             // 2. 从Redis获取，如果失败则不允许启动
             try {
-                return assignWorkerIdWithLock(shardIndex);
+                long workerId = assignWorkerIdWithLock();
+                this.assignedWorkerId = workerId;
+                return workerId;
             } catch (Exception e) {
-                LOGGER.error("从Redis分配WorkerId失败，且本地无缓存，服务启动失败,{},shardIndex={}", e.getMessage(), shardIndex, e);
-                throw new IllegalStateException("无法获取唯一的WorkerId，服务无法启动,shardIndex=" + shardIndex, e);
+                LOGGER.error("从Redis分配WorkerId失败，且本地无缓存，服务启动失败。实例ID: {},每一个数据中心中的每一个应用[{}]最大可以有[{}]个实例"
+                        , this.uniqueInstanceId, applicationName, MAX_WORKER_ID, e);
+                throw new IllegalStateException("无法获取唯一的WorkerId，服务无法启动,当前应用[{" + applicationName
+                        + "}],实例ID[" + this.uniqueInstanceId + "],可能超过了最大实例数[{" + MAX_WORKER_ID + "}]", e);
             }
         }
 
-        private long assignWorkerIdWithLock(int shardIndex) {
-            String lockKey = KEY_PREFIX + ":lock:" + applicationName;
+        private long assignWorkerIdWithLock() {
+            // 锁和分配记录都通过datacenterId进行隔离
+            String lockKey = String.format("%s:lock:%s:%d", KEY_PREFIX, applicationName, datacenterId);
             String lockValue = uniqueInstanceId + "_" + System.nanoTime();
 
             if (acquireDistributedLock(lockKey, lockValue, LOCK_TIMEOUT_SECONDS)) {
                 try {
-                    String assignedKey = KEY_PREFIX + ":assigned:" + applicationName;
-                    String instanceKey = uniqueInstanceId + ":" + shardIndex;
+                    String assignedKey = String.format("%s:assigned:%s:%d", KEY_PREFIX, applicationName, datacenterId);
+                    String instanceKey = uniqueInstanceId; // HASH的field为实例唯一ID
 
-                    // 检查是否已为当前实例分配过ID
+                    // 检查当前实例是否已经分配过ID (例如，在发生网络分区后重新连接)
                     String existingIdStr = redisChgService.hget(assignedKey, instanceKey);
                     if (existingIdStr != null) {
-                        return Long.parseLong(existingIdStr);
+                        long existingId = Long.parseLong(existingIdStr);
+                        workerIdCache.put(instanceKey, existingId);
+                        LOGGER.warn("实例 {} 已分配过ID，直接恢复WorkerId: {}", instanceKey, existingId);
+                        return existingId;
                     }
 
                     // 获取所有已分配的ID
@@ -425,19 +448,20 @@ public class SnowflakeRedisGeneratorHandle {
                     for (long id = 0; id <= MAX_WORKER_ID; id++) {
                         if (!usedIds.contains(id)) {
                             redisChgService.hset(assignedKey, instanceKey, String.valueOf(id));
-                            workerIdCache.put(shardIndex, id);
-                            assignedWorkerIds.put(shardIndex, id);
-                            LOGGER.warn("成功为实例 {} 分片 {} 分配WorkerId: {},redisKey={},hkey={}"
-                                    , uniqueInstanceId, shardIndex, id, assignedKey, instanceKey);
+                            workerIdCache.put(instanceKey, id);
+                            LOGGER.warn("成功为实例 {} 分配WorkerId: {} [数据中心: {}, 应用: {}]",
+                                    uniqueInstanceId, id, datacenterId, applicationName);
                             return id;
                         }
                     }
-                    throw new RuntimeException("所有WorkerId都已被占用,assignedKey:" + assignedKey + ",instanceKey:" + instanceKey);
+                    throw new RuntimeException("所有WorkerId都已被占用, assignedKey=" + assignedKey
+                            + ",instanceKey=" + instanceKey);
                 } finally {
                     releaseDistributedLock(lockKey, lockValue);
                 }
             }
-            throw new RuntimeException("获取WorkerId分配锁超时,lockKey=" + lockKey + ",lockValue=" + lockValue);
+            throw new RuntimeException("获取WorkerId分配锁超时, lockKey=" + lockKey + ",lockValue=" + lockValue
+                    + ",lockTimeoutSeconds=" + LOCK_TIMEOUT_SECONDS + "s");
         }
 
         public void startHeartbeat() {
@@ -447,17 +471,22 @@ public class SnowflakeRedisGeneratorHandle {
                 t.setName("worker-id-heartbeat");
                 return t;
             });
-            executor.scheduleAtFixedRate(this::sendHeartbeat, HEARTBEAT_INTERVAL_SECONDS, HEARTBEAT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(this::sendHeartbeat, HEARTBEAT_INTERVAL_SECONDS, HEARTBEAT_INTERVAL_SECONDS
+                    , TimeUnit.SECONDS);
         }
 
         private void sendHeartbeat() {
-            if (assignedWorkerIds.isEmpty()) return;
-            String heartbeatKey = KEY_PREFIX + ":heartbeat:" + applicationName;
+            if (this.assignedWorkerId < 0) {
+                return; // 尚未分配ID，不发送心跳
+            }
+            // 心跳key也需要按数据中心隔离
+            String heartbeatKey = String.format("%s:heartbeat:%s:%d", KEY_PREFIX, applicationName, datacenterId);
             try {
                 String value = String.valueOf(System.currentTimeMillis());
-                redisChgService.hset(heartbeatKey, uniqueInstanceId, value);
+                // 使用实例ID作为field，以便于清理僵尸节点
+                redisChgService.hset(heartbeatKey, this.uniqueInstanceId, value);
             } catch (Exception e) {
-                LOGGER.warn("发送WorkerId心跳失败,{},key={}", e.getMessage(), heartbeatKey, e);
+                LOGGER.warn("发送WorkerId心跳失败,{}, key={}", e.getMessage(), heartbeatKey, e);
             }
         }
 
@@ -465,7 +494,8 @@ public class SnowflakeRedisGeneratorHandle {
             try {
                 return redisChgService.lock(key, value, timeout);
             } catch (Exception e) {
-                LOGGER.error("acquireDistributedLock获取分布式锁时发生异常,{},key={},value={},timeout={}", e.getMessage(), key, value, timeout, e);
+                LOGGER.error("acquireDistributedLock获取分布式锁时发生异常,{},key={},value={},timeout={}"
+                        , e.getMessage(), key, value, timeout, e);
                 return false;
             }
         }
@@ -477,6 +507,10 @@ public class SnowflakeRedisGeneratorHandle {
             } catch (Exception e) {
                 LOGGER.error("释放分布式锁时发生异常,{},key={},value={}", e.getMessage(), key, value, e);
             }
+        }
+
+        public String getUniqueInstanceId() {
+            return uniqueInstanceId;
         }
     }
 
