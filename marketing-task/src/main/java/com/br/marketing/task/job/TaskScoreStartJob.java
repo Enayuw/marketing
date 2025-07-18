@@ -73,11 +73,12 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
             }
         }
         Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date, taskId, isTimeLimit, context.getJobName());
-        log.warn("跑分任务，本次调度任务id：{}", JSON.toJSONString(scoreTask));
+        log.warn("跑分任务开始，本次调度任务id：{}", JSON.toJSONString(scoreTask));
         if (ResultCode.SUCCESS.getValue().equals(scoreTask.getCode())) {
             MarketingTask marketingTask = scoreTask.getData();
             marketingTask.setIndex(context.getShardingItems().get(0));
             taskScoreService.process(marketingTask, date);
+            log.warn("跑分任务结束，本次调度任务id：{}", JSON.toJSONString(scoreTask));
         }
         Long end = System.currentTimeMillis();
         log.warn("【跑批任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());

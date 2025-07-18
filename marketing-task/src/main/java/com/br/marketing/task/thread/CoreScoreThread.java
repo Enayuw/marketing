@@ -115,7 +115,7 @@ public class CoreScoreThread implements Callable<String> {
             marketingTaskService.addTaskPercent(marketingTask.getFileId(), Long.valueOf(list.size()));
         }
 //        boolean check = this.checkRedisNumber();
-        log.warn("开始执行监控任务。。{}。。{}", currentPage, list.size());
+        log.warn("开始执行监控任务。。跑分--{}。。页码--{}。。量级--{}",marketingTask.getBatchNumber(), currentPage, list.size());
 
         File writeName = new File(path);
         if (!writeName.exists()) {
@@ -186,6 +186,7 @@ public class CoreScoreThread implements Callable<String> {
                 redisChgService.hset(key, errorFile.getPath(), batchNumber);
             }
             setScoreStatus();
+            log.warn("结束执行监控任务。。跑分--{}。。页码--{}。。量级--{}",marketingTask.getBatchNumber(), currentPage, list.size());
         } catch (Exception e) {
             log.error("生成文件出错。。。。", e);
         }

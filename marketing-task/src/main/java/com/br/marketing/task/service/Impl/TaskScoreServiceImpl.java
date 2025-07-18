@@ -198,14 +198,14 @@ public class TaskScoreServiceImpl {
 
             //线程池运行情况报告
             Thread thread = threadReport(warrningExecutor, customer);
-            log.warn(TITLE + "跑分任务generateTask，本次调度任务id：{}",task.getId());
+            log.warn(TITLE + "跑分任务generateTask，本次调度任务id：{}",task.getBatchNumber());
 
             //region 跑分
             this.generateTask(observedTaskObj, customer, day);
             /**
              * 等待所有任务都执行完成
              **/
-            log.warn(TITLE + "所有任务已加入队列，等待结束-----");
+            log.warn(TITLE + "所有任务已加入队列，等待结束-----"+task.getBatchNumber());
             warrningExecutor.shutdown();
             while (true) {
                 if (warrningExecutor.isTerminated()) {
@@ -239,7 +239,7 @@ public class TaskScoreServiceImpl {
                             i++;
                         }
                     }
-                    log.warn(TITLE + "所有重试任务已加入队列，等待结束-----");
+                    log.warn(TITLE + "所有重试任务已加入队列，等待结束-----" +task.getBatchNumber());
                     warrningExecutor.shutdown();
                     while (true) {
                         if (warrningExecutor.isTerminated()) {
@@ -967,6 +967,7 @@ public class TaskScoreServiceImpl {
                 String currentStatus = new String(nodeStatus.getCurrentData().getData());
                 if (taskObj.getInterrupt().equals(0) && currentStatus.equals(ZkScoreStatusEnum.PAUSE.getValue())) {
                     observedScoreThreadService.stopThread(taskObj);
+                    log.warn(TITLE + "已执行完暂停，batchNumber--{}，taskObj--{}", task.getBatchNumber(), JSONObject.toJSONString(taskObj));
                 }
             }
         });
