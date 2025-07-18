@@ -80,7 +80,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
 
     @Override
     public void shardProcess(String apiCode) {
-        String lockKey = RedisKeyConstant.tcyrQuickDeal.concat(apiCode);;
+        String lockKey = RedisKeyConstant.tcyrQuickDeal.concat(apiCode);
         String lockValue = "";
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_QUICK_DEAL.getName(),
@@ -165,10 +165,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             //3.修改csvFile quickDeal状态、successCount
-            tcyrSyncFile.setSuccessCount(successCount.get());
-            tcyrSyncFile.setQuickDealStatus(2);
-            tcyrSyncFile.setUpdateTime(new Date());
-            tcyrSyncFileMapper.updateByPrimaryKey(tcyrSyncFile);
+            tcyrSyncFileMapper.updateQuickDealAndSuccesCount(tcyrSyncFile.getId(),2,successCount.get());
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态
             tcyrSyncFileMapper.updateQuickDealStatus(tcyrSyncFile.getId(),3);

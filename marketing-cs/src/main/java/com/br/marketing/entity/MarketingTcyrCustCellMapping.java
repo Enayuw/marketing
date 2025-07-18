@@ -4,44 +4,36 @@ import java.util.Date;
 
 public class MarketingTcyrCustCellMapping {
     /**
-     * 
+     * 主键id
      */
-    private Integer id;
+    private Long id;
 
     /**
-     * 
-     */
-    private String cell;
-
-    /**
-     * 
+     * 用户唯一身份编号
      */
     private String custNum;
 
     /**
-     * 
+     * cell(对应b_marketing_sync_3710038中cell_md5)
+     */
+    private String cell;
+
+    /**
+     * 创建时间
      */
     private Date createTime;
 
     /**
-     * 
+     * 修改时间
      */
     private Date updateTime;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getCell() {
-        return cell;
-    }
-
-    public void setCell(String cell) {
-        this.cell = cell == null ? null : cell.trim();
     }
 
     public String getCustNum() {
@@ -50,6 +42,14 @@ public class MarketingTcyrCustCellMapping {
 
     public void setCustNum(String custNum) {
         this.custNum = custNum == null ? null : custNum.trim();
+    }
+
+    public String getCell() {
+        return cell;
+    }
+
+    public void setCell(String cell) {
+        this.cell = cell == null ? null : cell.trim();
     }
 
     public Date getCreateTime() {

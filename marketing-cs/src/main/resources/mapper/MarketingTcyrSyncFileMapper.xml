@@ -56,5 +56,11 @@
         SET success_count = success_count +#{addSuccessCount}
         where id = #{syncFileId}
     </update>
+    <update id="updateQuickDealAndSuccesCount">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET quick_deal_status = #{quickDealStatus},success_count = success_count +#{addSuccessCount}
+        where id = #{syncFileId}
+    </update>
 
 </mapper>

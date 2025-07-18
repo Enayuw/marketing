@@ -11,7 +11,7 @@ public interface MarketingTcyrCustCellMappingMapperBase {
 
     int deleteByExample(MarketingTcyrCustCellMappingExample example);
 
-    int deleteByPrimaryKey(Integer id);
+    int deleteByPrimaryKey(Long id);
 
     int insert(MarketingTcyrCustCellMapping record);
 
@@ -19,7 +19,7 @@ public interface MarketingTcyrCustCellMappingMapperBase {
 
     List<MarketingTcyrCustCellMapping> selectByExample(MarketingTcyrCustCellMappingExample example);
 
-    MarketingTcyrCustCellMapping selectByPrimaryKey(Integer id);
+    MarketingTcyrCustCellMapping selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingTcyrCustCellMapping record, @Param("example") MarketingTcyrCustCellMappingExample example);
 

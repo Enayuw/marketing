@@ -35,4 +35,10 @@ public interface MarketingTcyrSyncFileMapper extends MarketingTcyrSyncFileMapper
     void updateSuccessCount(
             @Param("syncFileId") Long syncFileId,
             @Param("addSuccessCount") Integer addSuccessCount);
+
+    void updateQuickDealAndSuccesCount(
+            @Param("syncFileId") Long syncFileId,
+            @Param("quickDealStatus") Integer quickDealStatus,
+            @Param("addSuccessCount") Long addSuccessCount);
+
 }

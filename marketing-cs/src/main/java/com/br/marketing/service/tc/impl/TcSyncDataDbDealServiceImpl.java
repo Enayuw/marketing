@@ -8,6 +8,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
+import com.br.marketing.entity.MarketingTcyrCustCellMapping;
 import com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -174,9 +175,14 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                         if (StringUtils.isNotBlank(cell)) {
                             sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
                             if (isLong(userKey)) {
-                                custCellMappingMapper.saveNewCustCellInfo(Long.parseLong(userKey), cell);
+                                Long userKeyId = Long.parseLong(userKey);
+                                MarketingTcyrCustCellMapping existCustCell = custCellMappingMapper.selectByPrimaryKey(userKeyId);
+                                if (existCustCell == null) {
+                                    custCellMappingMapper.saveNewCustCellInfo(userKeyId, cell);
+                                }
                             }else {
                                 //TODO 07-17 userKey是String类型时,中间表数据保存(此处在多线程里面 如何获取此时插入数据的id)
+                                custCellMappingMapper.saveStrCustCellInfo(userKey,cell);
                             }
                         } else {
                             sqlBuilder.append(",NULL,0");

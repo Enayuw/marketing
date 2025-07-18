@@ -11,11 +11,18 @@
         INSERT INTO
             b_marketing_tcyr_cust_cell_mapping (id,cust_num,cell)
         VALUES
-            (#{userKeyId},#{cell},#{cell})
+            (#{userKeyId},#{userKeyId},#{cell})
+    </insert>
+
+    <insert id="saveStrCustCellInfo">
+        INSERT INTO
+            b_marketing_tcyr_cust_cell_mapping (cust_num,cell)
+        VALUES
+            (#{userKey},#{cell})
     </insert>
 
 
-  <select id="selectNumUserKeyCellBytikv_" resultType="java.lang.String">
+    <select id="selectNumUserKeyCellBytikv_" resultType="java.lang.String">
       select
           cell
       from  b_marketing_tcyr_cust_cell_mapping

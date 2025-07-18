@@ -115,123 +115,53 @@ public class MarketingTcyrCustCellMappingExample {
             return (Criteria) this;
         }
 
-        public Criteria andIdEqualTo(Integer value) {
+        public Criteria andIdEqualTo(Long value) {
             addCriterion("id =", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotEqualTo(Integer value) {
+        public Criteria andIdNotEqualTo(Long value) {
             addCriterion("id <>", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdGreaterThan(Integer value) {
+        public Criteria andIdGreaterThan(Long value) {
             addCriterion("id >", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdGreaterThanOrEqualTo(Integer value) {
+        public Criteria andIdGreaterThanOrEqualTo(Long value) {
             addCriterion("id >=", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdLessThan(Integer value) {
+        public Criteria andIdLessThan(Long value) {
             addCriterion("id <", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdLessThanOrEqualTo(Integer value) {
+        public Criteria andIdLessThanOrEqualTo(Long value) {
             addCriterion("id <=", value, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdIn(List<Integer> values) {
+        public Criteria andIdIn(List<Long> values) {
             addCriterion("id in", values, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotIn(List<Integer> values) {
+        public Criteria andIdNotIn(List<Long> values) {
             addCriterion("id not in", values, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdBetween(Integer value1, Integer value2) {
+        public Criteria andIdBetween(Long value1, Long value2) {
             addCriterion("id between", value1, value2, "id");
             return (Criteria) this;
         }
 
-        public Criteria andIdNotBetween(Integer value1, Integer value2) {
+        public Criteria andIdNotBetween(Long value1, Long value2) {
             addCriterion("id not between", value1, value2, "id");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellIsNull() {
-            addCriterion("cell is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellIsNotNull() {
-            addCriterion("cell is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellEqualTo(String value) {
-            addCriterion("cell =", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotEqualTo(String value) {
-            addCriterion("cell <>", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellGreaterThan(String value) {
-            addCriterion("cell >", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellGreaterThanOrEqualTo(String value) {
-            addCriterion("cell >=", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellLessThan(String value) {
-            addCriterion("cell <", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellLessThanOrEqualTo(String value) {
-            addCriterion("cell <=", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellLike(String value) {
-            addCriterion("cell like", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotLike(String value) {
-            addCriterion("cell not like", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellIn(List<String> values) {
-            addCriterion("cell in", values, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotIn(List<String> values) {
-            addCriterion("cell not in", values, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellBetween(String value1, String value2) {
-            addCriterion("cell between", value1, value2, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotBetween(String value1, String value2) {
-            addCriterion("cell not between", value1, value2, "cell");
             return (Criteria) this;
         }
 
@@ -302,6 +232,76 @@ public class MarketingTcyrCustCellMappingExample {
 
         public Criteria andCustNumNotBetween(String value1, String value2) {
             addCriterion("cust_num not between", value1, value2, "custNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIsNull() {
+            addCriterion("cell is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIsNotNull() {
+            addCriterion("cell is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellEqualTo(String value) {
+            addCriterion("cell =", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotEqualTo(String value) {
+            addCriterion("cell <>", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellGreaterThan(String value) {
+            addCriterion("cell >", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellGreaterThanOrEqualTo(String value) {
+            addCriterion("cell >=", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLessThan(String value) {
+            addCriterion("cell <", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLessThanOrEqualTo(String value) {
+            addCriterion("cell <=", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLike(String value) {
+            addCriterion("cell like", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotLike(String value) {
+            addCriterion("cell not like", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIn(List<String> values) {
+            addCriterion("cell in", values, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotIn(List<String> values) {
+            addCriterion("cell not in", values, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellBetween(String value1, String value2) {
+            addCriterion("cell between", value1, value2, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotBetween(String value1, String value2) {
+            addCriterion("cell not between", value1, value2, "cell");
             return (Criteria) this;
         }
 

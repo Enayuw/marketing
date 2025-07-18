@@ -22,4 +22,5 @@ public interface MarketingTcyrCustCellMappingMapper extends MarketingTcyrCustCel
     void batchSaveCustCell(@Param("insertSql") StringBuilder insertSql);
 
 
+    void saveStrCustCellInfo(@Param("userKey") String userKey, @Param("cell") String cell);
 }
