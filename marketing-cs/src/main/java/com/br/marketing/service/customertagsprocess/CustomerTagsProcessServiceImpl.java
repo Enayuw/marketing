@@ -85,11 +85,16 @@ public class CustomerTagsProcessServiceImpl {
     public IUploadCheckService getIUploadCheckService(CustomerTagsVO vo) {
 
         CustomerTagsValue.CheckTypeEnum enumByValue = CustomerTagsValue.getEnumByValue(vo.getCheckType(), CustomerTagsValue.CheckTypeEnum.class);
-        if (enumByValue == null) {
-            return null;
+        if (enumByValue!=null) {
+            IUploadCheckService iUploadCheckService = iUploadCheckServiceMap.get(enumByValue.getBean());
+            return iUploadCheckService;
         }
-        IUploadCheckService iUploadCheckService = iUploadCheckServiceMap.get(enumByValue.getBean());
-        return iUploadCheckService;
+
+        CustomerTagsValue.PushJc3keyTypeEnum pushJc3keyTypeEnum = CustomerTagsValue.getEnumByValue(vo.getPushJc3keyType(), CustomerTagsValue.PushJc3keyTypeEnum.class);
+        if (pushJc3keyTypeEnum != null) {
+        }
+
+        return null;
     }
 
     private CustomerTagsVO getTagsOfRedis(String apiCode) {

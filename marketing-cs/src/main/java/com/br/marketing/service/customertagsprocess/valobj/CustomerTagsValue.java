@@ -25,13 +25,16 @@ public class CustomerTagsValue {
     @Getter
     public  enum PushJc3keyTypeEnum implements ValueInterace {
 
-        INIT(0,"原文"),
-        MD5_ALL(1,"3Kmd5"),
-        SHA256_ALL(2,"3Ksha256");
+        INIT(0,"软交换","noCheckServiceImpl"),
+        MD5_ALL(1,"3Kmd5","checkCellServiceImpl"),
+        SHA256_ALL(2,"3Ksha256","checkCellServiceImpl"),
+        PLAINTEXT(3,"log加密","checkCellServiceImpl"),
+        AES_COMMON(4,"AES通用","aesCommonStrategy"),
+        AES_NMD(5,"AES你我贷定制版","aesNmdStrategy");
 
         private Integer value;
         private String desc;
-
+        private String strategyBean;
     }
 
     /**

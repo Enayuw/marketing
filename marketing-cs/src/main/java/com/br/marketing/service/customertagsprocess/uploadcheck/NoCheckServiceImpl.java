@@ -14,6 +14,9 @@ import java.util.Map;
 public class NoCheckServiceImpl implements IUploadCheckService {
     @Override
     public void check3key(MarketingPreUserDetailDTO user, Integer isCheck) {
+        user.setCellOriginal(user.getCell());
+        user.setIdOriginal(user.getId());
+        user.setNameOriginal(user.getName());
         user.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
     }
 }

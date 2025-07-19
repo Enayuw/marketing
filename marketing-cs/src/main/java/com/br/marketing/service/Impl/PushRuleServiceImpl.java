@@ -3011,6 +3011,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
                 marketingSyncUser.setCellSha256(marketingPreUserDetailDTO.getCellSha256());
                 marketingSyncUser.setCellMd5(marketingPreUserDetailDTO.getCellMd5());
+                marketingSyncUser.setCellOriginal(marketingPreUserDetailDTO.getCellOriginal());
+                marketingSyncUser.setIdCardOriginal(marketingPreUserDetailDTO.getIdOriginal());
+                marketingSyncUser.setNameOriginal(marketingPreUserDetailDTO.getNameOriginal());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
                 marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField,

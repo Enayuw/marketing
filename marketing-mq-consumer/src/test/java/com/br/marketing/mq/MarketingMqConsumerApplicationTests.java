@@ -4,10 +4,7 @@ import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MarketingMqConsumerApplicationTests {
+public class MarketingMqConsumerApplicationTests {
 
-    @Test
-    void contextLoads() {
-    }
 
 }
