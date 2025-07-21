@@ -1,7 +1,11 @@
 package com.br.marketing.service.customertagsprocess.valobj;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class CustomerTagsValue {
 
@@ -59,4 +63,30 @@ public class CustomerTagsValue {
     public interface ValueInterace {
         Integer getValue();
     }
+
+    /**
+     * 自动将枚举转换为JSON（AES通用=0, AES定制=1, 其他=2）
+     */
+    public static String convertPushJc3keyEnumToJson() {
+        Map<String, JSONObject> resultMap = new LinkedHashMap<>();
+
+        for (PushJc3keyTypeEnum enumItem : PushJc3keyTypeEnum.values()) {
+            JSONObject innerJson = new JSONObject();
+            innerJson.put("desc", enumItem.getDesc());
+
+            // 自动判断状态
+            int status = 2; // 默认其他=2
+            if (enumItem == PushJc3keyTypeEnum.AES_COMMON) {
+                status = 0;
+            } else if (enumItem == PushJc3keyTypeEnum.AES_NMD) {
+                status = 1;
+            }
+
+            innerJson.put("status", status);
+            resultMap.put(String.valueOf(enumItem.getValue()), innerJson);
+        }
+
+        return JSONObject.toJSONString(resultMap, true);
+    }
+
 }
