@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
  * 360促动支分析报表策略
  * 在postProcess方法中实现单元格合并逻辑
  */
-@Component("qiFuCuDongZhiAnalysisReportStrategy")
-public class QiFuCuDongZhiAnalysisReportStrategy implements ReportStrategy<QifuActuation, QiFuCuDongAnalysisReportExcelModel>{
+@Component("qiFuCDZAnalysisReportStrategy")
+public class QiFuCDZAnalysisReportStrategy implements ReportStrategy<QifuActuation, QiFuCuDongAnalysisReportExcelModel>{
 
     @Resource
     private QifuActuationMapper qifuActuationMapper;

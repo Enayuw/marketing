@@ -5,15 +5,15 @@ import com.br.marketing.check.job.qifu.report.AbstractReportEmailJob;
 import org.springframework.stereotype.Component;
 
 /**
- * @ClassName QiFuCuDongZhiAnalysisReportEmailJob
+ * @ClassName QiFuCDZAnalysisReportEmailJob
  * @Author hang.zhou
  * @Date 2025/7/18
  */
 @Component
-public class QiFuCuDongZhiAnalysisReportEmailJob extends AbstractReportEmailJob {
+public class QiFuCDZAnalysisReportEmailJob extends AbstractReportEmailJob {
 
     @Override
     protected String getReportType() {
-        return EmailSubjectEnum.QI_ANALYSIS_REPORT_SUBJECT.getStrategyName();
+        return EmailSubjectEnum.QIFU_ANALYSIS_REPORT_SUBJECT.getStrategyName();
     }
 }

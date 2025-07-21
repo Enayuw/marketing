@@ -13,8 +13,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum EmailSubjectEnum {
 
-    QIFU_STRATEGYREPORT_SUNJECT(1,"qiFuStrategyReportStrategy", "360日统计报表"),
-    QI_ANALYSIS_REPORT_SUBJECT(2,"qiFuCuDongZhiAnalysisReportStrategy","360促动分析效果统计数据报表"),
+    QIFU_STRATEGYREPORT_SUNJECT(1,"qiFuCWJStrategyReportStrategy", "360日统计报表"),
+    QIFU_ANALYSIS_REPORT_SUBJECT(2,"qiFuCDZAnalysisReportStrategy","360促动分析效果统计数据报表"),
     ;
 
     private Integer value;

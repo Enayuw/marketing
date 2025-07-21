@@ -1,6 +1,5 @@
 package com.br.marketing.check.job.qifu.report.strategy;
 
-import com.br.marketing.check.enums.EmailSubjectEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.QifuStrategyReportData;
 import com.br.marketing.entity.QifuStrategyReportDataExample;
@@ -13,16 +12,15 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * @ClassName QiFuStrategyReportEmailJob
+ * @ClassName QiFuCWJStrategyReportStrategy
  * @Author hang.zhou
  * @Date 2025/7/18
  */
-@Component("qiFuStrategyReportStrategy")
-public class QiFuStrategyReportStrategy implements ReportStrategy<QifuStrategyReportData, QiFuStrategyReportExcelModel>{
+@Component("qiFuCWJStrategyReportStrategy")
+public class QiFuCWJStrategyReportStrategy implements ReportStrategy<QifuStrategyReportData, QiFuStrategyReportExcelModel>{
 
     @Resource
     private QifuStrategyReportDataMapper qifuStrategyReportDataMapper;
