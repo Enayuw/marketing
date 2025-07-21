@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class Sms2DayHandler implements ZhongAnReportHandler {
+public class SmsSend2DaysHandler implements ZhongAnReportHandler {
 
     @Resource
     private ZhongAnCollidingDataLogMapper zhongAnCollidingDataLogMapper;
@@ -22,7 +22,7 @@ public class Sms2DayHandler implements ZhongAnReportHandler {
     @Override
     public boolean check(String cellMd5, String bizDate) throws Exception {
         int count = zhongAnCollidingDataLogMapper.countSmsSendSuccess(cellMd5,bizDate);
-        return count < 2;
+        return count < 1;
     }
 
 }

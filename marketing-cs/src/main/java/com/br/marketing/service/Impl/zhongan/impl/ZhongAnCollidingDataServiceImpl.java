@@ -6,8 +6,11 @@ import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.bo.ZhongAnCollidingDataBO;
 import com.br.marketing.chain.zhongan.ZhongAnReportHandler;
+import com.br.marketing.chain.zhongan.report.Connect3DaysHandler;
+import com.br.marketing.chain.zhongan.report.ConnectOrSmsSend7DaysHandler;
+import com.br.marketing.chain.zhongan.report.ConnectOrSmsSendMonthHandler;
 import com.br.marketing.chain.zhongan.report.ParallelChainExecutor;
-import com.br.marketing.chain.zhongan.report.Sms2DayHandler;
+import com.br.marketing.chain.zhongan.report.SmsSend2DaysHandler;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.common.utils.BrExecutors;
@@ -74,7 +77,17 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
 
 
     @Resource
-    private Sms2DayHandler sms2DayHandler;
+    private SmsSend2DaysHandler smsSend2DaysHandler;
+
+    @Resource
+    private Connect3DaysHandler connect3DaysHandler;
+
+    @Resource
+    private ConnectOrSmsSend7DaysHandler connectOrSmsSend7DaysHandler;
+
+    @Resource
+    private ConnectOrSmsSendMonthHandler connectOrSmsSendMonthHandler;
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -118,7 +131,10 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     String cellMd5 = entry.getKey();
                     ZhongAnCollidingDataBO value = entry.getValue();
                     List<ZhongAnReportHandler> handlers = Lists.newArrayList();
-                    handlers.add(sms2DayHandler);
+                    handlers.add(smsSend2DaysHandler);
+                    handlers.add(connect3DaysHandler);
+                    handlers.add(connectOrSmsSend7DaysHandler);
+                    handlers.add(connectOrSmsSendMonthHandler);
                     boolean result = executor.execute(handlers, cellMd5, bizDate);
                     if (result) {
                         SyncUserValidityPeriodsBO bo = keyToSyncUserBO.get(value.getCaseNum());

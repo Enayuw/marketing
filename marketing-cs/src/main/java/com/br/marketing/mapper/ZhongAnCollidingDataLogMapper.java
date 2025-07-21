@@ -8,5 +8,11 @@ public interface ZhongAnCollidingDataLogMapper extends ZhongAnCollidingDataLogMa
 
     int countSmsSendSuccess(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
 
+    int countCallConnectSuccess(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+
+    int countConnectOrSmsSend(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+
+    int countConnectOrSmsSendByMonth(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+
     int batchInsert(@Param("collidingDataLogList") List<ZhongAnCollidingDataLog> collidingDataLogList);
 }

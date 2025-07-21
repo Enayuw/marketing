@@ -1,0 +1,27 @@
+package com.br.marketing.chain.zhongan.report;
+
+import com.br.marketing.chain.zhongan.ZhongAnReportHandler;
+import com.br.marketing.mapper.ZhongAnCollidingDataLogMapper;
+import javax.annotation.Resource;
+
+public class ConnectOrSmsSendMonthHandler implements ZhongAnReportHandler {
+
+    @Resource
+    private ZhongAnCollidingDataLogMapper zhongAnCollidingDataLogMapper;
+
+    /**
+     * 执行一次检查
+     *
+     * @param cellMd5 cellMd5
+     * @param bizDate bizDate
+     * @return boolean
+     * @throws Exception 异常
+     * @author senyang.zheng
+     * @date 2025/07/22
+     */
+    @Override
+    public boolean check(String cellMd5, String bizDate) throws Exception {
+        int count = zhongAnCollidingDataLogMapper.countConnectOrSmsSendByMonth(cellMd5, bizDate);
+        return count < 8;
+    }
+}
