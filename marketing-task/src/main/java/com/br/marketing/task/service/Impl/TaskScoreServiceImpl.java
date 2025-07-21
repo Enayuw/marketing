@@ -589,7 +589,6 @@ public class TaskScoreServiceImpl {
                     boolean success = retrySetRedisOrDisableTask(key, fileId, retryRedis.getPage(), blt);
                     // 若异常数据未被补充则 禁用跑分任务
                     if (!success) {
-                        marketingTaskService.disableTask(blt);
                         return;
                     }
                     // 成功
@@ -647,12 +646,11 @@ public class TaskScoreServiceImpl {
                 }
                 // 取分级和自适应的较小值，避免单批过大
                 int totalCount = iDynamicSqlService.countByRuleScoreWithDate(blt.getApiCode(), conditionData);
-                int threadNum = ((ThreadPoolExecutor) warrningExecutor).getCorePoolSize();
-                int totalPages = (int) Math.ceil((double) totalCount / threadNum);
+                int totalPages = (int) Math.ceil((double) totalCount / 100);
                 // 限定范围 1000-5000
                 totalPages = Math.max(1000, Math.min(totalPages, 5000));
                 Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData);
-                log.warn(TITLE + "每页最小id--{},页码--{},总量级--{},线程数--{},每页量级--{}", minId, currentPage,totalCount, threadNum, isVerScore ? verNum : totalPages);
+                log.warn(TITLE + "每页最小id--{},页码--{},总量级--{},每页量级--{}", minId, currentPage,totalCount, isVerScore ? verNum : totalPages);
                 if (minId != null && minId > 0L) {
                     Integer actNum = 0;
                     Long begin = 0L;
