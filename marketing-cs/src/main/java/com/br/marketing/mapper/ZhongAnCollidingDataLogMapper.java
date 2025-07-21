@@ -10,9 +10,13 @@ public interface ZhongAnCollidingDataLogMapper extends ZhongAnCollidingDataLogMa
 
     int countCallConnectSuccess(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
 
-    int countConnectOrSmsSend(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+    int countConnectByDay(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
 
-    int countConnectOrSmsSendByMonth(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+    int countSmsSendByDay(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+
+    int countConnectByMonth(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+
+    int countSmsSendByMonth(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
 
     int batchInsert(@Param("collidingDataLogList") List<ZhongAnCollidingDataLog> collidingDataLogList);
 }

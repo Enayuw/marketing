@@ -25,7 +25,8 @@ public class ConnectOrSmsSendMonthHandler implements ZhongAnReportHandler {
      */
     @Override
     public boolean check(String cellMd5, String bizDate) throws Exception {
-        int count = zhongAnCollidingDataLogMapper.countConnectOrSmsSendByMonth(cellMd5, bizDate);
-        return count < 8;
+        int connectCount = zhongAnCollidingDataLogMapper.countConnectByMonth(cellMd5, bizDate);
+        int smsSendCount = zhongAnCollidingDataLogMapper.countSmsSendByMonth(cellMd5, bizDate);
+        return connectCount + smsSendCount < 8;
     }
 }

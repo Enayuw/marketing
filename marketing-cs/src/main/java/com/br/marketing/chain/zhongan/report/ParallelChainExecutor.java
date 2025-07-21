@@ -1,14 +1,18 @@
 package com.br.marketing.chain.zhongan.report;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.chain.zhongan.ZhongAnReportHandler;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class ParallelChainExecutor {
 
     private static final ThreadPoolExecutor ZHONG_AN_REPORT_CHAIN_EXECUTORS = BrExecutors.getThreadPool(10, 10);
@@ -22,6 +26,8 @@ public class ParallelChainExecutor {
                         try {
                             return h.check(cellMd5,bizDate);
                         } catch (Exception e) {
+                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), e.getMessage()
+                                    , "众安上报限频校验异常"), e);
                             return false;
                         }
                     }, ZHONG_AN_REPORT_CHAIN_EXECUTORS)

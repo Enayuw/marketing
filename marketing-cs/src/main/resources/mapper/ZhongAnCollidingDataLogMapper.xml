@@ -16,46 +16,48 @@
         from b_zhongan_colliding_data_log
         where <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 2 DAY)
           and report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
-        and is_connect = 1
+          and is_connect = 1
           and cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
 
-    <select id="countConnectOrSmsSend" resultType="int">
-        SELECT SUM(cnt) AS totalCount
-        FROM (SELECT COUNT(*) AS cnt
-              FROM b_zhongan_colliding_data_log
-              WHERE <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 2 DAY)
-                AND report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
+    <select id="countConnectByDay" resultType="int">
+        SELECT COUNT(*) AS cnt
+        FROM b_zhongan_colliding_data_log
+        WHERE <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 7 DAY)
+          AND report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
                 AND is_connect = 1
-                AND sms_send_status IS NULL
-                AND cell = #{cellMd5,jdbcType=VARCHAR}
-              UNION ALL
-              SELECT COUNT(*) AS cnt
-              FROM b_zhongan_colliding_data_log
-              WHERE <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 2 DAY)
-                AND report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
-                AND is_connect IS NULL
-                AND sms_send_status = 1
-                AND cell = #{cellMd5,jdbcType=VARCHAR}) AS t;
+          AND sms_send_status IS NULL
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
 
-    <select id="countConnectOrSmsSendByMonth" resultType="int">
-        SELECT SUM(cnt) AS totalCount
-        FROM (SELECT COUNT(*) AS cnt
-              FROM b_zhongan_colliding_data_log
-              WHERE <![CDATA[ report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
-                and report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
-        AND is_connect = 1
-                AND sms_send_status IS NULL
-                AND cell = #{cellMd5,jdbcType=VARCHAR}
-              UNION ALL
-              SELECT COUNT(*) AS cnt
-              FROM b_zhongan_colliding_data_log
-              WHERE <![CDATA[ report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
-                and report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
-        AND is_connect IS NULL
-                AND sms_send_status = 1
-                AND cell = #{cellMd5,jdbcType=VARCHAR}) AS t;
+    <select id="countSmsSendByDay" resultType="int">
+        SELECT COUNT(*) AS cnt
+        FROM b_zhongan_colliding_data_log
+        WHERE <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 7 DAY)
+          AND report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
+                AND is_connect IS NULL
+          AND sms_send_status = 1
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countConnectByMonth" resultType="int">
+        SELECT COUNT(*) AS cnt
+        FROM b_zhongan_colliding_data_log
+        WHERE <![CDATA[ report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
+          AND report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
+          AND is_connect = 1
+          AND sms_send_status IS NULL
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countSmsSendByMonth" resultType="int">
+        SELECT COUNT(*) AS cnt
+        FROM b_zhongan_colliding_data_log
+        WHERE <![CDATA[ report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
+          AND report_date <= #{bizDate,jdbcType=VARCHAR} ]]>
+          AND is_connect IS NULL
+          AND sms_send_status = 1
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
 
     <insert id="batchInsert" parameterType="list">
