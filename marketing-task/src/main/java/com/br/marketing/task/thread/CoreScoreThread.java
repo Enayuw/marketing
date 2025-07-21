@@ -233,7 +233,7 @@ public class CoreScoreThread implements Callable<String> {
     private void insertRetryRedis(String key) {
         MarketingRetryRedis marketingRetryRedis = new MarketingRetryRedis();
         marketingRetryRedis.setApiCode(apiCode);
-        marketingRetryRedis.setFileId(Long.valueOf(fileId));
+        marketingRetryRedis.setBatchNumber(marketingTask.getBatchNumber());
         marketingRetryRedis.setPage(String.valueOf(currentPage));
         marketingRetryRedis.setRedisKey(key);
         marketingRetryRedis.setRetryStatus(0);

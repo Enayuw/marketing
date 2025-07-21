@@ -235,63 +235,73 @@ public class MarketingRetryRedisExample {
             return (Criteria) this;
         }
 
-        public Criteria andFileIdIsNull() {
-            addCriterion("file_id is null");
+        public Criteria andBatchNumberIsNull() {
+            addCriterion("batch_number is null");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdIsNotNull() {
-            addCriterion("file_id is not null");
+        public Criteria andBatchNumberIsNotNull() {
+            addCriterion("batch_number is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdEqualTo(Long value) {
-            addCriterion("file_id =", value, "fileId");
+        public Criteria andBatchNumberEqualTo(String value) {
+            addCriterion("batch_number =", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdNotEqualTo(Long value) {
-            addCriterion("file_id <>", value, "fileId");
+        public Criteria andBatchNumberNotEqualTo(String value) {
+            addCriterion("batch_number <>", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdGreaterThan(Long value) {
-            addCriterion("file_id >", value, "fileId");
+        public Criteria andBatchNumberGreaterThan(String value) {
+            addCriterion("batch_number >", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("file_id >=", value, "fileId");
+        public Criteria andBatchNumberGreaterThanOrEqualTo(String value) {
+            addCriterion("batch_number >=", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdLessThan(Long value) {
-            addCriterion("file_id <", value, "fileId");
+        public Criteria andBatchNumberLessThan(String value) {
+            addCriterion("batch_number <", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdLessThanOrEqualTo(Long value) {
-            addCriterion("file_id <=", value, "fileId");
+        public Criteria andBatchNumberLessThanOrEqualTo(String value) {
+            addCriterion("batch_number <=", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdIn(List<Long> values) {
-            addCriterion("file_id in", values, "fileId");
+        public Criteria andBatchNumberLike(String value) {
+            addCriterion("batch_number like", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdNotIn(List<Long> values) {
-            addCriterion("file_id not in", values, "fileId");
+        public Criteria andBatchNumberNotLike(String value) {
+            addCriterion("batch_number not like", value, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdBetween(Long value1, Long value2) {
-            addCriterion("file_id between", value1, value2, "fileId");
+        public Criteria andBatchNumberIn(List<String> values) {
+            addCriterion("batch_number in", values, "batchNumber");
             return (Criteria) this;
         }
 
-        public Criteria andFileIdNotBetween(Long value1, Long value2) {
-            addCriterion("file_id not between", value1, value2, "fileId");
+        public Criteria andBatchNumberNotIn(List<String> values) {
+            addCriterion("batch_number not in", values, "batchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNumberBetween(String value1, String value2) {
+            addCriterion("batch_number between", value1, value2, "batchNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNumberNotBetween(String value1, String value2) {
+            addCriterion("batch_number not between", value1, value2, "batchNumber");
             return (Criteria) this;
         }
 

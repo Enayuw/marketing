@@ -14,9 +14,9 @@ public class MarketingRetryRedis {
     private String apiCode;
 
     /**
-     * 跑分记录id
+     * 跑分记录
      */
-    private Long fileId;
+    private String batchNumber;
 
     /**
      * 跑分页码
@@ -29,7 +29,7 @@ public class MarketingRetryRedis {
     private String redisKey;
 
     /**
-     * 重试状态 0-待重试；1-重试成功；
+     * 重试状态 0-待重试；1-重试成功；2-重试失败
      */
     private Integer retryStatus;
 
@@ -64,12 +64,12 @@ public class MarketingRetryRedis {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
-    public Long getFileId() {
-        return fileId;
+    public String getBatchNumber() {
+        return batchNumber;
     }
 
-    public void setFileId(Long fileId) {
-        this.fileId = fileId;
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber == null ? null : batchNumber.trim();
     }
 
     public String getPage() {

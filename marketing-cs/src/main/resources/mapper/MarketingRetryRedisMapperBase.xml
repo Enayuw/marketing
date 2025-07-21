@@ -4,7 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingRetryRedis" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="file_id" property="fileId" jdbcType="BIGINT" />
+    <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
     <result column="page" property="page" jdbcType="VARCHAR" />
     <result column="redis_key" property="redisKey" jdbcType="VARCHAR" />
     <result column="retry_status" property="retryStatus" jdbcType="INTEGER" />
@@ -71,7 +71,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_id, page, redis_key, retry_status, applet_date, create_time, update_time
+    id, api_code, batch_number, page, redis_key, retry_status, applet_date, create_time, 
+    update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingRetryRedisExample" >
     select
@@ -107,10 +108,10 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_retry_redis (api_code, file_id, page, 
+    insert into b_marketing_retry_redis (api_code, batch_number, page, 
       redis_key, retry_status, applet_date, 
       create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=BIGINT}, #{page,jdbcType=VARCHAR}, 
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{page,jdbcType=VARCHAR}, 
       #{redisKey,jdbcType=VARCHAR}, #{retryStatus,jdbcType=INTEGER}, #{appletDate,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -123,8 +124,8 @@
       <if test="apiCode != null" >
         api_code,
       </if>
-      <if test="fileId != null" >
-        file_id,
+      <if test="batchNumber != null" >
+        batch_number,
       </if>
       <if test="page != null" >
         page,
@@ -149,8 +150,8 @@
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null" >
-        #{fileId,jdbcType=BIGINT},
+      <if test="batchNumber != null" >
+        #{batchNumber,jdbcType=VARCHAR},
       </if>
       <if test="page != null" >
         #{page,jdbcType=VARCHAR},
@@ -187,8 +188,8 @@
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.fileId != null" >
-        file_id = #{record.fileId,jdbcType=BIGINT},
+      <if test="record.batchNumber != null" >
+        batch_number = #{record.batchNumber,jdbcType=VARCHAR},
       </if>
       <if test="record.page != null" >
         page = #{record.page,jdbcType=VARCHAR},
@@ -217,7 +218,7 @@
     update b_marketing_retry_redis
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
-      file_id = #{record.fileId,jdbcType=BIGINT},
+      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
       page = #{record.page,jdbcType=VARCHAR},
       redis_key = #{record.redisKey,jdbcType=VARCHAR},
       retry_status = #{record.retryStatus,jdbcType=INTEGER},
@@ -234,8 +235,8 @@
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null" >
-        file_id = #{fileId,jdbcType=BIGINT},
+      <if test="batchNumber != null" >
+        batch_number = #{batchNumber,jdbcType=VARCHAR},
       </if>
       <if test="page != null" >
         page = #{page,jdbcType=VARCHAR},
@@ -261,7 +262,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingRetryRedis" >
     update b_marketing_retry_redis
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      file_id = #{fileId,jdbcType=BIGINT},
+      batch_number = #{batchNumber,jdbcType=VARCHAR},
       page = #{page,jdbcType=VARCHAR},
       redis_key = #{redisKey,jdbcType=VARCHAR},
       retry_status = #{retryStatus,jdbcType=INTEGER},

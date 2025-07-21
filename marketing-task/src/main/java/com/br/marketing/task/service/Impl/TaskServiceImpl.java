@@ -352,26 +352,18 @@ public class TaskServiceImpl implements ITaskService {
 
 
         // 先处理异常重试跑分数据
-        TaskStatusExample taskStatusExample = new TaskStatusExample();
-        taskStatusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
-        List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(taskStatusExample);
-        if(CollectionUtils.isEmpty(taskStatuses)){
-            log.warn("异常重试跑分数据未查询到执行状态，batchNumber={}",task.getBatchNumber());
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
-        }
-
-        TaskStatus taskStatus = taskStatuses.get(0);
-        Long fileId = taskStatus.getFileId();
         MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
-        marketingRetryRedisExample.createCriteria().andApiCodeEqualTo(task.getApiCode())
-                .andFileIdEqualTo(fileId).andRetryStatusEqualTo(0);
+        marketingRetryRedisExample.createCriteria()
+                .andApiCodeEqualTo(task.getApiCode())
+                .andBatchNumberEqualTo(task.getBatchNumber())
+                .andRetryStatusEqualTo(0);
         List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
         if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
             for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
                 String key = retryRedis.getRedisKey();
                 boolean success = retrySetRedisOrDisableTask(key, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
                 if (!success) {
-                    log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", fileId, retryRedis.getPage());
+                    log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getBatchNumber(), retryRedis.getPage());
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
                 }
                 // 成功则更新状态
