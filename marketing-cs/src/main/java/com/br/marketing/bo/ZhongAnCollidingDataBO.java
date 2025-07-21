@@ -12,7 +12,6 @@ public class ZhongAnCollidingDataBO {
     private String mobileMd5;
     private String userType;
     private String bizDate;
-    private String taskId;
     private Integer isConnect;
     private Integer smsSendStatus;
 
