@@ -200,27 +200,6 @@ public class TaskScoreServiceImpl {
             Thread thread = threadReport(warrningExecutor, customer);
             log.warn(TITLE + "跑分任务generateTask，本次调度任务id：{}",task.getBatchNumber());
 
-            // 1. 先处理异常重试
-            MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
-            marketingRetryRedisExample.createCriteria().andApiCodeEqualTo(task.getApiCode())
-                    .andFileIdEqualTo(task.getFileId()).andRetryStatusEqualTo(0);
-            List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
-            if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
-                for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
-                    String key = retryRedis.getRedisKey();
-                    boolean success = retrySetRedisOrDisableTask(key, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
-                    if (!success) {
-                        log.error(TITLE + "重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getFileId(), retryRedis.getPage());
-                        return; // 直接return，后续generateTask等都不会执行
-                    }
-                    // 成功则更新状态
-                    MarketingRetryRedis retryRedis1 = new MarketingRetryRedis();
-                    retryRedis1.setRetryStatus(1);
-                    retryRedis1.setId(retryRedis.getId());
-                    marketingRetryRedisMapper.updateByPrimaryKeySelective(retryRedis1);
-                }
-            }
-
             // 2. 只有全部重试都成功，才执行generateTask
             this.generateTask(observedTaskObj, customer, day);
             /**
@@ -792,36 +771,6 @@ public class TaskScoreServiceImpl {
                 throw new Exception();
             }
         }
-    }
-
-    /**
-     * 尝试写入Redis，失败重试3次，失败后暂停任务并跳出外层循环
-     */
-    private boolean retrySetRedisOrDisableTask(String key, String fileId, String page, MarketingTask blt) {
-        int retryCount = 0;
-        while (retryCount < 3) {
-            try {
-                // 模拟重试redis异常
-                checkMockRedisSwitch("retryRedis");
-
-                redisChgService.set(key, "1");
-                redisChgService.expire(key, 60 * 60 * 24 * 10);
-                // 成功
-                return true;
-            } catch (Exception e) {
-                retryCount++;
-                if (retryCount >= 3) {
-                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
-                            String.format(TITLE + "跑分异常，Redis异常重试写入失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, page), e.getMessage()));
-                    // 禁用跑分任务
-                    marketingTaskService.disableTask(blt);
-                    return false;
-                } else {
-                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
-                }
-            }
-        }
-        return false;
     }
 
     private String createShowTitle(MarketingTask task) {
