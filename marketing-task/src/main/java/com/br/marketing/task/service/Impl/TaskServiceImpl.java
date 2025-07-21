@@ -9,6 +9,7 @@ import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IApiToDbService;
@@ -356,17 +357,44 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
+
         // 先处理异常重试跑分数据
+        TaskStatusExample taskStatusExample = new TaskStatusExample();
+        taskStatusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+        List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(taskStatusExample);
+        if(CollectionUtils.isEmpty(taskStatuses)){
+            log.warn("异常重试跑分数据未查询到执行状态，batchNumber={}",task.getBatchNumber());
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
+
+        TaskStatus taskStatus = taskStatuses.get(0);
+        Long fileId = taskStatus.getFileId();
         MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
         marketingRetryRedisExample.createCriteria().andApiCodeEqualTo(task.getApiCode())
-                .andFileIdEqualTo(task.getFileId()).andRetryStatusEqualTo(0);
+                .andFileIdEqualTo(fileId).andRetryStatusEqualTo(0);
         List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
         if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
             for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
                 String key = retryRedis.getRedisKey();
                 boolean success = retrySetRedisOrDisableTask(key, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
                 if (!success) {
-                    log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getFileId(), retryRedis.getPage());
+                    StraHisFile updateFile = new StraHisFile();
+                    updateFile.setId(fileId);
+                    updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
+                    straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+
+                    TaskStatus updateStatus = new TaskStatus();
+                    updateStatus.setId(taskStatus.getId());
+
+                    if (Objects.equals(taskStatus.getOnceStatus(), 4)) {
+                        updateStatus.setOnceStatus(3);
+                    }
+                    if (Objects.equals(taskStatus.getAllStatus(), 4)) {
+                        updateStatus.setAllStatus(3);
+                    }
+                    taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
+
+                    log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", fileId, retryRedis.getPage());
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
                 }
                 // 成功则更新状态
