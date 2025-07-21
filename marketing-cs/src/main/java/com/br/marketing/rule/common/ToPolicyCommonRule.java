@@ -3,7 +3,6 @@ package com.br.marketing.rule.common;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -17,7 +16,6 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 
 @Service
@@ -36,18 +34,29 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
-        //属于软交换
 
-        if(customerTagsVO.getPushJc3keyType() == null){
-
-        }
-
-        if(customerTagsVO.getPushJc3keyType().equals(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue())){
-            pushData.setPhone(syncUser.getCellOriginal());
-        }else {
-            pushData.setPhone(get3keyValue(syncUser.getCell(), "cell", customerTagsVO.getPushJc3keyType()));
+        String cellOriginal = syncUser.getCellOriginal();
+        Integer jc3keyType = customerTagsVO.getPushJc3keyType();
+        if (jc3keyType == null) {
+            String decodedCell = BrCipherMaker.getInstance().decode(cellOriginal);
+            // 未配置加密类型，判断是否log加密
+            if (cellOriginal.equals(decodedCell)) {
+                // 非log加密
+                pushData.setPhone(cellOriginal);
+            } else {
+                // log加密
+                pushData.setPhone(decodedCell);
+            }
+            pushData.setLogCell(syncUser.getCell());
+        } else if (jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue())) {
+            // 软交换
+            pushData.setPhone(cellOriginal);
+        } else {
+            // 其他加密类型
+            pushData.setPhone(cellOriginal);
             pushData.setLogCell(syncUser.getCell());
         }
+
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
@@ -83,7 +92,7 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
-        buildJson(jsonObject, syncUser, customerTagsVO.getPushJc3keyType());
+        buildJson(jsonObject, syncUser);
         pushData.setVariables(jsonObject);
         return pushData;
     }
@@ -120,7 +129,7 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         return null;
     }
 
-    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
         jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
@@ -137,28 +146,6 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
 
     private String emptyDefault(String value) {
         return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
-    }
-
-    private String get3keyValue(String content, String contentType, Integer encryptionType) {
-
-        if (StringUtils.isBlank(content)) {
-            return content;
-        }
-
-        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
-            return content;
-        }
-
-        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
-            String decode = BrCipherMaker.getInstance().decode(content);
-            return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
-        }
-
-        if (CustomerTagsValue.PushJc3keyTypeEnum.SHA256_ALL.getValue().equals(encryptionType)) {
-            String decode = BrCipherMaker.getInstance().decode(content);
-            return StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
-        }
-        return null;
     }
 
     private void cusNameOfJo(String name,JSONObject jo){
