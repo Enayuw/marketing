@@ -200,7 +200,28 @@ public class TaskScoreServiceImpl {
             Thread thread = threadReport(warrningExecutor, customer);
             log.warn(TITLE + "跑分任务generateTask，本次调度任务id：{}",task.getBatchNumber());
 
-            //region 跑分
+            // 1. 先处理异常重试
+            MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
+            marketingRetryRedisExample.createCriteria().andApiCodeEqualTo(task.getApiCode())
+                    .andFileIdEqualTo(task.getFileId()).andRetryStatusEqualTo(0);
+            List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
+            if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
+                for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
+                    String key = retryRedis.getRedisKey();
+                    boolean success = retrySetRedisOrDisableTask(key, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
+                    if (!success) {
+                        log.error(TITLE + "重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getFileId(), retryRedis.getPage());
+                        return; // 直接return，后续generateTask等都不会执行
+                    }
+                    // 成功则更新状态
+                    MarketingRetryRedis retryRedis1 = new MarketingRetryRedis();
+                    retryRedis1.setRetryStatus(1);
+                    retryRedis1.setId(retryRedis.getId());
+                    marketingRetryRedisMapper.updateByPrimaryKeySelective(retryRedis1);
+                }
+            }
+
+            // 2. 只有全部重试都成功，才执行generateTask
             this.generateTask(observedTaskObj, customer, day);
             /**
              * 等待所有任务都执行完成
@@ -578,27 +599,6 @@ public class TaskScoreServiceImpl {
     private void core(MarketingTask blt, String descPath, boolean firstTime, String strategyStr, ExecutorService warrningExecutor,
                       String fileId, MarketingCustomer customer) {
         try {
-            // 判断是否存在redis异常待重试数据
-            MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
-            marketingRetryRedisExample.createCriteria().andApiCodeEqualTo(blt.getApiCode())
-                    .andFileIdEqualTo(Long.valueOf(fileId)).andRetryStatusEqualTo(0);
-            List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
-            if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
-                for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
-                    String key = retryRedis.getRedisKey();
-                    boolean success = retrySetRedisOrDisableTask(key, fileId, retryRedis.getPage(), blt);
-                    // 若异常数据未被补充则 禁用跑分任务
-                    if (!success) {
-                        return;
-                    }
-                    // 成功
-                    MarketingRetryRedis retryRedis1 = new MarketingRetryRedis();
-                    retryRedis1.setRetryStatus(1);
-                    retryRedis1.setId(retryRedis.getId());
-                    marketingRetryRedisMapper.updateByPrimaryKeySelective(retryRedis1);
-                }
-            }
-
             String noflagproduct = redisChgService.get(RedisKeyConstant.noFlagProduct);
             List<String> noflagproductlist = new ArrayList<>();
             if (StringUtils.isNotBlank(noflagproduct)) {

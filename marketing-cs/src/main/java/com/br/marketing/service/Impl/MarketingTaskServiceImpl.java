@@ -809,7 +809,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 Result result = marketingTaskOptService.pauseTask(task.getFileId(), 1);
                 String logMessage = result.getCode().equals(ResultCode.SUCCESS.getValue())
                         ? String.format("跑分异常，已暂停该跑分任务，任务编号=%s", task.getBatchNumber())
-                        : String.format("跑分异常，自动暂停跑分异常，请手动操作暂停，任务编号=%s", task.getBatchNumber());
+                        : String.format("跑分异常，自动暂停跑分异常，请手动操作暂停，任务编号=%s，错误原因=%s", task.getBatchNumber(), result.getMessage());
 
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(), logMessage));
                 break;
