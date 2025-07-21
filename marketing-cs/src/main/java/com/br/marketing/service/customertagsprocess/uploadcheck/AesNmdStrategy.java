@@ -1,14 +1,27 @@
 package com.br.marketing.service.customertagsprocess.uploadcheck;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.br.marketing.util.aes.AesHexUtil;
 
 public class AesNmdStrategy implements IUploadCheckService{
 
     @Override
     public void check3key(MarketingPreUserDetailDTO user, Integer isCheck, CustomerTagsVO customerTagsVO) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'check3key'");
+        if(StringUtils.isNotBlank(user.getCell())){
+        String plainText = AesHexUtil.decrypt(user.getCell(),customerTagsVO.getDynamicKeys());
+        isValid(user, plainText, "cell", isCheck);
+        }
+        if(StringUtils.isNotBlank(user.getId())){
+        String plainText = AesHexUtil.decrypt(user.getId(),customerTagsVO.getDynamicKeys());
+        isValid(user, plainText, "id", isCheck);
+        }
+        if(StringUtils.isNotBlank(user.getName())){
+        String plainText = AesHexUtil.decrypt(user.getName(),customerTagsVO.getDynamicKeys());
+        isValid(user, plainText, "name", isCheck);
+        }
     }
 }

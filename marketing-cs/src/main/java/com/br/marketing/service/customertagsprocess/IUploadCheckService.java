@@ -37,14 +37,11 @@ public interface IUploadCheckService {
         } else if (StringUtils.isNotBlank(content) && "id".equals(type)) {
             if (!userValidator.validateId(content)) {
                 user.setId(content);
-                // user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setId(BrCipherMaker.getInstance().encode(content));
         } else if (StringUtils.isNotBlank(content) && "name".equals(type)) {
             if (!userValidator.validateName(content)) {
                 user.setName(content);
-                /** 2022/8/11 17:14 业务需求变更，name字段是否成功解密不影响数据状态 */
-                // user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             user.setName(BrCipherMaker.getInstance().encode(content));
         }
