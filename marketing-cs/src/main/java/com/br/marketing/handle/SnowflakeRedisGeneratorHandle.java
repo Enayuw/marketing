@@ -508,8 +508,7 @@ public class SnowflakeRedisGeneratorHandle {
 
         private void releaseDistributedLock(String key, String value) {
             try {
-                // 假设unlink是封装了原子删除的自定义方法
-                redisChgService.unlink(key, value);
+                redisChgService.unlock(key, value);
             } catch (Exception e) {
                 LOGGER.error("雪花算法,释放分布式锁时发生异常, [Key: {}, Value: {}]", key, value, e);
             }
