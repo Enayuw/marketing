@@ -103,7 +103,7 @@ api:
 # 雪花算法数据中心ID
 snowflake:
   datacenter:
-    id: {SNOWFLAKE_DATACENTER_ID:1}
+    id: ${SNOWFLAKE_DATACENTER_ID:1}
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties

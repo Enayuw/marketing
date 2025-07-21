@@ -93,6 +93,10 @@ api:
     apiCode: 4000296
   dass:
     aesKey: ovksl39fcl13m9dF
+# 雪花算法数据中心ID
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:1}
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
 #  name-server: 192.168.161.109:9876
