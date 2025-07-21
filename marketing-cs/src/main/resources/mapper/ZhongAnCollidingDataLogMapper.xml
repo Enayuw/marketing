@@ -5,4 +5,28 @@
     <select id="countSmsSendSuccess" resultType="int">
 
     </select>
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_zhongan_colliding_data_log (api_code,
+                                                  data_source_type,
+                                                  cell,
+                                                  sms_send_status,
+                                                  is_connect,
+                                                  extend,
+                                                  is_deleted,
+                                                  create_time,
+                                                  update_time)
+        VALUES
+        <foreach collection="collidingDataLogList" item="item" separator=",">
+            (#{item.apiCode, jdbcType=VARCHAR},
+             #{item.dataSourceType, jdbcType=VARCHAR},
+             #{item.cell, jdbcType=VARCHAR},
+             #{item.smsSendStatus, jdbcType=VARCHAR},
+             #{item.isConnect, jdbcType=VARCHAR},
+             NULL,
+             0,
+             NOW(),
+             NOW())
+        </foreach>
+    </insert>
 </mapper>

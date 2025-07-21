@@ -14,11 +14,13 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhongAnCollidingConfig;
+import com.br.marketing.entity.ZhongAnCollidingDataLog;
 import com.br.marketing.entity.ZhongAnSmsRosterLockingData;
 import com.br.marketing.entity.ZhongAnSmsRosterLockingDataExample;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.entity.ZhonganRosterLockingDataExample;
 import com.br.marketing.mapper.ZhongAnCollidingConfigMapper;
+import com.br.marketing.mapper.ZhongAnCollidingDataLogMapper;
 import com.br.marketing.mapper.ZhongAnSmsRosterLockingDataMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.service.Impl.zhongan.ZhongAnCollidingDataService;
@@ -68,6 +70,10 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
     private ZhongAnSmsRosterLockingDataMapper zhongAnSmsRosterLockingDataMapper;
 
     @Resource
+    private ZhongAnCollidingDataLogMapper zhongAnCollidingDataLogMapper;
+
+
+    @Resource
     private Sms2DayHandler sms2DayHandler;
 
     @Override
@@ -89,7 +95,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
         }
         for (ZhongAnCollidingConfig config : configs) {
             String configSql = config.getQuerySql();
-            String replaceSql = configSql.replace("#{apiCode}", apiCode).replace("#{bizDate}", bizDate);
+            String replaceSql = configSql.replace("#{apiCode}", "'" + apiCode + "'").replace("#{bizDate}", "'" + bizDate + "'");
             String completeSql = replaceSql.concat(" limit " + limit);
             Integer isOutbound = 1;
             Integer isSmsSend = 1;
@@ -171,8 +177,23 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                         pushCallIds = new ArrayList<>();
                     }
                 }
+                insertCollidingLog(pushList,apiCode,config.getDataSourceType());
             }
         }
+    }
+
+    private void insertCollidingLog(List<ZaMarketDetail> pushList, String apiCode, String dataSourceType) {
+        List<ZhongAnCollidingDataLog> collidingDataLogList = Lists.newArrayList();
+        pushList.forEach((ZaMarketDetail push) -> {
+            ZhongAnCollidingDataLog  collidingDataLog = new ZhongAnCollidingDataLog();
+            collidingDataLog.setApiCode(apiCode);
+            collidingDataLog.setDataSourceType(dataSourceType);
+            collidingDataLog.setCell(push.getMobileMd5());
+            collidingDataLog.setSmsSendStatus(push.getIsSmsSendSuccess());
+            collidingDataLog.setIsConnect(push.getIsConnect());
+            collidingDataLogList.add(collidingDataLog);
+        });
+        zhongAnCollidingDataLogMapper.batchInsert(collidingDataLogList);
     }
 
     private void updateSmsStatus(List<Long> nonValidSmsIds, int updateStatus) {
