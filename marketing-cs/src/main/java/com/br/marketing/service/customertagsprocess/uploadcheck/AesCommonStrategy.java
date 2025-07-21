@@ -6,7 +6,9 @@ import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.util.aes.AesUtil;
+import org.springframework.stereotype.Service;
 
+@Service
 public class AesCommonStrategy implements IUploadCheckService{
 
     @Override

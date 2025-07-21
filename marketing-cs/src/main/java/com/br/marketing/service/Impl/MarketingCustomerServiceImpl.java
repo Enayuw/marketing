@@ -114,9 +114,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 CustomerListVo customerListVo = new CustomerListVo();
                 BeanUtils.copyProperties(marketingCustomer, customerListVo);
                 MarketingCustomerConfig marketingCustomerConfig = configs.get(marketingCustomer.getApiCode());
-                customerListVo.setCheckType(marketingCustomerConfig == null
-                        ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
-                        : marketingCustomerConfig.getCheckType());
+//                customerListVo.setCheckType(marketingCustomerConfig == null
+//                        ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
+//                        : marketingCustomerConfig.getCheckType());
                 customerListVo.setScoreSeparator(marketingCustomerConfig == null ? CommonConstants.COMMA :
                         marketingCustomerConfig.getScoreSeparator());
                 customerListVo.setThreeKEncryptType(marketingCustomerConfig == null ? null:

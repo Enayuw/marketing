@@ -56,4 +56,9 @@ public class AesHexUtil {
             return null;
         }
     }
+
+    public static void main(String[] args) {
+        String cell = encrypt("13497814301", "Vje1kFHChlm8khlc");
+        System.out.println(cell);
+    }
 }
