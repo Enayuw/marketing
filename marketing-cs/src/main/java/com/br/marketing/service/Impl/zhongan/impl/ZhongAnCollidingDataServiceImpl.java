@@ -104,6 +104,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                 List<ZhongAnCollidingDataBO> collidingDatas = zhongAnCollidingConfigMapper.queryCollidingDataByConfigSql(completeSql);
                 if (CollectionUtils.isEmpty(collidingDatas)) {
                     flag = false;
+                    continue;
                 }
                 Set<String> custNumSet = collidingDatas.stream().map(ZhongAnCollidingDataBO::getCaseNum).collect(Collectors.toSet());
                 Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
@@ -118,7 +119,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     ZhongAnCollidingDataBO value = entry.getValue();
                     List<ZhongAnReportHandler> handlers = Lists.newArrayList();
                     handlers.add(sms2DayHandler);
-                    boolean result = executor.execute(handlers, cellMd5,bizDate);
+                    boolean result = executor.execute(handlers, cellMd5, bizDate);
                     if (result) {
                         SyncUserValidityPeriodsBO bo = keyToSyncUserBO.get(value.getCaseNum());
                         if (bo == null || CollectionUtils.isEmpty(bo.getSyncUsers())) {
@@ -132,13 +133,13 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                         collidingDataBOS.add(value);
                     }
                 }
-                if(!nonValidSmsIds.isEmpty()) {
-                    updateCallStatus(nonValidCallIds, 4);
+                if (!nonValidSmsIds.isEmpty()) {
+                    updateSmsStatus(nonValidSmsIds, null, 4);
                 }
-                if(!nonValidSmsIds.isEmpty()) {
-                    updateSmsStatus(nonValidCallIds, 4);
+                if (!nonValidSmsIds.isEmpty()) {
+                    updateCallStatus(nonValidCallIds, null, 4);
                 }
-                if(collidingDataBOS.isEmpty()){
+                if (collidingDataBOS.isEmpty()) {
                     continue;
                 }
                 List<ZaMarketDetail> pushList = new ArrayList<>();
@@ -164,20 +165,26 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     detail.setIsSmsSendSuccess(collidingDataBO.getSmsSendStatus());
                     pushList.add(detail);
                     count++;
+                    log.warn("pushList size:{},size:{},count:{}", pushList.size(), size, count);
                     if (pushList.size() == pushSize || size == count) {
                         List<Long> finalPushIds = pushCallIds;
-                        List<Long> finalPushSmsIds= pushSmsIds;
+                        List<Long> finalPushSmsIds = pushSmsIds;
+                        String finalApiCode = collidingDataBO.getApiCode();
+                        updateCallStatus(finalPushIds, 0, null);
+                        if (!CollectionUtils.isEmpty(finalPushSmsIds)) {
+                            updateSmsStatus(finalPushSmsIds, 0, null);
+                        }
                         pushPool.execute(() -> {
                             ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
                             dataDTO.setData(pushList);
                             methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
                                     , collidingDataBO.getApiCode(), "MG", finalPushIds, finalPushSmsIds), null);
+                            insertCollidingLog(pushList, finalApiCode, config.getDataSourceType());
                         });
                         pushSmsIds = new ArrayList<>();
                         pushCallIds = new ArrayList<>();
                     }
                 }
-                insertCollidingLog(pushList,apiCode,config.getDataSourceType());
             }
         }
     }
@@ -185,7 +192,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
     private void insertCollidingLog(List<ZaMarketDetail> pushList, String apiCode, String dataSourceType) {
         List<ZhongAnCollidingDataLog> collidingDataLogList = Lists.newArrayList();
         pushList.forEach((ZaMarketDetail push) -> {
-            ZhongAnCollidingDataLog  collidingDataLog = new ZhongAnCollidingDataLog();
+            ZhongAnCollidingDataLog collidingDataLog = new ZhongAnCollidingDataLog();
             collidingDataLog.setApiCode(apiCode);
             collidingDataLog.setDataSourceType(dataSourceType);
             collidingDataLog.setCell(push.getMobileMd5());
@@ -193,24 +200,35 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             collidingDataLog.setIsConnect(push.getIsConnect());
             collidingDataLogList.add(collidingDataLog);
         });
+        log.warn("collidingDataLogList:{}", JSONObject.toJSONString(collidingDataLogList));
         zhongAnCollidingDataLogMapper.batchInsert(collidingDataLogList);
     }
 
-    private void updateSmsStatus(List<Long> nonValidSmsIds, int updateStatus) {
+    private void updateSmsStatus(List<Long> ids, Integer pushStatus, Integer updateStatus) {
         ZhongAnSmsRosterLockingData data = new ZhongAnSmsRosterLockingData();
-        data.setStatus(updateStatus);
+        if (pushStatus != null) {
+            data.setPushStatus(pushStatus);
+        }
+        if (updateStatus != null) {
+            data.setStatus(updateStatus);
+        }
         data.setUpdateTime(new Date());
         ZhongAnSmsRosterLockingDataExample example = new ZhongAnSmsRosterLockingDataExample();
-        example.createCriteria().andIdIn(nonValidSmsIds);
+        example.createCriteria().andIdIn(ids);
         zhongAnSmsRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
-    private void updateCallStatus(List<Long> nonValidCallIds, int updateStatus) {
+    private void updateCallStatus(List<Long> ids, Integer pushStatus, Integer updateStatus) {
         ZhonganRosterLockingData data = new ZhonganRosterLockingData();
-        data.setStatus(updateStatus);
+        if (pushStatus != null) {
+            data.setPushStatus(pushStatus);
+        }
+        if (updateStatus != null) {
+            data.setStatus(updateStatus);
+        }
         data.setUpdateTime(new Date());
         ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
-        example.createCriteria().andIdIn(nonValidCallIds);
+        example.createCriteria().andIdIn(ids);
         zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 }
