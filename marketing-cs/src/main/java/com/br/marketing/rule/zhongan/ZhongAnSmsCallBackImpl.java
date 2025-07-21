@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * 众安拨打明细入库规则
+ * 众安短信明细入库规则
  */
 @Service
 @Slf4j

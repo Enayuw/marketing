@@ -5,6 +5,8 @@ import lombok.Data;
 @Data
 public class SmsCallBackBO {
 
+    private Long id;
+
     private String apiCode;
 
     private String userType;
