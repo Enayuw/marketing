@@ -78,7 +78,7 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
             MarketingTask marketingTask = scoreTask.getData();
             marketingTask.setIndex(context.getShardingItems().get(0));
             taskScoreService.process(marketingTask, date);
-            log.warn("跑分任务结束，本次调度任务id：{}", JSON.toJSONString(scoreTask));
+            log.warn("跑分任务结束，本次调度任务batchNumber：{}", marketingTask.getBatchNumber());
         }
         Long end = System.currentTimeMillis();
         log.warn("【跑批任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());
