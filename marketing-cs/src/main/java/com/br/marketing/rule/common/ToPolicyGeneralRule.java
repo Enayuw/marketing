@@ -35,7 +35,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
-
+        log.warn("进入自动化推决策规则ToPolicyGeneralRule："+JSONObject.toJSONString(syncUser));
         String cellOriginal = syncUser.getCellOriginal();
         Integer jc3keyType = customerTagsVO.getPushJc3keyType();
         if (jc3keyType == null) {

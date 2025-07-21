@@ -13,12 +13,14 @@ import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@Slf4j
 public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Autowired
@@ -34,7 +36,7 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
-
+        log.warn("进入自动化推决策规则ToPolicyCommonRule："+JSONObject.toJSONString(syncUser));
         String cellOriginal = syncUser.getCellOriginal();
         Integer jc3keyType = customerTagsVO.getPushJc3keyType();
         if (jc3keyType == null) {
