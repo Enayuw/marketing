@@ -6,7 +6,8 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
-import com.br.marketing.vo.MarketingSmsAccountLogVo;
+import com.br.marketing.entity.MarketingLineAccountRecord;
+import com.br.marketing.vo.MarketingLineAccountRecordVO;
 import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -40,11 +41,13 @@ public interface LineSmsAccountService {
 
     Result forbLineAccount(Long configId);
 
-
-    /**
-     * 根据字典类别名称获取字典信息，封装为Map<dictType, List<MarketingDict>>
-     * @return Map<String, List<MarketingDict>>
-     */
     Map<String, List<MarketingDict>> getDictInfo(String dictType);
 
+    ApiResult getLineAccountBasInfo();
+
+    List<MarketingLineAccountRecordVO> getLineAccountsByConfigId(Long configId);
+
+    PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier,String callerFullName, Double price);
+
+    PageResultReturn getLineAccountLogs(Integer current, Integer size, Long configId);
 }

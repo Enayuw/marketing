@@ -2,6 +2,9 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONArray;
+import com.br.marketing.client.ibmpapi.IbmpApiServiceClient;
+import com.br.marketing.client.ibmpapi.outpu.TransferIbmpOutboundVO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
@@ -16,6 +19,8 @@ import com.br.marketing.enums.DictEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.LineSmsAccountDataService;
 import com.br.marketing.service.LineSmsAccountService;
+import com.br.marketing.vo.MarketingLineAccountLogVO;
+import com.br.marketing.vo.MarketingLineAccountRecordVO;
 import com.br.marketing.vo.MarketingSmsAccountLogVo;
 import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,6 +48,9 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
+
+    @Resource
+    private IbmpApiServiceClient ibmpApiServiceClient;
 
     @Resource
     private MarketingSmsAccountRecordMapper smsAccountRecordMapper;
@@ -311,6 +319,47 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         return result;
     }
 
+    @Override
+    public ApiResult getLineAccountBasInfo() {
+        ApiResult apiResult = new ApiResult().fail();
+        TransferIbmpOutboundVO transferIbmpOutboundVO = ibmpApiServiceClient.getLineBaseInfo();
+        if ("000000".equals(transferIbmpOutboundVO.getCode())) {
+            apiResult = new ApiResult().success().setData(convertBaseInfo(transferIbmpOutboundVO.getData()));
+        }
+        return apiResult;
+    }
+
+
+
+    @Override
+    public List<MarketingLineAccountRecordVO> getLineAccountsByConfigId(Long configId) {
+        List<MarketingLineAccountRecord>  smsAccountRecordList = lineAccountRecordMapper.getLineAccountsByConfigId(configId);
+        return convertToLineAccountRecordVoList(smsAccountRecordList);
+    }
+
+
+
+    @Override
+    public PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price) {
+        Date nowDate = new Date(System.currentTimeMillis());
+        PageHelper.startPage(current, size);
+        List<MarketingLineAccountRecord> lineAccountRecordList = lineAccountRecordMapper.selectList(lineSupplier,callerFullName,price,nowDate);
+        Page<MarketingLineAccountRecord> page = (Page<MarketingLineAccountRecord>) lineAccountRecordList;
+        List<MarketingLineAccountRecordVO> voList = convertToLineAccountRecordVoList(lineAccountRecordList);
+        return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());
+    }
+
+    @Override
+    public PageResultReturn getLineAccountLogs(Integer current, Integer size, Long configId) {
+        PageHelper.startPage(current, size);
+        List<MarketingLineAccountLog> lineAccountLogList = lineAccountLogMapper.getLineAccountLogs(configId);
+        Page<MarketingLineAccountLog> page = (Page<MarketingLineAccountLog>) lineAccountLogList;
+        List<MarketingLineAccountLogVO> voList = convertToLineAccountLogVoList(lineAccountLogList);
+        return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());
+    }
+
+
+
 
     private List<MarketingSmsAccountRecordVo> convertToSmsAccountRecordVoList(List<MarketingSmsAccountRecord> recordList) {
         if (recordList == null) {
@@ -334,6 +383,78 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
             voList.add(vo);
         }
         return voList;
+    }
+
+    private List<MarketingLineAccountRecordVO> convertToLineAccountRecordVoList(List<MarketingLineAccountRecord> lineAccountRecordList) {
+        if (lineAccountRecordList == null) {
+            return Collections.emptyList();
+        }
+        List<MarketingLineAccountRecordVO> voList = new ArrayList<>();
+        for (MarketingLineAccountRecord record : lineAccountRecordList) {
+            MarketingLineAccountRecordVO vo = new MarketingLineAccountRecordVO();
+            vo.setId(record.getId());
+            vo.setConfigId(record.getConfigId() == null ? null : String.valueOf(record.getConfigId()));
+            vo.setLineSupplier(record.getLineSupplier());
+            vo.setLinesInfo(record.getLinesInfo());
+            vo.setPrice(record.getPrice());
+            vo.setEffectStartDate(record.getEffectStartDate());
+            vo.setEffectEndDate(record.getEffectEndDate());
+            vo.setEnabled(record.getEnabled());
+            vo.setCreateTime(record.getCreateTime());
+            vo.setUpdateTime(record.getUpdateTime());
+            vo.setIsDelete(record.getIsDelete());
+            voList.add(vo);
+        }
+        return voList;
+    }
+
+    private List<MarketingLineAccountLogVO> convertToLineAccountLogVoList(List<MarketingLineAccountLog> lineAccountLogList) {
+        if (lineAccountLogList == null) {
+            return Collections.emptyList();
+        }
+        return lineAccountLogList.stream().map(log -> {
+            MarketingLineAccountLogVO vo = new MarketingLineAccountLogVO();
+            vo.setId(log.getId());
+            vo.setConfigId(log.getConfigId() == null ? null : String.valueOf(log.getConfigId()));
+            vo.setLineSupplier(log.getLineSupplier());
+            vo.setDetail(log.getDetail());
+            vo.setUserId(log.getUserId());
+            vo.setUserName(log.getUserName());
+            vo.setRealName(log.getRealName());
+            vo.setOpeType(log.getOpeType());
+            vo.setCreateTime(log.getCreateTime());
+            vo.setUpdateTime(log.getUpdateTime());
+            vo.setIsDelete(log.getIsDelete());
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    private Object convertBaseInfo(Object data) {
+        JSONArray dataArray = new JSONArray();
+        if (data != null) {
+            dataArray = (JSONArray) JSON.toJSON(data);
+            for (int i = 0; i < dataArray.size(); i++) {
+                JSONObject dataObject = dataArray.getJSONObject(i);
+                if (dataObject.containsKey("channelDTOList")) {
+                    JSONArray channelList = dataObject.getJSONArray("channelDTOList");
+                    if (channelList != null) {
+                        for (int j = 0; j < channelList.size(); j++) {
+                            JSONObject channel = channelList.getJSONObject(j);
+                            String projectName = channel.getString("projectName");
+                            String caller = channel.getString("caller");
+                            String callerFullName;
+                            if (projectName != null && !projectName.trim().isEmpty()) {
+                                callerFullName = projectName.trim() + "-" + caller;
+                            } else {
+                                callerFullName = caller;
+                            }
+                            channel.put("callerFullName", callerFullName);
+                        }
+                    }
+                }
+            }
+        }
+        return dataArray;
     }
 
     private List<MarketingSmsAccountLogVo> convertSmsAccountLogVoList(List<MarketingSmsAccountLog> marketingSmsAccountLogs) {

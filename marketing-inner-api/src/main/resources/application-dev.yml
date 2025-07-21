@@ -76,6 +76,9 @@ api:
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
     base2Url: http://robotai-api-service/api
     pushTransferUrl: ${api.robotAiApiService.base2Url}/robotOutbound
+  imbpApiService:
+    baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}//antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
   customerService:
     apiCode: 4000296
   productManagement:
