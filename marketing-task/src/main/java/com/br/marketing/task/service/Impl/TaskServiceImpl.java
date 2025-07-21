@@ -9,18 +9,11 @@ import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.service.IApiToDbService;
-import com.br.marketing.service.ICompatibleService;
-import com.br.marketing.service.IDynamicSqlService;
-import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
-import com.br.marketing.service.MarketingTaskService;
-import com.br.marketing.service.SoleStrategyService;
-import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ITaskService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
@@ -378,22 +371,6 @@ public class TaskServiceImpl implements ITaskService {
                 String key = retryRedis.getRedisKey();
                 boolean success = retrySetRedisOrDisableTask(key, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
                 if (!success) {
-                    StraHisFile updateFile = new StraHisFile();
-                    updateFile.setId(fileId);
-                    updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
-                    straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-
-                    TaskStatus updateStatus = new TaskStatus();
-                    updateStatus.setId(taskStatus.getId());
-
-                    if (Objects.equals(taskStatus.getOnceStatus(), 4)) {
-                        updateStatus.setOnceStatus(3);
-                    }
-                    if (Objects.equals(taskStatus.getAllStatus(), 4)) {
-                        updateStatus.setAllStatus(3);
-                    }
-                    taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-
                     log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", fileId, retryRedis.getPage());
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
                 }
