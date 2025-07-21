@@ -324,6 +324,15 @@ public class RedisChgService {
             throw new RuntimeException(e);
         }
     }
+    public Long hdel(String hkey, String... key) {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Long result = marketingRedisClient.hdel(hkey, key);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 判断数据key是否存在
