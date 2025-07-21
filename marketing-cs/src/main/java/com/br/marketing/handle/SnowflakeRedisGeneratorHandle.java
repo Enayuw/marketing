@@ -66,7 +66,7 @@ public class SnowflakeRedisGeneratorHandle {
             this.workerIdAssigner = null;
             // 设置不健康
             isHealthy.set(false);
-            LOGGER.warn("雪花算法,当前应用[{}]雪花算法未初始化，当前数据中心ID[{}],{}, 雪花算法不可用", applicationName, datacenterId
+            LOGGER.warn("雪花算法,当前应用[{}]雪花算法未初始化，当前数据中心ID[{}]{}, 雪花算法不可用", applicationName, datacenterId
                     , (datacenterId == 0 || datacenterId == 1) ? "合法" : "不合法");
             return;
         }

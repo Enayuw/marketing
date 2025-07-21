@@ -2474,7 +2474,13 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     public <T> void batchAddUniqueId(List<T> list, BiConsumer<T, Long> setConsumer, Function<T, Long> getFunction) {
         int size = list.size();
-        List<Long> ids = snowflakeRedisGeneratorHandle.nextIds(size);
+        List<Long> ids;
+        try {
+            ids = snowflakeRedisGeneratorHandle.nextIds(size);
+        } catch (Exception e) {
+            log.error("批量添加唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+            return;
+        }
         if (getFunction == null) {
             for (int i = 0; i < size; i++) {
                 setConsumer.accept(list.get(i), ids.get(i));

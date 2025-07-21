@@ -138,7 +138,11 @@ public class ShuHeUserServiceImpl {
                 reserveField1.remove("orderId");
                 dto.setReserveField1(
                     JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty, SerializerFeature.WriteNullListAsEmpty));
-                dto.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
+                try {
+                    dto.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
+                } catch (Exception e) {
+                    log.error("上传数据ID生成失败,{}", e.getMessage(), e);
+                }
                 list.add(dto);
             }
             userDTO.setDataItems(list);
@@ -280,7 +284,11 @@ public class ShuHeUserServiceImpl {
             List<TransferDataItemDTO> dataItems = Lists.newArrayList();
             TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
             BeanUtils.copyProperties(transferSyncUser, transferDataItemDTO);
-            transferDataItemDTO.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
+            try {
+                transferDataItemDTO.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
+            } catch (Exception e) {
+                log.error("转化数据ID生成失败,{}", e.getMessage(), e);
+            }
             dataItems.add(transferDataItemDTO);
             TransferDataDTO transferDataDTO = new TransferDataDTO();
             transferDataDTO.setDataItems(dataItems);
