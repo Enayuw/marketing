@@ -59,19 +59,19 @@ public class CustomerTagsProcessServiceImpl {
         configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingCustomerConfig> configs = marketingCustomerConfigMapper.selectByExample(configExample);
         if (configs.size() <= 0) {
-            customerTagsVO.setCheckType(CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue());
-            customerTagsVO.setPushJc3keyType(CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
+            customerTagsVO.setCheckType(null);
+            customerTagsVO.setPushJc3keyType(null);
             writeTagsOfRedis(apiCode, customerTagsVO);
             return customerTagsVO;
         }
 
         MarketingCustomerConfig marketingCustomerConfig = configs.get(0);
-        Integer checkType = marketingCustomerConfig.getCheckType();
-        customerTagsVO.setCheckType(checkType);
-        customerTagsVO.setPushJc3keyType(
-                marketingCustomerConfig.getThreeKEncryptType() == null
-                        ? CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue()
-                        : marketingCustomerConfig.getThreeKEncryptType());
+        customerTagsVO.setCheckType(marketingCustomerConfig.getCheckType());
+        customerTagsVO.setPushJc3keyType(marketingCustomerConfig.getThreeKEncryptType());
+        customerTagsVO.setCipherMode(marketingCustomerConfig.getCipherMode());
+        customerTagsVO.setPaddingScheme(marketingCustomerConfig.getPaddingScheme());
+        customerTagsVO.setCharset(marketingCustomerConfig.getCharset());
+        customerTagsVO.setDynamicKeys(marketingCustomerConfig.getDynamicKeys());
         writeTagsOfRedis(apiCode, customerTagsVO);
         return customerTagsVO;
     }
