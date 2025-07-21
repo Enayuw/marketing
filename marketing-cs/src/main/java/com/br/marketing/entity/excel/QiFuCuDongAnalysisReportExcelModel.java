@@ -23,7 +23,7 @@ public class QiFuCuDongAnalysisReportExcelModel {
     @ExcelProperty(value = "下发日期", index = 1)
     private String issueDate;
 
-    @ExcelProperty(value = "用户类型", index = 2)
+    @ExcelProperty(value = "usertype", index = 2)
     private String userType;
 
     @ExcelProperty(value = "供应商", index = 3)
