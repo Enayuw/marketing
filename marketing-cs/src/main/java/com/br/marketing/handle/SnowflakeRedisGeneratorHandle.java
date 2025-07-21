@@ -66,7 +66,7 @@ public class SnowflakeRedisGeneratorHandle {
             this.workerIdAssigner = null;
             // 设置不健康
             isHealthy.set(false);
-            LOGGER.warn("当前应用[{}]雪花算法未初始化，当前数据中心ID[{}],{}, 雪花算法不可用", applicationName, datacenterId
+            LOGGER.warn("雪花算法,当前应用[{}]雪花算法未初始化，当前数据中心ID[{}],{}, 雪花算法不可用", applicationName, datacenterId
                     , (datacenterId == 0 || datacenterId == 1) ? "合法" : "不合法");
             return;
         }
@@ -80,7 +80,7 @@ public class SnowflakeRedisGeneratorHandle {
         this.applicationId = this.workerIdAssigner.assignApplicationId(this.applicationName);
         initializeGenerator();
         warmUp();
-        LOGGER.warn("雪花算法初始化完成 - 应用: '{}', 数据中心ID: {}, 应用ID: {}, WorkerID: {}",
+        LOGGER.warn("雪花算法,初始化完成 - 应用: '{}', 数据中心ID: {}, 应用ID: {}, WorkerID: {}",
                 this.applicationName, this.datacenterId, this.applicationId, this.workerId);
     }
 
@@ -94,7 +94,7 @@ public class SnowflakeRedisGeneratorHandle {
 
         // 启动心跳，维持当前实例WorkerID的有效性
         workerIdAssigner.startHeartbeat();
-        LOGGER.warn("为实例 {} (应用: '{}') 分配了 WorkerId: {}", workerIdAssigner.getUniqueInstanceId(), this.applicationName, this.workerId);
+        LOGGER.warn("雪花算法,为实例 {} (应用: '{}') 分配了 WorkerId: {}", workerIdAssigner.getUniqueInstanceId(), this.applicationName, this.workerId);
     }
 
 
@@ -102,10 +102,10 @@ public class SnowflakeRedisGeneratorHandle {
      * 预热系统，填充ID缓冲区
      */
     private void warmUp() {
-        LOGGER.warn("开始预热ID生成器...");
+        LOGGER.warn("雪花算法,开始预热ID生成器...");
         // 同步等待首次填充完成
         refillIdBuffer();
-        LOGGER.warn("ID生成器预热完成，缓冲区ID数量: {}", idBuffer.size());
+        LOGGER.warn("雪花算法,ID生成器预热完成，缓冲区ID数量: {}", idBuffer.size());
     }
 
     /**
@@ -116,7 +116,7 @@ public class SnowflakeRedisGeneratorHandle {
      */
     public long nextId() {
         if (!isHealthy.get()) {
-            throw new IllegalStateException("ID生成器处于不健康状态，为保证ID唯一，停止ID生成");
+            throw new IllegalStateException("雪花算法,ID生成器处于不健康状态，为保证ID唯一，停止ID生成");
         }
 
         // 当缓冲区低于阈值时，异步触发填充
@@ -132,11 +132,11 @@ public class SnowflakeRedisGeneratorHandle {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            LOGGER.warn("从缓冲区获取ID被中断,{}", e.getMessage(), e);
+            LOGGER.warn("雪花算法,从缓冲区获取ID被中断,{}", e.getMessage(), e);
         }
 
         // 缓冲区为空或超时，降级为同步生成单个ID
-        LOGGER.warn("ID缓冲区为空，降级为同步生成模式");
+        LOGGER.warn("雪花算法,ID缓冲区为空，降级为同步生成模式");
         return generator.nextId();
     }
 
@@ -149,7 +149,7 @@ public class SnowflakeRedisGeneratorHandle {
      */
     public List<Long> nextIds(int count) {
         if (!isHealthy.get()) {
-            throw new IllegalStateException("ID生成器处于不健康状态，为保证ID唯一，停止ID生成");
+            throw new IllegalStateException("雪花算法,ID生成器处于不健康状态，为保证ID唯一，停止ID生成");
         }
         if (count <= 0) {
             return Collections.emptyList();
@@ -161,7 +161,7 @@ public class SnowflakeRedisGeneratorHandle {
         // 如果缓冲区数量不足，则同步生成剩余的ID
         int remaining = count - drained;
         if (remaining > 0) {
-            LOGGER.warn("ID缓冲区数量不足，需要额外生成 {} 个ID", remaining);
+            LOGGER.warn("雪花算法,ID缓冲区数量不足，需要额外生成 {} 个ID", remaining);
             for (int i = 0; i < remaining; i++) {
                 ids.add(generator.nextId());
             }
@@ -183,7 +183,7 @@ public class SnowflakeRedisGeneratorHandle {
             if (refillCount <= 0) return;
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("开始填充ID缓冲区，当前容量: {}, 计划填充: {}", idBuffer.size(), refillCount);
+                LOGGER.debug("雪花算法,开始填充ID缓冲区，当前容量: {}, 计划填充: {}", idBuffer.size(), refillCount);
             }
 
             List<Long> batchIds = new ArrayList<>(refillCount);
@@ -194,10 +194,10 @@ public class SnowflakeRedisGeneratorHandle {
             idBuffer.addAll(batchIds);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("ID缓冲区填充完成，新增 {} 个ID，当前容量: {}", batchIds.size(), idBuffer.size());
+                LOGGER.debug("雪花算法,ID缓冲区填充完成，新增 {} 个ID，当前容量: {}", batchIds.size(), idBuffer.size());
             }
         } catch (Exception e) {
-            LOGGER.error("填充ID缓冲区时发生严重错误, 将停止服务: {}", e.getMessage(), e);
+            LOGGER.error("雪花算法,填充ID缓冲区时发生严重错误, 将停止服务: {}", e.getMessage(), e);
             this.isHealthy.set(false);
         }
     }
@@ -236,13 +236,13 @@ public class SnowflakeRedisGeneratorHandle {
 
         public ShardedGenerator(long datacenterId, long workerId, long applicationId) {
             if (workerId > MAX_WORKER_ID || workerId < 0) {
-                throw new IllegalArgumentException(String.format("Worker ID 不能大于 %d 或小于 0", MAX_WORKER_ID));
+                throw new IllegalArgumentException(String.format("雪花算法,Worker ID 不能大于 %d 或小于 0", MAX_WORKER_ID));
             }
             if (datacenterId > MAX_DATACENTER_ID || datacenterId < 0) {
-                throw new IllegalArgumentException(String.format("Datacenter ID 不能大于 %d 或小于 0", MAX_DATACENTER_ID));
+                throw new IllegalArgumentException(String.format("雪花算法,Datacenter ID 不能大于 %d 或小于 0", MAX_DATACENTER_ID));
             }
             if (applicationId > MAX_APPLICATION_ID || applicationId < 0) {
-                throw new IllegalArgumentException(String.format("Application ID 不能大于 %d 或小于 0", MAX_APPLICATION_ID));
+                throw new IllegalArgumentException(String.format("雪花算法,Application ID 不能大于 %d 或小于 0", MAX_APPLICATION_ID));
             }
             this.datacenterId = datacenterId;
             this.workerId = workerId;
@@ -254,15 +254,15 @@ public class SnowflakeRedisGeneratorHandle {
 
             if (timestamp < lastTimestamp) {
                 long offset = lastTimestamp - timestamp;
-                LOGGER.warn("检测到时钟回拨，当前时间: {}, 上次时间: {}, 差异: {}ms", timestamp, lastTimestamp, offset);
+                LOGGER.warn("雪花算法,检测到时钟回拨，当前时间: {}, 上次时间: {}, 差异: {}ms", timestamp, lastTimestamp, offset);
                 if (offset > 5000) {
-                    throw new IllegalStateException(String.format("Clock moved backwards. Refusing to generate id for %d milliseconds", offset));
+                    throw new IllegalStateException(String.format("雪花算法,时钟回拨, 差异: %d ms", offset));
                 }
                 try {
                     Thread.sleep(offset);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    throw new IllegalStateException("Waiting for clock recovery was interrupted", e);
+                    throw new IllegalStateException("雪花算法,等待时钟恢复被中断", e);
                 }
                 timestamp = System.currentTimeMillis();
             }
@@ -324,7 +324,7 @@ public class SnowflakeRedisGeneratorHandle {
                     .maximumSize(10)
                     .expireAfterWrite(7, TimeUnit.DAYS)
                     .build();
-            LOGGER.warn("WorkerId分配器初始化，唯一实例ID: {}", this.uniqueInstanceId);
+            LOGGER.warn("雪花算法,WorkerId分配器初始化，唯一实例ID: {}", this.uniqueInstanceId);
         }
 
         private String generateK8sUniqueInstanceId() {
@@ -340,7 +340,7 @@ public class SnowflakeRedisGeneratorHandle {
             // 1. 从本地静态缓存获取
             Long cachedAppId = appIdCache.get(appName);
             if (cachedAppId != null) {
-                LOGGER.warn("从本地缓存获取应用ID: '{}' -> {}", appName, cachedAppId);
+                LOGGER.warn("雪花算法,从本地缓存获取应用ID: '{}' -> {}", appName, cachedAppId);
                 return cachedAppId;
             }
 
@@ -361,33 +361,33 @@ public class SnowflakeRedisGeneratorHandle {
                     if (existingIdStr != null) {
                         long appId = Long.parseLong(existingIdStr);
                         appIdCache.put(appName, appId);
-                        LOGGER.warn("从Redis获取已存在的应用ID: '{}' -> {}. [Key: {}]", appName, appId, appIdMapKey);
+                        LOGGER.warn("雪花算法,从Redis获取已存在的应用ID: '{}' -> {}. [Key: {}]", appName, appId, appIdMapKey);
                         return appId;
                     } else {
                         // 注册新应用
                         long registeredCount = redisChgService.hlen(appIdMapKey);
                         if (registeredCount >= MAX_APPLICATION_ID + 1) {
-                            throw new IllegalStateException(String.format("应用数量已达上限[%d]，无法注册新应用'%s'。 [Key: %s]",
+                            throw new IllegalStateException(String.format("雪花算法,应用数量已达上限[%d]，无法注册新应用'%s'。 [Key: %s]",
                                     (MAX_APPLICATION_ID + 1), appName, appIdMapKey));
                         }
                         long newAppId = registeredCount; // ID从0开始
                         redisChgService.hset(appIdMapKey, appName, String.valueOf(newAppId));
                         appIdCache.put(appName, newAppId);
-                        LOGGER.warn("成功注册新应用并分配ID: '{}' -> {}. [Key: {}]", appName, newAppId, appIdMapKey);
+                        LOGGER.warn("雪花算法,成功注册新应用并分配ID: '{}' -> {}. [Key: {}]", appName, newAppId, appIdMapKey);
                         return newAppId;
                     }
                 } finally {
                     releaseDistributedLock(lockKey, lockValue);
                 }
             } else {
-                throw new IllegalStateException("获取应用ID分配锁超时，服务启动失败。 [LockKey: " + lockKey + "]");
+                throw new IllegalStateException("雪花算法,获取应用ID分配锁超时，服务启动失败。 [LockKey: " + lockKey + "]");
             }
         }
 
         public long assignWorkerId() {
             Long cachedId = workerIdCache.getIfPresent(this.uniqueInstanceId);
             if (cachedId != null) {
-                LOGGER.warn("成功从本地缓存恢复WorkerId: {} for 实例: {}", cachedId, this.uniqueInstanceId);
+                LOGGER.warn("雪花算法,成功从本地缓存恢复WorkerId: {} for 实例: {}", cachedId, this.uniqueInstanceId);
                 return cachedId;
             }
             try {
@@ -396,9 +396,9 @@ public class SnowflakeRedisGeneratorHandle {
                 workerIdCache.put(this.uniqueInstanceId, workerId);
                 return workerId;
             } catch (Exception e) {
-                LOGGER.error("从Redis分配WorkerId失败，且本地无缓存，服务启动失败。实例ID: {}, 数据中心: {}, 应用: {}",
+                LOGGER.error("雪花算法,从Redis分配WorkerId失败，且本地无缓存，服务启动失败。实例ID: {}, 数据中心: {}, 应用: {}",
                         this.uniqueInstanceId, datacenterId, applicationName, e);
-                throw new IllegalStateException("无法获取唯一的WorkerId，服务无法启动", e);
+                throw new IllegalStateException("雪花算法,无法获取唯一的WorkerId，服务无法启动", e);
             }
         }
 
@@ -414,7 +414,7 @@ public class SnowflakeRedisGeneratorHandle {
                     String existingIdStr = redisChgService.hget(assignedKey, this.uniqueInstanceId);
                     if (existingIdStr != null) {
                         long existingId = Long.parseLong(existingIdStr);
-                        LOGGER.warn("实例 {} 已分配过ID，直接恢复WorkerId: {}. [AssignedKey: {}]", this.uniqueInstanceId, existingId, assignedKey);
+                        LOGGER.warn("雪花算法,实例 {} 已分配过ID，直接恢复WorkerId: {}. [AssignedKey: {}]", this.uniqueInstanceId, existingId, assignedKey);
                         return existingId;
                     }
 
@@ -440,7 +440,7 @@ public class SnowflakeRedisGeneratorHandle {
                     });
 
                     if (!staleInstances.isEmpty()) {
-                        LOGGER.warn("发现 {} 个僵尸实例，将回收其WorkerID: {}. [AssignedKey: {}, HeartbeatKey: {}]",
+                        LOGGER.warn("雪花算法,发现 {} 个僵尸实例，将回收其WorkerID: {}. [AssignedKey: {}, HeartbeatKey: {}]",
                                 staleInstances.size(), staleInstances, assignedKey, heartbeatKey);
                         redisChgService.hdel(assignedKey, staleInstances.toArray(new String[0]));
                         redisChgService.hdel(heartbeatKey, staleInstances.toArray(new String[0]));
@@ -449,20 +449,21 @@ public class SnowflakeRedisGeneratorHandle {
                     for (long id = 0; id <= MAX_WORKER_ID; id++) {
                         if (!aliveWorkerIds.contains(id)) {
                             redisChgService.hset(assignedKey, this.uniqueInstanceId, String.valueOf(id));
-                            LOGGER.warn("成功为实例 {} 分配新WorkerId: {}. [AssignedKey: {}, 数据中心: {}, 应用: {}]",
+                            LOGGER.warn("雪花算法,成功为实例 {} 分配新WorkerId: {}. [AssignedKey: {}, 数据中心: {}, 应用: {}]",
                                     uniqueInstanceId, id, assignedKey, datacenterId, applicationName);
                             return id;
                         }
                     }
 
-                    throw new RuntimeException(String.format("所有WorkerId都已被占用, 应用[%s]在数据中心[%d]的实例数已达上限[%d]。 [AssignedKey: %s]",
+                    throw new RuntimeException(String.format(
+                            "雪花算法,所有WorkerId都已被占用, 应用[%s]在数据中心[%d]的实例数已达上限[%d].[AssignedKey: %s]",
                             applicationName, datacenterId, (MAX_WORKER_ID + 1), assignedKey));
 
                 } finally {
                     releaseDistributedLock(lockKey, lockValue);
                 }
             }
-            throw new RuntimeException("获取WorkerId分配锁超时, lockKey=" + lockKey);
+            throw new RuntimeException("雪花算法,获取WorkerId分配锁超时, lockKey=" + lockKey);
         }
 
         public void startHeartbeat() {
@@ -486,11 +487,11 @@ public class SnowflakeRedisGeneratorHandle {
             } catch (Exception e) {
                 int failures = heartbeatFailures.incrementAndGet();
                 if (failures >= MAX_HEARTBEAT_FAILURES) {
-                    LOGGER.error("发送WorkerId心跳连续失败已达 {} 次（阈值），将把服务实例标记为不健康状态！ [HeartbeatKey: {}, InstanceId: {}]",
+                    LOGGER.error("雪花算法,发送WorkerId心跳连续失败已达 {} 次（阈值），将把服务实例标记为不健康状态！ [HeartbeatKey: {}, InstanceId: {}]",
                             failures, heartbeatKey, this.uniqueInstanceId, e);
                     this.isHealthy.set(false);
                 } else {
-                    LOGGER.warn("发送WorkerId心跳失败，这是连续第 {} 次。将在下个周期重试。 [HeartbeatKey: {}, InstanceId: {}, Message: {}]",
+                    LOGGER.warn("雪花算法,发送WorkerId心跳失败，这是连续第 {} 次。将在下个周期重试。 [HeartbeatKey: {}, InstanceId: {}, Message: {}]",
                             failures, heartbeatKey, this.uniqueInstanceId, e.getMessage());
                 }
             }
@@ -500,7 +501,7 @@ public class SnowflakeRedisGeneratorHandle {
             try {
                 return redisChgService.lock(key, value, timeout);
             } catch (Exception e) {
-                LOGGER.error("获取分布式锁时发生异常, [Key: {}, Value: {}, Timeout: {}s]", key, value, timeout, e);
+                LOGGER.error("雪花算法,获取分布式锁时发生异常, [Key: {}, Value: {}, Timeout: {}s]", key, value, timeout, e);
                 return false;
             }
         }
@@ -510,7 +511,7 @@ public class SnowflakeRedisGeneratorHandle {
                 // 假设unlink是封装了原子删除的自定义方法
                 redisChgService.unlink(key, value);
             } catch (Exception e) {
-                LOGGER.error("释放分布式锁时发生异常, [Key: {}, Value: {}]", key, value, e);
+                LOGGER.error("雪花算法,释放分布式锁时发生异常, [Key: {}, Value: {}]", key, value, e);
             }
         }
 
