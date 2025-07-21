@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingLineAccountDetailMapperBase" >
+<mapper namespace="com.br.marketing.mapper.MarketingLineAccountDetailMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingLineAccountDetail" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="config_id" property="configId" jdbcType="BIGINT" />
     <result column="record_id" property="recordId" jdbcType="BIGINT" />
     <result column="line_supplier" property="lineSupplier" jdbcType="VARCHAR" />
     <result column="gateway_id" property="gatewayId" jdbcType="BIGINT" />
-    <result column="outbound_number" property="outboundNumber" jdbcType="VARCHAR" />
+    <result column="caller_fullname" property="callerFullname" jdbcType="VARCHAR" />
     <result column="price" property="price" jdbcType="DECIMAL" />
     <result column="effect_start_date" property="effectStartDate" jdbcType="DATE" />
     <result column="effect_end_date" property="effectEndDate" jdbcType="DATE" />
@@ -75,7 +75,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, config_id, record_id, line_supplier, gateway_id, outbound_number, price, effect_start_date, 
+    id, config_id, record_id, line_supplier, gateway_id, caller_fullname, price, effect_start_date,
     effect_end_date, enabled, create_time, update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingLineAccountDetailExample" >
@@ -93,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_line_account_detail
     where id = #{id,jdbcType=BIGINT}
@@ -112,16 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_line_account_detail (config_id, record_id, line_supplier, 
-      gateway_id, outbound_number, price, 
-      effect_start_date, effect_end_date, enabled, 
-      create_time, update_time, is_delete
-      )
-    values (#{configId,jdbcType=BIGINT}, #{recordId,jdbcType=BIGINT}, #{lineSupplier,jdbcType=VARCHAR}, 
-      #{gatewayId,jdbcType=BIGINT}, #{outboundNumber,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL}, 
-      #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE}, #{enabled,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}
-      )
+    insert into b_marketing_line_account_detail (config_id, record_id, line_supplier,
+    gateway_id, caller_fullname, price,
+    effect_start_date, effect_end_date, enabled,
+    create_time, update_time, is_delete
+    )
+    values (#{configId,jdbcType=BIGINT}, #{recordId,jdbcType=BIGINT}, #{lineSupplier,jdbcType=VARCHAR},
+    #{gatewayId,jdbcType=BIGINT}, #{callerFullname,jdbcType=VARCHAR}, #{price,jdbcType=DECIMAL},
+    #{effectStartDate,jdbcType=DATE}, #{effectEndDate,jdbcType=DATE}, #{enabled,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingLineAccountDetail" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -141,8 +141,8 @@
       <if test="gatewayId != null" >
         gateway_id,
       </if>
-      <if test="outboundNumber != null" >
-        outbound_number,
+      <if test="callerFullname != null" >
+        caller_fullname,
       </if>
       <if test="price != null" >
         price,
@@ -179,8 +179,8 @@
       <if test="gatewayId != null" >
         #{gatewayId,jdbcType=BIGINT},
       </if>
-      <if test="outboundNumber != null" >
-        #{outboundNumber,jdbcType=VARCHAR},
+      <if test="callerFullname != null" >
+        #{callerFullname,jdbcType=VARCHAR},
       </if>
       <if test="price != null" >
         #{price,jdbcType=DECIMAL},
@@ -229,8 +229,8 @@
       <if test="record.gatewayId != null" >
         gateway_id = #{record.gatewayId,jdbcType=BIGINT},
       </if>
-      <if test="record.outboundNumber != null" >
-        outbound_number = #{record.outboundNumber,jdbcType=VARCHAR},
+      <if test="record.callerFullname != null" >
+        caller_fullname = #{record.callerFullname,jdbcType=VARCHAR},
       </if>
       <if test="record.price != null" >
         price = #{record.price,jdbcType=DECIMAL},
@@ -261,18 +261,18 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_line_account_detail
     set id = #{record.id,jdbcType=BIGINT},
-      config_id = #{record.configId,jdbcType=BIGINT},
-      record_id = #{record.recordId,jdbcType=BIGINT},
-      line_supplier = #{record.lineSupplier,jdbcType=VARCHAR},
-      gateway_id = #{record.gatewayId,jdbcType=BIGINT},
-      outbound_number = #{record.outboundNumber,jdbcType=VARCHAR},
-      price = #{record.price,jdbcType=DECIMAL},
-      effect_start_date = #{record.effectStartDate,jdbcType=DATE},
-      effect_end_date = #{record.effectEndDate,jdbcType=DATE},
-      enabled = #{record.enabled,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER}
+    config_id = #{record.configId,jdbcType=BIGINT},
+    record_id = #{record.recordId,jdbcType=BIGINT},
+    line_supplier = #{record.lineSupplier,jdbcType=VARCHAR},
+    gateway_id = #{record.gatewayId,jdbcType=BIGINT},
+    caller_fullname = #{record.callerFullname,jdbcType=VARCHAR},
+    price = #{record.price,jdbcType=DECIMAL},
+    effect_start_date = #{record.effectStartDate,jdbcType=DATE},
+    effect_end_date = #{record.effectEndDate,jdbcType=DATE},
+    enabled = #{record.enabled,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -292,8 +292,8 @@
       <if test="gatewayId != null" >
         gateway_id = #{gatewayId,jdbcType=BIGINT},
       </if>
-      <if test="outboundNumber != null" >
-        outbound_number = #{outboundNumber,jdbcType=VARCHAR},
+      <if test="callerFullname != null" >
+        caller_fullname = #{callerFullname,jdbcType=VARCHAR},
       </if>
       <if test="price != null" >
         price = #{price,jdbcType=DECIMAL},
@@ -322,17 +322,17 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingLineAccountDetail" >
     update b_marketing_line_account_detail
     set config_id = #{configId,jdbcType=BIGINT},
-      record_id = #{recordId,jdbcType=BIGINT},
-      line_supplier = #{lineSupplier,jdbcType=VARCHAR},
-      gateway_id = #{gatewayId,jdbcType=BIGINT},
-      outbound_number = #{outboundNumber,jdbcType=VARCHAR},
-      price = #{price,jdbcType=DECIMAL},
-      effect_start_date = #{effectStartDate,jdbcType=DATE},
-      effect_end_date = #{effectEndDate,jdbcType=DATE},
-      enabled = #{enabled,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER}
+        record_id = #{recordId,jdbcType=BIGINT},
+        line_supplier = #{lineSupplier,jdbcType=VARCHAR},
+        gateway_id = #{gatewayId,jdbcType=BIGINT},
+        caller_fullname = #{callerFullname,jdbcType=VARCHAR},
+        price = #{price,jdbcType=DECIMAL},
+        effect_start_date = #{effectStartDate,jdbcType=DATE},
+        effect_end_date = #{effectEndDate,jdbcType=DATE},
+        enabled = #{enabled,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

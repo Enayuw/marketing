@@ -4,11 +4,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-public class LineOutboundDto {
+public class LineCallerDto {
 
     @ApiModelProperty(value = "线路id")
     private Long gatewayId;
 
-    @ApiModelProperty(value = "主叫号码")
-    private String outboundNumber;
+    @ApiModelProperty(value = "主叫项目名称")
+    private String callerFullname;
 }

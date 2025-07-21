@@ -30,9 +30,9 @@ public class MarketingLineAccountDetail {
     private Long gatewayId;
 
     /**
-     * 主叫号码
+     * 主叫项目名称
      */
-    private String outboundNumber;
+    private String callerFullname;
 
     /**
      * 短信单价，元/条
@@ -109,12 +109,12 @@ public class MarketingLineAccountDetail {
         this.gatewayId = gatewayId;
     }
 
-    public String getOutboundNumber() {
-        return outboundNumber;
+    public String getCallerFullname() {
+        return callerFullname;
     }
 
-    public void setOutboundNumber(String outboundNumber) {
-        this.outboundNumber = outboundNumber == null ? null : outboundNumber.trim();
+    public void setCallerFullname(String callerFullname) {
+        this.callerFullname = callerFullname == null ? null : callerFullname.trim();
     }
 
     public BigDecimal getPrice() {

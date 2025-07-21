@@ -235,8 +235,8 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
         long configId = Long.parseLong(
                 ThreadLocalRandom.current().nextInt(1000, 10000)
                         + String.valueOf(System.currentTimeMillis()));
-        List<String> outboundNumbers = dto.getLines().stream().map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
-        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        List<String> callerFullnames = dto.getLines().stream().map(LineCallerDto::getCallerFullname).collect(Collectors.toList());
+        List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
         for (PriceDateDTO priceDate : dto.getPriceDates()) {
             Date effectStartDate = Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
             Date effectEndDate = null;
@@ -252,13 +252,13 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
             accountRecord.setEffectStartDate(effectStartDate);
             accountRecord.setEffectEndDate(effectEndDate);
             lineAccountRecordMapper.insertSelective(accountRecord);
-            for (LineOutboundDto line : dto.getLines()) {
+            for (LineCallerDto line : dto.getLines()) {
                 MarketingLineAccountDetail accountDetail = new MarketingLineAccountDetail();
                 accountDetail.setConfigId(configId);
                 accountDetail.setRecordId(accountRecord.getId());
                 accountDetail.setLineSupplier(dto.getLineSupplier());
                 accountDetail.setGatewayId(line.getGatewayId());
-                accountDetail.setOutboundNumber(line.getOutboundNumber());
+                accountDetail.setCallerFullname(line.getCallerFullname());
                 accountDetail.setPrice(priceDate.getPrice());
                 accountDetail.setEffectStartDate(effectStartDate);
                 accountDetail.setEffectEndDate(effectEndDate);
@@ -270,7 +270,7 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
         accountLog.setLineSupplier(dto.getLineSupplier());
         JSONObject detail = new JSONObject();
         detail.put("gatewayIds", objectMapper.writeValueAsString(gatewayIds));
-        detail.put("outboundNumbers", objectMapper.writeValueAsString(outboundNumbers));
+        detail.put("callerFullnames", objectMapper.writeValueAsString(callerFullnames));
         detail.put("priceDates", JSON.toJSONString(dto.getPriceDates()));
         accountLog.setDetail(detail.toJSONString());
         userRecord(accountLog);
@@ -293,8 +293,8 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
         updateAccountDetail.setIsDelete(ISDELETED_DEL);
         lineAccountDetailMapper.updateByExampleSelective(updateAccountDetail, accountDetailExample);
         //2.新增
-        List<String> outboundNumbers = dto.getLines().stream().map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
-        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        List<String> callerFullnames = dto.getLines().stream().map(LineCallerDto::getCallerFullname).collect(Collectors.toList());
+        List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
         for (PriceDateDTO priceDate : dto.getPriceDates()) {
             Date effectStartDate = Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
             Date effectEndDate = null;
@@ -310,12 +310,13 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
             accountRecord.setEffectStartDate(effectStartDate);
             accountRecord.setEffectEndDate(effectEndDate);
             lineAccountRecordMapper.insertSelective(accountRecord);
-            for (LineOutboundDto line : dto.getLines()) {
+            for (LineCallerDto line : dto.getLines()) {
                 MarketingLineAccountDetail accountDetail = new MarketingLineAccountDetail();
                 accountDetail.setConfigId(dto.getConfigId());
                 accountDetail.setRecordId(accountRecord.getId());
                 accountDetail.setLineSupplier(dto.getLineSupplier());
                 accountDetail.setGatewayId(line.getGatewayId());
+                accountDetail.setCallerFullname(line.getCallerFullname());
                 accountDetail.setPrice(priceDate.getPrice());
                 accountDetail.setEffectStartDate(effectStartDate);
                 accountDetail.setEffectEndDate(effectEndDate);
@@ -327,7 +328,7 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
         accountLog.setLineSupplier(dto.getLineSupplier());
         JSONObject detail = new JSONObject();
         detail.put("gatewayIds", objectMapper.writeValueAsString(gatewayIds));
-        detail.put("outboundNumbers", objectMapper.writeValueAsString(outboundNumbers));
+        detail.put("callerFullnames", objectMapper.writeValueAsString(callerFullnames));
         detail.put("priceDates", JSON.toJSONString(dto.getPriceDates()));
         accountLog.setDetail(detail.toJSONString());
         userRecord(accountLog);

@@ -202,14 +202,14 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     @Override
     public Result addLineAccount(LineAccountDto dto) throws JsonProcessingException {
         //1.校验线路有无存在的配置
-        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
         List<Long> existGatewayIds = lineAccountDetailMapper.selectLineIfExist(gatewayIds, dto.getConfigId());
         if (existGatewayIds.size() > 0) {
-            List<String> outboundNumbers = dto.getLines().stream()
+            List<String> callerFullnames = dto.getLines().stream()
                     .filter(line -> existGatewayIds.contains(line.getGatewayId()))
-                    .map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
+                    .map(LineCallerDto::getCallerFullname).collect(Collectors.toList());
             return new Result<String>().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("主叫号码：" + String.join(",", outboundNumbers) + "已存在配置，无法新增，请在列表页面变更对应主叫号码配置！");
+                    .setMessage("主叫项目名称：" + String.join(",", callerFullnames) + "已存在配置，无法新增，请在列表页面变更对应主叫项目名称配置！");
         }
         //2.判断日期没有重复
         List<PriceDateDTO> priceDates = dto.getPriceDates();
@@ -236,14 +236,14 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     @Override
     public Result updLineAccount(LineAccountDto dto) throws IOException {
         //1.校验渠道有无存在的配置
-        List<Long> gatewayIds = dto.getLines().stream().map(LineOutboundDto::getGatewayId).collect(Collectors.toList());
+        List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
         List<Long> existGatewayIds = lineAccountDetailMapper.selectLineIfExist(gatewayIds, dto.getConfigId());
         if (existGatewayIds.size() > 0) {
-            List<String> outboundNumbers = dto.getLines().stream()
+            List<String> callerFullnames = dto.getLines().stream()
                     .filter(line -> existGatewayIds.contains(line.getGatewayId()))
-                    .map(LineOutboundDto::getOutboundNumber).collect(Collectors.toList());
+                    .map(LineCallerDto::getCallerFullname).collect(Collectors.toList());
             return new Result<String>().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("主叫号码：" + String.join(",", outboundNumbers) + "已存在配置，无法变更，请在列表页面变更对应主叫号码配置！");
+                    .setMessage("主叫项目名称：" + String.join(",", callerFullnames) + "已存在配置，无法变更，请在列表页面变更对应主叫项目名称配置！");
         }
         //2.判断日期没有重复
         List<PriceDateDTO> priceDates = dto.getPriceDates();

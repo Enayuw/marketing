@@ -253,66 +253,6 @@ public class MarketingLineAccountRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andRecordIdIsNull() {
-            addCriterion("record_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdIsNotNull() {
-            addCriterion("record_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdEqualTo(Long value) {
-            addCriterion("record_id =", value, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdNotEqualTo(Long value) {
-            addCriterion("record_id <>", value, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdGreaterThan(Long value) {
-            addCriterion("record_id >", value, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("record_id >=", value, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdLessThan(Long value) {
-            addCriterion("record_id <", value, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdLessThanOrEqualTo(Long value) {
-            addCriterion("record_id <=", value, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdIn(List<Long> values) {
-            addCriterion("record_id in", values, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdNotIn(List<Long> values) {
-            addCriterion("record_id not in", values, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdBetween(Long value1, Long value2) {
-            addCriterion("record_id between", value1, value2, "recordId");
-            return (Criteria) this;
-        }
-
-        public Criteria andRecordIdNotBetween(Long value1, Long value2) {
-            addCriterion("record_id not between", value1, value2, "recordId");
-            return (Criteria) this;
-        }
-
         public Criteria andLineSupplierIsNull() {
             addCriterion("line_supplier is null");
             return (Criteria) this;

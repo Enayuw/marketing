@@ -443,73 +443,73 @@ public class MarketingLineAccountDetailExample {
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberIsNull() {
-            addCriterion("outbound_number is null");
+        public Criteria andCallerFullnameIsNull() {
+            addCriterion("caller_fullname is null");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberIsNotNull() {
-            addCriterion("outbound_number is not null");
+        public Criteria andCallerFullnameIsNotNull() {
+            addCriterion("caller_fullname is not null");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberEqualTo(String value) {
-            addCriterion("outbound_number =", value, "outboundNumber");
+        public Criteria andCallerFullnameEqualTo(String value) {
+            addCriterion("caller_fullname =", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberNotEqualTo(String value) {
-            addCriterion("outbound_number <>", value, "outboundNumber");
+        public Criteria andCallerFullnameNotEqualTo(String value) {
+            addCriterion("caller_fullname <>", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberGreaterThan(String value) {
-            addCriterion("outbound_number >", value, "outboundNumber");
+        public Criteria andCallerFullnameGreaterThan(String value) {
+            addCriterion("caller_fullname >", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberGreaterThanOrEqualTo(String value) {
-            addCriterion("outbound_number >=", value, "outboundNumber");
+        public Criteria andCallerFullnameGreaterThanOrEqualTo(String value) {
+            addCriterion("caller_fullname >=", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberLessThan(String value) {
-            addCriterion("outbound_number <", value, "outboundNumber");
+        public Criteria andCallerFullnameLessThan(String value) {
+            addCriterion("caller_fullname <", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberLessThanOrEqualTo(String value) {
-            addCriterion("outbound_number <=", value, "outboundNumber");
+        public Criteria andCallerFullnameLessThanOrEqualTo(String value) {
+            addCriterion("caller_fullname <=", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberLike(String value) {
-            addCriterion("outbound_number like", value, "outboundNumber");
+        public Criteria andCallerFullnameLike(String value) {
+            addCriterion("caller_fullname like", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberNotLike(String value) {
-            addCriterion("outbound_number not like", value, "outboundNumber");
+        public Criteria andCallerFullnameNotLike(String value) {
+            addCriterion("caller_fullname not like", value, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberIn(List<String> values) {
-            addCriterion("outbound_number in", values, "outboundNumber");
+        public Criteria andCallerFullnameIn(List<String> values) {
+            addCriterion("caller_fullname in", values, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberNotIn(List<String> values) {
-            addCriterion("outbound_number not in", values, "outboundNumber");
+        public Criteria andCallerFullnameNotIn(List<String> values) {
+            addCriterion("caller_fullname not in", values, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberBetween(String value1, String value2) {
-            addCriterion("outbound_number between", value1, value2, "outboundNumber");
+        public Criteria andCallerFullnameBetween(String value1, String value2) {
+            addCriterion("caller_fullname between", value1, value2, "callerFullname");
             return (Criteria) this;
         }
 
-        public Criteria andOutboundNumberNotBetween(String value1, String value2) {
-            addCriterion("outbound_number not between", value1, value2, "outboundNumber");
+        public Criteria andCallerFullnameNotBetween(String value1, String value2) {
+            addCriterion("caller_fullname not between", value1, value2, "callerFullname");
             return (Criteria) this;
         }
 

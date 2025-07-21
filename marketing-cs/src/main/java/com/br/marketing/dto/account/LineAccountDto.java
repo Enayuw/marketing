@@ -17,7 +17,7 @@ public class LineAccountDto {
 
     @ApiModelProperty(value = "线路信息")
     @NotEmpty(message = "线路信息不能为空")
-    private List<LineOutboundDto> lines;
+    private List<LineCallerDto> lines;
 
     @ApiModelProperty(value = "价格信息")
     @NotEmpty(message = "价格信息不能为空")

@@ -15,11 +15,6 @@ public class MarketingLineAccountRecord {
     private Long configId;
 
     /**
-     * 汇总记录id
-     */
-    private Long recordId;
-
-    /**
      * 供应商名称
      */
     private String lineSupplier;
@@ -78,14 +73,6 @@ public class MarketingLineAccountRecord {
 
     public void setConfigId(Long configId) {
         this.configId = configId;
-    }
-
-    public Long getRecordId() {
-        return recordId;
-    }
-
-    public void setRecordId(Long recordId) {
-        this.recordId = recordId;
     }
 
     public String getLineSupplier() {
