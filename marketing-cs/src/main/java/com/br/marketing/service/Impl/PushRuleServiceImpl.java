@@ -2997,7 +2997,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 //解密、规则校验
                 marketingPreUserDetailDTO.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-                iUploadCheckService.check3key(marketingPreUserDetailDTO, finalIsCheck);
+                iUploadCheckService.process3keyCheck(marketingPreUserDetailDTO, finalIsCheck);
                 Date nowData = new Date();
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
                 MarketingSyncUser marketingSyncUser = new MarketingSyncUser();

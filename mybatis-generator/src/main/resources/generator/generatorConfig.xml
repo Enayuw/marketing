@@ -59,7 +59,7 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_marketing_sync_" domainObjectName="MarketingSyncUser" >
+        <table tableName="b_marketing_sync_3710155" domainObjectName="MarketingSyncUser" >
 
 
 <!--            <property name="useActualColumnNames" value="false"/>-->

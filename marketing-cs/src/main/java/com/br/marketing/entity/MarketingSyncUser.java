@@ -143,6 +143,11 @@ public class MarketingSyncUser {
      */
     private Integer isRepeat;
 
+    /**
+     * 数据指纹(内部使用，不对外展示)
+     */
+    private Long fingerprint;
+
     public Long getId() {
         return id;
     }
@@ -365,5 +370,13 @@ public class MarketingSyncUser {
 
     public void setIsRepeat(Integer isRepeat) {
         this.isRepeat = isRepeat;
+    }
+
+    public Long getFingerprint() {
+        return fingerprint;
+    }
+
+    public void setFingerprint(Long fingerprint) {
+        this.fingerprint = fingerprint;
     }
 }

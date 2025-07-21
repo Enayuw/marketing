@@ -5,21 +5,21 @@ import lombok.Getter;
 
 public class CustomerTagsValue {
 
-    /**
-     * 上传数据解析 校验3K的枚举值
-     */
-    @AllArgsConstructor
-    @Getter
-    public  enum CheckTypeEnum implements ValueInterace {
+    // /**
+    //  * 上传数据解析 校验3K的枚举值
+    //  */
+    // @AllArgsConstructor
+    // @Getter
+    // public  enum CheckTypeEnum implements ValueInterace {
 
-        CHECKCELL(1,"校验cell","checkCellServiceImpl"),
-        NOCHECK3K(2,"不校验3K","noCheckServiceImpl");
+    //     CHECKCELL(1,"校验cell","checkCellServiceImpl"),
+    //     NOCHECK3K(2,"不校验3K","noCheckServiceImpl");
 
-        private Integer value;
-        private String desc;
-        private String bean;
+    //     private Integer value;
+    //     private String desc;
+    //     private String bean;
 
-    }
+    // }
 
     @AllArgsConstructor
     @Getter
