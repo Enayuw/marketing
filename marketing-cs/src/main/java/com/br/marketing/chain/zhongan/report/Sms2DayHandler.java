@@ -20,8 +20,8 @@ public class Sms2DayHandler implements ZhongAnReportHandler {
      * @throws Exception 如果检查过程中有异常，可抛出，最终视为失败
      */
     @Override
-    public boolean check(String cellMd5) throws Exception {
-        int count = zhongAnCollidingDataLogMapper.countSmsSendSuccess(cellMd5);
+    public boolean check(String cellMd5, String bizDate) throws Exception {
+        int count = zhongAnCollidingDataLogMapper.countSmsSendSuccess(cellMd5,bizDate);
         return count < 2;
     }
 

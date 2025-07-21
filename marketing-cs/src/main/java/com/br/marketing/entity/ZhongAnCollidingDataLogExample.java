@@ -305,136 +305,6 @@ public class ZhongAnCollidingDataLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andDataIdIsNull() {
-            addCriterion("data_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdIsNotNull() {
-            addCriterion("data_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdEqualTo(Long value) {
-            addCriterion("data_id =", value, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdNotEqualTo(Long value) {
-            addCriterion("data_id <>", value, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdGreaterThan(Long value) {
-            addCriterion("data_id >", value, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("data_id >=", value, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdLessThan(Long value) {
-            addCriterion("data_id <", value, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdLessThanOrEqualTo(Long value) {
-            addCriterion("data_id <=", value, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdIn(List<Long> values) {
-            addCriterion("data_id in", values, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdNotIn(List<Long> values) {
-            addCriterion("data_id not in", values, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdBetween(Long value1, Long value2) {
-            addCriterion("data_id between", value1, value2, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataIdNotBetween(Long value1, Long value2) {
-            addCriterion("data_id not between", value1, value2, "dataId");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumIsNull() {
-            addCriterion("case_num is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumIsNotNull() {
-            addCriterion("case_num is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumEqualTo(String value) {
-            addCriterion("case_num =", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumNotEqualTo(String value) {
-            addCriterion("case_num <>", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumGreaterThan(String value) {
-            addCriterion("case_num >", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumGreaterThanOrEqualTo(String value) {
-            addCriterion("case_num >=", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumLessThan(String value) {
-            addCriterion("case_num <", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumLessThanOrEqualTo(String value) {
-            addCriterion("case_num <=", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumLike(String value) {
-            addCriterion("case_num like", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumNotLike(String value) {
-            addCriterion("case_num not like", value, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumIn(List<String> values) {
-            addCriterion("case_num in", values, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumNotIn(List<String> values) {
-            addCriterion("case_num not in", values, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumBetween(String value1, String value2) {
-            addCriterion("case_num between", value1, value2, "caseNum");
-            return (Criteria) this;
-        }
-
-        public Criteria andCaseNumNotBetween(String value1, String value2) {
-            addCriterion("case_num not between", value1, value2, "caseNum");
-            return (Criteria) this;
-        }
-
         public Criteria andCellIsNull() {
             addCriterion("cell is null");
             return (Criteria) this;
@@ -622,6 +492,76 @@ public class ZhongAnCollidingDataLogExample {
 
         public Criteria andIsConnectNotBetween(Integer value1, Integer value2) {
             addCriterion("is_connect not between", value1, value2, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateIsNull() {
+            addCriterion("report_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateIsNotNull() {
+            addCriterion("report_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateEqualTo(String value) {
+            addCriterion("report_date =", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateNotEqualTo(String value) {
+            addCriterion("report_date <>", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateGreaterThan(String value) {
+            addCriterion("report_date >", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateGreaterThanOrEqualTo(String value) {
+            addCriterion("report_date >=", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateLessThan(String value) {
+            addCriterion("report_date <", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateLessThanOrEqualTo(String value) {
+            addCriterion("report_date <=", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateLike(String value) {
+            addCriterion("report_date like", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateNotLike(String value) {
+            addCriterion("report_date not like", value, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateIn(List<String> values) {
+            addCriterion("report_date in", values, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateNotIn(List<String> values) {
+            addCriterion("report_date not in", values, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateBetween(String value1, String value2) {
+            addCriterion("report_date between", value1, value2, "reportDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReportDateNotBetween(String value1, String value2) {
+            addCriterion("report_date not between", value1, value2, "reportDate");
             return (Criteria) this;
         }
 

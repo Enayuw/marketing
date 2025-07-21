@@ -7,5 +7,5 @@ public interface ZhongAnReportHandler {
      * @return true 表示通过；false 表示不通过，需要短路
      * @throws Exception 如果检查过程中有异常，可抛出，最终视为失败
      */
-    boolean check(String cellMd5) throws Exception;
+    boolean check(String cellMd5, String bizDate) throws Exception;
 }

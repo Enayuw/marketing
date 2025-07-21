@@ -13,14 +13,14 @@ public class ParallelChainExecutor {
 
     private static final ThreadPoolExecutor ZHONG_AN_REPORT_CHAIN_EXECUTORS = BrExecutors.getThreadPool(10, 10);
 
-    public boolean execute(List<ZhongAnReportHandler> handlers, String cellMd5) {
+    public boolean execute(List<ZhongAnReportHandler> handlers, String cellMd5, String bizDate) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         AtomicInteger remaining = new AtomicInteger(handlers.size());
         // 提交所有任务
         for (ZhongAnReportHandler h : handlers) {
             CompletableFuture.supplyAsync(() -> {
                         try {
-                            return h.check(cellMd5);
+                            return h.check(cellMd5,bizDate);
                         } catch (Exception e) {
                             return false;
                         }

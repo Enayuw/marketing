@@ -118,7 +118,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     ZhongAnCollidingDataBO value = entry.getValue();
                     List<ZhongAnReportHandler> handlers = Lists.newArrayList();
                     handlers.add(sms2DayHandler);
-                    boolean result = executor.execute(handlers, cellMd5);
+                    boolean result = executor.execute(handlers, cellMd5,bizDate);
                     if (result) {
                         SyncUserValidityPeriodsBO bo = keyToSyncUserBO.get(value.getCaseNum());
                         if (bo == null || CollectionUtils.isEmpty(bo.getSyncUsers())) {
