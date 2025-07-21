@@ -36,7 +36,18 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
-        pushData.setPhone(get3keyValue(syncUser.getCell(), "cell", customerTagsVO.getPushJc3keyType()));
+        //属于软交换
+
+        if(customerTagsVO.getPushJc3keyType() == null){
+
+        }
+
+        if(customerTagsVO.getPushJc3keyType().equals(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue())){
+            pushData.setPhone(syncUser.getCellOriginal());
+        }else {
+            pushData.setPhone(get3keyValue(syncUser.getCell(), "cell", customerTagsVO.getPushJc3keyType()));
+            pushData.setLogCell(syncUser.getCell());
+        }
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
@@ -113,8 +124,8 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
         jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
-        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
-        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
+        jsonObject.put("idCard", emptyDefault(syncUser.getIdCardOriginal()));
+        jsonObject.put("name", emptyDefault(syncUser.getNameOriginal()));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
         jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
