@@ -3,7 +3,11 @@ package com.br.marketing.chain.zhongan.report;
 import com.br.marketing.chain.zhongan.ZhongAnReportHandler;
 import com.br.marketing.mapper.ZhongAnCollidingDataLogMapper;
 import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class ConnectOrSmsSendMonthHandler implements ZhongAnReportHandler {
 
     @Resource
