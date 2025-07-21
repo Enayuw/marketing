@@ -347,4 +347,12 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         return apiCodeByZs;
     }
 
+    @Override
+    public List<MarketingCustomerVO> getThreeKEncryptType() {
+
+        Integer value = CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue();
+
+        return null;
+    }
+
 }
