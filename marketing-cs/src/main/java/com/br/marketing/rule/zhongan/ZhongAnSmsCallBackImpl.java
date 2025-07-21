@@ -65,12 +65,12 @@ public class ZhongAnSmsCallBackImpl implements AssembleData<ZaSmsRosterLockingDa
 
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = keyToSyncUserBO.get(bo.getCaseNum());
         if (syncUserValidityPeriodsBO == null) {
-            log.warn("众安通话明细回调, 未匹配到上传数据, caseNum: {}, userType: {}", bo.getCaseNum(), bo.getUserType());
+            log.warn("众安短信明细回调, 未匹配到上传数据, caseNum: {}, userType: {}", bo.getCaseNum(), bo.getUserType());
             return false;
         }
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         if (syncUsers == null || syncUsers.isEmpty()) {
-            log.warn("众安通话明细回调, 未匹配到上传数据, caseNum: {}, userType: {}", bo.getCaseNum(), bo.getUserType());
+            log.warn("众安短信明细回调, 未匹配到上传数据, caseNum: {}, userType: {}", bo.getCaseNum(), bo.getUserType());
             return false;
         }
         return true;
