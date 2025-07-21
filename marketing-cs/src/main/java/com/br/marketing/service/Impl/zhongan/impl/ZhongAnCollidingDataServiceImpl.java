@@ -89,7 +89,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
         }
         for (ZhongAnCollidingConfig config : configs) {
             String configSql = config.getQuerySql();
-            String replaceSql = configSql.replace("#{apiCode}", "\"" + apiCode + "\"").replace("#{bizDate}", bizDate);
+            String replaceSql = configSql.replace("#{apiCode}", apiCode).replace("#{bizDate}", bizDate);
             String completeSql = replaceSql.concat(" limit " + limit);
             Integer isOutbound = 1;
             Integer isSmsSend = 1;
