@@ -2880,6 +2880,12 @@ public class MarketingCommonConfig {
      * 转化文件提取到marketingBI的配置
      */
     private List<JSONObject> transFileExtractionApiCodesConfig;
+
+    /**
+     * 转化文件提取到marketingBI 优先级处理节点列表(只处理高优先级api_code)
+     */
+    private Set<Integer> transFilePriorityList;
+
     /**
      * 转化文件提取到BI线程数
      */
@@ -3222,6 +3228,16 @@ public class MarketingCommonConfig {
      * {"userName":"xxx", "password":"xxx"}
      */
     private Map<String, String> YiXinMailConfigMap;
+
+    /**
+     * 转化文件落库BI批量大小
+     */
+    private Integer fileToMarketingBiBatchSize;
+
+    /**
+     * 转化文件落库BI是否中断
+     */
+    private Boolean fileToMarketingBiInterrupt;
 
     /**
      * 360ai区间配置

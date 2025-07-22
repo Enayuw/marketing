@@ -96,7 +96,7 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
                 return false;
             }
             /* 2023-03-24 liveType是4,6的数据不进入静置队列 */
-            boolean flag = transformType && Arrays.asList(8).contains(liveType) && mqFact.getIsDelay() == null;
+            boolean flag = transformType && Arrays.asList(8,9).contains(liveType) && mqFact.getIsDelay() == null;
             if (!flag){
                 log.warn("宜信实时推决策id:{} cust_num:{}不满足进入延迟队列", transfer.getId(), transfer.getCustNum());
                 return false;

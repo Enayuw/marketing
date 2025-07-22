@@ -1347,5 +1347,22 @@
         order by id
     </select>
 
-
+    <select id="getYXMarketingTransferByLiveTypetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select b.*
+        from (select a.id,a.cid,a.t_cid,a.api_code,a.request_id,a.org_name,a.cust_num,a.source,a.user_type,a.type,a.custom_name
+        ,a.if_register,a.register_time,a.if_login,a.login_time,a.if_apply,a.apply_dt,a.apply_time,a.apply_result
+        ,a.refuse_time,a.audit_time,a.audit_amount,a.if_lent,a.lent_time,a.lent_amount,a.unlent_amount,a.if_settle
+        ,a.settle_time,a.activity,a.case_status,a.case_effective,a.if_transform,a.transform_time,a.insert_time
+        ,a.request_time,a.request_data,a.reserve_field1,a.reserve_field2
+        ,row_number() over (partition by cust_num order by create_time desc,id desc) as rn
+        from b_marketing_transfer_sync_${tCid} a
+        where request_data = #{requestDate}
+        and api_code = #{apiCode}
+        and json_extract(reserve_field1, '$.transformType') = '1' ) as b
+        where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+        and b.json_extract(reserve_field1, '$.liveType')= #{liveType} order by b.id asc limit #{pageSize};
+    </select>
 </mapper>

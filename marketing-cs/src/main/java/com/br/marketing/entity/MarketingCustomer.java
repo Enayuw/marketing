@@ -214,11 +214,6 @@ public class MarketingCustomer {
     private Integer isOutputDataProduct;
 
     /**
-     * 无id关联的产品json
-     */
-    private String mealJson;
-
-    /**
      * 0 内部用户,1 银行,2 非银行,3 催收用户,4 保险用户,5 其他
      */
     private String applyLoanType;
@@ -228,13 +223,25 @@ public class MarketingCustomer {
      */
     private String apiType;
 
-    public String getApplyLoanType() {
-        return applyLoanType;
-    }
+    /**
+     * 短信类别
+     */
+    private String smsCategory;
 
-    public void setApplyLoanType(String applyLoanType) {
-        this.applyLoanType = applyLoanType;
-    }
+    /**
+     * 一级部门
+     */
+    private String firstDepartment;
+
+    /**
+     * 二级部门
+     */
+    private String secondDepartment;
+
+    /**
+     * 无id关联的产品json
+     */
+    private String mealJson;
 
     public Long getId() {
         return id;
@@ -580,6 +587,13 @@ public class MarketingCustomer {
         this.mealJson = mealJson == null ? null : mealJson.trim();
     }
 
+    public String getApplyLoanType() {
+        return applyLoanType;
+    }
+
+    public void setApplyLoanType(String applyLoanType) {
+        this.applyLoanType = applyLoanType;
+    }
 
     public String getApiType() {
         return apiType;
@@ -587,5 +601,29 @@ public class MarketingCustomer {
 
     public void setApiType(String apiType) {
         this.apiType = apiType == null ? null : apiType.trim();
+    }
+
+    public String getSmsCategory() {
+        return smsCategory;
+    }
+
+    public void setSmsCategory(String smsCategory) {
+        this.smsCategory = smsCategory == null ? null : smsCategory.trim();
+    }
+
+    public String getFirstDepartment() {
+        return firstDepartment;
+    }
+
+    public void setFirstDepartment(String firstDepartment) {
+        this.firstDepartment = firstDepartment == null ? null : firstDepartment.trim();
+    }
+
+    public String getSecondDepartment() {
+        return secondDepartment;
+    }
+
+    public void setSecondDepartment(String secondDepartment) {
+        this.secondDepartment = secondDepartment == null ? null : secondDepartment.trim();
     }
 }

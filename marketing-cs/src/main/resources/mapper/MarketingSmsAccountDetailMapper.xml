@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingSmsAccountDetailMapper" >
+
+  <select id="selectChannelIfExist" resultType="java.lang.Long">
+    select channel_id from b_marketing_sms_account_detail
+    where channel_id in
+    <foreach collection="channelIds" item="channelId" open="(" separator="," close=")">
+      #{channelId}
+    </foreach>
+    <if test="configId != null and configId !=''">
+      and config_id != #{configId}
+    </if>
+    and is_delete = 0
+  </select>
+</mapper>
