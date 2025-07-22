@@ -87,6 +87,6 @@ public interface MarketingCustomerService {
      */
     List<String> getApiCodeByProd(List<String> apiCodePrefix);
 
-    List<MarketingCustomerVO> getThreeKEncryptType();
+    String getThreeKEncryptType();
 
 }

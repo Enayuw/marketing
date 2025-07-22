@@ -38,6 +38,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
+        log.warn("进入自动化推决策规则AiToPolicyPatLoanRuleOperaTypeFour："+JSONObject.toJSONString(syncUser));
         String cellOriginal = syncUser.getCellOriginal();
         Integer jc3keyType = customerTagsVO.getPushJc3keyType();
         if (jc3keyType == null) {
@@ -105,7 +106,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
-        buildJson(jsonObject, syncUser);
+        buildJson(jsonObject, syncUser, jc3keyType);
         pushData.setVariables(jsonObject);
 
         log.warn("AI自动化推决策_操作类型4,apiCode:{}", apiCode);
@@ -154,20 +155,55 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         }
     }
 
-
-    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
+    /**
+     * 构建营销同步用户的JSON对象
+     *
+     * @param jsonObject 目标JSON对象
+     * @param syncUser 营销同步用户数据
+     * @param jc3keyType 加密类型(null表示未配置)
+     * @return 构建好的JSON对象
+     */
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType) {
+        // 添加基础字段
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
         jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
-        jsonObject.put("idCard", emptyDefault(syncUser.getIdCardOriginal()));
-        jsonObject.put("name", emptyDefault(syncUser.getNameOriginal()));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
         jsonObject.put("operateType", emptyDefault(syncUser.getOperateType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+
+        // 处理敏感信息(姓名和身份证)
+        processSensitiveInfo(jsonObject, syncUser, jc3keyType);
+
+        // 添加用户姓名
         cusNameOfJo(syncUser.getName(), jsonObject);
+
         return jsonObject;
+    }
+
+    /**
+     * 处理敏感信息(姓名和身份证)的加密逻辑
+     */
+    private void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType) {
+        String idCard = syncUser.getIdCardOriginal();
+        String name = syncUser.getNameOriginal();
+
+        if (jc3keyType == null) {
+            // 未配置加密类型，尝试解密LOG加密
+            BrCipherMaker cipher = BrCipherMaker.getInstance();
+            String decodedIdCard = cipher.decode(idCard);
+            String decodedName = cipher.decode(name);
+
+            // 根据解密结果判断是否LOG加密
+            jsonObject.put("idCard", idCard.equals(decodedIdCard) ? idCard : decodedIdCard);
+            jsonObject.put("name", name.equals(decodedName) ? name : decodedName);
+        } else {
+            // 配置了加密类型，直接使用原始值
+            jsonObject.put("idCard", idCard);
+            jsonObject.put("name", name);
+        }
     }
 
     private String emptyDefault(String value) {

@@ -151,14 +151,12 @@ public class CustomerController {
             @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
     })
     @AddDataAuthBusiness
-    public ApiResult<List<MarketingCustomerVO>> getThreeKEncryptType(){
+    public ApiResult<String> getThreeKEncryptType(){
         try {
-            //查询
-            List<MarketingCustomerVO> list = marketingCustomerService.getThreeKEncryptType();
-            return new ApiResult<List<MarketingCustomerVO>>().success(list);
+            return new ApiResult<String>().success().setData(marketingCustomerService.getThreeKEncryptType());
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage(),ex);
-            return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
         }
     }
 

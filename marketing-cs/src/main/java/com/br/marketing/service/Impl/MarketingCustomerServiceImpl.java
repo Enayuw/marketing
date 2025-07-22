@@ -348,11 +348,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     }
 
     @Override
-    public List<MarketingCustomerVO> getThreeKEncryptType() {
-
-        Integer value = CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue();
-
-        return null;
+    public String getThreeKEncryptType() {
+        return CustomerTagsValue.convertPushJc3keyEnumToJson();
     }
+
 
 }
