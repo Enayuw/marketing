@@ -2107,6 +2107,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                             throw new Exception();
                         }
 
+                        // 获取最后一条记录的searchAfter值
+                        if (!marketingHistories.isEmpty()) {
+                            searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
+                        }
+
                         if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
                             // 解析标签规则
                             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
