@@ -106,7 +106,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
-        buildJson(jsonObject, syncUser);
+        buildJson(jsonObject, syncUser, jc3keyType);
         pushData.setVariables(jsonObject);
 
         log.warn("AI自动化推决策_操作类型4,apiCode:{}", apiCode);

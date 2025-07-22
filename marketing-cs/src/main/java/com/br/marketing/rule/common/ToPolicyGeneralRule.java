@@ -109,7 +109,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
-        buildJson(jsonObject, syncUser);
+        buildJson(jsonObject, syncUser, jc3keyType);
         pushData.setVariables(jsonObject);
         log.warn("AI自动化推决策_操作类型3,apiCode:{}", apiCode);
         return pushData;
