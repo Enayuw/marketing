@@ -88,7 +88,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_ROB_3710090.getName(), 10, 10);
+        TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.ZHONGAN_REPORT_3710048.getName(), 10, 10);
 
         String apiCode = "3710048";
         String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
