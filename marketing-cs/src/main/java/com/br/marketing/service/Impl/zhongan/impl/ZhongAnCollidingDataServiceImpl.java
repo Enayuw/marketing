@@ -13,7 +13,7 @@ import com.br.marketing.chain.zhongan.report.ParallelChainExecutor;
 import com.br.marketing.chain.zhongan.report.SmsSend2DaysHandler;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
-import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhongAnCollidingConfig;
@@ -32,6 +32,8 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -40,8 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
@@ -52,9 +52,6 @@ import org.springframework.util.CollectionUtils;
 @Service
 @Slf4j
 public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataService {
-
-    private final ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
-
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -91,6 +88,8 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CPS_ROB_3710090.getName(), 10, 10);
+
         String apiCode = "3710048";
         String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         String parameter = context.getJobParameter();
@@ -99,7 +98,8 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             apiCode = split[0];
             bizDate = split[1];
         }
-        Integer limit = marketingCommonConfig.getWuBaCollidingDataSubmitPageSize();
+        JSONObject collidingConfig = marketingCommonConfig.getZhongAnCollidingDataConfig();
+        int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
         // 获取待上报数据
         List<ZhongAnCollidingConfig> configs = zhongAnCollidingConfigMapper.queryZhongAnCollidingConfigByPriority();
@@ -123,7 +123,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                 Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
                         .getValidityPeriodsByCustNumAndUserType(custNumSet, collidingDatas.get(0).getUserType(), apiCode, bizDate);
                 Map<String, ZhongAnCollidingDataBO> map = collidingDatas.stream().collect(Collectors.toMap(ZhongAnCollidingDataBO::getMobileMd5,
-                        Function.identity()));
+                                Function.identity(), (ZhongAnCollidingDataBO oldVal, ZhongAnCollidingDataBO newVal) -> newVal));
                 List<ZhongAnCollidingDataBO> collidingDataBOS = Lists.newArrayList();
                 List<Long> nonValidSmsIds = new ArrayList<>();
                 List<Long> nonValidCallIds = new ArrayList<>();
@@ -203,6 +203,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                 }
             }
         }
+        pushPool.shutdownAndAwaitTermination();
     }
 
     private void insertCollidingLog(List<ZaMarketDetail> pushList, String apiCode, String dataSourceType) {

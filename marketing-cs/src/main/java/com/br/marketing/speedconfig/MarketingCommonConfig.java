@@ -3243,5 +3243,8 @@ public class MarketingCommonConfig {
      * 360ai区间配置
      */
     private Integer qiFuConfigNum;
+
+
+    private JSONObject zhongAnCollidingDataConfig;
 }
 
