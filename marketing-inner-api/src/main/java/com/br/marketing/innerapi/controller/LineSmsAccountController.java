@@ -194,7 +194,6 @@ public class LineSmsAccountController {
                                     @RequestParam(defaultValue = "10") Integer size,
                                     @RequestParam(required = false) String lineSupplier,
                                     @RequestParam(required = false) String callerFullName,
-                                     @RequestParam(required = false) String caller,
                                     @RequestParam(required = false) Double price,
                                     @RequestParam(required = false) String configIdStr) {
         try {

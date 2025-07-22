@@ -18,11 +18,6 @@ public class MarketingLineAccountRecordVO {
     private String configId;
 
     /**
-     * 汇总记录id
-     */
-    private Long recordId;
-
-    /**
      * 供应商名称
      */
     private String lineSupplier;

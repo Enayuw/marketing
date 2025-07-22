@@ -5,13 +5,15 @@
 
     <select id="getLineAccountLogs" resultType="com.br.marketing.entity.MarketingLineAccountLog">
         SELECT  id, config_id, line_supplier, detail, user_id, user_name, real_name, ope_type, create_time,
-                      update_time, is_delete
+                update_time, is_delete
         FROM b_marketing_line_account_log
-        WHERE is_delete = 0
-        <if test="configId !=null">
-            AND config_id = #{configId}
-        </if>
-        ORDER BY create_time DESC
+        <where>
+            is_delete = 0
+            <if test="configId !=null">
+                AND config_id = #{configId}
+            </if>
+            ORDER BY create_time DESC
+        </where>
     </select>
 
 </mapper>
