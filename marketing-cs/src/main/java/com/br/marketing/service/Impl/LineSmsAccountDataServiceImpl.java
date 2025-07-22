@@ -366,6 +366,35 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
         lineAccountLogMapper.insertSelective(accountLog);
     }
 
+    @Override
+    public void allowLineAccount(Long configId) {
+        //1.启用record
+        MarketingLineAccountRecordExample accountRecordExample = new MarketingLineAccountRecordExample();
+        accountRecordExample.createCriteria().andConfigIdEqualTo(configId).andIsDeleteEqualTo(0);
+        MarketingLineAccountRecord updateAccountRecord = new MarketingLineAccountRecord();
+        updateAccountRecord.setEnabled(ENABLED_ACT);
+        lineAccountRecordMapper.updateByExampleSelective(updateAccountRecord, accountRecordExample);
+        //2.启用detail
+        MarketingLineAccountDetailExample accountDetailExample = new MarketingLineAccountDetailExample();
+        accountDetailExample.createCriteria().andConfigIdEqualTo(configId).andIsDeleteEqualTo(0);
+        MarketingLineAccountDetail updateAccountDetail = new MarketingLineAccountDetail();
+        updateAccountDetail.setEnabled(ENABLED_ACT);
+        lineAccountDetailMapper.updateByExampleSelective(updateAccountDetail, accountDetailExample);
+        //3.新增启用日志
+        MarketingLineAccountLogExample accountLogExample = new MarketingLineAccountLogExample();
+        accountLogExample.createCriteria().andConfigIdEqualTo(configId).andIsDeleteEqualTo(0);
+        accountLogExample.setOrderByClause("create_time desc limit 1");
+        MarketingLineAccountLog oldAccountLog = lineAccountLogMapper.selectByExample(accountLogExample).get(0);
+        MarketingLineAccountLog accountLog = new MarketingLineAccountLog();
+        BeanUtils.copyProperties(oldAccountLog, accountLog);
+        accountLog.setId(null);
+        userRecord(accountLog);
+        accountLog.setOpeType(OpeTypeEnum.OPE_TYPE_ALLOW.getType());
+        accountLog.setCreateTime(null);
+        accountLog.setUpdateTime(null);
+        lineAccountLogMapper.insertSelective(accountLog);
+    }
+
     private void userRecord(MarketingSmsAccountLog accountLog) {
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         if (userDetail != null) {

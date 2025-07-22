@@ -295,6 +295,12 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
+    @Override
+    public Result allowLineAccount(Long configId) {
+        lineSmsAccountDataService.allowLineAccount(configId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
 
     @Override
     public PageResultReturn getSmsAccountLogs(Integer current,Integer size,Long configId) {
@@ -357,8 +363,6 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
         List<MarketingLineAccountLogVO> voList = convertToLineAccountLogVoList(lineAccountLogList);
         return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());
     }
-
-
 
 
     private List<MarketingSmsAccountRecordVo> convertToSmsAccountRecordVoList(List<MarketingSmsAccountRecord> recordList) {
@@ -443,8 +447,8 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
                             String projectName = channel.getString("projectName");
                             String caller = channel.getString("caller");
                             String callerFullName;
-                            if (projectName != null && !projectName.trim().isEmpty()) {
-                                callerFullName = projectName.trim() + "-" + caller;
+                            if (projectName != null && !projectName.isEmpty()) {
+                                callerFullName = projectName + "-" + caller;
                             } else {
                                 callerFullName = caller;
                             }

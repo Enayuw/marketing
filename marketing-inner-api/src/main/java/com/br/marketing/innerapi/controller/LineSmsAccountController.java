@@ -166,6 +166,21 @@ public class LineSmsAccountController {
         }
     }
 
+    @ApiOperation(value = "线路对账配置启用")
+    @PatchMapping("/allowLineAccount")
+    public ApiResult allowLineAccount(@RequestParam String configIdStr) {
+        try {
+            if (StringUtils.isEmpty(configIdStr)) {
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            Long configId = Long.parseLong(configIdStr);
+            return new ApiResult().fromResult(lineSmsAccountService.allowLineAccount(configId), CODE_1);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+    }
+
     @ApiOperation(value = "线路对账基础信息查询")
     @GetMapping("/getLineAccountBasInfo")
     public ApiResult getLineAccountBasInfo() {

@@ -50,4 +50,6 @@ public interface LineSmsAccountService {
     PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier,String callerFullName, Double price);
 
     PageResultReturn getLineAccountLogs(Integer current, Integer size, Long configId);
+
+    Result allowLineAccount(Long configId);
 }

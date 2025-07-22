@@ -24,4 +24,6 @@ public interface LineSmsAccountDataService {
     void updLineAccount(LineAccountDto dto) throws JsonProcessingException;
 
     void forbLineAccount(Long configId);
+
+    void allowLineAccount(Long configId);
 }
