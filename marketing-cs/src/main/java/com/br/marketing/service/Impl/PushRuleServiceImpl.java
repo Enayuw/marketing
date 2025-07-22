@@ -2180,9 +2180,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
-                        if (k == (marketingHistories.size() - 1)) {
-                            searchAfterStr = marketingHistory.getSearchAfter();
-                        }
                         //人员信息
                         PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
 //                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
