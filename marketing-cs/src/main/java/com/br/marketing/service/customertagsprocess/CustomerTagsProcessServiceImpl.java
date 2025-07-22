@@ -84,7 +84,11 @@ public class CustomerTagsProcessServiceImpl {
      */
     public IUploadCheckService getIUploadCheckService(CustomerTagsVO vo) {
 
-        CustomerTagsValue.PushJc3keyTypeEnum enumByValue = CustomerTagsValue.getEnumByValue(vo.getPushJc3keyType(), CustomerTagsValue.PushJc3keyTypeEnum.class);
+        CustomerTagsValue.PushJc3keyTypeEnum enumByValue = CustomerTagsValue
+                .getEnumByValue(
+                        vo.getPushJc3keyType()
+                        , CustomerTagsValue.PushJc3keyTypeEnum.class
+                );
         if (enumByValue != null) {
             IUploadCheckService iUploadCheckService = iUploadCheckServiceMap.get(enumByValue.getStrategyBean());
             return iUploadCheckService;

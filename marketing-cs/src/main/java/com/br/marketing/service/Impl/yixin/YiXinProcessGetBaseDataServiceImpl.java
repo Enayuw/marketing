@@ -96,7 +96,12 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
 
     @Override
-    public List<MarketingTransferSyncUser> getYXMarketingTransferByLiveType(String tCid, String apiCode, String requestDate, Long indexId, String liveType) {
+    public List<MarketingTransferSyncUser> getYXMarketingTransferByLiveType(String tCid
+            , String apiCode
+            , String requestDate
+            , Long indexId
+            , String liveType) {
+
         return marketingTransferSyncUserMapper
                 .getYXMarketingTransferByLiveTypetikv_(
                         tCid,

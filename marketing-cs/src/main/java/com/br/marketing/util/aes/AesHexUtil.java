@@ -59,6 +59,6 @@ public class AesHexUtil {
 
     public static void main(String[] args) {
         String cell = encrypt("13497814301", "Vje1kFHChlm8khlc");
-        System.out.println(cell);
+//        System.out.println(cell);
     }
 }

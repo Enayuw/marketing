@@ -36,8 +36,10 @@ public abstract class BaseFtpClient {
     }
 
     public static void main(String[] args) {
-        String decrypt = AESAlgorithmUtil.decrypt("9m3bbFRLa9OGe0NNAKFvfxjZDIEpd0j-bZokRLn_UeU", Constants.SFTP_P_SECRET_KEY);
-        System.out.println(decrypt);
+        String decrypt = AESAlgorithmUtil.decrypt(
+                "9m3bbFRLa9OGe0NNAKFvfxjZDIEpd0j-bZokRLn_UeU"
+                , Constants.SFTP_P_SECRET_KEY);
+//        System.out.println(decrypt);
     }
 
     /**
