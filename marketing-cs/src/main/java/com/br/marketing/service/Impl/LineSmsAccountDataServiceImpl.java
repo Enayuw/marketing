@@ -60,7 +60,7 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
     @Transactional
     public void addSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
         long configId = Long.parseLong(
-                ThreadLocalRandom.current().nextInt(1000, 10000)
+                ThreadLocalRandom.current().nextInt(100, 1000)
                         + String.valueOf(System.currentTimeMillis()));
         List<String> channelNames = dto.getChannels().stream().map(SmsChannelDto::getChannelName).collect(Collectors.toList());
         List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
@@ -233,7 +233,7 @@ public class LineSmsAccountDataServiceImpl implements LineSmsAccountDataService 
     @Transactional
     public void addLineAccount(LineAccountDto dto) throws JsonProcessingException {
         long configId = Long.parseLong(
-                ThreadLocalRandom.current().nextInt(1000, 10000)
+                ThreadLocalRandom.current().nextInt(100, 1000)
                         + String.valueOf(System.currentTimeMillis()));
         List<String> callerFullnames = dto.getLines().stream().map(LineCallerDto::getCallerFullname).collect(Collectors.toList());
         List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
