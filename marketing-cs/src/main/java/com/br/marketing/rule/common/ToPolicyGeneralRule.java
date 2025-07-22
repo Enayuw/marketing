@@ -38,7 +38,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         log.warn("进入自动化推决策规则ToPolicyGeneralRule："+JSONObject.toJSONString(syncUser));
         String cellOriginal = syncUser.getCellOriginal();
         Integer jc3keyType = customerTagsVO.getPushJc3keyType();
-        if (jc3keyType == null) {
+        if (jc3keyType == null || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())) {
             String decodedCell = BrCipherMaker.getInstance().decode(cellOriginal);
             // 未配置加密类型，判断是否log加密
             if (cellOriginal.equals(decodedCell)) {
