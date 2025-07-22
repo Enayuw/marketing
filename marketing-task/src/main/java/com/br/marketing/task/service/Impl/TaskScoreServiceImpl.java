@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -154,6 +155,13 @@ public class TaskScoreServiceImpl {
     @Resource
     private MarketingRetryEsMapper marketingRetryEsMapper;
 
+    @Autowired
+    MarketingTaskOptService marketingTaskOptService;
+    @Resource
+    MarketingRetryRedisMapper marketingRetryRedisMapper;
+
+    private static final String TITLE = "【跑分监控】";
+
     /**
      * 跑分服务
      *
@@ -190,19 +198,19 @@ public class TaskScoreServiceImpl {
 
             //线程池运行情况报告
             Thread thread = threadReport(warrningExecutor, customer);
-            log.warn("跑分任务generateTask，本次调度任务id：{}",task.getId());
+            log.warn(TITLE + "跑分任务generateTask，本次调度任务id：{}",task.getBatchNumber());
 
-            //region 跑分
+            // 2. 只有全部重试都成功，才执行generateTask
             this.generateTask(observedTaskObj, customer, day);
             /**
              * 等待所有任务都执行完成
              **/
-            log.warn("所有任务已加入队列，等待结束-----");
+            log.warn(TITLE + "所有任务已加入队列，等待结束-----"+task.getBatchNumber());
             warrningExecutor.shutdown();
             while (true) {
                 if (warrningExecutor.isTerminated()) {
                     observedScoreThreadService.removeThread(observedTaskObj);
-                    log.warn("所有线程都执行结束");
+                    log.warn(TITLE + "所有线程都执行结束");
                     break;
                 }
                 try {
@@ -221,7 +229,9 @@ public class TaskScoreServiceImpl {
                 String hkey = Constants.HXRESULTERROR_RETRY_KEY + ":" + task.getFileId();
                 List<String> hkeys = redisChgService.hkeys(hkey);
                 if (!hkeys.isEmpty() && hkeys.size() > 0) {
-                    warrningExecutor = BrExecutors.getThreadPool(20, 20);
+                    warrningExecutor = BrMonitorExecutor.getThreadPool(20, 20,
+                            PrometheusMonitorUtils.COUNT_RETRY_SCORE_API_THREAD_METRIC_NAME,apiCode,task.getBatchNumber());
+
                     int i = 1;
                     for (String errorFile : hkeys) {
                         if (task != null) {
@@ -229,11 +239,11 @@ public class TaskScoreServiceImpl {
                             i++;
                         }
                     }
-                    log.warn("所有重试任务已加入队列，等待结束-----");
+                    log.warn(TITLE + "所有重试任务已加入队列，等待结束-----" +task.getBatchNumber());
                     warrningExecutor.shutdown();
                     while (true) {
                         if (warrningExecutor.isTerminated()) {
-                            log.warn("重试任务所有线程都执行结束");
+                            log.warn(TITLE + "重试任务所有线程都执行结束");
                             break;
                         }
                         try {
@@ -254,7 +264,7 @@ public class TaskScoreServiceImpl {
                 Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
                 Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.TASKSCORE_HXRESULT_ERROR_MESSAGE.toString());
                 if (CollectionUtils.isEmpty(map)) {
-                    log.error("跑分结果异常告警统计，钉钉配置未配置，请检查");
+                    log.error(TITLE + "跑分结果异常告警统计，钉钉配置未配置，请检查");
                 }
                 String contentHeld = apiCode + "_" + LocalDate.now().toString()+"_任务编号="+task.getBatchNumber()+"_" + "跑分结果异常统计\n";
                 String content = "跑分总量级:" + task.getTaskNumber() + "\n";
@@ -328,10 +338,10 @@ public class TaskScoreServiceImpl {
 
     private void setTaskStatusToRecovered(MarketingTask task, TaskStatus taskStatus) {
         if (task.getMonitorType().equals(1)) {
-            log.warn("暂停优先级非0任务，一次性全量类型任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
+            log.warn(TITLE + "暂停优先级非0任务，一次性全量类型任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
             taskStatus.setOnceStatus(3);
         } else {
-            log.warn("暂停优先级非0任务，任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
+            log.warn(TITLE + "暂停优先级非0任务，任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
             taskStatus.setAllStatus(3);
         }
         taskStatusMapper.updateByPrimaryKeySelective(taskStatus);
@@ -411,7 +421,7 @@ public class TaskScoreServiceImpl {
                     , marketingTask, noflagproductlist
                     , flagproductlist, marketingTaskExtend
                     , baseHeadConfigVO, fieldInfo, true
-                    , marketingRetryEsMapper, marketingCommonConfig));
+                    , marketingRetryEsMapper, marketingCommonConfig,marketingRetryRedisMapper));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -463,7 +473,7 @@ public class TaskScoreServiceImpl {
             updateStatus.setId(blt.getStatusId());
             updateStatus.setFileId(file.getId());
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-            log.warn("跑分任务TaskStatus写入完成，本次调度任务id：{}",blt.getId());
+            log.warn(TITLE + "跑分任务TaskStatus写入完成，本次调度任务id：{}",blt.getId());
 
             //region 记录跑分产品
             JSONArray pList = JSONArray.parseArray(productJson);
@@ -613,8 +623,13 @@ public class TaskScoreServiceImpl {
                 if (isVerScore && verNum <= 0) {
                     continue;
                 }
+                // 取分级和自适应的较小值，避免单批过大
+                int totalCount = iDynamicSqlService.countByRuleScoreWithDate(blt.getApiCode(), conditionData);
+                int totalPages = (int) Math.ceil((double) totalCount / 100);
+                // 限定范围 1000-5000
+                totalPages = Math.max(1000, Math.min(totalPages, 5000));
                 Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData);
-                log.warn("min_id--{},pageSize--{}", minId, isVerScore ? verNum : pageSize);
+                log.warn(TITLE + "每页最小id--{},页码--{},总量级--{},每页量级--{}", minId, currentPage,totalCount, isVerScore ? verNum : totalPages);
                 if (minId != null && minId > 0L) {
                     Integer actNum = 0;
                     Long begin = 0L;
@@ -632,10 +647,10 @@ public class TaskScoreServiceImpl {
                                         selectDataRuleScoreWithDate(blt.getApiCode()
                                                 , conditionData
                                                 , begin
-                                                , isVerScore ? verNum : pageSize);
+                                                , isVerScore ? verNum : totalPages);
                                 break;
                             } catch (Exception ex) {
-                                log.error(String.format("该跑分任务捞取数据异常：%s;错误信息：%s", blt.getBatchNumber(), ex.getMessage()), ex);
+                                log.error(String.format(TITLE + "该跑分任务捞取数据异常：%s;错误信息：%s", blt.getBatchNumber(), ex.getMessage()), ex);
                             }
                         }
                         if (list.size() <= 0) {
@@ -664,7 +679,7 @@ public class TaskScoreServiceImpl {
                             verNum = verNum - list.size();
                         }
                         begin = list.get(list.size() - 1).getId();
-                        if (!getCoreDataStatus(fileId, currentPage)) {
+                        if (!getCoreDataStatus(blt, fileId, currentPage)) {
                             Map<String, String> param = new HashMap<>();
                             param.put("apiCode", blt.getApiCode());
                             param.put("strategyId", blt.getStrategyId());
@@ -684,7 +699,7 @@ public class TaskScoreServiceImpl {
                                     , firstTime, customer, blt
                                     , noflagproductlist, flagproductlist, marketingTaskExtend
                                     , baseHeadConfigVO, fieldInfo, false
-                                    ,marketingRetryEsMapper,marketingCommonConfig));
+                                    ,marketingRetryEsMapper,marketingCommonConfig,marketingRetryRedisMapper));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }
@@ -693,19 +708,19 @@ public class TaskScoreServiceImpl {
                         currentPage++;
                     }
                 } else {
-                    log.warn(String.format("无符合条件的数据--apiCode:%s,batchNumber:%s", blt.getApiCode(), blt.getBatchNumber()));
+                    log.warn(String.format(TITLE + "无符合条件的数据--apiCode:%s,batchNumber:%s", blt.getApiCode(), blt.getBatchNumber()));
                 }
             }
             long endtime = System.currentTimeMillis();
             if (log.isWarnEnabled()) {
-                log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
+                log.warn(TITLE + "apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
                         .concat(String.valueOf(endtime - startTime)).concat("~~轮询总次数：")
                         .concat(String.valueOf(currentPage).concat("~~esOpen:").concat(esOpenMark))));
             }
 
 
         } catch (Exception e) {
-            log.error("执行任务失败", e);
+            log.error(TITLE + "执行任务失败", e);
         }
     }
 
@@ -716,19 +731,47 @@ public class TaskScoreServiceImpl {
      * @param page   页码
      * @return false-为暂未跑完；true-已经跑完；
      */
-    boolean getCoreDataStatus(String fileId, Long page) {
+    boolean getCoreDataStatus(MarketingTask task, String fileId, Long page) {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(page.toString());
-        String s = redisChgService.get(key);
-        if (StringUtils.isBlank(s)) {
-            return false;
+        int retryCount = 0;
+        while (retryCount < 3) {
+            try {
+                // 模拟读redis异常
+                checkMockRedisSwitch("readRedis");
+
+                String s = redisChgService.get(key);
+                if (StringUtils.isBlank(s)) {
+                    return false;
+                }
+                if (s.equals("1")) {
+                    return true;
+                }
+                return false;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount >= 3) {
+                    // 3次都失败，报警
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format(TITLE + "跑分异常，Redis查询失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, page),e.getMessage()));
+                    // 禁用跑分任务
+                    marketingTaskService.disableTask(task);
+                    return true;
+                } else {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                }
+            }
         }
-        if (s.equals("1")) {
-            return true;
-        } else {
-            return false;
-        }
+        return false;
     }
 
+    private void checkMockRedisSwitch(String key) throws Exception {
+        Map<String, Boolean> mockRedisSwitch =  marketingCommonConfig.getMockRedisSwitch();
+        if(!CollectionUtils.isEmpty(mockRedisSwitch)){
+            if(mockRedisSwitch.get(key)){
+                throw new Exception();
+            }
+        }
+    }
 
     private String createShowTitle(MarketingTask task) {
         SimpleDateFormat yyyy_MM_dd = new SimpleDateFormat("yyyy-MM-dd");
@@ -871,6 +914,7 @@ public class TaskScoreServiceImpl {
                 String currentStatus = new String(nodeStatus.getCurrentData().getData());
                 if (taskObj.getInterrupt().equals(0) && currentStatus.equals(ZkScoreStatusEnum.PAUSE.getValue())) {
                     observedScoreThreadService.stopThread(taskObj);
+                    log.warn(TITLE + "已执行完暂停，batchNumber--{}，taskObj--{}", task.getBatchNumber(), JSONObject.toJSONString(taskObj));
                 }
             }
         });
@@ -895,7 +939,7 @@ public class TaskScoreServiceImpl {
                     }
                     Thread.sleep(sleeptime);
                     int activeCount = executor.getActiveCount();
-                    log.warn(String.format("跑分线程线程状态(客户：%s,活动线程：%d,核心线程数：%d,变动线程数：%d)"
+                    log.warn(String.format(TITLE + "跑分线程线程状态(客户：%s,活动线程：%d,核心线程数：%d,变动线程数：%d)"
                             , customer.getApiCode(), activeCount, executor.getCorePoolSize()
                             , threadContextNum.get(customer.getApiCode()) == null ? 0 : threadContextNum.get(customer.getApiCode())));
                     if (activeCount <= 0) {
