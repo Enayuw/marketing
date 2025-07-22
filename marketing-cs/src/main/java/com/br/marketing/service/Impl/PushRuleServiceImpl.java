@@ -1957,11 +1957,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             if(StringUtils.isEmpty(querySql)){
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
             }
+            log.warn("标签查询sql："+querySql);
             Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
         }catch (Exception e){
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                    "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"));
+                    "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"), e);
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！");
         }
     }
