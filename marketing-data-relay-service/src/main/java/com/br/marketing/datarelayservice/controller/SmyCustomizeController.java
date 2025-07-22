@@ -34,6 +34,7 @@ public class SmyCustomizeController {
     @PostMapping("/upload")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public SmyResponseDTO receiveSmyUploadData(@RequestBody String jsonData, HttpServletRequest request) {
+        log.warn("萨摩耶代运营数据上传接口被调用");
         return smyUploadDataService.receiveSmyUploadData(jsonData, request);
     }
 
