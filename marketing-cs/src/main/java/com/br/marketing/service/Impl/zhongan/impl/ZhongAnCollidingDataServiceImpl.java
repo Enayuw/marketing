@@ -169,11 +169,11 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                 JSONObject result = distributeSoleProcessor.processCollidingDataBOS(collidingDataBOS);
                 List<Long> notPushCallIds = result.getObject("notPushCallIds", new TypeReference<List<Long>>() {});
                 if (!notPushCallIds.isEmpty()) {
-                    updateSmsStatus(notPushCallIds, null, 6);
+                    updateCallStatus(notPushCallIds, null, 6);
                 }
                 List<Long> notPushSmsIds  = result.getObject("notPushSmsIds",  new TypeReference<List<Long>>() {});
                 if (!notPushSmsIds.isEmpty()) {
-                    updateCallStatus(notPushSmsIds, null, 6);
+                    updateSmsStatus(notPushSmsIds, null, 6);
                 }
 
                 List<ZaMarketDetail> pushList = new ArrayList<>();
