@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.zhongan.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.bo.ZhongAnCollidingDataBO;
@@ -26,6 +27,7 @@ import com.br.marketing.mapper.ZhongAnCollidingConfigMapper;
 import com.br.marketing.mapper.ZhongAnCollidingDataLogMapper;
 import com.br.marketing.mapper.ZhongAnSmsRosterLockingDataMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
+import com.br.marketing.monkeydata.service.Impl.DistributeSoleProcessor;
 import com.br.marketing.service.Impl.zhongan.ZhongAnCollidingDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -85,6 +87,9 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
     @Resource
     private ConnectOrSmsSendMonthHandler connectOrSmsSendMonthHandler;
 
+    @Resource
+    private DistributeSoleProcessor distributeSoleProcessor;
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -122,6 +127,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                 Set<String> custNumSet = collidingDatas.stream().map(ZhongAnCollidingDataBO::getCaseNum).collect(Collectors.toSet());
                 Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
                         .getValidityPeriodsByCustNumAndUserType(custNumSet, collidingDatas.get(0).getUserType(), apiCode, bizDate);
+                //单批次内去重
                 Map<String, ZhongAnCollidingDataBO> map = collidingDatas.stream().collect(Collectors.toMap(ZhongAnCollidingDataBO::getMobileMd5,
                                 Function.identity(), (ZhongAnCollidingDataBO oldVal, ZhongAnCollidingDataBO newVal) -> newVal));
                 List<ZhongAnCollidingDataBO> collidingDataBOS = Lists.newArrayList();
@@ -155,9 +161,21 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                 if (!nonValidSmsIds.isEmpty()) {
                     updateCallStatus(nonValidCallIds, null, 4);
                 }
+
                 if (collidingDataBOS.isEmpty()) {
                     continue;
                 }
+
+                JSONObject result = distributeSoleProcessor.processCollidingDataBOS(collidingDataBOS);
+                List<Long> notPushCallIds = result.getObject("notPushCallIds", new TypeReference<List<Long>>() {});
+                if (!notPushCallIds.isEmpty()) {
+                    updateSmsStatus(notPushCallIds, null, 6);
+                }
+                List<Long> notPushSmsIds  = result.getObject("notPushSmsIds",  new TypeReference<List<Long>>() {});
+                if (!notPushSmsIds.isEmpty()) {
+                    updateCallStatus(notPushSmsIds, null, 6);
+                }
+
                 List<ZaMarketDetail> pushList = new ArrayList<>();
                 List<Long> pushSmsIds = new ArrayList<>();
                 List<Long> pushCallIds = new ArrayList<>();

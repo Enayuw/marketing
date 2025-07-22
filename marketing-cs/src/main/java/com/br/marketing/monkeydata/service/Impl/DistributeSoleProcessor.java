@@ -1,5 +1,6 @@
 package com.br.marketing.monkeydata.service.Impl;
 
+import com.br.marketing.bo.ZhongAnCollidingDataBO;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,7 +56,8 @@ public class DistributeSoleProcessor {
                 redisChgService.lock(key, lockValue);
                 String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 List<Long> ids =
-                    dataDistributeDetailLogMapper.findZhongAnLockingDataDistributeLog(apiCode, distributeType, distributeDate, cell, userType, tag);
+                        dataDistributeDetailLogMapper.findZhongAnLockingDataDistributeLog(apiCode, distributeType, distributeDate, cell, userType,
+                                tag);
                 if (CollectionUtil.isNotEmpty(ids)) {
                     iterator.remove();
                     notPushIds.add(next.getData().getId());
@@ -88,6 +90,67 @@ public class DistributeSoleProcessor {
         long endTime = System.currentTimeMillis();
         log.warn("推送众安去重一次的耗时：" + (endTime - startTime));
         return notPushIds;
+    }
+
+
+    public JSONObject processCollidingDataBOS(List<ZhongAnCollidingDataBO> collidingDataBOS) {
+        List<Long> notPushCallIds = new ArrayList<>();
+        List<Long> notPushSmsIds = new ArrayList<>();
+        String key = RedisKeyConstant.PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK;
+        Integer distributeType = DistributeTypeEnum.ZHONGAN_PUSH_DETAIL.getValue();
+        Integer soleDay = 1;
+        String userType = collidingDataBOS.get(0).getUserType();
+        Iterator<ZhongAnCollidingDataBO> iterator = collidingDataBOS.iterator();
+        long startTime = System.currentTimeMillis();
+        while (iterator.hasNext()) {
+            ZhongAnCollidingDataBO next = iterator.next();
+            String apiCode = next.getApiCode();
+            String cell = next.getSyncUser().getCell();
+            String tag = "MG";
+            key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, cell));
+            String lockValue = UUID.randomUUID().toString();
+            try {
+                redisChgService.lock(key, lockValue);
+                String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                List<Long> ids =
+                        dataDistributeDetailLogMapper.findZhongAnLockingDataDistributeLog(apiCode, distributeType, distributeDate, cell, userType,
+                                tag);
+                if (CollectionUtil.isNotEmpty(ids)) {
+                    iterator.remove();
+                    notPushCallIds.add(next.getCallId());
+                    notPushSmsIds.add(next.getSmsId());
+                    redisChgService.unlock(key, lockValue);
+                    continue;
+                } else {
+                    DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
+                    distributeLog.setApiCode(apiCode);
+                    distributeLog.setCustNum(next.getSyncUser().getCustNum());
+                    distributeLog.setCell(next.getSyncUser().getCell());
+                    distributeLog.setStatus("1");
+                    distributeLog.setpStatus(2);
+                    distributeLog.setDistributeDate(distributeDate);
+                    distributeLog.setDistributeType(distributeType);
+                    distributeLog.setSuccessDate(distributeDate);
+                    distributeLog.setCreateTime(new Date());
+                    distributeLog.setSourceId(next.getSyncUser().getId());
+                    distributeLog.setSourceType(DistributeSourceTypeEnum.ZHONGAN_LOCKING_DATA.getValue());
+                    JSONObject extend = new JSONObject();
+                    extend.put("userType", userType);
+                    extend.put("tag", tag);
+                    distributeLog.setExtend(JSONObject.toJSONString(extend));
+                    dataDistributeDetailLogMapper.insertSelective(distributeLog);
+                }
+                redisChgService.unlock(key, lockValue);
+            } catch (Exception e) {
+                redisChgService.unlock(key, lockValue);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        log.warn("推送众安（new）去重一次的耗时：" + (endTime - startTime));
+        JSONObject result = new JSONObject();
+        result.put("notPushCallIds", notPushCallIds);
+        result.put("notPushSmsIds", notPushSmsIds);
+        return result;
     }
 
 }
