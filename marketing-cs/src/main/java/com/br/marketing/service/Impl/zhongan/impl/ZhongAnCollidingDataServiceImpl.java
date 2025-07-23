@@ -237,6 +237,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             collidingDataLog.setCell(push.getMobileMd5());
             collidingDataLog.setSmsSendStatus(push.getIsSmsSendSuccess());
             collidingDataLog.setIsConnect(push.getIsConnect());
+            collidingDataLog.setReportDate(push.getBizDate());
             collidingDataLogList.add(collidingDataLog);
         });
         log.warn("collidingDataLogList:{}", JSONObject.toJSONString(collidingDataLogList));
