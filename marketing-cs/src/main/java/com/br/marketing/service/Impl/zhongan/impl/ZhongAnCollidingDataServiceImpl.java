@@ -55,6 +55,9 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataService {
 
+    private final List<String> NOT_CALL_DATA_SOURCE_TYPE = Lists.newArrayList("S");
+    private final List<String> NOT_SMS_DATA_SOURCE_TYPE = Lists.newArrayList("C&NS","NC");
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -115,8 +118,9 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             String configSql = config.getQuerySql();
             String replaceSql = configSql.replace("#{apiCode}", "'" + apiCode + "'").replace("#{bizDate}", "'" + bizDate + "'");
             String completeSql = replaceSql.concat(" limit " + limit);
-            Integer isOutbound = 1;
-            Integer isSmsSend = 1;
+            String type = config.getDataSourceType();
+            Integer isOutbound = NOT_CALL_DATA_SOURCE_TYPE.contains(type) ? 0 : 1;
+            Integer isSmsSend  = NOT_SMS_DATA_SOURCE_TYPE.contains(type)  ? 0 : 1;
             boolean flag = true;
             while (flag) {
                 List<ZhongAnCollidingDataBO> collidingDatas = zhongAnCollidingConfigMapper.queryCollidingDataByConfigSql(completeSql);
