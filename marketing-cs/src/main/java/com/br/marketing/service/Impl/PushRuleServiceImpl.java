@@ -1556,7 +1556,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (xcFalsePackageDynaPushPreviewOptFlag) {
                 List<String> querySqls = new ArrayList<>();
                 dynaPackageDeleteConditionOpt(
-                        jsonObject, batchNumberList, marketingCommonConfig.getXcDynaFalsePackageIds(), querySqls, true);
+                        jsonObject, batchNumberList, marketingCommonConfig.getXcDynaFalsePackageIds(), querySqls, false);
                 return String.join(";", querySqls);
             } else {
                 return dynaPackageDeleteCondition(
