@@ -177,7 +177,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         String idCard = syncUser.getIdCardOriginal();
         String name = syncUser.getNameOriginal();
 
-        if (jc3keyType == null) {
+        if (jc3keyType == null || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())) {
             // 未配置加密类型，尝试解密LOG加密
             BrCipherMaker cipher = BrCipherMaker.getInstance();
             String decodedIdCard = cipher.decode(idCard);
