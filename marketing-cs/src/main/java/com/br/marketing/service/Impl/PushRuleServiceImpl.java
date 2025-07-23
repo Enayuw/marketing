@@ -2849,6 +2849,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())){
             jsonObject.put("idCard", BrCipherMaker.getInstance().decode(emptyDefault(syncUser.getIdCard())));
             jsonObject.put("name", BrCipherMaker.getInstance().decode(emptyDefault(syncUser.getName())));
+        }else if(jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue())){
+            jsonObject.put("idCard", emptyDefault(syncUser.getIdCardOriginal()));
+            jsonObject.put("name", emptyDefault(syncUser.getNameOriginal()));
         }else {
             jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", jc3keyType)));
             jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", jc3keyType)));
@@ -2862,10 +2865,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String get3keyValue(String content, String contentType, Integer encryptionType) {
 
         if (StringUtils.isBlank(content)) {
-            return content;
-        }
-
-        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
             return content;
         }
 
