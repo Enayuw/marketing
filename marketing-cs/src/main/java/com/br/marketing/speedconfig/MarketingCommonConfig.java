@@ -3244,6 +3244,15 @@ public class MarketingCommonConfig {
      */
     private Integer qiFuConfigNum;
 
+    /**
+     * key：异常场景
+     * value：开关状态
+     * 是否开启跑分redis模拟异常开关
+     * {"readRedis":true,"writeRedis":false,"retryRedis":false}
+     */
+    private Map<String, Boolean> mockRedisSwitch;
+
+
 
     private JSONObject zhongAnCollidingDataConfig;
 }
