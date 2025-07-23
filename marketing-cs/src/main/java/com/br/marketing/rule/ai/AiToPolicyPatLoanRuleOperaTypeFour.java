@@ -38,28 +38,8 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
-        log.warn("进入自动化推决策规则AiToPolicyPatLoanRuleOperaTypeFour："+JSONObject.toJSONString(syncUser));
-        String cellOriginal = syncUser.getCellOriginal();
         Integer jc3keyType = customerTagsVO.getPushJc3keyType();
-        if (jc3keyType == null || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())) {
-            String decodedCell = BrCipherMaker.getInstance().decode(cellOriginal);
-            // 未配置加密类型，判断是否log加密
-            if (cellOriginal.equals(decodedCell)) {
-                // 非log加密
-                pushData.setPhone(cellOriginal);
-            } else {
-                // log加密
-                pushData.setPhone(decodedCell);
-            }
-            pushData.setLogCell(syncUser.getCell());
-        } else if (jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue())) {
-            // 软交换
-            pushData.setPhone(cellOriginal);
-        } else {
-            // 其他加密类型
-            pushData.setPhone(cellOriginal);
-            pushData.setLogCell(syncUser.getCell());
-        }
+        pushRuleService.judgeEncryptType(pushData,syncUser,jc3keyType);
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
@@ -175,35 +155,12 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
 
         // 处理敏感信息(姓名和身份证)
-        processSensitiveInfo(jsonObject, syncUser, jc3keyType);
+        pushRuleService.processSensitiveInfo(jsonObject, syncUser, jc3keyType);
 
         // 添加用户姓名
         cusNameOfJo(syncUser.getName(), jsonObject);
 
         return jsonObject;
-    }
-
-    /**
-     * 处理敏感信息(姓名和身份证)的加密逻辑
-     */
-    private void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType) {
-        String idCard = syncUser.getIdCardOriginal();
-        String name = syncUser.getNameOriginal();
-
-        if (jc3keyType == null || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())) {
-            // 未配置加密类型，尝试解密LOG加密
-            BrCipherMaker cipher = BrCipherMaker.getInstance();
-            String decodedIdCard = cipher.decode(idCard);
-            String decodedName = cipher.decode(name);
-
-            // 根据解密结果判断是否LOG加密
-            jsonObject.put("idCard", idCard.equals(decodedIdCard) ? idCard : decodedIdCard);
-            jsonObject.put("name", name.equals(decodedName) ? name : decodedName);
-        } else {
-            // 配置了加密类型，直接使用原始值
-            jsonObject.put("idCard", idCard);
-            jsonObject.put("name", name);
-        }
     }
 
     private String emptyDefault(String value) {
