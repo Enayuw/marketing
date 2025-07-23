@@ -198,9 +198,9 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     detail.setMobileMd5(collidingDataBO.getMobileMd5());
                     detail.setPostbackDate(DateUtil.formatDateTime(new Date()));
                     detail.setIsOutbound(isOutbound);
-                    detail.setIsConnect(collidingDataBO.getIsConnect());
+                    detail.setIsConnect(collidingDataBO.getIsConnect() == null ? 0 : collidingDataBO.getIsConnect());
                     detail.setIsSmsSend(isSmsSend);
-                    detail.setIsSmsSendSuccess(collidingDataBO.getSmsSendStatus());
+                    detail.setIsSmsSendSuccess(collidingDataBO.getSmsSendStatus() == null ? 0 : collidingDataBO.getSmsSendStatus());
                     pushList.add(detail);
                     count++;
                     log.warn("pushList size:{},size:{},count:{}", pushList.size(), size, count);
