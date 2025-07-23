@@ -1957,11 +1957,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isEmpty(querySql)) {
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
             }
+            log.warn("标签查询sql："+querySql);
             Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
         } catch (Exception e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                    "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"));
+                    "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！"), e);
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数异常！");
         }
     }
@@ -2106,7 +2107,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                             throw new Exception();
                         }
 
-                        if (customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()) {
+                        // 获取最后一条记录的searchAfter值
+                        if (!marketingHistories.isEmpty()) {
+                            searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
+                        }
+
+                        if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
                             // 解析标签规则
                             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
                             String tagCode = jsonObject.getString("tagCode");
@@ -2174,9 +2180,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
-                        if (k == (marketingHistories.size() - 1)) {
-                            searchAfterStr = marketingHistory.getSearchAfter();
-                        }
                         //人员信息
                         PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
 //                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
