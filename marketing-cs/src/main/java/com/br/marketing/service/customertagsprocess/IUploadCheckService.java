@@ -23,6 +23,13 @@ public interface IUploadCheckService {
         check3key(user, isCheck, tagsVO);
     }
 
+    /**
+     * 3K值 规则校验
+     * @param user
+     * @param content
+     * @param type
+     * @param isCheck
+     */
     default void isValid(MarketingPreUserDetailDTO user, String content, String type, Integer isCheck) {
         UserValidator userValidator = new UserValidator(isCheck);
         if (StringUtils.isNotBlank(content) && "cell".equals(type)) {
