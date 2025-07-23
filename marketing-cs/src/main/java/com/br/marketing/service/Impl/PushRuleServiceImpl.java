@@ -17,6 +17,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
@@ -198,6 +199,7 @@ import com.br.marketing.service.TransferFieldProcessFactory;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
@@ -2810,6 +2812,74 @@ public class PushRuleServiceImpl implements PushRuleService {
         return routingKey;
     }
 
+    @Override
+    public void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType) {
+        log.warn("进入自动化推决策规则ToPolicyCommonRule："+JSONObject.toJSONString(syncUser));
+        String cellOriginal = syncUser.getCellOriginal();
+
+        if (jc3keyType == null || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())) {
+            String decodedCell = BrCipherMaker.getInstance().decode(cellOriginal);
+            // 未配置加密类型，判断是否log加密
+            if (cellOriginal.equals(decodedCell)) {
+                // 非log加密
+                pushData.setPhone(cellOriginal);
+            } else {
+                // log加密
+                pushData.setPhone(decodedCell);
+            }
+            pushData.setLogCell(syncUser.getCell());
+        } else if (jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue())) {
+            // 软交换
+            pushData.setPhone(cellOriginal);
+        } else {
+            // 其他加密类型
+            pushData.setPhone(cellOriginal);
+            pushData.setLogCell(syncUser.getCell());
+        }
+    }
+
+    /**
+     * 处理敏感信息(姓名和身份证)的加密逻辑
+     */
+    @Override
+    public void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType) {
+        if(jc3keyType == null
+                || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.AES_COMMON.getValue())
+                || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue())
+                || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())){
+            jsonObject.put("idCard", BrCipherMaker.getInstance().decode(emptyDefault(syncUser.getIdCard())));
+            jsonObject.put("name", BrCipherMaker.getInstance().decode(emptyDefault(syncUser.getName())));
+        }else {
+            jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", jc3keyType)));
+            jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", jc3keyType)));
+        }
+    }
+
+    private String emptyDefault(String value) {
+        return StringUtils.isNotEmpty(value) ? value : "";
+    }
+
+    private String get3keyValue(String content, String contentType, Integer encryptionType) {
+
+        if (StringUtils.isBlank(content)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.SHA256_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
+        }
+        return null;
+    }
     /**
      * 根据配置表发送到对应MQ
      * 配置表：b_marketing_customer_routingKey_mapping
