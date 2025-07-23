@@ -10,6 +10,7 @@ import com.br.marketing.chain.zhongan.ZhongAnReportHandler;
 import com.br.marketing.chain.zhongan.report.Connect3DaysHandler;
 import com.br.marketing.chain.zhongan.report.ConnectOrSmsSend7DaysHandler;
 import com.br.marketing.chain.zhongan.report.ConnectOrSmsSendMonthHandler;
+import com.br.marketing.chain.zhongan.report.DeduplicateMobilePerDayHandler;
 import com.br.marketing.chain.zhongan.report.ParallelChainExecutor;
 import com.br.marketing.chain.zhongan.report.SmsSend2DaysHandler;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
@@ -91,7 +92,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
     private ConnectOrSmsSendMonthHandler connectOrSmsSendMonthHandler;
 
     @Resource
-    private DistributeSoleProcessor distributeSoleProcessor;
+    private DeduplicateMobilePerDayHandler deduplicateMobilePerDayHandler;
 
 
     @Override
@@ -147,6 +148,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     handlers.add(connect3DaysHandler);
                     handlers.add(connectOrSmsSend7DaysHandler);
                     handlers.add(connectOrSmsSendMonthHandler);
+                    handlers.add(deduplicateMobilePerDayHandler);
                     boolean result = executor.execute(handlers, cellMd5, bizDate);
                     if (result) {
                         SyncUserValidityPeriodsBO bo = keyToSyncUserBO.get(value.getCaseNum());
@@ -172,18 +174,6 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
 
                 if (collidingDataBOS.isEmpty()) {
                     continue;
-                }
-
-                JSONObject result = distributeSoleProcessor.processCollidingDataBOS(collidingDataBOS);
-                List<Long> notPushCallIds = result.getObject("notPushCallIds", new TypeReference<List<Long>>() {
-                });
-                if (!notPushCallIds.isEmpty()) {
-                    updateCallStatus(notPushCallIds, null, 6);
-                }
-                List<Long> notPushSmsIds = result.getObject("notPushSmsIds", new TypeReference<List<Long>>() {
-                });
-                if (!notPushSmsIds.isEmpty()) {
-                    updateSmsStatus(notPushSmsIds, null, 6);
                 }
 
                 List<ZaMarketDetail> pushList = new ArrayList<>();

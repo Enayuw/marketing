@@ -2,16 +2,13 @@ package com.br.marketing.chain.zhongan.report;
 
 import com.br.marketing.chain.zhongan.ZhongAnReportHandler;
 import com.br.marketing.mapper.ZhongAnCollidingDataLogMapper;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ConnectOrSmsSendMonthHandler implements ZhongAnReportHandler {
+public class DeduplicateMobilePerDayHandler implements ZhongAnReportHandler {
 
     @Resource
     private ZhongAnCollidingDataLogMapper zhongAnCollidingDataLogMapper;
@@ -28,9 +25,7 @@ public class ConnectOrSmsSendMonthHandler implements ZhongAnReportHandler {
      */
     @Override
     public boolean check(String cellMd5, String bizDate) throws Exception {
-        List<Long> connectIds = zhongAnCollidingDataLogMapper.getConnectIdsByMonth(cellMd5, bizDate);
-        List<Long> smsSendIds = zhongAnCollidingDataLogMapper.getSmsIdsByMonth(cellMd5, bizDate);
-        List<Long> unionIds = Stream.concat(connectIds.stream(), smsSendIds.stream()).distinct().collect(Collectors.toList());
-        return unionIds.size() < 8;
+        int count = zhongAnCollidingDataLogMapper.countMobilePerDay(cellMd5,bizDate);
+        return count == 0;
     }
 }

@@ -4,19 +4,21 @@ import com.br.marketing.entity.ZhongAnCollidingDataLog;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-public interface ZhongAnCollidingDataLogMapper extends ZhongAnCollidingDataLogMapperBase{
+public interface ZhongAnCollidingDataLogMapper extends ZhongAnCollidingDataLogMapperBase {
 
     int countSmsSendSuccess(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
 
-    int countCallConnectSuccess(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+    int countCallConnectSuccess(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
 
-    int countConnectByDay(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+    List<Long> getConnectIdsByDay(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
 
-    int countSmsSendByDay(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+    List<Long> getSmsIdsByDay(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
 
-    int countConnectByMonth(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+    List<Long> getConnectIdsByMonth(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
 
-    int countSmsSendByMonth(@Param("cellMd5")String cellMd5,  @Param("bizDate")String bizDate);
+    List<Long> getSmsIdsByMonth(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
+
+    int countMobilePerDay(@Param("cellMd5") String cellMd5, @Param("bizDate") String bizDate);
 
     int batchInsert(@Param("collidingDataLogList") List<ZhongAnCollidingDataLog> collidingDataLogList);
 }
