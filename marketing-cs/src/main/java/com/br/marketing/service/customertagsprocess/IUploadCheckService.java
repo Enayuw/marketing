@@ -43,18 +43,13 @@ public interface IUploadCheckService {
                 user.setCell(BrCipherMaker.getInstance().encode(content));
             }
         } else if (StringUtils.isNotBlank(content) && "id".equals(type)) {
-            if (!userValidator.validateId(content)) {
-                user.setId(content);
-            } else {
+            if (userValidator.validateId(content)) {
                 user.setId(BrCipherMaker.getInstance().encode(content));
             }
         } else if (StringUtils.isNotBlank(content) && "name".equals(type)) {
-            if (!userValidator.validateName(content)) {
-                user.setName(content);
-            } else {
+            if (userValidator.validateName(content)) {
                 user.setName(BrCipherMaker.getInstance().encode(content));
             }
-
         }
     }
 
