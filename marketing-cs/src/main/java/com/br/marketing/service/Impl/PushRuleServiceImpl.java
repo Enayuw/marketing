@@ -1081,7 +1081,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             dynaDataSql = "select rob.cell_sha256_code_list as cell, rob.id as id from b_xiecheng_colliding_data_rob rob " +
                     "inner join b_xiecheng_colliding_" + batchNumber + " batch on rob.cell_sha256_code_list = batch.cell " +
-                    "and rob.is_delete = 0 and rob.is_delete = 0 and rob.package_id in " + xcDynaFalsePackageId;
+                    "and rob.is_delete = 0 and rob.package_id in " + xcDynaFalsePackageId;
         }
         StringBuilder scoreSql = new StringBuilder();
         scoreSql.append("select id, cell from b_xiecheng_colliding_")
