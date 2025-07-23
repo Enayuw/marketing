@@ -9,7 +9,7 @@
         FROM b_marketing_tcyr_error_interface_log
         WHERE
             api_code=#{apiCode}
-          AND deal_status = 0
+          AND deal_status in(0,4)
         LIMIT #{searchSize}
     </select>
 

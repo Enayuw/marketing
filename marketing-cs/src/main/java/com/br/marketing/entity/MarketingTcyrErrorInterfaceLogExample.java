@@ -735,76 +735,6 @@ public class MarketingTcyrErrorInterfaceLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andPushResultIsNull() {
-            addCriterion("push_result is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultIsNotNull() {
-            addCriterion("push_result is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultEqualTo(String value) {
-            addCriterion("push_result =", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultNotEqualTo(String value) {
-            addCriterion("push_result <>", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultGreaterThan(String value) {
-            addCriterion("push_result >", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultGreaterThanOrEqualTo(String value) {
-            addCriterion("push_result >=", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultLessThan(String value) {
-            addCriterion("push_result <", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultLessThanOrEqualTo(String value) {
-            addCriterion("push_result <=", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultLike(String value) {
-            addCriterion("push_result like", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultNotLike(String value) {
-            addCriterion("push_result not like", value, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultIn(List<String> values) {
-            addCriterion("push_result in", values, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultNotIn(List<String> values) {
-            addCriterion("push_result not in", values, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultBetween(String value1, String value2) {
-            addCriterion("push_result between", value1, value2, "pushResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushResultNotBetween(String value1, String value2) {
-            addCriterion("push_result not between", value1, value2, "pushResult");
-            return (Criteria) this;
-        }
-
         public Criteria andErrorTypeIsNull() {
             addCriterion("error_type is null");
             return (Criteria) this;
@@ -862,6 +792,76 @@ public class MarketingTcyrErrorInterfaceLogExample {
 
         public Criteria andErrorTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("error_type not between", value1, value2, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIsNull() {
+            addCriterion("request_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIsNotNull() {
+            addCriterion("request_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdEqualTo(String value) {
+            addCriterion("request_id =", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotEqualTo(String value) {
+            addCriterion("request_id <>", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThan(String value) {
+            addCriterion("request_id >", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThanOrEqualTo(String value) {
+            addCriterion("request_id >=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThan(String value) {
+            addCriterion("request_id <", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThanOrEqualTo(String value) {
+            addCriterion("request_id <=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLike(String value) {
+            addCriterion("request_id like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotLike(String value) {
+            addCriterion("request_id not like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIn(List<String> values) {
+            addCriterion("request_id in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotIn(List<String> values) {
+            addCriterion("request_id not in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdBetween(String value1, String value2) {
+            addCriterion("request_id between", value1, value2, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotBetween(String value1, String value2) {
+            addCriterion("request_id not between", value1, value2, "requestId");
             return (Criteria) this;
         }
     }

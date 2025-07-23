@@ -190,9 +190,15 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
             Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
             if (callResult!=null && callResult.isSuccess()) {
+
+
+                Random random = new Random();
+                int randomNumber = 10000 + random.nextInt(90000);
+                String requestId = apiCode+"_"+batchNo+"_"+System.currentTimeMillis()+"_"+randomNumber;
+
                 //3.调用定制化上传接口
                 List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
-                UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS);
+                UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS,requestId);
                 Result<Boolean> pushResult = new Result<>();
                 try {
                     pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
@@ -201,14 +207,14 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     } else {
                         log.error("TITLE:{},上传请求失败，syncFileId: {}, 数据量: {}, resultMsg: {}", TITLE,syncFileId, tcyrSyncList.size(), pushResult.getMessage());
                         saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
-                                JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),1);
+                                JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),1,requestId);
                     }
                 }catch (Exception e) {
                     String pushResultStr = pushResult==null?e.getMessage():JSON.toJSONString(pushResult);
                     log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                             "上传推送异常,syncFileId:"+syncFileId+","+e.getMessage(), TITLE), e);
                     saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
-                            JSONObject.toJSONString(uploadDataDTO),pushResultStr,2);
+                            JSONObject.toJSONString(uploadDataDTO),pushResultStr,2,requestId);
                 }
             } else {
                 log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
@@ -346,11 +352,11 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
      * @param apiCode   apiCode
      * @param syncUsers 具体数据对象
      */
-    private UploadDataDTO initUploadData(String apiCode,String batchNo, List<MarketingPreUserDetailDTO> syncUsers) {
+    private UploadDataDTO initUploadData(String apiCode,String batchNo, List<MarketingPreUserDetailDTO> syncUsers,String requestId) {
         String taskId = batchNo;
-        Random random = new Random();
-        int randomNumber = 10000 + random.nextInt(90000);
-        String requestId = apiCode+"_"+taskId+"_"+System.currentTimeMillis()+"_"+randomNumber;
+//        Random random = new Random();
+//        int randomNumber = 10000 + random.nextInt(90000);
+//        String requestId = apiCode+"_"+taskId+"_"+System.currentTimeMillis()+"_"+randomNumber;
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(taskId);
         marketingPreUserDTO.setRequestId(requestId);
@@ -364,7 +370,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     /**
      * 保存错误请求记录
      */
-    private void saveErrorIneterfaceLog(String apiCode, String batchNo, Long syncFileId, Integer elementSize, String requestParam, String pushResult,Integer errorType) {
+    private void saveErrorIneterfaceLog(String apiCode, String batchNo, Long syncFileId, Integer elementSize, String requestParam, String pushResult,
+                                        Integer errorType,String requestId) {
         MarketingTcyrErrorInterfaceLog errorInterfaceLog = new MarketingTcyrErrorInterfaceLog();
         errorInterfaceLog.setApiCode(apiCode);
         errorInterfaceLog.setBatchNo(batchNo);
@@ -373,6 +380,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         errorInterfaceLog.setRequestParam(requestParam);
         errorInterfaceLog.setPushResult(pushResult);
         errorInterfaceLog.setErrorType(errorType);
+        errorInterfaceLog.setRequestId(requestId);
         errorInterfaceLogMapper.insertSelective(errorInterfaceLog);
     }
 

@@ -12,8 +12,11 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="request_param" property="requestParam" jdbcType="VARCHAR" />
-    <result column="push_result" property="pushResult" jdbcType="VARCHAR" />
     <result column="error_type" property="errorType" jdbcType="INTEGER" />
+    <result column="request_id" property="requestId" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" extends="BaseResultMap" >
+    <result column="push_result" property="pushResult" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -74,9 +77,28 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_no, sync_file_id, element_count, deal_status, is_del, create_time,
-    update_time, request_param, push_result, error_type
+    id, api_code, batch_no, sync_file_id, element_count, deal_status, is_del, create_time, 
+    update_time, request_param, error_type, request_id
   </sql>
+  <sql id="Blob_Column_List" >
+    push_result
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_marketing_tcyr_error_interface_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLogExample" >
     select
     <if test="distinct" >
@@ -91,9 +113,11 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from b_marketing_tcyr_error_interface_log
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -111,14 +135,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_error_interface_log (api_code, batch_no, sync_file_id,
-    element_count, deal_status, is_del,
-    create_time, update_time, request_param,
-    push_result, error_type)
-    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT},
-    #{elementCount,jdbcType=INTEGER}, #{dealStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{requestParam,jdbcType=VARCHAR},
-    #{pushResult,jdbcType=VARCHAR}, #{errorType,jdbcType=INTEGER})
+    insert into b_marketing_tcyr_error_interface_log (api_code, batch_no, sync_file_id, 
+      element_count, deal_status, is_del, 
+      create_time, update_time, request_param, 
+      error_type, request_id, push_result
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
+      #{elementCount,jdbcType=INTEGER}, #{dealStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{requestParam,jdbcType=VARCHAR}, 
+      #{errorType,jdbcType=INTEGER}, #{requestId,jdbcType=VARCHAR}, #{pushResult,jdbcType=LONGVARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -153,11 +179,14 @@
       <if test="requestParam != null" >
         request_param,
       </if>
-      <if test="pushResult != null" >
-        push_result,
-      </if>
       <if test="errorType != null" >
         error_type,
+      </if>
+      <if test="requestId != null" >
+        request_id,
+      </if>
+      <if test="pushResult != null" >
+        push_result,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -188,11 +217,14 @@
       <if test="requestParam != null" >
         #{requestParam,jdbcType=VARCHAR},
       </if>
-      <if test="pushResult != null" >
-        #{pushResult,jdbcType=VARCHAR},
-      </if>
       <if test="errorType != null" >
         #{errorType,jdbcType=INTEGER},
+      </if>
+      <if test="requestId != null" >
+        #{requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="pushResult != null" >
+        #{pushResult,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -235,13 +267,35 @@
       <if test="record.requestParam != null" >
         request_param = #{record.requestParam,jdbcType=VARCHAR},
       </if>
-      <if test="record.pushResult != null" >
-        push_result = #{record.pushResult,jdbcType=VARCHAR},
-      </if>
       <if test="record.errorType != null" >
         error_type = #{record.errorType,jdbcType=INTEGER},
       </if>
+      <if test="record.requestId != null" >
+        request_id = #{record.requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushResult != null" >
+        push_result = #{record.pushResult,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update b_marketing_tcyr_error_interface_log
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
+      element_count = #{record.elementCount,jdbcType=INTEGER},
+      deal_status = #{record.dealStatus,jdbcType=INTEGER},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      request_param = #{record.requestParam,jdbcType=VARCHAR},
+      error_type = #{record.errorType,jdbcType=INTEGER},
+      request_id = #{record.requestId,jdbcType=VARCHAR},
+      push_result = #{record.pushResult,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -249,17 +303,17 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_tcyr_error_interface_log
     set id = #{record.id,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    batch_no = #{record.batchNo,jdbcType=VARCHAR},
-    sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
-    element_count = #{record.elementCount,jdbcType=INTEGER},
-    deal_status = #{record.dealStatus,jdbcType=INTEGER},
-    is_del = #{record.isDel,jdbcType=INTEGER},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    request_param = #{record.requestParam,jdbcType=VARCHAR},
-    push_result = #{record.pushResult,jdbcType=VARCHAR},
-    error_type = #{record.errorType,jdbcType=INTEGER}
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
+      element_count = #{record.elementCount,jdbcType=INTEGER},
+      deal_status = #{record.dealStatus,jdbcType=INTEGER},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      request_param = #{record.requestParam,jdbcType=VARCHAR},
+      error_type = #{record.errorType,jdbcType=INTEGER},
+      request_id = #{record.requestId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -294,28 +348,47 @@
       <if test="requestParam != null" >
         request_param = #{requestParam,jdbcType=VARCHAR},
       </if>
-      <if test="pushResult != null" >
-        push_result = #{pushResult,jdbcType=VARCHAR},
-      </if>
       <if test="errorType != null" >
         error_type = #{errorType,jdbcType=INTEGER},
       </if>
+      <if test="requestId != null" >
+        request_id = #{requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="pushResult != null" >
+        push_result = #{pushResult,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
+    update b_marketing_tcyr_error_interface_log
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      batch_no = #{batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{syncFileId,jdbcType=BIGINT},
+      element_count = #{elementCount,jdbcType=INTEGER},
+      deal_status = #{dealStatus,jdbcType=INTEGER},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      request_param = #{requestParam,jdbcType=VARCHAR},
+      error_type = #{errorType,jdbcType=INTEGER},
+      request_id = #{requestId,jdbcType=VARCHAR},
+      push_result = #{pushResult,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
     update b_marketing_tcyr_error_interface_log
     set api_code = #{apiCode,jdbcType=VARCHAR},
-        batch_no = #{batchNo,jdbcType=VARCHAR},
-        sync_file_id = #{syncFileId,jdbcType=BIGINT},
-        element_count = #{elementCount,jdbcType=INTEGER},
-        deal_status = #{dealStatus,jdbcType=INTEGER},
-        is_del = #{isDel,jdbcType=INTEGER},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        request_param = #{requestParam,jdbcType=VARCHAR},
-        push_result = #{pushResult,jdbcType=VARCHAR},
-        error_type = #{errorType,jdbcType=INTEGER}
+      batch_no = #{batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{syncFileId,jdbcType=BIGINT},
+      element_count = #{elementCount,jdbcType=INTEGER},
+      deal_status = #{dealStatus,jdbcType=INTEGER},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      request_param = #{requestParam,jdbcType=VARCHAR},
+      error_type = #{errorType,jdbcType=INTEGER},
+      request_id = #{requestId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

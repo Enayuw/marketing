@@ -29,7 +29,7 @@ public class MarketingTcyrErrorInterfaceLog {
     private Integer elementCount;
 
     /**
-     * 异常请求处理状态  0-未处理 1-请求成功
+     * 异常请求处理状态  0-未处理 1-中间态 2:处理成功
      */
     private Integer dealStatus;
 
@@ -54,14 +54,19 @@ public class MarketingTcyrErrorInterfaceLog {
     private String requestParam;
 
     /**
+     * 错误类型 1:返回错误 2:请求异常 3:二次处理异常
+     */
+    private Integer errorType;
+
+    /**
+     * 请求的request_id
+     */
+    private String requestId;
+
+    /**
      * 上传接口返回的失败结果
      */
     private String pushResult;
-
-    /**
-     * 错误类型 1:返回错误 2:请求异常
-     */
-    private Integer errorType;
 
     public Long getId() {
         return id;
@@ -143,19 +148,27 @@ public class MarketingTcyrErrorInterfaceLog {
         this.requestParam = requestParam == null ? null : requestParam.trim();
     }
 
-    public String getPushResult() {
-        return pushResult;
-    }
-
-    public void setPushResult(String pushResult) {
-        this.pushResult = pushResult == null ? null : pushResult.trim();
-    }
-
     public Integer getErrorType() {
         return errorType;
     }
 
     public void setErrorType(Integer errorType) {
         this.errorType = errorType;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId == null ? null : requestId.trim();
+    }
+
+    public String getPushResult() {
+        return pushResult;
+    }
+
+    public void setPushResult(String pushResult) {
+        this.pushResult = pushResult == null ? null : pushResult.trim();
     }
 }

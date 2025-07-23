@@ -52,7 +52,7 @@ public class TcSyncDataCleanCheckServiceImpl implements TcSyncDataCleanChekServi
                 ThreadPoolNameEnum.TCYR_CLEAN_CHECK.getName(), 10, 10);
         try {
             while (true) {
-                List<MarketingTcyrErrorInterfaceLog> errorInterfaceLogList = errorInterfaceLogMapper.selectNoDealList(apiCode,1000);
+                List<MarketingTcyrErrorInterfaceLog> errorInterfaceLogList = errorInterfaceLogMapper.selectNoDealList(apiCode,500);
                 if (CollectionUtils.isEmpty(errorInterfaceLogList)) {
                     break;
                 }
@@ -83,7 +83,7 @@ public class TcSyncDataCleanCheckServiceImpl implements TcSyncDataCleanChekServi
                 errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),3);
             }
         }catch (Exception e) {
-            errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),3);
+            errorInterfaceLogMapper.updateDealStatus(errorInterfaceLog.getId(),4);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }

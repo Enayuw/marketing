@@ -17,15 +17,21 @@ public interface MarketingTcyrErrorInterfaceLogMapperBase {
 
     int insertSelective(MarketingTcyrErrorInterfaceLog record);
 
+    List<MarketingTcyrErrorInterfaceLog> selectByExampleWithBLOBs(MarketingTcyrErrorInterfaceLogExample example);
+
     List<MarketingTcyrErrorInterfaceLog> selectByExample(MarketingTcyrErrorInterfaceLogExample example);
 
     MarketingTcyrErrorInterfaceLog selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingTcyrErrorInterfaceLog record, @Param("example") MarketingTcyrErrorInterfaceLogExample example);
 
+    int updateByExampleWithBLOBs(@Param("record") MarketingTcyrErrorInterfaceLog record, @Param("example") MarketingTcyrErrorInterfaceLogExample example);
+
     int updateByExample(@Param("record") MarketingTcyrErrorInterfaceLog record, @Param("example") MarketingTcyrErrorInterfaceLogExample example);
 
     int updateByPrimaryKeySelective(MarketingTcyrErrorInterfaceLog record);
+
+    int updateByPrimaryKeyWithBLOBs(MarketingTcyrErrorInterfaceLog record);
 
     int updateByPrimaryKey(MarketingTcyrErrorInterfaceLog record);
 }
