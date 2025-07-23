@@ -25,6 +25,7 @@ public interface IUploadCheckService {
 
     /**
      * 3K值 规则校验
+     *
      * @param user
      * @param content
      * @param type
@@ -39,18 +40,21 @@ public interface IUploadCheckService {
             } else {
                 user.setCellMd5(Md5Utils.cell32(content));
                 user.setCellSha256(Sha256Util.getSHA256Encrypt(content));
+                user.setCell(BrCipherMaker.getInstance().encode(content));
             }
-            user.setCell(BrCipherMaker.getInstance().encode(content));
         } else if (StringUtils.isNotBlank(content) && "id".equals(type)) {
             if (!userValidator.validateId(content)) {
                 user.setId(content);
+            } else {
+                user.setId(BrCipherMaker.getInstance().encode(content));
             }
-            user.setId(BrCipherMaker.getInstance().encode(content));
         } else if (StringUtils.isNotBlank(content) && "name".equals(type)) {
             if (!userValidator.validateName(content)) {
                 user.setName(content);
+            } else {
+                user.setName(BrCipherMaker.getInstance().encode(content));
             }
-            user.setName(BrCipherMaker.getInstance().encode(content));
+
         }
     }
 
