@@ -2815,6 +2815,15 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType) {
         log.warn("进入自动化推决策规则ToPolicyCommonRule："+JSONObject.toJSONString(syncUser));
+        Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
+        if(!isOpenNewEncrypt){
+            if(jc3keyType == null){
+                jc3keyType = CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue();
+            }
+            pushData.setPhone(getOld3keyValue(syncUser.getCell(), "cell", jc3keyType));
+            return;
+        }
+
         String cellOriginal = syncUser.getCellOriginal();
 
         if (jc3keyType == null || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())) {
@@ -2843,6 +2852,17 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType) {
+
+        Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
+        if(!isOpenNewEncrypt){
+            if(jc3keyType == null){
+                jc3keyType = CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue();
+            }
+            jsonObject.put("idCard", emptyDefault(getOld3keyValue(syncUser.getIdCard(), "idCard", jc3keyType)));
+            jsonObject.put("name", emptyDefault(getOld3keyValue(syncUser.getName(), "name", jc3keyType)));
+            return;
+        }
+
         if(jc3keyType == null
                 || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.AES_COMMON.getValue())
                 || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue())
@@ -2865,6 +2885,28 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String get3keyValue(String content, String contentType, Integer encryptionType) {
 
         if (StringUtils.isBlank(content)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.SHA256_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
+        }
+        return null;
+    }
+
+    private String getOld3keyValue(String content, String contentType, Integer encryptionType) {
+
+        if (StringUtils.isBlank(content)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
             return content;
         }
 
