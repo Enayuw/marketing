@@ -56,7 +56,7 @@ import org.springframework.util.CollectionUtils;
 public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataService {
 
     private final List<String> NOT_CALL_DATA_SOURCE_TYPE = Lists.newArrayList("S");
-    private final List<String> NOT_SMS_DATA_SOURCE_TYPE = Lists.newArrayList("C&NS","NC");
+    private final List<String> NOT_SMS_DATA_SOURCE_TYPE = Lists.newArrayList("C&NS", "NC");
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -120,7 +120,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             String completeSql = replaceSql.concat(" limit " + limit);
             String type = config.getDataSourceType();
             Integer isOutbound = NOT_CALL_DATA_SOURCE_TYPE.contains(type) ? 0 : 1;
-            Integer isSmsSend  = NOT_SMS_DATA_SOURCE_TYPE.contains(type)  ? 0 : 1;
+            Integer isSmsSend = NOT_SMS_DATA_SOURCE_TYPE.contains(type) ? 0 : 1;
             boolean flag = true;
             while (flag) {
                 List<ZhongAnCollidingDataBO> collidingDatas = zhongAnCollidingConfigMapper.queryCollidingDataByConfigSql(completeSql);
@@ -133,10 +133,12 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                         .getValidityPeriodsByCustNumAndUserType(custNumSet, collidingDatas.get(0).getUserType(), apiCode, bizDate);
                 //单批次内去重
                 Map<String, ZhongAnCollidingDataBO> map = collidingDatas.stream().collect(Collectors.toMap(ZhongAnCollidingDataBO::getMobileMd5,
-                                Function.identity(), (ZhongAnCollidingDataBO oldVal, ZhongAnCollidingDataBO newVal) -> newVal));
+                        Function.identity(), (ZhongAnCollidingDataBO oldVal, ZhongAnCollidingDataBO newVal) -> newVal));
                 List<ZhongAnCollidingDataBO> collidingDataBOS = Lists.newArrayList();
-                List<Long> nonValidSmsIds = new ArrayList<>();
-                List<Long> nonValidCallIds = new ArrayList<>();
+                List<Long> nonValidSmsIds = Lists.newArrayList();
+                List<Long> nonValidCallIds = Lists.newArrayList();
+                List<Long> callFrequencyCapIds = Lists.newArrayList();
+                List<Long> smsFrequencyCapIds = Lists.newArrayList();
                 for (Map.Entry<String, ZhongAnCollidingDataBO> entry : map.entrySet()) {
                     String cellMd5 = entry.getKey();
                     ZhongAnCollidingDataBO value = entry.getValue();
@@ -157,25 +159,29 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                         MarketingSyncUser syncUser = bo.getSyncUsers().get(0);
                         value.setSyncUser(syncUser);
                         collidingDataBOS.add(value);
+                    } else {
+                        callFrequencyCapIds.add(value.getCallId());
+                        smsFrequencyCapIds.add(value.getSmsId());
                     }
                 }
-                if (!nonValidSmsIds.isEmpty()) {
-                    updateSmsStatus(nonValidSmsIds, null, 4);
-                }
-                if (!nonValidSmsIds.isEmpty()) {
-                    updateCallStatus(nonValidCallIds, null, 4);
-                }
+
+                updateCallStatus(nonValidCallIds, null, 4);
+                updateSmsStatus(nonValidSmsIds, null, 4);
+                updateCallStatus(callFrequencyCapIds, null, 8);
+                updateSmsStatus(smsFrequencyCapIds, null, 8);
 
                 if (collidingDataBOS.isEmpty()) {
                     continue;
                 }
 
                 JSONObject result = distributeSoleProcessor.processCollidingDataBOS(collidingDataBOS);
-                List<Long> notPushCallIds = result.getObject("notPushCallIds", new TypeReference<List<Long>>() {});
+                List<Long> notPushCallIds = result.getObject("notPushCallIds", new TypeReference<List<Long>>() {
+                });
                 if (!notPushCallIds.isEmpty()) {
                     updateCallStatus(notPushCallIds, null, 6);
                 }
-                List<Long> notPushSmsIds  = result.getObject("notPushSmsIds",  new TypeReference<List<Long>>() {});
+                List<Long> notPushSmsIds = result.getObject("notPushSmsIds", new TypeReference<List<Long>>() {
+                });
                 if (!notPushSmsIds.isEmpty()) {
                     updateSmsStatus(notPushSmsIds, null, 6);
                 }
@@ -245,6 +251,9 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
     }
 
     private void updateSmsStatus(List<Long> ids, Integer pushStatus, Integer updateStatus) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
         ZhongAnSmsRosterLockingData data = new ZhongAnSmsRosterLockingData();
         if (pushStatus != null) {
             data.setPushStatus(pushStatus);
@@ -259,6 +268,9 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
     }
 
     private void updateCallStatus(List<Long> ids, Integer pushStatus, Integer updateStatus) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
         ZhonganRosterLockingData data = new ZhonganRosterLockingData();
         if (pushStatus != null) {
             data.setPushStatus(pushStatus);
