@@ -219,6 +219,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     if (pushList.size() == pushSize || size == count) {
                         List<Long> finalPushIds = pushCallIds;
                         List<Long> finalPushSmsIds = pushSmsIds;
+                        List<ZaMarketDetail> finalPushList = pushList;
                         String finalApiCode = collidingDataBO.getApiCode();
                         updateCallStatus(finalPushIds, 0, null);
                         if (!CollectionUtils.isEmpty(finalPushSmsIds)) {
@@ -226,13 +227,14 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                         }
                         pushPool.execute(() -> {
                             ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
-                            dataDTO.setData(pushList);
+                            dataDTO.setData(finalPushList);
                             methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
                                     , collidingDataBO.getApiCode(), "MG", finalPushIds, finalPushSmsIds), null);
-                            insertCollidingLog(pushList, finalApiCode, config.getDataSourceType());
+                            insertCollidingLog(finalPushList, finalApiCode, config.getDataSourceType());
                         });
-                        pushSmsIds = new ArrayList<>();
-                        pushCallIds = new ArrayList<>();
+                        pushList = Lists.newArrayList();
+                        pushSmsIds = Lists.newArrayList();
+                        pushCallIds = Lists.newArrayList();
                     }
                 }
             }
