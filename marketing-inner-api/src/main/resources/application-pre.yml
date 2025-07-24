@@ -182,7 +182,7 @@ api:
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
     uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    baseUrl: http://k8stest.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
     #isito baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service

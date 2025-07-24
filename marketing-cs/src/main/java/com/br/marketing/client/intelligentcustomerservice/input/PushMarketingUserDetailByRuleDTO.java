@@ -2,7 +2,6 @@ package com.br.marketing.client.intelligentcustomerservice.input;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.rule.SourceData;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -29,6 +28,11 @@ public class PushMarketingUserDetailByRuleDTO extends SourceData {
      *手机号码
      */
     private String phone;
+
+    /**
+     *手机号码（log加密）
+     */
+    private String logCell;
 
     /**
      *变量JSON
