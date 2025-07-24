@@ -207,7 +207,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         try {
             rocketMqSwitch.syncSend(consumer.getTopic(), consumer.getTag(), message);
         } catch (Exception e) {
-            String errorMessage = String.format("携程上报消息发送失败,消息发送失败 [consumer: %s, topic: %s, tag: %s,message: %s", consumer.name(), consumer.getTopic(), consumer.getTag(), message);
+            String errorMessage = String.format("携程上报消息发送失败,消息发送失败 [consumer: %s, topic: %s, tag: %s,message: %s",
+                    consumer.name(), consumer.getTopic(), consumer.getTag(), message);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),errorMessage + e.getMessage()
                     , "携程上报消息发送失败,消息发送失败!"));
         }

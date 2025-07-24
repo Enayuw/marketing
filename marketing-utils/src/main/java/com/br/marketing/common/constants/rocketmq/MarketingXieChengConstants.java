@@ -16,37 +16,44 @@ public class MarketingXieChengConstants {
     public static final String TAG_MARKETING_XIECHENG_REPORT = "marketing.xiecheng.report";
 
     /**
-     * 携程上报负载队列
+     * 携程上报负载均衡队列A
      */
-
     public static final String TOPIC_MARKETING_XIECHENG_REPORT_A = "marketingXieChengReportA";
 
     public static final String GROUP_MARKETING_XIECHENG_REPORT_A = "Marketing_XieCheng_Report_A";
 
     public static final String TAG_MARKETING_XIECHENG_REPORT_A = "marketing.xiecheng.report.a";
 
-
+    /**
+     * 携程上报负载均衡队列B
+     */
     public static final String TOPIC_MARKETING_XIECHENG_REPORT_B = "marketingXieChengReportB";
 
     public static final String GROUP_MARKETING_XIECHENG_REPORT_B = "Marketing_XieCheng_Report_B";
 
     public static final String TAG_MARKETING_XIECHENG_REPORT_B = "marketing.xiecheng.report.b";
 
-
+    /**
+     * 携程上报负载均衡队列C
+     */
     public static final String TOPIC_MARKETING_XIECHENG_REPORT_C = "marketingXieChengReportC";
 
     public static final String GROUP_MARKETING_XIECHENG_REPORT_C = "Marketing_XieCheng_Report_C";
 
     public static final String TAG_MARKETING_XIECHENG_REPORT_C = "marketing.xiecheng.report.c";
 
-
+    /**
+     * 携程上报负载均衡队列D
+     */
     public static final String TOPIC_MARKETING_XIECHENG_REPORT_D = "marketingXieChengReportD";
 
     public static final String GROUP_MARKETING_XIECHENG_REPORT_D = "Marketing_XieCheng_Report_D";
 
     public static final String TAG_MARKETING_XIECHENG_REPORT_D = "marketing.xiecheng.report.d";
 
-
+    /**
+     * 携程上报负载均衡队列E
+     */
     public static final String TOPIC_MARKETING_XIECHENG_REPORT_E = "marketingXieChengReportE";
 
     public static final String GROUP_MARKETING_XIECHENG_REPORT_E = "Marketing_XieCheng_Report_E";
