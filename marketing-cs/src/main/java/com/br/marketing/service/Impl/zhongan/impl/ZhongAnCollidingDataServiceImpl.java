@@ -104,9 +104,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             apiCode = split[0];
             bizDate = split[1];
         }
-        JSONObject collidingConfig = marketingCommonConfig.getZhongAnCollidingDataConfig();
-        int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
-        Boolean collidingSwitch = collidingConfig.getBoolean("collidingSwitch") != null ? collidingConfig.getBoolean("collidingSwitch") : false;
+
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
         // 获取待上报数据
         List<ZhongAnCollidingConfig> configs = zhongAnCollidingConfigMapper.queryZhongAnCollidingConfigByPriority();
@@ -114,6 +112,9 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             return;
         }
         for (ZhongAnCollidingConfig config : configs) {
+            JSONObject collidingConfig = marketingCommonConfig.getZhongAnCollidingDataConfig();
+            int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
+            boolean collidingSwitch = collidingConfig.getBoolean("collidingSwitch") != null ? collidingConfig.getBoolean("collidingSwitch") : false;
             String configSql = config.getQuerySql();
             String replaceSql = configSql.replace("#{apiCode}", "'" + apiCode + "'").replace("#{bizDate}", "'" + bizDate + "'");
             String completeSql = replaceSql.concat(" limit " + limit);
@@ -166,6 +167,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                             return false;
                         }
                     });
+
                     if (result) {
                         SyncUserValidityPeriodsBO bo = keyToSyncUserBO.get(value.getCaseNum());
                         if (bo == null || CollectionUtils.isEmpty(bo.getSyncUsers())) {
@@ -215,7 +217,6 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     detail.setIsSmsSendSuccess(collidingDataBO.getSmsSendStatus() == null ? 0 : collidingDataBO.getSmsSendStatus());
                     pushList.add(detail);
                     count++;
-                    log.warn("pushList size:{},size:{},count:{}", pushList.size(), size, count);
                     if (pushList.size() == pushSize || size == count) {
                         List<Long> finalPushIds = pushCallIds;
                         List<Long> finalPushSmsIds = pushSmsIds;
