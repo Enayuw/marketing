@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl.zhongan.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.bo.ZhongAnCollidingDataBO;
@@ -28,7 +27,6 @@ import com.br.marketing.mapper.ZhongAnCollidingConfigMapper;
 import com.br.marketing.mapper.ZhongAnCollidingDataLogMapper;
 import com.br.marketing.mapper.ZhongAnSmsRosterLockingDataMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
-import com.br.marketing.monkeydata.service.Impl.DistributeSoleProcessor;
 import com.br.marketing.service.Impl.zhongan.ZhongAnCollidingDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -109,6 +107,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
         }
         JSONObject collidingConfig = marketingCommonConfig.getZhongAnCollidingDataConfig();
         int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
+        Boolean collidingSwitch = collidingConfig.getBoolean("collidingSwitch") != null ? collidingConfig.getBoolean("collidingSwitch") : false;
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
         // 获取待上报数据
         List<ZhongAnCollidingConfig> configs = zhongAnCollidingConfigMapper.queryZhongAnCollidingConfigByPriority();
@@ -125,7 +124,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
             boolean flag = true;
             while (flag) {
                 List<ZhongAnCollidingDataBO> collidingDatas = zhongAnCollidingConfigMapper.queryCollidingDataByConfigSql(completeSql);
-                if (CollectionUtils.isEmpty(collidingDatas)) {
+                if (CollectionUtils.isEmpty(collidingDatas) || collidingSwitch) {
                     flag = false;
                     continue;
                 }
@@ -133,15 +132,24 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                 Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
                         .getValidityPeriodsByCustNumAndUserType(custNumSet, collidingDatas.get(0).getUserType(), apiCode, bizDate);
                 //单批次内去重
-                Map<String, ZhongAnCollidingDataBO> map = collidingDatas.stream().collect(Collectors.toMap(ZhongAnCollidingDataBO::getMobileMd5,
-                        Function.identity(), (ZhongAnCollidingDataBO oldVal, ZhongAnCollidingDataBO newVal) -> newVal));
+                Map<String, ZhongAnCollidingDataBO> map = collidingDatas.stream().collect(Collectors.toMap(
+                        data -> String.join("::",
+                                String.valueOf(data.getBizDate()),
+                                String.valueOf(data.getApiCode()),
+                                String.valueOf(data.getUserType()),
+                                String.valueOf(data.getMobileMd5())
+                        ),
+                        Function.identity(), (ZhongAnCollidingDataBO oldVal, ZhongAnCollidingDataBO newVal) -> newVal
+                ));
                 List<ZhongAnCollidingDataBO> collidingDataBOS = Lists.newArrayList();
                 List<Long> nonValidSmsIds = Lists.newArrayList();
                 List<Long> nonValidCallIds = Lists.newArrayList();
                 List<Long> callFrequencyCapIds = Lists.newArrayList();
                 List<Long> smsFrequencyCapIds = Lists.newArrayList();
                 for (Map.Entry<String, ZhongAnCollidingDataBO> entry : map.entrySet()) {
-                    String cellMd5 = entry.getKey();
+                    String key = entry.getKey();
+                    String[] parts = key.split("::");
+                    String cellMd5 = parts.length >= 4 ? parts[3] : null;
                     ZhongAnCollidingDataBO value = entry.getValue();
                     List<ZhongAnReportHandler> handlers = Lists.newArrayList();
                     handlers.add(smsSend2DaysHandler);
