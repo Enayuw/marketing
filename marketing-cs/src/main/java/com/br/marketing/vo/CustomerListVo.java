@@ -257,4 +257,24 @@ public class CustomerListVo {
      */
     private String secondDepartment;
 
+    /**
+     * AES通用-加密模式
+     */
+    private String cipherMode;
+
+    /**
+     * AES通用-填充模式
+     */
+    private String paddingScheme;
+
+    /**
+     * AES通用-字符编码
+     */
+    private String charset;
+
+    /**
+     * AES通用-密钥
+     */
+    private String dynamicKeys;
+
 }
