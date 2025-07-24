@@ -68,10 +68,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
         String lockKey = RedisKeyConstant.tcyrDbDeal.concat(apiCode);;
         String lockValue = "";
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_DB_DEAL.getName(),
-                marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcDbDealShardConfig().getInteger("threadPool")
-        );
+                ThreadPoolNameEnum.TCYR_DB_DEAL.getName(), 50, 50);
         try {
             for (;;) {
                 if (!marketingCommonConfig.getTcDbDealShardConfig().getBoolean("jobSwitch")) {

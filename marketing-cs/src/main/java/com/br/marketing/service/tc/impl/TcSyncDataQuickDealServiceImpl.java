@@ -83,10 +83,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         String lockKey = RedisKeyConstant.tcyrQuickDeal.concat(apiCode);
         String lockValue = "";
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_QUICK_DEAL.getName(),
-                marketingCommonConfig.getTcQuickDealShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcQuickDealShardConfig().getInteger("threadPool")
-        );
+                ThreadPoolNameEnum.TCYR_QUICK_DEAL.getName(), 2,2);
         try {
             for (;;) {
                 if (!marketingCommonConfig.getTcQuickDealShardConfig().getBoolean("jobSwitch")) {
