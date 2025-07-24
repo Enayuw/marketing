@@ -2,9 +2,11 @@ package com.br.marketing.client.zhongan.input;
 
 import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ZaRosterLockingDataDTO  extends InterfaceParams {
+public class ZaSmsRosterLockingDataDTO extends InterfaceParams {
 
     /**
      * apicode
@@ -12,17 +14,7 @@ public class ZaRosterLockingDataDTO  extends InterfaceParams {
     private String apiCode;
 
     /**
-     * 本地文件记录id
-     */
-    private Long localId;
-
-    /**
-     * 类型
-     */
-    private String type;
-
-    /**
-     * MD5手机号
+     * 案件编号
      */
     private String caseNum;
 
@@ -37,22 +29,13 @@ public class ZaRosterLockingDataDTO  extends InterfaceParams {
     private String bizDate;
 
     /**
-     * 枚举,CG/MG
-     */
-    private String tag;
-
-    /**
-     * 状态 1-sftp文件;2-拨打明细
-     */
-    private Integer dataSource;
-
-    /**
      * 机构运营场景
      */
     private String userType;
 
     /**
-     * 是否接通(0-否;1-是)
+     * 是否发送成功(0-否;1-是)
      */
-    private Integer isConnect;
+    private Integer smsSendStatus;
+
 }

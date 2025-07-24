@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class ZhonganRosterLockingDataExample {
+public class ZhongAnSmsRosterLockingDataExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public ZhonganRosterLockingDataExample() {
+    public ZhongAnSmsRosterLockingDataExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -235,136 +235,6 @@ public class ZhonganRosterLockingDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andLocalIdIsNull() {
-            addCriterion("local_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdIsNotNull() {
-            addCriterion("local_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdEqualTo(Long value) {
-            addCriterion("local_id =", value, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdNotEqualTo(Long value) {
-            addCriterion("local_id <>", value, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdGreaterThan(Long value) {
-            addCriterion("local_id >", value, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("local_id >=", value, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdLessThan(Long value) {
-            addCriterion("local_id <", value, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdLessThanOrEqualTo(Long value) {
-            addCriterion("local_id <=", value, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdIn(List<Long> values) {
-            addCriterion("local_id in", values, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdNotIn(List<Long> values) {
-            addCriterion("local_id not in", values, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdBetween(Long value1, Long value2) {
-            addCriterion("local_id between", value1, value2, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andLocalIdNotBetween(Long value1, Long value2) {
-            addCriterion("local_id not between", value1, value2, "localId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIsNull() {
-            addCriterion("`type` is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIsNotNull() {
-            addCriterion("`type` is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeEqualTo(String value) {
-            addCriterion("`type` =", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotEqualTo(String value) {
-            addCriterion("`type` <>", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeGreaterThan(String value) {
-            addCriterion("`type` >", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("`type` >=", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeLessThan(String value) {
-            addCriterion("`type` <", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeLessThanOrEqualTo(String value) {
-            addCriterion("`type` <=", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeLike(String value) {
-            addCriterion("`type` like", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotLike(String value) {
-            addCriterion("`type` not like", value, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeIn(List<String> values) {
-            addCriterion("`type` in", values, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotIn(List<String> values) {
-            addCriterion("`type` not in", values, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeBetween(String value1, String value2) {
-            addCriterion("`type` between", value1, value2, "type");
-            return (Criteria) this;
-        }
-
-        public Criteria andTypeNotBetween(String value1, String value2) {
-            addCriterion("`type` not between", value1, value2, "type");
-            return (Criteria) this;
-        }
-
         public Criteria andCaseNumIsNull() {
             addCriterion("case_num is null");
             return (Criteria) this;
@@ -575,76 +445,6 @@ public class ZhonganRosterLockingDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andTagIsNull() {
-            addCriterion("tag is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagIsNotNull() {
-            addCriterion("tag is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagEqualTo(String value) {
-            addCriterion("tag =", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagNotEqualTo(String value) {
-            addCriterion("tag <>", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagGreaterThan(String value) {
-            addCriterion("tag >", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagGreaterThanOrEqualTo(String value) {
-            addCriterion("tag >=", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagLessThan(String value) {
-            addCriterion("tag <", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagLessThanOrEqualTo(String value) {
-            addCriterion("tag <=", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagLike(String value) {
-            addCriterion("tag like", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagNotLike(String value) {
-            addCriterion("tag not like", value, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagIn(List<String> values) {
-            addCriterion("tag in", values, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagNotIn(List<String> values) {
-            addCriterion("tag not in", values, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagBetween(String value1, String value2) {
-            addCriterion("tag between", value1, value2, "tag");
-            return (Criteria) this;
-        }
-
-        public Criteria andTagNotBetween(String value1, String value2) {
-            addCriterion("tag not between", value1, value2, "tag");
-            return (Criteria) this;
-        }
-
         public Criteria andPushStatusIsNull() {
             addCriterion("push_status is null");
             return (Criteria) this;
@@ -835,133 +635,63 @@ public class ZhonganRosterLockingDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectIsNull() {
-            addCriterion("is_connect is null");
+        public Criteria andSmsSendStatusIsNull() {
+            addCriterion("sms_send_status is null");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectIsNotNull() {
-            addCriterion("is_connect is not null");
+        public Criteria andSmsSendStatusIsNotNull() {
+            addCriterion("sms_send_status is not null");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectEqualTo(Integer value) {
-            addCriterion("is_connect =", value, "isConnect");
+        public Criteria andSmsSendStatusEqualTo(Integer value) {
+            addCriterion("sms_send_status =", value, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectNotEqualTo(Integer value) {
-            addCriterion("is_connect <>", value, "isConnect");
+        public Criteria andSmsSendStatusNotEqualTo(Integer value) {
+            addCriterion("sms_send_status <>", value, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectGreaterThan(Integer value) {
-            addCriterion("is_connect >", value, "isConnect");
+        public Criteria andSmsSendStatusGreaterThan(Integer value) {
+            addCriterion("sms_send_status >", value, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectGreaterThanOrEqualTo(Integer value) {
-            addCriterion("is_connect >=", value, "isConnect");
+        public Criteria andSmsSendStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("sms_send_status >=", value, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectLessThan(Integer value) {
-            addCriterion("is_connect <", value, "isConnect");
+        public Criteria andSmsSendStatusLessThan(Integer value) {
+            addCriterion("sms_send_status <", value, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectLessThanOrEqualTo(Integer value) {
-            addCriterion("is_connect <=", value, "isConnect");
+        public Criteria andSmsSendStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("sms_send_status <=", value, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectIn(List<Integer> values) {
-            addCriterion("is_connect in", values, "isConnect");
+        public Criteria andSmsSendStatusIn(List<Integer> values) {
+            addCriterion("sms_send_status in", values, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectNotIn(List<Integer> values) {
-            addCriterion("is_connect not in", values, "isConnect");
+        public Criteria andSmsSendStatusNotIn(List<Integer> values) {
+            addCriterion("sms_send_status not in", values, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectBetween(Integer value1, Integer value2) {
-            addCriterion("is_connect between", value1, value2, "isConnect");
+        public Criteria andSmsSendStatusBetween(Integer value1, Integer value2) {
+            addCriterion("sms_send_status between", value1, value2, "smsSendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andIsConnectNotBetween(Integer value1, Integer value2) {
-            addCriterion("is_connect not between", value1, value2, "isConnect");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageIsNull() {
-            addCriterion("data_message is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageIsNotNull() {
-            addCriterion("data_message is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageEqualTo(String value) {
-            addCriterion("data_message =", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotEqualTo(String value) {
-            addCriterion("data_message <>", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageGreaterThan(String value) {
-            addCriterion("data_message >", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageGreaterThanOrEqualTo(String value) {
-            addCriterion("data_message >=", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageLessThan(String value) {
-            addCriterion("data_message <", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageLessThanOrEqualTo(String value) {
-            addCriterion("data_message <=", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageLike(String value) {
-            addCriterion("data_message like", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotLike(String value) {
-            addCriterion("data_message not like", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageIn(List<String> values) {
-            addCriterion("data_message in", values, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotIn(List<String> values) {
-            addCriterion("data_message not in", values, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageBetween(String value1, String value2) {
-            addCriterion("data_message between", value1, value2, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotBetween(String value1, String value2) {
-            addCriterion("data_message not between", value1, value2, "dataMessage");
+        public Criteria andSmsSendStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("sms_send_status not between", value1, value2, "smsSendStatus");
             return (Criteria) this;
         }
 
@@ -1212,66 +942,6 @@ public class ZhonganRosterLockingDataExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceIsNull() {
-            addCriterion("data_source is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceIsNotNull() {
-            addCriterion("data_source is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceEqualTo(Integer value) {
-            addCriterion("data_source =", value, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceNotEqualTo(Integer value) {
-            addCriterion("data_source <>", value, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceGreaterThan(Integer value) {
-            addCriterion("data_source >", value, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceGreaterThanOrEqualTo(Integer value) {
-            addCriterion("data_source >=", value, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceLessThan(Integer value) {
-            addCriterion("data_source <", value, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceLessThanOrEqualTo(Integer value) {
-            addCriterion("data_source <=", value, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceIn(List<Integer> values) {
-            addCriterion("data_source in", values, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceNotIn(List<Integer> values) {
-            addCriterion("data_source not in", values, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceBetween(Integer value1, Integer value2) {
-            addCriterion("data_source between", value1, value2, "dataSource");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceNotBetween(Integer value1, Integer value2) {
-            addCriterion("data_source not between", value1, value2, "dataSource");
             return (Criteria) this;
         }
     }
