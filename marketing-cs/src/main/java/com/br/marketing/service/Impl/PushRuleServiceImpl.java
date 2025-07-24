@@ -2853,29 +2853,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType) {
 
-        Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(!isOpenNewEncrypt){
-            if(jc3keyType == null){
-                jc3keyType = CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue();
-            }
-            jsonObject.put("idCard", emptyDefault(getOld3keyValue(syncUser.getIdCard(), "idCard", jc3keyType)));
-            jsonObject.put("name", emptyDefault(getOld3keyValue(syncUser.getName(), "name", jc3keyType)));
-            return;
+        if (jc3keyType == null) {
+            jc3keyType = CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue();
         }
 
-        if(jc3keyType == null
-                || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.AES_COMMON.getValue())
-                || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue())
-                || jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue())){
-            jsonObject.put("idCard", BrCipherMaker.getInstance().decode(emptyDefault(syncUser.getIdCard())));
-            jsonObject.put("name", BrCipherMaker.getInstance().decode(emptyDefault(syncUser.getName())));
-        }else if(jc3keyType.equals(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue())){
-            jsonObject.put("idCard", emptyDefault(syncUser.getIdCardOriginal()));
-            jsonObject.put("name", emptyDefault(syncUser.getNameOriginal()));
-        }else {
-            jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", jc3keyType)));
-            jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", jc3keyType)));
-        }
+        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", jc3keyType)));
+        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", jc3keyType)));
     }
 
     private String emptyDefault(String value) {
@@ -2886,6 +2869,19 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         if (StringUtils.isBlank(content)) {
             return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
+            return content;
+        }
+
+        Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
+        if(!isOpenNewEncrypt){
+            if (CustomerTagsValue.PushJc3keyTypeEnum.AES_COMMON.getValue().equals(encryptionType)
+                    || CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue().equals(encryptionType)) {
+                String decode = BrCipherMaker.getInstance().decode(content);
+                return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
+            }
         }
 
         if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
