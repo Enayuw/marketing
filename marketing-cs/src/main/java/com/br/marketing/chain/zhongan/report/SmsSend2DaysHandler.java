@@ -25,4 +25,9 @@ public class SmsSend2DaysHandler implements ZhongAnReportHandler {
         return count < 1;
     }
 
+    @Override
+    public String ruleName() {
+        return "SmsSend2DaysHandler";
+    }
+
 }

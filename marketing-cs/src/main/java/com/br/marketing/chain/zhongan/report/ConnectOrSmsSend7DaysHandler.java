@@ -36,4 +36,9 @@ public class ConnectOrSmsSend7DaysHandler implements ZhongAnReportHandler {
         long distinctCount = Stream.concat(connectIds.stream(), smsSendIds.stream()).distinct().count();
         return distinctCount < 3;
     }
+
+    @Override
+    public String ruleName() {
+        return "ConnectOrSmsSend7DaysHandler";
+    }
 }

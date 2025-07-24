@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.zhongan.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.bo.ZhongAnCollidingDataBO;
@@ -10,10 +11,10 @@ import com.br.marketing.chain.zhongan.report.Connect3DaysHandler;
 import com.br.marketing.chain.zhongan.report.ConnectOrSmsSend7DaysHandler;
 import com.br.marketing.chain.zhongan.report.ConnectOrSmsSendMonthHandler;
 import com.br.marketing.chain.zhongan.report.DeduplicateMobilePerDayHandler;
-import com.br.marketing.chain.zhongan.report.ParallelChainExecutor;
 import com.br.marketing.chain.zhongan.report.SmsSend2DaysHandler;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -61,8 +62,6 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private ZhongAnCollidingConfigMapper zhongAnCollidingConfigMapper;
-    @Resource
-    private ParallelChainExecutor executor;
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
     @Resource
@@ -157,7 +156,16 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     handlers.add(connectOrSmsSend7DaysHandler);
                     handlers.add(connectOrSmsSendMonthHandler);
                     handlers.add(deduplicateMobilePerDayHandler);
-                    boolean result = executor.execute(handlers, cellMd5, bizDate);
+                    String finalBizDate = bizDate;
+                    boolean result = handlers.parallelStream().allMatch(h -> {
+                        try {
+                            return h.check(cellMd5, finalBizDate);
+                        } catch (Exception e) {
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(),
+                                    h.ruleName() + "check异常,cell:" + cellMd5 + "bizDate:" + finalBizDate, e.getMessage()));
+                            return false;
+                        }
+                    });
                     if (result) {
                         SyncUserValidityPeriodsBO bo = keyToSyncUserBO.get(value.getCaseNum());
                         if (bo == null || CollectionUtils.isEmpty(bo.getSyncUsers())) {

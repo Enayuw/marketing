@@ -28,4 +28,9 @@ public class Connect3DaysHandler implements ZhongAnReportHandler {
         int count = zhongAnCollidingDataLogMapper.countCallConnectSuccess(cellMd5,bizDate);
         return count < 1;
     }
+
+    @Override
+    public String ruleName() {
+        return "Connect3DaysHandler";
+    }
 }

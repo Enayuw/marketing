@@ -36,4 +36,9 @@ public class ConnectOrSmsSendMonthHandler implements ZhongAnReportHandler {
         long distinctCount = Stream.concat(connectIds.stream(), smsSendIds.stream()).distinct().count();
         return distinctCount < 8;
     }
+
+    @Override
+    public String ruleName() {
+        return "ConnectOrSmsSendMonthHandler";
+    }
 }

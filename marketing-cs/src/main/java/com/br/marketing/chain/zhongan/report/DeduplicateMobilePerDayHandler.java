@@ -28,4 +28,9 @@ public class DeduplicateMobilePerDayHandler implements ZhongAnReportHandler {
         int count = zhongAnCollidingDataLogMapper.countMobilePerDay(cellMd5,bizDate);
         return count == 0;
     }
+
+    @Override
+    public String ruleName() {
+        return "DeduplicateMobilePerDayHandler";
+    }
 }

@@ -12,4 +12,6 @@ public interface ZhongAnReportHandler {
      * @date 2025/07/22
      */
     boolean check(String cellMd5, String bizDate) throws Exception;
+
+    String ruleName();
 }
