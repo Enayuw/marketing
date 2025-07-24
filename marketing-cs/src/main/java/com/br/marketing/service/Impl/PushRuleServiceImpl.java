@@ -2875,13 +2875,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             return content;
         }
 
-        Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(!isOpenNewEncrypt){
-            if (CustomerTagsValue.PushJc3keyTypeEnum.AES_COMMON.getValue().equals(encryptionType)
-                    || CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue().equals(encryptionType)) {
-                String decode = BrCipherMaker.getInstance().decode(content);
-                return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
-            }
+        if (CustomerTagsValue.PushJc3keyTypeEnum.AES_COMMON.getValue().equals(encryptionType)
+                || CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
         }
 
         if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
