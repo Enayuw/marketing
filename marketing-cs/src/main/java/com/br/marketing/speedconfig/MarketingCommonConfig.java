@@ -3257,7 +3257,9 @@ public class MarketingCommonConfig {
      */
     private Boolean isOpenNewEncrypt;
 
-
+    /**
+     * #众安拨打&短信上报配置
+     */
     private JSONObject zhongAnCollidingDataConfig;
 }
 
