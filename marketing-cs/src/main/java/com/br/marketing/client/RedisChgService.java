@@ -604,4 +604,30 @@ public class RedisChgService {
             throw new RuntimeException(e);
         }
     }
+
+    public String  rpoplpush(String  key) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.rpoplpush(key,key);
+        }catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public Long llen(String key) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.llen(key);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public Long  rpush(String key,String... var1){
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.rpush(key,var1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

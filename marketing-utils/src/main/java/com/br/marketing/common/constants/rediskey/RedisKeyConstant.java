@@ -359,4 +359,9 @@ public class RedisKeyConstant {
      */
         public static final String tcyrSyncMatch = prefix.concat("tcyr_sync:match");
 
+    /**
+     * 携程上报队列负载key
+     */
+    public static final String XIECHENG_REPORT_CONSUME_RNAME = prefix.concat("xieChengReport:consumer:name");
+
 }

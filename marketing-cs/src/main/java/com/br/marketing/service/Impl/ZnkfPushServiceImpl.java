@@ -2,12 +2,15 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
@@ -18,6 +21,7 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.mapper.*;
 import com.br.marketing.entity.CallRecord;
 import com.br.marketing.entity.CaseShuheUser;
@@ -146,19 +150,17 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                         producter.sendToUniversalTransferQueue(mqFact);
                     }
                 }
-                if(marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)){
+                // 携程定制逻辑
+                if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
                     if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)) {
-                        //rocket
+                        // 使用负载均衡消费者逻辑
+                        handleWithConsumerRotation(callRecord);
+                    } else {
+                        // 使用默认发送逻辑
                         rocketMqSwitch.syncSend(
                                 MarketingXieChengConstants.TOPIC,
                                 MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
                                 callRecord.getId().toString());
-                    } else {
-                        //rabbit
-                        final MqFact mqFact = new MqFact();
-                        mqFact.setSourceId(callRecord.getId());
-                        mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
-                        producter.sendToXieChengUniversalTransferQueue(mqFact);
                     }
                 }
                 List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
@@ -182,6 +184,34 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         return "success";
     }
 
+    // 3. 提取的方法
+    private void handleWithConsumerRotation(CallRecord callRecord) {
+        initializeConsumerQueue();
+        String consumerName = redisChgService.rpoplpush(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME);
+        XieChengConsumer consumer = XieChengConsumer.fromName(consumerName);
+        sendToRocketMQ(consumer, callRecord.getId().toString());
+    }
+
+    private void initializeConsumerQueue() {
+        Long queueLength = redisChgService.llen(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME);
+        if (queueLength == 0) {
+            String[] consumers = Arrays.stream(XieChengConsumer.values())
+                    .map(XieChengConsumer::getConsumerName)
+                    .toArray(String[]::new);
+            redisChgService.rpush(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME, consumers);
+            log.warn("初始化消费者队列: {}", Arrays.toString(consumers));
+        }
+    }
+
+    private void sendToRocketMQ(XieChengConsumer consumer, String message) {
+        try {
+            rocketMqSwitch.syncSend(consumer.getTopic(), consumer.getTag(), message);
+        } catch (Exception e) {
+            String errorMessage = String.format("携程上报消息发送失败,消息发送失败 [consumer: %s, topic: %s, tag: %s,message: %s", consumer.name(), consumer.getTopic(), consumer.getTag(), message);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),errorMessage + e.getMessage()
+                    , "携程上报消息发送失败,消息发送失败!"));
+        }
+    }
     /**
      * 判断是否符合情况b：userType=促申完 && intentionGrade="A级(有明确意向）" && cusNun && 有效期内
      *
