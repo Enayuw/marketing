@@ -4,8 +4,8 @@
     <select id="countSmsSendSuccess" resultType="int">
         select count(*)
         from b_zhongan_colliding_data_log
-        where <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 1 DAY)
-          and report_date < #{bizDate,jdbcType=VARCHAR} ]]>
+        where report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 1 DAY)
+          and report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
         and sms_send_status = 1
         and cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
@@ -13,8 +13,8 @@
     <select id="countCallConnectSuccess" resultType="int">
         select count(*)
         from b_zhongan_colliding_data_log
-        where <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 2 DAY)
-          and report_date < #{bizDate,jdbcType=VARCHAR} ]]>
+        where report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 2 DAY)
+          and report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
         and is_connect = 1
         and cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
@@ -22,8 +22,8 @@
     <select id="getConnectIdsByDay" resultType="java.lang.Long">
         SELECT id
         FROM b_zhongan_colliding_data_log
-        WHERE <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 6 DAY)
-          AND report_date < #{bizDate,jdbcType=VARCHAR} ]]>
+        WHERE report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 6 DAY)
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
           AND is_connect = 1
           AND cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
@@ -31,8 +31,8 @@
     <select id="getSmsIdsByDay" resultType="java.lang.Long">
         SELECT id
         FROM b_zhongan_colliding_data_log
-        WHERE <![CDATA[ report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 6 DAY)
-          AND report_date < #{bizDate,jdbcType=VARCHAR} ]]>
+        WHERE report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 6 DAY)
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
         AND sms_send_status = 1
         AND cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
@@ -40,8 +40,8 @@
     <select id="getConnectIdsByMonth" resultType="java.lang.Long">
         SELECT id
         FROM b_zhongan_colliding_data_log
-        WHERE <![CDATA[ report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
-          AND report_date < #{bizDate,jdbcType=VARCHAR} ]]>
+        WHERE report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
         AND is_connect = 1
         AND cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
@@ -49,8 +49,8 @@
     <select id="getSmsIdsByMonth" resultType="java.lang.Long">
         SELECT id
         FROM b_zhongan_colliding_data_log
-        WHERE <![CDATA[ report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
-          AND report_date < #{bizDate,jdbcType=VARCHAR} ]]>
+        WHERE report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
         AND sms_send_status = 1
         AND cell = #{cellMd5,jdbcType=VARCHAR}
     </select>
