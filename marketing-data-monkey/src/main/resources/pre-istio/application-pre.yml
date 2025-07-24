@@ -390,7 +390,8 @@ rocketmq:
     pull-batch-size: 5
     # 其他配置参考属性类
     namespace: ${ROCKETMQ_NAMESPACE:pre_istio}
+# 线程池动态配置监控
 tp:
-dynamic:
-metric:
-enabled: true
+  dynamic:
+    metric:
+      enabled: true
