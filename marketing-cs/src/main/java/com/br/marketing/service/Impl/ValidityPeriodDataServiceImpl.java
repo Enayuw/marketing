@@ -15,7 +15,6 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +26,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.br.marketing.common.constants.MarketingErrorInfo.*;
 import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
@@ -143,13 +140,13 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
     @Override
     public ApiNoDataResult marketingValidityPeriod(String apiCode, String jsonData) {
         try {
-//            List<String> validityPeriodApiCodeList = marketingCommonConfig.getValidityPeriodApiCodeList();
-//            // 校验apiCode
-//            if (!validityPeriodApiCodeList.contains(apiCode)) {
-//                log.error("有效期变更接口异常：{}，{}，jsonData:{}", API_CODE_AUTH_ERROR.getErrorMsg(),apiCode,jsonData);
-//                return new ApiNoDataResult().setCode(API_CODE_AUTH_ERROR.getErrorCode())
-//                        .setMessage(API_CODE_AUTH_ERROR.getErrorMsg());
-//            }
+            List<String> validityPeriodApiCodeList = marketingCommonConfig.getValidityPeriodApiCodeList();
+            // 校验apiCode
+            if (!validityPeriodApiCodeList.contains(apiCode)) {
+                log.error("有效期变更接口异常：{}，{}，jsonData:{}", API_CODE_AUTH_ERROR.getErrorMsg(),apiCode,jsonData);
+                return new ApiNoDataResult().setCode(API_CODE_AUTH_ERROR.getErrorCode())
+                        .setMessage(API_CODE_AUTH_ERROR.getErrorMsg());
+            }
             // 校验 jsonData
             JSONObject jsonObject;
             try {
@@ -189,12 +186,12 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                         .setMessage(TIME_FORMAT_ERROR.getErrorMsg());
             }
             // 根据批次号查询appletDate
-//            String appletDate = marketingSyncInfoMapper.getAppletDateByCusBatch(taskId, apiCode);
-//            if (StringUtils.isBlank(appletDate)) {
-//                log.error("有效期变更接口异常：{}，jsonData:{}", TASK_ID_ERROR.getErrorMsg(),jsonData);
-//                return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
-//                        .setMessage(TASK_ID_ERROR.getErrorMsg());
-//            }
+            String appletDate = marketingSyncInfoMapper.getAppletDateByCusBatch(taskId, apiCode);
+            if (StringUtils.isBlank(appletDate)) {
+                log.error("有效期变更接口异常：{}，jsonData:{}", TASK_ID_ERROR.getErrorMsg(),jsonData);
+                return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
+                        .setMessage(TASK_ID_ERROR.getErrorMsg());
+            }
             // 查询当前taskId下的修改前有效期
             MarketingCustomizeDataValidConfigExample me = new MarketingCustomizeDataValidConfigExample();
             me.createCriteria().andApiCodeEqualTo(apiCode)
@@ -213,12 +210,6 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                 entityOptService.writeOptLog(marketingCustomizeDataValidConfigOld.getId(),marketingCustomizeDataValidConfigNew,marketingCustomizeDataValidConfigOld);
 
             }
-
-//            try {
-//                sendDingDing(apiCode, me, taskId, effectiveDateTransfer, expireDateTransfer);
-//            }catch (Exception e){
-//                log.error("360有效期变更发送钉钉通知异常，{}",e);
-//            }
 
             // 更新task_id 对应有效期
             MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
@@ -244,36 +235,6 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
             return new ApiNoDataResult().setCode(UNKNOWN_ERROR.getErrorCode()).setMessage(UNKNOWN_ERROR.getErrorMsg());
         }
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
-    }
-
-    private void sendDingDing(String apiCode, MarketingCustomizeDataValidConfigExample me,
-                              String taskId, String effectiveDateTransfer, String expireDateTransfer) {
-        List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigList =
-                marketingCustomizeDataValidConfigMapper.selectByExample(me);
-        if(marketingCustomizeDataValidConfigList.size()==1){
-            MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigOld =
-                    marketingCustomizeDataValidConfigList.get(0);
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("客户修改奇富360有效期，主要内容：apiCode： ")
-                    .append(apiCode)
-                    .append("， taskId: ")
-                    .append(taskId)
-                    .append("，数据上传时间：")
-                    .append(marketingCustomizeDataValidConfigOld.getAppletDate())
-                    .append(", 修改前有效期范围：")
-                    .append(marketingCustomizeDataValidConfigOld.getValidStartDate())
-                    .append("~")
-                    .append(marketingCustomizeDataValidConfigOld.getValidEndDate())
-                    .append("。修改后有效期范围：")
-                    .append(effectiveDateTransfer)
-                    .append("~")
-                    .append(expireDateTransfer);
-
-            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-            Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.QIFU_VALIDITY_CHANGE
-                    .toString());
-            dingDingRobotHookService.sendDingDingTextMessage(stringBuilder.toString(), map);
-        }
     }
 
     private String formatDate(String date) throws ParseException {
