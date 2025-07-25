@@ -87,7 +87,9 @@
         FROM  b_marketing_tcyr_sync
         WHERE
             api_code= #{apiCode}
-          AND create_time > "2025-06-30 00:00:00"
+            <if test="startSearchTime !=null">
+                AND create_time > #{startSearchTime}
+            </if>
           AND is_match is NULL
           AND status = 1
           AND is_del = 1

@@ -2958,7 +2958,7 @@ public class MarketingCommonConfig {
 
     /**
      * 同程易融-match-shard  job参数
-     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000}
+     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000,"startSearchTime:yyyy-mm-dd HH:mm:ss"}
      */
     private JSONObject tcMatchShardConfig;
 

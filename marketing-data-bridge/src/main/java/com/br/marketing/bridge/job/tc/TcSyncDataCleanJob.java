@@ -84,12 +84,15 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         for (MarketingTcyrSyncRecord syncRecord : syncRecordList) {
             try {
                 Long lastSearchId =0L;
-                Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
                 while (true) {
+                    Integer searchSize = marketingCommonConfig.getTcPageSearchSize();
                     List<MarketingTcyrSync> tcyrSyncList = tcSyncDataCleanService.selectTcSyncList(syncRecord.getBatchNo(),0,lastSearchId,searchSize);
                     if (CollectionUtils.isEmpty(tcyrSyncList)) {
                         break;
                     }
+                    //07-25 id-auto_random模式，批处理数据修改为中间态5
+                    List<Long> idList =tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
+                    tcSyncDataCleanService.updateCleanStatus(idList,5);
                     processList(syncRecord.getApiCode(),syncRecord.getBatchNo(),tcyrSyncList,actionPool,futureList,resultList);
                     lastSearchId = tcyrSyncList.get(tcyrSyncList.size()-1).getId();
                 }

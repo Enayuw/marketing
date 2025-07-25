@@ -2,7 +2,6 @@ package com.br.marketing.service.tc.impl;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -20,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -141,6 +142,9 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
                 marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"),
                 marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
+        DateTimeFormatter formatter= DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime startSearchTime = LocalDateTime.parse(
+                marketingCommonConfig.getTcMatchShardConfig().getString("startSearchTime"), formatter);
         try{
             for (;;) {
                 if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
@@ -150,9 +154,10 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 long startTime = System.currentTimeMillis();
                 //1.抢锁
                 redisChgService.lock(lockKey, lockValue);
+
                 //2.获取数据
                 List<MarketingTcyrSync> tcyrSyncList = tcyrSyncMapper.selectMatchSyncList(
-                        apiCode, marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"));
+                        apiCode, marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"),startSearchTime);
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
