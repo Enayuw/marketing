@@ -92,7 +92,7 @@
         <foreach collection="collidingDataLogList" item="item" separator=",">
             (#{item.apiCode, jdbcType=VARCHAR},
             #{item.dataSourceType, jdbcType=VARCHAR},
-            #{item.userTppe, jdbcType=VARCHAR},
+            #{item.userType, jdbcType=VARCHAR},
             #{item.cell, jdbcType=VARCHAR},
             #{item.smsSendStatus, jdbcType=VARCHAR},
             #{item.isConnect, jdbcType=VARCHAR},
