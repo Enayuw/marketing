@@ -11,7 +11,7 @@ public interface ZhongAnReportHandler {
      * @author senyang.zheng
      * @date 2025/07/22
      */
-    boolean check(String cellMd5, String bizDate) throws Exception;
+    boolean check(String cellMd5, String userType, String bizDate) throws Exception;
 
     String ruleName();
 }

@@ -24,8 +24,8 @@ public class Connect3DaysHandler implements ZhongAnReportHandler {
      * @date 2025/07/22
      */
     @Override
-    public boolean check(String cellMd5, String bizDate) throws Exception {
-        int count = zhongAnCollidingDataLogMapper.countCallConnectSuccess(cellMd5,bizDate);
+    public boolean check(String cellMd5, String userType, String bizDate) throws Exception {
+        int count = zhongAnCollidingDataLogMapper.countCallConnectSuccess(cellMd5, userType, bizDate);
         return count < 1;
     }
 

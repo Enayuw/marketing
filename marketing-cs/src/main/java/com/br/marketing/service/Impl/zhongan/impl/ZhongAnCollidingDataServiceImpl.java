@@ -128,9 +128,10 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     flag = false;
                     continue;
                 }
+                String userType =collidingDatas.get(0).getUserType();
                 Set<String> custNumSet = collidingDatas.stream().map(ZhongAnCollidingDataBO::getCaseNum).collect(Collectors.toSet());
                 Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
-                        .getValidityPeriodsByCustNumAndUserType(custNumSet, collidingDatas.get(0).getUserType(), apiCode, bizDate);
+                        .getValidityPeriodsByCustNumAndUserType(custNumSet, userType, apiCode, bizDate);
                 //单批次内去重
                 Map<String, ZhongAnCollidingDataBO> map = collidingDatas.stream().collect(Collectors.toMap(
                         data -> String.join("::",
@@ -158,9 +159,10 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     handlers.add(connectOrSmsSendMonthHandler);
                     handlers.add(deduplicateMobilePerDayHandler);
                     String finalBizDate = bizDate;
+                    String finalUserType = userType;
                     boolean result = handlers.parallelStream().allMatch(h -> {
                         try {
-                            return h.check(cellMd5, finalBizDate);
+                            return h.check(cellMd5, finalUserType, finalBizDate);
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(),
                                     h.ruleName() + "check异常,cell:" + cellMd5 + "bizDate:" + finalBizDate, e.getMessage()));
