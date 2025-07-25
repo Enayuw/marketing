@@ -159,17 +159,15 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     handlers.add(connectOrSmsSendMonthHandler);
                     handlers.add(deduplicateMobilePerDayHandler);
                     String finalBizDate = bizDate;
-                    String finalUserType = userType;
                     boolean result = handlers.parallelStream().allMatch(h -> {
                         try {
-                            return h.check(cellMd5, finalUserType, finalBizDate);
+                            return h.check(cellMd5, userType, finalBizDate);
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(),
                                     h.ruleName() + "check异常,cell:" + cellMd5 + "bizDate:" + finalBizDate, e.getMessage()));
                             return false;
                         }
                     });
-
                     if (result) {
                         SyncUserValidityPeriodsBO bo = keyToSyncUserBO.get(value.getCaseNum());
                         if (bo == null || CollectionUtils.isEmpty(bo.getSyncUsers())) {
