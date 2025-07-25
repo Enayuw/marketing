@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.exception.auth.AppException;
+import com.br.marketing.context.OptUser;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,9 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
     @Autowired
     private RedisAuthService redisService;
 
+    @Autowired
+    OptUser optUser;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String sessionId = request.getParameter("sessionId");
@@ -42,6 +46,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
                 throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
             } else {
                 session.setAttribute("userDetail", userDetail);
+                optUser.setUserDetail(userDetail);
                 return super.preHandle(request, response, handler);
             }
         } else {

@@ -19,16 +19,16 @@ import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.br.marketing.common.constants.MarketingErrorInfo.*;
 import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
@@ -72,6 +72,9 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
 
     @Resource
     private DingDingRobotHookService dingDingRobotHookService;
+
+    @Resource
+    private EntityOptServiceImpl entityOptService;
 
 
 
@@ -140,13 +143,13 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
     @Override
     public ApiNoDataResult marketingValidityPeriod(String apiCode, String jsonData) {
         try {
-            List<String> validityPeriodApiCodeList = marketingCommonConfig.getValidityPeriodApiCodeList();
-            // 校验apiCode
-            if (!validityPeriodApiCodeList.contains(apiCode)) {
-                log.error("有效期变更接口异常：{}，{}，jsonData:{}", API_CODE_AUTH_ERROR.getErrorMsg(),apiCode,jsonData);
-                return new ApiNoDataResult().setCode(API_CODE_AUTH_ERROR.getErrorCode())
-                        .setMessage(API_CODE_AUTH_ERROR.getErrorMsg());
-            }
+//            List<String> validityPeriodApiCodeList = marketingCommonConfig.getValidityPeriodApiCodeList();
+//            // 校验apiCode
+//            if (!validityPeriodApiCodeList.contains(apiCode)) {
+//                log.error("有效期变更接口异常：{}，{}，jsonData:{}", API_CODE_AUTH_ERROR.getErrorMsg(),apiCode,jsonData);
+//                return new ApiNoDataResult().setCode(API_CODE_AUTH_ERROR.getErrorCode())
+//                        .setMessage(API_CODE_AUTH_ERROR.getErrorMsg());
+//            }
             // 校验 jsonData
             JSONObject jsonObject;
             try {
@@ -186,22 +189,36 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                         .setMessage(TIME_FORMAT_ERROR.getErrorMsg());
             }
             // 根据批次号查询appletDate
-            String appletDate = marketingSyncInfoMapper.getAppletDateByCusBatch(taskId, apiCode);
-            if (StringUtils.isBlank(appletDate)) {
-                log.error("有效期变更接口异常：{}，jsonData:{}", TASK_ID_ERROR.getErrorMsg(),jsonData);
-                return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
-                        .setMessage(TASK_ID_ERROR.getErrorMsg());
-            }
-            // 查询当前taskId 下的有效期
+//            String appletDate = marketingSyncInfoMapper.getAppletDateByCusBatch(taskId, apiCode);
+//            if (StringUtils.isBlank(appletDate)) {
+//                log.error("有效期变更接口异常：{}，jsonData:{}", TASK_ID_ERROR.getErrorMsg(),jsonData);
+//                return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
+//                        .setMessage(TASK_ID_ERROR.getErrorMsg());
+//            }
+            // 查询当前taskId下的修改前有效期
             MarketingCustomizeDataValidConfigExample me = new MarketingCustomizeDataValidConfigExample();
             me.createCriteria().andApiCodeEqualTo(apiCode)
-                            .andTaskIdEqualTo(taskId)
-                                    .andIsDelEqualTo(1);
-            try {
-                sendDingDing(apiCode, me, taskId, effectiveDateTransfer, expireDateTransfer);
-            }catch (Exception e){
-                log.error("360有效期变更发送钉钉通知异常，{}",e);
+                    .andTaskIdEqualTo(taskId)
+                    .andIsDelEqualTo(1);
+            List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigList =
+                    marketingCustomizeDataValidConfigMapper.selectByExample(me);
+            if(marketingCustomizeDataValidConfigList.size()==1) {
+                MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigOld = marketingCustomizeDataValidConfigList.get(0);
+
+                MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigNew = new MarketingCustomizeDataValidConfig();
+                BeanUtils.copyProperties(marketingCustomizeDataValidConfigOld, marketingCustomizeDataValidConfigNew);
+                marketingCustomizeDataValidConfigNew.setValidStartDate(effectiveDateTransfer);
+                marketingCustomizeDataValidConfigNew.setValidEndDate(expireDateTransfer);
+
+                entityOptService.writeOptLog(marketingCustomizeDataValidConfigOld.getId(),marketingCustomizeDataValidConfigNew,marketingCustomizeDataValidConfigOld);
+
             }
+
+//            try {
+//                sendDingDing(apiCode, me, taskId, effectiveDateTransfer, expireDateTransfer);
+//            }catch (Exception e){
+//                log.error("360有效期变更发送钉钉通知异常，{}",e);
+//            }
 
             // 更新task_id 对应有效期
             MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();

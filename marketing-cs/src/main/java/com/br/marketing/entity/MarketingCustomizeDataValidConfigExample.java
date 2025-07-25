@@ -505,6 +505,76 @@ public class MarketingCustomizeDataValidConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andCustGroupNameIsNull() {
+            addCriterion("cust_group_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameIsNotNull() {
+            addCriterion("cust_group_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameEqualTo(String value) {
+            addCriterion("cust_group_name =", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameNotEqualTo(String value) {
+            addCriterion("cust_group_name <>", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameGreaterThan(String value) {
+            addCriterion("cust_group_name >", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameGreaterThanOrEqualTo(String value) {
+            addCriterion("cust_group_name >=", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameLessThan(String value) {
+            addCriterion("cust_group_name <", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameLessThanOrEqualTo(String value) {
+            addCriterion("cust_group_name <=", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameLike(String value) {
+            addCriterion("cust_group_name like", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameNotLike(String value) {
+            addCriterion("cust_group_name not like", value, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameIn(List<String> values) {
+            addCriterion("cust_group_name in", values, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameNotIn(List<String> values) {
+            addCriterion("cust_group_name not in", values, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameBetween(String value1, String value2) {
+            addCriterion("cust_group_name between", value1, value2, "custGroupName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustGroupNameNotBetween(String value1, String value2) {
+            addCriterion("cust_group_name not between", value1, value2, "custGroupName");
+            return (Criteria) this;
+        }
+
         public Criteria andValidStartDateIsNull() {
             addCriterion("valid_start_date is null");
             return (Criteria) this;

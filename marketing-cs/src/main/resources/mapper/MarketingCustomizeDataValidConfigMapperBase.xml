@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapperBase" >
+<mapper namespace="com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCustomizeDataValidConfig" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -8,13 +8,13 @@
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="user_type" property="userType" jdbcType="VARCHAR" />
     <result column="task_id" property="taskId" jdbcType="VARCHAR" />
+    <result column="cust_group_name" property="custGroupName" jdbcType="VARCHAR" />
     <result column="valid_start_date" property="validStartDate" jdbcType="VARCHAR" />
     <result column="valid_end_date" property="validEndDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
   </resultMap>
-
   <sql id="Example_Where_Clause" >
     <where >
       <foreach collection="oredCriteria" item="criteria" separator="or" >
@@ -74,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, data_valid_config_id, applet_date, user_type, task_id, valid_start_date,
-    valid_end_date, create_time, update_time, is_del
+    id, api_code, data_valid_config_id, applet_date, user_type, task_id, cust_group_name,
+    valid_start_date, valid_end_date, create_time, update_time, is_del
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomizeDataValidConfigExample" >
     select
@@ -112,13 +112,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_customize_data_valid_config (api_code, data_valid_config_id, applet_date,
-    user_type, task_id, valid_start_date,
-    valid_end_date, create_time, update_time,
-    is_del)
+    user_type, task_id, cust_group_name,
+    valid_start_date, valid_end_date, create_time,
+    update_time, is_del)
     values (#{apiCode,jdbcType=VARCHAR}, #{dataValidConfigId,jdbcType=BIGINT}, #{appletDate,jdbcType=VARCHAR},
-    #{userType,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR}, #{validStartDate,jdbcType=VARCHAR},
-    #{validEndDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-    #{isDel,jdbcType=INTEGER})
+    #{userType,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR}, #{custGroupName,jdbcType=VARCHAR},
+    #{validStartDate,jdbcType=VARCHAR}, #{validEndDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomizeDataValidConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -140,6 +140,9 @@
       </if>
       <if test="taskId != null" >
         task_id,
+      </if>
+      <if test="custGroupName != null" >
+        cust_group_name,
       </if>
       <if test="validStartDate != null" >
         valid_start_date,
@@ -172,6 +175,9 @@
       </if>
       <if test="taskId != null" >
         #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="custGroupName != null" >
+        #{custGroupName,jdbcType=VARCHAR},
       </if>
       <if test="validStartDate != null" >
         #{validStartDate,jdbcType=VARCHAR},
@@ -217,6 +223,9 @@
       <if test="record.taskId != null" >
         task_id = #{record.taskId,jdbcType=VARCHAR},
       </if>
+      <if test="record.custGroupName != null" >
+        cust_group_name = #{record.custGroupName,jdbcType=VARCHAR},
+      </if>
       <if test="record.validStartDate != null" >
         valid_start_date = #{record.validStartDate,jdbcType=VARCHAR},
       </if>
@@ -245,6 +254,7 @@
     applet_date = #{record.appletDate,jdbcType=VARCHAR},
     user_type = #{record.userType,jdbcType=VARCHAR},
     task_id = #{record.taskId,jdbcType=VARCHAR},
+    cust_group_name = #{record.custGroupName,jdbcType=VARCHAR},
     valid_start_date = #{record.validStartDate,jdbcType=VARCHAR},
     valid_end_date = #{record.validEndDate,jdbcType=VARCHAR},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -272,6 +282,9 @@
       <if test="taskId != null" >
         task_id = #{taskId,jdbcType=VARCHAR},
       </if>
+      <if test="custGroupName != null" >
+        cust_group_name = #{custGroupName,jdbcType=VARCHAR},
+      </if>
       <if test="validStartDate != null" >
         valid_start_date = #{validStartDate,jdbcType=VARCHAR},
       </if>
@@ -297,6 +310,7 @@
         applet_date = #{appletDate,jdbcType=VARCHAR},
         user_type = #{userType,jdbcType=VARCHAR},
         task_id = #{taskId,jdbcType=VARCHAR},
+        cust_group_name = #{custGroupName,jdbcType=VARCHAR},
         valid_start_date = #{validStartDate,jdbcType=VARCHAR},
         valid_end_date = #{validEndDate,jdbcType=VARCHAR},
         create_time = #{createTime,jdbcType=TIMESTAMP},
