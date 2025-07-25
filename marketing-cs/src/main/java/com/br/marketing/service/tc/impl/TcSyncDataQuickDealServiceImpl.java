@@ -140,7 +140,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
             List<String> batchData = new ArrayList<>();
-            modifyThreadPool(actionPool);
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
                 if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("pageSize")) {
@@ -224,20 +223,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         if (marketingCommonConfig.getTcQuickDealShardConfig().getBoolean("detailLogSwitch")) {
             log.warn("TITLE:{},sync_file_id:{} quick_deal 单批次执行结束,耗时:{},成功处理数量:{}",
                     TITLE, syncFileId, System.currentTimeMillis() - startTime, batchData.size());
-        }
-    }
-
-
-
-    /**
-     * 动态调整线程池大小
-     */
-    private void modifyThreadPool(ThreadPoolExecutor actionPool) {
-        Integer threadNum = marketingCommonConfig.getTcQuickDealShardConfig().getInteger("threadPool");
-        Integer corePoolSize = actionPool.getCorePoolSize();
-        if (!corePoolSize.equals(threadNum)) {
-            actionPool.setCorePoolSize(threadNum);
-            actionPool.setMaximumPoolSize(threadNum);
         }
     }
 

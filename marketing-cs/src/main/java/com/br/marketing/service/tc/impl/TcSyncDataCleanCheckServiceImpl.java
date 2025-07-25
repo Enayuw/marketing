@@ -5,13 +5,11 @@ import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTcyrErrorInterfaceLog;
 import com.br.marketing.mapper.MarketingTcyrErrorInterfaceLogMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.tc.TcSyncDataCleanChekService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -21,8 +19,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
