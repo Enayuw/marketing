@@ -128,7 +128,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                     flag = false;
                     continue;
                 }
-                String userType =collidingDatas.get(0).getUserType();
+                String userType = collidingDatas.get(0).getUserType();
                 Set<String> custNumSet = collidingDatas.stream().map(ZhongAnCollidingDataBO::getCaseNum).collect(Collectors.toSet());
                 Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
                         .getValidityPeriodsByCustNumAndUserType(custNumSet, userType, apiCode, bizDate);
@@ -224,6 +224,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                         List<Long> finalPushSmsIds = pushSmsIds;
                         List<ZaMarketDetail> finalPushList = pushList;
                         String finalApiCode = collidingDataBO.getApiCode();
+                        String finalUSerType = collidingDataBO.getUserType();
                         updateCallStatus(finalPushIds, 0, null);
                         if (!CollectionUtils.isEmpty(finalPushSmsIds)) {
                             updateSmsStatus(finalPushSmsIds, 0, null);
@@ -233,7 +234,7 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
                             dataDTO.setData(finalPushList);
                             methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
                                     , collidingDataBO.getApiCode(), "MG", finalPushIds, finalPushSmsIds), null);
-                            insertCollidingLog(finalPushList, finalApiCode, config.getDataSourceType());
+                            insertCollidingLog(finalPushList, finalApiCode, finalUSerType, config.getDataSourceType());
                         });
                         pushList = Lists.newArrayList();
                         pushSmsIds = Lists.newArrayList();
@@ -245,12 +246,13 @@ public class ZhongAnCollidingDataServiceImpl implements ZhongAnCollidingDataServ
         pushPool.shutdownAndAwaitTermination();
     }
 
-    private void insertCollidingLog(List<ZaMarketDetail> pushList, String apiCode, String dataSourceType) {
+    private void insertCollidingLog(List<ZaMarketDetail> pushList, String apiCode, String userType, String dataSourceType) {
         List<ZhongAnCollidingDataLog> collidingDataLogList = Lists.newArrayList();
         pushList.forEach((ZaMarketDetail push) -> {
             ZhongAnCollidingDataLog collidingDataLog = new ZhongAnCollidingDataLog();
             collidingDataLog.setApiCode(apiCode);
             collidingDataLog.setDataSourceType(dataSourceType);
+            collidingDataLog.setUserType(userType);
             collidingDataLog.setCell(push.getMobileMd5());
             collidingDataLog.setSmsSendStatus(push.getIsSmsSendSuccess());
             collidingDataLog.setIsConnect(push.getIsConnect());
