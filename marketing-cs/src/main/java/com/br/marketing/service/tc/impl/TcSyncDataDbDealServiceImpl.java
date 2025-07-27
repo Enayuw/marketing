@@ -60,6 +60,9 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     @Resource
     private MarketingTcyrSyncMapper tcyrSyncMapper;
 
+    @Resource
+    private MarketingTcyrCustCellMappingMapper tcyrCustCellMappingMapper;
+
     @Autowired
     private RedisChgService redisChgService;
 
@@ -178,8 +181,15 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                                     custCellMappingMapper.saveNewCustCellInfo(userKeyId, cell);
                                 }
                             }else {
-                                //TODO 07-17 userKey是String类型时,中间表数据保存(此处在多线程里面 如何获取此时插入数据的id)
-                                custCellMappingMapper.saveStrCustCellInfo(userKey,cell);
+                                //TODO 07-27 userKey是String类型时,中间表数据保存id->预用雪花算法id(雪花算法id功能未上线)
+                                cell = tcyrCustCellMappingMapper.selectStrUserKeyCellBytikv_(userKey);
+                                if (StringUtils.isEmpty(cell)) {
+                                    try {
+                                        custCellMappingMapper.saveStrCustCellInfo(userKey,cell);
+                                    }catch (Exception e) {
+                                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), "String类型userKey保存异常"+e.getMessage(), TITLE), e);
+                                    }
+                                }
                             }
                         } else {
                             sqlBuilder.append(",NULL,0");
@@ -198,6 +208,11 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                         }
                         extentJson.put("syncFileId", syncFileId);
                         sqlBuilder.append(",'").append(escapeSqlString(extentJson.toJSONString())).append("',1,NOW(),NOW())");
+                    }else {
+                        sqlBuilder.append(",'").append(line).append("',NULL,NULL,NULL");
+                        JSONObject extentJson = new JSONObject();
+                        extentJson.put("column_0", line);
+                        sqlBuilder.append(",'").append(escapeSqlString(JSONObject.toJSONString(extentJson))).append("',0,NOW(),NOW())");
                     }
                     count++;
                 }
