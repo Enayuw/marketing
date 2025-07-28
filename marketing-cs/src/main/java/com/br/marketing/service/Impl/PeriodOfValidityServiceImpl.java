@@ -516,7 +516,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
             String effectiveDate = json.getString("effectiveDate");
             String expireDate = json.getString("expireDate");
-            String custGroupName = json.getString("cust_group_name");
+            String custGroupName = json.getString("custGroupName");
             log.warn("查询的上传输数据信息effectiveDate：{}",effectiveDate);
             log.warn("查询的上传输数据信息expireDate：{}",expireDate);
             marketingCustomizeDataValidConfig.setValidStartDate(DateFormat(effectiveDate));
