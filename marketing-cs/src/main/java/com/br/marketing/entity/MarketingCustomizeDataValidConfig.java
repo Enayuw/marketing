@@ -34,11 +34,6 @@ public class MarketingCustomizeDataValidConfig {
     private String taskId;
 
     /**
-     * 客群分组名
-     */
-    private String custGroupName;
-
-    /**
      * 生效开始日期
      */
     private String validStartDate;
@@ -109,14 +104,6 @@ public class MarketingCustomizeDataValidConfig {
 
     public void setTaskId(String taskId) {
         this.taskId = taskId == null ? null : taskId.trim();
-    }
-
-    public String getCustGroupName() {
-        return custGroupName;
-    }
-
-    public void setCustGroupName(String custGroupName) {
-        this.custGroupName = custGroupName == null ? null : custGroupName.trim();
     }
 
     public String getValidStartDate() {

@@ -516,12 +516,10 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
             String effectiveDate = json.getString("effectiveDate");
             String expireDate = json.getString("expireDate");
-            String custGroupName = json.getString("custGroupName");
             log.warn("查询的上传输数据信息effectiveDate：{}",effectiveDate);
             log.warn("查询的上传输数据信息expireDate：{}",expireDate);
             marketingCustomizeDataValidConfig.setValidStartDate(DateFormat(effectiveDate));
             marketingCustomizeDataValidConfig.setValidEndDate(DateFormat(expireDate));
-            marketingCustomizeDataValidConfig.setCustGroupName(custGroupName);
             if(StringUtils.isEmpty(effectiveDate) || StringUtils.isEmpty(expireDate)){
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
                         "奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：上传数据的api_code:" + marketingSyncByCusBatch.getApiCode()
