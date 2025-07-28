@@ -1,5 +1,10 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
+import java.util.Date;
+
+@Data
 public class NfsFileTOBiRecord {
     /**
      * 
@@ -15,6 +20,12 @@ public class NfsFileTOBiRecord {
      * 文件类型
      */
     private Integer fileType;
+
+    /**
+     * 1-转化提取文件同步至marketing-bi
+     * 9-宜信邮件读取任务的类型
+     */
+    private String busType;
 
     /**
      * 文件名称
@@ -35,6 +46,21 @@ public class NfsFileTOBiRecord {
      * 执行日期
      */
     private String executeDate;
+
+    /**
+     * 文件传输时间
+     */
+    private String sendTime;
+
+    /**
+     * 入库时间，推送时间
+     */
+    private Date createTime;
+
+    /**
+     * 更新记录时间
+     */
+    private Date updateTime;
 
     public Long getId() {
         return id;

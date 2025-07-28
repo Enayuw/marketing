@@ -70,9 +70,9 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
     /**
      * 宜信转化数据提取V4.0 文件头
      */
-    private final static String TABLE_HEAD_TRANSFER = "id,是否注册,注册渠道,注册时间,是否进件,进件时间,审核结果,授信金额," +
+    private final static String TABLE_HEAD_TRANSFER = "id,是否注册,注册时间,是否进件,进件时间,审核结果,授信金额," +
             "是否申请放款,是否放款,放款时间,放款金额,注册节点,是否申请大额提额,申请大额提额时间,申请大额提额是否通过,创建时间,红包活动," +
-            "放款状态,申请提大额方式,提额成功方式,利率,已用额度,剩余额度,结算费率,推荐提大额方式";
+            "放款状态,申请提大额方式,提额成功方式,利率,已用额度,剩余额度,结算费率,推荐提大额方式,是否高质";
 
     final static DateTimeFormatter YYYYMMDDSHORTDFLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
@@ -130,7 +130,8 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                     List<String> yinXinTransferRealTimeApiCodes = marketingCommonConfig.getYinXinTransferV4ApiCodes();
                     String fileName;
                     if(null != yinXinTransferRealTimeApiCodes && yinXinTransferRealTimeApiCodes.size()>0){
-                        fileName = String.format("%s_%s.csv", yinXinTransferRealTimeApiCodes.get(0), today);
+                        String newToday = today.replace("-", "");
+                        fileName = String.format("%s_%s.csv", yinXinTransferRealTimeApiCodes.get(0), newToday);
                     }else{
                         fileName = String.format("yixinzhuanhua_all_%s.csv", today);
                     }
@@ -253,7 +254,6 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                     String raiseLimit = null;
                     String raiseLimitTime = null;
                     String raiseLimitResult = null;
-                    String registerChannel = null;
                     String loantResult = null;
                     String raiseLimiType = null;
                     String raiseLimiSuccess = null;
@@ -262,13 +262,13 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                     String availableAmount = null;
                     String settleRatio = null;
                     String recommendType = null;
+                    String highQuality = null;
                     if (StringUtils.isNotBlank(reserveField1)) {
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
                         applyLoan = emptyDefault(jsonObject.getString("applyLoan"));
                         raiseLimit = emptyDefault(jsonObject.getString("raiseLimit"));
                         raiseLimitTime = emptyDefault(jsonObject.getString("raiseLimitTime"));
                         raiseLimitResult = emptyDefault(jsonObject.getString("raiseLimitResult"));
-                        registerChannel = emptyDefault(jsonObject.getString("registerChannel"));
                         loantResult = emptyDefault(jsonObject.getString("loanResult"));
                         raiseLimiType = emptyDefault(jsonObject.getString("raiseLimiType"));
                         raiseLimiSuccess = emptyDefault(jsonObject.getString("raiseLimiSuccess"));
@@ -277,6 +277,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                         availableAmount = emptyDefault(jsonObject.getString("availableAmount"));
                         settleRatio = emptyDefault(jsonObject.getString("settleRatio"));
                         recommendType = emptyDefault(jsonObject.getString("recommendType"));
+                        highQuality = emptyDefault(jsonObject.getString("highQuality"));
                     }
                     StringBuilder sb = new StringBuilder();
                     try {
@@ -295,9 +296,9 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                         ifLent = getMapByList(ifLent,y1n0Key,y1n0Value);
                         raiseLimit = getMapByList(raiseLimit,y1n0Key,y1n0Value);
                         raiseLimitResult = getMapByList(raiseLimitResult,y1n0Key,y1n0Value);
+                        highQuality = getMapByList(highQuality,y1n0Key,y1n0Value);
                         sb.append(emptyDefault(custNum)).append(",")
                                 .append(ifRegister).append(",")
-                                .append(registerChannel).append(",")
                                 .append(emptyDefault(transferFilterData.getRegisterTime())).append(",")
                                 .append(ifApply).append(",")
                                 .append(emptyDefault(transferFilterData.getApplyDt())).append(",")
@@ -320,7 +321,8 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                                 .append(usedAmount).append(",")
                                 .append(availableAmount).append(",")
                                 .append(settleRatio).append(",")
-                                .append(recommendType);
+                                .append(recommendType).append(",")
+                                .append(highQuality);
                         sb.append("\r\n");
                         fw.append(sb.toString());
                         totalSize.incrementAndGet();

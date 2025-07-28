@@ -365,6 +365,76 @@ public class ZhonganRosterLockingDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andCaseNumIsNull() {
+            addCriterion("case_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumIsNotNull() {
+            addCriterion("case_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumEqualTo(String value) {
+            addCriterion("case_num =", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumNotEqualTo(String value) {
+            addCriterion("case_num <>", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumGreaterThan(String value) {
+            addCriterion("case_num >", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumGreaterThanOrEqualTo(String value) {
+            addCriterion("case_num >=", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumLessThan(String value) {
+            addCriterion("case_num <", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumLessThanOrEqualTo(String value) {
+            addCriterion("case_num <=", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumLike(String value) {
+            addCriterion("case_num like", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumNotLike(String value) {
+            addCriterion("case_num not like", value, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumIn(List<String> values) {
+            addCriterion("case_num in", values, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumNotIn(List<String> values) {
+            addCriterion("case_num not in", values, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumBetween(String value1, String value2) {
+            addCriterion("case_num between", value1, value2, "caseNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCaseNumNotBetween(String value1, String value2) {
+            addCriterion("case_num not between", value1, value2, "caseNum");
+            return (Criteria) this;
+        }
+
         public Criteria andMobileMd5IsNull() {
             addCriterion("mobile_md5 is null");
             return (Criteria) this;

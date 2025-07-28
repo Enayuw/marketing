@@ -18,6 +18,26 @@ public class MarketingCustomerConfig implements Serializable {
     private Integer threeKEncryptType;
 
     /**
+     * 加密模式
+     */
+    private String cipherMode;
+
+    /**
+     * 填充模式
+     */
+    private String paddingScheme;
+
+    /**
+     * 字符编码
+     */
+    private String charset;
+
+    /**
+     * 密钥
+     */
+    private String dynamicKeys;
+
+    /**
      * 是否生效 1-有效;9-无效
      */
     private Integer isDel;
@@ -66,6 +86,38 @@ public class MarketingCustomerConfig implements Serializable {
 
     public void setThreeKEncryptType(Integer threeKEncryptType) {
         this.threeKEncryptType = threeKEncryptType;
+    }
+
+    public String getCipherMode() {
+        return cipherMode;
+    }
+
+    public void setCipherMode(String cipherMode) {
+        this.cipherMode = cipherMode == null ? null : cipherMode.trim();
+    }
+
+    public String getPaddingScheme() {
+        return paddingScheme;
+    }
+
+    public void setPaddingScheme(String paddingScheme) {
+        this.paddingScheme = paddingScheme == null ? null : paddingScheme.trim();
+    }
+
+    public String getCharset() {
+        return charset;
+    }
+
+    public void setCharset(String charset) {
+        this.charset = charset == null ? null : charset.trim();
+    }
+
+    public String getDynamicKeys() {
+        return dynamicKeys;
+    }
+
+    public void setDynamicKeys(String dynamicKeys) {
+        this.dynamicKeys = dynamicKeys == null ? null : dynamicKeys.trim();
     }
 
     public Integer getIsDel() {

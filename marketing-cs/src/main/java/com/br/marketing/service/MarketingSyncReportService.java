@@ -104,4 +104,11 @@ public interface MarketingSyncReportService {
      */
     Result<Boolean> nearRealtimeDataCountFragmentsStatis(String dataCountFragmentsMgs);
 
+    /**
+     * 获取近一个月有数据的日期集合
+     *
+     * @param apiCode API编码
+     * @return 日期列表，格式：yyyy-MM-dd
+     */
+    List<String> getLastMonthDataDates(String apiCode);
 }

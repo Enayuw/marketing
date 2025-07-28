@@ -20,6 +20,7 @@ import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -259,6 +260,31 @@ public class RobotaiApiServiceClient {
         }catch (Exception ex){
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             result = new RobotOutboundVo();
+            result.setCode("9999");
+            result.setMessage(ex.getMessage());
+            return result;
+        }
+    }
+
+    /**
+     * 黑名单查询接口-宜信
+     *
+     * @return RepQueryBlackPhoneVO
+     */
+    public TransferRobotOutboundVO getSmsBaseInfo(TransferRobotOutboundDTO dto){
+        dto.getJsonData().setPlatApiCode(customerServiceApiCode);
+        try{
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool).setUrl(robotOutboundUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(dto).postTransferStr();
+            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+                throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
+            }
+            return JSON.parseObject(transfer.getResult()
+                    ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
+        }catch (Exception ex){
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
+            TransferRobotOutboundVO result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
             return result;

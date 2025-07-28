@@ -12,9 +12,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
-import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -36,7 +33,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -48,9 +44,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTransferService {
     public static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
-    @Resource
-    XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
-
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
@@ -72,7 +65,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         Date nowDayEndTime = DateHelper.getNowDayEndTime();
         String xieChengSmsApiCode = marketingCommonConfig.getXieChengSmsApiCode();
         String cid = tableCreateService.getCId(xieChengSmsApiCode);
-        Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 
         List<String> sha256CodeList = new ArrayList<>();
         for (Object o : jsonArray) {
@@ -83,10 +75,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
             // ack
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
-        XieChengSmsCollidingDataLogVtExample xieChengSmsCollidingDataLogVtExample = new XieChengSmsCollidingDataLogVtExample();
-        xieChengSmsCollidingDataLogVtExample.createCriteria().andSha256CodeListIn(sha256CodeList).andSendDateEqualTo(sendDate);
-        List<XieChengSmsCollidingDataLogVt> selectByExample =
-                xieChengSmsCollidingDataLogVtMapper.selectByExample(xieChengSmsCollidingDataLogVtExample);
 
         // 推送客服数据集合
         List<ConversionData> conversionDataList = new CopyOnWriteArrayList<>();
@@ -94,10 +82,11 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         // 动态修改线程池
         modifyCorePoolSize();
 
-        CountDownLatch countDownLatch = new CountDownLatch(selectByExample.size());
-        for (XieChengSmsCollidingDataLogVt vt : selectByExample) {
-            final String dataId = vt.getId().toString();
-            final String sha256Code = vt.getSha256CodeList();
+        CountDownLatch countDownLatch = new CountDownLatch(sha256CodeList.size());
+        String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        for (String sha256Code : sha256CodeList) {
+            long hashCodeLong = sha256Code.hashCode() & 0x7FFFFFFFL;
+            String dataId = hashCodeLong + currentDate;
             pool.submit(() -> buildConversionDataList(nowDayEndTime, cid, sha256Code, dataId, countDownLatch, conversionDataList));
         }
         try {
@@ -149,17 +138,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         pool.setMaximumPoolSize(threadNum);
     }
 
-    private void shutDownTreadPool() {
-        pool.shutdown();
-        try {
-            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("xieChengSmsThreadPool线程池结束");
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        }
-    }
-
     private void buildConversionDataList(Date nowDayEndTime, String cid, String sha256Code,
                                          String dataId, CountDownLatch countDownLatch, List<ConversionData> conversionDataList) {
         try {
@@ -185,6 +163,5 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         } finally {
             countDownLatch.countDown();
         }
-
     }
 }

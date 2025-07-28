@@ -330,7 +330,7 @@
             <artifactId>br-encrypt-starter1.x-jdk8</artifactId>
             <version>1.0.0</version>
         </dependency>
-
+        <!-- 线程池动态配置客户端 -->
         <dependency>
             <groupId>org.middleheavenframework.boot</groupId>
             <artifactId>tp-dynamic-metric-starter</artifactId>

@@ -681,6 +681,56 @@ public class HttpProxyClient {
         return res;
     }
 
+    /**
+     * @description:get请求封装
+     * @author: dongshuo.he
+     * @time: 2025-07-07
+     */
+    public HashMap<String, String> getWithLog(String uri, Boolean isPorxy, String charset) {
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setUrl(uri);
+        interfaceLog.setCreateTime(new Date());
+        HashMap<String, String> res = new HashMap<>();
+        HttpClient httpClient = getHttpClientInner(isPorxy);
+        if (StringUtils.isEmpty(charset)) {
+            charset = CHARSET_UTF8;
+        }
+        Long start = System.currentTimeMillis();
+        try {
+            HttpGet httpGet = new HttpGet(uri);
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            httpGet.setConfig(requestConfig);
+            log.warn("get请求url={},proxy={}", httpGet.getURI().toString(),isPorxy);
+            HttpResponse response = httpClient.execute(httpGet);
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            //toString方法有坑，不能处理编码转换
+            //String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            byte[] responseBodyBytes = EntityUtils.toByteArray(response.getEntity());
+            String result = new String(responseBodyBytes, Charset.forName(charset));
+            res.put("content", result);
+            interfaceLog.setResult(result);
+            interfaceLog.setHttpCode(statusCode);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(), "url=" + uri), e);
+            res.put("content", e.getMessage());
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            interfaceLog.setResult(e.getMessage());
+        }
+        interfaceLogDbpool.submit(() -> {
+            try {
+                interfaceLogMapper.insertSelective(interfaceLog);
+            } catch (Exception ex) {
+                log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+            }
+        });
+        return res;
+    }
+
 
 
 

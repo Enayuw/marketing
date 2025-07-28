@@ -1,35 +1,39 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.MarketingCustomerConfigMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCustomerConfig">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="three_k_encrypt_type" jdbcType="INTEGER" property="threeKEncryptType" />
-    <result column="is_del" jdbcType="INTEGER" property="isDel" />
-    <result column="check_type" jdbcType="INTEGER" property="checkType" />
-    <result column="score_separator" jdbcType="VARCHAR" property="scoreSeparator" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingCustomerConfigMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCustomerConfig" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="three_k_encrypt_type" property="threeKEncryptType" jdbcType="INTEGER" />
+    <result column="cipher_mode" property="cipherMode" jdbcType="VARCHAR" />
+    <result column="padding_scheme" property="paddingScheme" jdbcType="VARCHAR" />
+    <result column="charset" property="charset" jdbcType="VARCHAR" />
+    <result column="dynamic_keys" property="dynamicKeys" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="check_type" property="checkType" jdbcType="INTEGER" />
+    <result column="score_separator" property="scoreSeparator" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -40,25 +44,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -69,180 +73,244 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
-    id, api_code, three_k_encrypt_type, is_del, check_type, score_separator, create_time, 
-    update_time
+  <sql id="Base_Column_List" >
+    id, api_code, three_k_encrypt_type, cipher_mode, padding_scheme, charset, dynamic_keys, 
+    is_del, check_type, score_separator, create_time, update_time
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingCustomerConfigExample" resultMap="BaseResultMap">
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomerConfigExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_marketing_customer_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
     from b_marketing_customer_config
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_marketing_customer_config
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingCustomerConfigExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingCustomerConfigExample" >
     delete from b_marketing_customer_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCustomerConfig" useGeneratedKeys="true">
-    insert into b_marketing_customer_config (api_code, three_k_encrypt_type, is_del, 
-      check_type, score_separator, create_time, 
-      update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{threeKEncryptType,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
-      #{checkType,jdbcType=INTEGER}, #{scoreSeparator,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingCustomerConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_customer_config (api_code, three_k_encrypt_type, cipher_mode, 
+      padding_scheme, charset, dynamic_keys, 
+      is_del, check_type, score_separator, 
+      create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{threeKEncryptType,jdbcType=INTEGER}, #{cipherMode,jdbcType=VARCHAR}, 
+      #{paddingScheme,jdbcType=VARCHAR}, #{charset,jdbcType=VARCHAR}, #{dynamicKeys,jdbcType=VARCHAR}, 
+      #{isDel,jdbcType=INTEGER}, #{checkType,jdbcType=INTEGER}, #{scoreSeparator,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCustomerConfig" useGeneratedKeys="true">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomerConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_marketing_customer_config
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         api_code,
       </if>
-      <if test="threeKEncryptType != null">
+      <if test="threeKEncryptType != null" >
         three_k_encrypt_type,
       </if>
-      <if test="isDel != null">
+      <if test="cipherMode != null" >
+        cipher_mode,
+      </if>
+      <if test="paddingScheme != null" >
+        padding_scheme,
+      </if>
+      <if test="charset != null" >
+        charset,
+      </if>
+      <if test="dynamicKeys != null" >
+        dynamic_keys,
+      </if>
+      <if test="isDel != null" >
         is_del,
       </if>
-      <if test="checkType != null">
+      <if test="checkType != null" >
         check_type,
       </if>
-      <if test="scoreSeparator != null">
+      <if test="scoreSeparator != null" >
         score_separator,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time,
       </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="threeKEncryptType != null">
+      <if test="threeKEncryptType != null" >
         #{threeKEncryptType,jdbcType=INTEGER},
       </if>
-      <if test="isDel != null">
+      <if test="cipherMode != null" >
+        #{cipherMode,jdbcType=VARCHAR},
+      </if>
+      <if test="paddingScheme != null" >
+        #{paddingScheme,jdbcType=VARCHAR},
+      </if>
+      <if test="charset != null" >
+        #{charset,jdbcType=VARCHAR},
+      </if>
+      <if test="dynamicKeys != null" >
+        #{dynamicKeys,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="checkType != null">
+      <if test="checkType != null" >
         #{checkType,jdbcType=INTEGER},
       </if>
-      <if test="scoreSeparator != null">
+      <if test="scoreSeparator != null" >
         #{scoreSeparator,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingCustomerConfigExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingCustomerConfigExample" resultType="java.lang.Integer" >
     select count(*) from b_marketing_customer_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_marketing_customer_config
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null">
+      <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.threeKEncryptType != null">
+      <if test="record.threeKEncryptType != null" >
         three_k_encrypt_type = #{record.threeKEncryptType,jdbcType=INTEGER},
       </if>
-      <if test="record.isDel != null">
+      <if test="record.cipherMode != null" >
+        cipher_mode = #{record.cipherMode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.paddingScheme != null" >
+        padding_scheme = #{record.paddingScheme,jdbcType=VARCHAR},
+      </if>
+      <if test="record.charset != null" >
+        charset = #{record.charset,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dynamicKeys != null" >
+        dynamic_keys = #{record.dynamicKeys,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.checkType != null">
+      <if test="record.checkType != null" >
         check_type = #{record.checkType,jdbcType=INTEGER},
       </if>
-      <if test="record.scoreSeparator != null">
+      <if test="record.scoreSeparator != null" >
         score_separator = #{record.scoreSeparator,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null">
+      <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExample" parameterType="map" >
     update b_marketing_customer_config
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       three_k_encrypt_type = #{record.threeKEncryptType,jdbcType=INTEGER},
+      cipher_mode = #{record.cipherMode,jdbcType=VARCHAR},
+      padding_scheme = #{record.paddingScheme,jdbcType=VARCHAR},
+      charset = #{record.charset,jdbcType=VARCHAR},
+      dynamic_keys = #{record.dynamicKeys,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       check_type = #{record.checkType,jdbcType=INTEGER},
       score_separator = #{record.scoreSeparator,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingCustomerConfig">
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingCustomerConfig" >
     update b_marketing_customer_config
-    <set>
-      <if test="apiCode != null">
+    <set >
+      <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="threeKEncryptType != null">
+      <if test="threeKEncryptType != null" >
         three_k_encrypt_type = #{threeKEncryptType,jdbcType=INTEGER},
       </if>
-      <if test="isDel != null">
+      <if test="cipherMode != null" >
+        cipher_mode = #{cipherMode,jdbcType=VARCHAR},
+      </if>
+      <if test="paddingScheme != null" >
+        padding_scheme = #{paddingScheme,jdbcType=VARCHAR},
+      </if>
+      <if test="charset != null" >
+        charset = #{charset,jdbcType=VARCHAR},
+      </if>
+      <if test="dynamicKeys != null" >
+        dynamic_keys = #{dynamicKeys,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="checkType != null">
+      <if test="checkType != null" >
         check_type = #{checkType,jdbcType=INTEGER},
       </if>
-      <if test="scoreSeparator != null">
+      <if test="scoreSeparator != null" >
         score_separator = #{scoreSeparator,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCustomerConfig">
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCustomerConfig" >
     update b_marketing_customer_config
     set api_code = #{apiCode,jdbcType=VARCHAR},
       three_k_encrypt_type = #{threeKEncryptType,jdbcType=INTEGER},
+      cipher_mode = #{cipherMode,jdbcType=VARCHAR},
+      padding_scheme = #{paddingScheme,jdbcType=VARCHAR},
+      charset = #{charset,jdbcType=VARCHAR},
+      dynamic_keys = #{dynamicKeys,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       check_type = #{checkType,jdbcType=INTEGER},
       score_separator = #{scoreSeparator,jdbcType=VARCHAR},

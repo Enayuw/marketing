@@ -1,8 +1,10 @@
 package com.br.marketing.service.clean.common;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.rulecleaning.RuleCleaningResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
 
@@ -15,7 +17,7 @@ public interface DataCleanService {
     Result<Boolean> customerDataJsonParse(String t);
 
 
-    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType);
+    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType,Integer status);
 
 
     Object getCleanResult(JSONObject jsonObject, MarketingDataCleanGeneralRuleConfig rule);
@@ -26,4 +28,15 @@ public interface DataCleanService {
 
     void dataCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDetailDTO marketingPreUserDetailDTO);
 
-    }
+    void fileUploadDataClean(MarketingCleanDataFile cleanFile, MarketingDataCleanGeneralConfig config);
+
+    void processBatchDataSync(List<String> batchLines, String[] headers,
+                              List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                              String apiCode, String fileName, int startIndex);
+
+    void fileUploadCleanPre(List<List<RuleCleaningResult>> ruleCleaningResultList, List<MarketingDataCleanGeneralRuleConfig> ruleList,
+                            MarketingCleanDataFile marketingCleanDataFile,Integer actualNum);
+
+    List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex);
+
+}

@@ -2829,6 +2829,11 @@ public class MarketingCommonConfig {
     private Long createMVMaxWaitTime;
 
     /**
+     * 标签:物化视图所属的数据库名,预发为marketing,线上为marketing_bi
+     */
+    private String database;
+
+    /**
      * 标签计算配置
      */
     private Map<String,String> tagCalculateConfig;
@@ -2875,6 +2880,12 @@ public class MarketingCommonConfig {
      * 转化文件提取到marketingBI的配置
      */
     private List<JSONObject> transFileExtractionApiCodesConfig;
+
+    /**
+     * 转化文件提取到marketingBI 优先级处理节点列表(只处理高优先级api_code)
+     */
+    private Set<Integer> transFilePriorityList;
+
     /**
      * 转化文件提取到BI线程数
      */
@@ -3199,5 +3210,75 @@ public class MarketingCommonConfig {
      * 携程上报线程池开启开关 false 开启线程池  true 关闭线程池
      */
     private Boolean xcMqReportHandlerSwitch;
+
+    /**
+     * 上传文件清洗线程数
+     */
+    private Integer uploadFileCleanThreadNum;
+
+    /**
+     * 数禾重申提取表头字段
+     */
+    private String shuHeChongShenTransferTableHead;
+
+    /**
+     * 携程CPS撞库数据同步分页条数
+     */
+    private Integer xieChengCpsCollidingDataSyncPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengCpsCollidingConfig;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengCpsCollidingRetrySwitch;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"3710012":"三方营销效果监控-百融"}
+     */
+    private Map<String, String> mailApiCodeSubjectMap;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"userName":"xxx", "password":"xxx"}
+     */
+    private Map<String, String> YiXinMailConfigMap;
+
+    /**
+     * 转化文件落库BI批量大小
+     */
+    private Integer fileToMarketingBiBatchSize;
+
+    /**
+     * 转化文件落库BI是否中断
+     */
+    private Boolean fileToMarketingBiInterrupt;
+
+    /**
+     * 360ai区间配置
+     */
+    private Integer qiFuConfigNum;
+
+    /**
+     * key：异常场景
+     * value：开关状态
+     * 是否开启跑分redis模拟异常开关
+     * {"readRedis":true,"writeRedis":false,"retryRedis":false}
+     */
+    private Map<String, Boolean> mockRedisSwitch;
+
+    /**
+     * 是否开启新加密规则, true：开启新规则，false：关闭新规则
+     */
+    private Boolean isOpenNewEncrypt;
+
+    /**
+     * #众安拨打&短信上报配置
+     */
+    private JSONObject zhongAnCollidingDataConfig;
 }
 

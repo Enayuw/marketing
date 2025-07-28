@@ -247,7 +247,49 @@ public class MarketingCustomerListVO {
     /**
      * 客户3k的加密类型 1-MD5;2-sha256
      */
-    @ApiModelProperty(value = "客户3k的加密类型:1-MD5;2-sha256")
+    @ApiModelProperty(value = "客户3k的加密类型:1-MD5;2-sha256;3-log;5-软交换;5-AES通用;6-AES你我贷定制版")
     private Integer threeKEncryptType;
+
+    /**
+     * AES通用-加密模式
+     */
+    @ApiModelProperty(value = "加密模式")
+    private String cipherMode;
+
+    /**
+     * AES通用-填充模式
+     */
+    @ApiModelProperty(value = "填充模式")
+    private String paddingScheme;
+
+    /**
+     * AES通用-字符编码
+     */
+    @ApiModelProperty(value = "字符编码")
+    private String charset;
+
+    /**
+     * AES通用-密钥
+     */
+    @ApiModelProperty(value = "密钥")
+    private String dynamicKeys;
+
+    /**
+     * 短信类别
+     */
+    @ApiModelProperty(value = "短信类别")
+    private String smsCategory;
+
+    /**
+     * 一级部门
+     */
+    @ApiModelProperty(value = "一级部门")
+    private String firstDepartment;
+
+    /**
+     * 二级部门
+     */
+    @ApiModelProperty(value = "二级部门")
+    private String secondDepartment;
 
 }

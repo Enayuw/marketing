@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
 public interface TagDataRuleCalculateMapper extends TagDataRuleCalculateMapperBase {
 
 
-    MaterializedViewDTO getMViewInfobI_(@Param("viewName")String viewName);
+    MaterializedViewDTO getMViewInfobI_(@Param("viewName")String viewName, @Param("database")String database);
 
     Integer getCountbI_(@Param("querySql")String querySql);
 

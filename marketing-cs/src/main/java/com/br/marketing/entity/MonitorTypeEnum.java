@@ -18,7 +18,9 @@ public enum MonitorTypeEnum {
     UPLOAD_TYPE_2(2, "transfer"),
     FAIL_TYPE_1(1, "MD5"),
     FAIL_TYPE_2(2, "Sha256"),
-    FAIL_TYPE_3(3, "IsCheck");
+    FAIL_TYPE_3(3, "IsCheck"),
+    FAIL_TYPE_4(4, "AesCommon"),
+    FAIL_TYPE_5(5, "AesNwd");
     private int typeCode;
     private String type;
 
