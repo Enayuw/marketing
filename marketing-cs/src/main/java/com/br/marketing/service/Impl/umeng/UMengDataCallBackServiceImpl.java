@@ -75,6 +75,7 @@ public class UMengDataCallBackServiceImpl implements IUMengDataCallbackService {
         }
         interfaceLog.setResult(JSONObject.toJSONString(result));
         umengInterfaceLogMapper.insertSelective(interfaceLog);
+        log.warn("友盟智能时机回调代运营数据上传接口被调用");
         return result;
     }
 
