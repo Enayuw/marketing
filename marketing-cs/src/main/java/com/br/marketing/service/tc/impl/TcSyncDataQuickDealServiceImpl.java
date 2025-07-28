@@ -53,6 +53,9 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
 
     private final static String TITLE = "【同程易融-quickDealShard任务】";
 
+    private static final Random random = new Random();
+
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -137,7 +140,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         AtomicLong successCount = new AtomicLong(0L);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        Random random = new Random();
         //TODO 某一行异常 不影响其它
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
