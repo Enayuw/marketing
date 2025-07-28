@@ -136,6 +136,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         //2.csvFileQuickDeal流程
         AtomicLong successCount = new AtomicLong(0L);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        Random random = new Random();
         //TODO 某一行异常 不影响其它
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
@@ -143,19 +145,21 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
                 if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("pageSize")) {
+                    Integer randomNumber = 10000 + random.nextInt(90000);
                     List<String> batchDealData = new ArrayList<>(batchData);
                     futures.add(CompletableFuture.runAsync(() ->
                                     quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                            syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount
+                                            syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
                                     ),actionPool));
                     batchData.clear();
                 }
             }
             if (!batchData.isEmpty()) {
+                Integer randomNumber = 10000 + random.nextInt(90000);
                 List<String> batchDealData = new ArrayList<>(batchData);
                 futures.add(CompletableFuture.runAsync(() ->
                                 quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                        syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount
+                                        syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
                                 ),actionPool));
                 batchData.clear();
             }
@@ -174,7 +178,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     /**
      * 批次数据处理，匹配封装->上传清洗->上传调用
      */
-    private void quickDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData, AtomicLong successCount) {
+    private void quickDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData, AtomicLong successCount,Integer randomNumber) {
         long startTime = System.currentTimeMillis();
         try {
             // 1.数据匹配和封装
@@ -186,12 +190,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
             Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
             if (callResult!=null && callResult.isSuccess()) {
-
-
-                Random random = new Random();
-                int randomNumber = 10000 + random.nextInt(90000);
                 String requestId = apiCode+"_"+batchNo+"_"+System.currentTimeMillis()+"_"+randomNumber;
-
                 //3.调用定制化上传接口
                 List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) callResult.getData();
                 UploadDataDTO uploadDataDTO = initUploadData(apiCode,batchNo, marketingPreUserDetailDTOS,requestId);
