@@ -76,9 +76,6 @@ api:
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
     base2Url: http://robotai-api-service/api
     pushTransferUrl: ${api.robotAiApiService.base2Url}/robotOutbound
-  imbpApiService:
-    baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
-    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}//antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
   customerService:
     apiCode: 4000296
   productManagement:
@@ -105,6 +102,9 @@ api:
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
     aesKey: Q64l2a7A77r27ybK
     isProxy: false
+  imbpApiService:
+    baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job
