@@ -102,7 +102,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
         }finally {
             //5、异常时释放锁(finally)
             redisChgService.unlock(lockKey, lockValue);
-            shutdownThreadPool(actionPool);
+            actionPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -124,6 +124,10 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
                 if (batchData.size() == marketingCommonConfig.getTcDbDealShardConfig().getInteger("pageSize")) {
+                    if (!marketingCommonConfig.getTcDbDealShardConfig().getBoolean("jobSwitch")) {
+                        batchData.clear();
+                        break;
+                    }
                     List<String> batchDealData = new ArrayList<>(batchData);
                     actionPool.submit(()->
                             dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData)
@@ -186,6 +190,11 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                                 MarketingTcyrCustCellMapping existCustCell = custCellMappingMapper.selectByPrimaryKey(userKeyId);
                                 if (existCustCell == null) {
                                     custCellMappingMapper.saveNewCustCellInfo(userKeyId, cell);
+                                }else{
+                                    MarketingTcyrCustCellMapping tcyrCustCellMapping = new MarketingTcyrCustCellMapping();
+                                    tcyrCustCellMapping.setId(userKeyId);
+                                    tcyrCustCellMapping.setCell(cell);
+                                    custCellMappingMapper.updateByPrimaryKeySelective(tcyrCustCellMapping);
                                 }
                             }else {
                                 //TODO 07-27 userKey是String类型时,中间表数据保存id->预用雪花算法id(雪花算法id功能未上线)
@@ -288,15 +297,5 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
         return false;
     }
 
-
-    public  void shutdownThreadPool(TpDynamicExecutor executor) {
-        log.warn(TITLE + "shutdownThreadPool开始");
-        try {
-            executor.shutdownAndAwaitTermination();
-        }catch (Exception e) {
-            log.error("{},日志保存线程池结束异常！",TITLE,e);
-        }
-        log.warn(TITLE + "shutdownThreadPool结束");
-    }
 }
 

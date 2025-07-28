@@ -113,7 +113,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         }catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }finally {
-            shutdownThreadPool(actionPool);
+            actionPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -215,16 +215,6 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
         return uploadDataDTO;
-    }
-
-    public  void shutdownThreadPool(TpDynamicExecutor executor) {
-        log.warn(TITLE + "shutdownThreadPool开始");
-        try {
-            executor.shutdownAndAwaitTermination();
-        }catch (Exception e) {
-            log.error("{},日志保存线程池结束异常！",TITLE,e);
-        }
-        log.warn(TITLE + "shutdownThreadPool结束");
     }
 
 }

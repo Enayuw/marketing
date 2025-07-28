@@ -117,7 +117,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         }finally {
             //5、异常时释放锁(finally)
             redisChgService.unlock(lockKey, lockValue);
-            shutdownThreadPool(actionPool);
+            actionPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -147,6 +147,10 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
                 if (batchData.size() == marketingCommonConfig.getTcQuickDealShardConfig().getInteger("pageSize")) {
+                    if (!marketingCommonConfig.getTcQuickDealShardConfig().getBoolean("jobSwitch")) {
+                        batchData.clear();
+                        break;
+                    }
                     Integer randomNumber = 10000 + random.nextInt(90000);
                     List<String> batchDealData = new ArrayList<>(batchData);
                     futures.add(CompletableFuture.runAsync(() ->
@@ -400,15 +404,5 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
         }
         return false;
-    }
-
-    public  void shutdownThreadPool(TpDynamicExecutor executor) {
-        log.warn(TITLE + "shutdownThreadPool开始");
-        try {
-            executor.shutdownAndAwaitTermination();
-        }catch (Exception e) {
-            log.error("{},日志保存线程池结束异常！",TITLE,e);
-        }
-        log.warn(TITLE + "shutdownThreadPool结束");
     }
 }

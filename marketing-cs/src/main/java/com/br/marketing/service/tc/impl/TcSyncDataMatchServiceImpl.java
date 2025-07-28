@@ -143,9 +143,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         String lockKey = RedisKeyConstant.tcyrSyncMatch.concat(apiCode);
         String lockValue = "";
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYC_MATCH.getName(),
-                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
+                ThreadPoolNameEnum.TCYC_MATCH.getName(), 100, 100);
         DateTimeFormatter formatter= DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime startSearchTime = LocalDateTime.parse(
                 marketingCommonConfig.getTcMatchShardConfig().getString("startSearchTime"), formatter);
@@ -179,7 +177,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                     e.getMessage(), TITLE), e);
         }finally {
             redisChgService.unlock(lockKey, lockValue);
-            shutdownThreadPool(actionPool);
+            actionPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -200,16 +198,6 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     private void dealMiddleState(List<MarketingTcyrSync> tcyrSyncList) {
         List<Long> idList = tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
         tcyrSyncMapper.updateMiddleMatchStatus(idList);
-    }
-
-    public  void shutdownThreadPool(TpDynamicExecutor executor) {
-        log.warn(TITLE + "shutdownThreadPool开始");
-        try {
-            executor.shutdownAndAwaitTermination();
-        }catch (Exception e) {
-            log.error("{},日志保存线程池结束异常！",TITLE,e);
-        }
-        log.warn(TITLE + "shutdownThreadPool结束");
     }
 
 }

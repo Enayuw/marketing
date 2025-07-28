@@ -63,9 +63,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         String lockKey = RedisKeyConstant.tcyrSyncTxtToDb.concat(apiCode);;
         String lockValue = "";
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_FILE_TO_DB.getName(),
-                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
+                ThreadPoolNameEnum.TCYR_FILE_TO_DB.getName(),100,100);
         try {
             for (;;) {
                 if (!marketingCommonConfig.getTcTxtFileShardConfig().getBoolean("jobSwitch")) {
@@ -110,7 +108,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         }finally {
             //5、异常时释放锁(finally)
             redisChgService.unlock(lockKey, lockValue);
-            shutdownThreadPool(actionPool);
+            actionPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -186,15 +184,5 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         syncItem.setStatus(dataStatus);
         syncItem.setSyncFileId(syncFileId);
         tcyrSyncMapper.insertSelective(syncItem);
-    }
-
-    public  void shutdownThreadPool(TpDynamicExecutor executor) {
-        log.warn(TITLE + "shutdownThreadPool开始");
-        try {
-            executor.shutdownAndAwaitTermination();
-        }catch (Exception e) {
-            log.error("{},日志保存线程池结束异常！",TITLE,e);
-        }
-        log.warn(TITLE + "shutdownThreadPool结束");
     }
 }
