@@ -6,6 +6,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
@@ -15,6 +16,8 @@ import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataFileToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,12 +58,12 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
     @Resource
     private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
 
-    // todo 技术方案 详细
     @Override
     public void shardProcess(String apiCode) {
         String lockKey = RedisKeyConstant.tcyrSyncTxtToDb.concat(apiCode);;
         String lockValue = "";
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
+        TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
+                ThreadPoolNameEnum.TCYR_CLEAN_CHECK.getName(),
                 marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
                 marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
         try {
@@ -185,17 +188,12 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         tcyrSyncMapper.insertSelective(syncItem);
     }
 
-    public  void shutdownThreadPool(ThreadPoolExecutor executor) {
+    public  void shutdownThreadPool(TpDynamicExecutor executor) {
         log.warn(TITLE + "shutdownThreadPool开始");
-        executor.shutdown();
         try {
-            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
-                log.info("{},线程池关闭",TITLE);
-            }
-        } catch (InterruptedException ex) {
-            executor.shutdownNow();
-            log.error("{},日志保存线程池结束异常！",TITLE,ex);
-            Thread.currentThread().interrupt();
+            executor.shutdownAndAwaitTermination();
+        }catch (Exception e) {
+            log.error("{},日志保存线程池结束异常！",TITLE,e);
         }
         log.warn(TITLE + "shutdownThreadPool结束");
     }

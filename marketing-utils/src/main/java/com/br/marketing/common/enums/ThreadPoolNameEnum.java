@@ -23,7 +23,10 @@ public enum ThreadPoolNameEnum {
     TCYR_QUICK_DEAL(13,"tcyr_quick_deal","同程易融quick_deal流程"),
     TCYR_DB_DEAL(14,"tcyr_db_deal","同程易融db_deal流程"),
     TCYR_CLEAN_CHECK(15,"tcyr_clean_check","同程易融clean_cleck流程"),
-    TCYR_DATA_CLEAN(16,"tcyr_data_clean","同程易融data_clean任务");
+    TCYR_DATA_CLEAN(16,"tcyr_data_clean","同程易融data_clean任务"),
+    TCYR_FILE_TO_DB(17,"tcyr_file_to_db","同程易融FileToDbShardJob任务"),
+    TCYC_MATCH(18,"tcyr_match","同程易融MatchShardJob任务")
+    ;
 
     private Integer order;
     private String name;

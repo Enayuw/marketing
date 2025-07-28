@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
@@ -12,6 +13,8 @@ import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,9 +142,10 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     public void shardProcess(String apiCode) {
         String lockKey = RedisKeyConstant.tcyrSyncMatch.concat(apiCode);
         String lockValue = "";
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
-                marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
+        TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
+                ThreadPoolNameEnum.TCYC_MATCH.getName(),
+                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
+                marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
         DateTimeFormatter formatter= DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime startSearchTime = LocalDateTime.parse(
                 marketingCommonConfig.getTcMatchShardConfig().getString("startSearchTime"), formatter);
@@ -198,19 +202,14 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         tcyrSyncMapper.updateMiddleMatchStatus(idList);
     }
 
-    public  void shutdownThreadPool(ThreadPoolExecutor executor) {
-        log.warn("shutdownThreadPool开始");
-        executor.shutdown();
+    public  void shutdownThreadPool(TpDynamicExecutor executor) {
+        log.warn(TITLE + "shutdownThreadPool开始");
         try {
-            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
-                log.info("{},线程池关闭",TITLE);
-            }
-        } catch (InterruptedException ex) {
-            executor.shutdownNow();
-            log.error("{},日志保存线程池结束异常！",TITLE,ex);
-            Thread.currentThread().interrupt();
+            executor.shutdownAndAwaitTermination();
+        }catch (Exception e) {
+            log.error("{},日志保存线程池结束异常！",TITLE,e);
         }
-        log.warn("shutdownThreadPool结束");
+        log.warn(TITLE + "shutdownThreadPool结束");
     }
 
 }
