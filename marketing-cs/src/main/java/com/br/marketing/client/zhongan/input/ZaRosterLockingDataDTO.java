@@ -24,6 +24,11 @@ public class ZaRosterLockingDataDTO  extends InterfaceParams {
     /**
      * MD5手机号
      */
+    private String caseNum;
+
+    /**
+     * MD5手机号
+     */
     private String mobileMd5;
 
     /**

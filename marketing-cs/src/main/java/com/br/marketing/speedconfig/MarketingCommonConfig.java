@@ -3252,5 +3252,14 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> mockRedisSwitch;
 
+    /**
+     * 是否开启新加密规则, true：开启新规则，false：关闭新规则
+     */
+    private Boolean isOpenNewEncrypt;
+
+    /**
+     * #众安拨打&短信上报配置
+     */
+    private JSONObject zhongAnCollidingDataConfig;
 }
 
