@@ -2339,10 +2339,10 @@ public class PushDataServiceImpl implements PushDataService {
 
         Integer number = 0;
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        List<DassImportDataDTO> dataDTOS = new ArrayList<>();
         for (String phone : groupByPhone) {
             Boolean actionMark = true;
             Long minId = null;
-            List<DassImportDataDTO> dataDTOS = new ArrayList<>();
             List<DassWeiZhongDTO> list = new ArrayList<>();
             List<DassImportDataDTO> phoneSales = new ArrayList<>();
             while (actionMark) {
@@ -2397,9 +2397,39 @@ public class PushDataServiceImpl implements PushDataService {
                     }
                 }, pushDassThreadPool);
                 futures.add(future);
+                dataDTOS.clear();
             }
-
         }
+        // 推送剩余数据
+        if(!dataDTOS.isEmpty()){
+            DassImportAdapDTO dto = new DassImportAdapDTO();
+            dto.setInterfaceExtendInfo(id.toString());
+            dto.setList(dataDTOS);
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    Result result = dassServiceClient.postHermesUserData(dto);
+                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        RetryMainLog mainLog = new RetryMainLog();
+                        mainLog.setRetryType(1);
+                        mainLog.setRetryParam(JSON.toJSONString(dto));
+                        mainLog.setRetryParamType(dto.getClass().getName());
+                        mainLog.setRetryService("dassServiceClient");
+                        mainLog.setRetryMethod("postHermesUserData");
+                        mainLog.setRetryNum(0);
+                        mainLog.setRetryMaxNum(3);
+                        mainLog.setRetryStatus(1);
+                        mainLog.setCreateTime(new Date());
+                        mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                        retryMainLogMapper.insertSelective(mainLog);
+                    }
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                            "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
+                }
+            }, pushDassThreadPool);
+            futures.add(future);
+        }
+
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
