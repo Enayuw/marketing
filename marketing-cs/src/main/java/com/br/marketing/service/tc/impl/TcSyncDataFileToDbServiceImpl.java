@@ -63,7 +63,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
         String lockKey = RedisKeyConstant.tcyrSyncTxtToDb.concat(apiCode);;
         String lockValue = "";
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CLEAN_CHECK.getName(),
+                ThreadPoolNameEnum.TCYR_FILE_TO_DB.getName(),
                 marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"),
                 marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
         try {

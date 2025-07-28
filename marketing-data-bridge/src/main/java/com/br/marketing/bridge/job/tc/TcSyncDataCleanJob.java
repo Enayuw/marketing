@@ -81,7 +81,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataCleanService.searchAllTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
 
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CLEAN_CHECK.getName(), 10, 10);
+                ThreadPoolNameEnum.TCYR_DATA_CLEAN.getName(), 10, 10);
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         List<Long> resultList = new ArrayList<>(20);
         try {
