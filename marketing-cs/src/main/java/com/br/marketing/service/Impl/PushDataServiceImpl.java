@@ -2344,31 +2344,61 @@ public class PushDataServiceImpl implements PushDataService {
             Boolean actionMark = true;
             Long minId = null;
             List<DassWeiZhongDTO> list = new ArrayList<>();
-            List<DassImportDataDTO> phoneSales = new ArrayList<>();
+            // 保存第一条记录用于后续处理
+            DassImportDataDTO firstDataDTO = null;
+            
             while (actionMark) {
-                phoneSales = phoneSaleMapper.getWeiZhongData(id, phone, minId);
+                List<DassImportDataDTO> phoneSales = phoneSaleMapper.getWeiZhongData(id, phone, minId);
                 if (phoneSales.isEmpty()) {
                     actionMark = false;
                     continue;
                 }
+                
+                // 保存第一条记录（只在第一次循环时保存）
+                if (firstDataDTO == null) {
+                    firstDataDTO = phoneSales.get(0);
+                }
+                
+                // 处理当前批次的所有记录，将5个字段合并到list中
                 for (DassImportDataDTO dataDTO : phoneSales) {
                     String extend = dataDTO.getExtend();
-                    JSONObject jsonParam = JSON.parseObject(extend);
-                    DassWeiZhongDTO dassWeiZhongDTO = new DassWeiZhongDTO();
-                    dassWeiZhongDTO.setAudit_time(jsonParam.getString("audit_time") == null? "":jsonParam.getString("audit_time"));
-                    dassWeiZhongDTO.setQualifyscore(jsonParam.getString("qualifyscore") == null? "":jsonParam.getString("qualifyscore"));
-                    dassWeiZhongDTO.setAuditRate(jsonParam.getString("auditRate") == null? "":jsonParam.getString("auditRate"));
-                    dassWeiZhongDTO.setActivity(jsonParam.getString("activity") == null? "":jsonParam.getString("activity"));
-                    dassWeiZhongDTO.setRegion(jsonParam.getString("region") == null? "":jsonParam.getString("region"));
-                    list.add(dassWeiZhongDTO);
+                    if (StringUtils.isNotBlank(extend)) {
+                        JSONObject jsonParam = JSON.parseObject(extend);
+                        DassWeiZhongDTO dassWeiZhongDTO = new DassWeiZhongDTO();
+                        dassWeiZhongDTO.setAudit_time(jsonParam.getString("audit_time") == null ? "" : jsonParam.getString("audit_time"));
+                        dassWeiZhongDTO.setQualifyscore(jsonParam.getString("qualifyscore") == null ? "" : jsonParam.getString("qualifyscore"));
+                        dassWeiZhongDTO.setAuditRate(jsonParam.getString("auditRate") == null ? "" : jsonParam.getString("auditRate"));
+                        dassWeiZhongDTO.setActivity(jsonParam.getString("activity") == null ? "" : jsonParam.getString("activity"));
+                        dassWeiZhongDTO.setRegion(jsonParam.getString("region") == null ? "" : jsonParam.getString("region"));
+                        list.add(dassWeiZhongDTO);
+                    }
                 }
                 minId = phoneSales.get(phoneSales.size() - 1).getId();
             }
-            DassImportDataDTO dataDTO = phoneSales.get(0);
-            JSONObject jsonObject = JSONObject.parseObject(dataDTO.getExtend());
-            jsonObject.put("couponsList",JSONObject.parseObject(list.toString()));
-            dataDTO.setExtend(jsonObject.toJSONString());
-            dataDTOS.add(dataDTO);
+            
+            // 只有当找到了数据才进行处理
+            if (firstDataDTO != null && !list.isEmpty()) {
+                // 将合并后的5个字段列表转换为JSON数组格式
+                JSONArray couponsArray = new JSONArray();
+                for (DassWeiZhongDTO dto : list) {
+                    JSONObject couponObj = new JSONObject();
+                    couponObj.put("audit_time", dto.getAudit_time());
+                    couponObj.put("qualifyscore", dto.getQualifyscore());
+                    couponObj.put("auditRate", dto.getAuditRate());
+                    couponObj.put("activity", dto.getActivity());
+                    couponObj.put("region", dto.getRegion());
+                    couponsArray.add(couponObj);
+                }
+                
+                // 更新第一条记录的extend字段，加入合并后的优惠券列表
+                JSONObject jsonObject = JSON.parseObject(firstDataDTO.getExtend());
+                if (jsonObject == null) {
+                    jsonObject = new JSONObject();
+                }
+                jsonObject.put("couponsList", couponsArray);
+                firstDataDTO.setExtend(jsonObject.toJSONString());
+                dataDTOS.add(firstDataDTO);
+            }
             number += dataDTOS.size();
             if (dataDTOS.size() >= 1000) {
                 DassImportAdapDTO dto = new DassImportAdapDTO();
