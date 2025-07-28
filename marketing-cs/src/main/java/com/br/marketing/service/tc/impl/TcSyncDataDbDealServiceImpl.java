@@ -125,13 +125,17 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                 batchData.add(line);
                 if (batchData.size() == marketingCommonConfig.getTcDbDealShardConfig().getInteger("pageSize")) {
                     List<String> batchDealData = new ArrayList<>(batchData);
-                    actionPool.submit(()->dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData));
+                    actionPool.submit(()->
+                            dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchDealData)
+                    );
                     batchData.clear();
                 }
                 totalCount++;
             }
             if (!batchData.isEmpty()) {
-                actionPool.submit(()->dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchData));
+                actionPool.submit(()->
+                        dbDealBatchLine(tcyrSyncFile.getApiCode(),syncRecord.getBatchNo(),syncRecord.getData(),tcyrSyncFile.getId(),batchData)
+                );
             }
             //3.修改csvFile totalCount数量、dbDeal状态、
             tcyrSyncFile.setTotalCount(totalCount);
@@ -148,17 +152,20 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
 
     private void dbDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData) {
         try {
-            List<List<String>> partitionList = ListUtils.partition(batchData, marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize"));
+            List<List<String>> partitionList = ListUtils.partition(
+                    batchData, marketingCommonConfig.getTcDbDealShardConfig().getInteger("dbPartSize"));
             for (List<String> partitionItemList : partitionList) {
                 StringBuilder sqlBuilder = new StringBuilder();
-                sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal,cell,is_match,extend,status,create_time,update_time) VALUES");
+                sqlBuilder.append("INSERT INTO b_marketing_tcyr_sync (api_code,batch_no,sync_file_id,user_key,terminal," +
+                        "cell,is_match,extend,status,create_time,update_time) VALUES");
                 int count = 0;
                 for (String line : partitionItemList) {
                     if (count > 0) {
                         sqlBuilder.append(",");
                     }
                     String[] data = line.split(",");
-                    sqlBuilder.append("('").append(escapeSqlString(apiCode)).append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
+                    sqlBuilder.append("('").append(escapeSqlString(apiCode)).
+                            append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
                     if (data.length == 1) {
                         String userKey = data[0].trim();
                         sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("',NULL,NULL,NULL");
@@ -187,7 +194,9 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                                     try {
                                         custCellMappingMapper.saveStrCustCellInfo(userKey,cell);
                                     }catch (Exception e) {
-                                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), "String类型userKey保存异常"+e.getMessage(), TITLE), e);
+                                        log.error(AlertLog.buildWarnMessage(
+                                                AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                                                "String类型userKey保存异常"+e.getMessage(), TITLE), e);
                                     }
                                 }
                             }

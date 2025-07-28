@@ -180,7 +180,9 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     /**
      * 批次数据处理，匹配封装->上传清洗->上传调用
      */
-    private void quickDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData, AtomicLong successCount,Integer randomNumber) {
+    private void quickDealBatchLine(String apiCode, String batchNo, String customerData,
+                                    Long syncFileId, List<String> batchData,
+                                    AtomicLong successCount,Integer randomNumber) {
         long startTime = System.currentTimeMillis();
         try {
             // 1.数据匹配和封装
@@ -202,7 +204,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     if (pushResult != null && pushResult.isSuccess()) {
                         successCount.addAndGet(tcyrSyncList.size());
                     } else {
-                        log.error("TITLE:{},上传请求失败，syncFileId: {}, 数据量: {}, resultMsg: {}", TITLE,syncFileId, tcyrSyncList.size(), pushResult.getMessage());
+                        log.error("TITLE:{},上传请求失败，syncFileId: {}, 数据量: {}, resultMsg: {}",
+                                TITLE,syncFileId, tcyrSyncList.size(), pushResult.getMessage());
                         saveErrorIneterfaceLog(apiCode,batchNo,syncFileId,marketingPreUserDetailDTOS.size(),
                                 JSONObject.toJSONString(uploadDataDTO),JSONObject.toJSONString(pushResult),1,requestId);
                     }

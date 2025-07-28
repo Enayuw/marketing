@@ -23,11 +23,14 @@ public interface MarketingTcyrErrorInterfaceLogMapperBase {
 
     MarketingTcyrErrorInterfaceLog selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") MarketingTcyrErrorInterfaceLog record, @Param("example") MarketingTcyrErrorInterfaceLogExample example);
+    int updateByExampleSelective(@Param("record") MarketingTcyrErrorInterfaceLog record,
+                                 @Param("example") MarketingTcyrErrorInterfaceLogExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") MarketingTcyrErrorInterfaceLog record, @Param("example") MarketingTcyrErrorInterfaceLogExample example);
+    int updateByExampleWithBLOBs(@Param("record") MarketingTcyrErrorInterfaceLog record,
+                                 @Param("example") MarketingTcyrErrorInterfaceLogExample example);
 
-    int updateByExample(@Param("record") MarketingTcyrErrorInterfaceLog record, @Param("example") MarketingTcyrErrorInterfaceLogExample example);
+    int updateByExample(@Param("record") MarketingTcyrErrorInterfaceLog record,
+                        @Param("example") MarketingTcyrErrorInterfaceLogExample example);
 
     int updateByPrimaryKeySelective(MarketingTcyrErrorInterfaceLog record);
 
