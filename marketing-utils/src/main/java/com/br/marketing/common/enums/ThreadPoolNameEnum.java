@@ -4,13 +4,6 @@ import com.br.marketing.common.utils.AiMQConstants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import static com.br.marketing.common.utils.AiMQConstants.MARKETING_AI_PREUSER_RECEIVE;
-import static com.br.marketing.common.utils.AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_1;
-import static com.br.marketing.common.utils.AiMQConstants.MARKETING_AI_PREUSER_RECEIVE_2;
-import static com.br.marketing.common.utils.AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE;
-import static com.br.marketing.common.utils.AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_1;
-import static com.br.marketing.common.utils.AiMQConstants.MARKETING_AI_UNIVERSAL_RECEIVE_2;
-
 /**
  * 统一管理线程池名称枚举类
  */
