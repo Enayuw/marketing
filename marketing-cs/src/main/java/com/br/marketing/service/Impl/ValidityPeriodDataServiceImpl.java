@@ -7,6 +7,8 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
 import com.br.marketing.entity.MarketingCustomizeDataValidConfigExample;
 import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.entity.auth.MarketingUserInfo;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
@@ -207,7 +209,13 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                 marketingCustomizeDataValidConfigNew.setValidStartDate(effectiveDateTransfer);
                 marketingCustomizeDataValidConfigNew.setValidEndDate(expireDateTransfer);
 
-                entityOptService.writeOptLog(marketingCustomizeDataValidConfigOld.getId(),marketingCustomizeDataValidConfigNew,marketingCustomizeDataValidConfigOld);
+                //创建测试用户信息
+                MarketingUserInfo marketingUserInfo = new MarketingUserInfo();
+                marketingUserInfo.setId(9999);
+                marketingUserInfo.setUserName("360_customer");
+                MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo,null,null,null);
+
+                entityOptService.writeOptLog(marketingCustomizeDataValidConfigOld.getId(),marketingCustomizeDataValidConfigNew,marketingCustomizeDataValidConfigOld,marketingUserDetail);
 
             }
 
