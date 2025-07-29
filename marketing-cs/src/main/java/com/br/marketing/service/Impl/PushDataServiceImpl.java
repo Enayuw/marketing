@@ -2342,7 +2342,6 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         Integer number = 0;
-        List<CompletableFuture<Void>> futures = Lists.newArrayList();
         List<DassImportDataDTO> dataDTOS = new ArrayList<>();
         for (String phone : groupByPhone) {
             Boolean actionMark = true;
@@ -2357,12 +2356,10 @@ public class PushDataServiceImpl implements PushDataService {
                     actionMark = false;
                     continue;
                 }
-                
                 // 保存第一条记录（只在第一次循环时保存）
                 if (firstDataDTO == null) {
                     firstDataDTO = phoneSales.get(0);
                 }
-                
                 // 处理当前批次的所有记录，将5个字段合并到list中
                 for (DassImportDataDTO dataDTO : phoneSales) {
                     String extend = dataDTO.getExtend();
@@ -2407,8 +2404,9 @@ public class PushDataServiceImpl implements PushDataService {
             if (dataDTOS.size() >= 1000) {
                 DassImportAdapDTO dto = new DassImportAdapDTO();
                 dto.setInterfaceExtendInfo(id.toString());
-                dto.setList(dataDTOS);
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                dto.setList(new ArrayList<>(dataDTOS));
+
+                pushDassThreadPool.submit(() -> {
                     try {
                         Result result = dassServiceClient.postHermesUserData(dto);
                         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -2429,8 +2427,7 @@ public class PushDataServiceImpl implements PushDataService {
                         log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
                                 TITLE + "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
                     }
-                }, pushDassThreadPool);
-                futures.add(future);
+                });
                 dataDTOS.clear();
             }
         }
@@ -2438,8 +2435,8 @@ public class PushDataServiceImpl implements PushDataService {
         if(!dataDTOS.isEmpty()){
             DassImportAdapDTO dto = new DassImportAdapDTO();
             dto.setInterfaceExtendInfo(id.toString());
-            dto.setList(dataDTOS);
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            dto.setList(new ArrayList<>(dataDTOS));
+            pushDassThreadPool.submit(() -> {
                 try {
                     Result result = dassServiceClient.postHermesUserData(dto);
                     if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -2460,11 +2457,19 @@ public class PushDataServiceImpl implements PushDataService {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
                             TITLE + "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
                 }
-            }, pushDassThreadPool);
-            futures.add(future);
+            });
+            dataDTOS.clear();
         }
-
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        // 关闭线程池
+        pushDassThreadPool.shutdown();
+        try {
+            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "微众推人工程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
         localFileMapper.updateByPrimaryKeySelective(localFile);
