@@ -194,6 +194,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                                     MarketingTcyrCustCellMapping tcyrCustCellMapping = new MarketingTcyrCustCellMapping();
                                     tcyrCustCellMapping.setId(userKeyId);
                                     tcyrCustCellMapping.setCell(cell);
+                                    tcyrCustCellMapping.setUpdateTime(new Date());
                                     custCellMappingMapper.updateByPrimaryKeySelective(tcyrCustCellMapping);
                                 }
                             }else {
