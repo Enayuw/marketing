@@ -319,7 +319,7 @@ public class SnowflakeRedisGeneratorHandle {
         public RedisWorkerIdAssigner(long datacenterId, AtomicBoolean isHealthy) {
             this.datacenterId = datacenterId;
             this.isHealthy = isHealthy;
-            this.uniqueInstanceId = generateK8sUniqueInstanceId();
+            this.uniqueInstanceId = generateK8sUniqueInstanceId(datacenterId);
             this.workerIdCache = Caffeine.newBuilder()
                     .maximumSize(10)
                     .expireAfterWrite(7, TimeUnit.DAYS)
@@ -327,13 +327,13 @@ public class SnowflakeRedisGeneratorHandle {
             LOGGER.warn("雪花算法,WorkerId分配器初始化，唯一实例ID: {}", this.uniqueInstanceId);
         }
 
-        private String generateK8sUniqueInstanceId() {
+        private String generateK8sUniqueInstanceId(long datacenterId) {
             String podUid = System.getenv("POD_UID");
             if (StringUtils.isNotBlank(podUid)) {
-                return podUid;
+                return podUid + "-" + datacenterId;
             }
             String hostName = System.getenv().getOrDefault("HOSTNAME", System.getenv().getOrDefault("POD_NAME", applicationName));
-            return hostName + "-" + UUID.randomUUID();
+            return hostName + "-" + UUID.randomUUID() + "-" + datacenterId;
         }
 
         public long assignApplicationId(String appName) {
