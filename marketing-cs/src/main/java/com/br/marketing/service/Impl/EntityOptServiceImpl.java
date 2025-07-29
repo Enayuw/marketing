@@ -9,7 +9,6 @@ import com.br.marketing.context.OptUser;
 import com.br.marketing.entity.EntityOptLog;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.EntityOptLogMapper;
-import com.br.marketing.service.EntityOptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -121,7 +120,6 @@ public class EntityOptServiceImpl{
      * @param id 当前操作对象的id
      * @param newEntity 修改后的对象
      * @param oldEntity 修改前的对象
-     * @param user  操作人
      * @param <T>
      */
     public <T> void writeOptLog(Long id,T newEntity, T oldEntity){
@@ -134,6 +132,27 @@ public class EntityOptServiceImpl{
             saveOpt(id,newEntity,optUser.getUserDetail(),tableCodeEnum);
         }else{
             updateOpt(id,newEntity,oldEntity,optUser.getUserDetail(),tableCodeEnum);
+        }
+    }
+
+    /**
+     * 操作日志 oldENtity 为null 记录为新建日志 否则是修改日志
+     * @param id 当前操作对象的id
+     * @param newEntity 修改后的对象
+     * @param oldEntity 修改前的对象
+     * @param marketingUserDetail 操作人信息
+     * @param <T>
+     */
+    public <T> void writeOptLog(Long id,T newEntity, T oldEntity,MarketingUserDetail marketingUserDetail){
+        String simpleName = newEntity.getClass().getSimpleName();
+        TableCodeEnum tableCodeEnum = tableHm.get(simpleName);
+        if(tableCodeEnum == null){
+            return;
+        }
+        if(oldEntity == null){
+            saveOpt(id,newEntity,marketingUserDetail,tableCodeEnum);
+        }else{
+            updateOpt(id,newEntity,oldEntity,marketingUserDetail,tableCodeEnum);
         }
     }
 
