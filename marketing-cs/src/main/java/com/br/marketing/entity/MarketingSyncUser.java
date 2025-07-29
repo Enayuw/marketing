@@ -129,7 +129,7 @@ public class MarketingSyncUser {
     private String reserveField2;
 
     /**
-     * 数据指纹(内部使用，不对外展示)
+     * 数据指纹，数据唯一标识
      */
     private Long fingerprint;
 

@@ -417,7 +417,7 @@
 			`is_task` int(11) DEFAULT '1' COMMENT '是否导入任务数据 1-未导入;2-导入',
 			`task_time` datetime DEFAULT NULL COMMENT '导入任务用户表时间',
 			`is_repeat` int(11) DEFAULT '1' COMMENT '是否重复 1-未去重; 2-不重复;3-重复;',
-			`fingerprint` bigint default null comment '数据指纹(内部使用，不对外展示)',
+			`fingerprint` bigint default null comment '数据指纹，数据唯一标识',
 			PRIMARY KEY (`id`),
 			KEY `idx_appletDate` (`applet_date`),
 		    KEY `idx_marketing_sync_code_request` (`api_code`,`request_batch`),
@@ -478,7 +478,7 @@
 	(
 		20
 	) DEFAULT NULL COMMENT '客户请求时间',
-	 `fingerprint` bigint default null comment '数据指纹(内部使用，不对外展示)',
+	 `fingerprint` bigint default null comment '数据指纹，数据唯一标识',
 		PRIMARY KEY
 	(
 		`id`
