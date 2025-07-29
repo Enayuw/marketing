@@ -371,6 +371,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
         errorInterfaceLog.setPushResult(pushResult);
         errorInterfaceLog.setErrorType(errorType);
         errorInterfaceLog.setRequestId(requestId);
+        errorInterfaceLog.setCreateTime(new Date());
+        errorInterfaceLog.setUpdateTime(new Date());
         errorInterfaceLogMapper.insertSelective(errorInterfaceLog);
     }
 
