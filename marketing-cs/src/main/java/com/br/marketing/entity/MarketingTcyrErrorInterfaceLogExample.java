@@ -735,6 +735,76 @@ public class MarketingTcyrErrorInterfaceLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andPushResultIsNull() {
+            addCriterion("push_result is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultIsNotNull() {
+            addCriterion("push_result is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultEqualTo(String value) {
+            addCriterion("push_result =", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultNotEqualTo(String value) {
+            addCriterion("push_result <>", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultGreaterThan(String value) {
+            addCriterion("push_result >", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultGreaterThanOrEqualTo(String value) {
+            addCriterion("push_result >=", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultLessThan(String value) {
+            addCriterion("push_result <", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultLessThanOrEqualTo(String value) {
+            addCriterion("push_result <=", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultLike(String value) {
+            addCriterion("push_result like", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultNotLike(String value) {
+            addCriterion("push_result not like", value, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultIn(List<String> values) {
+            addCriterion("push_result in", values, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultNotIn(List<String> values) {
+            addCriterion("push_result not in", values, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultBetween(String value1, String value2) {
+            addCriterion("push_result between", value1, value2, "pushResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushResultNotBetween(String value1, String value2) {
+            addCriterion("push_result not between", value1, value2, "pushResult");
+            return (Criteria) this;
+        }
+
         public Criteria andErrorTypeIsNull() {
             addCriterion("error_type is null");
             return (Criteria) this;
