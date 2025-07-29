@@ -21,6 +21,11 @@ public class ZhongAnCollidingDataLog {
     private String dataSourceType;
 
     /**
+     * 场景
+     */
+    private String userType;
+
+    /**
      * md5手机号
      */
     private String cell;
