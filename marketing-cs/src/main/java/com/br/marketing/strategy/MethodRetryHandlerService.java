@@ -151,6 +151,9 @@ public class MethodRetryHandlerService {
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
 
     @Resource
+    private ZhongAnSmsRosterLockingDataMapper zhongAnSmsRosterLockingDataMapper;
+
+    @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
     @Resource
@@ -935,6 +938,11 @@ public class MethodRetryHandlerService {
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
+        updateCallPushStatus(bo, updatePushStatus, updateStatus);
+        updateSmsPushStatus(bo, updatePushStatus, updateStatus);
+    }
+
+    private void updateCallPushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
         if (CollectionUtils.isEmpty(bo.getIds())) {
             return;
         }
@@ -947,6 +955,22 @@ public class MethodRetryHandlerService {
         ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
         example.createCriteria().andIdIn(bo.getIds());
         zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
+    }
+
+
+    private void updateSmsPushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
+        if (CollectionUtils.isEmpty(bo.getSmsIds())) {
+            return;
+        }
+        ZhongAnSmsRosterLockingData data = new ZhongAnSmsRosterLockingData();
+        if (updateStatus != null) {
+            data.setStatus(updateStatus);
+        }
+        data.setPushStatus(updatePushStatus);
+        data.setUpdateTime(new Date());
+        ZhongAnSmsRosterLockingDataExample example = new ZhongAnSmsRosterLockingDataExample();
+        example.createCriteria().andIdIn(bo.getSmsIds());
+        zhongAnSmsRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
     /**

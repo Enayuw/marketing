@@ -42,9 +42,11 @@ public enum ThreadPoolNameEnum {
     XIECHENG_CPS_RETRY_3710090(11,"xiecheng_cps_retry_3710090", "携程cps重试数据撞库"),
 
     FILE_TO_MARKETING_BI(12,"file_to_marketing_bi", "转化文件落库marketingBi"),
+
+    ZHONGAN_REPORT_3710048(13,"zhongan_report_3710048", "众安拨打&短信明细上报"),
     ;
 
-    private Integer order;
-    private String name;
-    private String desc;
+    private final Integer order;
+    private final String name;
+    private final String desc;
 }

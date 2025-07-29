@@ -128,7 +128,7 @@ public class XieChengCpsCollidingDataProcessServiceImpl implements XieChengCpsCo
 
     /**
      * 数据去重处理
-     * 1.与周期数据去重
+     * 1.重复数据从周期表删除
      * 2.与当天已入库数据去重
      * @param list front表数据列表
      * @return 去重后的数据列表
@@ -139,12 +139,8 @@ public class XieChengCpsCollidingDataProcessServiceImpl implements XieChengCpsCo
                     .map(XieChengCpsCollidingDataFront::getSha256CodeList)
                     .collect(Collectors.toList());
 
-            // 1.与周期数据去重
-            List<String> loopCycleData = xieChengCpsCollidingDataLoopCycleMapper.selectDuplicateData(cells);
-            cells.removeAll(loopCycleData);
-            if (CollectionUtils.isEmpty(cells)) {
-                return new ArrayList<>();
-            }
+            // 1.重复数据从周期表删除
+            xieChengCpsCollidingDataLoopCycleMapper.batchDeleteExcludeCollidingData(cells, "删除原因：与非周期数据重复");
 
             // 2.与当天已入库数据去重
             Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());

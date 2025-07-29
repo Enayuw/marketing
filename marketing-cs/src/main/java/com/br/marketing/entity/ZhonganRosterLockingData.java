@@ -1,8 +1,7 @@
 package com.br.marketing.entity;
 
-import lombok.Data;
-
 import java.util.Date;
+import lombok.Data;
 
 @Data
 public class ZhonganRosterLockingData {
@@ -25,6 +24,11 @@ public class ZhonganRosterLockingData {
      * 类型
      */
     private String type;
+
+    /**
+     * 案件编号
+     */
+    private String caseNum;
 
     /**
      * MD5手机号

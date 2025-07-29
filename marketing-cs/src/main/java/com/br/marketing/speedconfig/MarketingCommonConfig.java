@@ -3243,5 +3243,23 @@ public class MarketingCommonConfig {
      * 360ai区间配置
      */
     private Integer qiFuConfigNum;
+
+    /**
+     * key：异常场景
+     * value：开关状态
+     * 是否开启跑分redis模拟异常开关
+     * {"readRedis":true,"writeRedis":false,"retryRedis":false}
+     */
+    private Map<String, Boolean> mockRedisSwitch;
+
+    /**
+     * 是否开启新加密规则, true：开启新规则，false：关闭新规则
+     */
+    private Boolean isOpenNewEncrypt;
+
+    /**
+     * #众安拨打&短信上报配置
+     */
+    private JSONObject zhongAnCollidingDataConfig;
 }
 

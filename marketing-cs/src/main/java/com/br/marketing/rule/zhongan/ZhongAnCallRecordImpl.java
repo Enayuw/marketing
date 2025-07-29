@@ -1,7 +1,6 @@
 package com.br.marketing.rule.zhongan;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
@@ -15,27 +14,27 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.ZhonganRosterLockingDataExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
-
-import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 /**
  * 众安拨打明细入库规则
@@ -87,6 +86,7 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
         ZaRosterLockingDataDTO data = new ZaRosterLockingDataDTO();
         data.setApiCode(bo.getApiCode());
         data.setLocalId(bo.getId());
+        data.setCaseNum(bo.getCaseNum());
         data.setMobileMd5(cell);
         data.setBizDate(bizDate);
         data.setTag("MG");
