@@ -2,8 +2,6 @@ package com.br.marketing.datarelayservice.controller;
 
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
-import com.br.marketing.aspect.LogAnnotation;
-import com.br.marketing.aspect.ReqLogAnnotation;
 import com.br.marketing.client.qifu.enums.CodeEnum;
 import com.br.marketing.client.qifu.enums.FlagEnum;
 import com.br.marketing.datarelayservice.client.QiFuAiReqDTO;
@@ -19,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @Description UploadDataController
@@ -33,11 +32,14 @@ public class UploadDataController {
     @Resource
     private QiFuAiUploadDataService qiFuAiUploadDataService;
 
+    private static final String TEST_API_CODE = "Test-ApiCode";
+
     @ApiOperation(value = "奇富AI上传数据接入接口")
     @PostMapping("/uploadData/24152")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
-    public QiFuAiResDTO qiFuAiUploadData(@RequestBody QiFuAiReqDTO requestBody) {
-        Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody,"original");
+    public QiFuAiResDTO qiFuAiUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
+        String testApiCode = request.getHeader(TEST_API_CODE);
+        Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "original",testApiCode);
 
         QiFuAiResDTO qiFuAiResDTO = new QiFuAiResDTO();
         qiFuAiResDTO.setCode(pair.getKey().getCode());
@@ -50,8 +52,24 @@ public class UploadDataController {
     @ApiOperation(value = "奇富AI语音机器人当月报表数据接入接口")
     @PostMapping("/uploadData/3700226")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
-    public QiFuAiResDTO qiFuAiRobotReportUploadData(@RequestBody QiFuAiReqDTO requestBody) {
-        Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "robot_report");
+    public QiFuAiResDTO qiFuAiRobotReportUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
+        String testApiCode = request.getHeader(TEST_API_CODE);
+        Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "robot_report",testApiCode);
+
+        QiFuAiResDTO qiFuAiResDTO = new QiFuAiResDTO();
+        qiFuAiResDTO.setCode(pair.getKey().getCode());
+        qiFuAiResDTO.setMsg(pair.getKey().getDesc());
+        qiFuAiResDTO.setFlag(pair.getValue().toString());
+        qiFuAiResDTO.setData(new QiFuAiResDTO.DataResult());
+        return qiFuAiResDTO;
+    }
+
+    @ApiOperation(value = "奇富AI语音机器人排名报表推送接口")
+    @PostMapping("/uploadData/ranking")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public QiFuAiResDTO qiFuAiRobotRankingReportUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
+        String testApiCode = request.getHeader(TEST_API_CODE);
+        Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "robot_ranking_report",testApiCode);
 
         QiFuAiResDTO qiFuAiResDTO = new QiFuAiResDTO();
         qiFuAiResDTO.setCode(pair.getKey().getCode());

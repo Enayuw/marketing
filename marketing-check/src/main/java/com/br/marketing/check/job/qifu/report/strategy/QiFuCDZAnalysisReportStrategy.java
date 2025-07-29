@@ -82,6 +82,11 @@ public class QiFuCDZAnalysisReportStrategy implements ReportStrategy<QifuActuati
         return subject.concat(": ").concat("促动支分析效果数据报表");
     }
 
+    @Override
+    public String getAttachmentFileName(String subject) {
+        return subject;
+    }
+
     /**
      * 小数转百分比
      *
