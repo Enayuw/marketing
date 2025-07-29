@@ -5,7 +5,6 @@ import com.br.marketing.mapper.ZhongAnCollidingDataLogMapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +28,11 @@ public class ConnectOrSmsSend7DaysHandler implements ZhongAnReportHandler {
      * @date 2025/07/22
      */
     @Override
-    public boolean check(String cellMd5, String bizDate) throws Exception {
+    public boolean check(String cellMd5, String userType, String bizDate) throws Exception {
         List<Long> connectIds =
-                Optional.ofNullable(zhongAnCollidingDataLogMapper.getConnectIdsByDay(cellMd5, bizDate)).orElse(Collections.emptyList());
-        List<Long> smsSendIds = Optional.ofNullable(zhongAnCollidingDataLogMapper.getSmsIdsByDay(cellMd5, bizDate)).orElse(Collections.emptyList());
+                Optional.ofNullable(zhongAnCollidingDataLogMapper.getConnectIdsByDay(cellMd5, userType, bizDate)).orElse(Collections.emptyList());
+        List<Long> smsSendIds =
+                Optional.ofNullable(zhongAnCollidingDataLogMapper.getSmsIdsByDay(cellMd5, userType, bizDate)).orElse(Collections.emptyList());
         long distinctCount = Stream.concat(connectIds.stream(), smsSendIds.stream()).distinct().count();
         return distinctCount < 3;
     }
