@@ -37,11 +37,6 @@
          </foreach>
     </insert>
 
-
-
-
-
-<!--   TODO-0427 map tikv下划线  -->
     <select id="selectLastUserRecordIdList" resultType="java.lang.Long">
         SELECT  MAX(id)
         FROM b_marketing_sync_${apiCode}
@@ -62,7 +57,7 @@
             SELECT
                 cust_num,
                 cell_md5,
-                ROW_NUMBER() OVER (PARTITION BY cust_num ORDER BY create_time DESC) AS rn
+                ROW_NUMBER() OVER (PARTITION BY cust_num ORDER BY applet_time DESC) AS rn
             FROM b_marketing_sync_${apiCode}
                 WHERE status = 1 AND cust_num IN
                 <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
@@ -81,15 +76,7 @@
         WHERE status = 1
               AND cust_num =#{userKey}
               AND is_repeat in (1,2)
-        ORDER BY create_time DESC
-        LIMIT 1
-    </select>
-
-    <select id="selectSingleLastCustNumCell" resultType="java.util.Map">
-        SELECT cust_num AS custNum,cell_md5 AS cell
-        FROM b_marketing_sync_${apiCode}
-        WHERE cust_num = #{userKey} and status=1
-        ORDER BY create_time DESC
+        ORDER BY applet_time DESC
         LIMIT 1
     </select>
 

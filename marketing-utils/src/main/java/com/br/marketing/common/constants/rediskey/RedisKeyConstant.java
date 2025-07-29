@@ -357,6 +357,17 @@ public class RedisKeyConstant {
     /**
      * 同程易融-match数据锁
      */
-        public static final String tcyrSyncMatch = prefix.concat("tcyr_sync:match");
+    public static final String tcyrSyncMatch = prefix.concat("tcyr_sync:match");
+
+
+    /**
+     * 同程易融-quickDeal流程锁
+     */
+    public static final String tcyrQuickDeal = prefix.concat("tcyr_sync:quickDeal");
+
+    /**
+     * 同程易融-dbDeal流程锁
+     */
+    public static final String tcyrDbDeal = prefix.concat("tcyr_sync:dbDeal");
 
 }

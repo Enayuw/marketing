@@ -2,10 +2,10 @@ package com.br.marketing.service.tc.impl;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.tc.TcServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSync;
@@ -13,6 +13,8 @@ import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -138,9 +142,11 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     public void shardProcess(String apiCode) {
         String lockKey = RedisKeyConstant.tcyrSyncMatch.concat(apiCode);
         String lockValue = "";
-        ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(
-                marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"),
-                marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
+        TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
+                ThreadPoolNameEnum.TCYC_MATCH.getName(), 100, 100);
+        DateTimeFormatter formatter= DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime startSearchTime = LocalDateTime.parse(
+                marketingCommonConfig.getTcMatchShardConfig().getString("startSearchTime"), formatter);
         try{
             for (;;) {
                 if (!marketingCommonConfig.getTcMatchShardConfig().getBoolean("jobSwitch")) {
@@ -150,9 +156,10 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                 long startTime = System.currentTimeMillis();
                 //1.抢锁
                 redisChgService.lock(lockKey, lockValue);
+
                 //2.获取数据
                 List<MarketingTcyrSync> tcyrSyncList = tcyrSyncMapper.selectMatchSyncList(
-                        apiCode, marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"));
+                        apiCode, marketingCommonConfig.getTcMatchShardConfig().getInteger("pageSize"),startSearchTime);
                 if (CollectionUtils.isEmpty(tcyrSyncList)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
@@ -170,7 +177,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
                     e.getMessage(), TITLE), e);
         }finally {
             redisChgService.unlock(lockKey, lockValue);
-            shutdownThreadPool(actionPool);
+            actionPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -191,21 +198,6 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
     private void dealMiddleState(List<MarketingTcyrSync> tcyrSyncList) {
         List<Long> idList = tcyrSyncList.stream().map(MarketingTcyrSync::getId).collect(Collectors.toList());
         tcyrSyncMapper.updateMiddleMatchStatus(idList);
-    }
-
-    public  void shutdownThreadPool(ThreadPoolExecutor executor) {
-        log.warn("shutdownThreadPool开始");
-        executor.shutdown();
-        try {
-            while (!executor.awaitTermination(60L, TimeUnit.SECONDS)) {
-                log.info("{},线程池关闭",TITLE);
-            }
-        } catch (InterruptedException ex) {
-            executor.shutdownNow();
-            log.error("{},日志保存线程池结束异常！",TITLE,ex);
-            Thread.currentThread().interrupt();
-        }
-        log.warn("shutdownThreadPool结束");
     }
 
 }
