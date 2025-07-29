@@ -327,6 +327,16 @@ public class PushDataServiceImpl implements PushDataService {
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+        // 关闭线程池
+        pushDassThreadPool.shutdown();
+        try {
+            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), "线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
         localFileMapper.updateByPrimaryKeySelective(localFile);
@@ -396,6 +406,17 @@ public class PushDataServiceImpl implements PushDataService {
             }
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        // 关闭线程池
+        pushDassThreadPool.shutdown();
+        try {
+            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), "线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
 
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(success.get());
@@ -2172,6 +2193,17 @@ public class PushDataServiceImpl implements PushDataService {
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+        // 关闭线程池
+        pushDassThreadPool.shutdown();
+        try {
+            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
+
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
         localFileMapper.updateByPrimaryKeySelective(localFile);
@@ -2285,6 +2317,17 @@ public class PushDataServiceImpl implements PushDataService {
         // 等待所有任务完成
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+        // 关闭线程池
+        pushDassThreadPool.shutdown();
+        try {
+            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
+
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(successCount.get());
         localFile.setErrorActualNumber(failCount.get());
@@ -2339,6 +2382,8 @@ public class PushDataServiceImpl implements PushDataService {
         Integer totalPhoneCount = phoneSaleMapper.getGroupByPhoneCount(id);
         if (totalPhoneCount == null || totalPhoneCount == 0) {
             log.warn(TITLE + "未查询到分组数据 文件ID: {}", id);
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(0);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("未查询到分组数据，id：" + id).setDate(isContiue);
         }
 
