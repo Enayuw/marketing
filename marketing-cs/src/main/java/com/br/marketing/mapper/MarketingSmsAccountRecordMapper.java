@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.entity.MarketingLineAccountRecord;
 import com.br.marketing.entity.MarketingSmsAccountRecord;
 import org.apache.ibatis.annotations.Param;
 
