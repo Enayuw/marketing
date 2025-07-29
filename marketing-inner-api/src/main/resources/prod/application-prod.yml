@@ -269,6 +269,9 @@ api:
     baseUrl: https://mdp.shurongdai.cn
     queryCallStatus: ${api.rsxk.baseUrl}/mdp-thinker-facade/api/queryCallStatus
     isProxy: true
+  imbpApiService:
+    baseUrl: https://antaios-op.100credit.com/api/antaios-app-api
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier
 #elastic-job配置
 SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job
