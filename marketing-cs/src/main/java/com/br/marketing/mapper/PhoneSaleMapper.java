@@ -24,7 +24,17 @@ public interface PhoneSaleMapper extends PhoneSaleMapperBase {
                                            @Param("startDate")Date startDateFormat,@Param("endDate") Date endDateFormat, @Param("pageNum")int pageNum,
                                            @Param("pageSize")int pageSize);
 
-    List<DassImportDataDTO> getWeiZhongData(@Param("localId") Long localId, @Param("phone") String phone, @Param("dataId") Long dataId);
+    /**
+     * 获取手机号分组总数
+     */
+    Integer getGroupByPhoneCount(@Param("localId") Long localId);
 
-    List<String> getGroupByPhone(Long id);
+    /**
+     * 分页获取手机号分组
+     */
+    List<String> getGroupByPhoneWithPaging(@Param("localId") Long localId, 
+                                          @Param("offset") Integer offset, 
+                                          @Param("pageSize") Integer pageSize);
+
+    List<DassImportDataDTO> getWeiZhongData(@Param("localId") Long localId, @Param("phone") String phone, @Param("dataId") Long dataId);
 }
