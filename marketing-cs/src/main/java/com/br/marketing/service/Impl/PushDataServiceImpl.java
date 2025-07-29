@@ -2317,6 +2317,8 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushWeiZhongDassData(Long id) {
+        String TITLE = "微众推人工 ";
+        log.warn(TITLE + "开始，文件ID: {}", id);
         Boolean isContiue = false;
         String key = "dass:push:threadnum";
         Integer threadNum = 5;
@@ -2327,6 +2329,7 @@ public class PushDataServiceImpl implements PushDataService {
 
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
+            log.warn(TITLE + "文件不存在, 文件ID: {}", id);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
 
@@ -2334,6 +2337,7 @@ public class PushDataServiceImpl implements PushDataService {
 
         List<String> groupByPhone = phoneSaleMapper.getGroupByPhone(id);
         if (groupByPhone.isEmpty()) {
+            log.warn(TITLE + "未查询到分组数据 文件ID: {}", id);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("未查询到分组数据，id：" + id).setDate(isContiue);
         }
 
@@ -2423,7 +2427,7 @@ public class PushDataServiceImpl implements PushDataService {
                         }
                     } catch (Exception e) {
                         log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
-                                "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
+                                TITLE + "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
                     }
                 }, pushDassThreadPool);
                 futures.add(future);
@@ -2454,7 +2458,7 @@ public class PushDataServiceImpl implements PushDataService {
                     }
                 } catch (Exception e) {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
-                            "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
+                            TITLE + "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
                 }
             }, pushDassThreadPool);
             futures.add(future);
