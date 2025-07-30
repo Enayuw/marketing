@@ -2399,7 +2399,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserDetailDTO> dataItems = preUserDTO.getDataItems();
         batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
         //region 数据入库
+        String jsonDataStr = null;
         try {
+            jsonDataStr = JSON.toJSONString(preUserDTO);
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
             syncInfo.setApiCode(dto.getApiCode());
             syncInfo.setCusBatch(dto.getJsonData().getTaskId());
@@ -2407,7 +2409,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setLast(last);
             syncInfo.setTotal(total);
             syncInfo.setCreateTime(new Date());
-            syncInfo.setJsonData(JSON.toJSONString(preUserDTO));
+            syncInfo.setJsonData(jsonDataStr);
             syncInfo.setActualNum(size);
             syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
@@ -2424,6 +2426,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
+            if (jsonDataStr == null) {
+                jsonDataStr = jsonData;
+            }
             log.error(String.format("返回DB异常耗时：%d", System.currentTimeMillis() - l));
             dbException = Boolean.TRUE;
         }
@@ -2436,7 +2441,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonData);
+                jsonObject.put("jsonData", jsonDataStr);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
@@ -3324,17 +3329,20 @@ public class PushRuleServiceImpl implements PushRuleService {
         String transferInfoId = "";
         Boolean dbException = Boolean.FALSE;
         batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
+        String jsonDataStr = null;
         try {
+            jsonDataStr = JSON.toJSONString(transferDataDTO);
             //todo 测试pulsar 上线删除
             if ("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())) {
                 throw new RuntimeException("模拟DB错误");
             }
+
             MarketingTransferInfo transferInfo = new MarketingTransferInfo();
             transferInfo.setApiCode(apiCode);
             transferInfo.setRequestId(transferDataDTO.getRequestId());
             transferInfo.setOrgName(transferDataDTO.getOrgName());
             transferInfo.setCreateTime(new Date());
-            transferInfo.setJsonData(JSON.toJSONString(transferDataDTO));
+            transferInfo.setJsonData(jsonDataStr);
             transferInfo.setActualNum(size);
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
@@ -3347,6 +3355,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
+            if (jsonDataStr == null) {
+                jsonDataStr = jsonData;
+            }
             dbException = Boolean.TRUE;
         }
 
@@ -3356,7 +3367,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonData);
+                jsonObject.put("jsonData", jsonDataStr);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
