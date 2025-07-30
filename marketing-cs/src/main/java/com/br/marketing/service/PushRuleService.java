@@ -1,5 +1,7 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
@@ -224,4 +226,8 @@ public interface PushRuleService {
     Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO);
 
     String getRoutingKeyFromRedis(String key, String field, String defaultValue);
+
+    void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType);
+
+    void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType);
 }

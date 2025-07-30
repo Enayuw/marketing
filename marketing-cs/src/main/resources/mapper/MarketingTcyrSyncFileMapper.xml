@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncFileMapper" >
+
+    <select id="selectSingleSyncFile" resultType="com.br.marketing.entity.MarketingTcyrSyncFile">
+        SELECT id, api_code, batch_no, file_name, file_path,
+               total_count, success_count, deal_status,
+               is_del, create_time, update_time, sync_record_id
+        FROM b_marketing_tcyr_sync_file
+        WHERE api_code=#{apiCode}
+              and deal_status=#{dealStatus}
+              and is_del=1
+        LIMIT 1
+    </select>
+    <select id="selectSyncFileList" resultType="com.br.marketing.entity.MarketingTcyrSyncFile">
+        SELECT id, api_code, batch_no, file_name, file_path,
+               total_count, success_count, deal_status,
+               is_del, create_time, update_time, sync_record_id
+        FROM b_marketing_tcyr_sync_file
+        WHERE api_code=#{apiCode}
+          and deal_status=#{dealStatus}
+          and is_del=1
+          and total_count > success_count
+    </select>
+
+    <select id="selectNoDealSingleSyncFile" resultType="com.br.marketing.entity.MarketingTcyrSyncFile">
+        SELECT id, api_code, batch_no, file_name, file_path,
+               total_count, success_count, deal_status,
+               is_del, create_time, update_time, sync_record_id,
+               quick_deal_status,db_deal_status
+        FROM b_marketing_tcyr_sync_file
+        WHERE api_code=#{apiCode}
+          and quick_deal_status=#{quickDealStatus}
+          and db_deal_status=#{dbDealStatus}
+          and is_del=1
+            LIMIT 1
+    </select>
+
+
+    <update id="updateQuickDealStatus">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET quick_deal_status = #{quickDealStatus}
+        WHERE id=#{id}
+    </update>
+    <update id="updateDbDealStatus">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET db_deal_status = #{dbDealStatus}
+        WHERE id=#{id}
+    </update>
+
+    <update id="updateSuccessCount">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET success_count = success_count +#{addSuccessCount}
+        where id = #{syncFileId}
+    </update>
+    <update id="updateQuickDealAndSuccesCount">
+        UPDATE
+            b_marketing_tcyr_sync_file
+        SET quick_deal_status = #{quickDealStatus},success_count = success_count +#{addSuccessCount}
+        where id = #{syncFileId}
+    </update>
+
+</mapper>

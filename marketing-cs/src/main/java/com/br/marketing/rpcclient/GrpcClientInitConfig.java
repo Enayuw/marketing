@@ -5,6 +5,7 @@ import com.br.grpc.mom.broker_layer_api.BrokerLayerGrpc;
 import com.br.grpc.service.usercenterrely.UserCenterGreeterGrpc;
 import com.br.grpc.utils.BrGrpcUtils;
 import io.grpc.ManagedChannel;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -49,16 +50,20 @@ public class GrpcClientInitConfig {
             //用户中心
             UserCenterGreeterGrpc.UserCenterGreeterBlockingStub _userBlockingStub = (UserCenterGreeterGrpc.UserCenterGreeterBlockingStub)
                     BrGrpcUtils.newBlockStub(DOMAIN_SERVICE_NAME, managedChannels[i], UserCenterGreeterGrpc.class);
+
+//            _userBlockingStub = _userBlockingStub.withDeadlineAfter(10, TimeUnit.SECONDS);
             _userBlockingStub.ping(com.br.grpc.service.usercenterrely.PingRequest.newBuilder().build());
 
             //加解密
             EncodeMappingGrpc.EncodeMappingBlockingStub _encodeBlockingStub = (EncodeMappingGrpc.EncodeMappingBlockingStub)
                     BrGrpcUtils.newBlockStub(DOMAIN_SERVICE_NAME, managedChannels[i], EncodeMappingGrpc.class);
+//            _encodeBlockingStub = _encodeBlockingStub.withDeadlineAfter(10, TimeUnit.SECONDS);
             _encodeBlockingStub.ping(com.br.grpc.encodemapping.PingRequest.newBuilder().build());
 
             //生产者
             BrokerLayerGrpc.BrokerLayerFutureStub _futureBrokerStub = (BrokerLayerGrpc.BrokerLayerFutureStub)
                     BrGrpcUtils.newFutureStub(DOMAIN_SERVICE_NAME, managedChannels[i], BrokerLayerGrpc.class);
+//            _futureBrokerStub = _futureBrokerStub.withDeadlineAfter(10, TimeUnit.SECONDS);
             _futureBrokerStub.ping(com.br.grpc.mom.broker_layer_api.PingRequest.newBuilder().build());
 
             //策略

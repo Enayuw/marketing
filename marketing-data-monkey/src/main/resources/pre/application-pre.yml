@@ -292,6 +292,10 @@ api:
     marketPubklicKey: "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpp2RjLWvUURAdH/vRavhgRvA710LzbBQvlsJrWq2kPxJRvNPMZm4vIEc7gfgBB+oUmc130HKRobMuIjVuYghVNsW0+R3nZqVhO3kmSxGW+iaZWc0tOH7m3MSR/cc56o4vMXshl7sqp9x6WI4apleQP3Xz2ejQ7SVDnnHD1KEBlQIDAQAB"
     marketPrivateKey: "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKmnZGMta9RREB0f+9Fq+GBG8DvXQvNsFC+WwmtaraQ/ElG808xmbi8gRzuB+AEH6hSZzXfQcpGhsy4iNW5iCFU2xbT5HedmpWE7eSZLEZb6JplZzS04fubcxJH9xznqji8xeyGXuyqn3HpYjhqmV5A/dfPZ6NDtJUOeccPUoQGVAgMBAAECgYB1jI9JDLK29Mfmdj/D9YtNIjnYLKmuAkfmRV5GhhjkQfNOgTh7Wsmji4jvmXkeNb6iMYMlLmADufdt0rQU3IYKaSP0Nf0AK4lNSxHOftpa8Tdd5Q5mZieqJ0tmVXq8uSUJgkzIJjR5R5iZPBL0p2oYD9R2jnQoBd6zuOrD7TXdAQJBAPG0D9H//nKnknUCuHnNGH/V+yE5VBrnTAfupSzVik2XM+7tV7VuTnOFumDY2V3cd5QBVGVixtxO8avAGBJuskECQQCzsFZbD5nJREScfWCDt4aao7MPnkw408vW9qut8fYKEN8b+rvP/zXJSrhXerWl0ydcpNbpxuua+9L03J0hB1JVAkEAjR6MfhfxABBGunq0KqlMvJa64VMPgAW7poX3eo3TCipV8BIzO4MD2v8hKppxjxPB3XBJTki1wrt07sphQ6HOAQJAJaUR0m4IR/Q3c5mIuM+gMZGOF/2P9m/YyqZO/VgttZonQ9NZuY+8EvnGeP1KRP1hx7T5GW0FOyj63zXA7YR9KQJAd3oi5bPXR2zfgkgFVVTSr4I0Yc3ALJEG5HKMWTluHWb0K55ZF54k/gzaK8dgtW1PUxOrqkFgv2XyNgvwr5r7pQ=="
     isProxy: true
+  sanliuling:
+    baseUrl: http://promote-dev.daikuan.360.cn
+    batch: ${api.sanliuling.baseUrl}/open_api/v1/apply/batch
+    isProxy: true
   hxCar:
     baseUrl: http://haoyunlailai.cn:6001
     carList: ${api.hxCar.baseUrl}/open_api/v1/car_list
@@ -383,3 +387,9 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
+
+# 线程池动态配置监控
+tp:
+  dynamic:
+    metric:
+      enabled: true

@@ -2,11 +2,9 @@ package com.br.marketing.service.customertagsprocess;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingCustomerConfig;
 import com.br.marketing.entity.MarketingCustomerConfigExample;
 import com.br.marketing.mapper.MarketingCustomerConfigMapper;
@@ -58,20 +56,22 @@ public class CustomerTagsProcessServiceImpl {
         MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
         configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingCustomerConfig> configs = marketingCustomerConfigMapper.selectByExample(configExample);
+        // 客户未配置信息 会缓存null值信息
         if (configs.size() <= 0) {
-            customerTagsVO.setCheckType(CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue());
-            customerTagsVO.setPushJc3keyType(CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
+            customerTagsVO.setCheckType(null);
+            customerTagsVO.setPushJc3keyType(null);
             writeTagsOfRedis(apiCode, customerTagsVO);
             return customerTagsVO;
         }
 
+        // 客户配置 会缓存表中的信息
         MarketingCustomerConfig marketingCustomerConfig = configs.get(0);
-        Integer checkType = marketingCustomerConfig.getCheckType();
-        customerTagsVO.setCheckType(checkType);
-        customerTagsVO.setPushJc3keyType(
-                marketingCustomerConfig.getThreeKEncryptType() == null
-                        ? CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue()
-                        : marketingCustomerConfig.getThreeKEncryptType());
+        customerTagsVO.setCheckType(marketingCustomerConfig.getCheckType());
+        customerTagsVO.setPushJc3keyType(marketingCustomerConfig.getThreeKEncryptType());
+        customerTagsVO.setCipherMode(marketingCustomerConfig.getCipherMode());
+        customerTagsVO.setPaddingScheme(marketingCustomerConfig.getPaddingScheme());
+        customerTagsVO.setCharset(marketingCustomerConfig.getCharset());
+        customerTagsVO.setDynamicKeys(marketingCustomerConfig.getDynamicKeys());
         writeTagsOfRedis(apiCode, customerTagsVO);
         return customerTagsVO;
     }
@@ -84,14 +84,26 @@ public class CustomerTagsProcessServiceImpl {
      */
     public IUploadCheckService getIUploadCheckService(CustomerTagsVO vo) {
 
-        CustomerTagsValue.CheckTypeEnum enumByValue = CustomerTagsValue.getEnumByValue(vo.getCheckType(), CustomerTagsValue.CheckTypeEnum.class);
-        if (enumByValue == null) {
-            return null;
+        CustomerTagsValue.PushJc3keyTypeEnum enumByValue = CustomerTagsValue
+                .getEnumByValue(
+                        vo.getPushJc3keyType()
+                        , CustomerTagsValue.PushJc3keyTypeEnum.class
+                );
+        if (enumByValue != null) {
+            IUploadCheckService iUploadCheckService = iUploadCheckServiceMap.get(enumByValue.getStrategyBean());
+            return iUploadCheckService;
         }
-        IUploadCheckService iUploadCheckService = iUploadCheckServiceMap.get(enumByValue.getBean());
+
+        IUploadCheckService iUploadCheckService = iUploadCheckServiceMap.get(CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getStrategyBean());
         return iUploadCheckService;
     }
 
+    /**
+     * 客户的配置信息从redis读取
+     *
+     * @param apiCode
+     * @return
+     */
     private CustomerTagsVO getTagsOfRedis(String apiCode) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
@@ -108,6 +120,12 @@ public class CustomerTagsProcessServiceImpl {
         return null;
     }
 
+    /**
+     * 客户的配置信息写入redis
+     *
+     * @param apiCode
+     * @param customerTagsVO
+     */
     private void writeTagsOfRedis(String apiCode, CustomerTagsVO customerTagsVO) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
@@ -118,6 +136,11 @@ public class CustomerTagsProcessServiceImpl {
         }
     }
 
+    /**
+     * 客户的配置信息从redis删除
+     *
+     * @param apiCode
+     */
     public void delTagsOfRedis(String apiCode) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {

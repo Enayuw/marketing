@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCpsCollidingDataLoopCycleMapper">
+    
+    <!-- 查询周期数据按释放时间 -->
+    <select id="selectCycleDataByReleaseTime" resultType="com.br.marketing.entity.XieChengCpsCollidingDataLoopCycle">
+        select
+        id, cell_sha256_code_list, package_id
+        from b_xiecheng_cps_colliding_data_loop_cycle
+        where is_delete = 0 and retry_count = 0
+        <![CDATA[ and release_time < #{endDate}]]>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id limit #{pageSize};
+    </select>
+
+    <!-- 查询重试数据 -->
+    <select id="selectCycleByRetryCount" resultType="com.br.marketing.entity.XieChengCpsCollidingDataLoopCycle">
+        select
+        id, cell_sha256_code_list, package_id, retry_count, push_time
+        from b_xiecheng_cps_colliding_data_loop_cycle
+        where is_delete = 0
+            <![CDATA[ and retry_count > 0 and retry_count <= 3]]>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc limit #{pageSize};
+    </select>
+
+    <!-- 批量更新重试次数 -->
+    <update id="updateBatchByIdOfRetryCount" parameterType="java.util.List">
+        update b_xiecheng_cps_colliding_data_loop_cycle 
+        set retry_count = retry_count + 1, update_time = now(), push_time = now() 
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 更新TRUE数据 -->
+    <update id="updateByTrueData" parameterType="com.br.marketing.entity.XieChengCpsCollidingDataLoopCycle">
+        update b_xiecheng_cps_colliding_data_loop_cycle
+        set push_time = #{pushTime},
+            update_time = #{updateTime},
+            retry_count = #{retryCount},
+            release_time = #{releaseTime}
+        where id = #{id}
+    </update>
+
+    <!-- 批量删除排除的撞库数据 -->
+    <update id="batchDeleteExcludeCollidingData">
+        update b_xiecheng_cps_colliding_data_loop_cycle
+        set is_delete = 1,
+            update_time = now(),
+            extend = #{extend}
+        where is_delete = 0
+          and cell_sha256_code_list in
+        <foreach collection="excludeData" item="cell_sha256_code_list" open="(" separator="," close=")">
+            #{cell_sha256_code_list}
+        </foreach>
+    </update>
+
+    <!-- 查询重复数据 -->
+    <select id="selectDuplicateData" resultType="java.lang.String">
+        select cell_sha256_code_list
+        from b_xiecheng_cps_colliding_data_loop_cycle
+        where is_delete = 0
+          and cell_sha256_code_list in
+        <foreach collection="list" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <!-- 批量保存数据 -->
+    <insert id="batchSaveData">
+        insert into b_xiecheng_cps_colliding_data_loop_cycle (package_id, data_source_type, cell_sha256_code_list, 
+                                                              release_time, retry_count, is_delete, create_time, update_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.packageId}, #{item.dataSourceType}, #{item.cellSha256CodeList}, 
+             #{item.releaseTime}, 0, 0, now(), now())
+        </foreach>
+    </insert>
+
+    <!-- 查询当天周期数据总数 -->
+    <select id="selectTodayCycleCountByExample" resultType="java.lang.Integer">
+        select count(*) as counts
+        from b_xiecheng_cps_colliding_data_loop_cycle
+        where (DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
+           OR DATE_FORMAT(release_time, '%Y-%m-%d') = date_add(curdate(), interval 7 day))
+            and is_delete = 0;
+    </select>
+
+    <!-- 批量删除数据 -->
+    <update id="batchDeleteByCell">
+        update b_xiecheng_cps_colliding_data_loop_cycle
+        set is_delete = 1, update_time = now()
+        where is_delete = 0
+          and cell_sha256_code_list in
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+    </update>
+</mapper>

@@ -1,37 +1,44 @@
 package com.br.marketing.service.customertagsprocess.valobj;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class CustomerTagsValue {
 
-    /**
-     * 上传数据解析 校验3K的枚举值
-     */
-    @AllArgsConstructor
-    @Getter
-    public  enum CheckTypeEnum implements ValueInterace {
+    // /**
+    //  * 上传数据解析 校验3K的枚举值
+    //  */
+    // @AllArgsConstructor
+    // @Getter
+    // public  enum CheckTypeEnum implements ValueInterace {
 
-        CHECKCELL(1,"校验cell","checkCellServiceImpl"),
-        NOCHECK3K(2,"不校验3K","noCheckServiceImpl");
+    //     CHECKCELL(1,"校验cell","checkCellServiceImpl"),
+    //     NOCHECK3K(2,"不校验3K","noCheckServiceImpl");
 
-        private Integer value;
-        private String desc;
-        private String bean;
+    //     private Integer value;
+    //     private String desc;
+    //     private String bean;
 
-    }
+    // }
 
     @AllArgsConstructor
     @Getter
     public  enum PushJc3keyTypeEnum implements ValueInterace {
 
-        INIT(0,"原文"),
-        MD5_ALL(1,"3Kmd5"),
-        SHA256_ALL(2,"3Ksha256");
+        INIT(0,"软交换","noCheckServiceImpl"),
+        MD5_ALL(1,"3Kmd5","checkCellServiceImpl"),
+        SHA256_ALL(2,"3Ksha256","checkCellServiceImpl"),
+        PLAINTEXT(3,"log加密","checkCellServiceImpl"),
+        AES_COMMON(4,"AES通用","aesCommonStrategy"),
+        AES_NMD(5,"AES你我贷定制版","aesNmdStrategy");
 
         private Integer value;
         private String desc;
-
+        private String strategyBean;
     }
 
     /**
@@ -56,4 +63,30 @@ public class CustomerTagsValue {
     public interface ValueInterace {
         Integer getValue();
     }
+
+    /**
+     * 自动将枚举转换为JSON（AES通用=0, AES定制=1, 其他=2）
+     */
+    public static String convertPushJc3keyEnumToJson() {
+        Map<String, JSONObject> resultMap = new LinkedHashMap<>();
+
+        for (PushJc3keyTypeEnum enumItem : PushJc3keyTypeEnum.values()) {
+            JSONObject innerJson = new JSONObject();
+            innerJson.put("desc", enumItem.getDesc());
+
+            // 自动判断状态
+            int status = 2; // 默认其他=2
+            if (enumItem == PushJc3keyTypeEnum.AES_COMMON) {
+                status = 0;
+            } else if (enumItem == PushJc3keyTypeEnum.AES_NMD) {
+                status = 1;
+            }
+
+            innerJson.put("status", status);
+            resultMap.put(String.valueOf(enumItem.getValue()), innerJson);
+        }
+
+        return JSONObject.toJSONString(resultMap, true);
+    }
+
 }

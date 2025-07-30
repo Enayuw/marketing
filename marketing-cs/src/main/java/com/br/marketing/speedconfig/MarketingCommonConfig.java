@@ -2834,6 +2834,11 @@ public class MarketingCommonConfig {
     private Long createMVMaxWaitTime;
 
     /**
+     * 标签:物化视图所属的数据库名,预发为marketing,线上为marketing_bi
+     */
+    private String database;
+
+    /**
      * 标签计算配置
      */
     private Map<String,String> tagCalculateConfig;
@@ -2862,6 +2867,10 @@ public class MarketingCommonConfig {
      */
     private List<String> xieChengQueueApiCodes;
 
+    /**
+     * 携程上报消息开关
+     */
+    private JSONObject xieChengReportMqConfig;
 
     /**
      * 携程定制转化清洗apicode
@@ -2876,6 +2885,12 @@ public class MarketingCommonConfig {
      * 转化文件提取到marketingBI的配置
      */
     private List<JSONObject> transFileExtractionApiCodesConfig;
+
+    /**
+     * 转化文件提取到marketingBI 优先级处理节点列表(只处理高优先级api_code)
+     */
+    private Set<Integer> transFilePriorityList;
+
     /**
      * 转化文件提取到BI线程数
      */
@@ -2935,9 +2950,64 @@ public class MarketingCommonConfig {
     private Integer  tcPageSearchSize;
 
     /**
+     * 同城易融-match时batchUpdateSize
+     */
+    private Integer  tcPartSize;
+
+    /**
      * 同城易融-撤销清洗job每页查询条数
      */
     private Integer tcRevokePageSize;
+
+
+
+
+    /**
+     * 同程易融-txtFile-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":5000,"partSize":1000,
+     * "dbCountWaitTime":60000
+     * }
+     */
+    private JSONObject tcTxtFileShardConfig;
+
+
+    /**
+     * 同程易融-match-shard  job参数
+     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000,"startSearchTime:yyyy-mm-dd HH:mm:ss"}
+     */
+    private JSONObject tcMatchShardConfig;
+
+
+    /**
+     * 同程易融-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":10,"pageSize":2000,"lockRetryTimes":2,"lockRetryIntervalMs":1000,
+     * "detailLogSwitch":true
+     * }
+     */
+    private JSONObject tcQuickDealShardConfig;
+
+
+    /**
+     * 同程易融-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
+     * "lockRetryTimes":2,"lockRetryIntervalMs":1000
+     * }
+     */
+    private JSONObject tcDbDealShardConfig;
+
+    /**
+     * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
+     */
+    private List<String> tcyrSyncSaveExcludeFieldList;
+
+
+    /**
+     * 同程易融-转化清洗 extend 排除的字段(column_1,column_2)
+     */
+    private List<String> tcyrSyncCleanExcludeFieldList;
 
     /**
      * 58查询非金融延期zip接口参数配置
@@ -3103,6 +3173,11 @@ public class MarketingCommonConfig {
      */
     private String uMengCallBackEndTime;
 
+
+    /**
+     * 携程上报线程池数量
+     */
+    private Integer xieChengReportThreadPoolNum;
     /**
      * 奇富促动支上传数据apiCode
      */
@@ -3112,5 +3187,103 @@ public class MarketingCommonConfig {
      * 奇富促动支上传数据参数配置
      */
     private JSONObject qiFuActuationServerConfig;
+
+    /**
+     * 奇富促完件提取表头字段
+     */
+    private String qiFuTransferTableHead;
+
+    /**
+     * 360-pp流量业务营销挡板
+     * {"switch":"0","code":1,"message":"","data":""}
+     * switch:1开启 0关闭
+     * code：200成功 其他失败
+     *
+     */
+    private HashMap<String, Object> sanLiuLingTrafficMock;
+
+    /**
+     * 360-pp流量业务营销接口线程数
+     */
+    private Integer sanLiuLingTrafficThreadNum;
+
+    /**
+     * 携程线程池上报
+     */
+    private Integer xcMqReportHandlerThreadNum;
+    /**
+     * 携程上报线程池开启开关 false 开启线程池  true 关闭线程池
+     */
+    private Boolean xcMqReportHandlerSwitch;
+
+    /**
+     * 上传文件清洗线程数
+     */
+    private Integer uploadFileCleanThreadNum;
+
+    /**
+     * 数禾重申提取表头字段
+     */
+    private String shuHeChongShenTransferTableHead;
+
+    /**
+     * 携程CPS撞库数据同步分页条数
+     */
+    private Integer xieChengCpsCollidingDataSyncPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengCpsCollidingConfig;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengCpsCollidingRetrySwitch;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"3710012":"三方营销效果监控-百融"}
+     */
+    private Map<String, String> mailApiCodeSubjectMap;
+
+    /**
+     * 邮件主题和API Code对应关系
+     * {"userName":"xxx", "password":"xxx"}
+     */
+    private Map<String, String> YiXinMailConfigMap;
+
+    /**
+     * 转化文件落库BI批量大小
+     */
+    private Integer fileToMarketingBiBatchSize;
+
+    /**
+     * 转化文件落库BI是否中断
+     */
+    private Boolean fileToMarketingBiInterrupt;
+
+    /**
+     * 360ai区间配置
+     */
+    private Integer qiFuConfigNum;
+
+    /**
+     * key：异常场景
+     * value：开关状态
+     * 是否开启跑分redis模拟异常开关
+     * {"readRedis":true,"writeRedis":false,"retryRedis":false}
+     */
+    private Map<String, Boolean> mockRedisSwitch;
+
+    /**
+     * 是否开启新加密规则, true：开启新规则，false：关闭新规则
+     */
+    private Boolean isOpenNewEncrypt;
+
+    /**
+     * #众安拨打&短信上报配置
+     */
+    private JSONObject zhongAnCollidingDataConfig;
 }
 

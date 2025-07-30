@@ -647,4 +647,34 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【monkey】-SanLiuLingTrafficJob"
+                class="com.br.marketing.monkey.job.sanliuling.SanLiuLingTrafficJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="360-pp流量业务营销"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【monkey】-ZhongAnPushRosterLockingDataNewJob"
+                class="com.br.marketing.monkey.job.zhongan.ZhongAnPushRosterLockingDataNewJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="名单锁定推送众安-New"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

@@ -156,7 +156,6 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 case "D":
                 case "E":
                 case "F":
-                case "G":
                 case "H":
                 case "I":
                     actionData(k, v, tcId, apiCodeTransfer);
@@ -173,12 +172,61 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 case "L":
                     actionDataL(apiCodeTransfer, tcId, k, v);
                     break;
+                case "G":
+                    actionDataG(k, v, tcId, apiCodeTransfer);
+                    break;
                 default:
                     log.warn("宜信转化数据推决策类型异常");
                     break;
             }
         });
 
+    }
+
+    private void actionDataG(String actionType, String v, String tcId, String apiCodeTransfer) {
+        if (isTransferLast(tcId, apiCodeTransfer)) {
+            Result<Long> resultK = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(actionType));
+            if (!ResultCode.SUCCESS.getValue().equals(resultK.getCode())) {
+                return;
+            }
+            getMarketingTransferSyncUserListBtoCtoI(actionType, v, tcId);
+            //推送liveType=9的数据
+            pushTransferDataLiveTypeNine(actionType, v, tcId);
+            updateActionFront(resultK);
+        }
+    }
+
+    private void pushTransferDataLiveTypeNine(String actionType, String v, String tcId) {
+
+        Long indexId = null;
+        // 创建线程池
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
+        String requestDate = LocalDate.now().toString();
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getYXMarketingTransferByLiveType(tcId,apiCode,
+                            requestDate,indexId,"9");
+            if(marketingTransferSyncUserList.isEmpty()){
+                break;
+            }
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
+            partition.forEach(users->{
+                List<MarketingTransferSyncUser> tpList = new ArrayList<>();
+                tpList.addAll(users);
+                yiXinToJueCeThread.submit(() -> threadDoProcess(tpList, actionType));
+            });
+        }
+        yiXinToJueCeThread.shutdown();
+        try {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
     }
 
     private void actionDataL(String apiCodeTransfer, String tcId, String k, String v) {

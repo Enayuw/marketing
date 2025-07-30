@@ -37,6 +37,15 @@
             <if test="cellSha256 != null" >
                 cell_sha256,
             </if>
+            <if test="cellOriginal != null" >
+                cell_original,
+            </if>
+            <if test="idCardOriginal != null" >
+                id_card_original,
+            </if>
+            <if test="nameOriginal != null" >
+                name_original,
+            </if>
             <if test="groupType != null">
                 group_type,
             </if>
@@ -110,6 +119,15 @@
             </if>
             <if test="cellSha256 != null" >
                 #{cellSha256,jdbcType=VARCHAR},
+            </if>
+            <if test="cellOriginal != null" >
+                #{cellOriginal,jdbcType=VARCHAR},
+            </if>
+            <if test="idCardOriginal != null" >
+                #{idCardOriginal,jdbcType=VARCHAR},
+            </if>
+            <if test="nameOriginal != null" >
+                #{nameOriginal,jdbcType=VARCHAR},
             </if>
             <if test="groupType != null">
                 #{groupType,jdbcType=VARCHAR},

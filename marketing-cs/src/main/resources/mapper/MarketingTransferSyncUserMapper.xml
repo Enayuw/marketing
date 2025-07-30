@@ -153,6 +153,13 @@
         order by id desc limit #{limitStart},2000;
     </select>
 
+    <select id="getTransferByCpsLog" resultType="com.br.marketing.entity.MarketingNewTransferData">
+        select cell_sha256_code_list as sha256_code_list, result, org_channel, mkt_level
+        from b_xiecheng_cps_colliding_data_log
+         <![CDATA[  where create_time >= date (now()) and create_time < date (now()) + interval 1 day ]]>
+        order by id desc limit #{limitStart}, 2000;
+    </select>
+
 
     <select id="getTransferDataByDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
@@ -819,7 +826,10 @@
         where cust_num = #{custNum}
         and (reserve_field1->'$.isBlack' = '1' or reserve_field1->'$.isBlack' = 1)
         <![CDATA[ and create_time > curdate()]]>
-        and api_code = #{apiCode}
+        and api_code in
+        <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
+            #{apiCode}
+        </foreach>
         limit 1
     </select>
     <select id="getZhongBangTransferByApiCodetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -1103,7 +1113,8 @@
                transfer.request_time as requestTime,
                transfer.user_type as userType,
                sync.cus_batch as taskId,
-               sync.reserve_field1 as reserveField1
+               sync.reserve_field1 as reserveField1,
+               transfer.reserve_field1 as transferReserveField1
         from
             (select id,
                    cust_num,
@@ -1111,7 +1122,8 @@
                    apply_result,
                    login_time,
                    request_time,
-                   user_type
+                   user_type,
+                   reserve_field1
             from b_marketing_transfer_sync_${transferSyncUser.tCid}
             where api_code = #{transferSyncUser.apiCode}
                 <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
@@ -1123,7 +1135,7 @@
     </select>
 
     <select id="selectTransferWithValid" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select id, cust_num, apply_dt, apply_result, login_time, request_time, user_type
+        select id, cust_num, apply_dt, apply_result, login_time, request_time, user_type, reserve_field1
         from b_marketing_transfer_sync_${transferSyncUser.tCid}
         where
         <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
@@ -1144,6 +1156,7 @@
                transfer.login_time as loginTime,
                transfer.request_time as requestTime,
                transfer.user_type as userType,
+               transfer.reserve_field1 as reserveField1,
                sync.cus_batch as taskId,
                config.valid_end_date as expireDate,
                config.valid_start_date as effectiveDate
@@ -1220,6 +1233,7 @@
                transfer.login_time as loginTime,
                transfer.request_time as requestTime,
                transfer.user_type as userType,
+               transfer.reserve_field1 as reserveField1,
                sync.cus_batch as taskId,
                config.valid_end_date as expireDate,
                config.valid_start_date as effectiveDate
@@ -1333,5 +1347,22 @@
         order by id
     </select>
 
-
+    <select id="getYXMarketingTransferByLiveTypetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select b.*
+        from (select a.id,a.cid,a.t_cid,a.api_code,a.request_id,a.org_name,a.cust_num,a.source,a.user_type,a.type,a.custom_name
+        ,a.if_register,a.register_time,a.if_login,a.login_time,a.if_apply,a.apply_dt,a.apply_time,a.apply_result
+        ,a.refuse_time,a.audit_time,a.audit_amount,a.if_lent,a.lent_time,a.lent_amount,a.unlent_amount,a.if_settle
+        ,a.settle_time,a.activity,a.case_status,a.case_effective,a.if_transform,a.transform_time,a.insert_time
+        ,a.request_time,a.request_data,a.reserve_field1,a.reserve_field2
+        ,row_number() over (partition by cust_num order by create_time desc,id desc) as rn
+        from b_marketing_transfer_sync_${tCid} a
+        where request_data = #{requestDate}
+        and api_code = #{apiCode}
+        and json_extract(reserve_field1, '$.transformType') = '1' ) as b
+        where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+        and b.json_extract(reserve_field1, '$.liveType')= #{liveType} order by b.id asc limit #{pageSize};
+    </select>
 </mapper>

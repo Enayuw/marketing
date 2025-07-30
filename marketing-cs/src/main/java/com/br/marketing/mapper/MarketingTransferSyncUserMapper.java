@@ -120,6 +120,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingNewTransferData> getTransferNewData(@Param("day") int day , @Param("limitStart") Integer limitStart);
+    List<MarketingNewTransferData> getTransferByCpsLog(@Param("limitStart") Integer limitStart);
 
     /**
      * 取T日全量转换数据
@@ -461,7 +462,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     MarketingTransferSyncUser getXcTransferNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
     MarketingTransferSyncUser getXcTransferTodayNoAdDataByOnlyBlack(@Param("tCid") String tcId,
                                                                     @Param("custNum") String custNum,
-                                                                    @Param("apiCode") String apiCode);
+                                                                    @Param("apiCodes") JSONArray apiCodes);
 
     List<MarketingTransferSyncUser> getZhongBangTransferByApiCodetikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
@@ -709,5 +710,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("beginId") Long beginId
             , @Param("endId") Long endId);
 
+
+    List<MarketingTransferSyncUser> getYXMarketingTransferByLiveTypetikv_
+            (@Param("tCid") String tCid, @Param("apiCode")String apiCode, @Param("requestDate")String requestDate, @Param("indexId")Long indexId,
+             @Param("liveType")String liveType, @Param("pageSize")Integer yiXinSearchPageSize);
 
 }

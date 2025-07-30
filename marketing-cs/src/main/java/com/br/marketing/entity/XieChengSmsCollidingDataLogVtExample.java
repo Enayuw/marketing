@@ -975,6 +975,66 @@ public class XieChengSmsCollidingDataLogVtExample {
             return (Criteria) this;
         }
 
+        public Criteria andNextPushTimeIsNull() {
+            addCriterion("next_push_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeIsNotNull() {
+            addCriterion("next_push_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeEqualTo(Date value) {
+            addCriterion("next_push_time =", value, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeNotEqualTo(Date value) {
+            addCriterion("next_push_time <>", value, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeGreaterThan(Date value) {
+            addCriterion("next_push_time >", value, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("next_push_time >=", value, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeLessThan(Date value) {
+            addCriterion("next_push_time <", value, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeLessThanOrEqualTo(Date value) {
+            addCriterion("next_push_time <=", value, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeIn(List<Date> values) {
+            addCriterion("next_push_time in", values, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeNotIn(List<Date> values) {
+            addCriterion("next_push_time not in", values, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeBetween(Date value1, Date value2) {
+            addCriterion("next_push_time between", value1, value2, "nextPushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andNextPushTimeNotBetween(Date value1, Date value2) {
+            addCriterion("next_push_time not between", value1, value2, "nextPushTime");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("`status` is null");
             return (Criteria) this;

@@ -269,6 +269,9 @@ api:
     baseUrl: https://mdp.shurongdai.cn
     queryCallStatus: ${api.rsxk.baseUrl}/mdp-thinker-facade/api/queryCallStatus
     isProxy: true
+  imbpApiService:
+    baseUrl: https://antaios-op.100credit.com/api/antaios-app-api
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier
 #elastic-job配置
 SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job
@@ -282,7 +285,7 @@ corn:
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
-  name-server: 10.100.177.1:9876;10.100.177.2:9876;10.100.177.3:9876
+  name-server: ${ROCKET_NAME_SERVER:10.100.177.1:9875;10.100.177.2:9875;10.100.177.3:9875}
   producer:
     # 发送同一类消息的设置为同一个group，保证唯一
     group: Marketing_Default_Group

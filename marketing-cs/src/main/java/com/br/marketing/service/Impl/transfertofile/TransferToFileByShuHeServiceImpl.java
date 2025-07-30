@@ -104,10 +104,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
             ",clc_usr_adt_lmt_lv0,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
 
-    private final static String TABLE_HEADER_CHONGSHEN = "apicode,taskid,usertype,custNum,cell,is_turn,is_black," +
-            "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim" +
-            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
-
     static {
         FILE_NAME_PART = new HashMap<>(8);
         FILE_NAME_PART.put("促首登", "%s_cushoudeng_%s%s");
@@ -281,8 +277,9 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 writer.write(TABLE_HEADER_CUFUJIE.concat("\r\n"));
                 f = (transfer, marketingSyncUser) -> tableCuFuJie(transfer, marketingSyncUser, separator, defaultValue);
             } else if ("重申".equals(userType)) {
-                writer.write(TABLE_HEADER_CHONGSHEN.concat("\r\n"));
-                f = (transfer, marketingSyncUser) -> tableChongShen(transfer, marketingSyncUser, separator, defaultValue);
+                String head = marketingCommonConfig.getShuHeChongShenTransferTableHead();
+                writer.write(head.concat("\r\n"));
+                f = (transfer, marketingSyncUser) -> tableChongShen(transfer, marketingSyncUser, separator, defaultValue, head);
             } else {
                 writer.write(TABLE_HEADER.concat("\r\n"));
                 f = (transfer, marketingSyncUser) -> table(transfer, marketingSyncUser, separator, defaultValue);
@@ -390,45 +387,55 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     /**
      * 生成重申数据
      */
-    private String tableChongShen(MarketingTransferSyncUser transfer
-            , MarketingSyncUser marketingSyncUser, String separator, String defaultValue) {
+    private String tableChongShen(MarketingTransferSyncUser transfer,
+                                  MarketingSyncUser marketingSyncUser, String separator, String defaultValue, String head) {
+
+        // 获取 JSON 数据
         JSONObject json = getReserveField(transfer.getReserveField1());
-        return transfer.getApiCode()
-                + separator +
-                marketingSyncUser.getCusBatch()
-                + separator +
-                transfer.getUserType()
-                + separator +
-                transfer.getCustNum()
-                + separator +
-                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))))
-                + separator +
-                getOrDefault(json, "is_turn")
-                + separator +
-                getOrDefault(json, "is_black")
-                + separator +
-                getOrDefault(json, "clc_usr_max_dx_rrt_end")
-                + separator +
-                getOrDefault(json, "clc_usr_lst_app_sta_tim")
-                + separator +
-                getOrDefault(json, "clc_usr_iso_pho_tim")
-                + separator +
-                getOrDefault(json, "clc_usr_iso_idt_tim")
-                + separator +
-                getOrDefault(json, "clc_usr_iso_crd_tim")
-                + separator +
-                getOrDefault(json, "clc_usr_iso_inf_tim")
-                + separator +
-                ("".equals(getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy")) ? getOrDefault(json, "clc_usr_grp_zjy_csx_sjs_yzz_cqc_jxd_c2") : getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy"))
-                + separator +
-                getOrDefault(json, "clc_usr_lst_reaudit_apply_time")
-                + separator +
-                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
-                + separator +
-                (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
-                        : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
-                + "\r\n";
+
+        // 前5个固定字段（按原逻辑）
+        StringBuilder result = new StringBuilder();
+        result.append(transfer.getApiCode()).append(separator);
+        result.append(marketingSyncUser.getCusBatch()).append(separator);
+        result.append(transfer.getUserType()).append(separator);
+        result.append(transfer.getCustNum()).append(separator);
+        result.append(Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(String.valueOf(getOrDefault(json, "cell"))))).append(separator);
+
+        // 解析 head，获取后续字段的顺序
+        String[] headers = head.split(",");
+
+        // 从第6个字段开始，按 head 定义的顺序从 json 取值
+        for (int i = 5; i < headers.length; i++) {
+            String field = headers[i];
+
+            // 特殊处理：auditTime 字段（原逻辑）
+            if ("auditTime".equals(field)) {
+                String auditTimeValue = ("".equals(getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy"))
+                        ? getOrDefault(json, "clc_usr_grp_zjy_csx_sjs_yzz_cqc_jxd_c2")
+                        : getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy"));
+                result.append(auditTimeValue);
+            }
+            // 特殊处理：createtime 字段（原逻辑）
+            else if ("createtime".equals(field)) {
+                String createTimeValue = (ObjectUtils.isEmpty(transfer.getCreateTime())
+                        ? defaultValue
+                        : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                result.append(createTimeValue);
+            }
+            // 其他字段：直接从 json 获取
+            else {
+                result.append(getOrDefault(json, field));
+            }
+
+            // 添加分隔符（最后一个字段不加）
+            if (i < headers.length - 1) {
+                result.append(separator);
+            }
+        }
+
+        // 换行符
+        result.append("\r\n");
+        return result.toString();
     }
 
     /**

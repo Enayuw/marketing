@@ -1,6 +1,7 @@
 package com.br.marketing.check.service.Impl.clean.transfer;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.SimpleResult;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.service.IFileToMarketingRuleTransferService;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class DefaultFileToMarketingRuleTransferServiceImpl implements IFileToMarketingRuleTransferService {
 
     @Override
-    public Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps) {
+    public SimpleResult isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps) {
         return IFileToMarketingRuleTransferService.super.isVaild(vos,voMaps);
     }
 

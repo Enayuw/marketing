@@ -5,7 +5,7 @@
     <select id="getMViewInfobI_" resultType="com.br.marketing.dto.tag.MaterializedViewDTO">
 
         SELECT *
-        FROM mv_infos('database' = 'marketing')
+        FROM mv_infos('database' = #{database})
         WHERE Name = #{viewName}
     </select>
 

@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncMapper" >
+    <insert id="insertDataToDb">
+        ${insertDbSql}
+    </insert>
 
     <select id="selectTcSyncList" resultType="com.br.marketing.entity.MarketingTcyrSync">
-        SELECT id, api_code, batch_no, user_key, terminal, cell, is_match, is_clean, create_time,update_time
+        SELECT id, api_code, batch_no, sync_file_id, user_key, terminal, cell, is_match, is_clean,
+               create_time, update_time, `status`, is_del, extend
         FROM  b_marketing_tcyr_sync
         WHERE id > #{lastSearchId}
             AND status = 1
@@ -16,9 +20,11 @@
 
 
     <select id="selectUnMatchSyncList" resultType="com.br.marketing.entity.MarketingTcyrSync">
-        SELECT id, api_code, batch_no, user_key, terminal, cell, is_match, is_clean, create_time,update_time
+        SELECT id, api_code, batch_no, sync_file_id, user_key, terminal, cell, is_match, is_clean,
+               create_time, update_time, `status`, is_del, extend
         FROM  b_marketing_tcyr_sync
         WHERE id > #{lastSearchId}
+        AND api_code = #{apiCode}
         AND is_match is NULL
         AND status = 1
         AND is_del = 1
@@ -75,6 +81,39 @@
             </set>
             WHERE id = #{id}
         </update>
+
+    <select id="selectMatchSyncList" resultType="com.br.marketing.entity.MarketingTcyrSync">
+        SELECT id, user_key
+        FROM  b_marketing_tcyr_sync
+        WHERE
+            api_code= #{apiCode}
+            <if test="startSearchTime !=null">
+                AND create_time > #{startSearchTime}
+            </if>
+          AND is_match is NULL
+          AND status = 1
+          AND is_del = 1
+        LIMIT #{searchSize}
+    </select>
+
+    <select id="selecFileDbCount" resultType="java.lang.Long">
+        SELECT count(*)
+        FROM b_marketing_tcyr_sync
+        WHERE
+            api_code= #{apiCode}
+            AND sync_file_id = #{syncFileId}
+    </select>
+
+    <update id="updateMiddleMatchStatus">
+        UPDATE b_marketing_tcyr_sync
+        SET is_match = 2
+        WHERE
+        id IN (
+            <foreach collection="idList" item="id" index="index" separator=",">
+                #{id}
+            </foreach>
+        )
+    </update>
 
 
 </mapper>

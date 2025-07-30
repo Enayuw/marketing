@@ -1,8 +1,11 @@
 package com.br.marketing.client.xiecheng;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.counter.BrCounter;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
@@ -15,6 +18,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengSmsCollidingReq;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -309,7 +314,7 @@ public class XieChengService {
         Map<String, String> resMap = httpProxyClient.sendByCodeWithLog(
                 retMap,
                 config.getString("url"),
-                isProxy,
+                config.getBoolean("isProxy"),
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 JSON.toJSONString(thirdAdOuterReq),
                 true,
@@ -452,7 +457,7 @@ public class XieChengService {
     }
 
     /**
-     * 短信碰撞接口
+     * 黑名单撞库接口
      *
      * @param sha256CodeList
      * @return
@@ -507,6 +512,65 @@ public class XieChengService {
 
     }
 
+    /**
+     * cps撞库接口
+     *
+     * @param sha256CodeList
+     * @return
+     */
+    @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result<String> pushXieChengCpsCollidingData(List<String> sha256CodeList) {
+        JSONObject collidingConfig = marketingCommonConfig.getXieChengCpsCollidingConfig();
+        String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
+        String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
+        String smsCollidingKey = collidingConfig.getString("smsCollidingKey");
+        String smsCollidingIv = collidingConfig.getString("smsCollidingIv");
+        String smsCollidingSingKey = collidingConfig.getString("smsCollidingSingKey");
+        String smsCollidingChannel = collidingConfig.getString("smsCollidingChannel");
+        Boolean smsCollidingIsProxy = collidingConfig.getBoolean("smsCollidingIsProxy");
+        /**
+         * data 组装
+         */
+        XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
+                smsCollidingAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
+        );
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", smsCollidingAppId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", smsCollidingChannel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
+        HashMap<String, String> resMap;
+        if(marketingCommonConfig.getXieChengCpsCollidingRetrySwitch().get(0)){
+            resMap = getCpsTestMap(sha256CodeList);
+        }else {
+            resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        }
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+
+        try {
+            //调用数量监控
+            BrCounter.count(PrometheusMonitorUtils.COUNT_XIECHENG_CPS_COLLIDING_DATA_METRIC_NAME, "3710090", "xc-cps",
+                    sha256CodeList.size());
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.XIECHENG_INTERFACEERROR.getCode(), "携程CPS记录撞库量级异常！"), ex);
+        }
+
+        if (code == 0) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.toJSONString(resMap));
+        } else {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
+        }
+    }
+
     private HashMap<String,String> getTestMap(List<String> sha256CodeList){
         JSONObject map = new JSONObject();
         if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(2)){
@@ -524,9 +588,13 @@ public class XieChengService {
             dataMap.put("sha256Code",s);
             if(i%2==0){
                 dataMap.put("result",true);
+                dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
             }else {
                 dataMap.put("result",false);
             }
+            dataMap.put("md5Code",null);
+            dataMap.put("releaseDate",null);
+            dataMap.put("hitRequestNo", RandomUtil.randomString(29).toUpperCase());
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
             dataMap.put("info","测试info");
@@ -535,6 +603,47 @@ public class XieChengService {
         map.put("data",jsonArray);
         HashMap<String, String> resMap = new HashMap<>();
         if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(1)){
+            resMap.put("httpcode","201");
+        }else {
+            resMap.put("httpcode","200");
+        }
+
+        resMap.put("content",map.toString());
+        return resMap;
+
+    }
+    private HashMap<String,String> getCpsTestMap(List<String> sha256CodeList){
+        JSONObject map = new JSONObject();
+        if(marketingCommonConfig.getXieChengCpsCollidingRetrySwitch().get(2)){
+            map.put("code",9999);
+            map.put("msg","测试挡板非0异常");
+        }else {
+            map.put("code",0);
+            map.put("msg","success");
+        }
+
+        JSONArray jsonArray = new JSONArray();
+        for(int i=0;i<sha256CodeList.size();i++){
+            JSONObject dataMap = new JSONObject();
+            String s = sha256CodeList.get(i);
+            dataMap.put("sha256Code",s);
+            if(i%2==0){
+                dataMap.put("result",true);
+                dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
+            }else {
+                dataMap.put("result",false);
+            }
+            dataMap.put("md5Code",null);
+            dataMap.put("releaseDate",null);
+            dataMap.put("hitRequestNo", RandomUtil.randomString(29).toUpperCase());
+            dataMap.put("orgChannel","测试orgChannel");
+            dataMap.put("mktLevel","测试mktLevel");
+            dataMap.put("info","测试info");
+            jsonArray.add(dataMap);
+        }
+        map.put("data",jsonArray);
+        HashMap<String, String> resMap = new HashMap<>();
+        if(marketingCommonConfig.getXieChengCpsCollidingRetrySwitch().get(1)){
             resMap.put("httpcode","201");
         }else {
             resMap.put("httpcode","200");

@@ -15,6 +15,9 @@ public class TransferFileTaskVO {
     @ApiModelProperty(value = "apiCode")
     private String apiCode;
 
+    @ApiModelProperty(value = "文件类型")
+    private String fileType;
+
     @ApiModelProperty(value = "文件名称")
     private String fileName;
 

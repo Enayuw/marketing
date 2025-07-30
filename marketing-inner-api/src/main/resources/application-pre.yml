@@ -177,11 +177,16 @@ otherConfig:
     appName: marketing_query_producer
     destinationName: marketing_query_log
 api:
+  marketing:
+    baseUrl: http://k8s.brapp.com/compass-api/api/marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    baseUrl: http://k8stest.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service-pred
+    #isito baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://k8stest.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   dass:
     baseUrl: http://testdaas.huiyunai.com
@@ -228,6 +233,9 @@ api:
     baseUrl: https://dymapi.shurongdai.cn
     queryCallStatus: ${api.rsxk.baseUrl}/mdp-thinker-facade/api/queryCallStatus
     isProxy: false
+  imbpApiService:
+    baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
 
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181

@@ -8,6 +8,8 @@
     <result column="data_type" jdbcType="INTEGER" property="dataType" />
     <result column="accept_type" jdbcType="INTEGER" property="acceptType" />
     <result column="custom_run_status" jdbcType="INTEGER" property="customRunStatus" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="sftp_path" jdbcType="VARCHAR" property="sftpPath" />
     <result column="is_del" jdbcType="INTEGER" property="isDel" />
     <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
     <result column="opt_user_name" jdbcType="VARCHAR" property="optUserName" />
@@ -73,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, account_type, data_type, accept_type, custom_run_status, is_del, opt_user_id, 
-    opt_user_name, create_time, update_time
+    id, api_code, account_type, data_type, accept_type, custom_run_status, `status`, 
+    sftp_path, is_del, opt_user_id, opt_user_name, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" resultMap="BaseResultMap">
     select
@@ -108,13 +110,15 @@
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_config (api_code, account_type, data_type, 
-      accept_type, custom_run_status, is_del, 
-      opt_user_id, opt_user_name, create_time, 
-      update_time)
+      accept_type, custom_run_status, `status`, 
+      sftp_path, is_del, opt_user_id, 
+      opt_user_name, create_time, update_time
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{accountType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, 
-      #{acceptType,jdbcType=INTEGER}, #{customRunStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
-      #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{acceptType,jdbcType=INTEGER}, #{customRunStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
+      #{sftpPath,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, 
+      #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_config
@@ -133,6 +137,12 @@
       </if>
       <if test="customRunStatus != null">
         custom_run_status,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="sftpPath != null">
+        sftp_path,
       </if>
       <if test="isDel != null">
         is_del,
@@ -165,6 +175,12 @@
       </if>
       <if test="customRunStatus != null">
         #{customRunStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="sftpPath != null">
+        #{sftpPath,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null">
         #{isDel,jdbcType=INTEGER},
@@ -210,6 +226,12 @@
       <if test="record.customRunStatus != null">
         custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
       </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.sftpPath != null">
+        sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDel != null">
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
@@ -238,6 +260,8 @@
       data_type = #{record.dataType,jdbcType=INTEGER},
       accept_type = #{record.acceptType,jdbcType=INTEGER},
       custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       opt_user_id = #{record.optUserId,jdbcType=BIGINT},
       opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
@@ -265,6 +289,12 @@
       <if test="customRunStatus != null">
         custom_run_status = #{customRunStatus,jdbcType=INTEGER},
       </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="sftpPath != null">
+        sftp_path = #{sftpPath,jdbcType=VARCHAR},
+      </if>
       <if test="isDel != null">
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
@@ -290,6 +320,8 @@
       data_type = #{dataType,jdbcType=INTEGER},
       accept_type = #{acceptType,jdbcType=INTEGER},
       custom_run_status = #{customRunStatus,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      sftp_path = #{sftpPath,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       opt_user_id = #{optUserId,jdbcType=BIGINT},
       opt_user_name = #{optUserName,jdbcType=VARCHAR},

@@ -92,6 +92,7 @@ public class SmyUploadDataService {
                     "萨摩耶定制上传数据接入异常！！！"), e);
             smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_SYSTEM_ERROR);
         }
+        log.warn("萨摩耶代运营数据上传接口被调用");
         return smyResponseDTO;
     }
 }

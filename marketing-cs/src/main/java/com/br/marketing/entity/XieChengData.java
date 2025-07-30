@@ -19,6 +19,11 @@ public class XieChengData {
     private Long localId;
 
     /**
+     * 通话明细id
+     */
+    private Long callRecordId;
+
+    /**
      * 类型
      */
     private String type;
@@ -100,6 +105,14 @@ public class XieChengData {
 
     public void setLocalId(Long localId) {
         this.localId = localId;
+    }
+
+    public Long getCallRecordId() {
+        return callRecordId;
+    }
+
+    public void setCallRecordId(Long callRecordId) {
+        this.callRecordId = callRecordId;
     }
 
     public String getType() {
