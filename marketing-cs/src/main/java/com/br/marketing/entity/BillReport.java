@@ -21,6 +21,11 @@ public class BillReport {
     private String exptTemplateName;
 
     /**
+     * 业务流水
+     */
+    private String bizNo;
+
+    /**
      * 人头发起率排名与第一名差距
      */
     private String userFqRateRnGap;
@@ -44,5 +49,35 @@ public class BillReport {
      * 接通客户复播次数排名与第一名差距
      */
     private String connectUserCallCntRnGap;
+
+    /**
+     * 短信发送率排名与第一名差距
+     */
+    private String smsRateRnGap;
+
+    /**
+     * 语音助手占比与自研差距
+     */
+    private String connectHRateZyGap;
+
+    /**
+     * 静音占比与自研差距
+     */
+    private String  connectQRateZyGap;
+
+    /**
+     * 人头发起率
+     */
+    private String userFqRate;
+
+    /**
+     * 单名单放款
+     */
+    private String avgUserLoanAmt;
+
+    /**
+     * 名单占比
+     */
+    private String userListRate;
 
 }

@@ -8,23 +8,24 @@ import com.br.marketing.entity.QiFuAiRobotRankingReportData;
 import com.br.marketing.entity.excel.QiFuAiRobotRankingReportExcelModel;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
-* @ClassName  QiFuAiRobotRankingReportStrategy
-* @Author  hang.zhou
-* @Date  2025/7/29
-*/
+ * @ClassName QiFuAiRobotRankingReportStrategy
+ * @Author hang.zhou
+ * @Date 2025/7/29
+ */
 @Component("qiFuAiRobotRankingReportStrategy")
-public class QiFuAiRobotRankingReportStrategy implements ReportStrategy<QiFuAiRobotRankingReportData, QiFuAiRobotRankingReportExcelModel>{
+public class QiFuAiRobotRankingReportStrategy implements ReportStrategy<QiFuAiRobotRankingReportData, QiFuAiRobotRankingReportExcelModel> {
 
     @Resource
     private DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
@@ -43,8 +44,8 @@ public class QiFuAiRobotRankingReportStrategy implements ReportStrategy<QiFuAiRo
     @Override
     public List<QiFuAiRobotRankingReportData> queryData(String apiCode, String currentDate) {
         List<QiFuAiRobotRankingReportData> qiFuAiRobotRankingReportDataList = new ArrayList<>();
-        List<DrsCustomizeUploadData> drsCustomizeUploadDataList = drsCustomizeUploadDataMapper.selectByApiCodeAndDate("_robot_ranking_report",apiCode,currentDate);
-        if(!drsCustomizeUploadDataList.isEmpty()){
+        List<DrsCustomizeUploadData> drsCustomizeUploadDataList = drsCustomizeUploadDataMapper.selectByApiCodeAndDate("_robot_ranking_report", apiCode, currentDate);
+        if (!drsCustomizeUploadDataList.isEmpty()) {
             DrsCustomizeUploadData drsCustomizeUploadData = drsCustomizeUploadDataList.get(0);
             JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSONString(drsCustomizeUploadData));
             String requestJsonData = jsonObject.getString("requestJsonData");
@@ -57,28 +58,14 @@ public class QiFuAiRobotRankingReportStrategy implements ReportStrategy<QiFuAiRo
 
     @Override
     public List<QiFuAiRobotRankingReportExcelModel> convertToExcelModel(List<QiFuAiRobotRankingReportData> dataList) {
-        List<QiFuAiRobotRankingReportExcelModel> qiFuAiRobotRankingReportExcelModelList = new ArrayList<>();
-        QiFuAiRobotRankingReportData qiFuAiRobotRankingReportData = dataList.get(0);
-        List<BillReport>billReportList = qiFuAiRobotRankingReportData.getBillReportList();
-        for(BillReport billReport : billReportList){
-            QiFuAiRobotRankingReportExcelModel qiFuAiRobotRankingReportExcelModel = new QiFuAiRobotRankingReportExcelModel();
-            qiFuAiRobotRankingReportExcelModel.setStatDate(billReport.getStatDate());
-            qiFuAiRobotRankingReportExcelModel.setExptTemplateName(billReport.getExptTemplateName());
-            qiFuAiRobotRankingReportExcelModel.setSmsRateRnGap(qiFuAiRobotRankingReportData.getSmsRateRnGap());
-            qiFuAiRobotRankingReportExcelModel.setConnectHRateZyGap(qiFuAiRobotRankingReportData.getConnectHRateZyGap());
-            qiFuAiRobotRankingReportExcelModel.setConnectQRateZyGap(qiFuAiRobotRankingReportData.getConnectQRateZyGap());
-            qiFuAiRobotRankingReportExcelModel.setReachNum(qiFuAiRobotRankingReportData.getReachNum());
-            qiFuAiRobotRankingReportExcelModel.setUserLoginRate(convertPercent(qiFuAiRobotRankingReportData.getUserLoginRate(),5));
-            qiFuAiRobotRankingReportExcelModel.setUserLoginRateRn(qiFuAiRobotRankingReportData.getUserLoginRateRn());
-            qiFuAiRobotRankingReportExcelModel.setUserLoginRateRnGap(qiFuAiRobotRankingReportData.getUserLoginRateRnGap());
-            qiFuAiRobotRankingReportExcelModel.setUserFqRateRnGap(billReport.getUserFqRateRnGap());
-            qiFuAiRobotRankingReportExcelModel.setAvgUserLoanAmtRnGap(billReport.getAvgUserLoanAmtRnGap());
-            qiFuAiRobotRankingReportExcelModel.setConnectRateRnGap(billReport.getConnectRateRnGap());
-            qiFuAiRobotRankingReportExcelModel.setAvgCallCntRnGap(billReport.getAvgCallCntRnGap());
-            qiFuAiRobotRankingReportExcelModel.setConnectUserCallCntRnGap(billReport.getConnectUserCallCntRnGap());
-            qiFuAiRobotRankingReportExcelModelList.add(qiFuAiRobotRankingReportExcelModel);
-        }
-        return qiFuAiRobotRankingReportExcelModelList;
+        List<BillReport> billReportList = dataList.get(0).getBillReportList();
+        return billReportList.stream()
+                .map(billReport -> {
+                    QiFuAiRobotRankingReportExcelModel reportExcelModel = new QiFuAiRobotRankingReportExcelModel();
+                    BeanUtils.copyProperties(billReport, reportExcelModel);
+                    return reportExcelModel;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -107,16 +94,4 @@ public class QiFuAiRobotRankingReportStrategy implements ReportStrategy<QiFuAiRo
         return subject.concat("_").concat(currentDate);
     }
 
-    /**
-     * 小数转百分比
-     *
-     * @param value 原值
-     * @param num   保留小数点后位数
-     */
-    public static String convertPercent(String value, Integer num) {
-        if (value == null) return null;
-        double percent = Double.parseDouble(value) * 100;
-        String format = "%." + num + "f%%";
-        return String.format(format, percent);
-    }
 }

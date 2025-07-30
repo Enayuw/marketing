@@ -23,40 +23,39 @@ public class QiFuAiRobotRankingReportExcelModel {
     @ExcelProperty(value = "客群名称", index = 1)
     private String exptTemplateName;
 
-    @ExcelProperty(value = "短信发送率排名与第一名差距", index = 2)
-    private String smsRateRnGap;
+    @ExcelProperty(value = "业务流水", index = 2)
+    private String bizNo;
 
-    @ExcelProperty(value = "语音助手占比与自研差距", index = 3)
-    private String connectHRateZyGap;
-
-    @ExcelProperty(value = "静音占比与自研差距", index = 4)
-    private String  connectQRateZyGap;
-
-    @ExcelProperty(value = "名单量", index = 5)
-    private String reachNum;
-
-    @ExcelProperty(value = "人头登录率", index = 6)
-    private String userLoginRate;
-
-    @ExcelProperty(value = "人头登录率排名", index = 7)
-    private String userLoginRateRn;
-
-    @ExcelProperty(value = "人头登录率排名与第一名差距", index = 8)
-    private String userLoginRateRnGap;
-
-    @ExcelProperty(value = "人头发起率排名与第一名差距", index = 9)
+    @ExcelProperty(value = "人头发起率排名与第一名差距", index = 3)
     private String userFqRateRnGap;
 
-    @ExcelProperty(value = "单名单放款排名与第一名差距", index = 10)
+    @ExcelProperty(value = "单名单放款排名与第一名差距", index = 4)
     private String avgUserLoanAmtRnGap;
 
-    @ExcelProperty(value = "接通率排名与第一名差距", index = 11)
+    @ExcelProperty(value = "接通率排名与第一名差距", index = 5)
     private String connectRateRnGap;
 
-    @ExcelProperty(value = "单名单外呼次数排名与第一名差距", index = 12)
+    @ExcelProperty(value = "单名单外呼次数排名与第一名差距", index = 6)
     private String avgCallCntRnGap;
 
-    @ExcelProperty(value = "接通客户复播次数排名与第一名差距", index = 13)
+    @ExcelProperty(value = "接通客户复播次数排名与第一名差距", index = 7)
     private String connectUserCallCntRnGap;
 
+    @ExcelProperty(value = "短信发送率排名与第一名差距", index = 8)
+    private String smsRateRnGap;
+
+    @ExcelProperty(value = "语音助手占比与自研差距", index = 9)
+    private String connectHRateZyGap;
+
+    @ExcelProperty(value = "静音占比与自研差距", index = 10)
+    private String  connectQRateZyGap;
+
+    @ExcelProperty(value = "人头发起率", index = 11)
+    private String userFqRate;
+
+    @ExcelProperty(value = "单名单放款", index = 12)
+    private String avgUserLoanAmt;
+
+    @ExcelProperty(value = "名单占比", index = 13)
+    private String userListRate;
 }
