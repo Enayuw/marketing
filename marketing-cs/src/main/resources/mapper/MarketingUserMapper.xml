@@ -426,7 +426,7 @@
 		    KEY `idx_appletTime` (`applet_time`),
 			KEY `idx_ad_ut_s` (`applet_date`,`user_type`,`status`),
 			KEY `idx_reqid` (`request_batch`),
-			UNIQUE KEY `uk_bmarketingsyncapicode_fingerprint` (`fingerprint`)
+			UNIQUE KEY `uk_bmarketingsync_fingerprint` (`fingerprint`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_ID_CACHE=1 COMMENT='客户上传数据表'
 	</update>
 
@@ -495,7 +495,7 @@
 	(
 		`cust_num`
 	),
-		UNIQUE KEY `uk_bmarketingsyncapicode_fingerprint` (`fingerprint`)
+		UNIQUE KEY `uk_bmarketingtransfersync_fingerprint` (`fingerprint`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE =utf8_bin COMMENT='客户转化数据记录表';
 </update>
 
