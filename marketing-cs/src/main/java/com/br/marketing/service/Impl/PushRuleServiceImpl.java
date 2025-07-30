@@ -2458,8 +2458,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
                 sendToRabbitMq(apiCode, syncInfoId, jsonData);
-                sendJsonParseMq(apiCode,syncInfoId, dataSourceType);
             }
+            //发送json解析MQ，后续需改造rocketMq
+            sendJsonParseMq(apiCode,syncInfoId, dataSourceType);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
