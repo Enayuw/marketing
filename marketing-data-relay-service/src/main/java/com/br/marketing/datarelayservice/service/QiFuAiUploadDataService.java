@@ -8,6 +8,7 @@ import com.br.marketing.client.qifu.enums.FlagEnum;
 import com.br.marketing.client.qifu.util.AESUtil;
 import com.br.marketing.client.qifu.util.RSAUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.datarelayservice.client.QiFuAiReqDTO;
 import com.br.marketing.datarelayservice.client.QiFuAiRobotRankingReportBizDataDTO;
 import com.br.marketing.datarelayservice.client.QiFuAiRobotReportBizDataDTO;
@@ -21,12 +22,9 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -51,17 +49,17 @@ public class QiFuAiUploadDataService {
         String decryptData;
         try {
             JSONObject jsonObject;
-            if (testApiCode != null){
-                jsonObject = (JSONObject) marketingCommonConfig.getQiFuAIUploadConfig().get(testApiCode);
+            if (StringUtils.isNotBlank(testApiCode)){
+                jsonObject = marketingCommonConfig.getQiFuAIUploadConfig();
             }else {
-                jsonObject = (JSONObject) marketingCommonConfig.getQiFuAIUploadConfig().get("master");
+                jsonObject = marketingCommonConfig.getQiFuAIServerConfig();
             }
             // 奇富侧公钥
             String qiFuPublicKey = jsonObject.getString("qiFuPublicKey");
             // 百融侧私钥
             String brPrivateKey = jsonObject.getString("brPrivateKey");
             // appId配置
-            String appId = marketingCommonConfig.getQiFuAIServerConfig().getString("appId");
+            String appId = jsonObject.getString("appId");
             String requestStr = JSON.toJSONString(requestBody);
 
             String originSign = requestBody.getSign();
