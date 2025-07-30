@@ -327,16 +327,6 @@ public class PushDataServiceImpl implements PushDataService {
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        // 关闭线程池
-        pushDassThreadPool.shutdown();
-        try {
-            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("等待线程池结束");
-            }
-        } catch (InterruptedException ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), "线程池停止异常！"), ex);
-            Thread.currentThread().interrupt();
-        }
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
         localFileMapper.updateByPrimaryKeySelective(localFile);
@@ -406,17 +396,6 @@ public class PushDataServiceImpl implements PushDataService {
             }
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-        // 关闭线程池
-        pushDassThreadPool.shutdown();
-        try {
-            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("等待线程池结束");
-            }
-        } catch (InterruptedException ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), "线程池停止异常！"), ex);
-            Thread.currentThread().interrupt();
-        }
 
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(success.get());
@@ -2193,17 +2172,6 @@ public class PushDataServiceImpl implements PushDataService {
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        // 关闭线程池
-        pushDassThreadPool.shutdown();
-        try {
-            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("等待线程池结束");
-            }
-        } catch (InterruptedException ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "线程池停止异常！"), ex);
-            Thread.currentThread().interrupt();
-        }
-
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
         localFileMapper.updateByPrimaryKeySelective(localFile);
@@ -2317,17 +2285,6 @@ public class PushDataServiceImpl implements PushDataService {
         // 等待所有任务完成
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        // 关闭线程池
-        pushDassThreadPool.shutdown();
-        try {
-            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("等待线程池结束");
-            }
-        } catch (InterruptedException ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "线程池停止异常！"), ex);
-            Thread.currentThread().interrupt();
-        }
-
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(successCount.get());
         localFile.setErrorActualNumber(failCount.get());
@@ -2362,14 +2319,8 @@ public class PushDataServiceImpl implements PushDataService {
     public Result pushWeiZhongDassData(Long id) {
         String TITLE = "微众推人工 ";
         log.warn(TITLE + "开始，文件ID: {}", id);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         Boolean isContiue = false;
-        String key = "dass:push:threadnum";
-        Integer threadNum = 5;
-        if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
-            threadNum = Integer.valueOf(redisChgService.get(key));
-        }
-        modifyThreadPool(pushDassThreadPool, threadNum);
-
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
             log.warn(TITLE + "文件不存在, 文件ID: {}", id);
@@ -2483,7 +2434,7 @@ public class PushDataServiceImpl implements PushDataService {
                         DassImportAdapDTO dto = new DassImportAdapDTO();
                         dto.setInterfaceExtendInfo(id.toString());
                         dto.setList(new ArrayList<>(dataDTOS));
-                        pushDassThreadPool.submit(() -> {
+                        threadPool.submit(() -> {
                             try {
                                 Result result = dassServiceClient.postHermesUserData(dto);
                                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -2517,7 +2468,7 @@ public class PushDataServiceImpl implements PushDataService {
                 DassImportAdapDTO dto = new DassImportAdapDTO();
                 dto.setInterfaceExtendInfo(id.toString());
                 dto.setList(new ArrayList<>(dataDTOS));
-                pushDassThreadPool.submit(() -> {
+                threadPool.submit(() -> {
                     try {
                         Result result = dassServiceClient.postHermesUserData(dto);
                         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -2546,10 +2497,10 @@ public class PushDataServiceImpl implements PushDataService {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), TITLE + "业务异常！"), ex);
         }
         // 关闭线程池
-        pushDassThreadPool.shutdown();
+        threadPool.shutdown();
         try {
-            while (!pushDassThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info(TITLE + "等待线程池结束");
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn(TITLE + "等待线程池结束");
             }
         } catch (InterruptedException ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), TITLE + "线程池停止异常！"), ex);
