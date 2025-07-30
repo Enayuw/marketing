@@ -836,6 +836,22 @@
 
     />
 
+    <job:simple id="QiFuAiRobotRankingReportEmailJob"
+                class="com.br.marketing.check.job.qifu.report.job.QiFuAiRobotRankingReportEmailJob"
+                cron="0 0 9 * * ?"
+                description="360AI语音机器人排名数据发送Email任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+
+    />
+
     <job:simple id="PrometheusGetApiCode"
                 class="com.br.marketing.check.job.monitor.PrometheusGetApiCode"
                 cron="0 0/10 * * * ? "
