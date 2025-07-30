@@ -2319,7 +2319,7 @@ public class PushDataServiceImpl implements PushDataService {
     public Result pushWeiZhongDassData(Long id) {
         String TITLE = "微众推人工 ";
         log.warn(TITLE + "开始，文件ID: {}", id);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
         Boolean isContiue = false;
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
@@ -2330,7 +2330,7 @@ public class PushDataServiceImpl implements PushDataService {
         localFile.setPushStartTime(new Date());
 
         // 检查是否有数据需要处理
-        Integer totalPhoneCount = phoneSaleMapper.getGroupByPhoneCount(id);
+        Integer totalPhoneCount = phoneSaleMapper.getGroupByPhoneCount(String.valueOf(id));
         if (totalPhoneCount == null || totalPhoneCount == 0) {
             log.warn(TITLE + "未查询到分组数据 文件ID: {}", id);
             localFile.setPushEndTime(new Date());
@@ -2352,7 +2352,7 @@ public class PushDataServiceImpl implements PushDataService {
         try {
             while (phoneOffset < totalPhoneCount) {
                 // 分页获取手机号分组
-                List<String> phoneGroup = phoneSaleMapper.getGroupByPhoneWithPaging(id, phoneOffset, PHONE_PAGE_SIZE);
+                List<String> phoneGroup = phoneSaleMapper.getGroupByPhoneWithPaging(String.valueOf(id), phoneOffset, PHONE_PAGE_SIZE);
 
                 if (phoneGroup.isEmpty()) {
                     break;
@@ -2369,7 +2369,7 @@ public class PushDataServiceImpl implements PushDataService {
                     DassImportDataDTO firstDataDTO = null;
 
                     while (actionMark) {
-                        List<DassImportDataDTO> phoneSales = phoneSaleMapper.getWeiZhongData(id, phone, minId);
+                        List<DassImportDataDTO> phoneSales = phoneSaleMapper.getWeiZhongData(String.valueOf(id), phone, minId);
                         if (phoneSales.isEmpty()) {
                             actionMark = false;
                             continue;
