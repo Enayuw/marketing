@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MarketingTcyrSyncFileExample {
+public class MarketingTcyrErrorInterfaceLogExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public MarketingTcyrSyncFileExample() {
+    public MarketingTcyrErrorInterfaceLogExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -305,263 +305,123 @@ public class MarketingTcyrSyncFileExample {
             return (Criteria) this;
         }
 
-        public Criteria andFileNameIsNull() {
-            addCriterion("file_name is null");
+        public Criteria andSyncFileIdIsNull() {
+            addCriterion("sync_file_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameIsNotNull() {
-            addCriterion("file_name is not null");
+        public Criteria andSyncFileIdIsNotNull() {
+            addCriterion("sync_file_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameEqualTo(String value) {
-            addCriterion("file_name =", value, "fileName");
+        public Criteria andSyncFileIdEqualTo(Long value) {
+            addCriterion("sync_file_id =", value, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameNotEqualTo(String value) {
-            addCriterion("file_name <>", value, "fileName");
+        public Criteria andSyncFileIdNotEqualTo(Long value) {
+            addCriterion("sync_file_id <>", value, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameGreaterThan(String value) {
-            addCriterion("file_name >", value, "fileName");
+        public Criteria andSyncFileIdGreaterThan(Long value) {
+            addCriterion("sync_file_id >", value, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameGreaterThanOrEqualTo(String value) {
-            addCriterion("file_name >=", value, "fileName");
+        public Criteria andSyncFileIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("sync_file_id >=", value, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameLessThan(String value) {
-            addCriterion("file_name <", value, "fileName");
+        public Criteria andSyncFileIdLessThan(Long value) {
+            addCriterion("sync_file_id <", value, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameLessThanOrEqualTo(String value) {
-            addCriterion("file_name <=", value, "fileName");
+        public Criteria andSyncFileIdLessThanOrEqualTo(Long value) {
+            addCriterion("sync_file_id <=", value, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameLike(String value) {
-            addCriterion("file_name like", value, "fileName");
+        public Criteria andSyncFileIdIn(List<Long> values) {
+            addCriterion("sync_file_id in", values, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameNotLike(String value) {
-            addCriterion("file_name not like", value, "fileName");
+        public Criteria andSyncFileIdNotIn(List<Long> values) {
+            addCriterion("sync_file_id not in", values, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameIn(List<String> values) {
-            addCriterion("file_name in", values, "fileName");
+        public Criteria andSyncFileIdBetween(Long value1, Long value2) {
+            addCriterion("sync_file_id between", value1, value2, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameNotIn(List<String> values) {
-            addCriterion("file_name not in", values, "fileName");
+        public Criteria andSyncFileIdNotBetween(Long value1, Long value2) {
+            addCriterion("sync_file_id not between", value1, value2, "syncFileId");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameBetween(String value1, String value2) {
-            addCriterion("file_name between", value1, value2, "fileName");
+        public Criteria andElementCountIsNull() {
+            addCriterion("element_count is null");
             return (Criteria) this;
         }
 
-        public Criteria andFileNameNotBetween(String value1, String value2) {
-            addCriterion("file_name not between", value1, value2, "fileName");
+        public Criteria andElementCountIsNotNull() {
+            addCriterion("element_count is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathIsNull() {
-            addCriterion("file_path is null");
+        public Criteria andElementCountEqualTo(Integer value) {
+            addCriterion("element_count =", value, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathIsNotNull() {
-            addCriterion("file_path is not null");
+        public Criteria andElementCountNotEqualTo(Integer value) {
+            addCriterion("element_count <>", value, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathEqualTo(String value) {
-            addCriterion("file_path =", value, "filePath");
+        public Criteria andElementCountGreaterThan(Integer value) {
+            addCriterion("element_count >", value, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathNotEqualTo(String value) {
-            addCriterion("file_path <>", value, "filePath");
+        public Criteria andElementCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("element_count >=", value, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathGreaterThan(String value) {
-            addCriterion("file_path >", value, "filePath");
+        public Criteria andElementCountLessThan(Integer value) {
+            addCriterion("element_count <", value, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathGreaterThanOrEqualTo(String value) {
-            addCriterion("file_path >=", value, "filePath");
+        public Criteria andElementCountLessThanOrEqualTo(Integer value) {
+            addCriterion("element_count <=", value, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathLessThan(String value) {
-            addCriterion("file_path <", value, "filePath");
+        public Criteria andElementCountIn(List<Integer> values) {
+            addCriterion("element_count in", values, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathLessThanOrEqualTo(String value) {
-            addCriterion("file_path <=", value, "filePath");
+        public Criteria andElementCountNotIn(List<Integer> values) {
+            addCriterion("element_count not in", values, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathLike(String value) {
-            addCriterion("file_path like", value, "filePath");
+        public Criteria andElementCountBetween(Integer value1, Integer value2) {
+            addCriterion("element_count between", value1, value2, "elementCount");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathNotLike(String value) {
-            addCriterion("file_path not like", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathIn(List<String> values) {
-            addCriterion("file_path in", values, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathNotIn(List<String> values) {
-            addCriterion("file_path not in", values, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathBetween(String value1, String value2) {
-            addCriterion("file_path between", value1, value2, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathNotBetween(String value1, String value2) {
-            addCriterion("file_path not between", value1, value2, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountIsNull() {
-            addCriterion("total_count is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountIsNotNull() {
-            addCriterion("total_count is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountEqualTo(Long value) {
-            addCriterion("total_count =", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountNotEqualTo(Long value) {
-            addCriterion("total_count <>", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountGreaterThan(Long value) {
-            addCriterion("total_count >", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountGreaterThanOrEqualTo(Long value) {
-            addCriterion("total_count >=", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountLessThan(Long value) {
-            addCriterion("total_count <", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountLessThanOrEqualTo(Long value) {
-            addCriterion("total_count <=", value, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountIn(List<Long> values) {
-            addCriterion("total_count in", values, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountNotIn(List<Long> values) {
-            addCriterion("total_count not in", values, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountBetween(Long value1, Long value2) {
-            addCriterion("total_count between", value1, value2, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalCountNotBetween(Long value1, Long value2) {
-            addCriterion("total_count not between", value1, value2, "totalCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountIsNull() {
-            addCriterion("success_count is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountIsNotNull() {
-            addCriterion("success_count is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountEqualTo(Long value) {
-            addCriterion("success_count =", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountNotEqualTo(Long value) {
-            addCriterion("success_count <>", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountGreaterThan(Long value) {
-            addCriterion("success_count >", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountGreaterThanOrEqualTo(Long value) {
-            addCriterion("success_count >=", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountLessThan(Long value) {
-            addCriterion("success_count <", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountLessThanOrEqualTo(Long value) {
-            addCriterion("success_count <=", value, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountIn(List<Long> values) {
-            addCriterion("success_count in", values, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountNotIn(List<Long> values) {
-            addCriterion("success_count not in", values, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountBetween(Long value1, Long value2) {
-            addCriterion("success_count between", value1, value2, "successCount");
-            return (Criteria) this;
-        }
-
-        public Criteria andSuccessCountNotBetween(Long value1, Long value2) {
-            addCriterion("success_count not between", value1, value2, "successCount");
+        public Criteria andElementCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("element_count not between", value1, value2, "elementCount");
             return (Criteria) this;
         }
 
@@ -805,183 +665,273 @@ public class MarketingTcyrSyncFileExample {
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdIsNull() {
-            addCriterion("sync_record_id is null");
+        public Criteria andRequestParamIsNull() {
+            addCriterion("request_param is null");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdIsNotNull() {
-            addCriterion("sync_record_id is not null");
+        public Criteria andRequestParamIsNotNull() {
+            addCriterion("request_param is not null");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdEqualTo(Long value) {
-            addCriterion("sync_record_id =", value, "syncRecordId");
+        public Criteria andRequestParamEqualTo(String value) {
+            addCriterion("request_param =", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdNotEqualTo(Long value) {
-            addCriterion("sync_record_id <>", value, "syncRecordId");
+        public Criteria andRequestParamNotEqualTo(String value) {
+            addCriterion("request_param <>", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdGreaterThan(Long value) {
-            addCriterion("sync_record_id >", value, "syncRecordId");
+        public Criteria andRequestParamGreaterThan(String value) {
+            addCriterion("request_param >", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("sync_record_id >=", value, "syncRecordId");
+        public Criteria andRequestParamGreaterThanOrEqualTo(String value) {
+            addCriterion("request_param >=", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdLessThan(Long value) {
-            addCriterion("sync_record_id <", value, "syncRecordId");
+        public Criteria andRequestParamLessThan(String value) {
+            addCriterion("request_param <", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdLessThanOrEqualTo(Long value) {
-            addCriterion("sync_record_id <=", value, "syncRecordId");
+        public Criteria andRequestParamLessThanOrEqualTo(String value) {
+            addCriterion("request_param <=", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdIn(List<Long> values) {
-            addCriterion("sync_record_id in", values, "syncRecordId");
+        public Criteria andRequestParamLike(String value) {
+            addCriterion("request_param like", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdNotIn(List<Long> values) {
-            addCriterion("sync_record_id not in", values, "syncRecordId");
+        public Criteria andRequestParamNotLike(String value) {
+            addCriterion("request_param not like", value, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdBetween(Long value1, Long value2) {
-            addCriterion("sync_record_id between", value1, value2, "syncRecordId");
+        public Criteria andRequestParamIn(List<String> values) {
+            addCriterion("request_param in", values, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andSyncRecordIdNotBetween(Long value1, Long value2) {
-            addCriterion("sync_record_id not between", value1, value2, "syncRecordId");
+        public Criteria andRequestParamNotIn(List<String> values) {
+            addCriterion("request_param not in", values, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusIsNull() {
-            addCriterion("quick_deal_status is null");
+        public Criteria andRequestParamBetween(String value1, String value2) {
+            addCriterion("request_param between", value1, value2, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusIsNotNull() {
-            addCriterion("quick_deal_status is not null");
+        public Criteria andRequestParamNotBetween(String value1, String value2) {
+            addCriterion("request_param not between", value1, value2, "requestParam");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusEqualTo(Integer value) {
-            addCriterion("quick_deal_status =", value, "quickDealStatus");
+        public Criteria andPushResultIsNull() {
+            addCriterion("push_result is null");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusNotEqualTo(Integer value) {
-            addCriterion("quick_deal_status <>", value, "quickDealStatus");
+        public Criteria andPushResultIsNotNull() {
+            addCriterion("push_result is not null");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusGreaterThan(Integer value) {
-            addCriterion("quick_deal_status >", value, "quickDealStatus");
+        public Criteria andPushResultEqualTo(String value) {
+            addCriterion("push_result =", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("quick_deal_status >=", value, "quickDealStatus");
+        public Criteria andPushResultNotEqualTo(String value) {
+            addCriterion("push_result <>", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusLessThan(Integer value) {
-            addCriterion("quick_deal_status <", value, "quickDealStatus");
+        public Criteria andPushResultGreaterThan(String value) {
+            addCriterion("push_result >", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("quick_deal_status <=", value, "quickDealStatus");
+        public Criteria andPushResultGreaterThanOrEqualTo(String value) {
+            addCriterion("push_result >=", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusIn(List<Integer> values) {
-            addCriterion("quick_deal_status in", values, "quickDealStatus");
+        public Criteria andPushResultLessThan(String value) {
+            addCriterion("push_result <", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusNotIn(List<Integer> values) {
-            addCriterion("quick_deal_status not in", values, "quickDealStatus");
+        public Criteria andPushResultLessThanOrEqualTo(String value) {
+            addCriterion("push_result <=", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusBetween(Integer value1, Integer value2) {
-            addCriterion("quick_deal_status between", value1, value2, "quickDealStatus");
+        public Criteria andPushResultLike(String value) {
+            addCriterion("push_result like", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andQuickDealStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("quick_deal_status not between", value1, value2, "quickDealStatus");
+        public Criteria andPushResultNotLike(String value) {
+            addCriterion("push_result not like", value, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusIsNull() {
-            addCriterion("db_deal_status is null");
+        public Criteria andPushResultIn(List<String> values) {
+            addCriterion("push_result in", values, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusIsNotNull() {
-            addCriterion("db_deal_status is not null");
+        public Criteria andPushResultNotIn(List<String> values) {
+            addCriterion("push_result not in", values, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusEqualTo(Integer value) {
-            addCriterion("db_deal_status =", value, "dbDealStatus");
+        public Criteria andPushResultBetween(String value1, String value2) {
+            addCriterion("push_result between", value1, value2, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusNotEqualTo(Integer value) {
-            addCriterion("db_deal_status <>", value, "dbDealStatus");
+        public Criteria andPushResultNotBetween(String value1, String value2) {
+            addCriterion("push_result not between", value1, value2, "pushResult");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusGreaterThan(Integer value) {
-            addCriterion("db_deal_status >", value, "dbDealStatus");
+        public Criteria andErrorTypeIsNull() {
+            addCriterion("error_type is null");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("db_deal_status >=", value, "dbDealStatus");
+        public Criteria andErrorTypeIsNotNull() {
+            addCriterion("error_type is not null");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusLessThan(Integer value) {
-            addCriterion("db_deal_status <", value, "dbDealStatus");
+        public Criteria andErrorTypeEqualTo(Integer value) {
+            addCriterion("error_type =", value, "errorType");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("db_deal_status <=", value, "dbDealStatus");
+        public Criteria andErrorTypeNotEqualTo(Integer value) {
+            addCriterion("error_type <>", value, "errorType");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusIn(List<Integer> values) {
-            addCriterion("db_deal_status in", values, "dbDealStatus");
+        public Criteria andErrorTypeGreaterThan(Integer value) {
+            addCriterion("error_type >", value, "errorType");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusNotIn(List<Integer> values) {
-            addCriterion("db_deal_status not in", values, "dbDealStatus");
+        public Criteria andErrorTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("error_type >=", value, "errorType");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusBetween(Integer value1, Integer value2) {
-            addCriterion("db_deal_status between", value1, value2, "dbDealStatus");
+        public Criteria andErrorTypeLessThan(Integer value) {
+            addCriterion("error_type <", value, "errorType");
             return (Criteria) this;
         }
 
-        public Criteria andDbDealStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("db_deal_status not between", value1, value2, "dbDealStatus");
+        public Criteria andErrorTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("error_type <=", value, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeIn(List<Integer> values) {
+            addCriterion("error_type in", values, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeNotIn(List<Integer> values) {
+            addCriterion("error_type not in", values, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeBetween(Integer value1, Integer value2) {
+            addCriterion("error_type between", value1, value2, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("error_type not between", value1, value2, "errorType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIsNull() {
+            addCriterion("request_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIsNotNull() {
+            addCriterion("request_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdEqualTo(String value) {
+            addCriterion("request_id =", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotEqualTo(String value) {
+            addCriterion("request_id <>", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThan(String value) {
+            addCriterion("request_id >", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThanOrEqualTo(String value) {
+            addCriterion("request_id >=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThan(String value) {
+            addCriterion("request_id <", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThanOrEqualTo(String value) {
+            addCriterion("request_id <=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLike(String value) {
+            addCriterion("request_id like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotLike(String value) {
+            addCriterion("request_id not like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIn(List<String> values) {
+            addCriterion("request_id in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotIn(List<String> values) {
+            addCriterion("request_id not in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdBetween(String value1, String value2) {
+            addCriterion("request_id between", value1, value2, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotBetween(String value1, String value2) {
+            addCriterion("request_id not between", value1, value2, "requestId");
             return (Criteria) this;
         }
     }

@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncFileMapperBase" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTcyrSyncFile" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrErrorInterfaceLogMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
-    <result column="file_name" property="fileName" jdbcType="VARCHAR" />
-    <result column="file_path" property="filePath" jdbcType="VARCHAR" />
-    <result column="total_count" property="totalCount" jdbcType="BIGINT" />
-    <result column="success_count" property="successCount" jdbcType="BIGINT" />
+    <result column="sync_file_id" property="syncFileId" jdbcType="BIGINT" />
+    <result column="element_count" property="elementCount" jdbcType="INTEGER" />
     <result column="deal_status" property="dealStatus" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="sync_record_id" property="syncRecordId" jdbcType="BIGINT" />
-    <result column="quick_deal_status" property="quickDealStatus" jdbcType="INTEGER" />
-    <result column="db_deal_status" property="dbDealStatus" jdbcType="INTEGER" />
+    <result column="request_param" property="requestParam" jdbcType="VARCHAR" />
+    <result column="push_result" property="pushResult" jdbcType="VARCHAR" />
+    <result column="error_type" property="errorType" jdbcType="INTEGER" />
+    <result column="request_id" property="requestId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -76,16 +75,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_no, file_name, file_path, total_count, success_count, deal_status, 
-    is_del, create_time, update_time, sync_record_id, quick_deal_status, db_deal_status
+    id, api_code, batch_no, sync_file_id, element_count, deal_status, is_del, create_time, 
+    update_time, request_param, push_result, error_type, request_id
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSyncFileExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLogExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_marketing_tcyr_sync_file
+    from b_marketing_tcyr_error_interface_log
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -96,39 +95,39 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from b_marketing_tcyr_sync_file
+    from b_marketing_tcyr_error_interface_log
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_marketing_tcyr_sync_file
+    delete from b_marketing_tcyr_error_interface_log
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTcyrSyncFileExample" >
-    delete from b_marketing_tcyr_sync_file
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLogExample" >
+    delete from b_marketing_tcyr_error_interface_log
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_sync_file (api_code, batch_no, file_name, 
-      file_path, total_count, success_count, 
-      deal_status, is_del, create_time, 
-      update_time, sync_record_id, quick_deal_status, 
-      db_deal_status)
-    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
-      #{filePath,jdbcType=VARCHAR}, #{totalCount,jdbcType=BIGINT}, #{successCount,jdbcType=BIGINT}, 
-      #{dealStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{syncRecordId,jdbcType=BIGINT}, #{quickDealStatus,jdbcType=INTEGER}, 
-      #{dbDealStatus,jdbcType=INTEGER})
+    insert into b_marketing_tcyr_error_interface_log (api_code, batch_no, sync_file_id, 
+      element_count, deal_status, is_del, 
+      create_time, update_time, request_param, 
+      push_result, error_type, request_id
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
+      #{elementCount,jdbcType=INTEGER}, #{dealStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{requestParam,jdbcType=VARCHAR}, 
+      #{pushResult,jdbcType=VARCHAR}, #{errorType,jdbcType=INTEGER}, #{requestId,jdbcType=VARCHAR}
+      )
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_tcyr_sync_file
+    insert into b_marketing_tcyr_error_interface_log
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
@@ -136,17 +135,11 @@
       <if test="batchNo != null" >
         batch_no,
       </if>
-      <if test="fileName != null" >
-        file_name,
+      <if test="syncFileId != null" >
+        sync_file_id,
       </if>
-      <if test="filePath != null" >
-        file_path,
-      </if>
-      <if test="totalCount != null" >
-        total_count,
-      </if>
-      <if test="successCount != null" >
-        success_count,
+      <if test="elementCount != null" >
+        element_count,
       </if>
       <if test="dealStatus != null" >
         deal_status,
@@ -160,14 +153,17 @@
       <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="syncRecordId != null" >
-        sync_record_id,
+      <if test="requestParam != null" >
+        request_param,
       </if>
-      <if test="quickDealStatus != null" >
-        quick_deal_status,
+      <if test="pushResult != null" >
+        push_result,
       </if>
-      <if test="dbDealStatus != null" >
-        db_deal_status,
+      <if test="errorType != null" >
+        error_type,
+      </if>
+      <if test="requestId != null" >
+        request_id,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -177,17 +173,11 @@
       <if test="batchNo != null" >
         #{batchNo,jdbcType=VARCHAR},
       </if>
-      <if test="fileName != null" >
-        #{fileName,jdbcType=VARCHAR},
+      <if test="syncFileId != null" >
+        #{syncFileId,jdbcType=BIGINT},
       </if>
-      <if test="filePath != null" >
-        #{filePath,jdbcType=VARCHAR},
-      </if>
-      <if test="totalCount != null" >
-        #{totalCount,jdbcType=BIGINT},
-      </if>
-      <if test="successCount != null" >
-        #{successCount,jdbcType=BIGINT},
+      <if test="elementCount != null" >
+        #{elementCount,jdbcType=INTEGER},
       </if>
       <if test="dealStatus != null" >
         #{dealStatus,jdbcType=INTEGER},
@@ -201,25 +191,28 @@
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="syncRecordId != null" >
-        #{syncRecordId,jdbcType=BIGINT},
+      <if test="requestParam != null" >
+        #{requestParam,jdbcType=VARCHAR},
       </if>
-      <if test="quickDealStatus != null" >
-        #{quickDealStatus,jdbcType=INTEGER},
+      <if test="pushResult != null" >
+        #{pushResult,jdbcType=VARCHAR},
       </if>
-      <if test="dbDealStatus != null" >
-        #{dbDealStatus,jdbcType=INTEGER},
+      <if test="errorType != null" >
+        #{errorType,jdbcType=INTEGER},
+      </if>
+      <if test="requestId != null" >
+        #{requestId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTcyrSyncFileExample" resultType="java.lang.Integer" >
-    select count(*) from b_marketing_tcyr_sync_file
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_tcyr_error_interface_log
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_marketing_tcyr_sync_file
+    update b_marketing_tcyr_error_interface_log
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -230,17 +223,11 @@
       <if test="record.batchNo != null" >
         batch_no = #{record.batchNo,jdbcType=VARCHAR},
       </if>
-      <if test="record.fileName != null" >
-        file_name = #{record.fileName,jdbcType=VARCHAR},
+      <if test="record.syncFileId != null" >
+        sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
       </if>
-      <if test="record.filePath != null" >
-        file_path = #{record.filePath,jdbcType=VARCHAR},
-      </if>
-      <if test="record.totalCount != null" >
-        total_count = #{record.totalCount,jdbcType=BIGINT},
-      </if>
-      <if test="record.successCount != null" >
-        success_count = #{record.successCount,jdbcType=BIGINT},
+      <if test="record.elementCount != null" >
+        element_count = #{record.elementCount,jdbcType=INTEGER},
       </if>
       <if test="record.dealStatus != null" >
         deal_status = #{record.dealStatus,jdbcType=INTEGER},
@@ -254,14 +241,17 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.syncRecordId != null" >
-        sync_record_id = #{record.syncRecordId,jdbcType=BIGINT},
+      <if test="record.requestParam != null" >
+        request_param = #{record.requestParam,jdbcType=VARCHAR},
       </if>
-      <if test="record.quickDealStatus != null" >
-        quick_deal_status = #{record.quickDealStatus,jdbcType=INTEGER},
+      <if test="record.pushResult != null" >
+        push_result = #{record.pushResult,jdbcType=VARCHAR},
       </if>
-      <if test="record.dbDealStatus != null" >
-        db_deal_status = #{record.dbDealStatus,jdbcType=INTEGER},
+      <if test="record.errorType != null" >
+        error_type = #{record.errorType,jdbcType=INTEGER},
+      </if>
+      <if test="record.requestId != null" >
+        request_id = #{record.requestId,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -269,27 +259,26 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_marketing_tcyr_sync_file
+    update b_marketing_tcyr_error_interface_log
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      file_name = #{record.fileName,jdbcType=VARCHAR},
-      file_path = #{record.filePath,jdbcType=VARCHAR},
-      total_count = #{record.totalCount,jdbcType=BIGINT},
-      success_count = #{record.successCount,jdbcType=BIGINT},
+      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
+      element_count = #{record.elementCount,jdbcType=INTEGER},
       deal_status = #{record.dealStatus,jdbcType=INTEGER},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      sync_record_id = #{record.syncRecordId,jdbcType=BIGINT},
-      quick_deal_status = #{record.quickDealStatus,jdbcType=INTEGER},
-      db_deal_status = #{record.dbDealStatus,jdbcType=INTEGER}
+      request_param = #{record.requestParam,jdbcType=VARCHAR},
+      push_result = #{record.pushResult,jdbcType=VARCHAR},
+      error_type = #{record.errorType,jdbcType=INTEGER},
+      request_id = #{record.requestId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
-    update b_marketing_tcyr_sync_file
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
+    update b_marketing_tcyr_error_interface_log
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -297,17 +286,11 @@
       <if test="batchNo != null" >
         batch_no = #{batchNo,jdbcType=VARCHAR},
       </if>
-      <if test="fileName != null" >
-        file_name = #{fileName,jdbcType=VARCHAR},
+      <if test="syncFileId != null" >
+        sync_file_id = #{syncFileId,jdbcType=BIGINT},
       </if>
-      <if test="filePath != null" >
-        file_path = #{filePath,jdbcType=VARCHAR},
-      </if>
-      <if test="totalCount != null" >
-        total_count = #{totalCount,jdbcType=BIGINT},
-      </if>
-      <if test="successCount != null" >
-        success_count = #{successCount,jdbcType=BIGINT},
+      <if test="elementCount != null" >
+        element_count = #{elementCount,jdbcType=INTEGER},
       </if>
       <if test="dealStatus != null" >
         deal_status = #{dealStatus,jdbcType=INTEGER},
@@ -321,33 +304,35 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="syncRecordId != null" >
-        sync_record_id = #{syncRecordId,jdbcType=BIGINT},
+      <if test="requestParam != null" >
+        request_param = #{requestParam,jdbcType=VARCHAR},
       </if>
-      <if test="quickDealStatus != null" >
-        quick_deal_status = #{quickDealStatus,jdbcType=INTEGER},
+      <if test="pushResult != null" >
+        push_result = #{pushResult,jdbcType=VARCHAR},
       </if>
-      <if test="dbDealStatus != null" >
-        db_deal_status = #{dbDealStatus,jdbcType=INTEGER},
+      <if test="errorType != null" >
+        error_type = #{errorType,jdbcType=INTEGER},
+      </if>
+      <if test="requestId != null" >
+        request_id = #{requestId,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrSyncFile" >
-    update b_marketing_tcyr_sync_file
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrErrorInterfaceLog" >
+    update b_marketing_tcyr_error_interface_log
     set api_code = #{apiCode,jdbcType=VARCHAR},
       batch_no = #{batchNo,jdbcType=VARCHAR},
-      file_name = #{fileName,jdbcType=VARCHAR},
-      file_path = #{filePath,jdbcType=VARCHAR},
-      total_count = #{totalCount,jdbcType=BIGINT},
-      success_count = #{successCount,jdbcType=BIGINT},
+      sync_file_id = #{syncFileId,jdbcType=BIGINT},
+      element_count = #{elementCount,jdbcType=INTEGER},
       deal_status = #{dealStatus,jdbcType=INTEGER},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      sync_record_id = #{syncRecordId,jdbcType=BIGINT},
-      quick_deal_status = #{quickDealStatus,jdbcType=INTEGER},
-      db_deal_status = #{dbDealStatus,jdbcType=INTEGER}
+      request_param = #{requestParam,jdbcType=VARCHAR},
+      push_result = #{pushResult,jdbcType=VARCHAR},
+      error_type = #{errorType,jdbcType=INTEGER},
+      request_id = #{requestId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

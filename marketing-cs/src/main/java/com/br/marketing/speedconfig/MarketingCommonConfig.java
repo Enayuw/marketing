@@ -2969,10 +2969,29 @@ public class MarketingCommonConfig {
 
     /**
      * 同程易融-match-shard  job参数
-     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000}
+     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000,"startSearchTime:yyyy-mm-dd HH:mm:ss"}
      */
     private JSONObject tcMatchShardConfig;
 
+
+    /**
+     * 同程易融-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":10,"pageSize":2000,"lockRetryTimes":2,"lockRetryIntervalMs":1000,
+     * "detailLogSwitch":true
+     * }
+     */
+    private JSONObject tcQuickDealShardConfig;
+
+
+    /**
+     * 同程易融-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
+     * "lockRetryTimes":2,"lockRetryIntervalMs":1000
+     * }
+     */
+    private JSONObject tcDbDealShardConfig;
 
     /**
      * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
