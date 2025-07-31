@@ -168,4 +168,9 @@
         update b_drs_customize_upload_data${tCid} set extend = #{extend},sync_status = #{syncStatus}  where id = #{id}
     </update>
 
+    <select id="selectByApiCodeAndDate" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
+        select * from b_drs_customize_upload_data${tCid} where api_code = #{apiCode} and DATE(create_time) = #{createDate} order by create_time desc
+    </select>
+
+
 </mapper>

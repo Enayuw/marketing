@@ -15,13 +15,13 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.DassWeiZhongDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.csos.DaasCsosDataAdapDTO;
 import com.br.marketing.client.dassservice.input.csos.DaasCsosDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.update.DaasUpdateDataDTO;
-import com.br.marketing.client.dassservice.input.update.DaasUpdateDataAdapDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
@@ -2313,5 +2313,215 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue())
                 .setMessage(String.format("推送完成，总数量: %d, 成功: %d, 失败: %d",
                           totalNumber, successCount.get(), failCount.get()));
+    }
+
+    @Override
+    public Result pushWeiZhongDassData(Long id) {
+        String TITLE = "微众推人工 ";
+        log.warn(TITLE + "开始，文件ID: {}", id);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+        Boolean isContiue = false;
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            log.warn(TITLE + "文件不存在, 文件ID: {}", id);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
+
+        localFile.setPushStartTime(new Date());
+
+        // 检查是否有数据需要处理
+        Integer totalPhoneCount = phoneSaleMapper.getGroupByPhoneCount(String.valueOf(id));
+        if (totalPhoneCount == null || totalPhoneCount == 0) {
+            log.warn(TITLE + "未查询到分组数据 文件ID: {}", id);
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(0);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("未查询到分组数据，id：" + id).setDate(isContiue);
+        }
+
+        log.warn(TITLE + "总共需要处理 {} 个手机号分组", totalPhoneCount);
+
+        // 分页处理手机号分组
+        Integer processedPhoneCount = 0;
+        List<DassImportDataDTO> dataDTOS = new ArrayList<>();
+        // 每次处理1000个手机号
+        final int PHONE_PAGE_SIZE = 1000;
+        // 数据批次大小
+        final int BATCH_SIZE = 1000;
+        Integer phoneOffset = 0;
+
+        try {
+            while (phoneOffset < totalPhoneCount) {
+                // 分页获取手机号分组
+                List<String> phoneGroup = phoneSaleMapper.getGroupByPhoneWithPaging(String.valueOf(id), phoneOffset, PHONE_PAGE_SIZE);
+
+                if (phoneGroup.isEmpty()) {
+                    break;
+                }
+
+                log.warn(TITLE + "处理手机号分组，offset: {}, size: {}", phoneOffset, phoneGroup.size());
+
+                // 处理当前批次的手机号
+                for (String phone : phoneGroup) {
+                    Boolean actionMark = true;
+                    Long minId = null;
+                    List<DassWeiZhongDTO> list = new ArrayList<>();
+                    // 保存第一条记录用于后续处理
+                    DassImportDataDTO firstDataDTO = null;
+
+                    while (actionMark) {
+                        List<DassImportDataDTO> phoneSales = phoneSaleMapper.getWeiZhongData(String.valueOf(id), phone, minId);
+                        if (phoneSales.isEmpty()) {
+                            actionMark = false;
+                            continue;
+                        }
+                        // 保存第一条记录（只在第一次循环时保存）
+                        if (firstDataDTO == null) {
+                            firstDataDTO = phoneSales.get(0);
+                        }
+                        // 处理当前批次的所有记录，将5个字段合并到list中
+                        for (DassImportDataDTO dataDTO : phoneSales) {
+                            String extend = dataDTO.getExtend();
+                            if (StringUtils.isNotBlank(extend)) {
+                                try {
+                                    JSONObject jsonParam = JSON.parseObject(extend);
+                                    DassWeiZhongDTO dassWeiZhongDTO = new DassWeiZhongDTO();
+                                    dassWeiZhongDTO.setAudit_time(jsonParam.getString("audit_time") == null ? "" : jsonParam.getString("audit_time"));
+                                    dassWeiZhongDTO.setQualifyscore(jsonParam.getString("qualifyscore") == null ? "" : jsonParam.getString("qualifyscore"));
+                                    dassWeiZhongDTO.setAuditRate(jsonParam.getString("auditRate") == null ? "" : jsonParam.getString("auditRate"));
+                                    dassWeiZhongDTO.setActivity(jsonParam.getString("activity") == null ? "" : jsonParam.getString("activity"));
+                                    dassWeiZhongDTO.setRegion(jsonParam.getString("region") == null ? "" : jsonParam.getString("region"));
+                                    list.add(dassWeiZhongDTO);
+                                } catch (Exception e) {
+                                    log.warn(TITLE + "解析extend字段异常，跳过该记录: {}", extend, e);
+                                }
+                            }
+                        }
+                        minId = phoneSales.get(phoneSales.size() - 1).getId();
+                    }
+
+                    // 只有当找到了数据才进行处理
+                    if (firstDataDTO != null && !list.isEmpty()) {
+                        // 将合并后的5个字段列表转换为JSON数组格式
+                        JSONArray couponsArray = new JSONArray();
+                        for (DassWeiZhongDTO dto : list) {
+                            JSONObject couponObj = new JSONObject();
+                            couponObj.put("audit_time", dto.getAudit_time());
+                            couponObj.put("qualifyscore", dto.getQualifyscore());
+                            couponObj.put("auditRate", dto.getAuditRate());
+                            couponObj.put("activity", dto.getActivity());
+                            couponObj.put("region", dto.getRegion());
+                            couponsArray.add(couponObj);
+                        }
+
+                        // 更新第一条记录的extend字段，加入合并后的优惠券列表
+                        try {
+                            JSONObject jsonObject = JSON.parseObject(firstDataDTO.getExtend());
+                            if (jsonObject == null) {
+                                jsonObject = new JSONObject();
+                            }
+                            jsonObject.put("couponsList", couponsArray);
+                            firstDataDTO.setExtend(jsonObject.toJSONString());
+                            dataDTOS.add(firstDataDTO);
+                            // 每处理一个手机号就+1
+                            processedPhoneCount++;
+                        } catch (Exception e) {
+                            log.error(TITLE + "构建合并数据异常，跳过该手机号: {}", phone, e);
+                        }
+                    }
+
+                    // 达到批次大小时推送数据
+                    if (dataDTOS.size() >= BATCH_SIZE) {
+                        DassImportAdapDTO dto = new DassImportAdapDTO();
+                        dto.setInterfaceExtendInfo(id.toString());
+                        dto.setList(new ArrayList<>(dataDTOS));
+                        threadPool.submit(() -> {
+                            try {
+                                Result result = dassServiceClient.postHermesUserData(dto);
+                                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                                    RetryMainLog mainLog = new RetryMainLog();
+                                    mainLog.setRetryType(1);
+                                    mainLog.setRetryParam(JSON.toJSONString(dto));
+                                    mainLog.setRetryParamType(dto.getClass().getName());
+                                    mainLog.setRetryService("dassServiceClient");
+                                    mainLog.setRetryMethod("postHermesUserData");
+                                    mainLog.setRetryNum(0);
+                                    mainLog.setRetryMaxNum(3);
+                                    mainLog.setRetryStatus(1);
+                                    mainLog.setCreateTime(new Date());
+                                    mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                                    retryMainLogMapper.insertSelective(mainLog);
+                                }
+                            } catch (Exception e) {
+                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                        TITLE + "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
+                            }
+                        });
+                        dataDTOS.clear();
+                    }
+                }
+
+                phoneOffset += PHONE_PAGE_SIZE;
+            }
+
+            // 推送剩余数据
+            if (!dataDTOS.isEmpty()) {
+                DassImportAdapDTO dto = new DassImportAdapDTO();
+                dto.setInterfaceExtendInfo(id.toString());
+                dto.setList(new ArrayList<>(dataDTOS));
+                threadPool.submit(() -> {
+                    try {
+                        Result result = dassServiceClient.postHermesUserData(dto);
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            RetryMainLog mainLog = new RetryMainLog();
+                            mainLog.setRetryType(1);
+                            mainLog.setRetryParam(JSON.toJSONString(dto));
+                            mainLog.setRetryParamType(dto.getClass().getName());
+                            mainLog.setRetryService("dassServiceClient");
+                            mainLog.setRetryMethod("postHermesUserData");
+                            mainLog.setRetryNum(0);
+                            mainLog.setRetryMaxNum(3);
+                            mainLog.setRetryStatus(1);
+                            mainLog.setCreateTime(new Date());
+                            mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                            retryMainLogMapper.insertSelective(mainLog);
+                        }
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                TITLE + "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
+                    }
+                });
+                dataDTOS.clear();
+            }
+
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), TITLE + "业务异常！"), ex);
+        }
+        // 关闭线程池
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn(TITLE + "等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WEIZHONG_SERVICEERROR.getCode(), TITLE + "线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(processedPhoneCount);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        
+        if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
+                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("数量：".concat(processedPhoneCount.toString()).concat("\r\n"))
+                    .append("微众文件推送dass结束".concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "微众Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        }
+
+        log.warn(TITLE + "推送完成，总手机号: {}, 处理成功: {}", totalPhoneCount, processedPhoneCount);
+        
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 }

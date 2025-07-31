@@ -2475,6 +2475,11 @@ public class MarketingCommonConfig {
     private JSONObject qiFuAIServerConfig;
 
     /**
+     * 奇富AI上传数据参数接口配置
+     */
+    private JSONObject qiFuAIUploadConfig;
+
+    /**
      * 营销推决策数据打标es使用标志
      */
     private Boolean pushPolicyMarkWithEsFlag;
