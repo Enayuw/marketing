@@ -303,7 +303,7 @@ public class ShuHeUserServiceImpl {
             String id = String.valueOf(transferInfo.getId());
             if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
                 pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferSmallConstants.TOPIC
-                        , MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_SYNC);
+                        , MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_TRANSFER);
             }else{
                 pushRuleService.sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL, id,
                         CustomerQueueEnum.ORG_TRANSFER);
