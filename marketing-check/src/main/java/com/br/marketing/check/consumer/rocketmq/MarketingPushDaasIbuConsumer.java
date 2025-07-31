@@ -3,18 +3,18 @@ package com.br.marketing.check.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -27,16 +27,14 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingOutsideInterfaceConstants.TOPIC,
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_PUSH_DAAS_IBU,
         selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_DAAS_IBU,
-        consumeThreadNumber = 1, consumeThreadMax = 1)
-public class MarketingPushDaasIbuConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+        consumeThreadNumber = 1, consumeThreadMax = 1, awaitTerminationMillisWhenShutdown = 3000, consumeTimeout = 30)
+public class MarketingPushDaasIbuConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Autowired
     PushDataService pushDataService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
 
     @Override
     protected String consumerName() {
@@ -48,12 +46,6 @@ public class MarketingPushDaasIbuConsumer extends BaseMqMessageListener implemen
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_DAAS_IBU)){
-            log.warn("Marketing_Push_Daas_Ibu：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), o);
-        }
         consumerService.consumerRun(messageExt, pushDataService::pushDassTransferIbu, o);
     }
 
@@ -71,6 +63,12 @@ public class MarketingPushDaasIbuConsumer extends BaseMqMessageListener implemen
     @Override
     public void onMessage(MessageExt messageExt) {
         super.dispatchMessage(messageExt);
+    }
+
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(1);
     }
 
 }

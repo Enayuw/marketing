@@ -96,10 +96,6 @@ public class MQConstants {
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing_send_usertype_message_delay_queue";
     // 发送场景消息死信队列
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing_send_usertype_message_dead_queue";
-    // 上传接口接收数据量级碎片队列
-    public static final String MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS = "marketing_upload_api_data_count_fragments";
-    // 转化接口接收数据量级碎片队列
-    public static final String MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "marketing_transfer_api_data_count_fragments";
 
     public static final String MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing_xiecheng_colliding_log_queue";
     public static final String MARKETING_XIECHENG_COLLIDING_ACTIVATE_QUEUE = "marketing_xiecheng_colliding_activate_queue";

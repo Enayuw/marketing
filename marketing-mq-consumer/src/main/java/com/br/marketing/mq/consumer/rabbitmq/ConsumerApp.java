@@ -5,11 +5,14 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
-import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.wuba.WuBaCollidingDataQueryResultService;
 import com.br.marketing.service.Impl.wuba.WuBaOldCollidingDataQueryResultService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
+import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.VariableDicService;
+import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.clean.guomei.GuoMeiDataCleanService;
 import com.br.marketing.service.clean.hengchang.HengChangDataCleanService;
@@ -44,19 +47,10 @@ public class ConsumerApp {
     PushRuleService pushRuleService;
 
     @Autowired
-    IPushShuheDataService pushShuheDataService;
-
-    @Autowired
     PushDataService pushDataService;
 
     @Resource
     private VariableDicService variableDicService;
-
-    @Resource
-    private MarketingSyncReportService marketingSyncReportService;
-
-    @Resource
-    private TransferSyncReportService transferSyncReportService;
 
     @Resource
     private ZhongYouDataService zhongYouDataService;
@@ -259,39 +253,6 @@ public class ConsumerApp {
             , containerFactory = "primaryContainerFactory")
     public void delaySendUserTypeMessage(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, variableDicService::delaySendUserTypeMessage
-                , new String(message.getBody(), StandardCharsets.UTF_8), null);
-    }
-
-
-    /**
-     * 上传接口接收数据量级碎片队列消费端
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS
-            , durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS)}
-            , containerFactory = "consumerTenPrefetchTwoFactory")
-    public void uploadDataCountFragments(Channel channel, Message message) {
-        consumerService.consumerRun(channel, message, marketingSyncReportService::nearRealtimeDataCountFragmentsStatis
-                , new String(message.getBody(), StandardCharsets.UTF_8), null);
-    }
-
-    /**
-     * 转化接口接收数据量级碎片队列消费端
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS
-            , durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS)}
-            , containerFactory = "consumerTenPrefetchTwoFactory")
-    public void transferDataCountFragments(Channel channel, Message message) {
-        consumerService.consumerRun(channel, message, transferSyncReportService::nearRealtimeDataCountFragmentsStatis
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
 

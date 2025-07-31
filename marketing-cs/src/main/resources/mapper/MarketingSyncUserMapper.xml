@@ -88,6 +88,9 @@
             <if test="isRepeat != null">
                 is_repeat,
             </if>
+            <if test="fingerprint != null">
+                fingerprint,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="apiCode != null">
@@ -170,6 +173,9 @@
             </if>
             <if test="isRepeat != null">
                 #{isRepeat,jdbcType=INTEGER},
+            </if>
+            <if test="fingerprint != null">
+                #{fingerprint,jdbcType=BIGINT},
             </if>
         </trim>
     </insert>

@@ -1,10 +1,8 @@
 package com.br.marketing.mq.consumer.rocketmq;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
@@ -15,26 +13,28 @@ import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 消费 原始转化数据消费端（大队列）
- * @Author: yu.xia@brgroup.com
- * @Date: 2024-07-18
+ * 客户原始数据json解析
+ *
+ * @Author: Hua Qiang
+ * @Date: 2025-05-28
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingTransferConstants.TOPIC,
-        consumerGroup = MarketingTransferConstants.MARKETING_TRANSFER_RECEIVE,
-        selectorExpression = MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE,
-        consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 5000)
-public class MarketingTransferReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_CUSTOMER_DATA_JSON_PARSE_QUEUE,
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
+        consumeThreadNumber = 1, consumeThreadMax = 1)
+public class MarketingCustomerDataJsonParseConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
-    @Autowired
-    PushRuleService pushRuleService;
+    @Resource
+    private DataCleanService dataCleanService;
 
     @Override
     protected String consumerName() {
@@ -43,10 +43,8 @@ public class MarketingTransferReceiveConsumer extends BaseMqMessageListener impl
 
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
-        String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
-        }.getType());
-        consumerService.consumerRun(messageExt, pushRuleService::consumerTransferData, o);
+        String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(messageExt, dataCleanService::customerDataJsonParse, bodyString);
     }
 
     @Override
@@ -70,4 +68,5 @@ public class MarketingTransferReceiveConsumer extends BaseMqMessageListener impl
         defaultMQPushConsumer.setPullBatchSize(5);
         defaultMQPushConsumer.setPopBatchNums(5);
     }
+
 }

@@ -1,7 +1,6 @@
 package com.br.marketing.mq.consumer.rocketmq;
 
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -14,7 +13,6 @@ import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -27,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
-        consumeThreadNumber = 1, consumeThreadMax = 5)
+        consumeThreadNumber = 1, consumeThreadMax = 2, awaitTerminationMillisWhenShutdown = 3000)
 public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
@@ -35,8 +33,7 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
 
     @Autowired
     PushDataService pushDataService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
+
     @Override
     protected String consumerName() {
         return null;
@@ -45,13 +42,6 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
-            log.warn("MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE：" +
-                            "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), bodyString);
-        }
         consumerService.consumerRun(messageExt, pushDataService::pushXieChengToDbData, bodyString);
     }
 
@@ -74,5 +64,6 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(1);
     }
 }

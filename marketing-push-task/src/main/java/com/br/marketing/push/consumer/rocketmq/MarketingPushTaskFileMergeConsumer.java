@@ -4,19 +4,18 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -29,16 +28,15 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_PUSHTASK_FILE_MERGE,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE,
-        consumeThreadNumber = 1, consumeThreadMax = 1)
-public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+        consumeThreadNumber = 1, consumeThreadMax = 1, awaitTerminationMillisWhenShutdown = 10000)
+public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Autowired
     MergeWithMessageServiceImpl mergeWithMessageService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
+
     @Override
     protected String consumerName() {
         return null;
@@ -49,12 +47,6 @@ public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener im
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE)){
-            log.warn("Marketing_PushTask_File_Merge：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), o);
-        }
         consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileMsg, o
                 , MarketingDelayedConstants.TOPIC
                 , MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY
@@ -75,6 +67,13 @@ public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener im
     @Override
     public void onMessage(MessageExt messageExt) {
         super.dispatchMessage(messageExt);
+    }
+
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(1);
+        defaultMQPushConsumer.setConsumeTimeout(60L);
     }
 
 }

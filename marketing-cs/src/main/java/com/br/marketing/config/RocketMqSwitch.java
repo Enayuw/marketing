@@ -1,25 +1,25 @@
 package com.br.marketing.config;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.rocketmq.RocketMqSwitchEntity;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.UUID;
+import java.security.SecureRandom;
 
 
 /**
  * RocketMQ和RabbitMQ切换开关
+ *
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-08-22
  */
@@ -39,120 +39,126 @@ public class RocketMqSwitch {
      * 消费端日志打印开关
      */
     public static final String PRINT_LOG = "printLog";
-    /**
-     * mq消息头 生产消息的唯一标识
-     */
-    public static final String UUID_KEY = "uuid";
 
-    @Resource
-    private SnowflakeIdGenerator snowflakeIdGenerator;
+    /**
+     * 2025/7/31 13:22
+     * 流量权重
+     */
+    public static final String FEATURE_WEIGHT = "featureWeight";
+
+    private final SecureRandom RANDOM = new SecureRandom();
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private RocketMqTemplate template;
-
-    public Boolean rocketMQSwitchFlag(String apiCode, String tag){
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
+    public Boolean rocketMQSwitchFlag(String apiCode, String tag) {
         try {
-            UUID uuid = UUID.randomUUID();
-            if(log.isInfoEnabled()){
-                log.info("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
-            }
-            String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
-            if(StringUtils.isBlank(rocketMqSwitchString)){
+            RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
+            if (entity == null) {
                 return Boolean.FALSE;
             }
-            RocketMqSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMqSwitchEntity>() {
-            }.getType());
-            String global = entity.getGlobal();
-            if("false".equalsIgnoreCase(global)){
+            Boolean global = entity.getGlobal();
+            if (global == null) {
                 return Boolean.FALSE;
-            }else if("true".equalsIgnoreCase(global)){
-                JSONObject group = entity.getGroup();
-                JSONObject tagObjet = group.getJSONObject(tag);
-                if(null == tagObjet || tagObjet.isEmpty()){
-                    return Boolean.FALSE;
-                }else{
-                    Boolean flagBoolean = tagObjet.getBoolean(FLAG);
-                    if(log.isInfoEnabled()){
-                        log.info("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
+            }
+            if (global) {
+                boolean flagValue = getMsgFlag(tag, FLAG, Boolean.FALSE);
+                if (flagValue) {
+                    return Boolean.TRUE && shouldRouteToRocketMq(entity, tag);
+                } else {
+                    String appCodesValue = getGroupValue(entity, tag, APICODES_SPEED, null, String.class);
+                    if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(appCodesValue)) {
+                        return Boolean.FALSE;
                     }
-                    if(flagBoolean){
-                        return Boolean.TRUE;
-                    }else{
-                        if(StringUtils.isBlank(apiCode)){
-                            return Boolean.FALSE;
-                        }
-                        String apiCodes = tagObjet.getString(APICODES_SPEED);
-                        if(StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)){
-                            return Boolean.TRUE;
-                        }
-                    }
+                    return appCodesValue.contains(apiCode) && shouldRouteToRocketMq(entity, tag);
                 }
-                return Boolean.FALSE;
-            }else{
-                return Boolean.FALSE;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn("rocketMQSwitchFlag对应的RocketMqSwitch2配置异常,apiCode:{}--tag:{}--", apiCode, tag, e);
         }
         return Boolean.FALSE;
     }
 
+    /**
+     * 2025/7/31 13:22
+     * 获取流量权重
+     */
+    public boolean shouldRouteToRocketMq(RocketMqSwitchEntity entity, String tag) {
+        Integer featureWeight = getGroupValue(entity, tag, FEATURE_WEIGHT, null, Integer.class);
+        if (featureWeight == null || featureWeight <= 0) {
+            return true;
+        }
+        int weight = RANDOM.nextInt(100) + 1;
+        return weight <= featureWeight;
+    }
 
-    public Boolean rocketLogSwitchFlag(String tag){
-        UUID uuid = UUID.randomUUID();
-        if(log.isInfoEnabled()){
-            log.info("[{}]rocketLogSwitchFlag--tag[{}]", uuid, tag);
+    public void sendMessage(String apiCode, String topic, String tag, String msg, String routeKey) {
+        if (rocketMQSwitchFlag(apiCode, tag)) {
+            syncSend(topic, tag, msg);
+        } else {
+            rabbitMqProducter.send(routeKey, msg);
         }
-        String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
-        if(StringUtils.isBlank(rocketMqSwitchString)){
-            return Boolean.FALSE;
+    }
+
+    public boolean rocketLogSwitchFlag(String tag) {
+        return getMsgFlag(tag, PRINT_LOG, false);
+    }
+
+    public <T> void rocketLogSwitchFlag(String tag, MessageExt messageExt, T t, long startTimeMillis) {
+        if (rocketLogSwitchFlag(tag)) {
+            log.warn("rocketLogSwitchFlag--耗时[{}ms]--tag[{}];message[{}];messageExt[{}]"
+                    , (System.currentTimeMillis() - startTimeMillis), tag, t, messageExt);
         }
-        RocketMqSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMqSwitchEntity>() {
-        }.getType());
+    }
+
+    public <T> SendResult syncSend(String topic, String tag, T msg) {
+        Message<?> build = MessageBuilder.withPayload(msg).build();
+        return template.syncSendMessage(topic, tag, build);
+    }
+
+    public <T> SendResult syncSendDelaySecond(String topic, String tag, T msg, long delayTime) {
+        Message<?> build = MessageBuilder.withPayload(msg).build();
+
+        return template.syncSendDelaySecond(topic, tag, build, delayTime);
+    }
+
+
+
+    /**
+     * 2025/6/11 01:54
+     * 获取boolean类型的开关
+     */
+    private boolean getMsgFlag(String tag, String key, boolean localFlag) {
+        try {
+            RocketMqSwitchEntity entity = marketingCommonConfig.getRocketMqSwitch2();
+            if (entity == null) {
+                return localFlag;
+            }
+            return getGroupValue(entity, tag, key, localFlag, Boolean.class);
+        } catch (Exception e) {
+            log.warn("{},tag:{},key:{},localFlag:{}", e.getMessage(), tag, key, localFlag, e);
+        }
+        return localFlag;
+    }
+
+
+    private <T> T getGroupValue(RocketMqSwitchEntity entity, String tag, String key, T localVale, Class<T> tClass) {
+        if (entity == null) {
+            return localVale;
+        }
         JSONObject group = entity.getGroup();
+        if (group == null || group.isEmpty()) {
+            return localVale;
+        }
         JSONObject tagObjet = group.getJSONObject(tag);
-        if(null == tagObjet || tagObjet.isEmpty()){
-            return Boolean.FALSE;
-        }else{
-            Boolean logBoolean = tagObjet.getBoolean(PRINT_LOG);
-            if(log.isInfoEnabled()){
-                log.info("[{}]rocketLogSwitchFlag--tagObjet[{}]logBoolean[{}]", uuid, tagObjet, logBoolean);
-            }
-            if(null != logBoolean && logBoolean){
-                return Boolean.TRUE;
-            }
+        if (tagObjet == null || tagObjet.isEmpty()) {
+            return localVale;
         }
-        return Boolean.FALSE;
-    }
-
-    public Boolean consumerStopFlag(){
-        String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
-        if(StringUtils.isBlank(rocketMqSwitchString)){
-            return Boolean.FALSE;
-        }
-        RocketMqSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMqSwitchEntity>() {
-        }.getType());
-        Boolean stopFlag = entity.getConsumerStopFlag();
-        if(null != stopFlag && stopFlag){
-            return Boolean.TRUE;
-        }
-        return Boolean.FALSE;
-    }
-
-    public SendResult syncSend(String topic, String tags, String msg){
-        Message<String> build = MessageBuilder.withPayload(msg)
-                .setHeader(UUID_KEY, snowflakeIdGenerator.nextIdString())
-                .build();
-        return template.syncSendMessage(topic, tags, build);
-    }
-
-    public SendResult syncSendDelaySecond(String topic, String tags, String msg, long delayTime){
-        Message<String> build = MessageBuilder.withPayload(msg)
-                .setHeader(UUID_KEY, snowflakeIdGenerator.nextIdString())
-                .build();
-        return template.syncSendDelaySecond(topic, tags, build, delayTime);
+        T value = tagObjet.getObject(key, tClass);
+        return value == null ? localVale : value;
     }
 
 }

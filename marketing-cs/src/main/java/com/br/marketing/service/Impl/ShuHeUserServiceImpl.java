@@ -23,6 +23,7 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.CustomerQueueEnum;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.CaseShuheUploadDataMapper;
 import com.br.marketing.mapper.CaseShuheUserMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
@@ -81,6 +82,9 @@ public class ShuHeUserServiceImpl {
     @Resource
     private RocketMqSwitch rocketMqSwitch;
 
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
         // todo 模拟异常上线后要删除
@@ -134,6 +138,11 @@ public class ShuHeUserServiceImpl {
                 reserveField1.remove("orderId");
                 dto.setReserveField1(
                     JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty, SerializerFeature.WriteNullListAsEmpty));
+                try {
+                    dto.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
+                } catch (Exception e) {
+                    log.error("上传数据ID生成失败,{}", e.getMessage(), e);
+                }
                 list.add(dto);
             }
             userDTO.setDataItems(list);
@@ -275,6 +284,11 @@ public class ShuHeUserServiceImpl {
             List<TransferDataItemDTO> dataItems = Lists.newArrayList();
             TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
             BeanUtils.copyProperties(transferSyncUser, transferDataItemDTO);
+            try {
+                transferDataItemDTO.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
+            } catch (Exception e) {
+                log.error("转化数据ID生成失败,{}", e.getMessage(), e);
+            }
             dataItems.add(transferDataItemDTO);
             TransferDataDTO transferDataDTO = new TransferDataDTO();
             transferDataDTO.setDataItems(dataItems);

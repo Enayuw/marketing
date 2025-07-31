@@ -173,4 +173,10 @@ public class TransferDataItemDTO {
      * 业务保留字段2
      */
     private String reserveField2;
+
+    /**
+     * 2025/7/7 13:46
+     * 数据指纹，数据唯一标识
+     */
+    private Long fingerprint;
 }
