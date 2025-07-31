@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCpsCollidingDataRobMapper" >
+  <!-- 根据创建时间查询重复数据 -->
+  <select id="selectDuplicateDataByCreateTime" resultType="java.lang.String">
+    select cell_sha256_code_list
+    from b_xiecheng_cps_colliding_data_rob
+    where is_delete = 0
+      and create_time >= #{today}
+      and create_time <![CDATA[ < ]]> #{tomorrow}
+      and cell_sha256_code_list in
+    <foreach collection="list" item="cell" open="(" separator="," close=")">
+      #{cell}
+    </foreach>
+  </select>
+
+  <!-- 查询未撞库数据 -->
+  <select id="selectUnprocessedRobData" resultType="com.br.marketing.entity.XieChengCpsCollidingDataRob">
+    select
+    id, cell_sha256_code_list, package_id, retry_count, data_source_type
+    from b_xiecheng_cps_colliding_data_rob
+    where is_delete = 0
+      and retry_count = 0
+      and push_time is null
+    <if test="minId != null and minId>0">
+      and id > #{minId}
+    </if>
+    order by id limit #{pageSize};
+  </select>
+
+  <!-- 查询重试数据 -->
+  <select id="selectRobByRetryCount" resultType="com.br.marketing.entity.XieChengCpsCollidingDataRob">
+    select
+    id, cell_sha256_code_list, package_id, retry_count, push_time, data_source_type
+    from b_xiecheng_cps_colliding_data_rob
+    where is_delete = 0
+       <![CDATA[ and retry_count > 0 and retry_count <= 3]]>
+    <if test="minId != null and minId>0">
+      and id > #{minId}
+    </if>
+    order by id asc limit #{pageSize};
+  </select>
+
+  <!-- 批量保存数据 -->
+  <insert id="batchSaveData">
+    insert into b_xiecheng_cps_colliding_data_rob (package_id, cell_sha256_code_list, is_delete, create_time, update_time, data_source_type)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{packageId}, #{item.sha256CodeList}, 0, now(), now(), 'F')
+    </foreach>
+  </insert>
+
+  <!-- 批量更新推送状态 -->
+  <update id="batchUpdatePushStatusByCell">
+<!--    update b_xiecheng_cps_colliding_data_rob-->
+<!--    set extend = 'pushed', update_time = now()-->
+<!--    where is_deleted = 0-->
+<!--      and cell in-->
+<!--    <foreach collection="list" item="item" open="(" separator="," close=")">-->
+<!--      #{item.cell}-->
+<!--    </foreach>-->
+  </update>
+</mapper>

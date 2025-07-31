@@ -12,7 +12,6 @@ import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.mapper.EntityOptLogMapper;
 import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -36,7 +35,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,7 +97,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
             List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
 
-            List<String> apiCodes = marketingCustomersList.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
+            List<String> apiCodes = marketingCustomersList.stream().map(MarketingCustomer::getApiCode).collect(Collectors.toList());
             HashMap<String, MarketingCustomerConfig> configs = new HashMap();
             if (!CollectionUtils.isEmpty(apiCodes)) {
                 MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
@@ -116,13 +114,17 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 CustomerListVo customerListVo = new CustomerListVo();
                 BeanUtils.copyProperties(marketingCustomer, customerListVo);
                 MarketingCustomerConfig marketingCustomerConfig = configs.get(marketingCustomer.getApiCode());
-                customerListVo.setCheckType(marketingCustomerConfig == null
-                        ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
-                        : marketingCustomerConfig.getCheckType());
+//                customerListVo.setCheckType(marketingCustomerConfig == null
+//                        ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
+//                        : marketingCustomerConfig.getCheckType());
                 customerListVo.setScoreSeparator(marketingCustomerConfig == null ? CommonConstants.COMMA :
                         marketingCustomerConfig.getScoreSeparator());
                 customerListVo.setThreeKEncryptType(marketingCustomerConfig == null ? null:
                         marketingCustomerConfig.getThreeKEncryptType());
+                customerListVo.setCipherMode(marketingCustomerConfig == null ? null: marketingCustomerConfig.getCipherMode());
+                customerListVo.setPaddingScheme(marketingCustomerConfig == null ? null: marketingCustomerConfig.getPaddingScheme());
+                customerListVo.setCharset(marketingCustomerConfig == null ? null: marketingCustomerConfig.getCharset());
+                customerListVo.setDynamicKeys(marketingCustomerConfig == null ? null: marketingCustomerConfig.getDynamicKeys());
                 customerListVos.add(customerListVo);
             }
             PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
@@ -155,6 +157,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setName(vo.getName());
         marketingCustomer.setShortName(vo.getShortName());
         marketingCustomer.setUpdateTime(date);
+        marketingCustomer.setSmsCategory(vo.getSmsCategory());
+        marketingCustomer.setFirstDepartment(vo.getFirstDepartment());
+        marketingCustomer.setSecondDepartment(vo.getSecondDepartment());
 
         if (StringUtils.isEmpty(vo.getId())) {
             //新增
@@ -170,6 +175,10 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomerConfig.setCheckType(vo.getCheckType());
             marketingCustomerConfig.setScoreSeparator(vo.getScoreSeparator());
             marketingCustomerConfig.setThreeKEncryptType(vo.getThreeKEncryptType());
+            marketingCustomerConfig.setCipherMode(vo.getCipherMode());
+            marketingCustomerConfig.setPaddingScheme(vo.getPaddingScheme());
+            marketingCustomerConfig.setCharset(vo.getCharset());
+            marketingCustomerConfig.setDynamicKeys(vo.getDynamicKeys());
             marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
 
         } else {
@@ -195,6 +204,10 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 marketingCustomerConfig.setCheckType(vo.getCheckType());
                 marketingCustomerConfig.setScoreSeparator(vo.getScoreSeparator());
                 marketingCustomerConfig.setThreeKEncryptType(vo.getThreeKEncryptType());
+                marketingCustomerConfig.setCipherMode(vo.getCipherMode());
+                marketingCustomerConfig.setPaddingScheme(vo.getPaddingScheme());
+                marketingCustomerConfig.setCharset(vo.getCharset());
+                marketingCustomerConfig.setDynamicKeys(vo.getDynamicKeys());
                 marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
             } else {
                 MarketingCustomerConfig marketingCustomerConfig = marketingCustomerConfigs.get(0);
@@ -203,6 +216,10 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 updateEntity.setCheckType(vo.getCheckType());
                 updateEntity.setScoreSeparator(vo.getScoreSeparator());
                 updateEntity.setThreeKEncryptType(vo.getThreeKEncryptType());
+                updateEntity.setCipherMode(vo.getCipherMode());
+                updateEntity.setPaddingScheme(vo.getPaddingScheme());
+                updateEntity.setCharset(vo.getCharset());
+                updateEntity.setDynamicKeys(vo.getDynamicKeys());
                 marketingCustomerConfigMapper.updateByPrimaryKeySelective(updateEntity);
                 //更新3k加密类型
                 if (!Objects.isNull(vo.getThreeKEncryptType())) {
@@ -329,5 +346,11 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         List<String> apiCodeByZs = marketingCustomerMapper.getApiCodeByZs(apiCodePrefix);
         return apiCodeByZs;
     }
+
+    @Override
+    public String getThreeKEncryptType() {
+        return CustomerTagsValue.convertPushJc3keyEnumToJson();
+    }
+
 
 }

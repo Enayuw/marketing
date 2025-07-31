@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingSmsAccountLogMapper" >
+
+  <select id="selectSmsAccountLogs" resultType="com.br.marketing.entity.MarketingSmsAccountLog">
+    select id, config_id, vendor_id, vendor_name, detail, user_id, user_name, real_name, ope_type,
+           create_time, update_time, is_delete
+    FROM b_marketing_sms_account_log
+    <where>
+      is_delete = 0
+      <if test="configId !=null">
+        AND config_id = #{configId}
+      </if>
+     ORDER BY create_time DESC
+    </where>
+  </select>
+
+</mapper>

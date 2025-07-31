@@ -48,12 +48,10 @@ public class NewXieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasti
     private LocalFileMapper localFileMapper;
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        String formatted = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         final LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria()
                 .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGVT)
-                .andFileNameLike("%"+formatted+"%")
-                .andStatusEqualTo("2");
+                .andStatusEqualTo("2").andPushStatusIsNull();
         localFileExample.setOrderByClause("id desc");
         List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
         localFileList.forEach((LocalFile lf) -> pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId()));

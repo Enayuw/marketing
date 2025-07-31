@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingDictMapper" >
+
+  <select id="getDictInfo" resultType="com.br.marketing.entity.MarketingDict">
+     SELECT id, dict_type, dict_code, dict_value, dict_label, `status`, remark, create_time,
+            update_time, is_delete
+     FROM b_marketing_dict
+     <where>
+         status = 1
+         AND is_delete = 0
+         <if test="dictType!=null and dictType !=''">
+             AND dict_type =#{dictType}
+         </if>
+     </where>
+  </select>
+</mapper>

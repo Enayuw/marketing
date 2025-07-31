@@ -188,7 +188,8 @@ api:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    #baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://k8stest.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   yiQianBao:
     baseUrl: https://teststable4-www-pmgw.stg.1qianbao.com
@@ -414,3 +415,10 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
+
+
+# 线程池动态配置监控
+tp:
+  dynamic:
+    metric:
+      enabled: true

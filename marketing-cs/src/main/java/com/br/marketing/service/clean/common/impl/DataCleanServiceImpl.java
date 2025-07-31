@@ -604,9 +604,10 @@ public class DataCleanServiceImpl implements DataCleanService {
             String line;
             boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {
+                String lineData = line.trim();
                 // 处理表头
                 if (isFirstLine) {
-                    headers = line.split(",");
+                    headers = lineData.split(",");
                     if (headers == null || headers.length == 0) {
                         log.error("文件表头解析失败，文件路径: {}", filePath);
                         return;
@@ -615,10 +616,10 @@ public class DataCleanServiceImpl implements DataCleanService {
                     continue;
                 }
                 // 跳过空行
-                if (StringUtils.isEmpty(line.trim())) {
+                if (StringUtils.isEmpty(lineData)) {
                     continue;
                 }
-                batchLines.add(line);
+                batchLines.add(lineData);
                 // 当达到批次大小时，处理这一批数据
                 if (batchLines.size() >= BATCH_SIZE) {
                     modifyFilePoolSize(pool);

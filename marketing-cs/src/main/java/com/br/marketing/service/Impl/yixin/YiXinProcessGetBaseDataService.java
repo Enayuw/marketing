@@ -37,4 +37,10 @@ public interface YiXinProcessGetBaseDataService {
      */
     List<MarketingTransferSyncUser> getMarketingTransferSyncUserListL(String cid, String apiCode,String requestDate,String requestDateStart,String requestDateEnd,Long indexId);
 
+    /**
+     * 情况 g 获取liveType=9的数据
+     * T日的转化数据取transformType=1的根据custNum去重取insertime距离当前时间最近的数据且最新一条数据的liveType=9
+     * @return MarketingTransferSyncUser
+     */
+    List<MarketingTransferSyncUser> getYXMarketingTransferByLiveType(String tcId, String apiCode, String requestDate, Long indexId, String s);
 }

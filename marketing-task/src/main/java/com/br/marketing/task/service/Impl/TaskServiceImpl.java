@@ -9,24 +9,11 @@ import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.ScoreRuleConfigMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
-import com.br.marketing.mapper.TaskBatchnumberPreMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.service.IApiToDbService;
-import com.br.marketing.service.ICompatibleService;
-import com.br.marketing.service.IDynamicSqlService;
-import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
-import com.br.marketing.service.MarketingTaskService;
-import com.br.marketing.service.SoleStrategyService;
-import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ITaskService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
@@ -41,11 +28,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -123,6 +106,10 @@ public class TaskServiceImpl implements ITaskService {
 
     @Resource
     DataGroupHandlerServiceImpl dataGroupHandlerService;
+
+    @Resource
+    MarketingRetryRedisMapper marketingRetryRedisMapper;
+
 
     @Override
     public void buildScoreTask(List<Long> scoreRuleIds, String jobNm) {
@@ -363,6 +350,30 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
+
+        // 先处理异常重试跑分数据
+        MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
+        marketingRetryRedisExample.createCriteria()
+                .andApiCodeEqualTo(task.getApiCode())
+                .andBatchNumberEqualTo(task.getBatchNumber())
+                .andRetryStatusEqualTo(0);
+        List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
+        if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
+            for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
+                String key = retryRedis.getRedisKey();
+                boolean success = retrySetRedisOrDisableTask(key, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
+                if (!success) {
+                    log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getBatchNumber(), retryRedis.getPage());
+                    return new Result<>().setCode(ResultCode.FAIL.getValue());
+                }
+                // 成功则更新状态
+                MarketingRetryRedis retryRedis1 = new MarketingRetryRedis();
+                retryRedis1.setRetryStatus(1);
+                retryRedis1.setId(retryRedis.getId());
+                marketingRetryRedisMapper.updateByPrimaryKeySelective(retryRedis1);
+            }
+        }
+
         // 根据跑分状态表判断任务是否已经跑过
         // 一次行全量、一次性验证判断onceStatus;每个任务的周期、每日定时判断allStatus
         if (task.getMonitorType() >= 1 && task.getMonitorType() <= 4) {
@@ -416,4 +427,42 @@ public class TaskServiceImpl implements ITaskService {
 
         return maxNum - hasResource;
     }
+
+    /**
+     * 尝试写入Redis，失败重试3次，失败后暂停任务并跳出外层循环
+     */
+    private boolean retrySetRedisOrDisableTask(String key, String fileId, String page, MarketingTask blt) {
+        int retryCount = 0;
+        while (retryCount < 3) {
+            try {
+                // 模拟重试redis异常
+                checkMockRedisSwitch("retryRedis");
+
+                redisChgService.set(key, "1");
+                redisChgService.expire(key, 60 * 60 * 24 * 10);
+                // 成功
+                return true;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount >= 3) {
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，Redis异常重试写入失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, page), e.getMessage()));
+                    return false;
+                } else {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                }
+            }
+        }
+        return false;
+    }
+
+    private void checkMockRedisSwitch(String key) throws Exception {
+        Map<String, Boolean> mockRedisSwitch =  marketingCommonConfig.getMockRedisSwitch();
+        if(!CollectionUtils.isEmpty(mockRedisSwitch)){
+            if(mockRedisSwitch.get(key)){
+                throw new Exception();
+            }
+        }
+    }
+
 }

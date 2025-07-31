@@ -1,11 +1,13 @@
 package com.br.marketing.datarelayservice.enums;
 
 import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
+import com.br.marketing.datarelayservice.client.QiFuAiRobotRankingReportBizDataDTO;
 import com.br.marketing.datarelayservice.client.QiFuAiRobotReportBizDataDTO;
 
 public enum QiFuAiBizTypeEnum {
     UPLOAD_DATA("original", QiFuAiBizDataDTO.class),
-    ROBOT_REPORT("robot_report", QiFuAiRobotReportBizDataDTO.class);
+    ROBOT_REPORT("robot_report", QiFuAiRobotReportBizDataDTO.class),
+    ROBOT_RANKING_REPORT("robot_ranking_report", QiFuAiRobotRankingReportBizDataDTO.class);;
 
     private String type;
     private Class<?> clazz;

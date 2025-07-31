@@ -27,6 +27,7 @@ public enum SftpFileTypeEnum {
     ,PP_RONGSHU_MARK("pp_rongshu_mark")
     ,SMY_PUSH_BLACK_LIST("smy_black_list")
     ,SANLIULING_PP("sanliuling_pp")
+    ,XIECHENG_CPS_COLLIDING("xiecheng_cps_colliding")
     ;
    private String value;
 }

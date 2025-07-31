@@ -71,4 +71,32 @@
         </foreach>
         limit ${(pageNum - 1) * pageSize}, #{pageSize}
     </select>
+
+    <select id="getGroupByPhoneWithPaging" resultType="java.lang.String">
+        select phone from b_phone_sale
+        where local_id = #{localId}
+          and status = 1
+        group by phone
+        order by phone
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="getGroupByPhoneCount" resultType="java.lang.Integer">
+        select count(distinct phone) from b_phone_sale
+        where local_id = #{localId}
+          and status = 1
+    </select>
+
+    <select id="getWeiZhongData" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
+        select
+        *
+        from b_phone_sale
+        where local_id = #{localId}
+        and status =1 and phone = #{phone}
+        <if test="dataId != null and dataId>0">
+            and id > #{dataId}
+        </if>
+        order by id asc limit 1000;
+    </select>
+
 </mapper>

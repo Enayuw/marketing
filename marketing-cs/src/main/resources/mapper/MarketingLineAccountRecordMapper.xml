@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingLineAccountRecordMapper" >
+
+    <select id="selectList" resultType="com.br.marketing.entity.MarketingLineAccountRecord">
+        SELECT id, config_id, line_supplier, lines_info, price, effect_start_date, effect_end_date,
+               enabled, create_time, update_time, is_delete
+        FROM b_marketing_line_account_record
+        <where>
+            is_delete =0
+            <if test="lineSupplier!=null and lineSupplier!=''">
+                AND line_supplier LIKE CONCAT('%', #{lineSupplier}, '%')
+            </if>
+            <if test="callerFullName!=null and callerFullName!=''">
+                AND lines_info LIKE CONCAT('%', #{callerFullName}, '%')
+            </if>
+            <if test="price != null">
+                AND price = #{price}
+            </if>
+            <if test="nowDate !=null">
+                AND #{nowDate} BETWEEN effect_start_date AND effect_end_date
+            </if>
+            ORDER BY update_time DESC
+        </where>
+    </select>
+
+
+    <select id="getLineAccountsByConfigId" resultType="com.br.marketing.entity.MarketingLineAccountRecord">
+        SELECT id, config_id, line_supplier, lines_info, price, effect_start_date, effect_end_date,
+               enabled, create_time, update_time, is_delete
+        FROM b_marketing_line_account_record
+        WHERE
+            config_id =#{configId}
+            AND is_delete =0
+        ORDER BY update_time DESC
+    </select>
+
+</mapper>
