@@ -4,6 +4,7 @@ package com.br.marketing.speedconfig;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
+import com.br.marketing.entity.rocketmq.RocketMqSwitchEntity;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
@@ -2094,7 +2095,7 @@ public class MarketingCommonConfig {
      *      apiCodes：配置启用RocketMQ的apiCode,多个以逗号分隔
      *      tags：配置启用RocketMQ的tag,多个以逗号分隔
      */
-    private String rocketMqSwitch2;
+    private RocketMqSwitchEntity rocketMqSwitch2;
 
     /**
      * 58新客-营销转化结果查询-批量DB线程

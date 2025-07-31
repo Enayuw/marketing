@@ -1,10 +1,6 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
@@ -22,13 +18,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
-import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
-import com.br.marketing.client.robotaiapi.input.BlackPhoneDTO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
-import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
-import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
+import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
@@ -41,14 +31,7 @@ import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.cache.CaffeineCacheKeyConstant;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingTransferEmergencyConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingTransferSmallConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingUploadEmergencyConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingUploadSmallConstants;
+import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
@@ -63,139 +46,30 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
-import com.br.marketing.dto.ConditionSaveDTO;
-import com.br.marketing.dto.CustomerBatchNumDTO;
-import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
-import com.br.marketing.dto.OptConditionDTO;
-import com.br.marketing.dto.PushBlackReqDTO;
-import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.dto.RequestCommonDTO;
-import com.br.marketing.dto.RequestPushInfoDTO;
-import com.br.marketing.dto.ReserveField1DTO;
-import com.br.marketing.dto.SearchConditionDTO;
-import com.br.marketing.dto.TaskExtendExtendFieldDTO;
-import com.br.marketing.dto.TransferDataDTO;
-import com.br.marketing.dto.TransferDataItemDTO;
+import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
-import com.br.marketing.entity.CustomerInfoPushBatch;
-import com.br.marketing.entity.CustomerInfoPushBatchExample;
-import com.br.marketing.entity.CustomerInfoPushLog;
-import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.entity.CustomerInfoPushMainExample;
-import com.br.marketing.entity.CustomerRoutingKeyConfig;
-import com.br.marketing.entity.ErrorMark;
-import com.br.marketing.entity.ErrorMarkExample;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingCustomerExample;
-import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
-import com.br.marketing.entity.MarketingSyncErrorInfo;
-import com.br.marketing.entity.MarketingSyncInfo;
-import com.br.marketing.entity.MarketingSyncInfoExample;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskExample;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MarketingTaskExtendExample;
-import com.br.marketing.entity.MarketingTransfer;
-import com.br.marketing.entity.MarketingTransferInfo;
-import com.br.marketing.entity.MarketingTransferInfoExample;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.MerchantParam;
-import com.br.marketing.entity.MonitorTypeEnum;
-import com.br.marketing.entity.PhoneBlack;
-import com.br.marketing.entity.PushDecisions;
-import com.br.marketing.entity.PushDecisionsExample;
-import com.br.marketing.entity.PushTransferCustomerLog;
-import com.br.marketing.entity.PushTransferRobotaiLog;
-import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.entity.ScoreSearchCondition;
-import com.br.marketing.entity.ScoreSearchConditionMapping;
-import com.br.marketing.entity.ScoreSearchConditionMappingExample;
-import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
-import com.br.marketing.entity.TaskTime;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XiechengCollidingDataPackageRule;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
-import com.br.marketing.entity.XiechengCollidingDataProcessTask;
-import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
-import com.br.marketing.entity.XiechengCollidingTaskBatch;
-import com.br.marketing.entity.ZhongbangCaifuData;
-import com.br.marketing.entity.ZhongbangCaifuDataExample;
-import com.br.marketing.enums.CustomerQueueEnum;
-import com.br.marketing.enums.DingDingAlarmFunctionEnum;
-import com.br.marketing.enums.ErrorMarkTypeEnum;
-import com.br.marketing.enums.FilterTypeEnum;
-import com.br.marketing.enums.MockSwitchEnum;
-import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.enums.RetryStatusEnum;
-import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
-import com.br.marketing.enums.XcProcessTaskEnum;
+import com.br.marketing.entity.*;
+import com.br.marketing.enums.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.es.bean.ESQueryRequest;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
-import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
-import com.br.marketing.mapper.CustomerInfoPushLogMapper;
-import com.br.marketing.mapper.CustomerInfoPushMainMapper;
-import com.br.marketing.mapper.CustomerRuleMapper;
-import com.br.marketing.mapper.ErrorMarkMapper;
-import com.br.marketing.mapper.HaluoCallRelationMapper;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.MarketingSyncErrorInfoMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
-import com.br.marketing.mapper.MarketingTransferInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.MarketingUserMapper;
-import com.br.marketing.mapper.PhoneBlackMapper;
-import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
-import com.br.marketing.mapper.PhoneSaleMapper;
-import com.br.marketing.mapper.PushDecisionsMapper;
-import com.br.marketing.mapper.PushTransferCustomerLogMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
-import com.br.marketing.mapper.ScoreSearchConditionMapper;
-import com.br.marketing.mapper.ScoreSearchConditionMappingMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
-import com.br.marketing.mapper.TagDataDetailMapper;
-import com.br.marketing.mapper.TaskTimeMapper;
-import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
-import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
-import com.br.marketing.mapper.XiechengCollidingTaskBatchMapper;
-import com.br.marketing.mapper.ZhongbangCaifuDataMapper;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
+import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
-import com.br.marketing.origin.CaffeineCache;
-import com.br.marketing.origin.DataLoadingHandlerService;
-import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.MrpMqFact;
-import com.br.marketing.origin.TransferSource;
+import com.br.marketing.origin.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
-import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
-import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.PushTransferRobotaiLogService;
-import com.br.marketing.service.SoleStrategyService;
-import com.br.marketing.service.ToPolicyByRuleService;
-import com.br.marketing.service.TransferFieldProcessFactory;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
@@ -210,18 +84,7 @@ import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
-import com.br.marketing.vo.ConditionOfScoreVO;
-import com.br.marketing.vo.CustomerPushLogVO;
-import com.br.marketing.vo.CustomerSoleRuleVO;
-import com.br.marketing.vo.MarketingPreUserErrorDetailVO;
-import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
-import com.br.marketing.vo.MarketingTransferUserStatusVO;
-import com.br.marketing.vo.PushInfoDetailVO;
-import com.br.marketing.vo.ScoreConditionDetailVO;
-import com.br.marketing.vo.ScoreDetailVo;
-import com.br.marketing.vo.TaskExtendInfoVO;
-import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
-import com.br.marketing.vo.TransferUserVO;
+import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -241,20 +104,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -271,30 +125,10 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.concurrent.Future;
-import java.util.concurrent.RecursiveTask;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -429,6 +263,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     @Qualifier("clusterEnvironment")
     private String clusterEnvironment;
+
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -1056,6 +893,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             }, threadPool));
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程页面量级预览线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程页面量级预览线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            Thread.currentThread().interrupt();
+        }
         return batchCount.get();
     }
 
@@ -2565,8 +2413,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (Objects.isNull(dataSourceType)) {
             dataSourceType = 0;
         }
+        MarketingPreUserDTO preUserDTO = dto.getJsonData();
+        List<MarketingPreUserDetailDTO> dataItems = preUserDTO.getDataItems();
+        batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
         //region 数据入库
+        String jsonDataStr = null;
         try {
+            jsonDataStr = JSON.toJSONString(preUserDTO);
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
             syncInfo.setApiCode(dto.getApiCode());
             syncInfo.setCusBatch(dto.getJsonData().getTaskId());
@@ -2574,7 +2427,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setLast(last);
             syncInfo.setTotal(total);
             syncInfo.setCreateTime(new Date());
-            syncInfo.setJsonData(jsonData);
+            syncInfo.setJsonData(jsonDataStr);
             syncInfo.setActualNum(size);
             syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
@@ -2591,6 +2444,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
+            if (jsonDataStr == null) {
+                jsonDataStr = jsonData;
+            }
             log.error(String.format("返回DB异常耗时：%d", System.currentTimeMillis() - l));
             dbException = Boolean.TRUE;
         }
@@ -2603,7 +2459,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonData);
+                jsonObject.put("jsonData", jsonDataStr);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
@@ -2631,6 +2487,36 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
+
+    /**
+     * 批量添加唯一ID
+     *
+     * @param list 数据列表
+     * @param setConsumer 赋值函数
+     * @param getFunction 获取ID函数，如果获取ID为空，则添加ID,可为 null
+     */
+    public <T> void batchAddUniqueId(List<T> list, BiConsumer<T, Long> setConsumer, Function<T, Long> getFunction) {
+        int size = list.size();
+        List<Long> ids;
+        try {
+            ids = snowflakeRedisGeneratorHandle.nextIds(size);
+        } catch (Exception e) {
+            log.error("批量添加唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+            return;
+        }
+        if (getFunction == null) {
+            for (int i = 0; i < size; i++) {
+                setConsumer.accept(list.get(i), ids.get(i));
+            }
+            return;
+        }
+        for (int i = 0; i < size; i++) {
+            if (getFunction.apply(list.get(i)) == null) {
+                setConsumer.accept(list.get(i), ids.get(i));
+            }
+        }
+    }
+
     /**
      * 发送json解析MQ
      *
@@ -2654,7 +2540,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+            rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
+                    JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             //存储标识
             caffeineCache.storeIdentifier(cacheKey, Boolean.TRUE.toString());
         } catch (Exception e) {
@@ -3143,6 +3030,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setFailType(marketingPreUserDetailDTO.getFailType());
                 marketingSyncUser.setAppletTime(marketingSyncInfo.getCreateTime());
                 marketingSyncUser.setUserType(finalReserveField.getUserType());
+                marketingSyncUser.setFingerprint(marketingPreUserDetailDTO.getFingerprint());
                 try {
                     Long st1 = System.currentTimeMillis();
                     Long et1;
@@ -3179,6 +3067,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                             );
                         }
                     }
+                } catch (DuplicateKeyException e) {
+                    log.warn("insertMarketingSyncUser数据重复,{},{}", e.getMessage(), JSON.toJSON(marketingSyncUser), e);
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -3580,18 +3470,21 @@ public class PushRuleServiceImpl implements PushRuleService {
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String transferInfoId = "";
         Boolean dbException = Boolean.FALSE;
-
+        batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
+        String jsonDataStr = null;
         try {
+            jsonDataStr = JSON.toJSONString(transferDataDTO);
             //todo 测试pulsar 上线删除
             if ("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())) {
                 throw new RuntimeException("模拟DB错误");
             }
+
             MarketingTransferInfo transferInfo = new MarketingTransferInfo();
             transferInfo.setApiCode(apiCode);
             transferInfo.setRequestId(transferDataDTO.getRequestId());
             transferInfo.setOrgName(transferDataDTO.getOrgName());
             transferInfo.setCreateTime(new Date());
-            transferInfo.setJsonData(jsonData);
+            transferInfo.setJsonData(jsonDataStr);
             transferInfo.setActualNum(size);
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
@@ -3604,6 +3497,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
+            if (jsonDataStr == null) {
+                jsonDataStr = jsonData;
+            }
             dbException = Boolean.TRUE;
         }
 
@@ -3613,7 +3509,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonData);
+                jsonObject.put("jsonData", jsonDataStr);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
@@ -3773,6 +3669,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setLentTime(dateTimeComplet(transferDataItemDTO.getLentTime()));
                 transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
+                transferSyncUser.setFingerprint(transferDataItemDTO.getFingerprint());
                 if (transferFieldProcessFactory != null) {
                     transferFieldProcessFactory.fieldProcess(transferSyncUser, transferDataItemDTO);
                 }
@@ -3794,6 +3691,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     } catch (Exception ex) {
                         log.error("客户转化接口统计异常" + ex.getMessage(), ex);
                     }
+                } catch (DuplicateKeyException e) {
+                    log.warn("insertMarketingTransferSyncUser数据重复,{},{}", e.getMessage(), JSON.toJSON(transferSyncUser), e);
                 } catch (Exception ex) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());

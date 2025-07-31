@@ -175,12 +175,6 @@ public class TaskServiceImpl implements ITaskService {
         List<MarketingTask> scoreTasks = marketingTaskMapper.getScoreTasks(nowDay, taskId,hm);
 
         for (MarketingTask scoreTask : scoreTasks) {
-            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(scoreTask.getApiCode());
-            if (merchantParam == null) {
-                log.error("用户中心结果为空"+scoreTask.getApiCode());
-                continue;
-            }
-
             String s = UUID.randomUUID().toString();
             boolean taskLock = getTaskLock(scoreTask, s);
             if (!taskLock) {

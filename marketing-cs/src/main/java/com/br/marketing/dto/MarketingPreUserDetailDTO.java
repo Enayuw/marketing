@@ -72,4 +72,10 @@ public class MarketingPreUserDetailDTO implements Serializable {
      */
     private String taskId;
 
+    /**
+     * 2025/7/7 13:46
+     * 数据指纹，数据唯一标识
+     */
+    private Long fingerprint;
+
 }

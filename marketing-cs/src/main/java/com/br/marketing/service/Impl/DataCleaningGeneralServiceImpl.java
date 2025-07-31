@@ -12,6 +12,7 @@ import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.MarketingCleanDataTaskExample;
 import com.br.marketing.entity.MarketingDataFileConfig;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
@@ -63,6 +64,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     @Resource
     PushInfoService pushInfoService;
+
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     public static List<String> pattern = Arrays.asList(
             "yyyy-MM-dd",
@@ -546,6 +550,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             dataFieldVOS.add(vo);
         });
         MarketingPreUserDetailDTO make = make(dataFieldVOS);
+        make.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
         //endregion
         syncUsers.add(make);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();

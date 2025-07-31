@@ -42,6 +42,7 @@
     <result column="request_data" property="requestData" jdbcType="VARCHAR" />
     <result column="request_time" property="requestTime" jdbcType="VARCHAR" />
     <result column="t_cid" property="tCid" jdbcType="VARCHAR" />
+    <result column="fingerprint" property="fingerprint" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -107,7 +108,7 @@
     apply_result, refuse_time, audit_time, audit_amount, if_lent, lent_time, lent_amount, 
     unlent_amount, if_settle, settle_time, activity, case_status, case_effective, if_transform, 
     transform_time, insert_time, reserve_field1, reserve_field2, create_time, update_time, 
-    request_data, request_time, t_cid
+    request_data, request_time, t_cid, fingerprint
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTransferSyncUserExample" >
     select
@@ -155,7 +156,7 @@
       case_status, case_effective, if_transform, 
       transform_time, insert_time, reserve_field1, 
       reserve_field2, create_time, update_time, 
-      request_data, request_time, t_cid
+      request_data, request_time, t_cid, fingerprint
       )
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{requestId,jdbcType=VARCHAR}, 
       #{orgName,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, 
@@ -169,7 +170,7 @@
       #{caseStatus,jdbcType=VARCHAR}, #{caseEffective,jdbcType=VARCHAR}, #{ifTransform,jdbcType=VARCHAR}, 
       #{transformTime,jdbcType=VARCHAR}, #{insertTime,jdbcType=VARCHAR}, #{reserveField1,jdbcType=VARCHAR}, 
       #{reserveField2,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{requestData,jdbcType=VARCHAR}, #{requestTime,jdbcType=VARCHAR}, #{tCid,jdbcType=VARCHAR}
+      #{requestData,jdbcType=VARCHAR}, #{requestTime,jdbcType=VARCHAR}, #{tCid,jdbcType=VARCHAR}, #{fingerprint,jdbcType=BIGINT}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTransferSyncUser" >
@@ -295,6 +296,9 @@
       <if test="tCid != null" >
         t_cid,
       </if>
+      <if test="fingerprint != null" >
+        fingerprint,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cid != null" >
@@ -413,6 +417,9 @@
       </if>
       <if test="tCid != null" >
         #{tCid,jdbcType=VARCHAR},
+      </if>
+      <if test="fingerprint != null" >
+        #{fingerprint,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -545,6 +552,9 @@
       <if test="record.tCid != null" >
         t_cid = #{record.tCid,jdbcType=VARCHAR},
       </if>
+      <if test="record.tCid != null" >
+        fingerprint = #{record.fingerprint,jdbcType=BIGINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -591,7 +601,8 @@
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       request_data = #{record.requestData,jdbcType=VARCHAR},
       request_time = #{record.requestTime,jdbcType=VARCHAR},
-      t_cid = #{record.tCid,jdbcType=VARCHAR}
+      t_cid = #{record.tCid,jdbcType=VARCHAR},
+      fingerprint = #{record.fingerprint,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -716,6 +727,9 @@
       <if test="tCid != null" >
         t_cid = #{tCid,jdbcType=VARCHAR},
       </if>
+      <if test="fingerprint != null" >
+        fingerprint = #{fingerprint,jdbcType=BIGINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -759,7 +773,8 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       request_data = #{requestData,jdbcType=VARCHAR},
       request_time = #{requestTime,jdbcType=VARCHAR},
-      t_cid = #{tCid,jdbcType=VARCHAR}
+      t_cid = #{tCid,jdbcType=VARCHAR},
+      fingerprint = #{fingerprint,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

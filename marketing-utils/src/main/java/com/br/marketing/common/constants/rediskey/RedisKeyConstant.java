@@ -370,4 +370,13 @@ public class RedisKeyConstant {
      */
     public static final String tcyrDbDeal = prefix.concat("tcyr_sync:dbDeal");
 
+    /**
+     * 雪花算法
+     */
+    public static final String SNOWFLAKE = prefix.concat("snowflake:");
+    /**
+     * mq
+     */
+    public static final String MQ_IDEMPOTENT = prefix.concat("mq:idempotent:");
+
 }
