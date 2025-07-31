@@ -1,5 +1,6 @@
 package com.br.marketing.check.job.qifu.report;
 
+import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.util.CollectionUtils;
 import com.br.marketing.check.enums.EmailSubjectEnum;
 import com.br.marketing.check.job.qifu.report.factory.ReportStrategyFactory;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -66,7 +68,7 @@ public abstract class AbstractReportEmailJob extends AbstractSimpleElasticJob {
         }
         MarketingEmailSendConfig sendConfig = sendConfigList.get(0);
 
-        String currentDate = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd").format(java.time.LocalDate.now());
+        String currentDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
         List<?> dataList = strategy.queryData(apiCode, currentDate);
         List<?> excelList = strategy.convertToExcelModel(dataList);
         List<?> processedList = strategy.postProcess(excelList);
@@ -82,14 +84,15 @@ public abstract class AbstractReportEmailJob extends AbstractSimpleElasticJob {
         if (!excelDic.exists()) {
             excelDic.mkdirs();
         }
-        String excelFilePath = excelPath + File.separator + sendConfig.getAttachmentFileName();
+        String fileName = strategy.getAttachmentFileName(subject).concat(".xlsx");
+        String excelFilePath = excelPath + File.separator + fileName;
 
         // 生成Excel文件
-        com.alibaba.excel.EasyExcel.write(excelFilePath, strategy.getExcelModelClass())
+        EasyExcel.write(excelFilePath, strategy.getExcelModelClass())
                 .sheet(strategy.getSheetName())
                 .doWrite(processedList);
 
-        mailService.sendAttachmentsMail(sendConfig.getReceiverUser(), subject + "_" + LocalDate.now(), strategy.getContent(subject), excelFilePath, sendConfig.getAttachmentFileName());
+        mailService.sendAttachmentsMail(sendConfig.getReceiverUser(), strategy.getAttachmentFileName(subject), strategy.getContent(subject), excelFilePath, fileName);
     }
 
 }
