@@ -3,6 +3,8 @@ package com.br.marketing.service.rulecenter.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -118,6 +121,17 @@ public class ScoreXieChengServiceImpl {
             }, threadPool));
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程自动生成决策任务量级预览线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程自动生成决策任务量级预览线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            Thread.currentThread().interrupt();
+        }
         return batchCount.get();
     }
 

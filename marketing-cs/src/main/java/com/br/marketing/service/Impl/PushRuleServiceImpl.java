@@ -893,6 +893,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             }, threadPool));
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程页面量级预览线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程页面量级预览线程池结束异常！errorMessage=" + ex.getMessage()), ex);
+            Thread.currentThread().interrupt();
+        }
         return batchCount.get();
     }
 

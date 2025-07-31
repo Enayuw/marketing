@@ -47,11 +47,14 @@ public class QiFuAiUploadDataService {
 
     public Pair<CodeEnum, FlagEnum> handle(QiFuAiReqDTO requestBody, String bizType, String testApiCode) {
         String decryptData;
+        String apiCode;
         try {
             JSONObject jsonObject;
-            if (StringUtils.isNotBlank(testApiCode)){
+            if (StringUtils.isNotBlank(testApiCode)) {
+                apiCode = testApiCode;
                 jsonObject = marketingCommonConfig.getQiFuAIUploadConfig();
-            }else {
+            } else {
+                apiCode = marketingCommonConfig.getQiFuAIUploadDataApiCode();
                 jsonObject = marketingCommonConfig.getQiFuAIServerConfig();
             }
             // 奇富侧公钥
@@ -96,11 +99,10 @@ public class QiFuAiUploadDataService {
         }
 
         // 服务端解密后，会进行相应的业务处理
-        return bizHandle(decryptData, bizType);
+        return bizHandle(decryptData, bizType, apiCode);
     }
 
-    public Pair<CodeEnum, FlagEnum> bizHandle(String decryptData, String bizType) {
-        String apiCode = marketingCommonConfig.getQiFuAIUploadDataApiCode();
+    public Pair<CodeEnum, FlagEnum> bizHandle(String decryptData, String bizType, String apiCode) {
         try {
             String suffix = "_" + bizType;
             DrsCustomizeUploadData uploadData = new DrsCustomizeUploadData();
