@@ -14,6 +14,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.security.SecureRandom;
 
 
 /**
@@ -39,6 +40,14 @@ public class RocketMqSwitch {
      */
     public static final String PRINT_LOG = "printLog";
 
+    /**
+     * 2025/7/31 13:22
+     * 流量权重
+     */
+    public static final String FEATURE_WEIGHT = "featureWeight";
+
+    private final SecureRandom RANDOM = new SecureRandom();
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -58,19 +67,32 @@ public class RocketMqSwitch {
             if (global) {
                 boolean flagValue = getMsgFlag(tag, FLAG, Boolean.FALSE);
                 if (flagValue) {
-                    return Boolean.TRUE;
+                    return Boolean.TRUE && shouldRouteToRocketMq(entity, tag);
                 } else {
                     String appCodesValue = getGroupValue(entity, tag, APICODES_SPEED, null, String.class);
                     if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(appCodesValue)) {
                         return Boolean.FALSE;
                     }
-                    return appCodesValue.contains(apiCode);
+                    return appCodesValue.contains(apiCode) && shouldRouteToRocketMq(entity, tag);
                 }
             }
         } catch (Exception e) {
             log.warn("rocketMQSwitchFlag对应的RocketMqSwitch2配置异常,apiCode:{}--tag:{}--", apiCode, tag, e);
         }
         return Boolean.FALSE;
+    }
+
+    /**
+     * 2025/7/31 13:22
+     * 获取流量权重
+     */
+    public boolean shouldRouteToRocketMq(RocketMqSwitchEntity entity, String tag) {
+        Integer featureWeight = getGroupValue(entity, tag, FEATURE_WEIGHT, null, Integer.class);
+        if (featureWeight == null || featureWeight <= 0) {
+            return true;
+        }
+        int weight = RANDOM.nextInt(100) + 1;
+        return weight <= featureWeight;
     }
 
     public void sendMessage(String apiCode, String topic, String tag, String msg, String routeKey) {
