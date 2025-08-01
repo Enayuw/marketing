@@ -302,7 +302,10 @@ api:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: true
-
+# 雪花算法数据中心ID
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:0}
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
   name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876
@@ -316,7 +319,7 @@ rocketmq:
     # 发送消息超时时间，默认3000
     sendMessageTimeout: 5000
     # 消息最大长度，默认1024 * 1024 * 4(默认4M)
-    maxMessageSize: 4096
+    maxMessageSize: 4194304
     # 压缩消息阈值，默认4k(1024 * 4)
     compressMessageBodyThreshold: 4096
     # 是否在内部发送失败时重试另一个broker，默认false

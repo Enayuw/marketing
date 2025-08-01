@@ -402,10 +402,13 @@ MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
 NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
-
+# 雪花算法数据中心ID
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:1}
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
-  name-server: 10.100.177.1:9876;10.100.177.2:9876;10.100.177.3:9876
+  name-server: ${ROCKET_NAME_SERVER:10.100.177.1:9875;10.100.177.2:9875;10.100.177.3:9875}
   producer:
     # 发送同一类消息的设置为同一个group，保证唯一
     group: Marketing_Default_Group
@@ -416,7 +419,7 @@ rocketmq:
     # 发送消息超时时间，默认3000
     sendMessageTimeout: 5000
     # 消息最大长度，默认1024 * 1024 * 4(默认4M)
-    maxMessageSize: 4096
+    maxMessageSize: 4194304
     # 压缩消息阈值，默认4k(1024 * 4)
     compressMessageBodyThreshold: 4096
     # 是否在内部发送失败时重试另一个broker，默认false

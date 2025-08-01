@@ -257,55 +257,6 @@ public class RabbitMqConfig {
                 MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS);
     }
 
-    /**
-     * 上传接口接收数据量级碎片队列
-     *
-     * @return 持久化队列
-     */
-    @Bean(name = MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS)
-    public Queue uploadDataCountFragmentsQueue() {
-        return QueueBuilder.durable(MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS).build();
-    }
-
-    /**
-     * 上传接口接收数据量级碎片队列绑定普通交换机
-     *
-     * @param delayQueue   数据量级碎片队列
-     * @param gateExchange 普通交换机
-     * @return 绑定关系
-     */
-    @Bean
-    public Binding uploadDataCountFragmentsQueueBindingGateExchange(
-            @Qualifier(MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS) Queue delayQueue
-            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
-        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
-                MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS);
-    }
-
-    /**
-     * 转化接口接收数据量级碎片队列
-     *
-     * @return 持久化队列
-     */
-    @Bean(name = MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS)
-    public Queue transferDataCountFragmentsQueue() {
-        return QueueBuilder.durable(MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS).build();
-    }
-
-    /**
-     * 转化接口接收数据量级碎片队列绑定普通交换机
-     *
-     * @param delayQueue   数据量级碎片队列
-     * @param gateExchange 普通交换机
-     * @return 绑定关系
-     */
-    @Bean
-    public Binding transferDataCountFragmentsQueueBindingGateExchange(
-            @Qualifier(MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS) Queue delayQueue
-            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
-        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
-                MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS);
-    }
 
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {

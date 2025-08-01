@@ -33,7 +33,7 @@ public class RocketMqSwitchEntity {
     /**
      * 全局开关
      */
-    private String global;
+    private Boolean global;
     /**
      * 按照tag分类
      * {

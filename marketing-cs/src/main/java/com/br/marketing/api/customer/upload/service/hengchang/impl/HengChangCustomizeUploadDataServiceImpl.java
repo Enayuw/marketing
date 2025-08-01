@@ -10,12 +10,13 @@ import com.br.marketing.api.customer.upload.service.hengchang.HengChangCustomize
 import com.br.marketing.api.customer.upload.service.hengchang.dto.HengChangUploadJsonDTO;
 import com.br.marketing.api.customer.upload.service.hengchang.dto.HengChangUploadResponseDTO;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -35,6 +36,8 @@ public class HengChangCustomizeUploadDataServiceImpl implements HengChangCustomi
 
     @Resource
     private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
 
     /**
      * 解密jsonData
@@ -159,7 +162,8 @@ public class HengChangCustomizeUploadDataServiceImpl implements HengChangCustomi
             JSONObject json = new JSONObject();
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_HENGCHANG_DATA_CLEAN, json.toJSONString());
+            rocketMqSwitch.sendMessage(null, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_HENGCHANG_DATA_CLEAN
+                    , json.toJSONString(), MQConstants.ROUTING_KEY_MARKETING_HENGCHANG_DATA_CLEAN);
             log.warn("恒昌定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HENGCHANG_SERVICEERROR.getCode(), e.getMessage()

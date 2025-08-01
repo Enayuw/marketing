@@ -2885,6 +2885,76 @@ public class MarketingTransferSyncUserExample {
             addCriterion("t_cid not between", value1, value2, "tCid");
             return (Criteria) this;
         }
+
+        public Criteria andFingerprintIsNull() {
+            addCriterion("fingerprint is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintIsNotNull() {
+            addCriterion("fingerprint is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintEqualTo(String value) {
+            addCriterion("fingerprint =", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintNotEqualTo(String value) {
+            addCriterion("fingerprint <>", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintGreaterThan(String value) {
+            addCriterion("fingerprint >", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintGreaterThanOrEqualTo(String value) {
+            addCriterion("fingerprint >=", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintLessThan(String value) {
+            addCriterion("fingerprint <", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintLessThanOrEqualTo(String value) {
+            addCriterion("fingerprint <=", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintLike(String value) {
+            addCriterion("fingerprint like", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintNotLike(String value) {
+            addCriterion("fingerprint not like", value, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintIn(List<String> values) {
+            addCriterion("fingerprint in", values, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintNotIn(List<String> values) {
+            addCriterion("fingerprint not in", values, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintBetween(String value1, String value2) {
+            addCriterion("fingerprint between", value1, value2, "tCid");
+            return (Criteria) this;
+        }
+
+        public Criteria andFingerprintNotBetween(String value1, String value2) {
+            addCriterion("fingerprint not between", value1, value2, "tCid");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

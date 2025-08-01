@@ -7,6 +7,7 @@ import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.entity.QiFuAiRobotRankingReportData;
 import com.br.marketing.entity.excel.QiFuAiRobotRankingReportExcelModel;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -30,10 +31,13 @@ public class QiFuAiRobotRankingReportStrategy implements ReportStrategy<QiFuAiRo
     @Resource
     private DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public String getApiCode(JobExecutionMultipleShardingContext context) {
         String jobParameter = context.getJobParameter();
-        return StringUtils.isNotEmpty(jobParameter) ? jobParameter : "3710155";
+        return StringUtils.isNotEmpty(jobParameter) ? jobParameter : marketingCommonConfig.getQiFuAIUploadDataApiCode();
     }
 
     @Override
