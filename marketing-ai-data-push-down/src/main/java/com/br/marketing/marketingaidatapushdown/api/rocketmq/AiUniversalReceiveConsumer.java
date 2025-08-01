@@ -1,12 +1,14 @@
 package com.br.marketing.marketingaidatapushdown.api.rocketmq;
 
-import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.rocketmq.AiPreUserReceiveEnum;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.springframework.stereotype.Service;
 
 import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.GROUP_MARKETING_AI_PREUSER_RECEIVE_1;
+import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.GROUP_MARKETING_AI_PREUSER_RECEIVE_2;
+import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.GROUP_MARKETING_AI_PREUSER_RECEIVE_3;
 import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.TAG_MARKETING_AI_PREUSER_RECEIVE_1;
+import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.TAG_MARKETING_AI_PREUSER_RECEIVE_3;
 import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.TOPIC_MARKETING_AI_PREUSER_RECEIVE_1;
 import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.TOPIC_MARKETING_AI_PREUSER_RECEIVE_2;
 import static com.br.marketing.common.constants.rocketmq.AiRocketMQConstants.TOPIC_MARKETING_AI_PREUSER_RECEIVE_3;
@@ -28,8 +30,8 @@ public class AiUniversalReceiveConsumer {
 
     @Service
     @RocketMQMessageListener(topic = TOPIC_MARKETING_AI_PREUSER_RECEIVE_2,
-            consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_B,
-            selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_B,
+            consumerGroup = GROUP_MARKETING_AI_PREUSER_RECEIVE_2,
+            selectorExpression = TAG_MARKETING_AI_PREUSER_RECEIVE_3,
             consumeThreadMax = 50, awaitTerminationMillisWhenShutdown = 10000)
     public class AiUniversalReceiveConsumer2 extends AbstractAiUniversalReceiveConsumer {
         @Override
@@ -40,8 +42,8 @@ public class AiUniversalReceiveConsumer {
 
     @Service
     @RocketMQMessageListener(topic = TOPIC_MARKETING_AI_PREUSER_RECEIVE_3,
-            consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_C,
-            selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_C,
+            consumerGroup = GROUP_MARKETING_AI_PREUSER_RECEIVE_3,
+            selectorExpression = TAG_MARKETING_AI_PREUSER_RECEIVE_3,
             consumeThreadMax = 50, awaitTerminationMillisWhenShutdown = 10000)
     public class AiUniversalReceiveConsumer3 extends AbstractAiUniversalReceiveConsumer {
         @Override

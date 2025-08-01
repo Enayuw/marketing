@@ -2573,7 +2573,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
+            getRoutingKeyAndSendToAiMq(syncInfoId);
             return true;
         }
 
@@ -2593,7 +2593,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
 
         if (hasType3Rule && hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
+            getRoutingKeyAndSendToAiMq(syncInfoId);
             return true;
         }
 
@@ -2612,14 +2612,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         // 缓存和数据中都有
         if (hasType3Rule || hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
+            getRoutingKeyAndSendToAiMq(syncInfoId);
             return true;
         }
 
         if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
-            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
+            getRoutingKeyAndSendToAiMq(syncInfoId);
             return true;
         }
 
@@ -2681,9 +2681,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         return true;
     }
 
-    private void getRoutingKeyAndSendToAiMq(String syncInfoId, String apiCode) {
-        JSONObject aiUseRocketMq = marketingCommonConfig.getAiUseRocketMq();
-        if (aiUseRocketMq.getBoolean("switch") || aiUseRocketMq.getJSONArray("rocketApiCodes").contains(apiCode)) {
+    private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
+        if (marketingCommonConfig.getAiUseRocketMq()) {
             AiPreUserReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiPreUserReceiveEnum.class,
                     RedisKeyConstant.AI_PREUSER_RECEIVE_CONSUMER_NAME);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), syncInfoId);
@@ -3273,19 +3272,18 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
         if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
-            sendToAIUniversalQueue(mqFact, apiCode);
+            sendToAIUniversalQueue(mqFact);
             return;
         }
 
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
         if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
-            sendToAIUniversalQueue(mqFact, apiCode);
+            sendToAIUniversalQueue(mqFact);
         }
     }
 
-    private void sendToAIUniversalQueue(MqFact mqFact, String apiCode){
-        JSONObject aiUseRocketMq = marketingCommonConfig.getAiUseRocketMq();
-        if (aiUseRocketMq.getBoolean("switch") || aiUseRocketMq.getJSONArray("rocketApiCodes").contains(apiCode)) {
+    private void sendToAIUniversalQueue(MqFact mqFact){
+        if (marketingCommonConfig.getAiUseRocketMq()) {
             AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
                     RedisKeyConstant.AI_UNIVERSAL_RECEIVE_CONSUMER_NAME);
             String message = JSON.toJSONString(mqFact);

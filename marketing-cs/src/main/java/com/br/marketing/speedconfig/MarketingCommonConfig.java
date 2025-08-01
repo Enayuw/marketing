@@ -3288,10 +3288,8 @@ public class MarketingCommonConfig {
     private JSONObject zhongAnCollidingDataConfig;
 
     /**
-     * Ai数据入库和推送下游rocketmq切换开关 (switch为true：所有客户都切换为rocketmq，不判断apicode。switch为false：只有配置在rocketApiCodes集合中才切换)
-     * {"switch": true,"rocketApiCodes": []}
-     * {"switch": false,"rocketApiCodes": ["7410580"]}
+     * Ai数据入库和推送下游rocketmq切换开关
      */
-    private JSONObject aiUseRocketMq;
+    private Boolean aiUseRocketMq;
 }
 
