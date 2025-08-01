@@ -2,12 +2,22 @@ package com.br.marketing.client;
 
 import com.brgroup.redis.BrRedisClients;
 import com.brgroup.redis.client.BrRedisClient;
-import io.lettuce.core.*;
+import io.lettuce.core.KeyValue;
+import io.lettuce.core.MapScanCursor;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
+import io.lettuce.core.ScoredValue;
+import io.lettuce.core.ScriptOutputType;
+import io.lettuce.core.ValueScanCursor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * redis客户端
@@ -633,6 +643,31 @@ public class RedisChgService {
             BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
             long size = marketingRedisClient.unlink(key);
             return size;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String  rpoplpush(String  key) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.rpoplpush(key,key);
+        }catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public Long llen(String key) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.llen(key);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public Long  rpush(String key,String... var1){
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.rpush(key,var1);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

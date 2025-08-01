@@ -35,6 +35,8 @@ import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.enums.rocketmq.AiPreUserReceiveEnum;
+import com.br.marketing.common.enums.rocketmq.AiUniversalReceiveEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.BrExecutors;
@@ -69,6 +71,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.*;
+import com.br.marketing.service.Impl.ai.QueueBalancer;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
@@ -263,6 +266,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     @Qualifier("clusterEnvironment")
     private String clusterEnvironment;
+
+    @Autowired
+    private QueueBalancer queueBalancer;
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
@@ -2567,7 +2573,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
             return true;
         }
 
@@ -2587,7 +2593,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
 
         if (hasType3Rule && hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
             return true;
         }
 
@@ -2606,14 +2612,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         // 缓存和数据中都有
         if (hasType3Rule || hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
             return true;
         }
 
         if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, apiCode);
             return true;
         }
 
@@ -2675,7 +2681,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         return true;
     }
 
-    private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
+    private void getRoutingKeyAndSendToAiMq(String syncInfoId, String apiCode) {
+        JSONObject aiUseRocketMq = marketingCommonConfig.getAiUseRocketMq();
+        if (aiUseRocketMq.getBoolean("switch") || aiUseRocketMq.getJSONArray("rocketApiCodes").contains(apiCode)) {
+            AiPreUserReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiPreUserReceiveEnum.class,
+                    RedisKeyConstant.AI_PREUSER_RECEIVE_CONSUMER_NAME);
+            rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), syncInfoId);
+            return;
+        }
+
         String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":" + clusterEnvironment;
         String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
         String aiQueueRoutingKey = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getDefault_route_key();
@@ -3259,14 +3273,27 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
         if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
-            producter.sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact, apiCode);
             return;
         }
 
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
         if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
-            producter.sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact, apiCode);
         }
+    }
+
+    private void sendToAIUniversalQueue(MqFact mqFact, String apiCode){
+        JSONObject aiUseRocketMq = marketingCommonConfig.getAiUseRocketMq();
+        if (aiUseRocketMq.getBoolean("switch") || aiUseRocketMq.getJSONArray("rocketApiCodes").contains(apiCode)) {
+            AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
+                    RedisKeyConstant.AI_UNIVERSAL_RECEIVE_CONSUMER_NAME);
+            String message = JSON.toJSONString(mqFact);
+            rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), message);
+            return;
+        }
+
+        producter.sendToAIUniversalQueue(mqFact);
     }
 
     /**

@@ -379,4 +379,14 @@ public class RedisKeyConstant {
      */
     public static final String MQ_IDEMPOTENT = prefix.concat("mq:idempotent:");
 
+
+    /**
+     * 携程上报队列负载key
+     */
+    public static final String AI_PREUSER_RECEIVE_CONSUMER_NAME = prefix.concat("aipreuserreceive:consumer:name");
+
+    /**
+     * 携程上报队列负载key
+     */
+    public static final String AI_UNIVERSAL_RECEIVE_CONSUMER_NAME = prefix.concat("aiuniversalreceive:consumer:name");
 }
