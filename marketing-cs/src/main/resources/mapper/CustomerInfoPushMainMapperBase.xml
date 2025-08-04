@@ -31,6 +31,8 @@
     <result column="build_type" property="buildType" jdbcType="INTEGER" />
     <result column="strategy_code" property="strategyCode" jdbcType="VARCHAR" />
     <result column="tag_content" property="tagContent" jdbcType="VARCHAR" />
+    <result column="push_target" property="pushTarget" jdbcType="INTEGER" />
+    <result column="label_name" property="labelName" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -91,11 +93,11 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max, 
-    m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time, 
-    update_time, finish_time, m_rule_condition, m_rule_condition_show, m_score_condition, 
-    m_percentage, opt_user_id, opt_user_name, filter_type, batch_name, extend, source_type, 
-    build_type, strategy_code, tag_content
+    id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max,
+    m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time,
+    update_time, finish_time, m_rule_condition, m_rule_condition_show, m_score_condition,
+    m_percentage, opt_user_id, opt_user_name, filter_type, batch_name, extend, source_type,
+    build_type, strategy_code, tag_content, push_target, label_name
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
     select
@@ -112,7 +114,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_customer_info_push_main
     where id = #{id,jdbcType=BIGINT}
@@ -131,26 +133,28 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_customer_info_push_main (m_api_code, m_model, m_model_version, 
-      m_num_min, m_num_max, m_score_min, 
-      m_score_max, m_plan_num, m_realy_num, 
-      m_cus_batch_number_list, m_status, is_del, 
-      create_time, update_time, finish_time, 
-      m_rule_condition, m_rule_condition_show, m_score_condition, 
-      m_percentage, opt_user_id, opt_user_name, 
-      filter_type, batch_name, extend, 
-      source_type, build_type, strategy_code, 
-      tag_content)
-    values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR}, 
-      #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER}, 
-      #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
-      #{mCusBatchNumberList,jdbcType=VARCHAR}, #{mStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP}, 
-      #{mRuleCondition,jdbcType=VARCHAR}, #{mRuleConditionShow,jdbcType=VARCHAR}, #{mScoreCondition,jdbcType=VARCHAR}, 
-      #{mPercentage,jdbcType=DECIMAL}, #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR}, 
-      #{filterType,jdbcType=INTEGER}, #{batchName,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
-      #{sourceType,jdbcType=INTEGER}, #{buildType,jdbcType=INTEGER}, #{strategyCode,jdbcType=VARCHAR}, 
-      #{tagContent,jdbcType=VARCHAR})
+    insert into b_customer_info_push_main (m_api_code, m_model, m_model_version,
+    m_num_min, m_num_max, m_score_min,
+    m_score_max, m_plan_num, m_realy_num,
+    m_cus_batch_number_list, m_status, is_del,
+    create_time, update_time, finish_time,
+    m_rule_condition, m_rule_condition_show, m_score_condition,
+    m_percentage, opt_user_id, opt_user_name,
+    filter_type, batch_name, extend,
+    source_type, build_type, strategy_code,
+    tag_content, push_target, label_name
+    )
+    values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR},
+    #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER},
+    #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER},
+    #{mCusBatchNumberList,jdbcType=VARCHAR}, #{mStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP},
+    #{mRuleCondition,jdbcType=VARCHAR}, #{mRuleConditionShow,jdbcType=VARCHAR}, #{mScoreCondition,jdbcType=VARCHAR},
+    #{mPercentage,jdbcType=DECIMAL}, #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR},
+    #{filterType,jdbcType=INTEGER}, #{batchName,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR},
+    #{sourceType,jdbcType=INTEGER}, #{buildType,jdbcType=INTEGER}, #{strategyCode,jdbcType=VARCHAR},
+    #{tagContent,jdbcType=VARCHAR}, #{pushTarget,jdbcType=INTEGER}, #{labelName,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -242,6 +246,12 @@
       <if test="tagContent != null" >
         tag_content,
       </if>
+      <if test="pushTarget != null" >
+        push_target,
+      </if>
+      <if test="labelName != null" >
+        label_name,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="mApiCode != null" >
@@ -327,6 +337,12 @@
       </if>
       <if test="tagContent != null" >
         #{tagContent,jdbcType=VARCHAR},
+      </if>
+      <if test="pushTarget != null" >
+        #{pushTarget,jdbcType=INTEGER},
+      </if>
+      <if test="labelName != null" >
+        #{labelName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -426,6 +442,12 @@
       <if test="record.tagContent != null" >
         tag_content = #{record.tagContent,jdbcType=VARCHAR},
       </if>
+      <if test="record.pushTarget != null" >
+        push_target = #{record.pushTarget,jdbcType=INTEGER},
+      </if>
+      <if test="record.labelName != null" >
+        label_name = #{record.labelName,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -434,34 +456,36 @@
   <update id="updateByExample" parameterType="map" >
     update b_customer_info_push_main
     set id = #{record.id,jdbcType=BIGINT},
-      m_api_code = #{record.mApiCode,jdbcType=VARCHAR},
-      m_model = #{record.mModel,jdbcType=VARCHAR},
-      m_model_version = #{record.mModelVersion,jdbcType=VARCHAR},
-      m_num_min = #{record.mNumMin,jdbcType=INTEGER},
-      m_num_max = #{record.mNumMax,jdbcType=INTEGER},
-      m_score_min = #{record.mScoreMin,jdbcType=INTEGER},
-      m_score_max = #{record.mScoreMax,jdbcType=INTEGER},
-      m_plan_num = #{record.mPlanNum,jdbcType=INTEGER},
-      m_realy_num = #{record.mRealyNum,jdbcType=INTEGER},
-      m_cus_batch_number_list = #{record.mCusBatchNumberList,jdbcType=VARCHAR},
-      m_status = #{record.mStatus,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      finish_time = #{record.finishTime,jdbcType=TIMESTAMP},
-      m_rule_condition = #{record.mRuleCondition,jdbcType=VARCHAR},
-      m_rule_condition_show = #{record.mRuleConditionShow,jdbcType=VARCHAR},
-      m_score_condition = #{record.mScoreCondition,jdbcType=VARCHAR},
-      m_percentage = #{record.mPercentage,jdbcType=DECIMAL},
-      opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
-      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
-      filter_type = #{record.filterType,jdbcType=INTEGER},
-      batch_name = #{record.batchName,jdbcType=VARCHAR},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      source_type = #{record.sourceType,jdbcType=INTEGER},
-      build_type = #{record.buildType,jdbcType=INTEGER},
-      strategy_code = #{record.strategyCode,jdbcType=VARCHAR},
-      tag_content = #{record.tagContent,jdbcType=VARCHAR}
+    m_api_code = #{record.mApiCode,jdbcType=VARCHAR},
+    m_model = #{record.mModel,jdbcType=VARCHAR},
+    m_model_version = #{record.mModelVersion,jdbcType=VARCHAR},
+    m_num_min = #{record.mNumMin,jdbcType=INTEGER},
+    m_num_max = #{record.mNumMax,jdbcType=INTEGER},
+    m_score_min = #{record.mScoreMin,jdbcType=INTEGER},
+    m_score_max = #{record.mScoreMax,jdbcType=INTEGER},
+    m_plan_num = #{record.mPlanNum,jdbcType=INTEGER},
+    m_realy_num = #{record.mRealyNum,jdbcType=INTEGER},
+    m_cus_batch_number_list = #{record.mCusBatchNumberList,jdbcType=VARCHAR},
+    m_status = #{record.mStatus,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    finish_time = #{record.finishTime,jdbcType=TIMESTAMP},
+    m_rule_condition = #{record.mRuleCondition,jdbcType=VARCHAR},
+    m_rule_condition_show = #{record.mRuleConditionShow,jdbcType=VARCHAR},
+    m_score_condition = #{record.mScoreCondition,jdbcType=VARCHAR},
+    m_percentage = #{record.mPercentage,jdbcType=DECIMAL},
+    opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
+    opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+    filter_type = #{record.filterType,jdbcType=INTEGER},
+    batch_name = #{record.batchName,jdbcType=VARCHAR},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    source_type = #{record.sourceType,jdbcType=INTEGER},
+    build_type = #{record.buildType,jdbcType=INTEGER},
+    strategy_code = #{record.strategyCode,jdbcType=VARCHAR},
+    tag_content = #{record.tagContent,jdbcType=VARCHAR},
+    push_target = #{record.pushTarget,jdbcType=INTEGER},
+    label_name = #{record.labelName,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -553,39 +577,47 @@
       <if test="tagContent != null" >
         tag_content = #{tagContent,jdbcType=VARCHAR},
       </if>
+      <if test="pushTarget != null" >
+        push_target = #{pushTarget,jdbcType=INTEGER},
+      </if>
+      <if test="labelName != null" >
+        label_name = #{labelName,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
     update b_customer_info_push_main
     set m_api_code = #{mApiCode,jdbcType=VARCHAR},
-      m_model = #{mModel,jdbcType=VARCHAR},
-      m_model_version = #{mModelVersion,jdbcType=VARCHAR},
-      m_num_min = #{mNumMin,jdbcType=INTEGER},
-      m_num_max = #{mNumMax,jdbcType=INTEGER},
-      m_score_min = #{mScoreMin,jdbcType=INTEGER},
-      m_score_max = #{mScoreMax,jdbcType=INTEGER},
-      m_plan_num = #{mPlanNum,jdbcType=INTEGER},
-      m_realy_num = #{mRealyNum,jdbcType=INTEGER},
-      m_cus_batch_number_list = #{mCusBatchNumberList,jdbcType=VARCHAR},
-      m_status = #{mStatus,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      finish_time = #{finishTime,jdbcType=TIMESTAMP},
-      m_rule_condition = #{mRuleCondition,jdbcType=VARCHAR},
-      m_rule_condition_show = #{mRuleConditionShow,jdbcType=VARCHAR},
-      m_score_condition = #{mScoreCondition,jdbcType=VARCHAR},
-      m_percentage = #{mPercentage,jdbcType=DECIMAL},
-      opt_user_id = #{optUserId,jdbcType=VARCHAR},
-      opt_user_name = #{optUserName,jdbcType=VARCHAR},
-      filter_type = #{filterType,jdbcType=INTEGER},
-      batch_name = #{batchName,jdbcType=VARCHAR},
-      extend = #{extend,jdbcType=VARCHAR},
-      source_type = #{sourceType,jdbcType=INTEGER},
-      build_type = #{buildType,jdbcType=INTEGER},
-      strategy_code = #{strategyCode,jdbcType=VARCHAR},
-      tag_content = #{tagContent,jdbcType=VARCHAR}
+        m_model = #{mModel,jdbcType=VARCHAR},
+        m_model_version = #{mModelVersion,jdbcType=VARCHAR},
+        m_num_min = #{mNumMin,jdbcType=INTEGER},
+        m_num_max = #{mNumMax,jdbcType=INTEGER},
+        m_score_min = #{mScoreMin,jdbcType=INTEGER},
+        m_score_max = #{mScoreMax,jdbcType=INTEGER},
+        m_plan_num = #{mPlanNum,jdbcType=INTEGER},
+        m_realy_num = #{mRealyNum,jdbcType=INTEGER},
+        m_cus_batch_number_list = #{mCusBatchNumberList,jdbcType=VARCHAR},
+        m_status = #{mStatus,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        finish_time = #{finishTime,jdbcType=TIMESTAMP},
+        m_rule_condition = #{mRuleCondition,jdbcType=VARCHAR},
+        m_rule_condition_show = #{mRuleConditionShow,jdbcType=VARCHAR},
+        m_score_condition = #{mScoreCondition,jdbcType=VARCHAR},
+        m_percentage = #{mPercentage,jdbcType=DECIMAL},
+        opt_user_id = #{optUserId,jdbcType=VARCHAR},
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
+        filter_type = #{filterType,jdbcType=INTEGER},
+        batch_name = #{batchName,jdbcType=VARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
+        source_type = #{sourceType,jdbcType=INTEGER},
+        build_type = #{buildType,jdbcType=INTEGER},
+        strategy_code = #{strategyCode,jdbcType=VARCHAR},
+        tag_content = #{tagContent,jdbcType=VARCHAR},
+        push_target = #{pushTarget,jdbcType=INTEGER},
+        label_name = #{labelName,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

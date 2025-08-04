@@ -1975,6 +1975,136 @@ public class CustomerInfoPushMainExample {
             addCriterion("tag_content not between", value1, value2, "tagContent");
             return (Criteria) this;
         }
+
+        public Criteria andPushTargetIsNull() {
+            addCriterion("push_target is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetIsNotNull() {
+            addCriterion("push_target is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetEqualTo(Integer value) {
+            addCriterion("push_target =", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetNotEqualTo(Integer value) {
+            addCriterion("push_target <>", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetGreaterThan(Integer value) {
+            addCriterion("push_target >", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_target >=", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetLessThan(Integer value) {
+            addCriterion("push_target <", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetLessThanOrEqualTo(Integer value) {
+            addCriterion("push_target <=", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetIn(List<Integer> values) {
+            addCriterion("push_target in", values, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetNotIn(List<Integer> values) {
+            addCriterion("push_target not in", values, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetBetween(Integer value1, Integer value2) {
+            addCriterion("push_target between", value1, value2, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_target not between", value1, value2, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameIsNull() {
+            addCriterion("label_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameIsNotNull() {
+            addCriterion("label_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameEqualTo(String value) {
+            addCriterion("label_name =", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameNotEqualTo(String value) {
+            addCriterion("label_name <>", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameGreaterThan(String value) {
+            addCriterion("label_name >", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameGreaterThanOrEqualTo(String value) {
+            addCriterion("label_name >=", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameLessThan(String value) {
+            addCriterion("label_name <", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameLessThanOrEqualTo(String value) {
+            addCriterion("label_name <=", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameLike(String value) {
+            addCriterion("label_name like", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameNotLike(String value) {
+            addCriterion("label_name not like", value, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameIn(List<String> values) {
+            addCriterion("label_name in", values, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameNotIn(List<String> values) {
+            addCriterion("label_name not in", values, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameBetween(String value1, String value2) {
+            addCriterion("label_name between", value1, value2, "labelName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelNameNotBetween(String value1, String value2) {
+            addCriterion("label_name not between", value1, value2, "labelName");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

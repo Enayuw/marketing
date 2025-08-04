@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class CustomerInfoPushMain {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -125,7 +125,7 @@ public class CustomerInfoPushMain {
     private String batchName;
 
     /**
-     * 
+     *
      */
     private String extend;
 
@@ -148,6 +148,16 @@ public class CustomerInfoPushMain {
      * 标签规则
      */
     private String tagContent;
+
+    /**
+     * 0:推送决策,1:数据打标
+     */
+    private Integer pushTarget;
+
+    /**
+     * 标签名称
+     */
+    private String labelName;
 
     public Long getId() {
         return id;
@@ -379,5 +389,21 @@ public class CustomerInfoPushMain {
 
     public void setTagContent(String tagContent) {
         this.tagContent = tagContent == null ? null : tagContent.trim();
+    }
+
+    public Integer getPushTarget() {
+        return pushTarget;
+    }
+
+    public void setPushTarget(Integer pushTarget) {
+        this.pushTarget = pushTarget;
+    }
+
+    public String getLabelName() {
+        return labelName;
+    }
+
+    public void setLabelName(String labelName) {
+        this.labelName = labelName == null ? null : labelName.trim();
     }
 }
