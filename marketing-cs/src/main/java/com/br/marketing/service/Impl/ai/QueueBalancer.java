@@ -41,12 +41,11 @@ public class QueueBalancer {
     public <T extends Enum<T>> T fromName(String name, Class<T> enumClass) {
         T[] enumConstants = enumClass.getEnumConstants();
         if (enumConstants == null || enumConstants.length == 0) {
-            return null;
+            throw new RuntimeException("获取枚举异常");
         }
         
         // 遍历枚举实例，匹配枚举名称
         for (T enumConstant : enumConstants) {
-            // 直接匹配枚举的名称（如 Q1, Q2, RECEIVE_1 等）
             if (name.equals(enumConstant.name())) {
                 return enumConstant;
             }
@@ -65,20 +64,19 @@ public class QueueBalancer {
         if (queueLength == 0) {
             String[] queueNames = getAllQueueNames(enumClass);
             redisChgService.rpush(redisKey, queueNames);
-            log.info("初始化队列 [{}]: {}", redisKey, Arrays.toString(queueNames));
+            log.warn("初始化redis队列 [{}]: {}", redisKey, Arrays.toString(queueNames));
         }
     }
     
     /**
-     * 获取所有队列名称 - 使用枚举的name()方法
+     * 获取所有队列名称
      */
     public <T extends Enum<T>> String[] getAllQueueNames(Class<T> enumClass) {
         T[] enumConstants = enumClass.getEnumConstants();
         if (enumConstants == null || enumConstants.length == 0) {
-            return new String[0];
+            throw new RuntimeException("获取枚举异常");
         }
         
-        // 创建结果数组，使用枚举的name()方法
         String[] queueNames = new String[enumConstants.length];
         for (int i = 0; i < enumConstants.length; i++) {
             // 直接使用枚举的名称，如 Q1, Q2, RECEIVE_1 等

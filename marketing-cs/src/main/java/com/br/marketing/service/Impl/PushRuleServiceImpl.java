@@ -2684,7 +2684,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
             AiPreUserReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiPreUserReceiveEnum.class,
-                    RedisKeyConstant.AI_PREUSER_RECEIVE_CONSUMER_NAME);
+                    RedisKeyConstant.AI_PREUSER_RECEIVE_MQ_BALANCER);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), syncInfoId);
             return;
         }
@@ -3285,7 +3285,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private void sendToAIUniversalQueue(MqFact mqFact){
         if (marketingCommonConfig.getAiUseRocketMq()) {
             AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
-                    RedisKeyConstant.AI_UNIVERSAL_RECEIVE_CONSUMER_NAME);
+                    RedisKeyConstant.AI_UNIVERSAL_RECEIVE_MQ_BALANCER);
             String message = JSON.toJSONString(mqFact);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), message);
             return;

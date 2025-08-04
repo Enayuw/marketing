@@ -381,12 +381,12 @@ public class RedisKeyConstant {
 
 
     /**
-     * 携程上报队列负载key
+     * ai客户数据入明细负载队列
      */
-    public static final String AI_PREUSER_RECEIVE_CONSUMER_NAME = prefix.concat("aipreuserreceive:consumer:name");
+    public static final String AI_PREUSER_RECEIVE_MQ_BALANCER = prefix.concat("aipreuserreceive:mq:balancer");
 
     /**
-     * 携程上报队列负载key
+     * ai客户推送下游负载队列
      */
-    public static final String AI_UNIVERSAL_RECEIVE_CONSUMER_NAME = prefix.concat("aiuniversalreceive:consumer:name");
+    public static final String AI_UNIVERSAL_RECEIVE_MQ_BALANCER = prefix.concat("aiuniversalreceive:mq:balancer");
 }
