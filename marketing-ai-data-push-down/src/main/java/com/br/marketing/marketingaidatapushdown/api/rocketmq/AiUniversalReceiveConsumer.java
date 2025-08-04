@@ -21,7 +21,7 @@ public class AiUniversalReceiveConsumer {
     @RocketMQMessageListener(topic = TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_1,
             consumerGroup = GROUP_MARKETING_AI_UNIVERSAL_RECEIVE_1,
             selectorExpression = TAG_MARKETING_AI_UNIVERSAL_RECEIVE_1,
-            consumeThreadMax = 50, awaitTerminationMillisWhenShutdown = 10000)
+            consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
     public class AiUniversalReceiveConsumer1 extends AbstractAiUniversalReceiveConsumer {
         @Override
         protected String consumerName() {
@@ -33,7 +33,7 @@ public class AiUniversalReceiveConsumer {
     @RocketMQMessageListener(topic = TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_2,
             consumerGroup = GROUP_MARKETING_AI_UNIVERSAL_RECEIVE_2,
             selectorExpression = TAG_MARKETING_AI_UNIVERSAL_RECEIVE_2,
-            consumeThreadMax = 50, awaitTerminationMillisWhenShutdown = 10000)
+            consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
     public class AiUniversalReceiveConsumer2 extends AbstractAiUniversalReceiveConsumer {
         @Override
         protected String consumerName() {
@@ -45,7 +45,7 @@ public class AiUniversalReceiveConsumer {
     @RocketMQMessageListener(topic = TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_3,
             consumerGroup = GROUP_MARKETING_AI_UNIVERSAL_RECEIVE_3,
             selectorExpression = TAG_MARKETING_AI_UNIVERSAL_RECEIVE_3,
-            consumeThreadMax = 50, awaitTerminationMillisWhenShutdown = 10000)
+            consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
     public class AiUniversalReceiveConsumer3 extends AbstractAiUniversalReceiveConsumer {
         @Override
         protected String consumerName() {

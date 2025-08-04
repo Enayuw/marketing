@@ -2489,9 +2489,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
                 } else {
                     sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
-                    sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
                 }
             }
+            sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
