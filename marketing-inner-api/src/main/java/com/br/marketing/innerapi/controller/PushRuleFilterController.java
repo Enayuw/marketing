@@ -15,6 +15,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.ReportScoreRuleService;
+import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
@@ -63,6 +64,9 @@ public class PushRuleFilterController {
 
     @Resource
     private ReportScoreRuleService reportScoreRuleService;
+
+    @Autowired
+    RuleCenterLabelService ruleCenterLabelService;
 
 
     /**
@@ -280,6 +284,32 @@ public class PushRuleFilterController {
     @AuthDataControllerPermission
     public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoList(@RequestBody CustomerBatchNumVO batchNumVO) {
         return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(reportScoreRuleService.getBatchInfoList(batchNumVO));
+    }
+
+
+    /**
+     * 获取分组字段列表
+     *
+     * @param apiCode
+     * @return
+     */
+    @ApiOperation(value = "获取分组字段列表", notes = "获取分组字段列表", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @GetMapping("/getLableNameList")
+    public ApiResult getLableNameList(@RequestParam(required = false) String apiCode) {
+        return new ApiResult<List<String>>().fromResult(ruleCenterLabelService.getLabelNames(apiCode), CODE_1);
+    }
+
+    /**
+     * 保存分组任务
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "保存分组任务")
+    @PostMapping("/saveLabelTask")
+    public ApiResult saveLabelTask(@RequestBody PushCustomerDTO dto) {
+        dto.setUserDetail(ThreadContextInfo.getUser());
+        return new ApiResult().fromResult(ruleCenterLabelService.saveLabelTask(dto), CODE_1);
     }
 
 

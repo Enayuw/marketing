@@ -1,12 +1,14 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class CustomerInfoPushMain {
-    /**
-     * 
-     */
+/**
+ * b_customer_info_push_main
+ * @author 
+ */
+public class CustomerInfoPushMain implements Serializable {
     private Long id;
 
     /**
@@ -124,9 +126,6 @@ public class CustomerInfoPushMain {
      */
     private String batchName;
 
-    /**
-     * 
-     */
     private String extend;
 
     /**
@@ -149,6 +148,18 @@ public class CustomerInfoPushMain {
      */
     private String tagContent;
 
+    /**
+     * 0:推送决策,1:数据打标
+     */
+    private Integer pushTarget;
+
+    /**
+     * 标签名称
+     */
+    private String labelName;
+
+    private static final long serialVersionUID = 1L;
+
     public Long getId() {
         return id;
     }
@@ -162,7 +173,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmApiCode(String mApiCode) {
-        this.mApiCode = mApiCode == null ? null : mApiCode.trim();
+        this.mApiCode = mApiCode;
     }
 
     public String getmModel() {
@@ -170,7 +181,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmModel(String mModel) {
-        this.mModel = mModel == null ? null : mModel.trim();
+        this.mModel = mModel;
     }
 
     public String getmModelVersion() {
@@ -178,7 +189,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmModelVersion(String mModelVersion) {
-        this.mModelVersion = mModelVersion == null ? null : mModelVersion.trim();
+        this.mModelVersion = mModelVersion;
     }
 
     public Integer getmNumMin() {
@@ -234,7 +245,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmCusBatchNumberList(String mCusBatchNumberList) {
-        this.mCusBatchNumberList = mCusBatchNumberList == null ? null : mCusBatchNumberList.trim();
+        this.mCusBatchNumberList = mCusBatchNumberList;
     }
 
     public Integer getmStatus() {
@@ -282,7 +293,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmRuleCondition(String mRuleCondition) {
-        this.mRuleCondition = mRuleCondition == null ? null : mRuleCondition.trim();
+        this.mRuleCondition = mRuleCondition;
     }
 
     public String getmRuleConditionShow() {
@@ -290,7 +301,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmRuleConditionShow(String mRuleConditionShow) {
-        this.mRuleConditionShow = mRuleConditionShow == null ? null : mRuleConditionShow.trim();
+        this.mRuleConditionShow = mRuleConditionShow;
     }
 
     public String getmScoreCondition() {
@@ -298,7 +309,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmScoreCondition(String mScoreCondition) {
-        this.mScoreCondition = mScoreCondition == null ? null : mScoreCondition.trim();
+        this.mScoreCondition = mScoreCondition;
     }
 
     public BigDecimal getmPercentage() {
@@ -314,7 +325,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setOptUserId(String optUserId) {
-        this.optUserId = optUserId == null ? null : optUserId.trim();
+        this.optUserId = optUserId;
     }
 
     public String getOptUserName() {
@@ -322,7 +333,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setOptUserName(String optUserName) {
-        this.optUserName = optUserName == null ? null : optUserName.trim();
+        this.optUserName = optUserName;
     }
 
     public Integer getFilterType() {
@@ -338,7 +349,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setBatchName(String batchName) {
-        this.batchName = batchName == null ? null : batchName.trim();
+        this.batchName = batchName;
     }
 
     public String getExtend() {
@@ -346,7 +357,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
+        this.extend = extend;
     }
 
     public Integer getSourceType() {
@@ -370,7 +381,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setStrategyCode(String strategyCode) {
-        this.strategyCode = strategyCode == null ? null : strategyCode.trim();
+        this.strategyCode = strategyCode;
     }
 
     public String getTagContent() {
@@ -378,6 +389,22 @@ public class CustomerInfoPushMain {
     }
 
     public void setTagContent(String tagContent) {
-        this.tagContent = tagContent == null ? null : tagContent.trim();
+        this.tagContent = tagContent;
+    }
+
+    public Integer getPushTarget() {
+        return pushTarget;
+    }
+
+    public void setPushTarget(Integer pushTarget) {
+        this.pushTarget = pushTarget;
+    }
+
+    public String getLabelName() {
+        return labelName;
+    }
+
+    public void setLabelName(String labelName) {
+        this.labelName = labelName;
     }
 }
