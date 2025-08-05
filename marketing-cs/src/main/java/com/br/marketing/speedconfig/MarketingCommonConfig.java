@@ -3286,5 +3286,10 @@ public class MarketingCommonConfig {
      * #众安拨打&短信上报配置
      */
     private JSONObject zhongAnCollidingDataConfig;
+
+    /**
+     * 携程cpa 撞库日志写入rabbit-rocket 切换开关
+     */
+    private Boolean xieChengCallingCpaLogSwitch;
 }
 

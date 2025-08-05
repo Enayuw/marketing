@@ -7,6 +7,14 @@ package com.br.marketing.common.constants.rocketmq;
  */
 public class MarketingXieChengConstants {
 
+    //携程cpa 撞库日志
+    public static final String TOPIC_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE = "marketingXieChengCpaCollidingLogQueue";
+    public static final String GROUP_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE = "Marketing_XieCheng_Cpa_Colliding_LogQueue";
+    public static final String TAG_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE = "marketing.xiecheng.cpa.colliding.logqueue";
+
+
+
+
     public static final String TOPIC = "marketing_xie_cheng";
 
     /**
