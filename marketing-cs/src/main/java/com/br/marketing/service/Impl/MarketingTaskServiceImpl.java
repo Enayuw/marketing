@@ -465,7 +465,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         for (int i = 0; i < transferWhereRes.getData().size(); i++) {
             String datum = transferWhereRes.getData().get(i);
             String s = whereSqlToShow(datum);
-            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
+            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum, vo.getLabelName());
             count += integer;
             showStr.append(s).append("总数据").append(integer.toString());
             if (i < transferWhereRes.getData().size() - 1) {
@@ -592,7 +592,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         for (int i = 0; i < transferWhereRes.getData().size(); i++) {
             String datum = transferWhereRes.getData().get(i);
             String s = whereSqlToShow(datum);
-            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
+            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum, vo.getLabelName());
             count += integer;
             showStr.append(s).append("总数据" + integer);
             if (i < transferWhereRes.getData().size() - 1) {
@@ -613,6 +613,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
 
         List<String> conditionList = analysisResult.getData();
+        String labelName = vo.getLabelName();
 
         Integer count = 0;
         Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
@@ -629,12 +630,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
             String whereStr = conditionList.get(i);
             String s = whereSqlToShow(whereStr);
-            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
+            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr, labelName);
             if (isVer) {
                 integer = integer >= preMaxNum ? preMaxNum : integer;
                 preMaxNum = preMaxNum - integer;
             }
             count += integer;
+            if(StringUtils.isNotBlank(labelName)){
+                showStr.append(labelName).append("：");
+            }
             showStr.append(s).append("总数据").append(integer.toString());
             if (i < conditionList.size() - 1) {
                 showStr.append(",");
@@ -642,7 +646,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             if(userTypeFromConditionInfosFlag){
                 List<String> userTypeByList;
                 // 查询符合跑分数据的场景
-                userTypeByList = syncInfoMapper.queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
+                if (StringUtils.isNotBlank(vo.getLabelName())){
+                    userTypeByList = syncInfoMapper.queryUserTypeListLabelWithDatetikv_(apiCode, null, null, whereStr);
+                }else {
+                    userTypeByList = syncInfoMapper.queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
+                }
                 if(null != userTypeByList && userTypeByList.size() > 0){
                     userTypeList.addAll(userTypeByList);
                 }
@@ -752,6 +760,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 customerScoreRuleVO.setDataLimit(dto.getDataLimit());
             }
             customerScoreRuleVO.setBuildType(1);
+            customerScoreRuleVO.setLabelName(dto.getLabelName());
 
             Result<Long> result = buildScoreTaskOfSelect(customerScoreRuleVO, userTypeList);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -943,6 +952,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if (new Integer(1).equals(ruleVO.getIsOrNoScoreVer())) {
             taskExtendExtendFieldDTO.setDataLimit(ruleVO.getDataLimit());
         }
+        if (StringUtils.isNotBlank(ruleVO.getLabelName())){
+            taskExtend.setLabelName(ruleVO.getLabelName());
+        }
         taskExtend.setExtendConfigInfo(JSON.toJSONString(taskExtendExtendFieldDTO));
         marketingTaskExtendMapper.insertSelective(taskExtend);
         //endregion
@@ -969,8 +981,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         StringBuilder content = new StringBuilder();
         content.append("apiCode：".concat(apiCode).concat("\r\n"))
                 .append("ruleId：".concat(ruleVO.getId().toString()).concat("\r\n"))
-                .append("ruleName：".concat(ruleVO.getRuleName()).concat("\r\n"))
-                .append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
+                .append("ruleName：".concat(ruleVO.getRuleName()).concat("\r\n"));
+        if (StringUtils.isNotBlank(ruleVO.getLabelName())){
+            content.append("labelName：".concat(ruleVO.getLabelName()).concat("\r\n"));
+        }
+        content.append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
                 .append("batchNumber：".concat(batchNumber).concat("\r\n"))
                 .append(String.format("预计数量: %d", preNum));
         alarmClient.sendAlarm(content.toString(), "任务创建", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());

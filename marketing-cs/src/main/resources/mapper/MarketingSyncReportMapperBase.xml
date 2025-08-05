@@ -80,7 +80,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, cid, api_code, short_name, applet_date, user_type, normal_num, duplicate_removal_num,
-    applet_begin_time, applet_end_time, reserve_field1_key, remark, create_time, update_time
+    applet_begin_time, applet_end_time, reserve_field1_key, remark, label_message, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
     label_message

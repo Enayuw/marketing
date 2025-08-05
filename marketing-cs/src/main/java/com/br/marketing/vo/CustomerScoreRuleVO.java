@@ -15,4 +15,5 @@ public class CustomerScoreRuleVO extends ScoreRuleConfig {
     private Long autoBuildConfigId;
     private String conditionInfo;
     private String cid;
+    private String labelName;
 }
