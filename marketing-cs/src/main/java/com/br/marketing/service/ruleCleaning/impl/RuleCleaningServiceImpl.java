@@ -2389,20 +2389,20 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 fields = fields.subList(0, 10);
             }
             
-            // 验证最少字段限制（至少2个字段）
-            if (fields.size() < 2) {
-                log.warn("字段数量少于2个，无法进行拼接，返回原值");
+            // 验证最少字段限制（至少1个字段）
+            if (fields.size() < 1) {
+                log.warn("字段配置为空，无法进行拼接，返回原值");
                 return fieldSample;
             }
             
             StringBuilder result = new StringBuilder();
-            boolean firstFieldProcessed = false;
+            result.append(fieldSample); // 始终以当前值开始
             
             // 处理所有字段
             for (int i = 0; i < fields.size(); i++) {
                 Map<String, Object> fieldConfig = fields.get(i);
                 String fieldName = String.valueOf(fieldConfig.get("fieldName"));
-                String delimiter = i > 0 ? String.valueOf(fieldConfig.get("delimiter")) : "";
+                String delimiter = String.valueOf(fieldConfig.get("delimiter"));
                 
                 // 获取字段值
                 Object fieldValue = null;
@@ -2412,22 +2412,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
                     log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
                 } else {
-                    // 如果是第一个字段且没有nodeParse，使用fieldSample
-                    if (!firstFieldProcessed) {
-                        fieldValue = fieldSample;
-                        firstFieldProcessed = true;
-                        log.warn("使用当前输入值作为第一个字段: {}", fieldValue);
-                    } else {
-                        // 其他情况使用规则中的预设值
-                        fieldValue = fieldConfig.get("fieldValue");
-                        log.warn("使用规则中预设的字段值: {}", fieldValue);
-                    }
+                    // 使用规则中的预设值
+                    fieldValue = fieldConfig.get("fieldValue");
+                    log.warn("使用规则中预设的字段值: {}", fieldValue);
                 }
                 
                 // 如果字段值不为空，添加到结果中
                 if (fieldValue != null && StringUtils.isNotBlank(String.valueOf(fieldValue))) {
-                    if (i > 0) {
-                        // 后续字段需要添加分隔符
+                    if (StringUtils.isNotBlank(delimiter)) {
                         result.append(delimiter);
                     }
                     result.append(String.valueOf(fieldValue));
