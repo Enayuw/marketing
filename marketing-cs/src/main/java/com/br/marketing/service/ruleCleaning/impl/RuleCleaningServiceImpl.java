@@ -921,6 +921,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 字段优先级
                 result = handlePriorityOperation(fieldSample, ruleMap);
                 break;
+            case "concatenate":
+                // 字段拼接
+                if (ObjectUtil.isNotEmpty(nodeParse)) {
+                    result = handleConcatenateOperation(fieldSample, ruleMap, nodeParse);
+                } else {
+                    result = handleConcatenateOperation(fieldSample, ruleMap);
+                }
+                break;
             default:
                 log.warn("未知的操作类型: {}", operator);
                 break;
@@ -2346,6 +2354,94 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         return cleaningResults;
+    }
+
+    /**
+     * 处理字段拼接操作（不使用nodeParse版本）
+     */
+    private Object handleConcatenateOperation(String fieldSample, Map<String, Object> ruleMap) {
+        return handleConcatenateOperation(fieldSample, ruleMap, null);
+    }
+
+    /**
+     * 处理字段拼接操作
+     * 支持将多个字段按指定分隔符拼接成一个字段
+     * 
+     * @param fieldSample 当前字段值（作为第一个字段）
+     * @param ruleMap 规则配置
+     * @param nodeParse 原始数据对象
+     * @return 拼接后的结果
+     */
+    private Object handleConcatenateOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
+        try {
+            log.warn("处理字段拼接操作 - 输入值: {}, 规则: {}", fieldSample, ruleMap);
+            
+            // 获取字段配置列表
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) ruleMap.get("fields");
+            if (fields == null || fields.isEmpty()) {
+                log.warn("字段拼接配置为空，返回原值");
+                return fieldSample;
+            }
+            
+            // 验证字段数量限制（最多10个字段）
+            if (fields.size() > 10) {
+                log.warn("字段数量超过限制(10个)，只处理前10个字段");
+                fields = fields.subList(0, 10);
+            }
+            
+            // 验证最少字段限制（至少2个字段）
+            if (fields.size() < 2) {
+                log.warn("字段数量少于2个，无法进行拼接，返回原值");
+                return fieldSample;
+            }
+            
+            StringBuilder result = new StringBuilder();
+            boolean firstFieldProcessed = false;
+            
+            // 处理所有字段
+            for (int i = 0; i < fields.size(); i++) {
+                Map<String, Object> fieldConfig = fields.get(i);
+                String fieldName = String.valueOf(fieldConfig.get("fieldName"));
+                String delimiter = i > 0 ? String.valueOf(fieldConfig.get("delimiter")) : "";
+                
+                // 获取字段值
+                Object fieldValue = null;
+                
+                if (nodeParse != null) {
+                    // 从nodeParse中获取字段值
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                } else {
+                    // 如果是第一个字段且没有nodeParse，使用fieldSample
+                    if (!firstFieldProcessed) {
+                        fieldValue = fieldSample;
+                        firstFieldProcessed = true;
+                        log.warn("使用当前输入值作为第一个字段: {}", fieldValue);
+                    } else {
+                        // 其他情况使用规则中的预设值
+                        fieldValue = fieldConfig.get("fieldValue");
+                        log.warn("使用规则中预设的字段值: {}", fieldValue);
+                    }
+                }
+                
+                // 如果字段值不为空，添加到结果中
+                if (fieldValue != null && StringUtils.isNotBlank(String.valueOf(fieldValue))) {
+                    if (i > 0) {
+                        // 后续字段需要添加分隔符
+                        result.append(delimiter);
+                    }
+                    result.append(String.valueOf(fieldValue));
+                }
+            }
+            
+            String concatenatedResult = result.toString();
+            log.warn("字段拼接结果: {}", concatenatedResult);
+            return concatenatedResult;
+            
+        } catch (Exception e) {
+            log.error("字段拼接操作失败: {}", e.getMessage(), e);
+            return fieldSample;
+        }
     }
 
 }
