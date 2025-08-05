@@ -736,7 +736,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (configDTO.getIsMapping()) {
             try {
                 // 直接调用预览方法
-                Object result = previewFieldCleaning(fieldSample, configDTO.getMappingRule());
+                Object result = previewFieldCleaning(fieldSample, configDTO.getMappingRule(), null);
                 return result != null ? result.toString() : "";
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
@@ -756,7 +756,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 清洗后的数据值
      */
     @Override
-    public Object previewFieldCleaning(String fieldSample, String cleaningRule) {
+    public Object previewFieldCleaning(String fieldSample, String cleaningRule, Object nodeParse) {
         //log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
 
         // 尝试解析为规则列表（支持多规则按顺序执行）
@@ -784,7 +784,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     //log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
 
                     // 关键：使用当前值作为输入，执行规则
-                    Object stepResult = executeSingleRule(currentValue, expressionJson, null);
+                    Object stepResult = executeSingleRule(currentValue, expressionJson, nodeParse);
                     currentValue = String.valueOf(stepResult);
 
                     //log.warn("规则#{} 处理后的值: {}", i + 1, currentValue);
@@ -835,7 +835,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     return firstValueByKey;
                 }
                 
-                Object result = previewFieldCleaning(firstValueByKey, mappingRule);
+                Object result = previewFieldCleaning(firstValueByKey, mappingRule, nodeParse);
                 return result;
             }
             
