@@ -3,18 +3,18 @@ package com.br.marketing.innerapi.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -28,15 +28,14 @@ import java.nio.charset.StandardCharsets;
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_TRANSFER_PUSH_CUSTOMER,
         selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER,
         consumeThreadNumber = 1, consumeThreadMax = 1)
-public class MarketingTransferPushConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+public class MarketingTransferPushConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Autowired
     PushRuleService pushRuleService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
+
 
     @Override
     protected String consumerName() {
@@ -47,12 +46,6 @@ public class MarketingTransferPushConsumer extends BaseMqMessageListener impleme
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)){
-            log.warn("Marketing_Transfer_Push_Customer：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), o);
-        }
         consumerService.consumerRun(messageExt, pushRuleService::pushPersonalTransferData, o);
     }
 
@@ -70,6 +63,12 @@ public class MarketingTransferPushConsumer extends BaseMqMessageListener impleme
     @Override
     public void onMessage(MessageExt messageExt) {
         super.dispatchMessage(messageExt);
+    }
+
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(1);
     }
 
 }

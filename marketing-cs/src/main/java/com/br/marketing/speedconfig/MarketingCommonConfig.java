@@ -4,6 +4,7 @@ package com.br.marketing.speedconfig;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
+import com.br.marketing.entity.rocketmq.RocketMqSwitchEntity;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
@@ -2094,7 +2095,7 @@ public class MarketingCommonConfig {
      *      apiCodes：配置启用RocketMQ的apiCode,多个以逗号分隔
      *      tags：配置启用RocketMQ的tag,多个以逗号分隔
      */
-    private String rocketMqSwitch2;
+    private RocketMqSwitchEntity rocketMqSwitch2;
 
     /**
      * 58新客-营销转化结果查询-批量DB线程
@@ -2473,6 +2474,11 @@ public class MarketingCommonConfig {
      * 奇富AI上传数据参数配置
      */
     private JSONObject qiFuAIServerConfig;
+
+    /**
+     * 奇富AI上传数据参数接口配置
+     */
+    private JSONObject qiFuAIUploadConfig;
 
     /**
      * 营销推决策数据打标es使用标志
@@ -2969,10 +2975,29 @@ public class MarketingCommonConfig {
 
     /**
      * 同程易融-match-shard  job参数
-     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000}
+     * {"jobSwitch":true,"threadPool":100,"pageSize":10000,"partSize":1000,"startSearchTime:yyyy-mm-dd HH:mm:ss"}
      */
     private JSONObject tcMatchShardConfig;
 
+
+    /**
+     * 同程易融-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":10,"pageSize":2000,"lockRetryTimes":2,"lockRetryIntervalMs":1000,
+     * "detailLogSwitch":true
+     * }
+     */
+    private JSONObject tcQuickDealShardConfig;
+
+
+    /**
+     * 同程易融-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
+     * "lockRetryTimes":2,"lockRetryIntervalMs":1000
+     * }
+     */
+    private JSONObject tcDbDealShardConfig;
 
     /**
      * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
@@ -3252,5 +3277,14 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> mockRedisSwitch;
 
+    /**
+     * 是否开启新加密规则, true：开启新规则，false：关闭新规则
+     */
+    private Boolean isOpenNewEncrypt;
+
+    /**
+     * #众安拨打&短信上报配置
+     */
+    private JSONObject zhongAnCollidingDataConfig;
 }
 

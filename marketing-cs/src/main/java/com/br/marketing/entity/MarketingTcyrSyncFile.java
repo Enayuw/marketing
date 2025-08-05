@@ -63,6 +63,16 @@ public class MarketingTcyrSyncFile {
      */
     private Long syncRecordId;
 
+    /**
+     * 快速处理流程状态  0-未处理 1-处理中 2-处理完成,3-处理异常
+     */
+    private Integer quickDealStatus;
+
+    /**
+     * db处理流程状态  0-未处理 1-处理中 2-处理完成,3-处理异常
+     */
+    private Integer dbDealStatus;
+
     public Long getId() {
         return id;
     }
@@ -157,5 +167,21 @@ public class MarketingTcyrSyncFile {
 
     public void setSyncRecordId(Long syncRecordId) {
         this.syncRecordId = syncRecordId;
+    }
+
+    public Integer getQuickDealStatus() {
+        return quickDealStatus;
+    }
+
+    public void setQuickDealStatus(Integer quickDealStatus) {
+        this.quickDealStatus = quickDealStatus;
+    }
+
+    public Integer getDbDealStatus() {
+        return dbDealStatus;
+    }
+
+    public void setDbDealStatus(Integer dbDealStatus) {
+        this.dbDealStatus = dbDealStatus;
     }
 }

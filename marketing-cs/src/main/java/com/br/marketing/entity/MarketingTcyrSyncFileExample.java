@@ -864,6 +864,126 @@ public class MarketingTcyrSyncFileExample {
             addCriterion("sync_record_id not between", value1, value2, "syncRecordId");
             return (Criteria) this;
         }
+
+        public Criteria andQuickDealStatusIsNull() {
+            addCriterion("quick_deal_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusIsNotNull() {
+            addCriterion("quick_deal_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusEqualTo(Integer value) {
+            addCriterion("quick_deal_status =", value, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusNotEqualTo(Integer value) {
+            addCriterion("quick_deal_status <>", value, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusGreaterThan(Integer value) {
+            addCriterion("quick_deal_status >", value, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("quick_deal_status >=", value, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusLessThan(Integer value) {
+            addCriterion("quick_deal_status <", value, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("quick_deal_status <=", value, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusIn(List<Integer> values) {
+            addCriterion("quick_deal_status in", values, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusNotIn(List<Integer> values) {
+            addCriterion("quick_deal_status not in", values, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusBetween(Integer value1, Integer value2) {
+            addCriterion("quick_deal_status between", value1, value2, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andQuickDealStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("quick_deal_status not between", value1, value2, "quickDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusIsNull() {
+            addCriterion("db_deal_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusIsNotNull() {
+            addCriterion("db_deal_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusEqualTo(Integer value) {
+            addCriterion("db_deal_status =", value, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusNotEqualTo(Integer value) {
+            addCriterion("db_deal_status <>", value, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusGreaterThan(Integer value) {
+            addCriterion("db_deal_status >", value, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("db_deal_status >=", value, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusLessThan(Integer value) {
+            addCriterion("db_deal_status <", value, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("db_deal_status <=", value, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusIn(List<Integer> values) {
+            addCriterion("db_deal_status in", values, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusNotIn(List<Integer> values) {
+            addCriterion("db_deal_status not in", values, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusBetween(Integer value1, Integer value2) {
+            addCriterion("db_deal_status between", value1, value2, "dbDealStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDbDealStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("db_deal_status not between", value1, value2, "dbDealStatus");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

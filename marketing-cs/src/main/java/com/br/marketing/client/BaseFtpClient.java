@@ -34,6 +34,14 @@ public abstract class BaseFtpClient {
         this.password = isSrc? AESAlgorithmUtil.decrypt(loanSyncConfig.getSrcSftpPwd(), Constants.SFTP_P_SECRET_KEY)
                 :AESAlgorithmUtil.decrypt(loanSyncConfig.getTargetSftpPwd(), Constants.SFTP_P_SECRET_KEY);
     }
+
+    public static void main(String[] args) {
+        String decrypt = AESAlgorithmUtil.decrypt(
+                "9m3bbFRLa9OGe0NNAKFvfxjZDIEpd0j-bZokRLn_UeU"
+                , Constants.SFTP_P_SECRET_KEY);
+//        System.out.println(decrypt);
+    }
+
     /**
      * 连接
      * @return 是否连接成功

@@ -26,6 +26,16 @@ public class MarketingPreUserDetailDTO implements Serializable {
     @ApiModelProperty(value = "姓名")
     private String name;
 
+    @ApiModelProperty(value = "手机号原文")
+    private String cellOriginal;
+
+    @ApiModelProperty(value = "身份证号原文")
+    private String idOriginal;
+
+    @ApiModelProperty(value = "姓名原文")
+    private String nameOriginal;
+
+
     @ApiModelProperty(value = "场景：促首登、促申完、促动之")
     private String groupType;
 
@@ -61,5 +71,11 @@ public class MarketingPreUserDetailDTO implements Serializable {
      * 任务id
      */
     private String taskId;
+
+    /**
+     * 2025/7/7 13:46
+     * 数据指纹，数据唯一标识
+     */
+    private Long fingerprint;
 
 }

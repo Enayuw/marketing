@@ -471,4 +471,5 @@ public interface MarketingSyncUserMapper {
             @Param("maxId") Long maxId,
             @Param("pageSize") Integer pageSize);
 
+
 }

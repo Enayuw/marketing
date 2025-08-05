@@ -17,4 +17,24 @@ public class CustomerTagsVO {
      */
     private Integer pushJc3keyType;
 
+       /**
+     * 加密模式
+     */
+    private String cipherMode;
+
+    /**
+     * 填充模式
+     */
+    private String paddingScheme;
+
+    /**
+     * 字符编码
+     */
+    private String charset;
+
+    /**
+     * 密钥
+     */
+    private String dynamicKeys;
+
 }

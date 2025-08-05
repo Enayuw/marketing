@@ -7,6 +7,8 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
 import com.br.marketing.entity.MarketingCustomizeDataValidConfigExample;
 import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.entity.auth.MarketingUserInfo;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
@@ -15,20 +17,17 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.br.marketing.common.constants.MarketingErrorInfo.*;
 import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
@@ -72,6 +71,9 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
 
     @Resource
     private DingDingRobotHookService dingDingRobotHookService;
+
+    @Resource
+    private EntityOptServiceImpl entityOptService;
 
 
 
@@ -192,15 +194,29 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                 return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
                         .setMessage(TASK_ID_ERROR.getErrorMsg());
             }
-            // 查询当前taskId 下的有效期
+            // 查询当前taskId下的修改前有效期
             MarketingCustomizeDataValidConfigExample me = new MarketingCustomizeDataValidConfigExample();
             me.createCriteria().andApiCodeEqualTo(apiCode)
-                            .andTaskIdEqualTo(taskId)
-                                    .andIsDelEqualTo(1);
-            try {
-                sendDingDing(apiCode, me, taskId, effectiveDateTransfer, expireDateTransfer);
-            }catch (Exception e){
-                log.error("360有效期变更发送钉钉通知异常，{}",e);
+                    .andTaskIdEqualTo(taskId)
+                    .andIsDelEqualTo(1);
+            List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigList =
+                    marketingCustomizeDataValidConfigMapper.selectByExample(me);
+            if(marketingCustomizeDataValidConfigList.size()==1) {
+                MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigOld = marketingCustomizeDataValidConfigList.get(0);
+
+                MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigNew = new MarketingCustomizeDataValidConfig();
+                BeanUtils.copyProperties(marketingCustomizeDataValidConfigOld, marketingCustomizeDataValidConfigNew);
+                marketingCustomizeDataValidConfigNew.setValidStartDate(effectiveDateTransfer);
+                marketingCustomizeDataValidConfigNew.setValidEndDate(expireDateTransfer);
+
+                //创建测试用户信息
+                MarketingUserInfo marketingUserInfo = new MarketingUserInfo();
+                marketingUserInfo.setId(9999);
+                marketingUserInfo.setUserName("360_customer");
+                MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo,null,null,null);
+
+                entityOptService.writeOptLog(marketingCustomizeDataValidConfigOld.getId(),marketingCustomizeDataValidConfigNew,marketingCustomizeDataValidConfigOld,marketingUserDetail);
+
             }
 
             // 更新task_id 对应有效期
@@ -227,36 +243,6 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
             return new ApiNoDataResult().setCode(UNKNOWN_ERROR.getErrorCode()).setMessage(UNKNOWN_ERROR.getErrorMsg());
         }
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
-    }
-
-    private void sendDingDing(String apiCode, MarketingCustomizeDataValidConfigExample me,
-                              String taskId, String effectiveDateTransfer, String expireDateTransfer) {
-        List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigList =
-                marketingCustomizeDataValidConfigMapper.selectByExample(me);
-        if(marketingCustomizeDataValidConfigList.size()==1){
-            MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigOld =
-                    marketingCustomizeDataValidConfigList.get(0);
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("客户修改奇富360有效期，主要内容：apiCode： ")
-                    .append(apiCode)
-                    .append("， taskId: ")
-                    .append(taskId)
-                    .append("，数据上传时间：")
-                    .append(marketingCustomizeDataValidConfigOld.getAppletDate())
-                    .append(", 修改前有效期范围：")
-                    .append(marketingCustomizeDataValidConfigOld.getValidStartDate())
-                    .append("~")
-                    .append(marketingCustomizeDataValidConfigOld.getValidEndDate())
-                    .append("。修改后有效期范围：")
-                    .append(effectiveDateTransfer)
-                    .append("~")
-                    .append(expireDateTransfer);
-
-            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-            Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.QIFU_VALIDITY_CHANGE
-                    .toString());
-            dingDingRobotHookService.sendDingDingTextMessage(stringBuilder.toString(), map);
-        }
     }
 
     private String formatDate(String date) throws ParseException {

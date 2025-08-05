@@ -22,4 +22,6 @@ public interface ReportStrategy<T, M> {
 
     String getContent(String subject);
 
+    String getAttachmentFileName(String subject);
+
 }

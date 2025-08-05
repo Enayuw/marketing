@@ -62,6 +62,8 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
                 pushDataService.pushCsosDassData(localFile.getId());
             } else if (localFile.getFileName().startsWith("update")) {
                 pushDataService.pushUpdateDassData(localFile.getId());
+            }else if (localFile.getFileName().startsWith("weizhong")) {
+                pushDataService.pushWeiZhongDassData(localFile.getId());
             }else {
                 pushDataService.pushDassData(localFile.getId());
             }

@@ -5,7 +5,7 @@ datasource:
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -355,7 +355,7 @@ rocketmq:
     # 发送消息超时时间，默认3000
     sendMessageTimeout: 5000
     # 消息最大长度，默认1024 * 1024 * 4(默认4M)
-    maxMessageSize: 4096
+    maxMessageSize: 4194304
     # 压缩消息阈值，默认4k(1024 * 4)
     compressMessageBodyThreshold: 4096
     # 是否在内部发送失败时重试另一个broker，默认false
@@ -384,3 +384,8 @@ rocketmq:
     pull-batch-size: 5
     # 其他配置参考属性类
     namespace: ${ROCKETMQ_NAMESPACE:dev_local}
+# 线程池动态配置监控
+tp:
+  dynamic:
+    metric:
+      enabled: true

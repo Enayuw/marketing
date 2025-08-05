@@ -324,6 +324,15 @@ public class RedisChgService {
             throw new RuntimeException(e);
         }
     }
+    public Long hdel(String hkey, String... key) {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Long result = marketingRedisClient.hdel(hkey, key);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 判断数据key是否存在
@@ -625,6 +634,31 @@ public class RedisChgService {
         try {
             BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
             return marketingRedisClient.rpush(key,var1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public Object eval(String script, ScriptOutputType outputType, String[] keys, String... args) {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.eval(script, outputType, keys, args);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 2025/6/17 14:49
+     * 异步删除：立即断开key的链接，实际删除在后台进行
+     * 非阻塞操作
+     */
+    public long unlink(String... key) {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            long size = marketingRedisClient.unlink(key);
+            return size;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

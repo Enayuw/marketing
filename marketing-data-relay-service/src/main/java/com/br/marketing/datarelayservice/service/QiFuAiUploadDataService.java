@@ -8,9 +8,12 @@ import com.br.marketing.client.qifu.enums.FlagEnum;
 import com.br.marketing.client.qifu.util.AESUtil;
 import com.br.marketing.client.qifu.util.RSAUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.datarelayservice.client.QiFuAiReqDTO;
+import com.br.marketing.datarelayservice.client.QiFuAiRobotRankingReportBizDataDTO;
 import com.br.marketing.datarelayservice.client.QiFuAiRobotReportBizDataDTO;
 import com.br.marketing.datarelayservice.enums.QiFuAiBizTypeEnum;
+import com.br.marketing.entity.BillReport;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
@@ -19,19 +22,13 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import static com.br.common.util.DateUtils.yyyyMMdd;
+import java.util.*;
 
 /**
  * @Description UploadDataService
@@ -48,15 +45,24 @@ public class QiFuAiUploadDataService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    public Pair<CodeEnum, FlagEnum> handle(QiFuAiReqDTO requestBody, String bizType) {
+    public Pair<CodeEnum, FlagEnum> handle(QiFuAiReqDTO requestBody, String bizType, String testApiCode) {
         String decryptData;
+        String apiCode;
         try {
+            JSONObject jsonObject;
+            if (StringUtils.isNotBlank(testApiCode)) {
+                apiCode = testApiCode;
+                jsonObject = marketingCommonConfig.getQiFuAIUploadConfig();
+            } else {
+                apiCode = marketingCommonConfig.getQiFuAIUploadDataApiCode();
+                jsonObject = marketingCommonConfig.getQiFuAIServerConfig();
+            }
             // 奇富侧公钥
-            String qiFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
+            String qiFuPublicKey = jsonObject.getString("qiFuPublicKey");
             // 百融侧私钥
-            String brPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
+            String brPrivateKey = jsonObject.getString("brPrivateKey");
             // appId配置
-            String appId = marketingCommonConfig.getQiFuAIServerConfig().getString("appId");
+            String appId = jsonObject.getString("appId");
             String requestStr = JSON.toJSONString(requestBody);
 
             String originSign = requestBody.getSign();
@@ -93,11 +99,10 @@ public class QiFuAiUploadDataService {
         }
 
         // 服务端解密后，会进行相应的业务处理
-        return bizHandle(decryptData, bizType);
+        return bizHandle(decryptData, bizType, apiCode);
     }
 
-    public Pair<CodeEnum, FlagEnum> bizHandle(String decryptData, String bizType) {
-        String apiCode = marketingCommonConfig.getQiFuAIUploadDataApiCode();
+    public Pair<CodeEnum, FlagEnum> bizHandle(String decryptData, String bizType, String apiCode) {
         try {
             String suffix = "_" + bizType;
             DrsCustomizeUploadData uploadData = new DrsCustomizeUploadData();
@@ -116,6 +121,11 @@ public class QiFuAiUploadDataService {
                 }
             } else if (classObject instanceof QiFuAiRobotReportBizDataDTO) {
                 Pair<CodeEnum, FlagEnum> pair = robotReportBiz(decryptData, bizType, uploadData, requestId);
+                if (pair != null) {
+                    return pair;
+                }
+            }else if (classObject instanceof QiFuAiRobotRankingReportBizDataDTO){
+                Pair<CodeEnum, FlagEnum> pair = robotRankingReportBiz(decryptData, bizType, uploadData, requestId);
                 if (pair != null) {
                     return pair;
                 }
@@ -176,6 +186,54 @@ public class QiFuAiUploadDataService {
             return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
         }
         return null;
+    }
+
+    public Pair<CodeEnum, FlagEnum> robotRankingReportBiz(String decryptData, String bizType, DrsCustomizeUploadData uploadData, String requestId){
+        QiFuAiRobotRankingReportBizDataDTO qiFuAiRobotRankingReportBizDataDTO;
+        try {
+            qiFuAiRobotRankingReportBizDataDTO = JSONObject.parseObject(decryptData, QiFuAiRobotRankingReportBizDataDTO.class);
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), decryptData,
+                    "奇富AI语音排名数据,bizType:" + bizType + "，JSON解析失败！！！"));
+            uploadData.setRequestId(requestId);
+            uploadData.setRequestJsonData(decryptData);
+            uploadData.setBizDataNumber(0);
+            uploadData.setReceiveDate(LocalDate.now().toString());
+            uploadData.setCreateTime(new Date());
+            uploadData.setUpdateTime(new Date());
+            uploadData.setResponseCode(CodeEnum.GWS200.getCode());
+            uploadData.setResponseData(null);
+            uploadData.setExtend("JSON解析失败");
+            uploadData.setStatus(0);
+            // 保存前置数据
+            int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+            if (i != 1) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI语音排名数据入库失败！！！"));
+            }
+            return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
+        }
+        uploadData.setRequestId(requestId);
+        List<BillReport> dataList = qiFuAiRobotRankingReportBizDataDTO.getBillReportList();
+        uploadData.setRequestJsonData(decryptData);
+        uploadData.setBizDataNumber(dataList == null ? 0 : dataList.size());
+        uploadData.setReceiveDate(LocalDate.now().toString());
+        uploadData.setCreateTime(new Date());
+        uploadData.setUpdateTime(new Date());
+
+        uploadData.setResponseCode(CodeEnum.GWS100.getCode());
+        uploadData.setResponseData(null);
+        uploadData.setExtend(null);
+        uploadData.setStatus(1);
+        // 保存前置数据
+        int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+        if (i != 1) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI语音排名数据入库失败！！！"));
+            return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
+        }
+        return null;
+
     }
 
     private Pair<CodeEnum, FlagEnum> uploadBiz(String decryptData, String bizType, DrsCustomizeUploadData uploadData, String requestId) {

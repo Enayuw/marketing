@@ -322,7 +322,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     public String smsCallBack(SmsRecordDTO dto) {
         try {
             String value = checkValues(dto);
-            if(!value.isEmpty()){
+            if (!value.isEmpty()) {
                 return value;
             }
             String thirdCallNo = dto.getThirdCallNo();
@@ -340,7 +340,20 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             BeanUtils.copyProperties(dto, smsCallback);
             smsCallback.setApiCode(dto.getApiCode());
             smsCallbackMapper.insertSelective(smsCallback);
-        }catch (Exception ex){
+
+            //推mq
+            final MqFact mqFact = new MqFact();
+            mqFact.setSourceId(smsCallback.getId());
+            mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK.getCode());
+            if (rocketMqSwitch.rocketMQSwitchFlag(dto.getApiCode(), MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
+                String message = JSON.toJSONString(mqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+            } else {
+                producter.sendToUniversalTransferQueue(mqFact);
+            }
+
+        } catch (Exception ex) {
             log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
             return "外呼短信记录落库失败(insert b_sms_callback fail)!";
         }

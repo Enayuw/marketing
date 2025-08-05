@@ -28,4 +28,6 @@ public interface DrsCustomizeUploadDataMapper {
 
     void updateExtendAndStatusById(@Param("tCid") String tCid, @Param("id") Long id,@Param("syncStatus") int syncStatus, @Param("extend") String
             extend);
+
+    List<DrsCustomizeUploadData> selectByApiCodeAndDate(@Param("tCid") String tCid, @Param("apiCode") String apiCode, @Param("createDate") String createDate);
 }

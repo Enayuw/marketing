@@ -73,4 +73,10 @@ public class QiFuCWJStrategyReportStrategy implements ReportStrategy<QifuStrateg
     public String getContent(String subject) {
         return subject.concat(": ").concat("策略效果数据报表");
     }
+
+    @Override
+    public String getAttachmentFileName(String subject) {
+        return subject;
+    }
+
 }

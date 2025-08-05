@@ -6,6 +6,7 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="local_id" property="localId" jdbcType="BIGINT" />
     <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="case_num" property="caseNum" jdbcType="VARCHAR" />
     <result column="mobile_md5" property="mobileMd5" jdbcType="VARCHAR" />
     <result column="biz_date" property="bizDate" jdbcType="VARCHAR" />
     <result column="tag" property="tag" jdbcType="VARCHAR" />
@@ -79,9 +80,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, `type`, mobile_md5, biz_date, tag, push_status, `status`, 
-    user_type, is_connect, data_message, extend, create_date, create_time, update_time, 
-    data_source
+    id, api_code, local_id, `type`, case_num, mobile_md5, biz_date, tag, push_status, 
+    `status`, user_type, is_connect, data_message, extend, create_date, create_time, 
+    update_time, data_source
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhonganRosterLockingDataExample" >
     select
@@ -118,17 +119,17 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_zhongan_roster_locking_data (api_code, local_id, `type`, 
-      mobile_md5, biz_date, tag, 
-      push_status, `status`, user_type, 
-      is_connect, data_message, extend, 
-      create_date, create_time, update_time, 
-      data_source)
+      case_num, mobile_md5, biz_date, 
+      tag, push_status, `status`, 
+      user_type, is_connect, data_message, 
+      extend, create_date, create_time, 
+      update_time, data_source)
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
-      #{mobileMd5,jdbcType=VARCHAR}, #{bizDate,jdbcType=VARCHAR}, #{tag,jdbcType=VARCHAR}, 
-      #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{userType,jdbcType=VARCHAR}, 
-      #{isConnect,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
-      #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{dataSource,jdbcType=INTEGER})
+      #{caseNum,jdbcType=VARCHAR}, #{mobileMd5,jdbcType=VARCHAR}, #{bizDate,jdbcType=VARCHAR}, 
+      #{tag,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
+      #{userType,jdbcType=VARCHAR}, #{isConnect,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{dataSource,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhonganRosterLockingData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -144,6 +145,9 @@
       </if>
       <if test="type != null" >
         `type`,
+      </if>
+      <if test="caseNum != null" >
+        case_num,
       </if>
       <if test="mobileMd5 != null" >
         mobile_md5,
@@ -194,6 +198,9 @@
       </if>
       <if test="type != null" >
         #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="caseNum != null" >
+        #{caseNum,jdbcType=VARCHAR},
       </if>
       <if test="mobileMd5 != null" >
         #{mobileMd5,jdbcType=VARCHAR},
@@ -257,6 +264,9 @@
       <if test="record.type != null" >
         `type` = #{record.type,jdbcType=VARCHAR},
       </if>
+      <if test="record.caseNum != null" >
+        case_num = #{record.caseNum,jdbcType=VARCHAR},
+      </if>
       <if test="record.mobileMd5 != null" >
         mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
       </if>
@@ -307,6 +317,7 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       local_id = #{record.localId,jdbcType=BIGINT},
       `type` = #{record.type,jdbcType=VARCHAR},
+      case_num = #{record.caseNum,jdbcType=VARCHAR},
       mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
       biz_date = #{record.bizDate,jdbcType=VARCHAR},
       tag = #{record.tag,jdbcType=VARCHAR},
@@ -335,6 +346,9 @@
       </if>
       <if test="type != null" >
         `type` = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="caseNum != null" >
+        case_num = #{caseNum,jdbcType=VARCHAR},
       </if>
       <if test="mobileMd5 != null" >
         mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
@@ -383,6 +397,7 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
       `type` = #{type,jdbcType=VARCHAR},
+      case_num = #{caseNum,jdbcType=VARCHAR},
       mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
       biz_date = #{bizDate,jdbcType=VARCHAR},
       tag = #{tag,jdbcType=VARCHAR},
