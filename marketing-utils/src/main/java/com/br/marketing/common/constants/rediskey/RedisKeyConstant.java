@@ -379,6 +379,11 @@ public class RedisKeyConstant {
      */
     public static final String MQ_IDEMPOTENT = prefix.concat("mq:idempotent:");
 
+    /**
+     * 携程上报队列负载key
+     */
+    public static final String XIECHENG_REPORT_CONSUME_RNAME = prefix.concat("xieChengReport:consumer:name");
+
 
     /**
      * ai客户数据入明细负载队列
