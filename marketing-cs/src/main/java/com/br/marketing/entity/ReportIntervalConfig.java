@@ -19,6 +19,11 @@ public class ReportIntervalConfig {
     private Long reportId;
 
     /**
+     * 规则模板编号
+     */
+    private String templateNumber;
+
+    /**
      * 规则模板名称
      */
     private String templateName;
@@ -80,6 +85,14 @@ public class ReportIntervalConfig {
 
     public void setReportId(Long reportId) {
         this.reportId = reportId;
+    }
+
+    public String getTemplateNumber() {
+        return templateNumber;
+    }
+
+    public void setTemplateNumber(String templateNumber) {
+        this.templateNumber = templateNumber == null ? null : templateNumber.trim();
     }
 
     public String getTemplateName() {

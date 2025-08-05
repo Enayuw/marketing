@@ -295,6 +295,76 @@ public class ReportIntervalConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andTemplateNumberIsNull() {
+            addCriterion("template_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberIsNotNull() {
+            addCriterion("template_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberEqualTo(String value) {
+            addCriterion("template_number =", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberNotEqualTo(String value) {
+            addCriterion("template_number <>", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberGreaterThan(String value) {
+            addCriterion("template_number >", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberGreaterThanOrEqualTo(String value) {
+            addCriterion("template_number >=", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberLessThan(String value) {
+            addCriterion("template_number <", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberLessThanOrEqualTo(String value) {
+            addCriterion("template_number <=", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberLike(String value) {
+            addCriterion("template_number like", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberNotLike(String value) {
+            addCriterion("template_number not like", value, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberIn(List<String> values) {
+            addCriterion("template_number in", values, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberNotIn(List<String> values) {
+            addCriterion("template_number not in", values, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberBetween(String value1, String value2) {
+            addCriterion("template_number between", value1, value2, "templateNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemplateNumberNotBetween(String value1, String value2) {
+            addCriterion("template_number not between", value1, value2, "templateNumber");
+            return (Criteria) this;
+        }
+
         public Criteria andTemplateNameIsNull() {
             addCriterion("template_name is null");
             return (Criteria) this;
