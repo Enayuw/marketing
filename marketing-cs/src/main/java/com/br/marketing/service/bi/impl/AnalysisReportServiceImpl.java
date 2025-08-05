@@ -7,13 +7,9 @@ import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -184,53 +180,87 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     }
 
     private void multipleConvert(AxisWrapVO axisWrapVo, List<ScoreStatisticsDetail> details) {
-        List<String> xAxis = determineStepLength(details, ScoreStatisticsDetail::getFieldXValue);
-        List<String> yStep = determineStepLength(details, ScoreStatisticsDetail::getFieldYValue);
-        // 按 field_y_value 和 field_x_value 分组
+        //1.获取x轴
+        List<String> xAxis = getAxais(details, ScoreStatisticsDetail::getFieldXValue);
+        //2.获取y轴
+        List<String> yStep = getAxais(details, ScoreStatisticsDetail::getFieldYValue);
+        //3.按field_y_value把数据分组为多列
         Map<String, Map<String, Integer>> groupedByY = details.stream().collect(Collectors.groupingBy(ScoreStatisticsDetail::getFieldYValue,
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
-        // 构建 yAxis 列表
+        //4.构建yAxis列表
         List<WrapDataVO> yAxisData = yStep.stream().map((String yValue) -> {
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yValue, Collections.emptyMap()).getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
+            //总计数量
+            int sum = data.stream().mapToInt(Integer::parseInt).sum();
+            data.add(String.valueOf(sum));
             return new WrapDataVO(yValue, data);
         }).collect(Collectors.toList());
+        xAxis.add("总计");
         axisWrapVo.setXAxis(xAxis);
         axisWrapVo.setYAxis(yAxisData);
     }
 
+    /**
+     * x轴步长 eg:[0,5),[5,10),[10,15)...
+     * y轴模型 eg:scorencashonxchx
+     * @param axisWrapVo
+     * @param details
+     */
     private void singleConvert(AxisWrapVO axisWrapVo, List<ScoreStatisticsDetail> details) {
-        // 根据数据确定使用哪种步长
-        List<String> xAxis = determineStepLength(details, ScoreStatisticsDetail::getFieldXValue);
-        // 按 field_y_value 分组
+        //1.获取x轴
+        List<String> xAxis = getAxais(details, ScoreStatisticsDetail::getFieldXValue);
+        //2.按模型field_y_value把数据分组为多列
         Map<String, Map<String, Integer>> groupedByY = details.stream().collect(Collectors.groupingBy(ScoreStatisticsDetail::getFieldYValue,
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
-        // 构建 yAxis 列表
+        //3.构建yAxis列表
         List<String> keys = Splitter.on(",").splitToList(axisWrapVo.getXAxisProduct());
         List<WrapDataVO> yAxis = Lists.newArrayList();
         for (String yName : keys) {
-            // 根据 X轴步长 填充Y轴数据
+            //每列数据
+            Map<String, Integer> columnDetail = groupedByY.getOrDefault(yName, Collections.emptyMap());
+            //根据X轴步长 填充Y轴数据
             List<String> data =
-                xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yName, Collections.emptyMap()).getOrDefault(xValue, 0)))
+                xAxis.stream().map(xValue -> String.valueOf(columnDetail.getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
+            //总计数量
+            int sum = data.stream().mapToInt(Integer::parseInt).sum();
+            data.add(String.valueOf(sum));
             WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
             yAxis.add(numWrapDataVo);
+            //计算占比
             BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
             List<String> proportion =
                 data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
                     .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
+            proportion.add("100%");
             WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
             yAxis.add(proportionWrapDataVo);
         }
-        // 设置横纵坐标轴的内容
+        //设置横纵坐标轴的内容
+        xAxis.add("总计");
         axisWrapVo.setXAxis(xAxis);
         axisWrapVo.setYAxis(yAxis);
     }
 
+    /**
+     * 返回排序好的坐标
+     * @param details
+     * @param keyMapper
+     * @return
+     */
+    private List<String> getAxais(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
+        return details.stream()
+                .map(keyMapper)
+                .distinct()
+                .sorted(Comparator.comparingInt(
+                        s -> Integer.parseInt(s.replaceAll("[^0-9-]", "").split(",")[0])))
+                .collect(Collectors.toList());
+    }
+
     private List<String> determineStepLength(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
-        Map<String, List<ScoreStatisticsDetail>> sectionData = details.stream().collect(Collectors.groupingBy(keyMapper));
-        List<String> keys = Lists.newArrayList(sectionData.keySet());
+        List<String> keys = details.stream().map(keyMapper).distinct().collect(Collectors.toList());
         List<String> fiveStepLength = Lists.newArrayList();
         fiveStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"));
         List<String> fiftyStepLength = Lists.newArrayList();
