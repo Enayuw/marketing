@@ -295,76 +295,6 @@ public class ReportIntervalConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andTemplateNumberIsNull() {
-            addCriterion("template_number is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberIsNotNull() {
-            addCriterion("template_number is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberEqualTo(String value) {
-            addCriterion("template_number =", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberNotEqualTo(String value) {
-            addCriterion("template_number <>", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberGreaterThan(String value) {
-            addCriterion("template_number >", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberGreaterThanOrEqualTo(String value) {
-            addCriterion("template_number >=", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberLessThan(String value) {
-            addCriterion("template_number <", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberLessThanOrEqualTo(String value) {
-            addCriterion("template_number <=", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberLike(String value) {
-            addCriterion("template_number like", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberNotLike(String value) {
-            addCriterion("template_number not like", value, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberIn(List<String> values) {
-            addCriterion("template_number in", values, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberNotIn(List<String> values) {
-            addCriterion("template_number not in", values, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberBetween(String value1, String value2) {
-            addCriterion("template_number between", value1, value2, "templateNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateNumberNotBetween(String value1, String value2) {
-            addCriterion("template_number not between", value1, value2, "templateNumber");
-            return (Criteria) this;
-        }
-
         public Criteria andTemplateNameIsNull() {
             addCriterion("template_name is null");
             return (Criteria) this;
@@ -435,73 +365,73 @@ public class ReportIntervalConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeIsNull() {
-            addCriterion("axis_type is null");
+        public Criteria andTemplateNumberIsNull() {
+            addCriterion("template_number is null");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeIsNotNull() {
-            addCriterion("axis_type is not null");
+        public Criteria andTemplateNumberIsNotNull() {
+            addCriterion("template_number is not null");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeEqualTo(String value) {
-            addCriterion("axis_type =", value, "axisType");
+        public Criteria andTemplateNumberEqualTo(String value) {
+            addCriterion("template_number =", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeNotEqualTo(String value) {
-            addCriterion("axis_type <>", value, "axisType");
+        public Criteria andTemplateNumberNotEqualTo(String value) {
+            addCriterion("template_number <>", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeGreaterThan(String value) {
-            addCriterion("axis_type >", value, "axisType");
+        public Criteria andTemplateNumberGreaterThan(String value) {
+            addCriterion("template_number >", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("axis_type >=", value, "axisType");
+        public Criteria andTemplateNumberGreaterThanOrEqualTo(String value) {
+            addCriterion("template_number >=", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeLessThan(String value) {
-            addCriterion("axis_type <", value, "axisType");
+        public Criteria andTemplateNumberLessThan(String value) {
+            addCriterion("template_number <", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeLessThanOrEqualTo(String value) {
-            addCriterion("axis_type <=", value, "axisType");
+        public Criteria andTemplateNumberLessThanOrEqualTo(String value) {
+            addCriterion("template_number <=", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeLike(String value) {
-            addCriterion("axis_type like", value, "axisType");
+        public Criteria andTemplateNumberLike(String value) {
+            addCriterion("template_number like", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeNotLike(String value) {
-            addCriterion("axis_type not like", value, "axisType");
+        public Criteria andTemplateNumberNotLike(String value) {
+            addCriterion("template_number not like", value, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeIn(List<String> values) {
-            addCriterion("axis_type in", values, "axisType");
+        public Criteria andTemplateNumberIn(List<String> values) {
+            addCriterion("template_number in", values, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeNotIn(List<String> values) {
-            addCriterion("axis_type not in", values, "axisType");
+        public Criteria andTemplateNumberNotIn(List<String> values) {
+            addCriterion("template_number not in", values, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeBetween(String value1, String value2) {
-            addCriterion("axis_type between", value1, value2, "axisType");
+        public Criteria andTemplateNumberBetween(String value1, String value2) {
+            addCriterion("template_number between", value1, value2, "templateNumber");
             return (Criteria) this;
         }
 
-        public Criteria andAxisTypeNotBetween(String value1, String value2) {
-            addCriterion("axis_type not between", value1, value2, "axisType");
+        public Criteria andTemplateNumberNotBetween(String value1, String value2) {
+            addCriterion("template_number not between", value1, value2, "templateNumber");
             return (Criteria) this;
         }
 

@@ -85,5 +85,11 @@ public class ReportTask implements Serializable {
     @ApiModelProperty(value="统计时间")
     private String statisticsTime;
 
+    /**
+     * 引用的规则模板ID
+     */
+    @ApiModelProperty(value="引用的规则模板ID")
+    private String templateId;
+
     private static final long serialVersionUID = 1L;
 }

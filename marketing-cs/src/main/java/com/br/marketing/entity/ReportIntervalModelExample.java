@@ -225,6 +225,76 @@ public class ReportIntervalModelExample {
             return (Criteria) this;
         }
 
+        public Criteria andAxisTypeIsNull() {
+            addCriterion("axis_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeIsNotNull() {
+            addCriterion("axis_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeEqualTo(String value) {
+            addCriterion("axis_type =", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeNotEqualTo(String value) {
+            addCriterion("axis_type <>", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeGreaterThan(String value) {
+            addCriterion("axis_type >", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("axis_type >=", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeLessThan(String value) {
+            addCriterion("axis_type <", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeLessThanOrEqualTo(String value) {
+            addCriterion("axis_type <=", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeLike(String value) {
+            addCriterion("axis_type like", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeNotLike(String value) {
+            addCriterion("axis_type not like", value, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeIn(List<String> values) {
+            addCriterion("axis_type in", values, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeNotIn(List<String> values) {
+            addCriterion("axis_type not in", values, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeBetween(String value1, String value2) {
+            addCriterion("axis_type between", value1, value2, "axisType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAxisTypeNotBetween(String value1, String value2) {
+            addCriterion("axis_type not between", value1, value2, "axisType");
+            return (Criteria) this;
+        }
+
         public Criteria andXModelNameIsNull() {
             addCriterion("x_model_name is null");
             return (Criteria) this;

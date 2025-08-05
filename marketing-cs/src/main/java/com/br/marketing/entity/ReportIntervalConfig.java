@@ -19,19 +19,14 @@ public class ReportIntervalConfig {
     private Long reportId;
 
     /**
-     * 规则模板编号
-     */
-    private String templateNumber;
-
-    /**
      * 规则模板名称
      */
     private String templateName;
 
     /**
-     * 模型类型：0-单模型，1-多模型
+     * 规则模板编号
      */
-    private String axisType;
+    private String templateNumber;
 
     /**
      * 操作人id
@@ -87,14 +82,6 @@ public class ReportIntervalConfig {
         this.reportId = reportId;
     }
 
-    public String getTemplateNumber() {
-        return templateNumber;
-    }
-
-    public void setTemplateNumber(String templateNumber) {
-        this.templateNumber = templateNumber == null ? null : templateNumber.trim();
-    }
-
     public String getTemplateName() {
         return templateName;
     }
@@ -103,12 +90,12 @@ public class ReportIntervalConfig {
         this.templateName = templateName == null ? null : templateName.trim();
     }
 
-    public String getAxisType() {
-        return axisType;
+    public String getTemplateNumber() {
+        return templateNumber;
     }
 
-    public void setAxisType(String axisType) {
-        this.axisType = axisType == null ? null : axisType.trim();
+    public void setTemplateNumber(String templateNumber) {
+        this.templateNumber = templateNumber == null ? null : templateNumber.trim();
     }
 
     public Long getOptUserId() {

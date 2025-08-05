@@ -14,12 +14,17 @@ public class ReportIntervalModel {
     private Long configId;
 
     /**
-     * X模型名称
+     * 模型类型：1-单模型，2-多模型
+     */
+    private String axisType;
+
+    /**
+     * X模型名称,多个[scorecashonxccrlr1,scorencashonxchx]
      */
     private String xModelName;
 
     /**
-     * Y模型名称
+     * Y模型名称,多个[scorecashonxccrlr1,scorencashonxchx]
      */
     private String yModelName;
 
@@ -67,6 +72,14 @@ public class ReportIntervalModel {
 
     public void setConfigId(Long configId) {
         this.configId = configId;
+    }
+
+    public String getAxisType() {
+        return axisType;
+    }
+
+    public void setAxisType(String axisType) {
+        this.axisType = axisType == null ? null : axisType.trim();
     }
 
     public String getxModelName() {
