@@ -624,6 +624,39 @@ public class RedisChgService {
         }
     }
 
+
+    /**
+     * 根据key查询Redis List的所有元素
+     *
+     * @param key Redis List的key
+     * @return List中的所有元素
+     */
+    public List<String> lrange(String key) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.lrange(key, 0, -1);
+        } catch (Exception e) {
+            throw new RuntimeException("查询Redis List失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 根据key查询Redis List指定范围的元素
+     *
+     * @param key Redis List的key
+     * @param start 起始位置（包含）
+     * @param stop 结束位置（包含）
+     * @return 指定范围的元素列表
+     */
+    public List<String> lrange(String key, long start, long stop) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.lrange(key, start, stop);
+        } catch (Exception e) {
+            throw new RuntimeException("查询Redis List失败: " + e.getMessage(), e);
+        }
+    }
+
     public String  rpoplpush(String  key) {
         try {
             BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
@@ -648,7 +681,30 @@ public class RedisChgService {
             throw new RuntimeException(e);
         }
     }
+    /**
+     * 原子性重置Redis List
+     */
+    public boolean resetListAtomic(String key, String... newValues) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
 
+            String script =
+                    "redis.call('DEL', KEYS[1]) " +
+                            "if #ARGV > 0 then " +
+                            "  redis.call('RPUSH', KEYS[1], unpack(ARGV)) " +
+                            "end " +
+                            "return 1";
+
+            String[] keys = {key};
+            String[] args = newValues != null ? newValues : new String[0];
+
+            Object result = marketingRedisClient.eval(script, ScriptOutputType.INTEGER, keys, args);
+            return result != null && result.equals(1L);
+
+        } catch (Exception e) {
+            throw new RuntimeException("原子性重置Redis List失败: " + e.getMessage(), e);
+        }
+    }
 
     public Object eval(String script, ScriptOutputType outputType, String[] keys, String... args) {
         try {
