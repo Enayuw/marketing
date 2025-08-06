@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
 @Data
 public class MarketingCommonConfig {
-
     /**
      * 推送客服
      */
@@ -3286,5 +3285,10 @@ public class MarketingCommonConfig {
      * #众安拨打&短信上报配置
      */
     private JSONObject zhongAnCollidingDataConfig;
+
+    /**
+     * #携程促活使用rabbitmq开关
+     */
+    private Boolean xieChengActivateRabbitMqSwitch;
 }
 

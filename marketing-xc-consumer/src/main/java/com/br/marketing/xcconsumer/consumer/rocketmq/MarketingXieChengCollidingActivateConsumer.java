@@ -71,7 +71,7 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
 
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
-        defaultMQPushConsumer.setPullBatchSize(1);
-        defaultMQPushConsumer.setPopBatchNums(1);
+        defaultMQPushConsumer.setClientRebalance(false);
+        defaultMQPushConsumer.setPopInvisibleTime(300000L);
     }
 }
