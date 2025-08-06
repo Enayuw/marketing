@@ -3291,11 +3291,5 @@ public class MarketingCommonConfig {
      * Ai数据入库和推送下游rocketmq切换开关
      */
     private Boolean aiUseRocketMq;
-
-    /**
-     * mq负载均衡器排除项
-     * {"marketing:middle:aipreuserreceive:mq:balancer":["Q1","Q2"],"marketing:middle:aiuniversalreceive:mq:balancer":["Q2"]}
-     */
-    private JSONObject mqBalancerExclude;
 }
 

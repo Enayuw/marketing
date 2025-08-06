@@ -17,6 +17,7 @@ import java.util.Arrays;
 @Slf4j
 public class QueueBalancer {
 
+    public static final String LOCK = ":lock";
     @Autowired
     private RedisChgService redisChgService;
 
@@ -68,9 +69,21 @@ public class QueueBalancer {
     private <T extends Enum<T>> void initializeQueue(Class<T> enumClass, String redisKey) {
         Long queueLength = redisChgService.llen(redisKey);
         if (queueLength == 0) {
-            String[] queueNames = getAllQueueNames(enumClass);
-            redisChgService.rpush(redisKey, queueNames);
-            log.warn("初始化redis队列 [{}]: {}", redisKey, Arrays.toString(queueNames));
+            try {
+                redisChgService.lock(redisKey + LOCK, "1");
+                if (redisChgService.llen(redisKey) > 0) {
+                    return;
+                }
+
+                String[] queueNames = getAllQueueNames(enumClass);
+                redisChgService.rpush(redisKey, queueNames);
+                log.warn("初始化redis队列 [{}]: {}", redisKey, Arrays.toString(queueNames));
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(),
+                        "获取负载均衡队列异常，key：" + redisKey), e);
+            } finally {
+                redisChgService.unlock(redisKey + LOCK, "1");
+            }
         }
     }
 

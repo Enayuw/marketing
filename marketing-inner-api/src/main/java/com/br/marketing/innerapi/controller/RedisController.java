@@ -423,27 +423,14 @@ public class RedisController {
         return JSON.toJSONString(lrange);
     }
 
-    @GetMapping("filterAndUpdateList")
-    public String filterAndUpdateList(@RequestParam("key") String key) {
+    @GetMapping("resetList")
+    public String resetList(@RequestParam("key") String key, String... items) {
         List<String> lrange = redisChgService.lrange(key);
         if (CollectionUtils.isEmpty(lrange)) {
             return "该key在redis中不存在";
         }
 
-        JSONArray jsonArray = marketingCommonConfig.getMqBalancerExclude().getJSONArray(key);
-        if (CollectionUtils.isEmpty(jsonArray)) {
-            return "未配置排除项，不操作redis";
-        }
-
-        List<String> resultList = lrange.stream()
-                .filter(item -> !jsonArray.contains(item))
-                .collect(Collectors.toList());
-
-        if (resultList.size() == lrange.size()) {
-            return "没有元素被过滤，无需更新";
-        }
-
-        redisChgService.resetListAtomic(key, resultList.toArray(new String[0]));
-        return "rpush-success";
+        redisChgService.resetListAtomic(key, items);
+        return "resetList-success";
     }
 }
