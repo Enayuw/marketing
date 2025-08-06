@@ -225,16 +225,14 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
                 xAxis.stream().map(xValue -> String.valueOf(columnDetail.getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
             //总计数量
-            int sum = data.stream().mapToInt(Integer::parseInt).sum();
-            data.add(String.valueOf(sum));
+            BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
+            data.add(String.valueOf(total));
             WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
             yAxis.add(numWrapDataVo);
             //计算占比
-            BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
             List<String> proportion =
                 data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
                     .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
-            proportion.add("100%");
             WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
             yAxis.add(proportionWrapDataVo);
         }
