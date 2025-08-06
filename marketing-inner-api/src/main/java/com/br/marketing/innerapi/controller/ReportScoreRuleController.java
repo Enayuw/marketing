@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.annotation.Resource;
 import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.exception.KnowException;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
@@ -169,6 +171,14 @@ public class ReportScoreRuleController {
     @AuthDataControllerPermission
     public ApiResult<Boolean> refreshCustomIntervalReport(@RequestBody RefreshReportRequestDTO requestDTO) {
         return reportScoreRuleService.refreshCustomIntervalReport(requestDTO);
+    }
+
+    @ApiOperation("保存评分分布模板")
+    @PostMapping("/saveIntervalTemplate")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> saveIntervalTemplate(@RequestBody RefreshReportRequestDTO requestDTO) {
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        return reportScoreRuleService.saveIntervalTemplate(requestDTO,user);
     }
 
 }

@@ -18,9 +18,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AxisWrapVO {
-    @ApiModelProperty(value = "跑分分布报表id")
-    @JsonProperty(value = "statisticsId")
-    private Long statisticsId;
     @ApiModelProperty(value = "X轴对应产品")
     @JsonProperty(value = "xAxisProduct")
     private String xAxisProduct;
@@ -37,4 +34,10 @@ public class AxisWrapVO {
     private Integer reportScoreType;
     @ApiModelProperty(value = "报表描述")
     private String statisticsDesc;
+    @ApiModelProperty(value = "跑分分布报表id")
+    @JsonProperty(value = "statisticsId")
+    private Long statisticsId;
+    @ApiModelProperty(value = "顺序")
+    @JsonProperty(value = "order")
+    private Integer order;
 }

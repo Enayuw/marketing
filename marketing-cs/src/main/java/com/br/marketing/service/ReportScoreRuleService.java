@@ -3,6 +3,7 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.report.RefreshReportRequestDTO;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.bi.ReportTaskVO;
@@ -96,4 +97,5 @@ public interface ReportScoreRuleService {
      */
     ApiResult<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO);
 
+    ApiResult<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user);
 }

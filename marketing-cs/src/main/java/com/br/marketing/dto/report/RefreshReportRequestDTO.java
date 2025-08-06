@@ -21,6 +21,14 @@ public class RefreshReportRequestDTO {
     @JsonProperty("reportId")
     private Long reportId;
 
+    @ApiModelProperty("apiCode")
+    @JsonProperty("apiCode")
+    private String apiCode;
+
+    @ApiModelProperty("规则模板名称")
+    @JsonProperty("templateName")
+    private String templateName;
+
     @ApiModelProperty("自定义区间配置列表")
     @JsonProperty("customIntervals")
     private List<CustomIntervalConfigDTO> customIntervals;
@@ -44,6 +52,10 @@ public class RefreshReportRequestDTO {
         @ApiModelProperty("Y模型名称")
         @JsonProperty("fieldY")
         private String fieldY;
+
+        @ApiModelProperty("顺序")
+        @JsonProperty("order")
+        private Integer order;
 
         @ApiModelProperty("X区间配置列表")
         @JsonProperty("xIntervalList")

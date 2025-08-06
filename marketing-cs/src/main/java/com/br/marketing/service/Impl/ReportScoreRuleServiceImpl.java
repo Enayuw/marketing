@@ -1,10 +1,12 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.report.IntervalRangeDTO;
 import com.br.marketing.dto.report.RefreshReportRequestDTO;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.bi.ReportStatisticService;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,6 +44,7 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import shaded.com.google.common.collect.Lists;
@@ -72,6 +75,12 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     private ReportStatisticsScoreMapper reportStatisticsScoreMapper;
+
+    @Resource
+    private ReportIntervalConfigMapper reportIntervalConfigMapper;
+
+    @Resource
+    private ReportIntervalModelMapper reportIntervalModelMapper;
 
     @Resource
     private ScoreStatisticsDetailMapper scoreStatisticsDetailMapper;
@@ -631,23 +640,129 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         if (requestDTO.getReportId() == null || CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
             return new ApiResult<Boolean>().fail(false, "reportId和customIntervals不能为空");
         }
-
-        log.warn("开始刷新自定义区间报表, reportId: {}, 配置数量: {}, 完整请求数据: {}",
-                requestDTO.getReportId(), requestDTO.getCustomIntervals().size(), JSON.toJSONString(requestDTO));
-
         // 遍历需要刷新的统计配置
         for (RefreshReportRequestDTO.CustomIntervalConfigDTO configDTO : requestDTO.getCustomIntervals()) {
             try {
                 refreshSingleStatistics(requestDTO, configDTO.getStatisticsId());
-                log.warn("刷新统计配置成功, statisticsId: {}", configDTO.getStatisticsId());
             } catch (Exception e) {
                 log.error("刷新统计配置失败, statisticsId: {}", configDTO.getStatisticsId(), e);
                 return new ApiResult<Boolean>().fail(false, "刷新统计配置失败, statisticsId: " + configDTO.getStatisticsId() + ", 错误: " + e.getMessage());
             }
         }
-
-        log.warn("自定义区间报表刷新完成, reportId: {}", requestDTO.getReportId());
         return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResult<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user) {
+        // 参数校验
+        if (StringUtils.isEmpty(requestDTO.getTemplateName())) {
+            return new ApiResult<Boolean>().fail(false, "模板名称不能为空");
+        }
+        if (CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
+            return new ApiResult<Boolean>().fail(false, "自定义区间配置不能为空");
+        }
+
+        try {
+            // 检查模板名称是否重复
+            if (isTemplateNameExists(requestDTO.getTemplateName())) {
+                return new ApiResult<Boolean>().fail(false, "模板名称重复: " + requestDTO.getTemplateName());
+            }
+
+            // 保存配置主表
+            ReportIntervalConfig config = createIntervalConfig(requestDTO, user);
+            int configResult = reportIntervalConfigMapper.insertSelective(config);
+            if (configResult == 0) {
+                return new ApiResult<Boolean>().fail(false, "自定义区间配置保存失败: " + requestDTO.getTemplateName());
+            }
+
+            // 批量保存模型配置
+            saveIntervalModels(config.getId(), requestDTO.getCustomIntervals());
+
+            return new ApiResult<Boolean>().success(true);
+        } catch (Exception e) {
+            log.error("保存评分分布模板失败, templateName: {}", requestDTO.getTemplateName(), e);
+            return new ApiResult<Boolean>().fail(false, "保存评分分布模板失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 检查模板名称是否存在
+     */
+    private boolean isTemplateNameExists(String templateName) {
+        ReportIntervalConfigExample example = new ReportIntervalConfigExample();
+        example.createCriteria()
+                .andTemplateNameEqualTo(templateName)
+                .andStatusEqualTo(Constants.DATA_VALID)
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        return reportIntervalConfigMapper.countByExample(example) > 0;
+    }
+
+    /**
+     * 创建区间配置对象
+     */
+    private ReportIntervalConfig createIntervalConfig(RefreshReportRequestDTO requestDTO, MarketingUserDetail user) {
+        ReportIntervalConfig config = new ReportIntervalConfig();
+        config.setApiCode(requestDTO.getApiCode());
+        config.setReportId(requestDTO.getReportId());
+        config.setTemplateName(requestDTO.getTemplateName());
+        config.setTemplateNumber(generateTemplateNumber());
+        config.setOptUserId(Long.valueOf(user.getId()));
+        config.setOptUserName(user.getUserName());
+        config.setStatus(Constants.DATA_VALID);
+        config.setIsDel(Constants.DATA_VALID);
+        config.setCreateTime(new Date());
+        config.setUpdateTime(new Date());
+        return config;
+    }
+
+    /**
+     * 生成模板编号
+     */
+    private String generateTemplateNumber() {
+        return "TPL_" + System.currentTimeMillis();
+    }
+
+    /**
+     * 批量保存区间模型配置
+     */
+    private void saveIntervalModels(Long configId, List<RefreshReportRequestDTO.CustomIntervalConfigDTO> customIntervals) {
+        for (RefreshReportRequestDTO.CustomIntervalConfigDTO dto : customIntervals) {
+            // 参数校验
+            if (dto.getReportScoreType() == null) {
+                throw new IllegalArgumentException("模型类型不能为空");
+            }
+            if (CollectionUtils.isEmpty(dto.getXIntervalList())) {
+                throw new IllegalArgumentException("X轴区间配置不能为空");
+            }
+            if (dto.getReportScoreType().equals(2) && CollectionUtils.isEmpty(dto.getYIntervalList())) {
+                throw new IllegalArgumentException("多模型Y轴区间配置不能为空");
+            }
+
+            ReportIntervalModel model = createIntervalModel(configId, dto);
+            int modelResult = reportIntervalModelMapper.insertSelective(model);
+            if (modelResult == 0) {
+                throw new RuntimeException("区间模型配置保存失败");
+            }
+        }
+    }
+
+    /**
+     * 创建区间模型对象
+     */
+    private ReportIntervalModel createIntervalModel(Long configId, RefreshReportRequestDTO.CustomIntervalConfigDTO dto) {
+        ReportIntervalModel model = new ReportIntervalModel();
+        model.setConfigId(configId);
+        model.setAxisType(String.valueOf(dto.getReportScoreType()));
+        model.setxModelName(dto.getFieldX());
+        model.setyModelName(dto.getFieldY());
+        model.setxIntervalList(JSON.toJSONString(dto.getXIntervalList()));
+        model.setyIntervalList(dto.getReportScoreType().equals(2) ? JSON.toJSONString(dto.getYIntervalList()) : null);
+        model.setOrder(dto.getOrder() != null ? String.valueOf(dto.getOrder()) : "1");
+        model.setIsDel(Constants.DATA_VALID);
+        model.setCreateTime(new Date());
+        model.setUpdateTime(new Date());
+        return model;
     }
 
     /**
