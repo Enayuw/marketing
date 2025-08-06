@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * 队列负载均衡器
@@ -69,20 +70,38 @@ public class QueueBalancer {
     private <T extends Enum<T>> void initializeQueue(Class<T> enumClass, String redisKey) {
         Long queueLength = redisChgService.llen(redisKey);
         if (queueLength == 0) {
+            String lockValue = UUID.randomUUID().toString();
+            String lockKey = redisKey + LOCK;
             try {
-                redisChgService.lock(redisKey + LOCK, "1");
+                if (!redisChgService.lock(lockKey, lockValue, 30000L)) {
+                    log.warn("负载均衡队列获取锁失败，key: {}", lockKey);
+                    return;
+                }
+
                 if (redisChgService.llen(redisKey) > 0) {
                     return;
                 }
 
                 String[] queueNames = getAllQueueNames(enumClass);
                 redisChgService.rpush(redisKey, queueNames);
-                log.warn("初始化redis队列 [{}]: {}", redisKey, Arrays.toString(queueNames));
+                log.warn("初始化redis队列成功 [{}]: {}", redisKey, Arrays.toString(queueNames));
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(),
+                log.error(AlertLog.buildWarnMessage(
+                        AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        e.getMessage(),
                         "获取负载均衡队列异常，key：" + redisKey), e);
             } finally {
-                redisChgService.unlock(redisKey + LOCK, "1");
+                try {
+                    if (!redisChgService.unlock(lockKey, lockValue)) {
+                        log.error(AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                                "负载均衡队列释放锁失败，key：" + lockKey));
+                    }
+                } catch (Exception unlockEx) {
+                    log.error(AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                            "负载均衡队列释放锁时发生异常，key：" + lockKey));
+                }
             }
         }
     }
