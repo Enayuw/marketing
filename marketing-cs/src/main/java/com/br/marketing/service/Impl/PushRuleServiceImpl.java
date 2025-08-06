@@ -1777,7 +1777,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
-    private Result<Integer> queryTotal(CustomerInfoPushMain customerInfoPushMain, List<String> numList, QueryBaseBean queryBaseBean) {
+    public Result<Integer> queryTotal(CustomerInfoPushMain customerInfoPushMain, List<String> numList, QueryBaseBean queryBaseBean) {
         try {
             // 解析标签规则
             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
