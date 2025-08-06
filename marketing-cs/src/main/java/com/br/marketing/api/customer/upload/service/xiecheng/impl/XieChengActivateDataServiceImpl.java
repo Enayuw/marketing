@@ -196,21 +196,19 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
      */
     @Override
     public void dataDirection(String tCid, Long sourceId) {
+        XieChengActivateDTO xieChengActivateDTO = new XieChengActivateDTO();
+        xieChengActivateDTO.setCId(tCid);
+        xieChengActivateDTO.setDataId(sourceId);
         try {
-            XieChengActivateDTO xieChengActivateDTO = new XieChengActivateDTO();
-            xieChengActivateDTO.setCId(tCid);
-            xieChengActivateDTO.setDataId(sourceId);
             String msg = JSONObject.toJSONString(xieChengActivateDTO);
-            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
-                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
-                        , MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
-            }else{
-                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
-            }
-            log.warn("携程促活数据下发 tCid:{},sourceId:{}", tCid, sourceId);
-        } catch (Exception e) {
+            rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
+                    , MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
+        }catch (Exception e) {
+            String msg = JSONObject.toJSONString(xieChengActivateDTO);
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                    , "推送携程促活数据消息异常！"), e);
+                , "推送携程促活数据消息-rocketMq异常！"), e);
         }
+        log.warn("携程促活数据下发 tCid:{},sourceId:{}", tCid, sourceId);
     }
 }
