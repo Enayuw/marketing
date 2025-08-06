@@ -2,4 +2,77 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.MarketingSyncLabelMapper">
 
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO marketing_sync_label_${apiCode} (
+            label_id,
+            api_code,
+            cus_batch,
+            request_batch,
+            cust_num,
+            id_card,
+            name,
+            cell,
+            cell_md5,
+            cell_sha256,
+            cell_original,
+            id_card_original,
+            name_original,
+            group_type,
+            user_type,
+            operate_type,
+            register_date,
+            reserve_field1,
+            reserve_field2,
+            create_time,
+            update_time,
+            applet_date,
+            status,
+            fail_type,
+            applet_time,
+            is_task,
+            task_time,
+            is_repeat,
+            fingerprint
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+        (
+            #{item.labelId},
+            #{item.apiCode},
+            #{item.cusBatch},
+            #{item.requestBatch},
+            #{item.custNum},
+            #{item.idCard},
+            #{item.name},
+            #{item.cell},
+            #{item.cellMd5},
+            #{item.cellSha256},
+            #{item.cellOriginal},
+            #{item.idCardOriginal},
+            #{item.nameOriginal},
+            #{item.groupType},
+            #{item.userType},
+            #{item.operateType},
+            #{item.registerDate},
+            #{item.reserveField1},
+            #{item.reserveField2},
+            #{item.createTime},
+            #{item.updateTime},
+            #{item.appletDate},
+            #{item.status},
+            #{item.failType},
+            #{item.appletTime},
+            #{item.isTask},
+            #{item.taskTime},
+            #{item.isRepeat},
+            #{item.fingerprint}
+        )
+        </foreach>
+    </insert>
+    <select id="getLabelNum" resultType="java.util.Map">
+        select applet_date, user_type, count(id) as num
+        from marketing_sync_label_${apiCode}
+        where label_id = #{labelId}
+        group by applet_date, user_type
+
+    </select>
 </mapper>

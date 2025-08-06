@@ -179,14 +179,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
                 context.getCustomerInfoPushMain().getId(),
                 result.getCode());
 
-        // 默认实现：更新状态
-        updatePushStatus(context, result);
+
     }
 
-    /**
-     * 更新推送状态，子类必须实现
-     */
-    protected abstract void updatePushStatus(RuleCenterPushContext context, Result<Boolean> result);
 
     /**
      * 统一的量级核对方法
@@ -263,7 +258,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
             int failCount = 0;
 
             try {
-                // 处理推送结果 - 完全按照原始逻辑
+                // 处理推送结果
                 for (Future<List<Future<Result<Integer>>>> actionFuture : futures) {
                     List<Future<Result<Integer>>> pushFutures = actionFuture.get();
                     for (Future<Result<Integer>> pushFuture : pushFutures) {

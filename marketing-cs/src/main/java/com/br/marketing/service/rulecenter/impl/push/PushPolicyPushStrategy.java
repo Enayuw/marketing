@@ -67,10 +67,6 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
 
-    @Override
-    protected void updatePushStatus(RuleCenterPushContext context, Result<Boolean> result) {
-
-    }
 
     @Override
     protected Callable<List<Future<Result<Integer>>>> createPushTask(RuleCenterPushContext context, Integer partitionIndex) {
@@ -425,7 +421,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
     }
 
     /**
-     * 推送决策Action - 完全照搬PushJcAction类的逻辑
+     * 推送决策Action -
      */
     class PushJcAction implements Callable<Result<Integer>> {
 

@@ -161,5 +161,7 @@ public interface MarketingUserMapper {
                 , @Param("endTime") String endTime
                 , @Param("page") int page
         );
+
+        void createUserLabelTable(@Param("tableName") String tableName);
 }
 
