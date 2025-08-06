@@ -30,6 +30,7 @@ import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
+import com.br.marketing.dto.report.RefreshReportRequestDTO;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
@@ -149,8 +150,6 @@ public class ReportScoreRuleController {
         }
     }
 
-
-
     @ApiOperation(value = "重命名报表名称")
     @GetMapping("/updateReportName")
     @AuthDataControllerPermission
@@ -163,6 +162,13 @@ public class ReportScoreRuleController {
     @AuthDataControllerPermission
     public ApiResult<Boolean> deleteReport(@RequestParam Long id) {
         return reportScoreRuleService.deleteReport(id);
+    }
+
+    @ApiOperation("刷新报表数据")
+    @PostMapping("/refreshCustomIntervalReport")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> refreshCustomIntervalReport(@RequestBody RefreshReportRequestDTO requestDTO) {
+        return reportScoreRuleService.refreshCustomIntervalReport(requestDTO);
     }
 
 }

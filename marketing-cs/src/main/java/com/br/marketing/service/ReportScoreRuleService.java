@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.report.RefreshReportRequestDTO;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.bi.ReportTaskVO;
@@ -87,5 +88,12 @@ public interface ReportScoreRuleService {
     ApiResult<Boolean> updateReportName(Long id, String reportName);
 
     ApiResult<Boolean> deleteReport(Long id);
+
+    /**
+     * 刷新自定义区间报表数据
+     *
+     * @param requestDTO 刷新请求参数
+     */
+    ApiResult<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO);
 
 }
