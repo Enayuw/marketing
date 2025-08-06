@@ -1,11 +1,8 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.entity.CustomerInfoPushMainExample;
-import com.br.marketing.entity.MarketingSyncLabelUser;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.mapper.CustomerInfoPushMainMapper;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingRuleCenterLabelReportMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.service.IDynamicSqlService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -32,7 +29,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
     MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Resource
-    CustomerInfoPushMainMapper customerInfoPushMainMapper;
+    MarketingRuleCenterLabelReportMapper marketingRuleCenterLabelReportMapper;
 
     private static final String BUILD_TASK_NUM_KEY = "buildTaskNum";
     private static final String SCORE_MIN_ID_KEY = "scoreMinId";
@@ -50,7 +47,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
         if (StringUtils.isNotBlank(labelName)) {
-            Long labelId = getIdByLabelName(labelName);
+            Long labelId = getIdByLabelName(whereStr,labelName);
             if (type.equals(1)) {
                 count = marketingSyncInfoMapper.countByRuleScoreLabelWithDatetiflash_(apiCode, whereStr, labelId);
             } else {
@@ -75,7 +72,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
         if (StringUtils.isNotBlank(labelName)) {
-            Long labelId = getIdByLabelName(labelName);
+            Long labelId = getIdByLabelName(whereStr,labelName);
             if (type.equals(1)) {
                 mid = marketingSyncInfoMapper.minIdRuleScoreLabelWithDatetiflash_(apiCode, whereStr, labelId);
             } else {
@@ -101,7 +98,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
         if (StringUtils.isNotBlank(labelName)) {
-            Long labelId = getIdByLabelName(labelName);
+            Long labelId = getIdByLabelName(whereStr,labelName);
             if (type.equals(1)) {
                 labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, whereStr, id, pageSize, labelId);
                 users.addAll(labelUsers);
@@ -120,19 +117,14 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         return users;
     }
 
-    public Long getIdByLabelName(String labelName) {
+    public Long getIdByLabelName(String whereStr, String labelName) {
         try {
-            CustomerInfoPushMainExample example = new CustomerInfoPushMainExample();
-            example.createCriteria()
-                    .andIsDelEqualTo(1)
-                    .andLabelNameEqualTo(labelName);
-
-            List<CustomerInfoPushMain> mains = customerInfoPushMainMapper.selectByExample(example);
-            if (mains.isEmpty()) {
+            List<Long> idList = marketingRuleCenterLabelReportMapper.selectLabelIdWithLabelName(whereStr,labelName);
+            if (idList.isEmpty()) {
                 log.warn("未找到标签名为 {} 的记录", labelName);
                 return null;
             }
-            return mains.get(0).getId();
+            return idList.get(0);
         } catch (Exception e) {
             log.error("查询标签ID失败, labelName: {}", labelName, e);
             return null;
