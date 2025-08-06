@@ -6,9 +6,11 @@ import com.br.marketing.dto.report.RefreshReportRequestDTO;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.bi.IntervalTemplateVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
+import com.br.marketing.vo.bi.param.IntervalTemplateParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import java.util.List;
 import java.util.Map;
@@ -98,4 +100,6 @@ public interface ReportScoreRuleService {
     ApiResult<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO);
 
     ApiResult<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user);
+
+    ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(IntervalTemplateParam intervalTemplateParam);
 }

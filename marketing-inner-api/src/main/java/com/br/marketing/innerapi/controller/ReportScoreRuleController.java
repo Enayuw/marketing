@@ -11,9 +11,11 @@ import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.InterfaceOperationsEnum;
+import com.br.marketing.vo.bi.IntervalTemplateVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
+import com.br.marketing.vo.bi.param.IntervalTemplateParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -179,6 +181,13 @@ public class ReportScoreRuleController {
     public ApiResult<Boolean> saveIntervalTemplate(@RequestBody RefreshReportRequestDTO requestDTO) {
         MarketingUserDetail user = ThreadContextInfo.getUser();
         return reportScoreRuleService.saveIntervalTemplate(requestDTO,user);
+    }
+
+    @ApiOperation("评分分布查询规则模板")
+    @PostMapping("/getIntervalTemplate")
+    @AuthDataControllerPermission
+    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(@RequestBody IntervalTemplateParam intervalTemplateParam) {
+        return reportScoreRuleService.getIntervalTemplate(intervalTemplateParam);
     }
 
 }

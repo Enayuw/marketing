@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import com.google.common.collect.Lists;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -11,7 +12,9 @@ import com.br.marketing.dto.report.IntervalRangeDTO;
 import com.br.marketing.dto.report.RefreshReportRequestDTO;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.bi.ReportStatisticService;
+import com.br.marketing.vo.bi.IntervalTemplateVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
+import com.br.marketing.vo.bi.param.IntervalTemplateParam;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -50,7 +53,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -689,6 +691,61 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         } catch (Exception e) {
             log.error("保存评分分布模板失败, templateName: {}", requestDTO.getTemplateName(), e);
             return new ApiResult<Boolean>().fail(false, "保存评分分布模板失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(IntervalTemplateParam intervalTemplateParam) {
+        // 参数校验
+        String apiCode = intervalTemplateParam.getApiCode();
+        String templateName = intervalTemplateParam.getTemplateName();
+
+        if (StringUtils.isEmpty(apiCode)) {
+            return new ApiResult<List<IntervalTemplateVO>>().fail("apiCode不能为空");
+        }
+        if (StringUtils.isEmpty(templateName)) {
+            return new ApiResult<List<IntervalTemplateVO>>().fail("模板名称不能为空");
+        }
+        try {
+            List<IntervalTemplateVO> list = new ArrayList<>();
+            ReportIntervalConfigExample example = new ReportIntervalConfigExample();
+            example.createCriteria().andApiCodeEqualTo(apiCode).andTemplateNameEqualTo(templateName)
+                    .andStatusEqualTo(Constants.DATA_VALID).andIsDelEqualTo(Constants.DATA_VALID);
+            List<ReportIntervalConfig> reportIntervalConfigs = reportIntervalConfigMapper.selectByExample(example);
+
+            for (ReportIntervalConfig config : reportIntervalConfigs) {
+
+                IntervalTemplateVO intervalTemplateVO = new IntervalTemplateVO();
+                intervalTemplateVO.setId(config.getId());
+                intervalTemplateVO.setApiCode(config.getApiCode());
+                intervalTemplateVO.setReportId(config.getReportId());
+                intervalTemplateVO.setTemplateName(config.getTemplateName());
+                intervalTemplateVO.setTemplateNumber(config.getTemplateNumber());
+
+                ReportIntervalModelExample reportIntervalModelExample = new ReportIntervalModelExample();
+                reportIntervalModelExample.createCriteria().andConfigIdEqualTo(config.getId()).andIsDelEqualTo(Constants.DATA_VALID);
+                List<ReportIntervalModel> reportIntervalModels = reportIntervalModelMapper.selectByExample(reportIntervalModelExample);
+
+                List<IntervalTemplateVO.IntervalModelsVO> intervalModelsVOS = new ArrayList<>();
+                for (ReportIntervalModel reportIntervalModel : reportIntervalModels){
+                    IntervalTemplateVO.IntervalModelsVO intervalModelsVO = new IntervalTemplateVO.IntervalModelsVO();
+                    intervalModelsVO.setId(reportIntervalModel.getId());
+                    intervalModelsVO.setConfigId(reportIntervalModel.getConfigId());
+                    intervalModelsVO.setAxisType(reportIntervalModel.getAxisType());
+                    intervalModelsVO.setXModelName(reportIntervalModel.getxModelName());
+                    intervalModelsVO.setYModelName(reportIntervalModel.getyModelName());
+                    intervalModelsVO.setXIntervalList(reportIntervalModel.getxIntervalList());
+                    intervalModelsVO.setYIntervalList(reportIntervalModel.getyIntervalList());
+                    intervalModelsVO.setOrder(reportIntervalModel.getOrder());
+                    intervalModelsVOS.add(intervalModelsVO);
+                }
+                intervalTemplateVO.setIntervalModels(intervalModelsVOS);
+                list.add(intervalTemplateVO);
+            }
+            return new ApiResult<List<IntervalTemplateVO>>().success().setData(list);
+        }catch (Exception e){
+            log.error("评分分布查询规则模板异常, templateName: {}", templateName, e);
+            return new ApiResult<List<IntervalTemplateVO>>().fail("评分分布查询规则模板异常: " + e.getMessage());
         }
     }
 

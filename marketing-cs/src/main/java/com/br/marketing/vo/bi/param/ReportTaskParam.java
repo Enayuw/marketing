@@ -47,4 +47,10 @@ public class ReportTaskParam {
     @ApiModelProperty(value = "产品与配置了该产品的跑分文件")
     private String productAndBatchNumber;
 
+    /**
+     * 统计配置ID
+     */
+    @ApiModelProperty(value = "统计配置ID")
+    private Long statisticsId;
+
 }
