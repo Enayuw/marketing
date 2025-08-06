@@ -3,6 +3,8 @@ package com.br.marketing.service.Impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.dto.report.IntervalRangeDTO;
+import com.br.marketing.dto.report.RefreshReportRequestDTO;
 import com.br.marketing.service.bi.ReportStatisticService;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -67,6 +69,12 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     private ReportTaskMapper reportTaskMapper;
     @Resource
     private ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
+
+    @Resource
+    private ReportStatisticsScoreMapper reportStatisticsScoreMapper;
+
+    @Resource
+    private ScoreStatisticsDetailMapper scoreStatisticsDetailMapper;
 
     @Resource
     private MarketingTaskMapper marketingTaskMapper;
@@ -616,6 +624,306 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             log.warn("报表删除有误，id：{}", id);
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    public ApiResult<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO) {
+        if (requestDTO.getReportId() == null || CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
+            return new ApiResult<Boolean>().fail(false, "reportId和customIntervals不能为空");
+        }
+
+        log.warn("开始刷新自定义区间报表, reportId: {}, 配置数量: {}, 完整请求数据: {}",
+                requestDTO.getReportId(), requestDTO.getCustomIntervals().size(), JSON.toJSONString(requestDTO));
+
+        // 遍历需要刷新的统计配置
+        for (RefreshReportRequestDTO.CustomIntervalConfigDTO configDTO : requestDTO.getCustomIntervals()) {
+            try {
+                refreshSingleStatistics(requestDTO, configDTO.getStatisticsId());
+                log.warn("刷新统计配置成功, statisticsId: {}", configDTO.getStatisticsId());
+            } catch (Exception e) {
+                log.error("刷新统计配置失败, statisticsId: {}", configDTO.getStatisticsId(), e);
+                return new ApiResult<Boolean>().fail(false, "刷新统计配置失败, statisticsId: " + configDTO.getStatisticsId() + ", 错误: " + e.getMessage());
+            }
+        }
+
+        log.warn("自定义区间报表刷新完成, reportId: {}", requestDTO.getReportId());
+        return new ApiResult<Boolean>().success(true);
+    }
+
+    /**
+     * 刷新单个统计配置
+     */
+    private void refreshSingleStatistics(RefreshReportRequestDTO requestDTO, Long statisticsId) {
+        // 查询现有的统计配置
+        ReportStatisticsScore existingScore = reportStatisticsScoreMapper.selectByPrimaryKey(statisticsId);
+        if (existingScore == null) {
+            throw new IllegalArgumentException("统计配置不存在, statisticsId: " + statisticsId);
+        }
+
+        // 查找对应的自定义区间配置
+        RefreshReportRequestDTO.CustomIntervalConfigDTO customConfig = findCustomConfigById(requestDTO, statisticsId);
+        if (customConfig == null) {
+            throw new IllegalArgumentException("未找到对应的自定义区间配置, statisticsId: " + statisticsId);
+        }
+
+        log.warn("开始刷新统计配置, statisticsId: {}, reportScoreType: {}, xIntervalList: {}, yIntervalList: {}",
+                statisticsId, customConfig.getReportScoreType(), 
+                JSON.toJSONString(customConfig.getXIntervalList()), 
+                JSON.toJSONString(customConfig.getYIntervalList()));
+
+        // 先删除旧的统计详情数据
+        ScoreStatisticsDetailExample detailExample = new ScoreStatisticsDetailExample();
+        detailExample.createCriteria().andStatisticsIdEqualTo(statisticsId);
+        scoreStatisticsDetailMapper.deleteByExample(detailExample);
+
+        // 更新统计配置的区间范围
+        ReportStatisticsScore updateScore = new ReportStatisticsScore();
+        updateScore.setId(statisticsId);
+        updateScore.setFieldXRange(JSON.toJSONString(customConfig.getXIntervalList()));
+        if (customConfig.getReportScoreType().equals(2)) {
+            updateScore.setFieldYRange(JSON.toJSONString(customConfig.getYIntervalList()));
+        }
+        updateScore.setUpdateTime(new Date());
+        reportStatisticsScoreMapper.updateByPrimaryKeySelective(updateScore);
+
+        // 重新执行统计计算
+        ReportStatisticsScore refreshedScore = reportStatisticsScoreMapper.selectByPrimaryKey(statisticsId);
+        if (refreshedScore.getReportScoreType().equals(1)) {
+            // 单模型自定义区间统计
+            refreshSingleModelCount(refreshedScore, customConfig);
+        } else {
+            // 多模型自定义区间统计
+            refreshMultiModelCount(refreshedScore, customConfig);
+        }
+
+        // 更新统计状态为成功
+        updateReportScore(refreshedScore, 1, null);
+    }
+
+    /**
+     * 查找对应的自定义区间配置
+     */
+    private RefreshReportRequestDTO.CustomIntervalConfigDTO findCustomConfigById(RefreshReportRequestDTO requestDTO, Long statisticsId) {
+        if (CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
+            return null;
+        }
+        return requestDTO.getCustomIntervals().stream()
+                .filter(config -> statisticsId.equals(config.getStatisticsId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 刷新单模型统计
+     */
+    private void refreshSingleModelCount(ReportStatisticsScore statisticsScore,
+                                         RefreshReportRequestDTO.CustomIntervalConfigDTO customConfig) {
+        if (CollectionUtils.isEmpty(customConfig.getXIntervalList())) {
+            return;
+        }
+
+        // 解析批次号
+        String batchNumbers = JSONObject.parseObject(statisticsScore.getBatchNumberList())
+                .getString(statisticsScore.getFieldX());
+        List<String> batchNumberList = Arrays.asList(batchNumbers.split(","));
+
+        // 构建查询SQL
+        String scoreSql = buildScoreSql(batchNumberList, statisticsScore.getFieldX(), null);
+
+        // 构建自定义区间统计SQL
+        String customIntervalSql = buildCustomIntervalSql(scoreSql, statisticsScore.getFieldX(), null,
+                customConfig.getXIntervalList(), null);
+
+        log.warn("刷新单模型自定义区间统计SQL: {}", customIntervalSql);
+        List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(customIntervalSql);
+
+        // 保存统计结果
+        saveCustomIntervalResults(statisticsScore.getId(), results, statisticsScore.getFieldX());
+    }
+
+    /**
+     * 刷新多模型统计
+     */
+    private void refreshMultiModelCount(ReportStatisticsScore statisticsScore,
+                                        RefreshReportRequestDTO.CustomIntervalConfigDTO customConfig) {
+        if (com.alibaba.excel.util.CollectionUtils.isEmpty(customConfig.getXIntervalList()) ||
+                com.alibaba.excel.util.CollectionUtils.isEmpty(customConfig.getYIntervalList())) {
+            return;
+        }
+
+        // 解析批次号
+        String batchNumbers = JSONObject.parseObject(statisticsScore.getBatchNumberList())
+                .getString(statisticsScore.getFieldX().concat("_").concat(statisticsScore.getFieldY()));
+        List<String> batchNumberList = Arrays.asList(batchNumbers.split(","));
+
+        // 构建查询SQL
+        String scoreSql = buildScoreSql(batchNumberList, statisticsScore.getFieldX(), statisticsScore.getFieldY());
+
+        // 构建自定义区间统计SQL
+        String customIntervalSql = buildCustomIntervalSql(scoreSql, statisticsScore.getFieldX(), statisticsScore.getFieldY(),
+                customConfig.getXIntervalList(), customConfig.getYIntervalList());
+
+        log.warn("刷新多模型自定义区间统计SQL: {}", customIntervalSql);
+        List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(customIntervalSql);
+
+        // 保存统计结果
+        saveCustomIntervalResults(statisticsScore.getId(), results, statisticsScore.getFieldX(), statisticsScore.getFieldY());
+    }
+
+
+
+    private void updateReportScore(ReportStatisticsScore statisticsScore, Integer status, String errorDesc) {
+        statisticsScore.setStatus(status);
+        statisticsScore.setUpdateTime(new Date());
+        statisticsScore.setStatisticsDesc(errorDesc);
+        reportStatisticsScoreMapper.updateByPrimaryKey(statisticsScore);
+    }
+
+    /**
+     * 构建基础查询SQL
+     */
+    private String buildScoreSql(List<String> batchNumberList, String fieldX, String fieldY) {
+        if (batchNumberList.size() == 1) {
+            // 单表查询，不需要UNION ALL
+            StringBuilder scoreSql = new StringBuilder();
+            scoreSql.append("SELECT ").append(fieldX);
+            if (fieldY != null) {
+                scoreSql.append(", ").append(fieldY);
+            }
+            scoreSql.append(" FROM b_score_").append(batchNumberList.get(0));
+            return scoreSql.toString();
+        } else {
+            // 多表查询，使用UNION ALL
+            StringBuilder scoreSql = new StringBuilder();
+            for (int i = 0; i < batchNumberList.size(); i++) {
+                if (i > 0) {
+                    scoreSql.append(" UNION ALL ");
+                }
+                scoreSql.append("SELECT ").append(fieldX);
+                if (fieldY != null) {
+                    scoreSql.append(", ").append(fieldY);
+                }
+                scoreSql.append(" FROM b_score_").append(batchNumberList.get(i));
+            }
+            return scoreSql.toString();
+        }
+    }
+
+    /**
+     * 构建自定义区间统计SQL
+     */
+    private String buildCustomIntervalSql(String baseSql, String fieldX, String fieldY,
+                                          List<IntervalRangeDTO> xIntervalList, List<IntervalRangeDTO> yIntervalList) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("WITH score_ranges AS (SELECT ").append(fieldX);
+        if (fieldY != null) {
+            sql.append(", ").append(fieldY);
+        }
+
+        // 构建X轴CASE WHEN
+        sql.append(", CASE ");
+        for (IntervalRangeDTO interval : xIntervalList) {
+            sql.append("WHEN ").append(fieldX);
+            if (interval.getMinInclusive()) {
+                sql.append(" >= ").append(interval.getMin());
+            } else {
+                sql.append(" > ").append(interval.getMin());
+            }
+            sql.append(" AND ").append(fieldX);
+            if (interval.getMaxInclusive()) {
+                sql.append(" <= ").append(interval.getMax());
+            } else {
+                sql.append(" < ").append(interval.getMax());
+            }
+            sql.append(" THEN '").append(interval.getText()).append("' ");
+        }
+        sql.append("ELSE 'OUT_OF_RANGE' END AS x_range");
+
+        // 如果是多模型，构建Y轴CASE WHEN
+        if (fieldY != null && !com.alibaba.excel.util.CollectionUtils.isEmpty(yIntervalList)) {
+            sql.append(", CASE ");
+            for (IntervalRangeDTO interval : yIntervalList) {
+                sql.append("WHEN ").append(fieldY);
+                if (interval.getMinInclusive()) {
+                    sql.append(" >= ").append(interval.getMin());
+                } else {
+                    sql.append(" > ").append(interval.getMin());
+                }
+                sql.append(" AND ").append(fieldY);
+                if (interval.getMaxInclusive()) {
+                    sql.append(" <= ").append(interval.getMax());
+                } else {
+                    sql.append(" < ").append(interval.getMax());
+                }
+                sql.append(" THEN '").append(interval.getText()).append("' ");
+            }
+            sql.append("ELSE 'OUT_OF_RANGE' END AS y_range");
+        }
+
+        sql.append(" FROM (").append(baseSql).append(") a");
+        sql.append(" WHERE ").append(fieldX).append(" IS NOT NULL");
+        if (fieldY != null) {
+            sql.append(" AND ").append(fieldY).append(" IS NOT NULL");
+        }
+        sql.append(") ");
+
+        // 构建最终查询
+        sql.append("SELECT x_range AS ").append(fieldX);
+        if (fieldY != null) {
+            sql.append(", y_range AS ").append(fieldY);
+        }
+        sql.append(", COUNT(1) AS num FROM score_ranges WHERE x_range != 'OUT_OF_RANGE'");
+        if (fieldY != null) {
+            sql.append(" AND y_range != 'OUT_OF_RANGE'");
+        }
+        sql.append(" GROUP BY x_range");
+        if (fieldY != null) {
+            sql.append(", y_range");
+        }
+        sql.append(" ORDER BY x_range");
+        if (fieldY != null) {
+            sql.append(", y_range");
+        }
+
+        return sql.toString();
+    }
+
+    /**
+     * 保存自定义区间统计结果
+     */
+    private void saveCustomIntervalResults(Long statisticsId, List<Map<String, Object>> results, String fieldX) {
+        saveCustomIntervalResults(statisticsId, results, fieldX, null);
+    }
+
+    /**
+     * 保存自定义区间统计结果
+     */
+    private void saveCustomIntervalResults(Long statisticsId, List<Map<String, Object>> results, String fieldX, String fieldY) {
+        if (com.alibaba.excel.util.CollectionUtils.isEmpty(results)) {
+            return;
+        }
+
+        List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
+        for (Map<String, Object> resultMap : results) {
+            ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
+            statisticsDetail.setStatisticsId(statisticsId);
+            statisticsDetail.setFieldXValue(StringUtils.isEmpty(resultMap.get(fieldX)) ? "[-1,0)" : (String) resultMap.get(fieldX));
+
+            if (fieldY != null) {
+                statisticsDetail.setFieldYValue(StringUtils.isEmpty(resultMap.get(fieldY)) ? "[-1,0)" : (String) resultMap.get(fieldY));
+            } else {
+                // 单模型Y存储模型名称
+                statisticsDetail.setFieldYValue(fieldX);
+            }
+
+            statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
+            statisticsDetail.setCreateTime(new Date());
+            statisticsDetail.setUpdateTime(new Date());
+            statisticsDetails.add(statisticsDetail);
+        }
+
+        // 批量插入结果
+        scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
     }
 
     /**

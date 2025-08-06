@@ -152,6 +152,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         List<AxisWrapVO> axisWrapVOS = Lists.newArrayList();
         for (ReportStatisticsScore statisticsScore : reportStatisticsScores) {
             AxisWrapVO axisWrapVo = new AxisWrapVO();
+            axisWrapVo.setStatisticsId(statisticsScore.getId());
             axisWrapVo.setXAxisProduct(statisticsScore.getFieldX());
             axisWrapVo.setYAxisProduct(statisticsScore.getFieldY());
             if (ObjectUtil.notEqual(statisticsScore.getStatus(), 1)) {
