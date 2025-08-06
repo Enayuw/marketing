@@ -784,6 +784,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     //log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
 
                     // 关键：使用当前值作为输入，执行规则
+                    // nodeParse 预览接口不传输，清洗传输
                     Object stepResult = executeSingleRule(currentValue, expressionJson, nodeParse);
                     currentValue = String.valueOf(stepResult);
 
@@ -2396,7 +2397,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             
             StringBuilder result = new StringBuilder();
-            result.append(fieldSample); // 始终以当前值开始
+            result.append(fieldSample);
             
             // 处理所有字段
             for (int i = 0; i < fields.size(); i++) {
