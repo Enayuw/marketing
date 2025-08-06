@@ -28,4 +28,16 @@
         WHERE b.config_id = #{configId}
         GROUP BY b.id
     </select>
+
+    <insert id="batchSaveIntervalModel" parameterType="java.util.List">
+        INSERT INTO b_report_interval_model
+        (config_id, axis_type, x_model_name, y_model_name, x_interval_list,
+        y_interval_list, `order`, is_del, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.configId}, #{item.axisType}, #{item.xModelName}, #{item.yModelName}, #{item.xIntervalList},
+            #{item.yIntervalList}, #{item.order}, #{item.isDel}, #{item.createTime}, #{item.updateTime})
+        </foreach>
+    </insert>
+
 </mapper>

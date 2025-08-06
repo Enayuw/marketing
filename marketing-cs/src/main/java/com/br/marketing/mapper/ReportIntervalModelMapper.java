@@ -9,4 +9,7 @@ import java.util.List;
 public interface ReportIntervalModelMapper extends ReportIntervalModelMapperBase {
 
     List<ReportIntervalModel> getByConfigId(@Param("configId")Long configId);
+
+    int batchSaveIntervalModel(@Param("list")List<ReportIntervalModel> list);
+
 }

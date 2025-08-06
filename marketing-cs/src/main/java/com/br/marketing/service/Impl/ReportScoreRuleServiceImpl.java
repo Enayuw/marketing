@@ -1,8 +1,11 @@
 package com.br.marketing.service.Impl;
+import java.time.ZoneId;
 import java.util.Date;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.report.IntervalRangeDTO;
 import com.br.marketing.dto.report.RefreshReportRequestDTO;
@@ -119,6 +122,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     ReportStatisticService reportStatisticService;
+
+    @Autowired
+    RedisChgService redisChgService;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -706,7 +712,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         config.setApiCode(requestDTO.getApiCode());
         config.setReportId(requestDTO.getReportId());
         config.setTemplateName(requestDTO.getTemplateName());
-        config.setTemplateNumber(generateTemplateNumber());
+        config.setTemplateNumber(generateTemplateNumber(requestDTO.getApiCode()));
         config.setOptUserId(Long.valueOf(user.getId()));
         config.setOptUserName(user.getUserName());
         config.setStatus(Constants.DATA_VALID);
@@ -719,31 +725,45 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     /**
      * 生成模板编号
      */
-    private String generateTemplateNumber() {
-        return "TPL_" + System.currentTimeMillis();
+    String generateTemplateNumber(String apiCode) {
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = RedisKeyConstant.intervalNumber.concat(":").concat(yyyyMMdd);
+        Long incr = redisChgService.incr(key);
+        redisChgService.expire(key, getKeyExpiration());
+        String s = incr.toString();
+        int length = s.length();
+        for (int i = 3; i > length; i--) {
+            s = "0" + s;
+        }
+        return yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(s);
+    }
+
+    /**
+     * 获取当前时间到第二天凌晨的秒
+     *
+     */
+    private int getKeyExpiration() {
+        final LocalDateTime now = LocalDateTime.now();
+        // 当前毫秒数
+        long l = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime localDateTime = now.plusDays(1);
+        // 第二天凌晨毫秒数
+        long l1 = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return (int) (l1 - l) / 1000;
     }
 
     /**
      * 批量保存区间模型配置
      */
     private void saveIntervalModels(Long configId, List<RefreshReportRequestDTO.CustomIntervalConfigDTO> customIntervals) {
+        List<ReportIntervalModel> list = new ArrayList<>();
         for (RefreshReportRequestDTO.CustomIntervalConfigDTO dto : customIntervals) {
-            // 参数校验
-            if (dto.getReportScoreType() == null) {
-                throw new IllegalArgumentException("模型类型不能为空");
-            }
-            if (CollectionUtils.isEmpty(dto.getXIntervalList())) {
-                throw new IllegalArgumentException("X轴区间配置不能为空");
-            }
-            if (dto.getReportScoreType().equals(2) && CollectionUtils.isEmpty(dto.getYIntervalList())) {
-                throw new IllegalArgumentException("多模型Y轴区间配置不能为空");
-            }
-
             ReportIntervalModel model = createIntervalModel(configId, dto);
-            int modelResult = reportIntervalModelMapper.insertSelective(model);
-            if (modelResult == 0) {
-                throw new RuntimeException("区间模型配置保存失败");
-            }
+            list.add(model);
+        }
+        int i = reportIntervalModelMapper.batchSaveIntervalModel(list);
+        if (i == 0) {
+            throw new RuntimeException("区间模型配置保存失败");
         }
     }
 
