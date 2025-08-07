@@ -764,6 +764,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         try {
             jsonArray = JSON.parseArray(cleaningRule);
         } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "规则转化为JSONArray失败！错误信息：" + e.getMessage()), e);
             throw new BusinessException("规则转化为JSONArray失败！");
         }
         if (jsonArray != null && !jsonArray.isEmpty()) {
@@ -842,6 +844,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             return firstValueByKey;
         } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "执行清洗规则失败！错误信息：" + e.getMessage()), e);
             throw new BusinessException("执行清洗规则失败: " + e);
         }
     }
@@ -857,6 +861,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         try {
             ruleMap = JSON.parseObject(cleaningRule, Map.class);
         } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "解析清洗规则失败！错误信息：" + e.getMessage()), e);
             throw new BusinessException("解析清洗规则失败！");
         }
         
@@ -1067,6 +1073,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             new BigDecimal(value.trim());
             return true;
         } catch (NumberFormatException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "错误信息：" + e.getMessage()), e);
             return false;
         }
     }
@@ -1299,6 +1307,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 log.warn("保留价格格式结果: '{}'", formattedPrice);
                 return formattedPrice;
             } catch (NumberFormatException e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                        "价格转换失败！错误信息：" + e.getMessage()), e);
                 throw new BusinessException("价格转换失败！");
             }
         } else if ("date".equals(format)) {
@@ -1765,7 +1775,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         } catch (Exception e) {
-            log.warn("JSON解析失败: " + e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "JSON解析失败！错误信息：" + e.getMessage()), e);
         }
         
         return null;
@@ -1866,7 +1877,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("在清洗规则中未找到fieldValue: {}", mappingRule);
             
         } catch (Exception e) {
-            log.warn("解析清洗规则提取fieldValue失败: {}, 错误: {}", mappingRule, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "解析清洗规则提取fieldValue失败！错误信息：" + e.getMessage()), e);
         }
         
         return "";
@@ -2432,7 +2444,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return concatenatedResult;
             
         } catch (Exception e) {
-            log.error("字段拼接操作失败: {}", e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "字段拼接操作失败！错误信息：" + e.getMessage()), e);
             return fieldSample;
         }
     }
