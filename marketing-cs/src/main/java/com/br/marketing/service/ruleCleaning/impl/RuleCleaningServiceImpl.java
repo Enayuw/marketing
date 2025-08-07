@@ -2306,7 +2306,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 处理条件判断操作
      * 根据字段值与指定条件的比较结果，设置不同的输出值
-     * 注意：此功能仅支持数值比较，字段值和比较值都必须为有效的数值格式
+     * 注意：字段值必须为有效的数值格式
+     * 等于(=)和不等于(≠/!=)操作支持字符串比较，其他操作符使用数值比较
      * @param fieldSample 字段样本值
      * @param ruleMap 规则配置
      * @return 处理结果
@@ -2344,16 +2345,24 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             log.warn("判断条件: 操作符={}, 比较值={}, 结果值={}", operator, compareValue, resultValue);
 
-            try {
-                BigDecimal compareDecimal = new BigDecimal(compareValue);
-                boolean conditionMet = compareValues(fieldValue, compareDecimal, operator);
-                
-                if (conditionMet) {
-                    log.warn("条件满足，返回结果值: {}", resultValue);
-                    return resultValue;
+            boolean conditionMet = false;
+
+            // 对于等于和不等于操作，支持字符串比较
+            if ("=".equals(operator) || "≠".equals(operator) || "!=".equals(operator)) {
+                conditionMet = compareStrings(fieldSample, compareValue, operator);
+            } else {
+                // 其他操作符（大于、小于等）使用数值比较
+                try {
+                    BigDecimal compareDecimal = new BigDecimal(compareValue);
+                    conditionMet = compareValues(fieldValue, compareDecimal, operator);
+                } catch (NumberFormatException e) {
+                    throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
                 }
-            } catch (NumberFormatException e) {
-                throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
+            }
+            
+            if (conditionMet) {
+                log.warn("条件满足，返回结果值: {}", resultValue);
+                return resultValue;
             }
         }
 
@@ -2390,7 +2399,25 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
     }
 
-
+    /**
+     * 比较字符串（仅支持等于和不等于操作）
+     * @param fieldValue 字段值
+     * @param compareValue 比较值
+     * @param operator 操作符
+     * @return 比较结果
+     */
+    private boolean compareStrings(String fieldValue, String compareValue, String operator) {
+        switch (operator) {
+            case "=":
+                return fieldValue.equals(compareValue);
+            case "≠":
+            case "!=":
+                return !fieldValue.equals(compareValue);
+            default:
+                log.warn("字符串比较不支持操作符: {}", operator);
+                return false;
+        }
+    }
 
     /**
      * 定制上传结果展示
