@@ -57,6 +57,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
     @Resource
     private CustomIntervalStatisticsImpl customIntervalStatistics;
 
+    private final static String IMAGEMODEL = "pd_cell_type,pd_id_apply_age,pd_id_gender,pd_cell_province";
 
 
     @Override
@@ -126,14 +127,23 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 try {
                     modelList.forEach((String model) -> {
                         String batchNumebrs = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(model);
-                        List<Map<String, Object>> singleResult = singleModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
-                        
-                        // 根据fieldXRange获取预定义的区间配置
-                        List<String> predefinedIntervals = getPredefinedIntervals(Integer.valueOf(statisticsScore.getFieldXRange()));
-                        
-                        // 使用新的保存方法，包含所有预定义区间（包括count为0的）
-                        customIntervalStatistics.saveFixedIntervalResults(
-                                statisticsScore.getId(), singleResult, model, model, predefinedIntervals);
+                        List<Map<String, Object>> singleResult;
+                        if(IMAGEMODEL.contains(model)){
+                            singleResult = imageModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
+                        }else {
+                            singleResult = singleModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
+                        }
+
+                        // 根据模型类型选择不同的保存策略
+                        if(IMAGEMODEL.contains(model)){
+                            // 画像模型特殊处理
+                            saveImageModelResults(statisticsScore.getId(), singleResult, model);
+                        } else {
+                            // 普通模型使用预定义区间配置
+                            List<String> predefinedIntervals = getPredefinedIntervals(Integer.valueOf(statisticsScore.getFieldXRange()));
+                            customIntervalStatistics.saveFixedIntervalResults(
+                                    statisticsScore.getId(), singleResult, model, model, predefinedIntervals);
+                        }
                     });
                     updateReportScore(statisticsScore, 1, null);
                 } catch (Exception e) {
@@ -213,6 +223,45 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
+    /**
+     * 画像模型任务统计计算
+     *
+     * @param fieldX
+     * @param batchNumebrs
+     * @param fieldXRange
+     * @return List
+     */
+    private List<Map<String, Object>> imageModelCount(String fieldX, String batchNumebrs, String fieldXRange) {
+
+        List<String> batchNumberList = Arrays.asList(batchNumebrs.split(","));
+
+        String scoreSql = "";
+        for (int i = 0; i < batchNumberList.size(); i++) {
+            if (i == batchNumberList.size() - 1) {
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_score_").concat(batchNumberList.get(i));
+            } else {
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_score_").concat(batchNumberList.get(i))
+                        .concat(" union all ");
+            }
+        }
+
+        // 根据不同的画像模型使用不同的统计逻辑
+        if ("pd_id_apply_age".equals(fieldX)) {
+            // pd_id_apply_age使用10步长区间统计
+            scoreSql = "SELECT " +
+                    "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')" +
+                    "AS xModelName,count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange)" +
+                    " ORDER BY FLOOR(a.xModelName / xModelRange);";
+            //替换变量
+            scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange);
+        } else if ("pd_id_gender".equals(fieldX) || "pd_cell_province".equals(fieldX) || "pd_cell_type".equals(fieldX)) {
+            // pd_id_gender, pd_cell_province, pd_cell_type使用简单分组统计
+            scoreSql = "SELECT " + fieldX + ", count(1) AS num FROM (" + scoreSql + " ) a GROUP BY " + fieldX + ";";
+        }
+        
+        log.warn("画像模型={} 统计sql={}", fieldX, scoreSql);
+        return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
+    }
 
     /**
      * 单模型任务统计计算
@@ -262,11 +311,17 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 List<String> xModelList = reportRule.getX();
                 xModelList.forEach((String xModel) -> {
                     String batchNumberStr = batchNumerJson.getString(xModel);
-                    Integer modelRange = getModelRangeByDoris(xModel, batchNumberStr);
-                    if(modelRange==null){
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), ("跑分模型统计异常,taskId=".
-                                concat(reportTask.getId().toString()).concat(" 单模型=").concat(xModel).concat("分值全为空"))));
-                        return;
+                    Integer modelRange;
+                    // 画像模型
+                    if(IMAGEMODEL.contains(xModel)){
+                        modelRange = 10;
+                    }else {
+                        modelRange = getModelRangeByDoris(xModel, batchNumberStr);
+                        if(modelRange==null){
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), ("跑分模型统计异常,taskId=".
+                                    concat(reportTask.getId().toString()).concat(" 单模型=").concat(xModel).concat("分值全为空"))));
+                            return;
+                        }
                     }
                     ReportStatisticsScoreExample statisticsScoreExample = new ReportStatisticsScoreExample();
                     statisticsScoreExample.createCriteria()
@@ -384,14 +439,53 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
             log.warn("步长为空，使用默认5步长区间");
             return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
         }
-        
         if (stepLength.equals(5)) {
             return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
         } else if (stepLength.equals(50)) {
             return marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+        } else if (stepLength.equals(10)) {
+            return marketingCommonConfig.getBiReportStepConfig().get("tenStepLength");
         } else {
             log.warn("未支持的步长: {}，使用默认5步长区间", stepLength);
             return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+        }
+    }
+
+    /**
+     * 保存画像模型统计结果
+     * 
+     * @param statisticsId 统计ID
+     * @param results 查询结果
+     * @param model 模型名称
+     */
+    private void saveImageModelResults(Long statisticsId, List<Map<String, Object>> results, String model) {
+        if ("pd_id_apply_age".equals(model)) {
+            // pd_id_apply_age需要补充空区间，使用10步长的预定义区间
+            List<String> predefinedIntervals = marketingCommonConfig.getBiReportStepConfig().get("tenStepLength");
+            customIntervalStatistics.saveFixedIntervalResults(
+                    statisticsId, results, model, model, predefinedIntervals);
+        } else if ("pd_id_gender".equals(model) || "pd_cell_province".equals(model) || "pd_cell_type".equals(model)) {
+            // pd_id_gender, pd_cell_province, pd_cell_type直接保存分组结果，不需要补充空区间
+            List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(results)) {
+                for (Map<String, Object> resultMap : results) {
+                    ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
+                    statisticsDetail.setStatisticsId(statisticsId);
+                    statisticsDetail.setFieldXValue((String) resultMap.get(model));
+                    statisticsDetail.setFieldYValue(model);
+                    statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
+                    statisticsDetail.setCreateTime(new Date());
+                    statisticsDetail.setUpdateTime(new Date());
+                    statisticsDetails.add(statisticsDetail);
+                }
+            }
+            
+            if (!CollectionUtils.isEmpty(statisticsDetails)) {
+                scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
+            }
+            
+            log.info("保存画像模型结果完成，model: {}, statisticsId: {}, 结果数: {}", 
+                    model, statisticsId, statisticsDetails.size());
         }
     }
 
