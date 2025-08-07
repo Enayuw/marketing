@@ -18,6 +18,7 @@ import com.br.marketing.mapper.QifuStrategyReportDataMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -27,8 +28,6 @@ import java.util.Date;
 import java.util.List;
 
 import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
-
-import com.br.marketing.entity.QiFuEffectReportDataExample;
 
 
 /**
@@ -108,7 +107,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     public ApiNoDataResult effectReport(String apiCode, String jsonData) {
         QiFuEffectReportData qiFuEffectReportData = JSONObject.parseObject(jsonData, QiFuEffectReportData.class);
         //必填参数校验
-        List paramsCheckList = Lists.newArrayList(qiFuEffectReportData.getBelongMonth(), qiFuEffectReportData.getStrategyMonth(),qiFuEffectReportData.getUpdDate()
+        List paramsCheckList = Lists.newArrayList(qiFuEffectReportData.getBelongMonth(), qiFuEffectReportData.getStrategyMonth(), qiFuEffectReportData.getUpdDate()
                 , qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getAgentOperator(), qiFuEffectReportData.getGroupName()
                 , qiFuEffectReportData.getUserCount(), qiFuEffectReportData.getLoginUserCount(), qiFuEffectReportData.getApplySubmitUserCount()
                 , qiFuEffectReportData.getCreditSuccessUserCount());
@@ -118,26 +117,24 @@ public class QiFuDataServiceImpl implements QiFuDataService {
                     setMessage(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorMsg());
         }
 
-        // 幂等校验：根据updateDate、canvasName、groupName检查是否已存在记录
-        QiFuEffectReportDataExample example = new QiFuEffectReportDataExample();
-        example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andUpdDateEqualTo(qiFuEffectReportData.getUpdDate())
-                .andCanvasNameEqualTo(qiFuEffectReportData.getCanvasName())
-                .andGroupNameEqualTo(qiFuEffectReportData.getGroupName())
-                .andIsDelEqualTo(1);
-        List<QiFuEffectReportData> existingRecords = qifuEffectReportDataMapper.selectByExample(example);
+        try {
+            // 设置基础字段
+            qiFuEffectReportData.setApiCode(apiCode);
+            qiFuEffectReportData.setCreateTime(new Date());
+            qiFuEffectReportData.setUpdateTime(new Date());
+            qiFuEffectReportData.setIsDel(1); // 1-有效
 
-        if (!CollectionUtils.isEmpty(existingRecords)) {
-            log.warn("奇富效果报告数据已存在，跳过重复插入。updateDate:{}, canvasName:{}, groupName:{}",
-                    qiFuEffectReportData.getUpdDate(), qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getGroupName());
+            // 数据库表有联合唯一索引：(upd_date, canvas_name, group_name)
+            qifuEffectReportDataMapper.insertSelective(qiFuEffectReportData);
+
             return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
+        } catch (DuplicateKeyException keyException) {
+            return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
+        } catch (Exception e) {
+            log.error("奇富效果报告数据插入异常。apiCode:{}, updateDate:{}, canvasName:{}, groupName:{}",
+                    apiCode, qiFuEffectReportData.getUpdDate(), qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getGroupName(), e);
+            return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
+                    .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
         }
-
-        qiFuEffectReportData.setApiCode(apiCode);
-        qiFuEffectReportData.setCreateTime(new Date());
-        qiFuEffectReportData.setUpdateTime(new Date());
-        qifuEffectReportDataMapper.insertSelective(qiFuEffectReportData);
-        return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }
 }
