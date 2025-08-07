@@ -13,7 +13,7 @@ public interface MarketingSyncLabelMapper {
 
 
 
-    List<Map<String,String>> getLabelNum(@Param("labelId") Long labelId,@Param("apiCode") String apiCode);
+    List<Map<String,Object>> getLabelNum(@Param("labelId") Long labelId,@Param("apiCode") String apiCode);
 
 
 
