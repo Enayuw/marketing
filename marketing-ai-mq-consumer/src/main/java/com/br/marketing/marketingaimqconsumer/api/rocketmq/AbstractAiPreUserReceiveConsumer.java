@@ -33,12 +33,12 @@ public abstract class AbstractAiPreUserReceiveConsumer extends BaseMqMessageList
 
     @Override
     protected void handleMessage(MessageExt messageExt) {
-        log.warn("AiPreUserReceiveConsumer获取消息成功：brokerName[{}]topic[{}]tags[{}]storeTimestamp[{}]msgId[{}]",
-                messageExt.getBrokerName(), messageExt.getTopic(),
-                messageExt.getTags(), messageExt.getStoreTimestamp(), messageExt.getMsgId());
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         Long id = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
+        log.warn("AiPreUserReceiveConsumer获取消息成功：brokerName[{}]topic[{}]tags[{}]storeTimestamp[{}]msgId[{}]infoId[{}]",
+                messageExt.getBrokerName(), messageExt.getTopic(),
+                messageExt.getTags(), messageExt.getStoreTimestamp(), messageExt.getMsgId(), id);
         consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, id);
     }
 

@@ -32,10 +32,10 @@ public abstract class AbstractAiUniversalReceiveConsumer extends BaseMqMessageLi
 
     @Override
     protected void handleMessage(MessageExt messageExt) {
-        log.warn("AiUniversalReceiveConsumer获取消息成功：brokerName[{}]topic[{}]tags[{}]storeTimestamp[{}]msgId[{}]",
-                messageExt.getBrokerName(), messageExt.getTopic(),
-                messageExt.getTags(), messageExt.getStoreTimestamp(), messageExt.getMsgId());
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
+        log.warn("AiUniversalReceiveConsumer获取消息成功：brokerName[{}]topic[{}]tags[{}]storeTimestamp[{}]msgId[{}]bodyString[{}]",
+                messageExt.getBrokerName(), messageExt.getTopic(),
+                messageExt.getTags(), messageExt.getStoreTimestamp(), messageExt.getMsgId(), bodyString);
         consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString);
     }
 
