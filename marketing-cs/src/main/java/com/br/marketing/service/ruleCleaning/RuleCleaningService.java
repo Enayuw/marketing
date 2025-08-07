@@ -87,7 +87,7 @@ public interface RuleCleaningService {
      * @param cleaningRule 清洗规则（JSON格式）
      * @return 清洗后的数据值
      */
-    Object previewFieldCleaning(@Validated String fieldSample, @Validated String cleaningRule);
+    Object previewFieldCleaning(@Validated String fieldSample, @Validated String cleaningRule, Object nodeParse);
 
 
     MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType);
