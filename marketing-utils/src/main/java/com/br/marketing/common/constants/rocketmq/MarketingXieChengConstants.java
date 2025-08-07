@@ -6,6 +6,14 @@ package com.br.marketing.common.constants.rocketmq;
  * @Date: 2024-11-04
  */
 public class MarketingXieChengConstants {
+
+    //携程cpa 撞库日志
+    public static final String TOPIC_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "marketingXieChengActivateCollidingQueue";
+
+    public static final String GROUP_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "Marketing_XieCheng_Activate_Colliding_Queue";
+
+    public static final String TAG_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "marketing.xiecheng.activate.colliding.activatequeue";
+
     /**
      *
      */

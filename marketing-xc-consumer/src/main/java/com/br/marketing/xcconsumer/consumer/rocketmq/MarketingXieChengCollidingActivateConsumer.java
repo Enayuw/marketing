@@ -2,7 +2,7 @@ package com.br.marketing.xcconsumer.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
@@ -26,9 +26,9 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingUploadConstants.TOPIC,
-        consumerGroup = MarketingUploadConstants.MARKETING_XIECHENG_COLLIDING_ACTIVATE,
-        selectorExpression = MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE,
+@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE,
+        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE,
+        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE,
         consumeThreadNumber = 1, consumeThreadMax = 5)
 public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 

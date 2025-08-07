@@ -8,6 +8,7 @@ import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.xiecheng.XieChengActivateDataService;
 import com.br.marketing.api.customer.upload.service.xiecheng.dto.XieChengActivateDataResponseDTO;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
@@ -207,8 +208,8 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
             String msg = JSONObject.toJSONString(xieChengActivateDTO);
 
             if(marketingCommonConfig.getXieChengActivateRabbitMqSwitch()){
-                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
-                        , MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
+                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE
+                        , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE, msg);
             } else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
             }
