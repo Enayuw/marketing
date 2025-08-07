@@ -1,6 +1,7 @@
 package com.br.marketing.api.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.service.QiFuDataService;
@@ -8,14 +9,16 @@ import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.QiFuEffectReportData;
 import com.br.marketing.entity.QifuActuation;
 import com.br.marketing.entity.QifuStrategyReportData;
+import com.br.marketing.mapper.QiFuEffectReportDataMapper;
 import com.br.marketing.mapper.QifuActuationMapper;
 import com.br.marketing.mapper.QifuStrategyReportDataMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -29,7 +32,6 @@ import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
 
 /**
  * This is a Javadoc comment
- * @param <T> the parameter of the class
  */
 @Service
 @Slf4j
@@ -40,6 +42,8 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     private QifuStrategyReportDataMapper qifuStrategyReportDataMapper;
     @Resource
     private QifuActuationMapper qifuActuationMapper;
+    @Resource
+    private QiFuEffectReportDataMapper qifuEffectReportDataMapper;
 
     @Override
     public ApiNoDataResult strategyReportData(String apiCode, String jsonData) {
@@ -75,7 +79,8 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     @Override
     public ApiNoDataResult analysisStatistics(String apiCode, String jsonData) {
         try {
-            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {}.getType());
+            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {
+            }.getType());
 
             reportDataList.parallelStream().forEach(item -> {
                 item.setApiCode(apiCode);
@@ -98,5 +103,38 @@ public class QiFuDataServiceImpl implements QiFuDataService {
         }
     }
 
+    @Override
+    public ApiNoDataResult effectReport(String apiCode, String jsonData) {
+        QiFuEffectReportData qiFuEffectReportData = JSONObject.parseObject(jsonData, QiFuEffectReportData.class);
+        //必填参数校验
+        List paramsCheckList = Lists.newArrayList(qiFuEffectReportData.getBelongMonth(), qiFuEffectReportData.getStrategyMonth(), qiFuEffectReportData.getUpdDate()
+                , qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getAgentOperator(), qiFuEffectReportData.getGroupName()
+                , qiFuEffectReportData.getUserCount(), qiFuEffectReportData.getLoginUserCount(), qiFuEffectReportData.getApplySubmitUserCount()
+                , qiFuEffectReportData.getCreditSuccessUserCount());
+        boolean paramNull = paramsCheckList.stream().anyMatch(param -> StringUtils.isEmpty(param));
+        if (paramNull) {
+            return new ApiNoDataResult().setCode(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorCode()).
+                    setMessage(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorMsg());
+        }
 
+        try {
+            // 设置基础字段
+            qiFuEffectReportData.setApiCode(apiCode);
+            qiFuEffectReportData.setCreateTime(new Date());
+            qiFuEffectReportData.setUpdateTime(new Date());
+            qiFuEffectReportData.setIsDel(1); // 1-有效
+
+            // 数据库表有联合唯一索引：(upd_date, canvas_name, group_name)
+            qifuEffectReportDataMapper.insertSelective(qiFuEffectReportData);
+
+            return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
+        } catch (DuplicateKeyException keyException) {
+            return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
+        } catch (Exception e) {
+            log.error("奇富效果报告数据插入异常。apiCode:{}, updateDate:{}, canvasName:{}, groupName:{}",
+                    apiCode, qiFuEffectReportData.getUpdDate(), qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getGroupName(), e);
+            return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
+                    .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+        }
+    }
 }
