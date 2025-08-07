@@ -85,7 +85,7 @@ public class MarketingValidityPeriod {
     }
 
     @ApiOperation(value = "奇富促完件效果报表新接口（营销）")
-    @PostMapping("/effectReport")
+    @PostMapping("/qiFuCWJEffectReport")
     @ReqLogAnnotation()
     @SaveLog
     public ApiNoDataResult effectReport(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
