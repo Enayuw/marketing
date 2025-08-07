@@ -785,17 +785,28 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void testRuleCleaning(){
-        JSONObject jsonObject = new JSONObject();
-        jsonObject = JSONObject.parseObject("{\"batchNo\":\"E000932_6635568777882767361\",\"retryCall\":\"Y\"," +
-                "\"templateNo\":\"睡眠借条-原CASTR0321218\",\"callTimeRange\":\"09:00-20:00\",\"dataList\":[{\"gender\":\"M\",\"surname\":\"王\",\"phoneNoMd5\":\"c7a25c24e9cf98ea7caa11756a1270b3\",\"serialNo\":\"RB6635584322132770817\"},{\"gender\":\"M\",\"surname\":\"孙\",\"phoneNoMd5\":\"80a8ee96150bf49c953a3fed83a1abbe\",\"serialNo\":\"RB6635584322132770818\"},{\"gender\":\"M\",\"surname\":\"姚\",\"phoneNoMd5\":\"bec08a8e0091922f3be08d6f9a6dec60\",\"serialNo\":\"RB6635584322132770819\"},{\"gender\":\"M\",\"surname\":\"李\",\"phoneNoMd5\":\"942ef6b8f1fd49b58338b5270d23f479\",\"serialNo\":\"RB6635584322132770820\"},{\"gender\":\"F\",\"surname\":\"李\",\"phoneNoMd5\":\"ad9985f249da68a2a59dcfcc998fdf91\",\"serialNo\":\"RB6635584322132770821\"},{\"gender\":\"F\",\"surname\":\"马\",\"phoneNoMd5\":\"dc54284c3b13c4ab711ade9232b10667\",\"serialNo\":\"RB6635584322132770822\"}],\"flowNo\":\"RF6635584322132770816\",\"sendMsg\":\"N\",\"callType\":\"AI\",\"operateScene\":\"loan\"}");
-        MarketingDataCleanGeneralRuleConfig ruleConfig = new MarketingDataCleanGeneralRuleConfig();
-        ruleConfig.setIsDel(1);
-        ruleConfig.setIsMapping(true);
-        ruleConfig.setCleanFields("callType");
-        ruleConfig.setMappingField("userType");
-        ruleConfig.setMappingRule("[{\"order\":1,\"operateType\":\"string\",\"expression\":{\"operator\":\"default\",\"defaultValue\":\"1\"}}]");
-        Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
-        System.err.println(result);
+        System.err.println("=== 开始测试 executeCleaningRule 接口（数学运算和字段拼接） ===");
+        
+        // ==================== 数学运算测试 ====================
+        System.err.println("\n========== 数学运算测试 ==========");
+        // 测试用例13：多规则链式处理
+        System.err.println("\n=== 测试用例13：多规则链式处理 ===");
+        JSONObject jsonObject13 = new JSONObject();
+        jsonObject13 = JSONObject.parseObject("{\"name\":\"张三\",\"taskId\":\"TASK001\"}");
+        MarketingDataCleanGeneralRuleConfig ruleConfig13 = new MarketingDataCleanGeneralRuleConfig();
+        ruleConfig13.setIsDel(1);
+        ruleConfig13.setIsMapping(true);
+        ruleConfig13.setCleanFields("taskId");
+        ruleConfig13.setMappingField("taskId");
+        ruleConfig13.setMappingRule("[{\"expression\":{\"operator\":\"concatenate\",\"fields\":[{\"fieldName\":\"taskId\"},{\"fieldName\":\"name\",\"delimiter\":\"-\"}]}},{\"expression\":{\"operator\":\"replace\",\"keyword\":\"TASK\",\"replaceValue\":\"ORDER\"}}]");
+        Object result13 = ruleCleaningService.executeCleaningRule(jsonObject13, ruleConfig13);
+        System.err.println("输入数据: " + jsonObject13.toJSONString());
+        System.err.println("规则配置: " + ruleConfig13.getMappingRule());
+        System.err.println("实际结果: " + result13);
+        System.err.println("期望结果: ORDER001-张三");
+        System.err.println("是否匹配: " + ("ORDER001-张三".equals(result13) ? "✅" : "❌"));
+
+        System.err.println("\n=== executeCleaningRule 接口测试完成 ===");
     }
 
 

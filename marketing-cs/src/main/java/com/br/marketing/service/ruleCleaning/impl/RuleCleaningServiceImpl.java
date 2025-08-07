@@ -736,7 +736,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (configDTO.getIsMapping()) {
             try {
                 // 直接调用预览方法
-                Object result = previewFieldCleaning(fieldSample, configDTO.getMappingRule());
+                Object result = previewFieldCleaning(fieldSample, configDTO.getMappingRule(), null);
                 return result != null ? result.toString() : "";
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
@@ -756,7 +756,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 清洗后的数据值
      */
     @Override
-    public Object previewFieldCleaning(String fieldSample, String cleaningRule) {
+    public Object previewFieldCleaning(String fieldSample, String cleaningRule, Object nodeParse) {
         //log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
 
         // 尝试解析为规则列表（支持多规则按顺序执行）
@@ -784,7 +784,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     //log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
 
                     // 关键：使用当前值作为输入，执行规则
-                    Object stepResult = executeSingleRule(currentValue, expressionJson, null);
+                    // nodeParse 预览接口不传输，清洗传输
+                    Object stepResult = executeSingleRule(currentValue, expressionJson, nodeParse);
                     currentValue = String.valueOf(stepResult);
 
                     //log.warn("规则#{} 处理后的值: {}", i + 1, currentValue);
@@ -835,7 +836,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     return firstValueByKey;
                 }
                 
-                Object result = previewFieldCleaning(firstValueByKey, mappingRule);
+                Object result = previewFieldCleaning(firstValueByKey, mappingRule, nodeParse);
                 return result;
             }
             
@@ -920,6 +921,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             case "priority":
                 // 字段优先级
                 result = handlePriorityOperation(fieldSample, ruleMap);
+                break;
+            case "concatenate":
+                // 字段拼接
+                if (ObjectUtil.isNotEmpty(nodeParse)) {
+                    result = handleConcatenateOperation(fieldSample, ruleMap, nodeParse);
+                } else {
+                    result = handleConcatenateOperation(fieldSample, ruleMap);
+                }
                 break;
             case "condition":
                 // 条件判断
@@ -2359,7 +2368,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
                 }
             }
-            
+
             if (conditionMet) {
                 log.warn("条件满足，返回结果值: {}", resultValue);
                 return resultValue;
@@ -2466,6 +2475,86 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         return cleaningResults;
+    }
+
+    /**
+     * 处理字段拼接操作（不使用nodeParse版本）
+     */
+    private Object handleConcatenateOperation(String fieldSample, Map<String, Object> ruleMap) {
+        return handleConcatenateOperation(fieldSample, ruleMap, null);
+    }
+
+    /**
+     * 处理字段拼接操作
+     * 支持将多个字段按指定分隔符拼接成一个字段
+     *
+     * @param fieldSample 当前字段值（作为第一个字段）
+     * @param ruleMap 规则配置
+     * @param nodeParse 原始数据对象
+     * @return 拼接后的结果
+     */
+    private Object handleConcatenateOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
+        try {
+            log.warn("处理字段拼接操作 - 输入值: {}, 规则: {}", fieldSample, ruleMap);
+
+            // 获取字段配置列表
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) ruleMap.get("fields");
+            if (fields == null || fields.isEmpty()) {
+                log.warn("字段拼接配置为空，返回原值");
+                return fieldSample;
+            }
+
+            // 验证字段数量限制（最多10个字段）
+            if (fields.size() > 10) {
+                log.warn("字段数量超过限制(10个)，只处理前10个字段");
+                fields = fields.subList(0, 10);
+            }
+
+            // 验证最少字段限制（至少1个字段）
+            if (fields.size() < 1) {
+                log.warn("字段配置为空，无法进行拼接，返回原值");
+                return fieldSample;
+            }
+
+            StringBuilder result = new StringBuilder();
+            result.append(fieldSample);
+
+            // 处理所有字段
+            for (int i = 0; i < fields.size(); i++) {
+                Map<String, Object> fieldConfig = fields.get(i);
+                String fieldName = String.valueOf(fieldConfig.get("fieldName"));
+                String delimiter = String.valueOf(fieldConfig.get("delimiter"));
+
+                // 获取字段值
+                Object fieldValue = null;
+
+                if (nodeParse != null) {
+                    // 从nodeParse中获取字段值
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                } else {
+                    // 使用规则中的预设值
+                    fieldValue = fieldConfig.get("fieldValue");
+                    log.warn("使用规则中预设的字段值: {}", fieldValue);
+                }
+
+                // 如果字段值不为空，添加到结果中
+                if (fieldValue != null && StringUtils.isNotBlank(String.valueOf(fieldValue))) {
+                    if (StringUtils.isNotBlank(delimiter)) {
+                        result.append(delimiter);
+                    }
+                    result.append(String.valueOf(fieldValue));
+                }
+            }
+
+            String concatenatedResult = result.toString();
+            log.warn("字段拼接结果: {}", concatenatedResult);
+            return concatenatedResult;
+
+        } catch (Exception e) {
+            log.error("字段拼接操作失败: {}", e.getMessage(), e);
+            return fieldSample;
+        }
     }
 
 }
