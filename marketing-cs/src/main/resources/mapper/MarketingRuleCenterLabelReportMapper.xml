@@ -8,7 +8,7 @@
             b_marketing_rule_center_label_report
         where ${whereStr}
                 and label_name = #{labelNme}
-            and is_del = 0
+            and is_del = 1
     </select>
 
 </mapper>
