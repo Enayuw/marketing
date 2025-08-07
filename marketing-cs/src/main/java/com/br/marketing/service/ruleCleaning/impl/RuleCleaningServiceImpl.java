@@ -921,6 +921,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 字段优先级
                 result = handlePriorityOperation(fieldSample, ruleMap);
                 break;
+            case "condition":
+                // 条件判断
+                result = handleConditionOperation(fieldSample, ruleMap);
+                break;
             default:
                 log.warn("未知的操作类型: {}", operator);
                 break;
@@ -2298,6 +2302,95 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         return cleaningResults;
     }
+
+    /**
+     * 处理条件判断操作
+     * 根据字段值与指定条件的比较结果，设置不同的输出值
+     * 注意：此功能仅支持数值比较，字段值和比较值都必须为有效的数值格式
+     * @param fieldSample 字段样本值
+     * @param ruleMap 规则配置
+     * @return 处理结果
+     */
+    private Object handleConditionOperation(String fieldSample, Map<String, Object> ruleMap) {
+        if (StringUtils.isBlank(fieldSample)) {
+            log.warn("条件判断操作输入为空");
+            return fieldSample;
+        }
+
+        log.warn("执行条件判断操作 - 原始输入: '{}'", fieldSample);
+
+        // 获取条件规则列表
+        List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
+        String defaultValue = String.valueOf(ruleMap.get("defaultValue"));
+
+        if (conditions == null || conditions.isEmpty()) {
+            log.warn("条件规则列表为空，返回默认值: {}", defaultValue);
+            return defaultValue;
+        }
+
+        // 将字段值转换为数值进行比较（仅支持数值比较）
+        BigDecimal fieldValue;
+        try {
+            fieldValue = new BigDecimal(fieldSample);
+        } catch (NumberFormatException e) {
+            throw new BusinessException("字段值 '" + fieldSample + "' 转换为数值格式失败！");
+        }
+
+        // 按顺序逐一判断条件
+        for (Map<String, Object> condition : conditions) {
+            String operator = String.valueOf(condition.get("operator"));
+            String compareValue = String.valueOf(condition.get("compareValue"));
+            String resultValue = String.valueOf(condition.get("resultValue"));
+
+            log.warn("判断条件: 操作符={}, 比较值={}, 结果值={}", operator, compareValue, resultValue);
+
+            try {
+                BigDecimal compareDecimal = new BigDecimal(compareValue);
+                boolean conditionMet = compareValues(fieldValue, compareDecimal, operator);
+                
+                if (conditionMet) {
+                    log.warn("条件满足，返回结果值: {}", resultValue);
+                    return resultValue;
+                }
+            } catch (NumberFormatException e) {
+                throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
+            }
+        }
+
+        // 所有条件都不满足，返回默认值
+        log.warn("所有条件都不满足，返回默认值: {}", defaultValue);
+        return defaultValue;
+    }
+
+    /**
+     * 比较数值
+     * @param fieldValue 字段值
+     * @param compareValue 比较值
+     * @param operator 操作符
+     * @return 比较结果
+     */
+    private boolean compareValues(BigDecimal fieldValue, BigDecimal compareValue, String operator) {
+        switch (operator) {
+            case ">":
+                return fieldValue.compareTo(compareValue) > 0;
+            case ">=":
+                return fieldValue.compareTo(compareValue) >= 0;
+            case "=":
+                return fieldValue.compareTo(compareValue) == 0;
+            case "≠":
+            case "!=":
+                return fieldValue.compareTo(compareValue) != 0;
+            case "<=":
+                return fieldValue.compareTo(compareValue) <= 0;
+            case "<":
+                return fieldValue.compareTo(compareValue) < 0;
+            default:
+                log.warn("未知的数值比较操作符: {}", operator);
+                return false;
+        }
+    }
+
+
 
     /**
      * 定制上传结果展示
