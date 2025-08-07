@@ -2315,8 +2315,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 处理条件判断操作
      * 根据字段值与指定条件的比较结果，设置不同的输出值
-     * 注意：字段值必须为有效的数值格式
-     * 等于(=)和不等于(≠/!=)操作支持字符串比较，其他操作符使用数值比较
+     * 注意：如果条件中包含字符串比较（=、≠、!=），则字段值可以是任意字符串
+     * 如果条件中只包含数值比较（>、>=、<、<=），则字段值必须为有效的数值格式
      * @param fieldSample 字段样本值
      * @param ruleMap 规则配置
      * @return 处理结果
@@ -2338,12 +2338,32 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return defaultValue;
         }
 
-        // 将字段值转换为数值进行比较（仅支持数值比较）
-        BigDecimal fieldValue;
-        try {
-            fieldValue = new BigDecimal(fieldSample);
-        } catch (NumberFormatException e) {
-            throw new BusinessException("字段值 '" + fieldSample + "' 转换为数值格式失败！");
+        // 检查是否包含字符串比较操作和数值比较操作
+        boolean hasStringComparison = false;
+        boolean hasNumericComparison = false;
+        for (Map<String, Object> condition : conditions) {
+            String operator = String.valueOf(condition.get("operator"));
+            if ("=".equals(operator) || "≠".equals(operator) || "!=".equals(operator)) {
+                hasStringComparison = true;
+            } else {
+                hasNumericComparison = true;
+            }
+        }
+
+        // 尝试将字段值转换为数值（如果包含数值比较）
+        BigDecimal fieldValue = null;
+        if (hasNumericComparison) {
+            try {
+                fieldValue = new BigDecimal(fieldSample);
+            } catch (NumberFormatException e) {
+                if (hasStringComparison) {
+                    // 如果同时包含字符串比较，则允许字段值为字符串格式
+                    log.warn("字段值 '{}' 无法转换为数值，但在混合比较模式下允许继续执行", fieldSample);
+                } else {
+                    // 如果只有数值比较，则必须要求数值格式
+                    throw new BusinessException("字段值 '" + fieldSample + "' 转换为数值格式失败！");
+                }
+            }
         }
 
         // 按顺序逐一判断条件
@@ -2361,6 +2381,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 conditionMet = compareStrings(fieldSample, compareValue, operator);
             } else {
                 // 其他操作符（大于、小于等）使用数值比较
+                if (fieldValue == null) {
+                    // 如果字段值不是数值格式，但需要数值比较，则跳过此条件
+                    log.warn("字段值 '{}' 不是数值格式，跳过数值比较条件: {}", fieldSample, operator);
+                    continue;
+                }
                 try {
                     BigDecimal compareDecimal = new BigDecimal(compareValue);
                     conditionMet = compareValues(fieldValue, compareDecimal, operator);
