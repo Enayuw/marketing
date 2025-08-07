@@ -229,7 +229,7 @@
 
     <select id="minIdRuleScoreLabelWithDate" resultType="java.lang.Long">
         select min(id)
-        from b_marketing_sync_${apiCode}
+        from b_marketing_sync_label_${apiCode}
         where ${whereStr}
           and is_repeat in (1,2)
           and status = 1
@@ -238,7 +238,7 @@
 
     <select id="minIdRuleScoreLabelWithDatetiflash_" resultType="java.lang.Long">
         select min(id)
-        from b_marketing_sync_${apiCode}
+        from b_marketing_sync_Label_${apiCode}
         where ${whereStr}
           and is_repeat in (1,2)
           and status = 1

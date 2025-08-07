@@ -38,6 +38,8 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
     private static final String TI_FLASH = "tiflash";
     private static final String TI_KV = "tikv";
 
+    private static final String DUPLICATE_REMOVE_NUM = "去重后数据量";
+
     @Override
     public Integer countByRuleScoreWithDate(String apiCode, String whereStr, String labelName) {
 
@@ -46,7 +48,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         Integer count;
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
-        if (StringUtils.isNotBlank(labelName)) {
+        if (!DUPLICATE_REMOVE_NUM.equals(labelName)) {
             Long labelId = getIdByLabelName(whereStr,labelName);
             if (type.equals(1)) {
                 count = marketingSyncInfoMapper.countByRuleScoreLabelWithDatetiflash_(apiCode, whereStr, labelId);
@@ -71,7 +73,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         Long mid;
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
-        if (StringUtils.isNotBlank(labelName)) {
+        if (!DUPLICATE_REMOVE_NUM.equals(labelName)) {
             Long labelId = getIdByLabelName(whereStr,labelName);
             if (type.equals(1)) {
                 mid = marketingSyncInfoMapper.minIdRuleScoreLabelWithDatetiflash_(apiCode, whereStr, labelId);
@@ -97,7 +99,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         List<MarketingSyncLabelUser> labelUsers;
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
-        if (StringUtils.isNotBlank(labelName)) {
+        if (!DUPLICATE_REMOVE_NUM.equals(labelName)) {
             Long labelId = getIdByLabelName(whereStr,labelName);
             if (type.equals(1)) {
                 labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, whereStr, id, pageSize, labelId);
