@@ -122,25 +122,18 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         statisticsScoreList.forEach((ReportStatisticsScore statisticsScore) -> {
             //单模型统计
             if (statisticsScore.getReportScoreType().equals(1)) {
-                List<String> modelList = new ArrayList(Arrays.asList(statisticsScore.getFieldX().split(",")));
+                List<String> modelList = new ArrayList<>(Arrays.asList(statisticsScore.getFieldX().split(",")));
                 try {
                     modelList.forEach((String model) -> {
-                        List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
                         String batchNumebrs = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(model);
                         List<Map<String, Object>> singleResult = singleModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
-                        singleResult.forEach((Map<String, Object> resultMap) -> {
-                            ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
-                            statisticsDetail.setStatisticsId(statisticsScore.getId());
-                            statisticsDetail.setFieldXValue(StringUtils.isEmpty(resultMap.get(model)) ? "[-1,0)" : (String) resultMap.get(model));
-                            //单模型Y存储模型名称
-                            statisticsDetail.setFieldYValue(model);
-                            statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
-                            statisticsDetail.setCreateTime(new Date());
-                            statisticsDetail.setUpdateTime(new Date());
-                            statisticsDetails.add(statisticsDetail);
-                        });
-                        //批量插入结果
-                        scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
+                        
+                        // 根据fieldXRange获取预定义的区间配置
+                        List<String> predefinedIntervals = getPredefinedIntervals(Integer.valueOf(statisticsScore.getFieldXRange()));
+                        
+                        // 使用新的保存方法，包含所有预定义区间（包括count为0的）
+                        customIntervalStatistics.saveFixedIntervalResults(
+                                statisticsScore.getId(), singleResult, model, model, predefinedIntervals);
                     });
                     updateReportScore(statisticsScore, 1, null);
                 } catch (Exception e) {
@@ -154,20 +147,17 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 try {
                     List<Map<String, Object>> mulResult = mulModelCount(statisticsScore.getFieldX(), statisticsScore.getFieldY(),
                             batchNumebrs, statisticsScore.getFieldXRange(), statisticsScore.getFieldYRange());
-                    List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
-                    mulResult.forEach((Map<String, Object> resultMap) -> {
-                        ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
-                        statisticsDetail.setStatisticsId(statisticsScore.getId());
-                        statisticsDetail.setFieldXValue(StringUtils.isEmpty(resultMap.get(statisticsScore.getFieldX())) ? "[-1,0)" :
-                                (String) resultMap.get(statisticsScore.getFieldX()));
-                        statisticsDetail.setFieldYValue(StringUtils.isEmpty(resultMap.get(statisticsScore.getFieldY())) ? "[-1,0)" :
-                                (String) resultMap.get(statisticsScore.getFieldY()));
-                        statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
-                        statisticsDetail.setCreateTime(new Date());
-                        statisticsDetail.setUpdateTime(new Date());
-                        statisticsDetails.add(statisticsDetail);
-                    });
-                    scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
+                    
+                    // 根据fieldXRange和fieldYRange获取预定义的区间配置
+                    List<String> xPredefinedIntervals = getPredefinedIntervals(Integer.valueOf(statisticsScore.getFieldXRange()));
+                    List<String> yPredefinedIntervals = getPredefinedIntervals(Integer.valueOf(statisticsScore.getFieldYRange()));
+                    
+                    // 使用新的保存方法，包含所有预定义区间（包括count为0的）
+                    customIntervalStatistics.saveFixedIntervalResults(
+                            statisticsScore.getId(), mulResult, 
+                            statisticsScore.getFieldX(), statisticsScore.getFieldY(), 
+                            xPredefinedIntervals, yPredefinedIntervals);
+                    
                     updateReportScore(statisticsScore, 1, null);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "跑分模型统计异常"), e);
@@ -381,6 +371,28 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         //speed配置
         return scoreValue > rangeConfig.get("scoreNum") ? rangeConfig.get("numRightStep") : rangeConfig.get("numLeftStep");
 
+    }
+
+    /**
+     * 根据步长获取预定义的区间配置
+     * 
+     * @param stepLength 步长（5或50）
+     * @return 预定义区间列表
+     */
+    private List<String> getPredefinedIntervals(Integer stepLength) {
+        if (stepLength == null) {
+            log.warn("步长为空，使用默认5步长区间");
+            return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+        }
+        
+        if (stepLength.equals(5)) {
+            return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+        } else if (stepLength.equals(50)) {
+            return marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+        } else {
+            log.warn("未支持的步长: {}，使用默认5步长区间", stepLength);
+            return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+        }
     }
 
     /**
