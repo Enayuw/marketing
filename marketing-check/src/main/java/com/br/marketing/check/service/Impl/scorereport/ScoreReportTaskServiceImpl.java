@@ -12,6 +12,7 @@ import com.br.marketing.dto.report.ScoreReportRuleDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.Impl.CustomIntervalStatisticsImpl;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
 
     @Resource
     private ReportIntervalModelMapper reportIntervalModelMapper;
+
+    @Resource
+    private CustomIntervalStatisticsImpl customIntervalStatistics;
 
 
 
@@ -651,24 +655,20 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
      */
     private void customSingleModelCount(ReportStatisticsScore statisticsScore) {
         List<IntervalRangeDTO> xIntervalList = JSON.parseArray(statisticsScore.getFieldXRange(), IntervalRangeDTO.class);
-        if (CollectionUtils.isEmpty(xIntervalList)) {
-            return;
-        }
+        
+        String batchNumberKey = customIntervalStatistics.getBatchNumberKey(statisticsScore.getReportScoreType(),
+                statisticsScore.getFieldX(), statisticsScore.getFieldY());
+        List<String> batchNumberList = customIntervalStatistics.parseBatchNumberList(
+                statisticsScore.getBatchNumberList(), batchNumberKey);
 
-        String batchNumbers = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(statisticsScore.getFieldX());
-        List<String> batchNumberList = Arrays.asList(batchNumbers.split(","));
-
-        // 构建查询SQL
-        String scoreSql = buildScoreSql(batchNumberList, statisticsScore.getFieldX(), null);
-        
-        // 构建自定义区间统计SQL
-        String customIntervalSql = buildCustomIntervalSql(scoreSql, statisticsScore.getFieldX(), null, xIntervalList, null);
-        
-        log.warn("单模型自定义区间统计SQL: {}", customIntervalSql);
-        List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(customIntervalSql);
-        
-        // 保存统计结果
-        saveCustomIntervalResults(statisticsScore.getId(), results, statisticsScore.getFieldX());
+        customIntervalStatistics.executeCustomIntervalCount(
+                statisticsScore.getId(), 
+                statisticsScore.getFieldX(), 
+                null, 
+                batchNumberList, 
+                xIntervalList, 
+                null, 
+                "单模型");
     }
 
     /**
@@ -678,173 +678,19 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         List<IntervalRangeDTO> xIntervalList = JSON.parseArray(statisticsScore.getFieldXRange(), IntervalRangeDTO.class);
         List<IntervalRangeDTO> yIntervalList = JSON.parseArray(statisticsScore.getFieldYRange(), IntervalRangeDTO.class);
         
-        if (CollectionUtils.isEmpty(xIntervalList) || CollectionUtils.isEmpty(yIntervalList)) {
-            return;
-        }
+        String batchNumberKey = customIntervalStatistics.getBatchNumberKey(statisticsScore.getReportScoreType(),
+                statisticsScore.getFieldX(), statisticsScore.getFieldY());
+        List<String> batchNumberList = customIntervalStatistics.parseBatchNumberList(
+                statisticsScore.getBatchNumberList(), batchNumberKey);
 
-        String batchNumbers = JSONObject.parseObject(statisticsScore.getBatchNumberList())
-                .getString(statisticsScore.getFieldX().concat("_").concat(statisticsScore.getFieldY()));
-        List<String> batchNumberList = Arrays.asList(batchNumbers.split(","));
-
-        // 构建查询SQL
-        String scoreSql = buildScoreSql(batchNumberList, statisticsScore.getFieldX(), statisticsScore.getFieldY());
-        
-        // 构建自定义区间统计SQL
-        String customIntervalSql = buildCustomIntervalSql(scoreSql, statisticsScore.getFieldX(), statisticsScore.getFieldY(), 
-                xIntervalList, yIntervalList);
-        
-        log.warn("多模型自定义区间统计SQL: {}", customIntervalSql);
-        List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(customIntervalSql);
-        
-        // 保存统计结果
-        saveCustomIntervalResults(statisticsScore.getId(), results, statisticsScore.getFieldX(), statisticsScore.getFieldY());
-    }
-
-    /**
-     * 构建基础查询SQL
-     */
-    private String buildScoreSql(List<String> batchNumberList, String fieldX, String fieldY) {
-        if (batchNumberList.size() == 1) {
-            // 单表查询，不需要UNION ALL
-            StringBuilder scoreSql = new StringBuilder();
-            scoreSql.append("SELECT ").append(fieldX);
-            if (fieldY != null) {
-                scoreSql.append(", ").append(fieldY);
-            }
-            scoreSql.append(" FROM b_score_").append(batchNumberList.get(0));
-            return scoreSql.toString();
-        } else {
-            // 多表查询，使用UNION ALL
-            StringBuilder scoreSql = new StringBuilder();
-            for (int i = 0; i < batchNumberList.size(); i++) {
-                if (i > 0) {
-                    scoreSql.append(" UNION ALL ");
-                }
-                scoreSql.append("SELECT ").append(fieldX);
-                if (fieldY != null) {
-                    scoreSql.append(", ").append(fieldY);
-                }
-                scoreSql.append(" FROM b_score_").append(batchNumberList.get(i));
-            }
-            return scoreSql.toString();
-        }
-    }
-
-    /**
-     * 构建自定义区间统计SQL
-     */
-    private String buildCustomIntervalSql(String baseSql, String fieldX, String fieldY, 
-                                        List<IntervalRangeDTO> xIntervalList, List<IntervalRangeDTO> yIntervalList) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("WITH score_ranges AS (SELECT ").append(fieldX);
-        if (fieldY != null) {
-            sql.append(", ").append(fieldY);
-        }
-        
-        // 构建X轴CASE WHEN
-        sql.append(", CASE ");
-        for (IntervalRangeDTO interval : xIntervalList) {
-            sql.append("WHEN ").append(fieldX);
-            if (interval.getMinInclusive()) {
-                sql.append(" >= ").append(interval.getMin());
-            } else {
-                sql.append(" > ").append(interval.getMin());
-            }
-            sql.append(" AND ").append(fieldX);
-            if (interval.getMaxInclusive()) {
-                sql.append(" <= ").append(interval.getMax());
-            } else {
-                sql.append(" < ").append(interval.getMax());
-            }
-            sql.append(" THEN '").append(interval.getText()).append("' ");
-        }
-        sql.append("ELSE 'OUT_OF_RANGE' END AS x_range");
-        
-        // 如果是多模型，构建Y轴CASE WHEN
-        if (fieldY != null && !CollectionUtils.isEmpty(yIntervalList)) {
-            sql.append(", CASE ");
-            for (IntervalRangeDTO interval : yIntervalList) {
-                sql.append("WHEN ").append(fieldY);
-                if (interval.getMinInclusive()) {
-                    sql.append(" >= ").append(interval.getMin());
-                } else {
-                    sql.append(" > ").append(interval.getMin());
-                }
-                sql.append(" AND ").append(fieldY);
-                if (interval.getMaxInclusive()) {
-                    sql.append(" <= ").append(interval.getMax());
-                } else {
-                    sql.append(" < ").append(interval.getMax());
-                }
-                sql.append(" THEN '").append(interval.getText()).append("' ");
-            }
-            sql.append("ELSE 'OUT_OF_RANGE' END AS y_range");
-        }
-        
-        sql.append(" FROM (").append(baseSql).append(") a");
-        sql.append(" WHERE ").append(fieldX).append(" IS NOT NULL");
-        if (fieldY != null) {
-            sql.append(" AND ").append(fieldY).append(" IS NOT NULL");
-        }
-        sql.append(") ");
-        
-        // 构建最终查询
-        sql.append("SELECT x_range AS ").append(fieldX);
-        if (fieldY != null) {
-            sql.append(", y_range AS ").append(fieldY);
-        }
-        sql.append(", COUNT(1) AS num FROM score_ranges WHERE x_range != 'OUT_OF_RANGE'");
-        if (fieldY != null) {
-            sql.append(" AND y_range != 'OUT_OF_RANGE'");
-        }
-        sql.append(" GROUP BY x_range");
-        if (fieldY != null) {
-            sql.append(", y_range");
-        }
-        sql.append(" ORDER BY x_range");
-        if (fieldY != null) {
-            sql.append(", y_range");
-        }
-        
-        return sql.toString();
-    }
-
-    /**
-     * 保存自定义区间统计结果
-     */
-    private void saveCustomIntervalResults(Long statisticsId, List<Map<String, Object>> results, String fieldX) {
-        saveCustomIntervalResults(statisticsId, results, fieldX, null);
-    }
-
-    /**
-     * 保存自定义区间统计结果
-     */
-    private void saveCustomIntervalResults(Long statisticsId, List<Map<String, Object>> results, String fieldX, String fieldY) {
-        if (CollectionUtils.isEmpty(results)) {
-            return;
-        }
-
-        List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
-        for (Map<String, Object> resultMap : results) {
-            ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
-            statisticsDetail.setStatisticsId(statisticsId);
-            statisticsDetail.setFieldXValue(StringUtils.isEmpty(resultMap.get(fieldX)) ? "[-1,0)" : (String) resultMap.get(fieldX));
-            
-            if (fieldY != null) {
-                statisticsDetail.setFieldYValue(StringUtils.isEmpty(resultMap.get(fieldY)) ? "[-1,0)" : (String) resultMap.get(fieldY));
-            } else {
-                // 单模型Y存储模型名称
-                statisticsDetail.setFieldYValue(fieldX);
-            }
-            
-            statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
-            statisticsDetail.setCreateTime(new Date());
-            statisticsDetail.setUpdateTime(new Date());
-            statisticsDetails.add(statisticsDetail);
-        }
-        
-        // 批量插入结果
-        scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
+        customIntervalStatistics.executeCustomIntervalCount(
+                statisticsScore.getId(), 
+                statisticsScore.getFieldX(), 
+                statisticsScore.getFieldY(), 
+                batchNumberList, 
+                xIntervalList, 
+                yIntervalList, 
+                "多模型");
     }
 
 }
