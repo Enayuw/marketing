@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface MarketingSyncLabelMapper {
 
-    int batchInsert(@Param("list") List<MarketingSyncLabel> list);
+    int batchInsert(@Param("apiCode") String apiCode,@Param("list") List<MarketingSyncLabel> list);
 
 
 

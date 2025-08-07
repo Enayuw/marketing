@@ -115,6 +115,8 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
         context.setMarkWithEsFlag(markWithEsFlag);
         context.setLabelObject(lableObject);
         context.setPartitionCount(parNum);
+        context.setEsThreadPool(actionEs);
+        context.setPushThreadPool(pushJc);
         RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(customerInfoPushMain.getPushTarget());
         if (pushTargetEnum == null) {
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("规则中心数据处理-未匹配到到推送实现");

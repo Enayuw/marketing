@@ -179,7 +179,6 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
                 context.getCustomerInfoPushMain().getId(),
                 result.getCode());
 
-
     }
 
 
@@ -234,6 +233,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         List<Future<List<Future<Result<Integer>>>>> futures = new ArrayList<>();
         // 创建推送任务 - 由子类具体实现
         for (Integer i = 0; i < context.getPartitionCount(); i++) {
+
             Callable<List<Future<Result<Integer>>>> pushTask = createPushTask(context, i);
             futures.add(context.getEsThreadPool().submit(pushTask));
         }
@@ -337,6 +337,12 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
      */
     protected abstract Callable<List<Future<Result<Integer>>>> createPushTask(RuleCenterPushContext context, Integer partitionIndex);
 
+
+    /**
+     * 获取成功状态 - 子类可以重写
+     */
+    protected abstract Integer getSuccessStatus(CustomerInfoPushMain customerInfoPushMain);
+
     /**
      * 关闭线程池 - 按照原始逻辑
      */
@@ -369,14 +375,6 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         log.error("告警信息 - {}: {}", title, content);
     }
 
-
-    /**
-     * 获取成功状态 - 子类可以重写
-     */
-    protected Integer getSuccessStatus(CustomerInfoPushMain customerInfoPushMain) {
-
-        return null;
-    }
 
 
 }

@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingSyncLabelMapper">
 
     <insert id="batchInsert" parameterType="java.util.List">
-        INSERT INTO marketing_sync_label_${apiCode} (
+        INSERT INTO b_marketing_sync_label_${apiCode} (
             label_id,
             api_code,
             cus_batch,
@@ -26,7 +26,6 @@
             create_time,
             update_time,
             applet_date,
-            status,
             fail_type,
             applet_time,
             is_task,
@@ -58,7 +57,6 @@
             #{item.createTime},
             #{item.updateTime},
             #{item.appletDate},
-            #{item.status},
             #{item.failType},
             #{item.appletTime},
             #{item.isTask},

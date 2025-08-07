@@ -13,9 +13,14 @@ public class MarketingSyncLabel {
     private Long id;
 
     /**
-     *
+     * 标签ID
      */
     private Long labelId;
+
+    /**
+     * 上传明细表ID
+     */
+    private Long syncId;
 
     /**
      * 商户编号

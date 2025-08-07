@@ -526,6 +526,7 @@
 			IF NOT EXISTS ${tableName} (
 			`id` bigint(20) NOT NULL AUTO_INCREMENT,
 			`label_id` bigint(20) NOT NULL COMMENT '标签任务表Id',
+			`sync_id` bigint(20) NOT NULL COMMENT '上传任务表Id',
 			`api_code` varchar(10) NOT NULL COMMENT '商户编号',
 			`cus_batch` varchar(100) NOT NULL COMMENT '客户批次号',
 			`request_batch` varchar(255) DEFAULT NULL COMMENT '请求批次',
@@ -564,8 +565,6 @@
 			KEY `idx_reqid` (`request_batch`),
 			UNIQUE KEY `uk_bmarketingsync_fingerprint` (`fingerprint`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_ID_CACHE=1 COMMENT='客户上传数据标签明细表'
-
-
 	</update>
 
 

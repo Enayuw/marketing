@@ -67,7 +67,6 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
 
-
     @Override
     protected Callable<List<Future<Result<Integer>>>> createPushTask(RuleCenterPushContext context, Integer partitionIndex) {
         return new PushPolicyTask(
@@ -82,6 +81,12 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                 context.getMarkWithEsFlag(),
                 context.getLabelObject()
         );
+    }
+
+    @Override
+    protected Integer getSuccessStatus(CustomerInfoPushMain customerInfoPushMain) {
+        return toPolicyByRuleService.queryExistError(customerInfoPushMain.getId(),
+                FilterTypeEnum.GENERAL_POLICY.getValue());
     }
 
 

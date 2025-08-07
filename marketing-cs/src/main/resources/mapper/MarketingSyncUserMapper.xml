@@ -1190,5 +1190,25 @@
         and id > #{maxId} order by id limit #{pageSize}
     </select>
 
+    <select id="getUserByCustNumAndAppletData" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            '${custNum}'
+        </foreach>
+        <if test="list != null and list.size()>0">
+            <if test="list.size()==1">
+                and applet_date = #{list[0]}
+            </if>
+            <if test="list.size()>1">
+                and applet_date in
+                <foreach collection="list" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </if>
+    </select>
+
 
 </mapper>
