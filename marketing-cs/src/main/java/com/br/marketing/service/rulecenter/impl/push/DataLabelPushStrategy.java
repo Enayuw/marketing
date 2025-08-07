@@ -54,7 +54,7 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
 
 
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
-        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
+        CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
         MarketingRuleCenterLabelReportExample labelReportExample = new MarketingRuleCenterLabelReportExample();
         labelReportExample.createCriteria().andApiCodeEqualTo(customerInfoPushMain.getmApiCode())
                 .andLabelIdEqualTo(customerInfoPushMain.getId())
@@ -70,14 +70,13 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
 
         CustomerInfoPushMain pushMain = context.getCustomerInfoPushMain();
 
-        List<Map<String, String>> labelNumList = marketingSyncLabelMapper.getLabelNum(pushMain.getId(), pushMain.getmApiCode());
+        List<Map<String, Object>> labelNumList = marketingSyncLabelMapper.getLabelNum(pushMain.getId(), pushMain.getmApiCode());
 
         labelNumList.forEach(map -> {
-            String appletDate = map.get("applet_date");
-            String userType = map.get("user_type");
-            String num = map.get("num");
+            String appletDate = map.get("applet_date").toString();
+            String userType = map.get("user_type").toString();
+            String num = map.get("num").toString();
             //更新统计表，上传记录表
-            MarketingRuleCenterLabelReport report = new MarketingRuleCenterLabelReport();
             MarketingRuleCenterLabelReportExample labelReportExample = new MarketingRuleCenterLabelReportExample();
             labelReportExample.createCriteria().andApiCodeEqualTo(pushMain.getmApiCode())
                     .andLabelNameEqualTo(pushMain.getLabelName())
@@ -101,8 +100,8 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                     labelJson = new JSONObject();
                 } else {
                     labelJson = JSON.parseObject(labelMessage);
-                    labelJson.put(pushMain.getLabelName(), num);
                 }
+                labelJson.put(pushMain.getLabelName(), num);
                 syncReport.setLabelMessage(labelJson.toJSONString());
                 syncReport.setUpdateTime(new Date());
                 syncReportMapper.updateByPrimaryKeySelective(syncReport);

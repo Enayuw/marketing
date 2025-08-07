@@ -387,7 +387,7 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="labelMessage != null" >
-        label_message = #{labelMessage,jdbcType=LONGVARCHAR},
+        label_message = #{labelMessage,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
