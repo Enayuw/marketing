@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
+
 import com.br.marketing.entity.QiFuEffectReportDataExample;
 
 
@@ -79,7 +80,8 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     @Override
     public ApiNoDataResult analysisStatistics(String apiCode, String jsonData) {
         try {
-            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {}.getType());
+            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {
+            }.getType());
 
             reportDataList.parallelStream().forEach(item -> {
                 item.setApiCode(apiCode);
@@ -119,6 +121,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
         // 幂等校验：根据updateDate、canvasName、groupName检查是否已存在记录
         QiFuEffectReportDataExample example = new QiFuEffectReportDataExample();
         example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
                 .andUpdateDateEqualTo(qiFuEffectReportData.getUpdateDate())
                 .andCanvasNameEqualTo(qiFuEffectReportData.getCanvasName())
                 .andGroupNameEqualTo(qiFuEffectReportData.getGroupName())
