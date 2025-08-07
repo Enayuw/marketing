@@ -2,7 +2,6 @@ package com.br.marketing.entity;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 /***
@@ -13,6 +12,9 @@ import java.util.Date;
 @Data
 public class QiFuEffectReportData {
 
+    /**
+     *
+     */
     private Long id;
 
     /**
@@ -23,7 +25,7 @@ public class QiFuEffectReportData {
     /**
      * 归属月份 yyyy-MM-dd
      */
-    private String belongingMonth;
+    private String belongMonth;
 
     /**
      * 策略月份 yyyy-MM-dd
@@ -33,7 +35,7 @@ public class QiFuEffectReportData {
     /**
      * 更新日期 yyyy-MM-dd
      */
-    private String updateDate;
+    private String updDate;
 
     /**
      * 画布名称
@@ -73,32 +75,32 @@ public class QiFuEffectReportData {
     /**
      * 登录率
      */
-    private BigDecimal loginRate;
+    private String loginRate;
 
     /**
      * 完件率
      */
-    private BigDecimal applySubmitRate;
+    private String applySubmitRate;
 
     /**
      * 通过率
      */
-    private BigDecimal passRate;
+    private String passRate;
 
     /**
      * 授信率
      */
-    private BigDecimal creditSuccessRate;
+    private String creditSuccessRate;
 
     /**
      * delta完件率
      */
-    private BigDecimal deltaApplySubmitRate;
+    private String deltaApplySubmitRate;
 
     /**
      * delta授信率
      */
-    private BigDecimal deltaCreditSuccessRate;
+    private String deltaCreditSuccessRate;
 
     /**
      * delta完件量
@@ -138,78 +140,77 @@ public class QiFuEffectReportData {
     /**
      * 归因完件占比
      */
-    private BigDecimal attrApplyRatio;
+    private String attrApplyRatio;
 
     /**
      * 归因授信占比
      */
-    private BigDecimal attrCreditRatio;
+    private String attrCreditRatio;
 
     /**
      * 归因完件率
      */
-    private BigDecimal attrApplyRate;
+    private String attrApplyRate;
 
     /**
      * 归因授信率
      */
-    private BigDecimal attrCreditRate;
+    private String attrCreditRate;
 
     /**
      * 归因授信用户量A占比
      */
-    private BigDecimal attrCreditCountRatioA;
+    private String attrCreditCountRatioA;
 
     /**
      * 归因授信用户量B占比
      */
-    private BigDecimal attrCreditCountRatioB;
+    private String attrCreditCountRatioB;
 
     /**
      * 归因授信用户量C占比
      */
-    private BigDecimal attrCreditCountRatioC;
+    private String attrCreditCountRatioC;
 
     /**
      * 归因人均授信额度
      */
-    private BigDecimal attrAvgCreditLimit;
+    private String attrAvgCreditLimit;
 
     /**
      * 归因人头发起率m0
      */
-    private BigDecimal attrUserPerRate;
+    private String attrUserPerRate;
 
     /**
      * 归因人头动支率m0
      */
-    private BigDecimal attrUserActRate;
+    private String attrUserActRate;
 
     /**
      * 归因人头发起通过率
      */
-    private BigDecimal attrUserPerAprlRate;
+    private String attrUserPerAprlRate;
 
     /**
      * 归因金额发起率m0
      */
-    private BigDecimal attrAmtPerRate;
+    private String attrAmtPerRate;
 
     /**
      * 归因金额动支率m0
      */
-    private BigDecimal attrAmtActRate;
+    private String attrAmtActRate;
 
     /**
      * 归因金额发起通过率m0
      */
-    private BigDecimal attrAmtPerAprlRate;
+    private String attrAmtPerAprlRate;
 
     /**
      * 归因授信户均动支金额m0
      */
-    private BigDecimal attrCreditAvgActAmt;
-
+    private String attrCreditAvgActAmt;
 
     /**
      * 创建时间

@@ -235,73 +235,73 @@ public class QiFuEffectReportDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthIsNull() {
-            addCriterion("belonging_month is null");
+        public Criteria andBelongMonthIsNull() {
+            addCriterion("belong_month is null");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthIsNotNull() {
-            addCriterion("belonging_month is not null");
+        public Criteria andBelongMonthIsNotNull() {
+            addCriterion("belong_month is not null");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthEqualTo(String value) {
-            addCriterion("belonging_month =", value, "belongingMonth");
+        public Criteria andBelongMonthEqualTo(String value) {
+            addCriterion("belong_month =", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthNotEqualTo(String value) {
-            addCriterion("belonging_month <>", value, "belongingMonth");
+        public Criteria andBelongMonthNotEqualTo(String value) {
+            addCriterion("belong_month <>", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthGreaterThan(String value) {
-            addCriterion("belonging_month >", value, "belongingMonth");
+        public Criteria andBelongMonthGreaterThan(String value) {
+            addCriterion("belong_month >", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthGreaterThanOrEqualTo(String value) {
-            addCriterion("belonging_month >=", value, "belongingMonth");
+        public Criteria andBelongMonthGreaterThanOrEqualTo(String value) {
+            addCriterion("belong_month >=", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthLessThan(String value) {
-            addCriterion("belonging_month <", value, "belongingMonth");
+        public Criteria andBelongMonthLessThan(String value) {
+            addCriterion("belong_month <", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthLessThanOrEqualTo(String value) {
-            addCriterion("belonging_month <=", value, "belongingMonth");
+        public Criteria andBelongMonthLessThanOrEqualTo(String value) {
+            addCriterion("belong_month <=", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthLike(String value) {
-            addCriterion("belonging_month like", value, "belongingMonth");
+        public Criteria andBelongMonthLike(String value) {
+            addCriterion("belong_month like", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthNotLike(String value) {
-            addCriterion("belonging_month not like", value, "belongingMonth");
+        public Criteria andBelongMonthNotLike(String value) {
+            addCriterion("belong_month not like", value, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthIn(List<String> values) {
-            addCriterion("belonging_month in", values, "belongingMonth");
+        public Criteria andBelongMonthIn(List<String> values) {
+            addCriterion("belong_month in", values, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthNotIn(List<String> values) {
-            addCriterion("belonging_month not in", values, "belongingMonth");
+        public Criteria andBelongMonthNotIn(List<String> values) {
+            addCriterion("belong_month not in", values, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthBetween(String value1, String value2) {
-            addCriterion("belonging_month between", value1, value2, "belongingMonth");
+        public Criteria andBelongMonthBetween(String value1, String value2) {
+            addCriterion("belong_month between", value1, value2, "belongMonth");
             return (Criteria) this;
         }
 
-        public Criteria andBelongingMonthNotBetween(String value1, String value2) {
-            addCriterion("belonging_month not between", value1, value2, "belongingMonth");
+        public Criteria andBelongMonthNotBetween(String value1, String value2) {
+            addCriterion("belong_month not between", value1, value2, "belongMonth");
             return (Criteria) this;
         }
 
@@ -375,73 +375,73 @@ public class QiFuEffectReportDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateIsNull() {
-            addCriterion("update_date is null");
+        public Criteria andUpdDateIsNull() {
+            addCriterion("upd_date is null");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateIsNotNull() {
-            addCriterion("update_date is not null");
+        public Criteria andUpdDateIsNotNull() {
+            addCriterion("upd_date is not null");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateEqualTo(String value) {
-            addCriterion("update_date =", value, "updateDate");
+        public Criteria andUpdDateEqualTo(String value) {
+            addCriterion("upd_date =", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateNotEqualTo(String value) {
-            addCriterion("update_date <>", value, "updateDate");
+        public Criteria andUpdDateNotEqualTo(String value) {
+            addCriterion("upd_date <>", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateGreaterThan(String value) {
-            addCriterion("update_date >", value, "updateDate");
+        public Criteria andUpdDateGreaterThan(String value) {
+            addCriterion("upd_date >", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateGreaterThanOrEqualTo(String value) {
-            addCriterion("update_date >=", value, "updateDate");
+        public Criteria andUpdDateGreaterThanOrEqualTo(String value) {
+            addCriterion("upd_date >=", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateLessThan(String value) {
-            addCriterion("update_date <", value, "updateDate");
+        public Criteria andUpdDateLessThan(String value) {
+            addCriterion("upd_date <", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateLessThanOrEqualTo(String value) {
-            addCriterion("update_date <=", value, "updateDate");
+        public Criteria andUpdDateLessThanOrEqualTo(String value) {
+            addCriterion("upd_date <=", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateLike(String value) {
-            addCriterion("update_date like", value, "updateDate");
+        public Criteria andUpdDateLike(String value) {
+            addCriterion("upd_date like", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateNotLike(String value) {
-            addCriterion("update_date not like", value, "updateDate");
+        public Criteria andUpdDateNotLike(String value) {
+            addCriterion("upd_date not like", value, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateIn(List<String> values) {
-            addCriterion("update_date in", values, "updateDate");
+        public Criteria andUpdDateIn(List<String> values) {
+            addCriterion("upd_date in", values, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateNotIn(List<String> values) {
-            addCriterion("update_date not in", values, "updateDate");
+        public Criteria andUpdDateNotIn(List<String> values) {
+            addCriterion("upd_date not in", values, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateBetween(String value1, String value2) {
-            addCriterion("update_date between", value1, value2, "updateDate");
+        public Criteria andUpdDateBetween(String value1, String value2) {
+            addCriterion("upd_date between", value1, value2, "updDate");
             return (Criteria) this;
         }
 
-        public Criteria andUpdateDateNotBetween(String value1, String value2) {
-            addCriterion("update_date not between", value1, value2, "updateDate");
+        public Criteria andUpdDateNotBetween(String value1, String value2) {
+            addCriterion("upd_date not between", value1, value2, "updDate");
             return (Criteria) this;
         }
 

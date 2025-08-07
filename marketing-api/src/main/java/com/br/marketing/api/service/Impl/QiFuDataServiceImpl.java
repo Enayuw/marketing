@@ -108,7 +108,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     public ApiNoDataResult effectReport(String apiCode, String jsonData) {
         QiFuEffectReportData qiFuEffectReportData = JSONObject.parseObject(jsonData, QiFuEffectReportData.class);
         //必填参数校验
-        List paramsCheckList = Lists.newArrayList(qiFuEffectReportData.getBelongingMonth(), qiFuEffectReportData.getStrategyMonth()
+        List paramsCheckList = Lists.newArrayList(qiFuEffectReportData.getBelongMonth(), qiFuEffectReportData.getStrategyMonth(),qiFuEffectReportData.getUpdDate()
                 , qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getAgentOperator(), qiFuEffectReportData.getGroupName()
                 , qiFuEffectReportData.getUserCount(), qiFuEffectReportData.getLoginUserCount(), qiFuEffectReportData.getApplySubmitUserCount()
                 , qiFuEffectReportData.getCreditSuccessUserCount());
@@ -122,7 +122,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
         QiFuEffectReportDataExample example = new QiFuEffectReportDataExample();
         example.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andUpdateDateEqualTo(qiFuEffectReportData.getUpdateDate())
+                .andUpdDateEqualTo(qiFuEffectReportData.getUpdDate())
                 .andCanvasNameEqualTo(qiFuEffectReportData.getCanvasName())
                 .andGroupNameEqualTo(qiFuEffectReportData.getGroupName())
                 .andIsDelEqualTo(1);
@@ -130,7 +130,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
 
         if (!CollectionUtils.isEmpty(existingRecords)) {
             log.warn("奇富效果报告数据已存在，跳过重复插入。updateDate:{}, canvasName:{}, groupName:{}",
-                    qiFuEffectReportData.getUpdateDate(), qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getGroupName());
+                    qiFuEffectReportData.getUpdDate(), qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getGroupName());
             return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
         }
 
