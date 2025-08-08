@@ -889,11 +889,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             case "multiply":
             case "divide":
                 // 数学运算
-                if (ObjectUtil.isNotEmpty(nodeParse)) {
-                    result = handleMathOperation(fieldSample, ruleMap, nodeParse);
-                } else {
-                    result = handleMathOperation(fieldSample, ruleMap);
-                }
+                result = handleMathOperation(fieldSample, ruleMap, nodeParse);
                 break;
             case "percentage":
                 // 百分比操作 - 直接在数值后附加百分比符号
@@ -946,117 +942,72 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     }
 
-    /**
-     * 处理数学运算（不使用nodeParse版本）
-     */
-    private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap) {
-        return handleMathOperation(fieldSample, ruleMap, null);
-    }
 
     /**
-     * 支持从nodeParse中获取值的数学运算方法
+     * 数学运算方法
      */
     private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
         // 字段运算逻辑处理
         String operator = String.valueOf(ruleMap.get("operator"));
-        List<Map<String, Object>> operands = (List<Map<String, Object>>) ruleMap.get("operands");
-
         log.warn("处理数学运算 - 输入值: {}, 操作符: {}", fieldSample, operator);
-
-        if (operands == null || operands.isEmpty()) {
-            return fieldSample;
-        }
+        String type = String.valueOf(ruleMap.get("type"));
         
         // 计算所有操作数
-        List<BigDecimal> values = new ArrayList<>();
-        boolean firstFieldProcessed = false;
-
-        for (Map<String, Object> operand : operands) {
-            String type = String.valueOf(operand.get("type"));
-            Object value = null;
-
-            if ("field".equals(type)) {
-                if (nodeParse != null) {
-                    // 从nodeParse中获取实际值
-                    String fieldName = String.valueOf(operand.get("fieldName"));
-                    value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
-                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
-                } else {
-                    // 如果是第一个字段类型操作数，使用输入值
-                    if (!firstFieldProcessed) {
-                        value = fieldSample;
-                        firstFieldProcessed = true;
-                        log.warn("使用当前输入值作为第一个字段操作数: {}", value);
-                    } else {
-                        // 其他情况使用规则中的预设值
-                        value = operand.get("fieldValue");
-                        log.warn("使用规则中预设的字段值: {}", value);
-                    }
-                }
-            } else if ("constant".equals(type)) {
-                // 常量类型，直接获取值
-                value = operand.get("value");
-                log.warn("使用常量值: {}", value);
-            } else if ("expression".equals(type)) {
-                // 表达式类型，递归计算
-                Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
-                value = handleMathOperation("0", expression, nodeParse);
-                log.warn("嵌套表达式计算结果: {}", value);
+        Object value = null;
+        if ("field".equals(type)) {
+            // 从nodeParse中获取实际值
+            String fieldName = String.valueOf(ruleMap.get("fieldName"));
+            value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+            log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
+        } else if ("constant".equals(type)) {
+            // 常量类型，直接获取值
+            value = ruleMap.get("value");
+            log.warn("使用常量值: {}", value);
+        }
+        BigDecimal numValue = null;
+        if (value != null) {
+            boolean validBigDecimal = isValidBigDecimal(String.valueOf(value));
+            if (validBigDecimal) {
+                numValue = new BigDecimal(String.valueOf(value));
+                log.warn("转换为BigDecimal: {} -> {}", value, numValue);
+            } else {
+                throw new BusinessException("转化为数据格式失败！");
             }
 
-            if (value != null) {
-                boolean validBigDecimal = isValidBigDecimal(String.valueOf(value));
-                if (validBigDecimal) {
-                    BigDecimal numValue = new BigDecimal(String.valueOf(value));
-                    values.add(numValue);
-                    log.warn("转换为BigDecimal: {} -> {}", value, numValue);
-                } else {
-                    throw new BusinessException("转化为数据格式失败！");
-                }
-
-            }
         }
 
-        if (values.isEmpty()) {
-            return fieldSample;
-        }
-
+        BigDecimal result = null;
         // 执行运算
-        BigDecimal result = values.get(0);
-        for (int i = 1; i < values.size(); i++) {
-            BigDecimal value = values.get(i);
-            switch (operator) {
-                case "add":
-                    result = result.add(value);
-                    break;
-                case "subtract":
-                    result = result.subtract(value);
-                    break;
-                case "multiply":
-                    result = result.multiply(value);
-                    break;
-                case "divide":
-                    if (value.compareTo(BigDecimal.ZERO) != 0) {
-                        int scale = value.stripTrailingZeros().scale();
-                        int maxScale = 10;
-                        int scaleToUse = Math.max(scale, maxScale);
-                        result = result.divide(value, scaleToUse, RoundingMode.HALF_UP);
+        BigDecimal oldNumber = new BigDecimal(fieldSample);
+        switch (operator) {
+            case "add":
+                result = oldNumber.add(numValue);
+                break;
+            case "subtract":
+                result = oldNumber.subtract(numValue);
+                break;
+            case "multiply":
+                result = oldNumber.multiply(numValue);
+                break;
+            case "divide":
+                if (oldNumber.compareTo(BigDecimal.ZERO) != 0) {
+                    int scale = oldNumber.stripTrailingZeros().scale();
+                    int maxScale = 10;
+                    int scaleToUse = Math.max(scale, maxScale);
+                    result = result.divide(oldNumber, scaleToUse, RoundingMode.HALF_UP);
 
-                        // 如果是整数，去掉末尾0；如果是带原始小数的，保留原样
-                        if (scale > 0) {
-                            return result.setScale(scale, RoundingMode.HALF_UP).toPlainString();
-                        } else {
-                            return result.stripTrailingZeros().toPlainString();
-                        }
+                    // 如果是整数，去掉末尾0；如果是带原始小数的，保留原样
+                    if (scale > 0) {
+                        return result.setScale(scale, RoundingMode.HALF_UP).toPlainString();
+                    } else {
+                        return result.stripTrailingZeros().toPlainString();
                     }
-                    break;
-//                    case "percentage":
-//                        result = result.multiply(value).divide(new BigDecimal(100), 10, RoundingMode.HALF_UP);
-//                        break;
-                default:
-                    break;
-            }
+                }
+                break;
+            default:
+                break;
         }
+
 
         return formatNumberResult(result);
 
