@@ -906,11 +906,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                                            List<IntervalRangeDTO> xIntervalList, 
                                            List<IntervalRangeDTO> yIntervalList,
                                            String logPrefix) {
-        String batchNumberKey = customIntervalStatistics.getBatchNumberKey(statisticsScore.getReportScoreType(),
-                statisticsScore.getFieldX(), statisticsScore.getFieldY());
-        List<String> batchNumberList = customIntervalStatistics.parseBatchNumberList(
-                statisticsScore.getBatchNumberList(), batchNumberKey);
-
+        List<String> batchNumberList = customIntervalStatistics.getBatchNumberKey(statisticsScore);
         customIntervalStatistics.executeCustomIntervalCount(
                 statisticsScore.getId(), 
                 statisticsScore.getFieldX(), 

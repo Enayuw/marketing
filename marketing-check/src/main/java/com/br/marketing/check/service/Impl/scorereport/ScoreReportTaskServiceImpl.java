@@ -761,12 +761,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
      */
     private void customSingleModelCount(ReportStatisticsScore statisticsScore) {
         List<IntervalRangeDTO> xIntervalList = JSON.parseArray(statisticsScore.getFieldXRange(), IntervalRangeDTO.class);
-        
-        String batchNumberKey = customIntervalStatistics.getBatchNumberKey(statisticsScore.getReportScoreType(),
-                statisticsScore.getFieldX(), statisticsScore.getFieldY());
-        List<String> batchNumberList = customIntervalStatistics.parseBatchNumberList(
-                statisticsScore.getBatchNumberList(), batchNumberKey);
-
+        List<String> batchNumberList = customIntervalStatistics.getBatchNumberKey(statisticsScore);
         customIntervalStatistics.executeCustomIntervalCount(
                 statisticsScore.getId(), 
                 statisticsScore.getFieldX(), 
@@ -783,12 +778,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
     private void customMultiModelCount(ReportStatisticsScore statisticsScore) {
         List<IntervalRangeDTO> xIntervalList = JSON.parseArray(statisticsScore.getFieldXRange(), IntervalRangeDTO.class);
         List<IntervalRangeDTO> yIntervalList = JSON.parseArray(statisticsScore.getFieldYRange(), IntervalRangeDTO.class);
-        
-        String batchNumberKey = customIntervalStatistics.getBatchNumberKey(statisticsScore.getReportScoreType(),
-                statisticsScore.getFieldX(), statisticsScore.getFieldY());
-        List<String> batchNumberList = customIntervalStatistics.parseBatchNumberList(
-                statisticsScore.getBatchNumberList(), batchNumberKey);
-
+        List<String> batchNumberList = customIntervalStatistics.getBatchNumberKey(statisticsScore);
         customIntervalStatistics.executeCustomIntervalCount(
                 statisticsScore.getId(), 
                 statisticsScore.getFieldX(), 
