@@ -956,9 +956,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         Object value = null;
         if ("field".equals(type)) {
             // 从nodeParse中获取实际值
-            String fieldName = String.valueOf(ruleMap.get("fieldName"));
-            value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
-            log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
+            if (ObjectUtil.isNotEmpty(nodeParse)) {
+                String fieldName = String.valueOf(ruleMap.get("fieldName"));
+                value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
+            } else {
+                value = ruleMap.get("fieldValue");
+                log.warn("使用预览值常量值: {}", value);
+            }
         } else if ("constant".equals(type)) {
             // 常量类型，直接获取值
             value = ruleMap.get("value");
