@@ -1,7 +1,6 @@
 package com.br.marketing.api.service.Impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.service.QiFuDataService;
@@ -105,35 +104,40 @@ public class QiFuDataServiceImpl implements QiFuDataService {
 
     @Override
     public ApiNoDataResult effectReport(String apiCode, String jsonData) {
-        QiFuEffectReportData qiFuEffectReportData = JSONObject.parseObject(jsonData, QiFuEffectReportData.class);
-        //必填参数校验
-        List paramsCheckList = Lists.newArrayList(qiFuEffectReportData.getBelongMonth(), qiFuEffectReportData.getStrategyMonth(), qiFuEffectReportData.getUpdDate()
-                , qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getAgentOperator(), qiFuEffectReportData.getGroupName()
-        );
-        boolean paramNull = paramsCheckList.stream().anyMatch(param -> StringUtils.isEmpty(param));
-        if (paramNull) {
-            return new ApiNoDataResult().setCode(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorCode()).
-                    setMessage(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorMsg());
+        List<QiFuEffectReportData> qiFuEffectReportDataList = JSON.parseArray(jsonData, QiFuEffectReportData.class);
+
+        if (CollectionUtils.isEmpty(qiFuEffectReportDataList)) {
+            return new ApiNoDataResult().setCode(MarketingErrorInfo.QUANTITY_ERROR.getErrorCode()).
+                    setMessage(MarketingErrorInfo.QUANTITY_ERROR.getErrorMsg());
         }
 
-        try {
-            // 设置基础字段
+        for (QiFuEffectReportData qiFuEffectReportData : qiFuEffectReportDataList) {
+            boolean hasEmptyField = StringUtils.isEmpty(qiFuEffectReportData.getBelongMonth())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getStrategyMonth())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getUpdDate())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getCanvasName())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getAgentOperator())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getGroupName());
+            if (hasEmptyField) {
+                return new ApiNoDataResult().setCode(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorCode()).
+                        setMessage(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorMsg());
+            }
+
             qiFuEffectReportData.setApiCode(apiCode);
             qiFuEffectReportData.setCreateTime(new Date());
             qiFuEffectReportData.setUpdateTime(new Date());
             qiFuEffectReportData.setIsDel(1); // 1-有效
 
-            // 数据库表有联合唯一索引：(upd_date, canvas_name, group_name)
-            qifuEffectReportDataMapper.insertSelective(qiFuEffectReportData);
-
-            return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
-        } catch (DuplicateKeyException keyException) {
-            return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
-        } catch (Exception e) {
-            log.error("奇富效果报告数据插入异常。apiCode:{}, updateDate:{}, canvasName:{}, groupName:{}",
-                    apiCode, qiFuEffectReportData.getUpdDate(), qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getGroupName(), e);
-            return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
-                    .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+            try {
+                qifuEffectReportDataMapper.insertSelective(qiFuEffectReportData);
+            } catch (DuplicateKeyException keyException) {
+                log.warn("奇富效果报告数据存在重复数据！");
+            } catch (Exception e) {
+                log.error("奇富效果报告数据插入异常。apiCode:{}, jsonData:{}", apiCode, jsonData, e);
+                return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
+                        .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+            }
         }
+        return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.QiFuEffectReportDataMapper" >
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        insert into b_qifu_effect_report_data (api_code, belong_month, strategy_month,
+        upd_date, canvas_name, agent_operator,
+        group_name, user_count, login_user_count,
+        apply_submit_user_count, credit_success_user_count,
+        login_rate, apply_submit_rate, pass_rate,
+        credit_success_rate, delta_apply_submit_rate,
+        delta_credit_success_rate, delta_apply_submit_count,
+        delta_credit_success_count, attr_apply_user_count,
+        attr_credit_user_count, attr_credit_user_count_a,
+        attr_credit_user_count_b, attr_credit_user_count_c,
+        attr_apply_ratio, attr_credit_ratio, attr_apply_rate,
+        attr_credit_rate, attr_credit_count_ratio_a,
+        attr_credit_count_ratio_b, attr_credit_count_ratio_c,
+        attr_avg_credit_limit, attr_user_per_rate, attr_user_act_rate,
+        attr_user_per_aprl_rate, attr_amt_per_rate, attr_amt_act_rate,
+        attr_amt_per_aprl_rate, attr_credit_avg_act_amt,
+        create_time, update_time, is_del
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.apiCode},#{item.belongMonth},#{item.strategyMonth},#{item.updDate},#{item.canvasName},#{item.agentOperator},#{item.groupName},
+            #{item.userCount},#{item.loginUserCount},#{item.applySubmitUserCount},#{item.creditSuccessUserCount},#{item.loginRate},#{item.applySubmitRate},
+            #{item.passRate},#{item.creditSuccessRate},#{item.deltaApplySubmitRate},#{item.deltaCreditSuccessRate},#{item.deltaApplySubmitCount},
+            #{item.deltaCreditSuccessCount},#{item.attrApplyUserCount},#{item.attrCreditUserCount},#{item.attrCreditUserCountA},#{item.attrCreditUserCountB},
+            #{item.attrCreditUserCountC},#{item.attrApplyRatio},#{item.attrCreditRatio},#{item.attrApplyRate},#{item.attrCreditRate},
+            #{item.attrCreditCountRatioA},#{item.attrCreditCountRatioB},#{item.attrCreditCountRatioC},#{item.attrAvgCreditLimit},
+            #{item.attrUserPerRate},#{item.attrUserActRate},#{item.attrUserPerAprlRate},#{item.attrAmtPerRate},#{item.attrAmtActRate},
+            #{item.attrAmtPerAprlRate},#{item.attrCreditAvgActAmt},#{item.createTime},#{item.updateTime},#{item.isDel} )
+        </foreach>
+    </insert>
+
+</mapper>
