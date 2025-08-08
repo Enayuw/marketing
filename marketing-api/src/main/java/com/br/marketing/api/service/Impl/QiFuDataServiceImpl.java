@@ -109,8 +109,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
         //必填参数校验
         List paramsCheckList = Lists.newArrayList(qiFuEffectReportData.getBelongMonth(), qiFuEffectReportData.getStrategyMonth(), qiFuEffectReportData.getUpdDate()
                 , qiFuEffectReportData.getCanvasName(), qiFuEffectReportData.getAgentOperator(), qiFuEffectReportData.getGroupName()
-                , qiFuEffectReportData.getUserCount(), qiFuEffectReportData.getLoginUserCount(), qiFuEffectReportData.getApplySubmitUserCount()
-                , qiFuEffectReportData.getCreditSuccessUserCount());
+        );
         boolean paramNull = paramsCheckList.stream().anyMatch(param -> StringUtils.isEmpty(param));
         if (paramNull) {
             return new ApiNoDataResult().setCode(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorCode()).
