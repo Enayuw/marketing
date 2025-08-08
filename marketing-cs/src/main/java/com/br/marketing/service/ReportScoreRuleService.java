@@ -101,5 +101,5 @@ public interface ReportScoreRuleService {
 
     ApiResult<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user);
 
-    ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(IntervalTemplateParam intervalTemplateParam);
+    ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(String apiCode);
 }

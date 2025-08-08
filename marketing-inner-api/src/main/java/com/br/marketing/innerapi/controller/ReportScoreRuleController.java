@@ -184,10 +184,10 @@ public class ReportScoreRuleController {
     }
 
     @ApiOperation("评分分布查询规则模板")
-    @PostMapping("/getIntervalTemplate")
+    @GetMapping("/getIntervalTemplate")
     @AuthDataControllerPermission
-    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(@RequestBody IntervalTemplateParam intervalTemplateParam) {
-        return reportScoreRuleService.getIntervalTemplate(intervalTemplateParam);
+    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(@RequestParam String apiCode) {
+        return reportScoreRuleService.getIntervalTemplate(apiCode);
     }
 
 }

@@ -698,18 +698,16 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     @Override
-    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(IntervalTemplateParam intervalTemplateParam) {
+    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(String apiCode) {
         // 参数校验
-        String apiCode = intervalTemplateParam.getApiCode();
-        String templateName = intervalTemplateParam.getTemplateName();
-
         if (StringUtils.isEmpty(apiCode)) {
             return new ApiResult<List<IntervalTemplateVO>>().fail("apiCode不能为空");
         }
+        List<String> apiCodes = new ArrayList<>(Arrays.asList(apiCode.split(",")));
         try {
             List<IntervalTemplateVO> list = new ArrayList<>();
             ReportIntervalConfigExample example = new ReportIntervalConfigExample();
-            example.createCriteria().andApiCodeEqualTo(apiCode).andTemplateNameEqualTo(templateName)
+            example.createCriteria().andApiCodeIn(apiCodes)
                     .andStatusEqualTo(Constants.DATA_VALID).andIsDelEqualTo(Constants.DATA_VALID);
             List<ReportIntervalConfig> reportIntervalConfigs = reportIntervalConfigMapper.selectByExample(example);
 
@@ -732,7 +730,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             }
             return new ApiResult<List<IntervalTemplateVO>>().success().setData(list);
         }catch (Exception e){
-            log.error("评分分布查询规则模板异常, templateName: {}", templateName, e);
+            log.error("评分分布查询规则模板异常, apiCodes: {}", apiCodes, e);
             return new ApiResult<List<IntervalTemplateVO>>().fail("评分分布查询规则模板异常: " + e.getMessage());
         }
     }
