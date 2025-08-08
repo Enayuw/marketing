@@ -1,7 +1,9 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.report.IntervalRangeDTO;
+import com.br.marketing.entity.ReportStatisticsScore;
 import com.br.marketing.entity.ScoreStatisticsDetail;
 import com.br.marketing.mapper.ReportStatisticsScoreMapper;
 import com.br.marketing.mapper.ScoreStatisticsDetailMapper;
@@ -50,9 +52,53 @@ public class CustomIntervalStatisticsImpl {
             return;
         }
 
-        // 多模型需要同时有X和Y区间
-        if (fieldY != null && CollectionUtils.isEmpty(yIntervalList)) {
-            log.warn("{}自定义区间统计y轴模型为空，statisticsId: {}", logPrefix, statisticsId);
+        if (fieldY == null) {
+            // 单模型：按每个模型分别统计
+            executeSingleModelCustomIntervalCount(statisticsId, fieldX, batchNumberList, xIntervalList, logPrefix);
+        } else {
+            // 多模型：统计模型组合
+            executeMultiModelCustomIntervalCount(statisticsId, fieldX, fieldY, batchNumberList, xIntervalList, yIntervalList, logPrefix);
+        }
+    }
+
+    /**
+     * 执行单模型自定义区间统计
+     */
+    private void executeSingleModelCustomIntervalCount(Long statisticsId, String fieldX, 
+                                                      List<String> batchNumberList,
+                                                      List<IntervalRangeDTO> xIntervalList, 
+                                                      String logPrefix) {
+        // 单模型fieldX可能包含多个模型，需要分别统计每个模型
+        String[] modelNames = fieldX.split(",");
+        
+        for (String modelName : modelNames) {
+            String trimmedModelName = modelName.trim();
+            
+            // 为每个模型构建查询SQL
+            String scoreSql = buildScoreSql(batchNumberList, trimmedModelName, null);
+            
+            // 构建自定义区间统计SQL
+            String customIntervalSql = buildCustomIntervalSql(scoreSql, trimmedModelName, null, xIntervalList, null);
+            
+            log.warn("{}单模型自定义区间统计SQL，模型: {}, SQL: {}", logPrefix, trimmedModelName, customIntervalSql);
+            
+            List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(customIntervalSql);
+            
+            // 保存统计结果，field_y_value存储模型名称
+            saveSingleModelCustomIntervalResults(statisticsId, results, trimmedModelName, xIntervalList);
+        }
+    }
+
+    /**
+     * 执行多模型自定义区间统计
+     */
+    private void executeMultiModelCustomIntervalCount(Long statisticsId, String fieldX, String fieldY,
+                                                     List<String> batchNumberList,
+                                                     List<IntervalRangeDTO> xIntervalList,
+                                                     List<IntervalRangeDTO> yIntervalList,
+                                                     String logPrefix) {
+        if (CollectionUtils.isEmpty(yIntervalList)) {
+            log.warn("{}多模型自定义区间统计y轴模型为空，statisticsId: {}", logPrefix, statisticsId);
             return;
         }
 
@@ -62,7 +108,7 @@ public class CustomIntervalStatisticsImpl {
         // 构建自定义区间统计SQL
         String customIntervalSql = buildCustomIntervalSql(scoreSql, fieldX, fieldY, xIntervalList, yIntervalList);
 
-        log.warn("{}自定义区间统计SQL: {}", logPrefix, customIntervalSql);
+        log.warn("{}多模型自定义区间统计SQL: {}", logPrefix, customIntervalSql);
 
         List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(customIntervalSql);
 
@@ -180,6 +226,40 @@ public class CustomIntervalStatisticsImpl {
     }
 
     /**
+     * 保存单模型自定义区间统计结果（包含所有定义的区间）
+     */
+    private void saveSingleModelCustomIntervalResults(Long statisticsId, List<Map<String, Object>> results,
+                                                     String modelName, List<IntervalRangeDTO> xIntervalList) {
+        // 从SQL查询结果中获取实际有数据的统计
+        Map<String, Integer> actualResults = new HashMap<>();
+        if (!CollectionUtils.isEmpty(results)) {
+            for (Map<String, Object> resultMap : results) {
+                String xValue = (String) resultMap.get(modelName);
+                Integer count = ((Long) resultMap.get("num")).intValue();
+                actualResults.put(xValue, count);
+            }
+        }
+
+        // 生成完整的区间结果
+        List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
+        for (IntervalRangeDTO xInterval : xIntervalList) {
+            String xIntervalText = xInterval.getText();
+            Integer count = actualResults.getOrDefault(xIntervalText, 0);
+            
+            ScoreStatisticsDetail statisticsDetail = createStatisticsDetail(
+                    statisticsId, xIntervalText, modelName, count);
+            statisticsDetails.add(statisticsDetail);
+        }
+
+        if (!CollectionUtils.isEmpty(statisticsDetails)) {
+            scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
+        }
+
+        log.info("保存单模型自定义区间结果完成，statisticsId: {}, 模型: {}, 总区间数: {}, 有数据区间数: {}", 
+                statisticsId, modelName, statisticsDetails.size(), actualResults.size());
+    }
+
+    /**
      * 保存自定义区间统计结果（包含所有定义的区间，即使count为0）
      */
     public void saveCustomIntervalResults(Long statisticsId, List<Map<String, Object>> results,
@@ -285,12 +365,47 @@ public class CustomIntervalStatisticsImpl {
     }
 
     /**
-     * 获取批次号键名
+     * 获取批次号列表
+     * 
+     * @param statisticsScore 统计分数对象
+     * @return 批次号列表
      */
-    public String getBatchNumberKey(Integer reportScoreType, String fieldX, String fieldY) {
-        return reportScoreType.equals(1)
-                ? fieldX
-                : fieldX.concat("_").concat(fieldY);
+    public List<String> getBatchNumberKey(ReportStatisticsScore statisticsScore) {
+        Integer reportScoreType = statisticsScore.getReportScoreType();
+        String fieldX = statisticsScore.getFieldX();
+        String fieldY = statisticsScore.getFieldY();
+        String batchNumberListJson = statisticsScore.getBatchNumberList();
+
+        Set<String> allBatchNumbers = new HashSet<>();
+        JSONObject batchNumberJson = JSONObject.parseObject(batchNumberListJson);
+        
+        if (reportScoreType.equals(1)) {
+            // 单模型：fieldX包含多个模型名，用逗号分隔
+            // batchNumberListJson格式：{"scorencashonzawswyyym":"7410717_20250310000000_1894","scorescashonyxxy":"7410717_20250310000000_1894"}
+            String[] modelNames = fieldX.split(",");
+            
+            for (String modelName : modelNames) {
+                String batchNumber = batchNumberJson.getString(modelName.trim());
+                if (StringUtils.isNotEmpty(batchNumber)) {
+                    allBatchNumbers.add(batchNumber.trim());
+                }
+            }
+        } else {
+            // 多模型：使用fieldX_fieldY作为key
+            // batchNumberListJson格式：{"scorescashonyxxy_scorefxsbbaseb":"7410717_20250310000000_1894"}
+            String batchNumberKey = fieldX.concat("_").concat(fieldY);
+            String batchNumber = batchNumberJson.getString(batchNumberKey);
+            
+            if (StringUtils.isNotEmpty(batchNumber)) {
+                allBatchNumbers.add(batchNumber.trim());
+            }
+        }
+        
+        List<String> result = new ArrayList<>(allBatchNumbers);
+        log.warn("获取批次号列表，reportScoreType: {}, fieldX: {}, fieldY: {}, 批次数: {}",
+                reportScoreType, fieldX, fieldY, result.size());
+        
+        return result;
     }
 
     /**
