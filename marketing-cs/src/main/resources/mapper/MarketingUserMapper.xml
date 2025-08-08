@@ -562,8 +562,7 @@
 			KEY `idx_marketing_sync_code_cust_t_u_r_a` (`cust_num`,`cus_batch`,`user_type`,`is_repeat`,`applet_date`),
 			KEY `idx_appletTime` (`applet_time`),
 			KEY `idx_ad_ut_s` (`label_id`,`applet_date`,`user_type`,`status`),
-			KEY `idx_reqid` (`request_batch`),
-			UNIQUE KEY `uk_bmarketingsync_fingerprint` (`fingerprint`)
+			KEY `idx_reqid` (`request_batch`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_ID_CACHE=1 COMMENT='客户上传数据标签明细表'
 	</update>
 
