@@ -932,6 +932,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     result = handleConcatenateOperation(fieldSample, ruleMap);
                 }
                 break;
+            case "condition":
+                // 条件判断
+                result = handleConditionOperation(fieldSample, ruleMap);
+                break;
             default:
                 log.warn("未知的操作类型: {}", operator);
                 break;
@@ -2277,6 +2281,147 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     /**
+     * 处理条件判断操作
+     * 根据字段值与指定条件的比较结果，设置不同的输出值
+     * 注意：如果条件中包含字符串比较（=、≠、!=），则字段值可以是任意字符串
+     * 如果条件中只包含数值比较（>、>=、<、<=），则字段值必须为有效的数值格式
+     * @param fieldSample 字段样本值
+     * @param ruleMap 规则配置
+     * @return 处理结果
+     */
+    private Object handleConditionOperation(String fieldSample, Map<String, Object> ruleMap) {
+        if (StringUtils.isBlank(fieldSample)) {
+            log.warn("条件判断操作输入为空");
+            return fieldSample;
+        }
+
+        log.warn("执行条件判断操作 - 原始输入: '{}'", fieldSample);
+
+        // 获取条件规则列表
+        List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
+        String defaultValue = String.valueOf(ruleMap.get("defaultValue"));
+
+        if (conditions == null || conditions.isEmpty()) {
+            log.warn("条件规则列表为空，返回默认值: {}", defaultValue);
+            return defaultValue;
+        }
+
+        // 检查是否包含字符串比较操作和数值比较操作
+        boolean hasStringComparison = false;
+        boolean hasNumericComparison = false;
+        for (Map<String, Object> condition : conditions) {
+            String operator = String.valueOf(condition.get("operator"));
+            if ("=".equals(operator) || "≠".equals(operator) || "!=".equals(operator)) {
+                hasStringComparison = true;
+            } else {
+                hasNumericComparison = true;
+            }
+        }
+
+        // 尝试将字段值转换为数值（如果包含数值比较）
+        BigDecimal fieldValue = null;
+        if (hasNumericComparison) {
+            try {
+                fieldValue = new BigDecimal(fieldSample);
+            } catch (NumberFormatException e) {
+                if (hasStringComparison) {
+                    // 如果同时包含字符串比较，则允许字段值为字符串格式
+                    log.warn("字段值 '{}' 无法转换为数值，但在混合比较模式下允许继续执行", fieldSample);
+                } else {
+                    // 如果只有数值比较，则必须要求数值格式
+                    throw new BusinessException("字段值 '" + fieldSample + "' 转换为数值格式失败！");
+                }
+            }
+        }
+
+        // 按顺序逐一判断条件
+        for (Map<String, Object> condition : conditions) {
+            String operator = String.valueOf(condition.get("operator"));
+            String compareValue = String.valueOf(condition.get("compareValue"));
+            String resultValue = String.valueOf(condition.get("resultValue"));
+
+            log.warn("判断条件: 操作符={}, 比较值={}, 结果值={}", operator, compareValue, resultValue);
+
+            boolean conditionMet = false;
+
+            // 对于等于和不等于操作，支持字符串比较
+            if ("=".equals(operator) || "≠".equals(operator) || "!=".equals(operator)) {
+                conditionMet = compareStrings(fieldSample, compareValue, operator);
+            } else {
+                // 其他操作符（大于、小于等）使用数值比较
+                if (fieldValue == null) {
+                    // 如果字段值不是数值格式，但需要数值比较，则跳过此条件
+                    log.warn("字段值 '{}' 不是数值格式，跳过数值比较条件: {}", fieldSample, operator);
+                    continue;
+                }
+                try {
+                    BigDecimal compareDecimal = new BigDecimal(compareValue);
+                    conditionMet = compareValues(fieldValue, compareDecimal, operator);
+                } catch (NumberFormatException e) {
+                    throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
+                }
+            }
+
+            if (conditionMet) {
+                log.warn("条件满足，返回结果值: {}", resultValue);
+                return resultValue;
+            }
+        }
+
+        // 所有条件都不满足，返回默认值
+        log.warn("所有条件都不满足，返回默认值: {}", defaultValue);
+        return defaultValue;
+    }
+
+    /**
+     * 比较数值
+     * @param fieldValue 字段值
+     * @param compareValue 比较值
+     * @param operator 操作符
+     * @return 比较结果
+     */
+    private boolean compareValues(BigDecimal fieldValue, BigDecimal compareValue, String operator) {
+        switch (operator) {
+            case ">":
+                return fieldValue.compareTo(compareValue) > 0;
+            case ">=":
+                return fieldValue.compareTo(compareValue) >= 0;
+            case "=":
+                return fieldValue.compareTo(compareValue) == 0;
+            case "≠":
+            case "!=":
+                return fieldValue.compareTo(compareValue) != 0;
+            case "<=":
+                return fieldValue.compareTo(compareValue) <= 0;
+            case "<":
+                return fieldValue.compareTo(compareValue) < 0;
+            default:
+                log.warn("未知的数值比较操作符: {}", operator);
+                return false;
+        }
+    }
+
+    /**
+     * 比较字符串（仅支持等于和不等于操作）
+     * @param fieldValue 字段值
+     * @param compareValue 比较值
+     * @param operator 操作符
+     * @return 比较结果
+     */
+    private boolean compareStrings(String fieldValue, String compareValue, String operator) {
+        switch (operator) {
+            case "=":
+                return fieldValue.equals(compareValue);
+            case "≠":
+            case "!=":
+                return !fieldValue.equals(compareValue);
+            default:
+                log.warn("字符串比较不支持操作符: {}", operator);
+                return false;
+        }
+    }
+
+    /**
      * 定制上传结果展示
      * @param jsonData  原始数据
      * @param ruleConfigList    规则列表
@@ -2335,7 +2480,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 处理字段拼接操作
      * 支持将多个字段按指定分隔符拼接成一个字段
-     * 
+     *
      * @param fieldSample 当前字段值（作为第一个字段）
      * @param ruleMap 规则配置
      * @param nodeParse 原始数据对象
@@ -2344,38 +2489,38 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private Object handleConcatenateOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
         try {
             log.warn("处理字段拼接操作 - 输入值: {}, 规则: {}", fieldSample, ruleMap);
-            
+
             // 获取字段配置列表
             List<Map<String, Object>> fields = (List<Map<String, Object>>) ruleMap.get("fields");
             if (fields == null || fields.isEmpty()) {
                 log.warn("字段拼接配置为空，返回原值");
                 return fieldSample;
             }
-            
+
             // 验证字段数量限制（最多10个字段）
             if (fields.size() > 10) {
                 log.warn("字段数量超过限制(10个)，只处理前10个字段");
                 fields = fields.subList(0, 10);
             }
-            
+
             // 验证最少字段限制（至少1个字段）
             if (fields.size() < 1) {
                 log.warn("字段配置为空，无法进行拼接，返回原值");
                 return fieldSample;
             }
-            
+
             StringBuilder result = new StringBuilder();
             result.append(fieldSample);
-            
+
             // 处理所有字段
             for (int i = 0; i < fields.size(); i++) {
                 Map<String, Object> fieldConfig = fields.get(i);
                 String fieldName = String.valueOf(fieldConfig.get("fieldName"));
                 String delimiter = String.valueOf(fieldConfig.get("delimiter"));
-                
+
                 // 获取字段值
                 Object fieldValue = null;
-                
+
                 if (nodeParse != null) {
                     // 从nodeParse中获取字段值
                     fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
@@ -2385,7 +2530,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     fieldValue = fieldConfig.get("fieldValue");
                     log.warn("使用规则中预设的字段值: {}", fieldValue);
                 }
-                
+
                 // 如果字段值不为空，添加到结果中
                 if (fieldValue != null && StringUtils.isNotBlank(String.valueOf(fieldValue))) {
                     if (StringUtils.isNotBlank(delimiter)) {
@@ -2394,11 +2539,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     result.append(String.valueOf(fieldValue));
                 }
             }
-            
+
             String concatenatedResult = result.toString();
             log.warn("字段拼接结果: {}", concatenatedResult);
             return concatenatedResult;
-            
+
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
                     "字段拼接操作失败！错误信息：" + e.getMessage()), e);
