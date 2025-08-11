@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,17 +86,17 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
             axisWrapVO.setReportScoreType(Integer.parseInt(model.getAxisType()));
             axisWrapVO.setXAxisProduct(model.getxModelName());
             axisWrapVO.setYAxisProduct(model.getyModelName());
-            axisWrapVO.setXAxis(Splitter.on(",").splitToList(model.getxIntervalList()));
+            axisWrapVO.setXAxis(parseIntervals(model.getxIntervalList()));
             List<WrapDataVO> yAxis = Lists.newArrayList();
             ArrayList<String> slashList = new ArrayList<>(Collections.nCopies(axisWrapVO.getXAxis().size(), "/"));
             axisWrapVO.setYAxis(yAxis);
-            if (model.getAxisType() == AXIS_TYPE_SINGLE) {
+            if (AXIS_TYPE_SINGLE.equals(model.getAxisType())) {
                 List<String> keys = Splitter.on(",").splitToList(model.getxModelName());
                 for (String yName : keys) {
                     yAxis.add(new WrapDataVO(yName, slashList));
                 }
-            } else if (model.getAxisType() == AXIS_TYPE_CROSS) {
-                List<String> yStep = Splitter.on(",").splitToList(model.getyIntervalList());
+            } else if (AXIS_TYPE_CROSS.equals(model.getAxisType())) {
+                List<String> yStep = parseIntervals(model.getyIntervalList());
                 for (String yName : yStep) {
                     yAxis.add(new WrapDataVO(yName, slashList));
                 }
@@ -147,5 +148,26 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
         ReportIntervalConfig config = new ReportIntervalConfig();
         config.setStatus(status);
         reportIntervalConfigMapper.updateByExampleSelective(config, configExample);
+    }
+
+    /**
+     * “[-1,0), [0,949), [950,1000), [1000,1050), [1050,1100)”，拆成List<String>
+     * @param intervalString
+     * @return
+     */
+    private List<String> parseIntervals(String intervalString) {
+        if (intervalString == null || intervalString.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Pattern.compile("\\),\\s*")
+                .splitAsStream(intervalString)
+                .map(str -> {
+                    // 确保以右括号结束
+                    if (!str.endsWith(")")) {
+                        return str + ")";
+                    }
+                    return str;
+                })
+                .collect(Collectors.toList());
     }
 }

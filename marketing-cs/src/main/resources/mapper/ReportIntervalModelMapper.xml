@@ -23,10 +23,14 @@
             b.create_time,
             b.update_time
         FROM b_report_interval_model b
-        JOIN tools_numbers n
-        ON <![CDATA[ n.n < JSON_LENGTH(b.x_interval_list) OR n.n < JSON_LENGTH(b.y_interval_list) ]]>
-        WHERE b.config_id = #{configId}
+        JOIN tools_numbers n ON 1 = 1
+        WHERE b.config_id = 30005
+        AND n.n <![CDATA[ < GREATEST ]]>
+        (COALESCE(JSON_LENGTH(b.x_interval_list), 0),
+        COALESCE(JSON_LENGTH(b.y_interval_list), 0)
+        )
         GROUP BY b.id
+        order by b.`order`;
     </select>
 
     <insert id="batchSaveIntervalModel" parameterType="java.util.List">
