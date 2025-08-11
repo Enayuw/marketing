@@ -9,7 +9,7 @@
             and api_code = #{apiCode}
         </if>
         <if test="name !=null and name !=''">
-            and name = #{name}
+            and template_name = #{name}
         </if>
         <if test="status !=null">
             and status = #{status}

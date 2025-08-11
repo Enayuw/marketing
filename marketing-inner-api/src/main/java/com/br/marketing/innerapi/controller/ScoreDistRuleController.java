@@ -5,6 +5,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SearchConditionDTO;
 import com.br.marketing.service.ScoreDistRuleService;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.ScoreDistRuleVo;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import io.swagger.annotations.ApiOperation;
@@ -31,6 +32,12 @@ public class ScoreDistRuleController {
     @PostMapping("/getScoreDistRuleList")
     public ApiResult<PageResultReturn<ScoreDistRuleVo>> getScoreDistRuleList(@RequestBody SearchConditionDTO dto) {
         return new ApiResult<PageResultReturn<ScoreDistRuleVo>>().fromResult(scoreDistRuleService.getScoreDistRuleList(dto), CODE_1);
+    }
+
+    @ApiOperation(value = "获取模板")
+    @GetMapping("/getScoreDistRuleByApiCode")
+    public ApiResult<List<ScoreDistRuleVo>> getScoreDistRuleByApiCode(String apiCode) {
+        return new ApiResult<List<ScoreDistRuleVo>>().fromResult(scoreDistRuleService.getScoreDistRuleByApiCode(apiCode), CODE_1);
     }
 
     @ApiOperation(value = "查询评分分布规则模板详情")

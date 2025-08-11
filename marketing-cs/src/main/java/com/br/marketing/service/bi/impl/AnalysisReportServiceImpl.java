@@ -9,12 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Resource;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -24,7 +21,6 @@ import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -44,7 +40,6 @@ import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -199,9 +194,48 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             data.add(String.valueOf(sum));
             return new WrapDataVO(yValue, data);
         }).collect(Collectors.toList());
+        //5.增加行总计
+        WrapDataVO yaxisSum = getYaxisSum(details, xAxis);
+        yAxisData.add(yaxisSum);
         xAxis.add("总计");
         axisWrapVo.setXAxis(xAxis);
         axisWrapVo.setYAxis(yAxisData);
+    }
+
+    private WrapDataVO getYaxisSum(List<ScoreStatisticsDetail> details, List<String> xAxis) {
+        // 先计算分组结果
+        Map<String, Integer> groupedData = details.stream()
+                .collect(Collectors.groupingBy(
+                        ScoreStatisticsDetail::getFieldXValue,
+                        Collectors.summingInt(ScoreStatisticsDetail::getFieldNum)
+                ));
+        List<String> data;
+        // 检查是否包含中文
+        boolean hasChinese = xAxis.stream()
+                .anyMatch(com.br.marketing.common.utils.StringUtils::containsChinese);
+        if (hasChinese) {
+            // 包含中文，直接返回所有值
+            data = groupedData.values().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList());
+        } else {
+            // 不包含中文，按数字排序
+            data = groupedData.entrySet().stream()
+                    .sorted(Comparator.comparingInt(entry -> {
+                        try {
+                            String key = entry.getKey().replaceAll("[^0-9-]", "");
+                            String[] parts = key.split(",");
+                            return Integer.parseInt(parts[0]);
+                        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                            // 如果解析失败，返回0或最大值
+                            return Integer.MAX_VALUE;
+                        }
+                    }))
+                    .map(entry -> entry.getValue().toString())
+                    .collect(Collectors.toList());
+        }
+        data.add(Integer.toString(data.stream().mapToInt(Integer::parseInt).sum()));
+        return new WrapDataVO("总计", data);
     }
 
     /**
@@ -251,6 +285,12 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
      * @return
      */
     private List<String> getAxais(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
+        List<String> distinctAxais = details.stream().map(keyMapper).distinct().collect(Collectors.toList());
+        for (String s : distinctAxais) {
+            if(com.br.marketing.common.utils.StringUtils.containsChinese(s)){
+                return distinctAxais;
+            }
+        }
         return details.stream()
                 .map(keyMapper)
                 .distinct()

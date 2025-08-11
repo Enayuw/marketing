@@ -18,6 +18,9 @@ public class StringUtils {
 
     private static final String NumberRegex = "[+-]?(?:\\d+\\.\\d*|\\.\\d+|\\d+)(?:[eE][+-]?\\d+)?";
 
+    //正则表达式检测任意汉字
+    private static final Pattern CHINESE_CHAR_PATTERN = Pattern.compile("[\u4e00-\u9fa5]");
+
     public static boolean isEmpty(Object obj) {
         return (obj == null || obj.toString().length() == 0);
     }
@@ -231,5 +234,15 @@ public class StringUtils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * 检查单个字符串是否包含汉字
+     * @param str 输入字符串
+     * @return 包含汉字返回true，否则false
+     */
+    public static boolean containsChinese(String str) {
+        if (str == null || str.isEmpty()) return false;
+        return CHINESE_CHAR_PATTERN.matcher(str).find();
     }
 }
