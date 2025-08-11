@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 import com.google.common.collect.Lists;
+
+import java.io.IOException;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -660,6 +662,13 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                 return new ApiResult<Boolean>().fail(false, "刷新统计配置失败, statisticsId: " + configDTO.getStatisticsId() + ", 错误: " + e.getMessage());
             }
         }
+        // 刷新报告文件并上传至fastdfs
+        try {
+            analysisReportService.uploadReportToFastDfs(requestDTO.getReportId());
+        } catch (IOException e) {
+            log.error("刷新报告文件并上传至fastdfs失败, taskId: {}", requestDTO.getReportId(), e);
+            return new ApiResult<Boolean>().fail(false, "刷新报告文件并上传至fastdfs失败, taskId: " + requestDTO.getReportId() + ", 错误: " + e.getMessage());
+        }
         return new ApiResult<Boolean>().success(true);
     }
 
@@ -882,19 +891,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         // 更新统计状态为成功
         updateReportScore(refreshedScore, 1, null);
-    }
-
-    /**
-     * 查找对应的自定义区间配置
-     */
-    private RefreshReportRequestDTO.CustomIntervalConfigDTO findCustomConfigById(RefreshReportRequestDTO requestDTO, Long statisticsId) {
-        if (CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
-            return null;
-        }
-        return requestDTO.getCustomIntervals().stream()
-                .filter(config -> statisticsId.equals(config.getStatisticsId()))
-                .findFirst()
-                .orElse(null);
     }
 
     /**
