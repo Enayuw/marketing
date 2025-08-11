@@ -406,29 +406,32 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
     }
 
     private Integer getModelRangeByDoris(String model, String batchNumberStr) {
-
-        List<String> batchNumberList = Arrays.asList(batchNumberStr.split(","));
-
         String scoreSql = "";
-        for (int i = 0; i < batchNumberList.size(); i++) {
-            if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_score_").concat(batchNumberList.get(i));
-            } else {
-                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_score_").concat(batchNumberList.get(i))
-                        .concat(" union all ");
-            }
-        }
-        scoreSql = "select max(num) from ( ".concat(scoreSql).concat(") a;");
+        try {
+            List<String> batchNumberList = Arrays.asList(batchNumberStr.split(","));
 
-        Integer scoreValue = reportStatisticsScoreMapper.queryNumBybI_(scoreSql);
-        //分值查询为空
-        if (scoreValue == null) {
+            for (int i = 0; i < batchNumberList.size(); i++) {
+                if (i == batchNumberList.size() - 1) {
+                    scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_score_").concat(batchNumberList.get(i));
+                } else {
+                    scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_score_").concat(batchNumberList.get(i))
+                            .concat(" union all ");
+                }
+            }
+            scoreSql = "select max(num) from ( ".concat(scoreSql).concat(") a;");
+
+            Integer scoreValue = reportStatisticsScoreMapper.queryNumBybI_(scoreSql);
+            //分值查询为空
+            if (scoreValue == null) {
+                return null;
+            }
+            Map<String, Integer> rangeConfig = marketingCommonConfig.getScoreReportRangeConfig();
+            //speed配置
+            return scoreValue > rangeConfig.get("scoreNum") ? rangeConfig.get("numRightStep") : rangeConfig.get("numLeftStep");
+        }catch (Exception e){
+            log.warn(TITLE + "固定区间查询有误，sql:{}，错误:{}", scoreSql, e.getMessage());
             return null;
         }
-        Map<String, Integer> rangeConfig = marketingCommonConfig.getScoreReportRangeConfig();
-        //speed配置
-        return scoreValue > rangeConfig.get("scoreNum") ? rangeConfig.get("numRightStep") : rangeConfig.get("numLeftStep");
-
     }
 
     /**
