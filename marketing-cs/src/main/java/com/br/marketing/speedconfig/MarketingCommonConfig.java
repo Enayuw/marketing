@@ -3286,5 +3286,11 @@ public class MarketingCommonConfig {
      * #众安拨打&短信上报配置
      */
     private JSONObject zhongAnCollidingDataConfig;
+
+    /**
+     * 画像分布析出字段
+     */
+    private String imageDistribution;
+
 }
 

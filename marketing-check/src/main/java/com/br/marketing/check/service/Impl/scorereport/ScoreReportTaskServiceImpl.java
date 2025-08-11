@@ -57,7 +57,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
     @Resource
     private CustomIntervalStatisticsImpl customIntervalStatistics;
 
-    private final static String IMAGEMODEL = "pd_cell_type,pd_id_apply_age,pd_id_gender,pd_cell_province";
+    //private final static String IMAGEMODEL = "pd_cell_type,pd_id_apply_age,pd_id_gender,pd_cell_province";
+
+    private final static String TITLE = "【跑分报表任务统计】";
 
 
     @Override
@@ -111,6 +113,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
      * @return
      */
     private void reportRuleCount(ReportTask reportTask) {
+
+        String imageDistribution = marketingCommonConfig.getImageDistribution();
         ReportStatisticsScoreExample statisticsScoreExample = new ReportStatisticsScoreExample();
         statisticsScoreExample.createCriteria()
                 .andReportIdEqualTo(reportTask.getId())
@@ -128,14 +132,14 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                     modelList.forEach((String model) -> {
                         String batchNumebrs = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(model);
                         List<Map<String, Object>> singleResult;
-                        if(IMAGEMODEL.contains(model)){
+                        if(imageDistribution.contains(model)){
                             singleResult = imageModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
                         }else {
                             singleResult = singleModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
                         }
 
                         // 根据模型类型选择不同的保存策略
-                        if(IMAGEMODEL.contains(model)){
+                        if(imageDistribution.contains(model)){
                             // 画像模型特殊处理
                             saveImageModelResults(statisticsScore.getId(), singleResult, model);
                         } else {
@@ -219,7 +223,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange).replace("yModelName", fieldY)
                 .replace("yModelRange", fieldYRange);
-        log.warn("多模型={} 统计sql={}", fieldX.concat(",").concat(fieldY), scoreSql);
+        log.warn(TITLE + "多模型={} 统计sql={}", fieldX.concat(",").concat(fieldY), scoreSql);
         return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
@@ -259,7 +263,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
             scoreSql = "SELECT " + fieldX + ", count(1) AS num FROM (" + scoreSql + " ) a GROUP BY " + fieldX + ";";
         }
         
-        log.warn("画像模型={} 统计sql={}", fieldX, scoreSql);
+        log.warn(TITLE + "画像模型={} 统计sql={}", fieldX, scoreSql);
         return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
@@ -291,7 +295,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 " ORDER BY FLOOR(a.xModelName / xModelRange);";
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange);
-        log.warn("单模型={} 统计sql={}", fieldX, scoreSql);
+        log.warn(TITLE + "单模型={} 统计sql={}", fieldX, scoreSql);
         return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
@@ -302,6 +306,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
      * @return
      */
     private void reportRuleBuild(ReportTask reportTask) {
+        String imageDistribution = marketingCommonConfig.getImageDistribution();
         JSONObject reportRules = JSON.parseObject(reportTask.getReportRules());
         JSONObject batchNumerJson = reportRules.getJSONObject("productAndBatchNumber");
         List<ScoreReportRuleDTO> reportRuleList = reportRules.getJSONArray("rules").toJavaList(ScoreReportRuleDTO.class);
@@ -313,7 +318,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                     String batchNumberStr = batchNumerJson.getString(xModel);
                     Integer modelRange;
                     // 画像模型
-                    if(IMAGEMODEL.contains(xModel)){
+                    if(imageDistribution.contains(xModel)){
                         modelRange = 10;
                     }else {
                         modelRange = getModelRangeByDoris(xModel, batchNumberStr);
@@ -436,7 +441,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
      */
     private List<String> getPredefinedIntervals(Integer stepLength) {
         if (stepLength == null) {
-            log.warn("步长为空，使用默认5步长区间");
+            log.warn(TITLE + "步长为空，使用默认5步长区间");
             return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
         }
         if (stepLength.equals(5)) {
@@ -446,7 +451,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         } else if (stepLength.equals(10)) {
             return marketingCommonConfig.getBiReportStepConfig().get("tenStepLength");
         } else {
-            log.warn("未支持的步长: {}，使用默认5步长区间", stepLength);
+            log.warn(TITLE + "未支持的步长: {}，使用默认5步长区间", stepLength);
             return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
         }
     }
@@ -484,7 +489,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
             }
             
-            log.info("保存画像模型结果完成，model: {}, statisticsId: {}, 结果数: {}", 
+            log.warn(TITLE + "保存画像模型结果完成，model: {}, statisticsId: {}, 结果数: {}",
                     model, statisticsId, statisticsDetails.size());
         }
     }
@@ -498,7 +503,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         // 根据模板ID获取自定义区间配置
         ReportIntervalConfig reportIntervalConfig = reportIntervalConfigMapper.selectByPrimaryKey(Long.valueOf(reportTask.getTemplateId()));
         if (reportIntervalConfig == null) {
-            log.warn("模板ID={} 未找到自定义区间配置", reportTask.getTemplateId());
+            log.warn(TITLE + "模板ID={} 未找到自定义区间配置", reportTask.getTemplateId());
             return;
         }
 
@@ -511,7 +516,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         List<ReportIntervalModel> modelList = reportIntervalModelMapper.selectByExample(modelExample);
         
         if (CollectionUtils.isEmpty(modelList)) {
-            log.warn("模板ID={} 未找到模型配置", reportTask.getTemplateId());
+            log.warn(TITLE + "模板ID={} 未找到模型配置", reportTask.getTemplateId());
             return;
         }
 
@@ -580,10 +585,6 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 fieldXBuilder.append(",");
             }
             fieldXBuilder.append(xModel);
-        }
-
-        if (fieldXBuilder.length() == 0) {
-            return;
         }
 
         // 同一规则：分位值相同更新，不同新增
@@ -680,10 +681,6 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 fieldXBuilder.append(xModel);
                 fieldYBuilder.append(yModel);
             }
-        }
-
-        if (fieldXBuilder.length() == 0) {
-            return;
         }
 
         // 同一规则：分位值相同更新，不同新增
