@@ -223,11 +223,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 删除规则
      * @param config 规则配置信息
-     * @param cleanFields 要删除的清洗字段列表
+     * @param mappingFields 要删除的清洗字段列表
      * @return 操作结果
      */
     @Override
-    public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> cleanFields) {
+    public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> mappingFields) {
         try {
             // 查询已存在的规则配置
             MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
@@ -258,17 +258,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             // 标记不在当前配置中的规则为删除状态
             for (MarketingDataCleanGeneralRuleConfig rule : existingRules) {
-                String cleanField = rule.getCleanFields();
-                MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
-                updateRule.setId(rule.getId());
-                updateRule.setIsDel(9);
-                updateRule.setUpdateTime(new Date());
+                String mappingField = rule.getMappingField();
+                if (!mappingFields.contains(mappingField)) {
+                    MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
+                    updateRule.setId(rule.getId());
+                    updateRule.setIsDel(9);
+                    updateRule.setUpdateTime(new Date());
 
-                int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
-                if (rows > 0) {
-                    log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), cleanField);
-                } else {
-                    log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), cleanField);
+                    int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
+                    if (rows > 0) {
+                        log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), mappingField);
+                    } else {
+                        log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), mappingField);
+                    }
                 }
             }
             return true;
@@ -1665,13 +1667,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
             // 提取所有清洗字段
-            List<String> cleanFields = cleaningConfigs.stream()
-                    .map(FieldCleaningConfigDTO::getCleanField)
+            List<String> mappingFields = cleaningConfigs.stream()
+                    .map(FieldCleaningConfigDTO::getMappingField)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
             // 删除不在当前配置中的规则
-            boolean deleteResult = deleteRule(config, cleanFields);
+            boolean deleteResult = deleteRule(config, mappingFields);
             if (!deleteResult) {
                 // 继续处理，不要因为删除失败而中断整个流程
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
