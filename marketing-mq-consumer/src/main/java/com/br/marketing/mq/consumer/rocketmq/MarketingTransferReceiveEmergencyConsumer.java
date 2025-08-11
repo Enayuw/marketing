@@ -3,7 +3,6 @@ package com.br.marketing.mq.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferEmergencyConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -16,7 +15,6 @@ import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -29,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingTransferEmergencyConstants.TOPIC,
         consumerGroup = MarketingTransferEmergencyConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY,
         selectorExpression = MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY,
-        consumeThreadNumber = 1, consumeThreadMax = 1, awaitTerminationMillisWhenShutdown = 2000)
+        consumeThreadNumber = 1, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 3000)
 public class MarketingTransferReceiveEmergencyConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
@@ -37,8 +35,7 @@ public class MarketingTransferReceiveEmergencyConsumer extends BaseMqMessageList
 
     @Autowired
     PushRuleService pushRuleService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
+
     @Override
     protected String consumerName() {
         return null;
@@ -49,12 +46,6 @@ public class MarketingTransferReceiveEmergencyConsumer extends BaseMqMessageList
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY)){
-            log.warn("MARKETING_TRANSFER_RECEIVE_EMERGENCY：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), o);
-        }
         consumerService.consumerRun(messageExt, pushRuleService::consumerTransferData, o);
     }
 
@@ -77,5 +68,6 @@ public class MarketingTransferReceiveEmergencyConsumer extends BaseMqMessageList
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(1);
     }
 }

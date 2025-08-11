@@ -295,6 +295,286 @@ public class MarketingCustomerConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andCipherModeIsNull() {
+            addCriterion("cipher_mode is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeIsNotNull() {
+            addCriterion("cipher_mode is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeEqualTo(String value) {
+            addCriterion("cipher_mode =", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeNotEqualTo(String value) {
+            addCriterion("cipher_mode <>", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeGreaterThan(String value) {
+            addCriterion("cipher_mode >", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeGreaterThanOrEqualTo(String value) {
+            addCriterion("cipher_mode >=", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeLessThan(String value) {
+            addCriterion("cipher_mode <", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeLessThanOrEqualTo(String value) {
+            addCriterion("cipher_mode <=", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeLike(String value) {
+            addCriterion("cipher_mode like", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeNotLike(String value) {
+            addCriterion("cipher_mode not like", value, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeIn(List<String> values) {
+            addCriterion("cipher_mode in", values, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeNotIn(List<String> values) {
+            addCriterion("cipher_mode not in", values, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeBetween(String value1, String value2) {
+            addCriterion("cipher_mode between", value1, value2, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCipherModeNotBetween(String value1, String value2) {
+            addCriterion("cipher_mode not between", value1, value2, "cipherMode");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeIsNull() {
+            addCriterion("padding_scheme is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeIsNotNull() {
+            addCriterion("padding_scheme is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeEqualTo(String value) {
+            addCriterion("padding_scheme =", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeNotEqualTo(String value) {
+            addCriterion("padding_scheme <>", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeGreaterThan(String value) {
+            addCriterion("padding_scheme >", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeGreaterThanOrEqualTo(String value) {
+            addCriterion("padding_scheme >=", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeLessThan(String value) {
+            addCriterion("padding_scheme <", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeLessThanOrEqualTo(String value) {
+            addCriterion("padding_scheme <=", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeLike(String value) {
+            addCriterion("padding_scheme like", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeNotLike(String value) {
+            addCriterion("padding_scheme not like", value, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeIn(List<String> values) {
+            addCriterion("padding_scheme in", values, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeNotIn(List<String> values) {
+            addCriterion("padding_scheme not in", values, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeBetween(String value1, String value2) {
+            addCriterion("padding_scheme between", value1, value2, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andPaddingSchemeNotBetween(String value1, String value2) {
+            addCriterion("padding_scheme not between", value1, value2, "paddingScheme");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetIsNull() {
+            addCriterion("charset is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetIsNotNull() {
+            addCriterion("charset is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetEqualTo(String value) {
+            addCriterion("charset =", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetNotEqualTo(String value) {
+            addCriterion("charset <>", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetGreaterThan(String value) {
+            addCriterion("charset >", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetGreaterThanOrEqualTo(String value) {
+            addCriterion("charset >=", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetLessThan(String value) {
+            addCriterion("charset <", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetLessThanOrEqualTo(String value) {
+            addCriterion("charset <=", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetLike(String value) {
+            addCriterion("charset like", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetNotLike(String value) {
+            addCriterion("charset not like", value, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetIn(List<String> values) {
+            addCriterion("charset in", values, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetNotIn(List<String> values) {
+            addCriterion("charset not in", values, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetBetween(String value1, String value2) {
+            addCriterion("charset between", value1, value2, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andCharsetNotBetween(String value1, String value2) {
+            addCriterion("charset not between", value1, value2, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysIsNull() {
+            addCriterion("dynamic_keys is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysIsNotNull() {
+            addCriterion("dynamic_keys is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysEqualTo(String value) {
+            addCriterion("dynamic_keys =", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysNotEqualTo(String value) {
+            addCriterion("dynamic_keys <>", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysGreaterThan(String value) {
+            addCriterion("dynamic_keys >", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysGreaterThanOrEqualTo(String value) {
+            addCriterion("dynamic_keys >=", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysLessThan(String value) {
+            addCriterion("dynamic_keys <", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysLessThanOrEqualTo(String value) {
+            addCriterion("dynamic_keys <=", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysLike(String value) {
+            addCriterion("dynamic_keys like", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysNotLike(String value) {
+            addCriterion("dynamic_keys not like", value, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysIn(List<String> values) {
+            addCriterion("dynamic_keys in", values, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysNotIn(List<String> values) {
+            addCriterion("dynamic_keys not in", values, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysBetween(String value1, String value2) {
+            addCriterion("dynamic_keys between", value1, value2, "dynamicKeys");
+            return (Criteria) this;
+        }
+
+        public Criteria andDynamicKeysNotBetween(String value1, String value2) {
+            addCriterion("dynamic_keys not between", value1, value2, "dynamicKeys");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;
@@ -606,9 +886,8 @@ public class MarketingCustomerConfigExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

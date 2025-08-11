@@ -182,7 +182,8 @@ public class RuleCleaningController {
         
         try {
             log.info("接收到字段清洗预览请求: {}", previewDTO);
-            Object cleanedData = ruleCleaningService.previewFieldCleaning(previewDTO.getFieldSample(), previewDTO.getCleaningRule());
+            Object cleanedData = ruleCleaningService.previewFieldCleaning(previewDTO.getFieldSample(),
+                    previewDTO.getCleaningRule(), null);
             return new ApiResult<Object>().success(cleanedData);
         } catch (BusinessException be) {
             return new ApiResult<Object>().fail(be.getMsg());

@@ -242,4 +242,39 @@ public class CustomerListVo {
      */
     private Integer threeKEncryptType;
 
+    /**
+     * 短信类别
+     */
+    private String smsCategory;
+
+    /**
+     * 一级部门
+     */
+    private String firstDepartment;
+
+    /**
+     * 二级部门
+     */
+    private String secondDepartment;
+
+    /**
+     * AES通用-加密模式
+     */
+    private String cipherMode;
+
+    /**
+     * AES通用-填充模式
+     */
+    private String paddingScheme;
+
+    /**
+     * AES通用-字符编码
+     */
+    private String charset;
+
+    /**
+     * AES通用-密钥
+     */
+    private String dynamicKeys;
+
 }

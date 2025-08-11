@@ -26,6 +26,11 @@ public class PushMarketingUserDetailDTO implements Serializable {
     private String phone;
 
     /**
+     *手机号码（log加密）
+     */
+    private String logCell;
+
+    /**
      *变量JSON
      */
     private JSONObject variables;

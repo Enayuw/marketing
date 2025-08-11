@@ -357,8 +357,43 @@ public class RedisKeyConstant {
     /**
      * 同程易融-match数据锁
      */
-        public static final String tcyrSyncMatch = prefix.concat("tcyr_sync:match");
+    public static final String tcyrSyncMatch = prefix.concat("tcyr_sync:match");
 
         public static final String MOCK_POLICY = prefix.concat("mock:policy");
 
+
+    /**
+     * 同程易融-quickDeal流程锁
+     */
+    public static final String tcyrQuickDeal = prefix.concat("tcyr_sync:quickDeal");
+
+    /**
+     * 同程易融-dbDeal流程锁
+     */
+    public static final String tcyrDbDeal = prefix.concat("tcyr_sync:dbDeal");
+
+    /**
+     * 雪花算法
+     */
+    public static final String SNOWFLAKE = prefix.concat("snowflake:");
+    /**
+     * mq
+     */
+    public static final String MQ_IDEMPOTENT = prefix.concat("mq:idempotent:");
+
+    /**
+     * 携程上报队列负载key
+     */
+    public static final String XIECHENG_REPORT_CONSUME_RNAME = prefix.concat("xieChengReport:consumer:name");
+
+
+    /**
+     * ai客户数据入明细负载队列
+     */
+    public static final String AI_PREUSER_RECEIVE_MQ_BALANCER = prefix.concat("aipreuserreceive:mq:balancer");
+
+    /**
+     * ai客户推送下游负载队列
+     */
+    public static final String AI_UNIVERSAL_RECEIVE_MQ_BALANCER = prefix.concat("aiuniversalreceive:mq:balancer");
 }

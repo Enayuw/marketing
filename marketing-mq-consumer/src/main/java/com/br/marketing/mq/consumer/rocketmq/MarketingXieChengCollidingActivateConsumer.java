@@ -3,7 +3,6 @@ package com.br.marketing.mq.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
@@ -38,8 +37,7 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
 
     @Resource
     private XieChengRobDataCollidingService robDataCollidingService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
+
     @Override
     protected String consumerName() {
         return null;
@@ -48,13 +46,6 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
-            log.warn("MARKETING_XIECHENG_COLLIDING_ACTIVATE：" +
-                            "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), bodyString);
-        }
         XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(bodyString,
                 new TypeReference<XieChengActivateDTO>() {
                 }.getType());
@@ -81,5 +72,6 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(1);
     }
 }

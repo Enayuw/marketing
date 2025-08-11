@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhongAnCollidingDataLogMapper">
+    <select id="countSmsSendSuccess" resultType="int">
+        select count(*)
+        from b_zhongan_colliding_data_log
+        where report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 1 DAY)
+          and report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
+          and sms_send_status = 1
+          and cell = #{cellMd5,jdbcType=VARCHAR}
+          and is_deleted = 0
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countCallConnectSuccess" resultType="int">
+        select count(*)
+        from b_zhongan_colliding_data_log
+        where report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 2 DAY)
+          and report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
+          and is_connect = 1
+          and cell = #{cellMd5,jdbcType=VARCHAR}
+          and is_deleted = 0
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getConnectIdsByDay" resultType="java.lang.Long">
+        SELECT id
+        FROM b_zhongan_colliding_data_log
+        WHERE report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 6 DAY)
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
+          AND is_connect = 1
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
+          and is_deleted = 0
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getSmsIdsByDay" resultType="java.lang.Long">
+        SELECT id
+        FROM b_zhongan_colliding_data_log
+        WHERE report_date >= DATE_SUB(#{bizDate,jdbcType=VARCHAR}, INTERVAL 6 DAY)
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
+          AND sms_send_status = 1
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
+          and is_deleted = 0
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getConnectIdsByMonth" resultType="java.lang.Long">
+        SELECT id
+        FROM b_zhongan_colliding_data_log
+        WHERE report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
+          AND is_connect = 1
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
+          and is_deleted = 0
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getSmsIdsByMonth" resultType="java.lang.Long">
+        SELECT id
+        FROM b_zhongan_colliding_data_log
+        WHERE report_date >= DATE_FORMAT(#{bizDate,jdbcType=VARCHAR}, '%Y-%m-01')
+          AND report_date <![CDATA[ < ]]> #{bizDate,jdbcType=VARCHAR}
+          AND sms_send_status = 1
+          AND cell = #{cellMd5,jdbcType=VARCHAR}
+          and is_deleted = 0
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countMobilePerDay" resultType="int">
+        select count(*)
+        from b_zhongan_colliding_data_log
+        where report_date = #{bizDate,jdbcType=VARCHAR}
+          and cell = #{cellMd5,jdbcType=VARCHAR}
+          and is_deleted = 0
+          and user_type = #{userType,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_zhongan_colliding_data_log (api_code,
+        data_source_type,
+        user_type,
+        cell,
+        sms_send_status,
+        is_connect,
+        report_date,
+        extend,
+        is_deleted,
+        create_time,
+        update_time)
+        VALUES
+        <foreach collection="collidingDataLogList" item="item" separator=",">
+            (#{item.apiCode, jdbcType=VARCHAR},
+            #{item.dataSourceType, jdbcType=VARCHAR},
+            #{item.userType, jdbcType=VARCHAR},
+            #{item.cell, jdbcType=VARCHAR},
+            #{item.smsSendStatus, jdbcType=VARCHAR},
+            #{item.isConnect, jdbcType=VARCHAR},
+            #{item.reportDate, jdbcType=VARCHAR},
+            NULL,
+            0,
+            NOW(),
+            NOW())
+        </foreach>
+    </insert>
+</mapper>

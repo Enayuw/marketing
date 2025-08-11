@@ -15,7 +15,11 @@ import com.br.marketing.client.tag.dto.AntaiosResourceDTO;
 import com.br.marketing.client.tag.vo.AntaiosResourceVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.entity.CallRecord;
+import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -26,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,6 +41,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("redis")
@@ -224,8 +230,7 @@ public class RedisController {
     }
 
     /**
-     * 外采映射数据生成SQL
-     *
+     * 外采映射数据生成SQL     *
      * @return
      */
     @GetMapping("/getCarClueInit")
@@ -361,5 +366,71 @@ public class RedisController {
     public String hset(@RequestParam("key") String key, @RequestParam("field") String field, @RequestParam("value") String value) {
         redisChgService.hset(key, field, value);
         return "hset-success";
+    }
+
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+
+    @GetMapping("redisTest")
+    public String redisTest() {
+    String apiCode = "7410950";
+    CallRecord callRecord = new CallRecord();
+    callRecord.setId(300l);
+        // 携程定制逻辑
+        if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
+            if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)) {
+                // 使用轮询消费者逻辑
+                handleWithConsumerRotation(callRecord);
+            } else {
+                // 使用默认发送逻辑
+                rocketMqSwitch.syncSend(
+                        MarketingXieChengConstants.TOPIC,
+                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
+                        callRecord.getId().toString());
+            }
+        }
+        return "redisTest-success";
+    }
+    // 3. 提取的方法
+    private void handleWithConsumerRotation(CallRecord callRecord) {
+        initializeConsumerQueue();
+        String consumerName = redisChgService.rpoplpush(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME);
+        XieChengConsumer consumer = XieChengConsumer.fromName(consumerName);
+        sendToRocketMQ(consumer, callRecord.getId().toString());
+    }
+
+    private void initializeConsumerQueue() {
+        Long queueLength = redisChgService.llen(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME);
+        if (queueLength == 0) {
+            String[] consumers = Arrays.stream(XieChengConsumer.values())
+                    .map(XieChengConsumer::getConsumerName)
+                    .sorted(Comparator.reverseOrder())
+                    .toArray(String[]::new);
+            redisChgService.rpush(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME, consumers);
+            log.warn("初始化消费者队列: {}", Arrays.toString(consumers));
+        }
+    }
+
+    private void sendToRocketMQ(XieChengConsumer consumer, String message) {
+        rocketMqSwitch.syncSend(consumer.getTopic(), consumer.getTag(), message);
+        log.warn("消息发送 [consumer: {}, topic: {}, tag: {}]",
+                consumer.name(), consumer.getTopic(), consumer.getTag());
+    }
+
+    @GetMapping("lrange")
+    public String lrange(@RequestParam("key") String key) {
+        List<String> lrange = redisChgService.lrange(key);
+        return JSON.toJSONString(lrange);
+    }
+
+    @GetMapping("resetList")
+    public String resetList(@RequestParam("key") String key, String... items) {
+        List<String> lrange = redisChgService.lrange(key);
+        if (CollectionUtils.isEmpty(lrange)) {
+            return "该key在redis中不存在";
+        }
+
+        redisChgService.resetListAtomic(key, items);
+        return "resetList-success";
     }
 }

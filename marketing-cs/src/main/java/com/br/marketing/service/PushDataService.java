@@ -83,4 +83,6 @@ public interface PushDataService {
     Result pushCsosDassData(Long id);
 
     Result pushUpdateDassData(Long id);
+
+    Result pushWeiZhongDassData(Long id);
 }

@@ -6,6 +6,7 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
 import com.br.marketing.entity.SyncConfig;
@@ -106,7 +107,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             //填充b_marketing_clean_data_file表的表头及字段
             MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
             fileExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(date).andApiCodeEqualTo(syncCycleConfig.getApiCode())
-                    .andTargetSftpPathEqualTo(syncCycleConfig.getSrcPath()).andFileHeaderIsNull();
+                    .andLocalPathEqualTo(syncCycleConfig.getTargetPath()).andFileHeaderIsNull();
             fileExample.setOrderByClause("create_time desc");
             List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
             cleanDataFiles.forEach(cleanDataFile -> {
@@ -125,19 +126,20 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
             while (line < 11 && (row = br.readLine()) != null) {
+                String rowData = row.trim();
                 // 跳过空行（包含空白字符行）
-                if (row.trim().isEmpty()) {
+                if (rowData.isEmpty()) {
                     continue;
                 }
                 if (line == 0) {
                     // 第一行作为表头
-                    dataFile.setFileHeader(row);
+                    dataFile.setFileHeader(rowData);
                 } else {
                     // 除表头外的所有数据行都添加到batchLines
-                    batchLines.add(row);
+                    batchLines.add(rowData);
                     if (line == 1) {
                         // 第一行数据设置为FileData
-                        dataFile.setFileData(row);
+                        dataFile.setFileData(rowData);
                     }
                 }
                 line++;
@@ -161,19 +163,20 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row;
             while (line < 11 && (row = br.readLine()) != null) {
+                String rowData = row.trim();
                 // 跳过空行（包含空白字符行）
-                if (row.trim().isEmpty()) {
+                if (rowData.isEmpty()) {
                     continue;
                 }
                 if (line == 0) {
                     // 第一行作为表头
-                    dataFile.setFileHeader(row);
+                    dataFile.setFileHeader(rowData);
                 } else {
                     // 除表头外的所有数据行都添加到batchLines
-                    batchLines.add(row);
+                    batchLines.add(rowData);
                     if (line == 1) {
                         // 第一行数据设置为FileData
-                        dataFile.setFileData(row);
+                        dataFile.setFileData(rowData);
                     }
                 }
                 line++;

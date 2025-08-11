@@ -4,14 +4,14 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingCleanDataFile;
-import com.br.marketing.entity.MarketingCleanDataFileExample;
-import com.br.marketing.entity.MarketingCleanDataTask;
-import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataCleanConfigRunStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
+import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -48,6 +48,9 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private DataCleanService dataCleanService;
 
+    @Resource
+    SyncConfigMapper syncConfigMapper;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
@@ -72,8 +75,14 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
         // 执行查询
         List<MarketingDataCleanGeneralConfig> ruleList = cleanGeneralConfigMapper.selectRuleList(queryParam);
         ruleList.forEach(config -> {
+            SyncConfigExample syncConfigCycle = new SyncConfigExample();
+            SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
+            criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(config.getApiCode())
+                    .andSrcPathEqualTo(config.getSftpPath()).andTypeEqualTo(1);
+            List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
+            String localPath = syncCycleConfigs.get(0).getTargetPath();
             //获取待清洗的文件任务
-            MarketingCleanDataFile cleanFile = getCleanFileTask(config, appletDateList);
+            MarketingCleanDataFile cleanFile = getCleanFileTask(config, appletDateList,localPath);
             if (Objects.isNull(cleanFile)) {
                 return;
             }
@@ -86,7 +95,7 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
         });
     }
 
-    private MarketingCleanDataFile getCleanFileTask(MarketingDataCleanGeneralConfig config, List<String> appletDateList) {
+    private MarketingCleanDataFile getCleanFileTask(MarketingDataCleanGeneralConfig config, List<String> appletDateList,String localPath) {
 
         String reidsKey = RedisKeyConstant.DATA_CLEAN_TASK_LOCK.concat(":").concat(config.getApiCode()).concat(":").concat(config.getDataType().toString())
                 .concat(":").concat(config.getAcceptType().toString());
@@ -95,7 +104,7 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
             redisChgService.lockLoop(reidsKey, value, 10000L, 30000L);
             MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
             fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andStatusEqualTo(DataProcessEnum.FileStatusEnum.READY.getCode())
-                    .andIsDelEqualTo(1).andTargetSftpPathEqualTo(config.getSftpPath()).andReceiveDateIn(appletDateList);
+                    .andIsDelEqualTo(1).andLocalPathEqualTo(localPath).andReceiveDateIn(appletDateList);
             fileExample.setOrderByClause("create_time desc");
             List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
             if (cleanDataFiles.isEmpty()) {

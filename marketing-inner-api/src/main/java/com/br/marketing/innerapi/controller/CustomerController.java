@@ -144,4 +144,20 @@ public class CustomerController {
             return new ApiResult<List<MarketingCustomerVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
+
+    @GetMapping("/getThreeKEncryptType")
+    @ApiOperation(value = "获取3key值枚举",notes = "获取3key值枚举")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
+    })
+    @AddDataAuthBusiness
+    public ApiResult<String> getThreeKEncryptType(){
+        try {
+            return new ApiResult<String>().success().setData(marketingCustomerService.getThreeKEncryptType());
+        } catch (ParamValidErrorException ex) {
+            log.error(ex.getMessage(),ex);
+            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
 }

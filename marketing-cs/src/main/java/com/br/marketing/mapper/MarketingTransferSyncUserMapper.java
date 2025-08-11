@@ -120,6 +120,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingNewTransferData> getTransferNewData(@Param("day") int day , @Param("limitStart") Integer limitStart);
+    List<MarketingNewTransferData> getTransferByCpsLog(@Param("limitStart") Integer limitStart);
 
     /**
      * 取T日全量转换数据
@@ -709,5 +710,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("beginId") Long beginId
             , @Param("endId") Long endId);
 
+
+    List<MarketingTransferSyncUser> getYXMarketingTransferByLiveTypetikv_
+            (@Param("tCid") String tCid, @Param("apiCode")String apiCode, @Param("requestDate")String requestDate, @Param("indexId")Long indexId,
+             @Param("liveType")String liveType, @Param("pageSize")Integer yiXinSearchPageSize);
 
 }

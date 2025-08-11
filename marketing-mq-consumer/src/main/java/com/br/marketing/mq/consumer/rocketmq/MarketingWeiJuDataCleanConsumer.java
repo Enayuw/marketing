@@ -2,7 +2,6 @@ package com.br.marketing.mq.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.clean.weiju.WeiJuDataCleanService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -28,15 +27,14 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingUploadConstants.TOPIC,
         consumerGroup = MarketingUploadConstants.MARKETING_WEIJU_DATA_CLEAN,
         selectorExpression = MarketingUploadConstants.TAG_MARKETING_WEIJU_DATA_CLEAN,
-        consumeThreadNumber = 1, consumeThreadMax = 5, awaitTerminationMillisWhenShutdown = 2000)
+        consumeThreadNumber = 1, consumeThreadMax = 1, awaitTerminationMillisWhenShutdown = 2000)
 public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
     @Resource
     private WeiJuDataCleanService weiJuDataCleanService;
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
+
     @Override
     protected String consumerName() {
         return null;
@@ -45,12 +43,6 @@ public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener imple
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingUploadConstants.TAG_MARKETING_WEIJU_DATA_CLEAN)){
-            log.warn("MARKETING_WEIJU_DATA_CLEAN：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                    , messageExt.getBrokerName(), messageExt.getTopic()
-                    , messageExt.getTags(), bodyString);
-        }
         consumerService.consumerRun(messageExt, weiJuDataCleanService::cleanData, bodyString);
     }
 
@@ -74,5 +66,6 @@ public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener imple
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
+        defaultMQPushConsumer.setPopBatchNums(1);
     }
 }

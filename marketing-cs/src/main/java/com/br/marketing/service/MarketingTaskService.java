@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
+import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingTaskResultPreview;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
@@ -84,4 +85,6 @@ public interface MarketingTaskService {
     Integer getPartNum(Integer sum);
 
     Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds, CustomerScoreRuleVO datum, String conditionInfo);
+
+    void disableTask(MarketingTask task);
 }

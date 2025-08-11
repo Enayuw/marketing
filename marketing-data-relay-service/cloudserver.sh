@@ -58,15 +58,67 @@ HOSTNAME=`hostname`
         if [ "$1" = "stop" ]; then exit 0;
         else exit 5; fi; }
 
+CLOUDSERVER_PID_FILE="$CLOUDSERVER_HOME/pid"
 
-CLOUDSERVER_PID_FILE="$CLOUDSERVER_HOME/pid" 
-
-CLOUDSERVER_JAVA_CMD="$JAVA_HOME/bin/java" 
+CLOUDSERVER_JAVA_CMD="$JAVA_HOME/bin/java"
 
 GC_LOG_PATH="$CLOUDSERVER_HOME/logs/$NAME/$POD_NAME"
 { ls $GC_LOG_PATH &>/dev/null || { echo "pod子文件夹不存在，开始创建... ...";mkdir -p $GC_LOG_PATH && echo "创建pod子文件夹成功！" || exit 1; };  }
 
+# ================ JVM参数配置功能（最高优先级）================
+# JVM配置文件路径（固定文件名）
+JVM_CONFIG_FILE="$SERVICE_HOME/jvm-config/jvm-options.sh"
+
+# 保存默认的APP_PARAM（在加载配置文件前保存）
+DEFAULT_APP_PARAM="${APP_PARAM:-}"
+
+echo "=========================================="
+echo "JVM配置检查开始..."
+echo "SERVICE_HOME: $SERVICE_HOME"
+echo "JVM配置文件路径: $JVM_CONFIG_FILE"
+
+# 检查JVM配置文件是否存在
+if [ -f "$JVM_CONFIG_FILE" ]; then
+    echo ">> 检测到JVM配置文件，使用最高优先级配置"
+    echo ">> 配置文件: $JVM_CONFIG_FILE"
+
+    # 检查文件是否可读和可执行
+    if [ -r "$JVM_CONFIG_FILE" ] && [ -x "$JVM_CONFIG_FILE" ]; then
+        echo ">> 配置文件权限检查通过"
+
+        # 加载JVM配置文件，完全覆盖原有配置
+        echo ">> 正在加载JVM配置文件..."
+        source "$JVM_CONFIG_FILE"
+
+        # 检查APP_PARAM是否被正确设置
+        if [ -n "$APP_PARAM" ]; then
+            echo ">> JVM配置文件加载成功"
+            echo ">> 最终使用的APP_PARAM长度: ${#APP_PARAM} 字符"
+            # 只显示前100个字符避免输出过长
+            echo ">> APP_PARAM preview: ${APP_PARAM:0:100}..."
+        else
+            echo ">> 警告: JVM配置文件中APP_PARAM为空，使用默认配置"
+            APP_PARAM="$DEFAULT_APP_PARAM"
+        fi
+    else
+        echo ">> 错误: JVM配置文件权限不足，请检查文件权限"
+        echo ">> 使用默认APP_PARAM配置"
+        APP_PARAM="$DEFAULT_APP_PARAM"
+    fi
+else
+    echo ">> JVM配置文件不存在: $JVM_CONFIG_FILE"
+    echo ">> 使用默认APP_PARAM配置"
+    APP_PARAM="$DEFAULT_APP_PARAM"
+fi
+
+# 设置JAVA_OPTIONS
 JAVA_OPTIONS="${APP_PARAM} -Xloggc:$GC_LOG_PATH/gc.log "
+
+echo ">> 最终JAVA_OPTIONS长度: ${#JAVA_OPTIONS} 字符"
+echo ">> JAVA_OPTIONS preview: ${JAVA_OPTIONS:0:150}..."
+echo "JVM配置检查完成"
+echo "=========================================="
+# ================ JVM参数配置功能结束 ================
 
 APP_JAR_NAME=`ls $SERVICE_HOME/lib/*.jar | awk -F'[/]+' {'print $NF'}`
 [ ! -z "$APP_JAR_NAME" ] || { echo "APP_JAR_NAME为空或者配置错误！";
@@ -132,20 +184,20 @@ RETVAL=0
 function checkport(){
     PID=$1
     num=`netstat -ntpl | grep $PID/ | wc -l`
-    print_comm="netstat -ntpl 2>&1 | grep $PID/ " 
-    echo "检查端口监听状态，请稍等!" 
+    print_comm="netstat -ntpl 2>&1 | grep $PID/ "
+    echo "检查端口监听状态，请稍等!"
     while [[ $num -le 0 ]];
     do
-        echo -ne "." 
+        echo -ne "."
         sleep 1
         num=`netstat -ntpl | grep $PID/ | wc -l`
         if [ $num -gt 0 ];then
-            echo "" 
-            echo "端口监听信息如下：" 
-            printline= eval "$print_comm" 
+            echo ""
+            echo "端口监听信息如下："
+            printline= eval "$print_comm"
             echo $printline
-        fi        
-    done 
+        fi
+    done
 
 }
 
@@ -158,17 +210,17 @@ function getstatus() {
 
 #启动服务方法
 function start() {
-    START_COMM="$JAVA_CMD $PARAMS &" 
-    echo "执行启动命令:[$START_COMM]" 
-    eval "$START_COMM" 
+    START_COMM="$JAVA_CMD $PARAMS &"
+    echo "执行启动命令:[$START_COMM]"
+    eval "$START_COMM"
     RETVAL=$?
     if [ $RETVAL = 0 ]; then
         PID=$!
-        echo $PID > "$CLOUDSERVER_PID_FILE" 
+        echo $PID > "$CLOUDSERVER_PID_FILE"
         echo "执行启动命令成功！"
         wait $PID
     else
-        echo "failure" 
+        echo "failure"
     fi
 }
 
@@ -191,9 +243,9 @@ case $1 in
     restart)
         stop
         start
-        ;;        
+        ;;
     *)
-        echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}" 
+        echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
         exit 1
         ;;
 

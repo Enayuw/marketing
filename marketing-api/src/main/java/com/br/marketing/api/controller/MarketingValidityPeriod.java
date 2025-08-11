@@ -4,6 +4,7 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.api.service.QiFuDataService;
 import com.br.marketing.aspect.ReqLogAnnotation;
+import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.service.ValidityPeriodDataService;
 import io.swagger.annotations.Api;
@@ -83,4 +84,13 @@ public class MarketingValidityPeriod {
         return apiNoDataResult;
     }
 
+    @ApiOperation(value = "奇富促完件效果报表新接口（营销）")
+    @PostMapping("/qiFuCWJEffectReport")
+    @ReqLogAnnotation()
+    @SaveLog
+    public ApiNoDataResult effectReport(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        log.warn("奇富促完件效果报表新接口（营销）接口入参：{},{}",apiCode,jsonData);
+        ApiNoDataResult apiNoDataResult = qiFuDataService.effectReport(apiCode, jsonData);
+        return apiNoDataResult;
+    }
 }

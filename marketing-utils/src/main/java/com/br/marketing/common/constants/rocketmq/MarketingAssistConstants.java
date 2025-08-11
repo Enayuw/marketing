@@ -53,6 +53,18 @@ public class MarketingAssistConstants {
      * 的 Tag
      */
     public static final String TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing.Universal.SftpToDb.Receive";
+    /**
+     * PP榕树打标生成清洗任务Tag
+     */
+    public static final String TAG_MARKETING_PP_RONGSHU_MARK_CREATE_CLEAN_TASK = "Marketing.pp.rongshu.mark.create.clean.task";
+    /**
+     * 恒昌数据清洗Tag
+     */
+    public static final String TAG_MARKETING_HENGCHANG_DATA_CLEAN = "marketing.hengchang.data.clean";
+    /**
+     * 客户原始数据json解析 Tag
+     */
+    public static final String TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE = "Marketing.Customer.Data.Json.Parse";
 //    Tag 结束
 
 
@@ -102,6 +114,20 @@ public class MarketingAssistConstants {
      * 的 consumerGroup
      */
     public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
+
+    /**
+     * PP榕树打标生成清洗任务consumerGroup
+     */
+    public static final String MARKETING_PP_RONGSHU_MARK_CREATE_CLEAN_TASK = "marketing_pp_rongshu_mark_create_clean_task_queue";
+
+    /**
+     * 恒昌数据清洗 consumerGroup
+     */
+    public static final String MARKETING_HENGCHANG_DATA_CLEAN_QUEUE = "marketing_hengchang_data_clean_queue";
+   /**
+    * 客户原始数据json解析 consumerGroup
+    */
+    public static final String MARKETING_CUSTOMER_DATA_JSON_PARSE_QUEUE = "Marketing_Customer_Data_Json_Parse_Queue";
 //    consumerGroup 结束
 
 }

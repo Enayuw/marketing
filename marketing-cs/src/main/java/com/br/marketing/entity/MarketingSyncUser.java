@@ -54,6 +54,21 @@ public class MarketingSyncUser {
     private String cellSha256;
 
     /**
+     * 手机号原始值
+     */
+    private String cellOriginal;
+
+    /**
+     * 身份证号原始值
+     */
+    private String idCardOriginal;
+
+    /**
+     * 姓名原始值
+     */
+    private String nameOriginal;
+
+    /**
      * 场景
      */
     private String groupType;
@@ -77,6 +92,11 @@ public class MarketingSyncUser {
      * 预留字段1
      */
     private String reserveField1;
+
+    /**
+     * 预留字段2
+     */
+    private String reserveField2;
 
     /**
      * 创建时间
@@ -124,9 +144,9 @@ public class MarketingSyncUser {
     private Integer isRepeat;
 
     /**
-     * 预留字段2
+     * 数据指纹，数据唯一标识
      */
-    private String reserveField2;
+    private Long fingerprint;
 
     public Long getId() {
         return id;
@@ -208,6 +228,30 @@ public class MarketingSyncUser {
         this.cellSha256 = cellSha256 == null ? null : cellSha256.trim();
     }
 
+    public String getCellOriginal() {
+        return cellOriginal;
+    }
+
+    public void setCellOriginal(String cellOriginal) {
+        this.cellOriginal = cellOriginal == null ? null : cellOriginal.trim();
+    }
+
+    public String getIdCardOriginal() {
+        return idCardOriginal;
+    }
+
+    public void setIdCardOriginal(String idCardOriginal) {
+        this.idCardOriginal = idCardOriginal == null ? null : idCardOriginal.trim();
+    }
+
+    public String getNameOriginal() {
+        return nameOriginal;
+    }
+
+    public void setNameOriginal(String nameOriginal) {
+        this.nameOriginal = nameOriginal == null ? null : nameOriginal.trim();
+    }
+
     public String getGroupType() {
         return groupType;
     }
@@ -224,6 +268,14 @@ public class MarketingSyncUser {
         this.userType = userType == null ? null : userType.trim();
     }
 
+    public String getOperateType() {
+        return operateType;
+    }
+
+    public void setOperateType(String operateType) {
+        this.operateType = operateType == null ? null : operateType.trim();
+    }
+
     public String getRegisterDate() {
         return registerDate;
     }
@@ -238,6 +290,14 @@ public class MarketingSyncUser {
 
     public void setReserveField1(String reserveField1) {
         this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
+    }
+
+    public String getReserveField2() {
+        return reserveField2;
+    }
+
+    public void setReserveField2(String reserveField2) {
+        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
     }
 
     public Date getCreateTime() {
@@ -312,19 +372,11 @@ public class MarketingSyncUser {
         this.isRepeat = isRepeat;
     }
 
-    public String getReserveField2() {
-        return reserveField2;
+    public Long getFingerprint() {
+        return fingerprint;
     }
 
-    public void setReserveField2(String reserveField2) {
-        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
-    }
-
-    public String getOperateType() {
-        return operateType;
-    }
-
-    public void setOperateType(String operateType) {
-        this.operateType = operateType;
+    public void setFingerprint(Long fingerprint) {
+        this.fingerprint = fingerprint;
     }
 }
