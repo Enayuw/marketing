@@ -764,8 +764,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         try {
             jsonArray = JSON.parseArray(cleaningRule);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
-                    "规则转化为JSONArray失败！错误信息：" + e.getMessage()), e);
             throw new BusinessException("规则转化为JSONArray失败！");
         }
         if (jsonArray != null && !jsonArray.isEmpty()) {
@@ -846,7 +844,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "执行清洗规则失败！错误信息：" + e.getMessage()), e);
-            throw new BusinessException("执行清洗规则失败: " + e);
+            throw new BusinessException("执行清洗规则失败! 错误信息：" + e.getMessage(), e);
         }
     }
 
@@ -861,9 +859,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         try {
             ruleMap = JSON.parseObject(cleaningRule, Map.class);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
-                    "解析清洗规则失败！错误信息：" + e.getMessage()), e);
-            throw new BusinessException("解析清洗规则失败！");
+            throw new BusinessException("解析清洗规则失败！错误信息：" + e.getMessage() , e);
         }
         
         if (ruleMap == null || ruleMap.isEmpty()) {
@@ -2311,7 +2307,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         boolean hasNumericComparison = false;
         for (Map<String, Object> condition : conditions) {
             String operator = String.valueOf(condition.get("operator"));
-            if ("=".equals(operator) || "≠".equals(operator) || "!=".equals(operator)) {
+            if ("=".equals(operator) || "!=".equals(operator)) {
                 hasStringComparison = true;
             } else {
                 hasNumericComparison = true;
@@ -2345,7 +2341,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             boolean conditionMet = false;
 
             // 对于等于和不等于操作，支持字符串比较
-            if ("=".equals(operator) || "≠".equals(operator) || "!=".equals(operator)) {
+            if ("=".equals(operator) || "!=".equals(operator)) {
                 conditionMet = compareStrings(fieldSample, compareValue, operator);
             } else {
                 // 其他操作符（大于、小于等）使用数值比较
@@ -2388,7 +2384,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 return fieldValue.compareTo(compareValue) >= 0;
             case "=":
                 return fieldValue.compareTo(compareValue) == 0;
-            case "≠":
             case "!=":
                 return fieldValue.compareTo(compareValue) != 0;
             case "<=":
@@ -2412,7 +2407,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         switch (operator) {
             case "=":
                 return fieldValue.equals(compareValue);
-            case "≠":
             case "!=":
                 return !fieldValue.equals(compareValue);
             default:
