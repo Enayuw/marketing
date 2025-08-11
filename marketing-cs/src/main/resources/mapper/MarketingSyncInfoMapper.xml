@@ -238,7 +238,7 @@
 
     <select id="minIdRuleScoreLabelWithDatetiflash_" resultType="java.lang.Long">
         select min(sync_id)
-        from b_marketing_sync_Label_${apiCode}
+        from b_marketing_sync_label_${apiCode}
         where ${whereStr}
           and is_repeat in (1,2)
           and status = 1
@@ -270,37 +270,33 @@
     </select>
 
     <select id="selectDataRuleScoreLabelWithDate" resultType="com.br.marketing.entity.MarketingSyncLabelUser">
-        select *
-        from b_marketing_sync_${apiCode}
+        select s.*
+        from b_marketing_sync_${apiCode} s
+        join b_marketing_sync_label_${apiCode} l on s.id = l.sync_id
         where ${whereStr}
         <if test="id != null and id >0">
-            <![CDATA[  and id>#{id} ]]>
+            <![CDATA[  and s.id>#{id} ]]>
         </if>
-        and is_repeat in (1,2)
-        and status = 1
-        and id in (
-        select sync_id
-        from b_marketing_sync_label_${apiCode}
-        where label_id = #{labelId}
-        )
-        order by id asc limit ${pageSize};
+        and s.is_repeat in (1,2)
+        and s.status = 1
+        and l.label_id = #{labelId}
+        order by s.id asc
+        limit ${pageSize};
     </select>
 
     <select id="selectDataRuleScoreLabelWithDatetiflash_" resultType="com.br.marketing.entity.MarketingSyncLabelUser">
-        select *
-        from b_marketing_sync_${apiCode}
+        select s.*
+        from b_marketing_sync_${apiCode} s
+        join b_marketing_sync_label_${apiCode} l on s.id = l.sync_id
         where ${whereStr}
         <if test="id != null and id >0">
-            <![CDATA[  and id>#{id} ]]>
+            <![CDATA[  and s.id>#{id} ]]>
         </if>
-        and is_repeat in (1,2)
-        and status = 1
-        and id in (
-        select sync_id
-        from b_marketing_sync_label_${apiCode}
-        where label_id = #{labelId}
-        )
-        order by id asc limit ${pageSize};
+        and s.is_repeat in (1,2)
+        and s.status = 1
+        and l.label_id = #{labelId}
+        order by s.id asc
+        limit ${pageSize};
     </select>
     
     <select id="getMaxIdByRuleScore" resultType="java.lang.Long">
