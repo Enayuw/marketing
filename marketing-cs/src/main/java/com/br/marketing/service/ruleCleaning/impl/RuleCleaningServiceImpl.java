@@ -1008,17 +1008,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         return result.stripTrailingZeros().toPlainString();
                     }
                 } else {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
-                            "执行除法操作失败！除数不能为0! 结果返回0"));
-                    result = BigDecimal.valueOf(0);
+                    throw new BusinessException("执行除法操作失败！除数不能为0! 原始数据值：" + fieldSample);
                 }
-                break;
             default:
                 break;
         }
 
-
-        return result.toPlainString();
+        return formatNumberResult(result);
 
     }
 
@@ -1037,6 +1033,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
     }
 
+    /**
+     * 格式化数字结果：如果是整数则返回整数字符串，否则返回浮点数字符串
+     */
+    private String formatNumberResult(BigDecimal result) {
+        // 检查是否为整数
+        if (result.scale() <= 0) {
+            return result.toBigInteger().toString();
+        } else {
+            return result.toPlainString();
+        }
+    }
 
     /**
      * 处理取整操作 - 只保留整数部分，截断小数
@@ -2291,60 +2298,22 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return defaultValue;
         }
 
-        // 检查是否包含字符串比较操作和数值比较操作
-        boolean hasStringComparison = false;
-        boolean hasNumericComparison = false;
-        for (Map<String, Object> condition : conditions) {
-            String operator = String.valueOf(condition.get("operator"));
-            if ("=".equals(operator) || "!=".equals(operator)) {
-                hasStringComparison = true;
-            } else {
-                hasNumericComparison = true;
-            }
-        }
-
-        // 尝试将字段值转换为数值（如果包含数值比较）
-        BigDecimal fieldValue = null;
-        if (hasNumericComparison) {
-            try {
-                fieldValue = new BigDecimal(fieldSample);
-            } catch (NumberFormatException e) {
-                if (hasStringComparison) {
-                    // 如果同时包含字符串比较，则允许字段值为字符串格式
-                    log.warn("字段值 '{}' 无法转换为数值，但在混合比较模式下允许继续执行", fieldSample);
-                } else {
-                    // 如果只有数值比较，则必须要求数值格式
-                    throw new BusinessException("字段值 '" + fieldSample + "' 转换为数值格式失败！");
-                }
-            }
-        }
-
         // 按顺序逐一判断条件
         for (Map<String, Object> condition : conditions) {
             String operator = String.valueOf(condition.get("operator"));
             String compareValue = String.valueOf(condition.get("compareValue"));
             String resultValue = String.valueOf(condition.get("resultValue"));
-
             log.warn("判断条件: 操作符={}, 比较值={}, 结果值={}", operator, compareValue, resultValue);
 
-            boolean conditionMet = false;
+            if (ObjectUtil.isEmpty(operator)) {
+                throw new BusinessException("比较符为空 '" + operator);
+            }
 
-            // 对于等于和不等于操作，支持字符串比较
-            if ("=".equals(operator) || "!=".equals(operator)) {
-                conditionMet = compareStrings(fieldSample, compareValue, operator);
-            } else {
-                // 其他操作符（大于、小于等）使用数值比较
-                if (fieldValue == null) {
-                    // 如果字段值不是数值格式，但需要数值比较，则跳过此条件
-                    log.warn("字段值 '{}' 不是数值格式，跳过数值比较条件: {}", fieldSample, operator);
-                    continue;
-                }
-                try {
-                    BigDecimal compareDecimal = new BigDecimal(compareValue);
-                    conditionMet = compareValues(fieldValue, compareDecimal, operator);
-                } catch (NumberFormatException e) {
-                    throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
-                }
+            boolean conditionMet = false;
+            try {
+                conditionMet = compareValues(fieldSample, compareValue, operator);
+            } catch (NumberFormatException e) {
+                throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
             }
 
             if (conditionMet) {
@@ -2360,49 +2329,54 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     /**
      * 比较数值
-     * @param fieldValue 字段值
-     * @param compareValue 比较值
+     * @param fieldSample 字段值
+     * @param oldCompareValue 比较值
      * @param operator 操作符
      * @return 比较结果
      */
-    private boolean compareValues(BigDecimal fieldValue, BigDecimal compareValue, String operator) {
+    private boolean compareValues(String fieldSample, String oldCompareValue, String operator) {
+        BigDecimal fieldValue = null;
+        BigDecimal compareValue = null;
+        boolean flag = true;
+        if ("=".equals(operator) || "!=".equals(operator)) {
+            if (ObjectUtil.isEmpty(oldCompareValue)) {
+                flag = false;
+            }
+            try {
+                fieldValue = new BigDecimal(fieldSample);
+                compareValue = new BigDecimal(oldCompareValue);
+                flag = true;
+            } catch (NumberFormatException e) {
+                flag = false;
+            }
+        } else {
+            fieldValue = new BigDecimal(fieldSample);
+            compareValue = new BigDecimal(oldCompareValue);
+        }
         switch (operator) {
             case ">":
                 return fieldValue.compareTo(compareValue) > 0;
             case ">=":
                 return fieldValue.compareTo(compareValue) >= 0;
             case "=":
-                return fieldValue.compareTo(compareValue) == 0;
+                if (flag) {
+                    return fieldValue.compareTo(compareValue) == 0;
+                }
+                return fieldSample.equals(oldCompareValue);
             case "!=":
-                return fieldValue.compareTo(compareValue) != 0;
+                if (flag) {
+                    return fieldValue.compareTo(compareValue) != 0;
+                }
+                return !fieldSample.equals(oldCompareValue);
             case "<=":
                 return fieldValue.compareTo(compareValue) <= 0;
             case "<":
                 return fieldValue.compareTo(compareValue) < 0;
             default:
-                log.warn("未知的数值比较操作符: {}", operator);
-                return false;
+                throw new BusinessException("未知的数值比较操作符 '" + operator);
         }
     }
 
-    /**
-     * 比较字符串（仅支持等于和不等于操作）
-     * @param fieldValue 字段值
-     * @param compareValue 比较值
-     * @param operator 操作符
-     * @return 比较结果
-     */
-    private boolean compareStrings(String fieldValue, String compareValue, String operator) {
-        switch (operator) {
-            case "=":
-                return fieldValue.equals(compareValue);
-            case "!=":
-                return !fieldValue.equals(compareValue);
-            default:
-                log.warn("字符串比较不支持操作符: {}", operator);
-                return false;
-        }
-    }
 
     /**
      * 定制上传结果展示
