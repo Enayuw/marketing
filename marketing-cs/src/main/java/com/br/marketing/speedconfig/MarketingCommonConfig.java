@@ -2934,6 +2934,11 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
+    /**
+     * 同程易融apiCode
+     */
+    private String tcyrCpaApiCode;
+
 
     /**
      * 同城易融-gz查询-csv分页size
