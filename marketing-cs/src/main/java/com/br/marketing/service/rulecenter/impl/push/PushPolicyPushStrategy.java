@@ -91,7 +91,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
 
 
     /**
-     * 推送决策任务实现类 - 完全照搬actionEs类的逻辑
+     * 推送决策任务实现类
      */
     private class PushPolicyTask implements Callable<List<Future<Result<Integer>>>> {
 
@@ -369,7 +369,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
         }
     }
 
-    // 辅助方法 - 完全照搬原始逻辑
+    // 辅助方法
     private void insertNewErrorMark(CustomerInfoPushMain customerInfoPushMain, String part, int pageSize, String searchAfterStr, String esCondition) {
         // 新增异常待补推数据
         ErrorMark errorMark = new ErrorMark();

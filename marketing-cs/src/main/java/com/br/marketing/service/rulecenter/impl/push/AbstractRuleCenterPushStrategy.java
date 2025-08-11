@@ -93,7 +93,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
     }
 
     /**
-     * 预处理，子类可重写
+     * 预处理
      */
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
         log.warn(TITLE + "开始执行推送策略预处理，任务ID: {}, 策略类型: {}",
@@ -104,7 +104,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
     }
 
     /**
-     * 数据验证，子类可重写
+     * 数据验证
      */
     protected Result<Boolean> validateData(RuleCenterPushContext context) {
         CustomerInfoPushMain pushMain = context.getCustomerInfoPushMain();
@@ -172,7 +172,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
 
     /**
-     * 后处理，子类可重写
+     * 后处理
      */
     protected void postProcess(RuleCenterPushContext context, Result<Boolean> result) {
         log.warn(TITLE + "推送策略后处理，任务ID: {}, 结果: {}",
@@ -243,7 +243,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
     }
 
     /**
-     * 统一的推送结果处理方法 - 基于原始代码逻辑
+     * 统一的推送结果处理方法
      */
     protected Result<Boolean> processPushResults(
             List<Future<List<Future<Result<Integer>>>>> futures,

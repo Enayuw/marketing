@@ -72,42 +72,41 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
 
         List<Map<String, Object>> labelNumList = marketingSyncLabelMapper.getLabelNum(pushMain.getId(), pushMain.getmApiCode());
 
-        labelNumList.forEach(map -> {
-            String appletDate = map.get("applet_date").toString();
-            String userType = map.get("user_type").toString();
-            String num = map.get("num").toString();
-            //更新统计表，上传记录表
-            MarketingRuleCenterLabelReportExample labelReportExample = new MarketingRuleCenterLabelReportExample();
-            labelReportExample.createCriteria().andApiCodeEqualTo(pushMain.getmApiCode())
-                    .andLabelNameEqualTo(pushMain.getLabelName())
-                    .andAppletDateEqualTo(appletDate)
-                    .andUserTypeEqualTo(userType)
-                    .andIsDelEqualTo(1);
-            List<MarketingRuleCenterLabelReport> labelReportList = marketingRuleCenterLabelReportMapper.selectByExample(labelReportExample);
-            if (!CollectionUtils.isEmpty(labelReportList)) {
-                MarketingRuleCenterLabelReport update = labelReportList.get(0);
-                update.setNum(Long.parseLong(num));
-                marketingRuleCenterLabelReportMapper.updateByPrimaryKeySelective(update);
-            }
-            MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
-            reportExample.createCriteria().andApiCodeEqualTo(pushMain.getmApiCode()).andAppletDateEqualTo(appletDate).andUserTypeEqualTo(userType);
-            List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
-            if (!CollectionUtils.isEmpty(reportList)) {
-                MarketingSyncReport syncReport = reportList.get(0);
-                String labelMessage = syncReport.getLabelMessage();
-                JSONObject labelJson;
-                if (StringUtils.isEmpty(labelMessage)) {
-                    labelJson = new JSONObject();
-                } else {
-                    labelJson = JSON.parseObject(labelMessage);
+        MarketingRuleCenterLabelReportExample labelReportExample = new MarketingRuleCenterLabelReportExample();
+        labelReportExample.createCriteria().andApiCodeEqualTo(pushMain.getmApiCode())
+                .andLabelNameEqualTo(pushMain.getLabelName())
+                .andIsDelEqualTo(1);
+        List<MarketingRuleCenterLabelReport> labelReportList = marketingRuleCenterLabelReportMapper.selectByExample(labelReportExample);
+        labelReportList.forEach(labelReport -> {
+            String appletDate = labelReport.getAppletDate();
+            String userType = labelReport.getUserType();
+            Map<String, Object> numMap = labelNumList.stream().filter(labelMap -> appletDate.equals
+                    (labelMap.get("applet_date").toString()) && userType.equals
+                    (labelMap.get("user_type").toString())).findFirst().orElse(null);
+            if (!CollectionUtils.isEmpty(numMap)) {
+                labelReport.setNum(Long.parseLong(numMap.get("num").toString()));
+                labelReport.setUpdateTime(new Date());
+                marketingRuleCenterLabelReportMapper.updateByPrimaryKeySelective(labelReport);
+                //更新上传记录表
+                MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
+                reportExample.createCriteria().andApiCodeEqualTo(pushMain.getmApiCode()).andAppletDateEqualTo(appletDate).andUserTypeEqualTo(userType);
+                List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
+                if (!CollectionUtils.isEmpty(reportList)) {
+                    MarketingSyncReport syncReport = reportList.get(0);
+                    String labelMessage = syncReport.getLabelMessage();
+                    JSONObject labelJson;
+                    if (StringUtils.isEmpty(labelMessage)) {
+                        labelJson = new JSONObject();
+                    } else {
+                        labelJson = JSON.parseObject(labelMessage);
+                    }
+                    labelJson.put(pushMain.getLabelName(), numMap.get("num"));
+                    syncReport.setLabelMessage(labelJson.toJSONString());
+                    syncReport.setUpdateTime(new Date());
+                    syncReportMapper.updateByPrimaryKeySelective(syncReport);
                 }
-                labelJson.put(pushMain.getLabelName(), num);
-                syncReport.setLabelMessage(labelJson.toJSONString());
-                syncReport.setUpdateTime(new Date());
-                syncReportMapper.updateByPrimaryKeySelective(syncReport);
             }
         });
-
     }
 
     @Override

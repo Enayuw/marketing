@@ -12,6 +12,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.datagroup.DataGroupConfgDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.datagroup.DataGroupTaskDetailMapper;
 import com.br.marketing.service.SoleStrategyService;
@@ -83,6 +84,9 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
 
     @Autowired
     private DataGroupTaskDetailMapper dataGroupTaskDetailMapper;
+
+    @Autowired
+    private MarketingJsonNodeParseMapper marketingJsonNodeParseMapper;
 
 
     /**
@@ -262,15 +266,14 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
     @Override
     public List<String> extendField(String ids, String apiCode) {
         List<String> fieldList = Lists.newArrayList("apiCode", "custNum", "idCard", "name", "cell", "userType");
-        MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
-        reportExample.createCriteria().andIdIn(Arrays.stream(ids.split(",")).map(Long::parseLong).collect(Collectors.toList()));
-        List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
-        reportList.forEach((MarketingSyncReport report) -> {
-            if (StringUtils.isNotEmpty(report.getReserveField1Key())) {
-                fieldList.addAll(Arrays.asList(report.getReserveField1Key().split(",")));
-            }
-        });
-        List<String> result = fieldList.stream().distinct().collect(Collectors.toList());
+        //TODO 数禾上传需改造
+        MarketingJsonNodeParseExample jsonNodeParseExample = new MarketingJsonNodeParseExample();
+        jsonNodeParseExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getDataType()).
+                andAcceptTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getAcceptType())
+                .andParentPathEqualTo("dataItems.item.reserveField1");
+        List<MarketingJsonNodeParse> jsonNodeParseList = marketingJsonNodeParseMapper.selectByExample(jsonNodeParseExample);
+        List<String> result = jsonNodeParseList.stream().map(MarketingJsonNodeParse::getNodeName).collect(Collectors.toList());
+        result.addAll(fieldList);
         return result;
     }
 
