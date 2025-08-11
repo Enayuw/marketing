@@ -551,7 +551,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         }
 
         // 解析X模型名称列表
-        List<String> xModelNames = JSON.parseArray(model.getxModelName(), String.class);
+        List<String> xModelNames = new ArrayList<>(Arrays.asList(model.getxModelName().split(",")));
         if (CollectionUtils.isEmpty(xModelNames)) {
             return;
         }
@@ -629,8 +629,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         }
 
         // 解析X、Y模型名称列表
-        List<String> xModelNames = JSON.parseArray(model.getxModelName(), String.class);
-        List<String> yModelNames = JSON.parseArray(model.getyModelName(), String.class);
+        List<String> xModelNames = new ArrayList<>(Arrays.asList(model.getxModelName().split(",")));
+        List<String> yModelNames = new ArrayList<>(Arrays.asList(model.getyModelName().split(",")));
         
         if (CollectionUtils.isEmpty(xModelNames) || CollectionUtils.isEmpty(yModelNames)) {
             return;
