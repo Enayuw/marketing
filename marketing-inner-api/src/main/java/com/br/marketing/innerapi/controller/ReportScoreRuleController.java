@@ -190,4 +190,11 @@ public class ReportScoreRuleController {
         return reportScoreRuleService.getIntervalTemplate(apiCode);
     }
 
+    @ApiOperation("查询画像分布模型")
+    @GetMapping("/getImageDistribution")
+    @AuthDataControllerPermission
+    public ApiResult<String> getImageDistribution() {
+        return reportScoreRuleService.getImageDistribution();
+    }
+
 }

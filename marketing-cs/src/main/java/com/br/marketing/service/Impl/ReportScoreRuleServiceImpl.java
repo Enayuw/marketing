@@ -145,6 +145,8 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         Set<String> reportScorePrefixSet = null;
         if ("all".equals(fieldType)) {
             reportScorePrefixSet = marketingCommonConfig.getReportScorePrefixSet();
+            // 添加画像分布配置到前缀集合中
+            addImageDistribution(reportScorePrefixSet);
         } else if ("score".equals(fieldType)) {
             reportScorePrefixSet = marketingCommonConfig.getReportScoreOnlyPrefixSet();
         } else if ("multPoint".equals(fieldType)) {
@@ -192,6 +194,11 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         return map;
     }
 
+    public void addImageDistribution(Set<String> reportScorePrefixSet) {
+        String imageDistribution = marketingCommonConfig.getImageDistribution();
+        String[] distributions = imageDistribution.split(",");
+        reportScorePrefixSet.addAll(Arrays.asList(distributions));
+    }
     /**
      * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
      * 方法处理前：
@@ -742,6 +749,11 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             log.error("评分分布查询规则模板异常, apiCodes: {}", apiCodes, e);
             return new ApiResult<List<IntervalTemplateVO>>().fail("评分分布查询规则模板异常: " + e.getMessage());
         }
+    }
+
+    @Override
+    public ApiResult<String> getImageDistribution() {
+        return new ApiResult<String>().success().setData(marketingCommonConfig.getImageDistribution());
     }
 
     private static List<IntervalTemplateVO.IntervalModelsVO> getIntervalModelsVOS(List<ReportIntervalModel> reportIntervalModels) {

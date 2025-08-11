@@ -474,7 +474,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 for (Map<String, Object> resultMap : results) {
                     ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
                     statisticsDetail.setStatisticsId(statisticsId);
-                    statisticsDetail.setFieldXValue((String) resultMap.get(model));
+                    statisticsDetail.setFieldXValue(StringUtils.isEmpty(resultMap.get(model)) ? "未知":(String) resultMap.get(model));
                     statisticsDetail.setFieldYValue(model);
                     statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
                     statisticsDetail.setCreateTime(new Date());
