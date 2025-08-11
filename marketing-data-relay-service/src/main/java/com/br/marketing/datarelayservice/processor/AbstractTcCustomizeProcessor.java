@@ -44,7 +44,7 @@ public abstract class AbstractTcCustomizeProcessor {
         try {
             //1.保存记录
             TcDataDto tcDataDto = objectMapper.readValue(tcRequestDTO.getData(), clazz);
-            apiCode = StringUtils.isNotBlank(apiCode) ? apiCode : marketingCommonConfig.getTcyrApiCode();
+            apiCode = StringUtils.isNotBlank(apiCode) ? apiCode : fetchApiCode();
             recordId = recordSave(tcRequestDTO, tcDataDto.getBatchNo(), apiCode, brPrivateKey);
             if(null == recordId){
                 return resdto.idempotentFail(brPrivateKey);
@@ -77,6 +77,8 @@ public abstract class AbstractTcCustomizeProcessor {
         return resdto.success(brPrivateKey);
     }
 
+    protected abstract String fetchApiCode();
+
     /**
      * @description record更新
      * @param recordId
@@ -99,4 +101,12 @@ public abstract class AbstractTcCustomizeProcessor {
      * @date 2025/4/23 18:09
      **/
     protected abstract Long recordSave(TcRequestDTO tcRequestDTO, String batchNo, String apiCode, String brPrivateKey);
+
+    public String apiCode() {
+        return marketingCommonConfig.getTcyrApiCode();
+    }
+
+    public String cpaApiCode() {
+        return marketingCommonConfig.getTcyrCpaApiCode();
+    }
 }

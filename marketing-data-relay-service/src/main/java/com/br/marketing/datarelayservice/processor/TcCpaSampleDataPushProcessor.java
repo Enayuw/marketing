@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Service
 @Slf4j
-public class TcSampleDataPushProcessor extends AbstractTcCustomizeProcessor{
+public class TcCpaSampleDataPushProcessor extends AbstractTcCustomizeProcessor{
 
     @Resource
     private MarketingTcyrSampleRecordMapper tcyrSampleRecordMapper;

@@ -17,6 +17,11 @@ public class TcTransformNotifyProcessor extends AbstractTcCustomizeProcessor{
     private MarketingTcyrTransferRecordMapper tcyrTransferRecordMapper;
 
     @Override
+    protected String fetchApiCode() {
+        return apiCode();
+    }
+
+    @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {
         MarketingTcyrTransferRecord record = new MarketingTcyrTransferRecord();
         record.setId(recordId);
