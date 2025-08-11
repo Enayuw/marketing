@@ -995,11 +995,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 result = oldNumber.multiply(numValue);
                 break;
             case "divide":
-                if (oldNumber.compareTo(BigDecimal.ZERO) != 0) {
-                    int scale = oldNumber.stripTrailingZeros().scale();
+                if (numValue.compareTo(BigDecimal.ZERO) != 0) {
+                    int scale = numValue.stripTrailingZeros().scale();
                     int maxScale = 10;
                     int scaleToUse = Math.max(scale, maxScale);
-                    result = result.divide(oldNumber, scaleToUse, RoundingMode.HALF_UP);
+                    result = oldNumber.divide(numValue, scaleToUse, RoundingMode.HALF_UP);
 
                     // 如果是整数，去掉末尾0；如果是带原始小数的，保留原样
                     if (scale > 0) {
@@ -1007,6 +1007,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     } else {
                         return result.stripTrailingZeros().toPlainString();
                     }
+                } else {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                            "执行除法操作失败！除数不能为0! 结果返回0"));
+                    result = BigDecimal.valueOf(0);
                 }
                 break;
             default:
@@ -1014,7 +1018,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
 
-        return formatNumberResult(result);
+        return result.toPlainString();
 
     }
 
@@ -1033,17 +1037,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
     }
 
-    /**
-     * 格式化数字结果：如果是整数则返回整数字符串，否则返回浮点数字符串
-     */
-    private String formatNumberResult(BigDecimal result) {
-        // 检查是否为整数
-        if (result.scale() <= 0) {
-            return result.toBigInteger().toString();
-        } else {
-            return result.toPlainString();
-        }
-    }
 
     /**
      * 处理取整操作 - 只保留整数部分，截断小数
