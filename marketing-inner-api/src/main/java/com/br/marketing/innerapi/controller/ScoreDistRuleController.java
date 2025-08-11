@@ -48,19 +48,19 @@ public class ScoreDistRuleController {
 
     @ApiOperation(value = "评分分布规则模板禁用")
     @PatchMapping("/forbScoreDistRule")
-    public ApiResult forbScoreDistRule(@RequestBody Long configId) {
+    public ApiResult forbScoreDistRule(@RequestParam Long configId) {
         return new ApiResult().fromResult(scoreDistRuleService.forbScoreDistRule(configId), CODE_1);
     }
 
     @ApiOperation(value = "评分分布规则模板启用")
     @PatchMapping("/enableScoreDistRule")
-    public ApiResult enableScoreDistRule(@RequestBody Long configId) {
+    public ApiResult enableScoreDistRule(@RequestParam Long configId) {
         return new ApiResult().fromResult(scoreDistRuleService.enableScoreDistRule(configId), CODE_1);
     }
 
     @ApiOperation(value = "评分分布规则模板删除")
     @PatchMapping("/deleteScoreDistRule")
-    public ApiResult deleteScoreDistRule(@RequestBody Long configId) {
+    public ApiResult deleteScoreDistRule(@RequestParam Long configId) {
         return new ApiResult().fromResult(scoreDistRuleService.deleteScoreDistRule(configId), CODE_1);
     }
 
