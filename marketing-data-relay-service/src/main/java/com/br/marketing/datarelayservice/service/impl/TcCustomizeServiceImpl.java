@@ -16,7 +16,13 @@ import javax.annotation.Resource;
 @Slf4j
 public class TcCustomizeServiceImpl implements TcCustomizeService {
 
-    private static final String BIZ_CODE_NORMAL = "";
+    private static final String BIZ_CODE_DATA_PUSH = "-marketDataPush";
+
+    private static final String BIZ_CODE_TRANSFER = "-transformNotify";
+
+    private static final String BIZ_CODE_REVOKE = "-revoke";
+
+    private static final String BIZ_CODE_SAMPLE_DATA_PUSH = "-sampleDataPush";
 
     @Resource
     private AbstractTcCustomizeProcessor tcDataPushProcessor;
@@ -40,7 +46,7 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
      **/
     @Override
     public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_NORMAL);
+        return tcDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_DATA_PUSH);
     }
 
     /**
@@ -53,7 +59,7 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
      **/
     @Override
     public TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcRevokeProcessor.process(tcRequestDTO, apiCode, TcRevokeDto.class, BIZ_CODE_NORMAL);
+        return tcRevokeProcessor.process(tcRequestDTO, apiCode, TcRevokeDto.class, BIZ_CODE_REVOKE);
     }
 
     /**
@@ -66,7 +72,7 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
      **/
     @Override
     public TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class, BIZ_CODE_NORMAL);
+        return tcTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class, BIZ_CODE_TRANSFER);
     }
 
     /**
@@ -79,6 +85,6 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
      **/
     @Override
     public TcResponseDTO sampleDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class, BIZ_CODE_NORMAL);
+        return tcSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class, BIZ_CODE_SAMPLE_DATA_PUSH);
     }
 }

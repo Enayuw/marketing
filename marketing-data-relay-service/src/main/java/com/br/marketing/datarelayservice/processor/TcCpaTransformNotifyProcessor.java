@@ -2,13 +2,10 @@ package com.br.marketing.datarelayservice.processor;
 
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.entity.MarketingTcyrCpaTransferRecord;
-import com.br.marketing.entity.MarketingTcyrTransferRecord;
 import com.br.marketing.mapper.MarketingTcyrCpaTransferRecordMapper;
-import com.br.marketing.mapper.MarketingTcyrTransferRecordMapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.Date;
 

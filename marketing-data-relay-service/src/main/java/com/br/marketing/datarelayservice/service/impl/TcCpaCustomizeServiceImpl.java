@@ -2,11 +2,9 @@ package com.br.marketing.datarelayservice.service.impl;
 
 import com.br.marketing.datarelayservice.processor.AbstractTcCustomizeProcessor;
 import com.br.marketing.datarelayservice.service.TcCpaCustomizeService;
-import com.br.marketing.datarelayservice.service.TcCustomizeService;
 import com.br.marketing.dto.tc.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 
 /**
@@ -18,7 +16,15 @@ import javax.annotation.Resource;
 @Slf4j
 public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
 
-    private static final String BIZ_CODE_CPA = "CPA";
+    private static final String BIZ_CODE_CPA_DATA_PUSH = "-cpa-marketDataPush";
+
+    private static final String BIZ_CODE_CPA_FAIL_DATA_PUSH = "-cpa-marketFailDataPush";
+
+    private static final String BIZ_CODE_CPA_TRANSFER = "-cpa-transformNotify";
+
+    private static final String BIZ_CODE_CPA_REVOKE = "-cpa-revoke";
+
+    private static final String BIZ_CODE_CPA_SAMPLE_DATA_PUSH = "-cpa-sampleDataPush";
 
     @Resource
     private AbstractTcCustomizeProcessor tcCpaDataPushProcessor;
@@ -32,6 +38,9 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
     @Resource
     private AbstractTcCustomizeProcessor tcCpaSampleDataPushProcessor;
 
+    @Resource
+    private AbstractTcCustomizeProcessor tcCpaFailDataPushProcessor;
+
     /**
      * @param tcRequestDTO
      * @param apiCode
@@ -42,7 +51,7 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      **/
     @Override
     public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_CPA);
+        return tcCpaDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_CPA_DATA_PUSH);
     }
 
     /**
@@ -55,7 +64,7 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      **/
     @Override
     public TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaRevokeProcessor.process(tcRequestDTO, apiCode, TcRevokeDto.class, BIZ_CODE_CPA);
+        return tcCpaRevokeProcessor.process(tcRequestDTO, apiCode, TcRevokeDto.class, BIZ_CODE_CPA_REVOKE);
     }
 
     /**
@@ -68,7 +77,7 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      **/
     @Override
     public TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class, BIZ_CODE_CPA);
+        return tcCpaTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class, BIZ_CODE_CPA_TRANSFER);
     }
 
     /**
@@ -81,6 +90,19 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      **/
     @Override
     public TcResponseDTO sampleDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class, BIZ_CODE_CPA);
+        return tcCpaSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class, BIZ_CODE_CPA_SAMPLE_DATA_PUSH);
+    }
+
+    /**
+     * @param tcRequestDTO
+     * @param apiCode
+     * @return com.br.marketing.dto.tc.TcResponseCommonDTO
+     * @description 失败数据推送
+     * @author hong.chen
+     * @date 2025/8/11 16:27
+     **/
+    @Override
+    public TcResponseDTO marketFailDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
+        return tcCpaFailDataPushProcessor.process(tcRequestDTO, apiCode, TcFailDataPushDto.class, BIZ_CODE_CPA_FAIL_DATA_PUSH);
     }
 }

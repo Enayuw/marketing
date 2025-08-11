@@ -16,4 +16,6 @@ public interface TcCpaCustomizeService {
     TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode);
 
     TcResponseDTO sampleDataPush(TcRequestDTO tcRequestDTO, String apiCode);
+
+    TcResponseDTO marketFailDataPush(TcRequestDTO tcRequestDTO, String apiCode);
 }

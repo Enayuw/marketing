@@ -52,4 +52,11 @@ public class TcCpaCustomizeController {
     public TcResponseDTO sampleDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
         return tcCpaCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
+
+    @ApiOperation(value = "撞库失败数据推送")
+    @PostMapping("/marketFailDataPush")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public TcResponseDTO marketFailDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+        return tcCpaCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    }
 }
