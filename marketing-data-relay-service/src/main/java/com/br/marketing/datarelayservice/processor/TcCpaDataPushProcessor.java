@@ -20,7 +20,7 @@ public class TcCpaDataPushProcessor extends AbstractTcCustomizeProcessor{
 
     @Override
     protected String fetchApiCode() {
-        return apiCode();
+        return cpaApiCode();
     }
 
     @Override

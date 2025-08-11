@@ -34,8 +34,8 @@ public abstract class AbstractTcCustomizeProcessor {
      * @author hedongshuo
      * @date 2025/4/23 20:04
      **/
-    public final <T extends TcDataDto> TcResponseDTO process(TcRequestDTO tcRequestDTO, String apiCode, Class<T> clazz) {
-        log.warn("接收到同程易融请求数据，clazz:{}，data:{}",clazz.getName(), tcRequestDTO);
+    public final <T extends TcDataDto> TcResponseDTO process(TcRequestDTO tcRequestDTO, String apiCode, Class<T> clazz, String bizCode) {
+        log.warn("接收到同程易融{}请求数据，clazz:{}，data:{}", bizCode, clazz.getName(), tcRequestDTO);
         TcResponseDTO resdto = new TcResponseDTO();
         Long recordId = null;
         JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();

@@ -1,7 +1,9 @@
 package com.br.marketing.datarelayservice.processor;
 
 import com.br.marketing.dto.tc.TcRequestDTO;
+import com.br.marketing.entity.MarketingTcyrCpaSampleRecord;
 import com.br.marketing.entity.MarketingTcyrSampleRecord;
+import com.br.marketing.mapper.MarketingTcyrCpaSampleRecordMapper;
 import com.br.marketing.mapper.MarketingTcyrSampleRecordMapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -15,25 +17,25 @@ import java.util.Date;
 public class TcCpaSampleDataPushProcessor extends AbstractTcCustomizeProcessor{
 
     @Resource
-    private MarketingTcyrSampleRecordMapper tcyrSampleRecordMapper;
+    private MarketingTcyrCpaSampleRecordMapper tcyrCpaSampleRecordMapper;
 
     @Override
     protected String fetchApiCode() {
-        return apiCode();
+        return cpaApiCode();
     }
 
     @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {
-        MarketingTcyrSampleRecord record = new MarketingTcyrSampleRecord();
+        MarketingTcyrCpaSampleRecord record = new MarketingTcyrCpaSampleRecord();
         record.setId(recordId);
         record.setStatus(status);
         record.setMsg(msg);
-        tcyrSampleRecordMapper.updateByPrimaryKeySelective(record);
+        tcyrCpaSampleRecordMapper.updateByPrimaryKeySelective(record);
     }
 
     @Override
     protected Long recordSave(TcRequestDTO tcRequestDTO, String batchNo, String apiCode, String brPrivateKey) {
-        MarketingTcyrSampleRecord record = new MarketingTcyrSampleRecord();
+        MarketingTcyrCpaSampleRecord record = new MarketingTcyrCpaSampleRecord();
         record.setApiCode(apiCode);
         record.setRequestNo(tcRequestDTO.getRequestNo());
         record.setBatchNo(batchNo);
@@ -44,13 +46,13 @@ public class TcCpaSampleDataPushProcessor extends AbstractTcCustomizeProcessor{
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         try {
-            tcyrSampleRecordMapper.insertSelective(record);
+            tcyrCpaSampleRecordMapper.insertSelective(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
             record.setStatus(2);
-            tcyrSampleRecordMapper.insertSelective(record);
+            tcyrCpaSampleRecordMapper.insertSelective(record);
             return null;
         }
     }

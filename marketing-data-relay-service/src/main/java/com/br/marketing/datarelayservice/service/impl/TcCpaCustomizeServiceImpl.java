@@ -18,6 +18,8 @@ import javax.annotation.Resource;
 @Slf4j
 public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
 
+    private static final String BIZ_CODE_CPA = "CPA";
+
     @Resource
     private AbstractTcCustomizeProcessor tcCpaDataPushProcessor;
 
@@ -36,11 +38,11 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      * @return com.br.marketing.dto.tc.TcResponseCommonDTO
      * @description 数据推送
      * @author hedongshuo
-     * @date 2025/4/15 15:24
+     * @date 2025/8/11 15:24
      **/
     @Override
     public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class);
+        return tcCpaDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_CPA);
     }
 
     /**
@@ -49,11 +51,11 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      * @return com.br.marketing.dto.tc.TcResponseDTO
      * @description 撤销营销
      * @author hedongshuo
-     * @date 2025/4/16 10:20
+     * @date 2025/8/11 10:20
      **/
     @Override
     public TcResponseDTO marketRevoke(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaRevokeProcessor.process(tcRequestDTO, apiCode, TcRevokeDto.class);
+        return tcCpaRevokeProcessor.process(tcRequestDTO, apiCode, TcRevokeDto.class, BIZ_CODE_CPA);
     }
 
     /**
@@ -62,11 +64,11 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      * @return com.br.marketing.dto.tc.TcResponseDTO
      * @description 转化通知
      * @author hedongshuo
-     * @date 2025/4/16 11:30
+     * @date 2025/8/11 11:30
      **/
     @Override
     public TcResponseDTO transformNotify(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class);
+        return tcCpaTransformNotifyProcessor.process(tcRequestDTO, apiCode, TcTransformNotifyDto.class, BIZ_CODE_CPA);
     }
 
     /**
@@ -75,10 +77,10 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      * @return com.br.marketing.dto.tc.TcResponseCommonDTO
      * @description 正负样本推送
      * @author hong.chen
-     * @date 2025/5/23 16:27
+     * @date 2025/8/11 16:27
      **/
     @Override
     public TcResponseDTO sampleDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcCpaSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class);
+        return tcCpaSampleDataPushProcessor.process(tcRequestDTO, apiCode, TcSampleDataPushDto.class, BIZ_CODE_CPA);
     }
 }
