@@ -259,18 +259,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 标记不在当前配置中的规则为删除状态
             for (MarketingDataCleanGeneralRuleConfig rule : existingRules) {
                 String cleanField = rule.getCleanFields();
-                if (!cleanFields.contains(cleanField)) {
-                    MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
-                    updateRule.setId(rule.getId());
-                    updateRule.setIsDel(9);
-                    updateRule.setUpdateTime(new Date());
-                    
-                    int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
-                    if (rows > 0) {
-                        log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), cleanField);
-                    } else {
-                        log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), cleanField);
-                    }
+                MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
+                updateRule.setId(rule.getId());
+                updateRule.setIsDel(9);
+                updateRule.setUpdateTime(new Date());
+
+                int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
+                if (rows > 0) {
+                    log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), cleanField);
+                } else {
+                    log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), cleanField);
                 }
             }
             return true;
