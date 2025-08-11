@@ -859,7 +859,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         try {
             ruleMap = JSON.parseObject(cleaningRule, Map.class);
         } catch (Exception e) {
-            throw new BusinessException("解析清洗规则失败！错误信息：" + e.getMessage() , e);
+            throw new BusinessException("解析清洗规则失败！");
         }
         
         if (ruleMap == null || ruleMap.isEmpty()) {
@@ -1029,8 +1029,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             new BigDecimal(value.trim());
             return true;
         } catch (NumberFormatException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
-                    "错误信息：" + e.getMessage()), e);
             return false;
         }
     }
@@ -1263,8 +1261,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 log.warn("保留价格格式结果: '{}'", formattedPrice);
                 return formattedPrice;
             } catch (NumberFormatException e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
-                        "价格转换失败！错误信息：" + e.getMessage()), e);
                 throw new BusinessException("价格转换失败！");
             }
         } else if ("date".equals(format)) {
