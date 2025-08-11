@@ -228,7 +228,7 @@
     </select>
 
     <select id="minIdRuleScoreLabelWithDate" resultType="java.lang.Long">
-        select min(id)
+        select min(sync_id)
         from b_marketing_sync_label_${apiCode}
         where ${whereStr}
           and is_repeat in (1,2)
@@ -237,7 +237,7 @@
     </select>
 
     <select id="minIdRuleScoreLabelWithDatetiflash_" resultType="java.lang.Long">
-        select min(id)
+        select min(sync_id)
         from b_marketing_sync_Label_${apiCode}
         where ${whereStr}
           and is_repeat in (1,2)
@@ -271,27 +271,35 @@
 
     <select id="selectDataRuleScoreLabelWithDate" resultType="com.br.marketing.entity.MarketingSyncLabelUser">
         select *
-        from b_marketing_sync_label_${apiCode}
+        from b_marketing_sync_${apiCode}
         where ${whereStr}
         <if test="id != null and id >0">
             <![CDATA[  and id>#{id} ]]>
         </if>
         and is_repeat in (1,2)
         and status = 1
-        and label_id = #{labelId}
+        and id in (
+        select sync_id
+        from b_marketing_sync_label_${apiCode}
+        where label_id = #{labelId}
+        )
         order by id asc limit ${pageSize};
     </select>
 
     <select id="selectDataRuleScoreLabelWithDatetiflash_" resultType="com.br.marketing.entity.MarketingSyncLabelUser">
         select *
-        from b_marketing_sync_label_${apiCode}
+        from b_marketing_sync_${apiCode}
         where ${whereStr}
         <if test="id != null and id >0">
-            <![CDATA[ and id>#{id} ]]>
+            <![CDATA[  and id>#{id} ]]>
         </if>
         and is_repeat in (1,2)
         and status = 1
-        and label_id = #{labelId}
+        and id in (
+        select sync_id
+        from b_marketing_sync_label_${apiCode}
+        where label_id = #{labelId}
+        )
         order by id asc limit ${pageSize};
     </select>
     
