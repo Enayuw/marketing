@@ -329,7 +329,9 @@ public enum AlarmSendCodeEnum {
 
     SANLIULING_SERVICEERROR("6090002", "360-pp流量业务异常"),
 
-    IBMP_LINE_SERVICEERROR("7000001", "IBMP-获取线路信息异常")
+    IBMP_LINE_SERVICEERROR("7000001", "IBMP-获取线路信息异常"),
+
+    TONGCHENG_CPA_SERVICEERROR("7000002", "同程CPA业务异常"),
     ;
 
     /**
