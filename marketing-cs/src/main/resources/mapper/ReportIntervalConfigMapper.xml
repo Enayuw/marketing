@@ -6,7 +6,7 @@
         from b_report_interval_config
         where
         <if test="apiCode !=null and apiCode !=''">
-            and api_code = #{apiCode}
+            api_code = #{apiCode}
         </if>
         <if test="name !=null and name !=''">
             and template_name = #{name}
