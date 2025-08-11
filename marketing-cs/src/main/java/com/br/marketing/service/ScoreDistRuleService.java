@@ -7,6 +7,7 @@ import com.br.marketing.vo.ScoreDistRuleVo;
 import com.br.marketing.vo.bi.AxisWrapVO;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -20,6 +21,8 @@ public interface ScoreDistRuleService {
      * @return
      */
     Result<PageResultReturn<ScoreDistRuleVo>> getScoreDistRuleList(@Valid SearchConditionDTO dto);
+
+    Result<List<ScoreDistRuleVo>> getScoreDistRuleByApiCode(@Valid @NotNull(message = "apiCode不能为空") String apiCode);
 
     /**
      * 详情查询

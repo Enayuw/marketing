@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SearchConditionDTO;
 import com.br.marketing.entity.ReportIntervalConfig;
@@ -16,11 +17,13 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
@@ -34,9 +37,7 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
     private static final Integer  STATUS_ENABLED = 1;
 
     private static final Integer  STATUS_FORBIDDEN = 2;
-
-    private static final Integer  IS_DEL_YES = 9;
-
+    
     @Resource
     ReportIntervalConfigMapper reportIntervalConfigMapper;
 
@@ -52,6 +53,24 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
         List<ScoreDistRuleVo> list = reportIntervalConfigMapper.getScoreDistRuleList(dto);
         PageResultReturn pageResultReturn = PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pageResultReturn);
+    }
+
+    @Override
+    public Result<List<ScoreDistRuleVo>> getScoreDistRuleByApiCode(String apiCode) {
+        ReportIntervalConfigExample configExample = new ReportIntervalConfigExample();
+        configExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(apiCode);
+        List<ReportIntervalConfig> configs = reportIntervalConfigMapper.selectByExample(configExample);
+        if (configs == null || configs.isEmpty()) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Collections.emptyList());
+        }
+        List<ScoreDistRuleVo> scoreDistRuleVos = configs.stream()
+                .map(config -> {
+                    ScoreDistRuleVo vo = new ScoreDistRuleVo();
+                    BeanUtils.copyProperties(config, vo);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(scoreDistRuleVos);
     }
 
     @Override
@@ -117,7 +136,7 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
         ReportIntervalConfigExample configExample = new ReportIntervalConfigExample();
         configExample.createCriteria().andIdEqualTo(configId);
         ReportIntervalConfig config = new ReportIntervalConfig();
-        config.setIsDel(IS_DEL_YES);
+        config.setIsDel(Constants.DATA_DEL);
         reportIntervalConfigMapper.updateByExampleSelective(config, configExample);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }

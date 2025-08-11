@@ -1,7 +1,9 @@
 package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
+@Data
 public class ScoreDistRuleVo {
 
     @ApiModelProperty(value = "规则id")
