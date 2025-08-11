@@ -154,6 +154,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         return PageResultReturn.setPageResult(ruleList, current, size, total);
     }
 
+    @Override
+    public MarketingDataCleanGeneralConfig getRuleDetailById(Long configId) {
+        return cleanGeneralConfigMapper.selectByPrimaryKey(configId);
+    }
+
     /**
      * 保存或更新规则
      * @param config 规则配置信息
