@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MarketingCpaTransferRecordExample {
+public class MarketingTcyrCpaTransferRecordExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public MarketingCpaTransferRecordExample() {
+    public MarketingTcyrCpaTransferRecordExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 

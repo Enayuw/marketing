@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingCpaTransferRecord {
+public class MarketingTcyrCpaValueless {
     /**
      * 
      */
@@ -14,29 +14,19 @@ public class MarketingCpaTransferRecord {
     private String apiCode;
 
     /**
-     * 请求流水号
-     */
-    private String requestNo;
-
-    /**
      * 批次号
      */
     private String batchNo;
 
     /**
-     * 数据
+     * 同一批次下具体单个文件的id
      */
-    private String data;
+    private Long syncFileId;
 
     /**
-     * 状态 0-接入中；1-接入成功；2-接入失败；
+     * 失败类型 1-黑名单；2-已被锁定; 4-无此用户
      */
-    private Integer status;
-
-    /**
-     * 错误信息
-     */
-    private String msg;
+    private Integer failMsg;
 
     /**
      * 创建时间
@@ -49,14 +39,19 @@ public class MarketingCpaTransferRecord {
     private Date updateTime;
 
     /**
-     * 清洗状态 0-待清洗；1-清洗完成2:转化清洗失败 3:推送清洗失败 4:整体推送异常
+     *  0:异常数据 1:正常数据
      */
-    private Integer isClean;
+    private Integer status;
 
     /**
      * 删除状态 1-可用 9-删除
      */
     private Integer isDel;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 
     public Long getId() {
         return id;
@@ -74,14 +69,6 @@ public class MarketingCpaTransferRecord {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
-    public String getRequestNo() {
-        return requestNo;
-    }
-
-    public void setRequestNo(String requestNo) {
-        this.requestNo = requestNo == null ? null : requestNo.trim();
-    }
-
     public String getBatchNo() {
         return batchNo;
     }
@@ -90,28 +77,20 @@ public class MarketingCpaTransferRecord {
         this.batchNo = batchNo == null ? null : batchNo.trim();
     }
 
-    public String getData() {
-        return data;
+    public Long getSyncFileId() {
+        return syncFileId;
     }
 
-    public void setData(String data) {
-        this.data = data == null ? null : data.trim();
+    public void setSyncFileId(Long syncFileId) {
+        this.syncFileId = syncFileId;
     }
 
-    public Integer getStatus() {
-        return status;
+    public Integer getFailMsg() {
+        return failMsg;
     }
 
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg == null ? null : msg.trim();
+    public void setFailMsg(Integer failMsg) {
+        this.failMsg = failMsg;
     }
 
     public Date getCreateTime() {
@@ -130,12 +109,12 @@ public class MarketingCpaTransferRecord {
         this.updateTime = updateTime;
     }
 
-    public Integer getIsClean() {
-        return isClean;
+    public Integer getStatus() {
+        return status;
     }
 
-    public void setIsClean(Integer isClean) {
-        this.isClean = isClean;
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public Integer getIsDel() {
@@ -144,5 +123,13 @@ public class MarketingCpaTransferRecord {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingCpaTransferRecordMapperBase" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCpaTransferRecord" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaRevokeRecordMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTcyrCpaRevokeRecord" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="request_no" property="requestNo" jdbcType="VARCHAR" />
@@ -9,10 +9,10 @@
     <result column="data" property="data" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="msg" property="msg" jdbcType="VARCHAR" />
-    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
-    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_clean" property="isClean" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -73,16 +73,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time, 
-    is_clean, is_del
+    id, api_code, request_no, batch_no, `data`, `status`, msg, is_clean, is_del, create_time, 
+    update_time
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCpaTransferRecordExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaRevokeRecordExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_tcyr_cpa_transfer_record
+    from b_tcyr_cpa_revoke_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -93,37 +93,37 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from b_tcyr_cpa_transfer_record
+    from b_tcyr_cpa_revoke_record
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_tcyr_cpa_transfer_record
+    delete from b_tcyr_cpa_revoke_record
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingCpaTransferRecordExample" >
-    delete from b_tcyr_cpa_transfer_record
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTcyrCpaRevokeRecordExample" >
+    delete from b_tcyr_cpa_revoke_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingCpaTransferRecord" >
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTcyrCpaRevokeRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_transfer_record (api_code, request_no, batch_no, 
+    insert into b_tcyr_cpa_revoke_record (api_code, request_no, batch_no, 
       `data`, `status`, msg, 
-      create_time, update_time, is_clean, 
-      is_del)
+      is_clean, is_del, create_time, 
+      update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
       #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isClean,jdbcType=INTEGER}, 
-      #{isDel,jdbcType=INTEGER})
+      #{isClean,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCpaTransferRecord" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaRevokeRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_transfer_record
+    insert into b_tcyr_cpa_revoke_record
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
@@ -143,17 +143,17 @@
       <if test="msg != null" >
         msg,
       </if>
-      <if test="createTime != null" >
-        create_time,
-      </if>
-      <if test="updateTime != null" >
-        update_time,
-      </if>
       <if test="isClean != null" >
         is_clean,
       </if>
       <if test="isDel != null" >
         is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -175,28 +175,28 @@
       <if test="msg != null" >
         #{msg,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        #{updateTime,jdbcType=TIMESTAMP},
-      </if>
       <if test="isClean != null" >
         #{isClean,jdbcType=INTEGER},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingCpaTransferRecordExample" resultType="java.lang.Integer" >
-    select count(*) from b_tcyr_cpa_transfer_record
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTcyrCpaRevokeRecordExample" resultType="java.lang.Integer" >
+    select count(*) from b_tcyr_cpa_revoke_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_tcyr_cpa_transfer_record
+    update b_tcyr_cpa_revoke_record
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -219,17 +219,17 @@
       <if test="record.msg != null" >
         msg = #{record.msg,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null" >
-        create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.updateTime != null" >
-        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      </if>
       <if test="record.isClean != null" >
         is_clean = #{record.isClean,jdbcType=INTEGER},
       </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -237,7 +237,7 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_tcyr_cpa_transfer_record
+    update b_tcyr_cpa_revoke_record
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       request_no = #{record.requestNo,jdbcType=VARCHAR},
@@ -245,16 +245,16 @@
       `data` = #{record.data,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=INTEGER},
       msg = #{record.msg,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_clean = #{record.isClean,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER}
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingCpaTransferRecord" >
-    update b_tcyr_cpa_transfer_record
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaRevokeRecord" >
+    update b_tcyr_cpa_revoke_record
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -274,33 +274,33 @@
       <if test="msg != null" >
         msg = #{msg,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
       <if test="isClean != null" >
         is_clean = #{isClean,jdbcType=INTEGER},
       </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCpaTransferRecord" >
-    update b_tcyr_cpa_transfer_record
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrCpaRevokeRecord" >
+    update b_tcyr_cpa_revoke_record
     set api_code = #{apiCode,jdbcType=VARCHAR},
       request_no = #{requestNo,jdbcType=VARCHAR},
       batch_no = #{batchNo,jdbcType=VARCHAR},
       `data` = #{data,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=INTEGER},
       msg = #{msg,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_clean = #{isClean,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER}
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
