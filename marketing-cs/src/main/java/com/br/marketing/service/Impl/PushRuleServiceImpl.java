@@ -35,6 +35,8 @@ import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.enums.rocketmq.AiPreUserReceiveEnum;
+import com.br.marketing.common.enums.rocketmq.AiUniversalReceiveEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.BrExecutors;
@@ -69,6 +71,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.*;
+import com.br.marketing.service.Impl.ai.QueueBalancer;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
@@ -263,6 +266,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     @Qualifier("clusterEnvironment")
     private String clusterEnvironment;
+
+    @Autowired
+    private QueueBalancer queueBalancer;
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
@@ -2476,13 +2482,16 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
         //region 写入上传明细MQ
         if (!dbException) {
-            if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
-                sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
-                        , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
-            } else {
-                sendToRabbitMq(apiCode, syncInfoId, jsonData);
-                sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
+            boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jsonData);
+            if(Objects.equals(intoAiQueue,false)){
+                if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
+                    sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
+                            , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                } else {
+                    sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                }
             }
+            sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -2551,22 +2560,21 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
-     * 根据apiCode，区分AI与非AI客户，发送到不同MQ
+     * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
-     *
      * @param apiCode    API代码
      * @param syncInfoId 同步信息ID
      * @param jsonData   JSON数据
      */
-    private void sendToRabbitMq(String apiCode, String syncInfoId, String jsonData) {
+
+    private boolean routeToAiQueue(String apiCode, String syncInfoId, String jsonData) {
         if (StringUtils.isEmpty(jsonData) || marketingCommonConfig.getInitDataPushRule().contains(apiCode)) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
-            return;
+            return false;
         }
 
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
             getRoutingKeyAndSendToAiMq(syncInfoId);
-            return;
+            return true;
         }
 
         // 没配置成init和ai客户
@@ -2575,8 +2583,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         // jsonData中没有3也没有4
         if (!hasOperateType3 && !hasOperateType4) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
-            return;
+            return false;
         }
 
         // jsonData包含3或者4，查db
@@ -2587,7 +2594,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         if (hasType3Rule && hasType4Rule) {
             getRoutingKeyAndSendToAiMq(syncInfoId);
-            return;
+            return true;
         }
 
         boolean ruleAdded = false;
@@ -2606,18 +2613,18 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 缓存和数据中都有
         if (hasType3Rule || hasType4Rule) {
             getRoutingKeyAndSendToAiMq(syncInfoId);
-            return;
+            return true;
         }
 
         if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
             getRoutingKeyAndSendToAiMq(syncInfoId);
-            return;
+            return true;
         }
 
         // 发消息到通用入明细队列
-        sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+        return false;
     }
 
     /**
@@ -2675,6 +2682,13 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
+        if (marketingCommonConfig.getAiUseRocketMq()) {
+            AiPreUserReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiPreUserReceiveEnum.class,
+                    RedisKeyConstant.AI_PREUSER_RECEIVE_MQ_BALANCER);
+            rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), syncInfoId);
+            return;
+        }
+
         String redisKey = RedisKeyConstant.SWITCH_MESSAGE_QUEUE + ":" + clusterEnvironment;
         String field = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.name();
         String aiQueueRoutingKey = SwitchMessageQueueEnum.MARKETING_AI_PREUSER_RECEIVE.getDefault_route_key();
@@ -3258,14 +3272,26 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
         if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
-            producter.sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact);
             return;
         }
 
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
         if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
-            producter.sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact);
         }
+    }
+
+    private void sendToAIUniversalQueue(MqFact mqFact){
+        if (marketingCommonConfig.getAiUseRocketMq()) {
+            AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
+                    RedisKeyConstant.AI_UNIVERSAL_RECEIVE_MQ_BALANCER);
+            String message = JSON.toJSONString(mqFact);
+            rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), message);
+            return;
+        }
+
+        producter.sendToAIUniversalQueue(mqFact);
     }
 
     /**
@@ -3395,11 +3421,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
-                sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
-                        , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
-            } else {
-                sendToRabbitMq(apiCode, syncInfoId, jdStr);
+            boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
+            if(Objects.equals(intoAiQueue,false)){
+                if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
+                    sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
+                            , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                } else {
+                    sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                }
             }
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());

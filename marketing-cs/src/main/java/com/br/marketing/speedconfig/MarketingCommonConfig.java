@@ -3286,5 +3286,10 @@ public class MarketingCommonConfig {
      * #众安拨打&短信上报配置
      */
     private JSONObject zhongAnCollidingDataConfig;
+
+    /**
+     * Ai数据入库和推送下游rocketmq切换开关
+     */
+    private Boolean aiUseRocketMq;
 }
 
