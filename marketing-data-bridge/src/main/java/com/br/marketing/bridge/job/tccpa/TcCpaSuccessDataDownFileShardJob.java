@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * @Descrpiotn 同程易融CPA-撞库失败拉取文件,文件信息入库
+ * @Descrpiotn 同程易融CPA-撞库成功拉取文件/文件信息入库
  * @Author zhiyong.zhang
  *  @CreateTime 2025/08/11
  */
