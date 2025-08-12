@@ -57,6 +57,6 @@ public class TcCpaCustomizeController {
     @PostMapping("/marketFailDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketFailDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        return tcCpaCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        return tcCpaCustomizeService.marketFailDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 }
