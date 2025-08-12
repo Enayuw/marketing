@@ -24,7 +24,7 @@
             b.update_time
         FROM b_report_interval_model b
         JOIN tools_numbers n ON 1 = 1
-        WHERE b.config_id = 30005
+        WHERE b.config_id = #{configId}
         AND n.n <![CDATA[ < GREATEST ]]>
         (COALESCE(JSON_LENGTH(b.x_interval_list), 0),
         COALESCE(JSON_LENGTH(b.y_interval_list), 0)
