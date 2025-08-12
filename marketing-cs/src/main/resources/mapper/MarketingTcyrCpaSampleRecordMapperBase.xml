@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaSampleRecordMapperBase" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaSampleRecordMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTcyrCpaSampleRecord" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -73,7 +73,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time, 
+    id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,
     down_status, is_del
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaSampleRecordExample" >
@@ -82,7 +82,7 @@
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_tcyr_cpa_sample_record
+    from b_marketing_tcyr_sample_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -91,17 +91,17 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
-    from b_tcyr_cpa_sample_record
+    from b_marketing_tcyr_sample_record
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_tcyr_cpa_sample_record
+    delete from b_marketing_tcyr_sample_record
     where id = #{id,jdbcType=BIGINT}
   </delete>
   <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTcyrCpaSampleRecordExample" >
-    delete from b_tcyr_cpa_sample_record
+    delete from b_marketing_tcyr_sample_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -110,20 +110,20 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_sample_record (api_code, request_no, batch_no, 
-      `data`, `status`, msg, 
-      create_time, update_time, down_status, 
-      is_del)
-    values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
-      #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{downStatus,jdbcType=INTEGER}, 
-      #{isDel,jdbcType=INTEGER})
+    insert into b_marketing_tcyr_sample_record (api_code, request_no, batch_no,
+    `data`, `status`, msg,
+    create_time, update_time, down_status,
+    is_del)
+    values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR},
+    #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{downStatus,jdbcType=INTEGER},
+    #{isDel,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaSampleRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_sample_record
+    insert into b_marketing_tcyr_sample_record
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
@@ -190,13 +190,13 @@
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTcyrCpaSampleRecordExample" resultType="java.lang.Integer" >
-    select count(*) from b_tcyr_cpa_sample_record
+    select count(*) from b_marketing_tcyr_sample_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_tcyr_cpa_sample_record
+    update b_marketing_tcyr_sample_record
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -237,24 +237,24 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_tcyr_cpa_sample_record
+    update b_marketing_tcyr_sample_record
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      request_no = #{record.requestNo,jdbcType=VARCHAR},
-      batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      `data` = #{record.data,jdbcType=VARCHAR},
-      `status` = #{record.status,jdbcType=INTEGER},
-      msg = #{record.msg,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      down_status = #{record.downStatus,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    request_no = #{record.requestNo,jdbcType=VARCHAR},
+    batch_no = #{record.batchNo,jdbcType=VARCHAR},
+    `data` = #{record.data,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
+    msg = #{record.msg,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    down_status = #{record.downStatus,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaSampleRecord" >
-    update b_tcyr_cpa_sample_record
+    update b_marketing_tcyr_sample_record
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -290,17 +290,17 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrCpaSampleRecord" >
-    update b_tcyr_cpa_sample_record
+    update b_marketing_tcyr_sample_record
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      request_no = #{requestNo,jdbcType=VARCHAR},
-      batch_no = #{batchNo,jdbcType=VARCHAR},
-      `data` = #{data,jdbcType=VARCHAR},
-      `status` = #{status,jdbcType=INTEGER},
-      msg = #{msg,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      down_status = #{downStatus,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER}
+        request_no = #{requestNo,jdbcType=VARCHAR},
+        batch_no = #{batchNo,jdbcType=VARCHAR},
+        `data` = #{data,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=INTEGER},
+        msg = #{msg,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        down_status = #{downStatus,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

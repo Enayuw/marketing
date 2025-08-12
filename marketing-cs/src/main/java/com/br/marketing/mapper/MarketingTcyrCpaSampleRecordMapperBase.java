@@ -17,15 +17,21 @@ public interface MarketingTcyrCpaSampleRecordMapperBase {
 
     int insertSelective(MarketingTcyrCpaSampleRecord record);
 
+    List<MarketingTcyrCpaSampleRecord> selectByExampleWithBLOBs(MarketingTcyrCpaSampleRecordExample example);
+
     List<MarketingTcyrCpaSampleRecord> selectByExample(MarketingTcyrCpaSampleRecordExample example);
 
     MarketingTcyrCpaSampleRecord selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingTcyrCpaSampleRecord record, @Param("example") MarketingTcyrCpaSampleRecordExample example);
 
+    int updateByExampleWithBLOBs(@Param("record") MarketingTcyrCpaSampleRecord record, @Param("example") MarketingTcyrCpaSampleRecordExample example);
+
     int updateByExample(@Param("record") MarketingTcyrCpaSampleRecord record, @Param("example") MarketingTcyrCpaSampleRecordExample example);
 
     int updateByPrimaryKeySelective(MarketingTcyrCpaSampleRecord record);
+
+    int updateByPrimaryKeyWithBLOBs(MarketingTcyrCpaSampleRecord record);
 
     int updateByPrimaryKey(MarketingTcyrCpaSampleRecord record);
 }

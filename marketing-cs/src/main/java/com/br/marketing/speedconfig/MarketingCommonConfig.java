@@ -3059,6 +3059,15 @@ public class MarketingCommonConfig {
      */
     private String tongChengSampleZipFilePath;
 
+    /**
+     * 同程CPA正负样本本地和内部SFTP-文件路径
+     */
+    private String tongChengCpaSampleZipFilePath;
+
+    /**
+     * 同程CPA正负样本默认的文件名称
+     */
+    private String tongChengCpaDefaultFileName;
 
     /**
      * 收集手机号的apiCode集合
