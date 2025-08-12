@@ -255,7 +255,7 @@ public class CustomIntervalStatisticsImpl {
             scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
         }
 
-        log.info("保存单模型自定义区间结果完成，statisticsId: {}, 模型: {}, 总区间数: {}, 有数据区间数: {}", 
+        log.warn("保存单模型自定义区间结果完成，statisticsId: {}, 模型: {}, 总区间数: {}, 有数据区间数: {}",
                 statisticsId, modelName, statisticsDetails.size(), actualResults.size());
     }
 
@@ -321,22 +321,9 @@ public class CustomIntervalStatisticsImpl {
                     statisticsDetails.add(statisticsDetail);
                 }
             }
-        } else {
-            // 单模型：只有X轴区间
-            for (IntervalRangeDTO xInterval : xIntervalList) {
-                String xIntervalText = xInterval.getText();
-
-                // 获取实际统计结果，如果没有则为0
-                Integer count = actualResults.getOrDefault(xIntervalText, new HashMap<>())
-                        .getOrDefault(fieldX, 0);
-
-                ScoreStatisticsDetail statisticsDetail = createStatisticsDetail(
-                        statisticsId, xIntervalText, fieldX, count);
-                statisticsDetails.add(statisticsDetail);
-            }
         }
 
-        log.info("生成完整区间结果完成，statisticsId: {}, 总区间数: {}, 有数据区间数: {}",
+        log.warn("生成完整区间结果完成，statisticsId: {}, 总区间数: {}, 有数据区间数: {}",
                 statisticsId, statisticsDetails.size(), actualResults.size());
 
         return statisticsDetails;
@@ -354,14 +341,6 @@ public class CustomIntervalStatisticsImpl {
         statisticsDetail.setCreateTime(new Date());
         statisticsDetail.setUpdateTime(new Date());
         return statisticsDetail;
-    }
-
-    /**
-     * 解析批次号列表
-     */
-    public List<String> parseBatchNumberList(String batchNumberListJson, String batchNumberKey) {
-        String batchNumbers = JSONObject.parseObject(batchNumberListJson).getString(batchNumberKey);
-        return Arrays.asList(batchNumbers.split(","));
     }
 
     /**
@@ -406,83 +385,5 @@ public class CustomIntervalStatisticsImpl {
                 reportScoreType, fieldX, fieldY, result.size());
         
         return result;
-    }
-
-    /**
-     * 保存固定区间统计结果（包含所有预定义区间，即使count为0）
-     * 用于单模型固定区间统计
-     */
-    public void saveFixedIntervalResults(Long statisticsId, List<Map<String, Object>> results, 
-                                        String fieldX, String fieldY, List<String> predefinedIntervals) {
-        // 从SQL查询结果中获取实际有数据的统计
-        Map<String, Integer> actualResults = new HashMap<>();
-        if (!CollectionUtils.isEmpty(results)) {
-            for (Map<String, Object> resultMap : results) {
-                String intervalText = (String) resultMap.get(fieldX);
-                Integer count = ((Long) resultMap.get("num")).intValue();
-                actualResults.put(intervalText, count);
-            }
-        }
-
-        // 根据预定义区间生成完整的统计结果
-        List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
-        for (String intervalText : predefinedIntervals) {
-            // 获取实际统计结果，如果没有则为0
-            Integer count = actualResults.getOrDefault(intervalText, 0);
-            
-            ScoreStatisticsDetail statisticsDetail = createStatisticsDetail(
-                    statisticsId, intervalText, fieldY, count);
-            statisticsDetails.add(statisticsDetail);
-        }
-
-        // 批量插入结果
-        if (!CollectionUtils.isEmpty(statisticsDetails)) {
-            scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
-        }
-        
-        log.info("生成固定区间结果完成（单模型），statisticsId: {}, 预定义区间数: {}, 有数据区间数: {}", 
-                statisticsId, predefinedIntervals.size(), actualResults.size());
-    }
-
-    /**
-     * 保存固定区间统计结果（包含所有预定义区间，即使count为0）
-     * 用于多模型固定区间统计
-     */
-    public void saveFixedIntervalResults(Long statisticsId, List<Map<String, Object>> results, 
-                                        String fieldX, String fieldY, 
-                                        List<String> xPredefinedIntervals, List<String> yPredefinedIntervals) {
-        // 从SQL查询结果中获取实际有数据的统计
-        Map<String, Map<String, Integer>> actualResults = new HashMap<>();
-        if (!CollectionUtils.isEmpty(results)) {
-            for (Map<String, Object> resultMap : results) {
-                String xValue = (String) resultMap.get(fieldX);
-                String yValue = (String) resultMap.get(fieldY);
-                Integer count = ((Long) resultMap.get("num")).intValue();
-                
-                actualResults.computeIfAbsent(xValue, k -> new HashMap<>()).put(yValue, count);
-            }
-        }
-
-        // 根据预定义区间生成完整的统计结果
-        List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
-        for (String xIntervalText : xPredefinedIntervals) {
-            for (String yIntervalText : yPredefinedIntervals) {
-                // 获取实际统计结果，如果没有则为0
-                Integer count = actualResults.getOrDefault(xIntervalText, new HashMap<>())
-                                            .getOrDefault(yIntervalText, 0);
-                
-                ScoreStatisticsDetail statisticsDetail = createStatisticsDetail(
-                        statisticsId, xIntervalText, yIntervalText, count);
-                statisticsDetails.add(statisticsDetail);
-            }
-        }
-
-        // 批量插入结果
-        if (!CollectionUtils.isEmpty(statisticsDetails)) {
-            scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
-        }
-        
-        log.info("生成固定区间结果完成（多模型），statisticsId: {}, X预定义区间数: {}, Y预定义区间数: {}, 有数据区间数: {}", 
-                statisticsId, xPredefinedIntervals.size(), yPredefinedIntervals.size(), actualResults.size());
     }
 }
