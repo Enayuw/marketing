@@ -20,7 +20,7 @@ public abstract class AbstractTcCustomizeProcessor {
     private MarketingCommonConfig marketingCommonConfig;
 
     private static final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);;
+            .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final int RECORD_STATUS_SUCCESS = 1;
 
