@@ -46,6 +46,8 @@ public enum ThreadPoolNameEnum {
     TCYC_MATCH(25,"tcyr_match_3710038","同程易融MatchShardJob任务"),
     TCYR_CPA_QUICK_DEAL(26,"tcyr_cpa_quick_deal_3710208","同程易融cpa_quick_deal上传流程"),
     TCYR_CPA_DB_DEAL(27,"tcyr_cpa_quick_deal_3710208","同程易融cpa_db_deal撞库流程"),
+    TCYR_CPA_TRANSFER_DEAL(28,"tcyr_cpa_transfer_deal_3710208","同程易融cpa_transfer_deal转化清洗流程"),
+
 
     ;
 
