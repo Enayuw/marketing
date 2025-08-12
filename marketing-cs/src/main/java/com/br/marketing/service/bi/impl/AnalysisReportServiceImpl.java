@@ -19,6 +19,7 @@ import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.aspectj.org.eclipse.jdt.internal.core.nd.field.StructDef;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.br.common.log.AlertLog;
@@ -221,15 +222,10 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         } else {
             // 不包含中文，按数字排序
             data = groupedData.entrySet().stream()
-                    .sorted(Comparator.comparingInt(entry -> {
-                        try {
-                            String key = entry.getKey().replaceAll("[^0-9-]", "");
-                            String[] parts = key.split(",");
-                            return Integer.parseInt(parts[0]);
-                        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                            // 如果解析失败，返回0或最大值
-                            return Integer.MAX_VALUE;
-                        }
+                    .sorted(Comparator.comparing(entry -> {
+                        String startValue = entry.getKey()
+                                .replaceAll("[\\[\\]]", "").split(",")[0];
+                        return Double.parseDouble(startValue);
                     }))
                     .map(entry -> entry.getValue().toString())
                     .collect(Collectors.toList());
@@ -266,9 +262,13 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
             yAxis.add(numWrapDataVo);
             //计算占比
-            List<String> proportion =
-                data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
-                    .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
+            List<String> proportion;
+            if (total.compareTo(BigDecimal.ZERO) == 0) {
+                proportion = data.stream().map(num -> "/").collect(Collectors.toList());
+            } else {
+                proportion = data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
+                        .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
+            }
             WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
             yAxis.add(proportionWrapDataVo);
         }
@@ -294,8 +294,10 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         return details.stream()
                 .map(keyMapper)
                 .distinct()
-                .sorted(Comparator.comparingInt(
-                        s -> Integer.parseInt(s.replaceAll("[^0-9-]", "").split(",")[0])))
+                .sorted(Comparator.comparing(interval -> {
+                    String startValue = interval.replaceAll("[\\[\\]]", "").split(",")[0];
+                    return Double.parseDouble(startValue);
+                }))
                 .collect(Collectors.toList());
     }
 
