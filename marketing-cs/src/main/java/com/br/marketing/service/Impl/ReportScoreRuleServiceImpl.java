@@ -357,6 +357,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         reportTask.setReportRules(json.toJSONString());
         reportTask.setStatus(0);
+        reportTask.setTemplateId(String.valueOf(reportTaskParam.getStatisticsId()));
         reportTask.setIsDel(1);
         reportTask.setCreateTime(new Date());
         reportTask.setUpdateTime(new Date());
