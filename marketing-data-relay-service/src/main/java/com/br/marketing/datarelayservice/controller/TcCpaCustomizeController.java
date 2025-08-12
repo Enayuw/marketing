@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 @Api(value = "同程易融cpa代运营")
-@RequestMapping("/marketing/v2/api")
+@RequestMapping("/marketing/v1/api/cpa")
 @RestController
 @Slf4j
 public class TcCpaCustomizeController {

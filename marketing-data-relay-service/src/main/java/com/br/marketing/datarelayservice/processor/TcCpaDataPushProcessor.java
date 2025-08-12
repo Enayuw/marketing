@@ -1,7 +1,9 @@
 package com.br.marketing.datarelayservice.processor;
 
 import com.br.marketing.dto.tc.TcRequestDTO;
+import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
 import com.br.marketing.entity.MarketingTcyrCpaSyncRecord;
+import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSyncRecordMapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -14,7 +16,7 @@ import java.util.Date;
 public class TcCpaDataPushProcessor extends AbstractTcCustomizeProcessor{
 
     @Resource
-    private MarketingTcyrCpaSyncRecordMapper tcyrCpaSyncRecordMapper;
+    private MarketingTcyrCpaSuccessRecordMapper tcyrCpaSuccessRecordMapper;
 
     @Override
     protected String fetchApiCode() {
@@ -23,16 +25,16 @@ public class TcCpaDataPushProcessor extends AbstractTcCustomizeProcessor{
 
     @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {
-        MarketingTcyrCpaSyncRecord record = new MarketingTcyrCpaSyncRecord();
+        MarketingTcyrCpaSuccessRecord record = new MarketingTcyrCpaSuccessRecord();
         record.setId(recordId);
         record.setStatus(status);
         record.setMsg(msg);
-        tcyrCpaSyncRecordMapper.updateByPrimaryKeySelective(record);
+        tcyrCpaSuccessRecordMapper.updateByPrimaryKeySelective(record);
     }
 
     @Override
     protected Long recordSave(TcRequestDTO tcRequestDTO, String batchNo, String apiCode, String brPrivateKey) {
-        MarketingTcyrCpaSyncRecord record = new MarketingTcyrCpaSyncRecord();
+        MarketingTcyrCpaSuccessRecord record = new MarketingTcyrCpaSuccessRecord();
         record.setApiCode(apiCode);
         record.setRequestNo(tcRequestDTO.getRequestNo());
         record.setBatchNo(batchNo);
@@ -43,13 +45,12 @@ public class TcCpaDataPushProcessor extends AbstractTcCustomizeProcessor{
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         try {
-            tcyrCpaSyncRecordMapper.insertSelective(record);
+            tcyrCpaSuccessRecordMapper.insertSelective(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
-            //告警 todo
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
             record.setStatus(2);
-            tcyrCpaSyncRecordMapper.insertSelective(record);
+            tcyrCpaSuccessRecordMapper.insertSelective(record);
             return null;
         }
     }

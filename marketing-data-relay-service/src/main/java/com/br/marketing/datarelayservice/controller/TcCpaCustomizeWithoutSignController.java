@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @Api(value = "同程易融cpa代运营测试")
-@RequestMapping("/marketing/v2/api/withoutSign")
+@RequestMapping("/marketing/v1/api/cpa/withoutSign")
 @RestController
 @Slf4j
 public class TcCpaCustomizeWithoutSignController {
