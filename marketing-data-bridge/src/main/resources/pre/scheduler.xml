@@ -296,7 +296,7 @@
     />
 
     <job:simple id="【bridge】-TcCpaSampleDataDownJob"
-                class="com.br.marketing.bridge.job.tc.TcCpaSampleDataDownJob"
+                class="com.br.marketing.bridge.job.tccpa.TcCpaSampleDataDownJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="同城易融CPA正负样本数据下载任务"
                 registry-center-ref="regCenter"

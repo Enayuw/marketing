@@ -1,4 +1,4 @@
-package com.br.marketing.bridge.job.tc;
+package com.br.marketing.bridge.job.tccpa;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;

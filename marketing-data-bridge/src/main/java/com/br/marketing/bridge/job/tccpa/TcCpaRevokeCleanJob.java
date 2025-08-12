@@ -1,4 +1,4 @@
-package com.br.marketing.bridge.job.tc;
+package com.br.marketing.bridge.job.tccpa;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
