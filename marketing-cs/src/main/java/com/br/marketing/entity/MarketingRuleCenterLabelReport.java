@@ -39,7 +39,7 @@ public class MarketingRuleCenterLabelReport {
     private Long num;
 
     /**
-     * 是否删除 0：未删除，1：已删除
+     * 是否删除 1：未删除，9：已删除
      */
     private Integer isDel;
 

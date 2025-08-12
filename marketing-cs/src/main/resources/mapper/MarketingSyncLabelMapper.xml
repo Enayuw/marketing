@@ -4,69 +4,52 @@
 
     <insert id="batchInsert" parameterType="java.util.List">
         INSERT INTO b_marketing_sync_label_${apiCode} (
-        label_id,
-        sync_id,
-        api_code,
-        cus_batch,
-        request_batch,
-        cust_num,
-        id_card,
-        name,
-        cell,
-        cell_md5,
-        cell_sha256,
-        cell_original,
-        id_card_original,
-        name_original,
-        group_type,
-        user_type,
-        operate_type,
-        register_date,
-        reserve_field1,
-        reserve_field2,
-        create_time,
-        update_time,
-        applet_date,
-        fail_type,
-        applet_time,
-        is_task,
-        task_time,
-        is_repeat,
-        fingerprint
+            label_id,
+            sync_id,
+            api_code,
+            user_type,
+            create_time,
+            update_time,
+            applet_date,
+            status,
+            is_repeat
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (
-            #{item.labelId},
-            #{item.syncId},
-            #{item.apiCode},
-            #{item.cusBatch},
-            #{item.requestBatch},
-            #{item.custNum},
-            #{item.idCard},
-            #{item.name},
-            #{item.cell},
-            #{item.cellMd5},
-            #{item.cellSha256},
-            #{item.cellOriginal},
-            #{item.idCardOriginal},
-            #{item.nameOriginal},
-            #{item.groupType},
-            #{item.userType},
-            #{item.operateType},
-            #{item.registerDate},
-            #{item.reserveField1},
-            #{item.reserveField2},
-            #{item.createTime},
-            #{item.updateTime},
-            #{item.appletDate},
-            #{item.failType},
-            #{item.appletTime},
-            #{item.isTask},
-            #{item.taskTime},
-            #{item.isRepeat},
-            #{item.fingerprint}
+                #{item.labelId},
+                #{item.syncId},
+                #{item.apiCode},
+                #{item.userType},
+                #{item.createTime},
+                #{item.updateTime},
+                #{item.appletDate},
+                #{item.status},
+                #{item.isRepeat}
             )
         </foreach>
+    </insert>
+    <insert id="singleInsert">
+        INSERT INTO b_marketing_sync_label_${apiCode} (
+            label_id,
+            sync_id,
+            api_code,
+            user_type,
+            create_time,
+            update_time,
+            applet_date,
+            status,
+            is_repeat
+        ) VALUES (
+            #{syncLabel.labelId},
+            #{syncLabel.syncId},
+            #{syncLabel.apiCode},
+            #{syncLabel.userType},
+            #{syncLabel.createTime},
+            #{syncLabel.updateTime},
+            #{syncLabel.appletDate},
+            #{syncLabel.status},
+            #{syncLabel.isRepeat}
+        )
     </insert>
     <select id="getLabelNum" resultType="java.util.Map">
         select applet_date, user_type, count(id) as num

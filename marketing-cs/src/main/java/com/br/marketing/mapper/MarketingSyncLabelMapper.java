@@ -1,7 +1,6 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingSyncLabel;
-import com.br.marketing.entity.QifuActuation;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -16,5 +15,6 @@ public interface MarketingSyncLabelMapper {
     List<Map<String,Object>> getLabelNum(@Param("labelId") Long labelId,@Param("apiCode") String apiCode);
 
 
+    int singleInsert(@Param("apiCode") String apiCode,@Param("syncLabel") MarketingSyncLabel syncLabel);
 
 }

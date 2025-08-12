@@ -7,6 +7,8 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.FilterTypeEnum;
+import com.br.marketing.enums.MockSwitchEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -22,6 +24,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -54,6 +57,25 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
 
 
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
+
+/*        // 补推逻辑
+        CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
+        if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
+                .equals(customerInfoPushMain.getmStatus())) {
+            // 是否存在ES重试数据
+            int i = retryEsData(customerInfoPushMain);
+            //流程结束
+            if (i == 0) {
+                Integer status = toPolicyByRuleService.queryExistError(customerInfoPushMain.getId(),
+                        FilterTypeEnum.GENERAL_POLICY.getValue());
+                CustomerInfoPushMain main = new CustomerInfoPushMain();
+                main.setId(customerInfoPushMain.getId());
+                main.setmStatus(status);
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);*/
         CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
         MarketingRuleCenterLabelReportExample labelReportExample = new MarketingRuleCenterLabelReportExample();
         labelReportExample.createCriteria().andApiCodeEqualTo(customerInfoPushMain.getmApiCode())
@@ -258,9 +280,9 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
         public Result<Integer> call() {
             Result<Integer> result = new Result<>();
             //批量入库
+            List<MarketingSyncLabel> marketingSyncLabelList = new ArrayList<>();
             try {
                 List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.getUserByCustNumAndAppletData(apiCode, appletDateList, custNumList);
-                List<MarketingSyncLabel> marketingSyncLabelList = new ArrayList<>();
                 marketingSyncUsers.forEach(syncUser -> {
                     MarketingSyncLabel syncLabel = new MarketingSyncLabel();
                     BeanUtils.copyProperties(syncUser, syncLabel);
@@ -271,12 +293,22 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
 
                 });
                 marketingSyncLabelMapper.batchInsert(apiCode, marketingSyncLabelList);
-                log.warn("规则中心数据打标插入成功");
                 marketingSyncUsers.clear();
                 marketingSyncLabelList.clear();
                 result.setCode(ResultCode.SUCCESS.getValue());
+            } catch (DuplicateKeyException keyException) {
+                marketingSyncLabelList.forEach(syncLabel -> {
+                    try {
+                        marketingSyncLabelMapper.singleInsert(syncLabel.getApiCode(), syncLabel);
+                    } catch (DuplicateKeyException singlekeyException) {
+                        log.warn("规则中心数据打标-存在重复数据！sync_id={}", syncLabel.getLabelId());
+                    } catch (Exception e) {
+                        log.error("规则中心数据打标-单条入库失败", e);
+                        result.setCode(ResultCode.FAIL.getValue());
+                    }
+                });
             } catch (Exception e) {
-                log.error("规则中心数据打标批量入库失败", e);
+                log.error("规则中心数据打标-批量入库失败", e);
                 result.setCode(ResultCode.FAIL.getValue());
             }
             return result;

@@ -6,10 +6,14 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerInfoPushMain;
+import com.br.marketing.entity.ErrorMarkExample;
+import com.br.marketing.enums.ErrorMarkTypeEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
+import com.br.marketing.enums.RetryStatusEnum;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
+import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.rulecenter.IRuleCenterPushStrategy;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
@@ -43,6 +47,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
     @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
+
+    @Resource
+    ErrorMarkMapper errorMarkMapper;
 
 
     @Override
@@ -183,44 +190,18 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
 
     /**
-     * 统一的量级核对方法
+     *  统一查询ES重试数据
      */
-    /*protected Result<Integer> validateDataCount(PushContext context) {
-        CustomerInfoPushMain main = context.getCustomerInfoPushMain();
-        List<String> batchNumbers = context.getBatchNumbers();
+    protected int retryEsData(CustomerInfoPushMain customerInfoPushMain) {
+        // 查询ES重试数据
+        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+        errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                .andTypeEqualTo(ErrorMarkTypeEnum.ES_ERROR.getValue())
+                .andRetryTotalAttemptsLessThan(3);
 
-        try {
-            Integer totalCount = 0;
-            for (Integer i = 0; i < context.getPartitionCount(); i++) {
-                QueryBaseBean queryBaseBean = createQueryBaseBean(context, i);
-                Integer partCount = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
-                context.getPartitionDataCount().put(i, partCount);
-                totalCount += partCount;
-            }
-
-            if (!main.getmRealyNum().equals(totalCount)) {
-                log.warn("任务id：{}，分组查询和预览总数不一致，分组查询总数：{}，预览总数：{}",
-                        main.getId(), totalCount, main.getmRealyNum());
-                return Result.<Integer>builder()
-                        .code(ResultCode.FAIL.getValue())
-                        .message("分组查询和预览总数不一致")
-                        .build();
-            }
-
-            return Result.<Integer>builder()
-                    .code(ResultCode.SUCCESS.getValue())
-                    .data(totalCount)
-                    .build();
-
-        } catch (Exception e) {
-            log.error("量级核对异常", e);
-            return Result.<Integer>builder()
-                    .code(ResultCode.FAIL.getValue())
-                    .message("量级核对异常: " + e.getMessage())
-                    .build();
-        }
+        return errorMarkMapper.countByExample(errorMarkExample);
     }
-*/
 
     /**
      * 统一的推送执行方法

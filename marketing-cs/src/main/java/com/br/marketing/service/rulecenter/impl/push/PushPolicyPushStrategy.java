@@ -486,6 +486,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                     MockSwitchEnum.GENERAL.getValue());
             // 是否存在ES重试数据
             int i = retryEsData(customerInfoPushMain);
+            //流程结束
             if (i == 0) {
                 Integer status = toPolicyByRuleService.queryExistError(customerInfoPushMain.getId(),
                         FilterTypeEnum.GENERAL_POLICY.getValue());
@@ -500,17 +501,6 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
 
     }
 
-
-    private int retryEsData(CustomerInfoPushMain customerInfoPushMain) {
-        // 查询ES重试数据
-        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-        errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
-                .andTypeEqualTo(ErrorMarkTypeEnum.ES_ERROR.getValue())
-                .andRetryTotalAttemptsLessThan(3);
-
-        return errorMarkMapper.countByExample(errorMarkExample);
-    }
 
 
     public String encrypt3k(Integer type, String content) {
