@@ -370,6 +370,12 @@ public class RedisKeyConstant {
      */
     public static final String tcyrDbDeal = prefix.concat("tcyr_sync:dbDeal");
 
+
+    /**CPA
+     * 同程易融-quickDeal流程锁
+     */
+    public static final String tcyrCpaQuickDeal = prefix.concat("tcyr_cpa_sync:quickDeal");
+
     /**
      * 雪花算法
      */

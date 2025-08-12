@@ -2940,6 +2940,11 @@ public class MarketingCommonConfig {
     private String tcyrCpaApiCode;
 
     /**
+     * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
+     */
+    private List<String> tcyrCpaSyncSaveExcludeFieldList;
+
+    /**
      * 同城易融-gz查询-csv分页size
      */
     private Integer tcGzResultPartitionSize;
@@ -2993,6 +2998,15 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcQuickDealShardConfig;
 
+
+    /**
+     * 同程易融CPA-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":10,"pageSize":2000,"lockRetryTimes":2,"lockRetryIntervalMs":1000,
+     * "detailLogSwitch":true
+     * }
+     */
+    private JSONObject tcCpaQuickDealShardConfig;
 
     /**
      * 同程易融-quickDeal-shard job参数

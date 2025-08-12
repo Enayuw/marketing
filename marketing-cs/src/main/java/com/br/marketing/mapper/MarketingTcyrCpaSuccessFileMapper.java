@@ -1,10 +1,20 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
-import com.br.marketing.entity.MarketingTcyrCpaSuccessFileExample;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface MarketingTcyrCpaSuccessFileMapper extends MarketingTcyrCpaSuccessFileMapperBase{
+
+    MarketingTcyrCpaSuccessFile selectNoDealSingleSyncFile(
+            @Param("apiCode") String apiCode,
+            @Param("syncDataDealStatus") Integer syncDataDealStatus);
+
+    void updateSyncDataDealStatus(
+            @Param("id") Long id,
+            @Param("syncDataDealStatus") Integer syncDataDealStatus);
+
+    void updateSyncDealStatusAndSuccesCount(
+            @Param("id") Long id,
+            @Param("syncDataDealStatus") Integer syncDataDealStatus,
+            @Param("addSuccessCount") Long addSuccessCount);
 }

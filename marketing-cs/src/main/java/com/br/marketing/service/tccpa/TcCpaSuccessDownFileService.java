@@ -1,6 +1,6 @@
 package com.br.marketing.service.tccpa;
 
-public interface TcCpaSyncDataDownFileService {
+public interface TcCpaSuccessDownFileService {
 
     void process(String tcyrCpaApiCode);
 }
