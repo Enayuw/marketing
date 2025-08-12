@@ -10,9 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * @Description 同程易融CPA快速处理流程(file->上传明细表)
- * @Author zhiyong.zhang
- * @CreateTime 2025/07/03
+ * 同程易融CPA-上传流程(file->上传明细表->撞库周期表)
  */
 @Component
 @Slf4j

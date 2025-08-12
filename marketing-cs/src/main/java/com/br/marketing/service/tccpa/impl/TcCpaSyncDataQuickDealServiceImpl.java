@@ -34,7 +34,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -89,7 +88,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                     continue;
                 }
                 //2.查询单条未处理的csvFile
-                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectNoDealSingleSyncFile(apiCode,0);
+                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectNoDealSingleSyncFile(apiCode,0,0);
                 if (ObjectUtil.isEmpty(tcyrCpaSuccessFile)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;

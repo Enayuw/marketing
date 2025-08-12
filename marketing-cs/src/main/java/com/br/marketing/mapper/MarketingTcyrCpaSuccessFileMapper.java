@@ -7,7 +7,8 @@ public interface MarketingTcyrCpaSuccessFileMapper extends MarketingTcyrCpaSucce
 
     MarketingTcyrCpaSuccessFile selectNoDealSingleSyncFile(
             @Param("apiCode") String apiCode,
-            @Param("syncDataDealStatus") Integer syncDataDealStatus);
+            @Param("syncDataDealStatus") Integer syncDataDealStatus,
+            @Param("collidingDataDealStatus") Integer collidingDataDealStatus);
 
     void updateSyncDataDealStatus(
             @Param("id") Long id,
@@ -17,4 +18,13 @@ public interface MarketingTcyrCpaSuccessFileMapper extends MarketingTcyrCpaSucce
             @Param("id") Long id,
             @Param("syncDataDealStatus") Integer syncDataDealStatus,
             @Param("addSuccessCount") Long addSuccessCount);
+
+    void updateColliDingDataDealStatus(
+            @Param("id") Long id,
+            @Param("collidingDataDealStatus") Integer collidingDataDealStatus);
+
+    void updateColliDingDataDealStatusAndTotalCount(
+            @Param("id") Long id,
+            @Param("collidingDataDealStatus") Integer collidingDataDealStatus,
+            @Param("addTotalCount")Long addTotalCount);
 }
