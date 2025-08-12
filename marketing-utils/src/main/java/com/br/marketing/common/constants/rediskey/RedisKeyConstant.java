@@ -380,4 +380,19 @@ public class RedisKeyConstant {
      */
     public static final String MQ_IDEMPOTENT = prefix.concat("mq:idempotent:");
 
+    /**
+     * 携程上报队列负载key
+     */
+    public static final String XIECHENG_REPORT_CONSUME_RNAME = prefix.concat("xieChengReport:consumer:name");
+
+
+    /**
+     * ai客户数据入明细负载队列
+     */
+    public static final String AI_PREUSER_RECEIVE_MQ_BALANCER = prefix.concat("aipreuserreceive:mq:balancer");
+
+    /**
+     * ai客户推送下游负载队列
+     */
+    public static final String AI_UNIVERSAL_RECEIVE_MQ_BALANCER = prefix.concat("aiuniversalreceive:mq:balancer");
 }

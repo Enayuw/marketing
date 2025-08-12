@@ -36,7 +36,7 @@ public class UploadDataController {
 
     @ApiOperation(value = "奇富AI上传数据接入接口")
     @PostMapping("/uploadData/24152")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public QiFuAiResDTO qiFuAiUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
         String testApiCode = request.getHeader(TEST_API_CODE);
         Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "original",testApiCode);
@@ -51,7 +51,7 @@ public class UploadDataController {
 
     @ApiOperation(value = "奇富AI语音机器人当月报表数据接入接口")
     @PostMapping("/uploadData/3700226")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public QiFuAiResDTO qiFuAiRobotReportUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
         String testApiCode = request.getHeader(TEST_API_CODE);
         Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "robot_report",testApiCode);
@@ -66,7 +66,7 @@ public class UploadDataController {
 
     @ApiOperation(value = "奇富AI语音机器人排名报表推送接口")
     @PostMapping("/uploadData/ranking")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public QiFuAiResDTO qiFuAiRobotRankingReportUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
         String testApiCode = request.getHeader(TEST_API_CODE);
         Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "robot_ranking_report",testApiCode);

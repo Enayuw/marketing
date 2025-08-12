@@ -3292,5 +3292,10 @@ public class MarketingCommonConfig {
      */
     private String imageDistribution;
 
+
+    /**
+     * Ai数据入库和推送下游rocketmq切换开关
+     */
+    private Boolean aiUseRocketMq;
 }
 
