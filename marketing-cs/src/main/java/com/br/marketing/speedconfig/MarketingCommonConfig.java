@@ -3002,8 +3002,7 @@ public class MarketingCommonConfig {
     /**
      * 同程易融CPA-quickDeal-shard job参数
      * {
-     * "jobSwitch":true,"threadPool":10,"pageSize":2000,"lockRetryTimes":2,"lockRetryIntervalMs":1000,
-     * "detailLogSwitch":true
+     * "jobSwitch":true,"pageSize":2000
      * }
      */
     private JSONObject tcCpaQuickDealShardConfig;

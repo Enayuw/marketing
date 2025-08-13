@@ -43,7 +43,7 @@
     <update id="updateColliDingDataDealStatusAndTotalCount">
         UPDATE
             b_tcyr_cpa_success_file
-        SET colliding_data_deal_status = #{collidingDataDealStatus},total_count=total_count + #{addTotalCount}
+        SET colliding_data_deal_status = #{collidingDataDealStatus},total_count= #{addTotalCount}
         WHERE id = #{id}
     </update>
 </mapper>

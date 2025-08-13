@@ -72,7 +72,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
     @Override
     public void shardProcess(String apiCode) {
         String lockKey = RedisKeyConstant.tcyrCpaQuickDeal.concat(apiCode);
-        String lockValue = "";
+        String lockValue =UUID.randomUUID().toString();
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_CPA_SYNC_DEAL.getName(), 2, 2);
         try {
@@ -80,7 +80,6 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                 if (!marketingCommonConfig.getTcCpaQuickDealShardConfig().getBoolean("jobSwitch")) {
                     break;
                 }
-                lockValue = UUID.randomUUID().toString();
                 //1.抢锁 - 添加重试机制
                 boolean lockAcquired = acquireLockWithRetry(lockKey, lockValue);
                 if (!lockAcquired) {
