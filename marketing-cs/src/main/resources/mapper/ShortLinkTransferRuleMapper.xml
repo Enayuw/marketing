@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ShortLinkTransferRuleMapper" >
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.ShortLinkTransferRule" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="link_rule_code" property="linkRuleCode" jdbcType="VARCHAR" />
+        <result column="link_rule_name" property="linkRuleName" jdbcType="VARCHAR" />
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+        <result column="status" property="status" jdbcType="TINYINT" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+        <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id, link_rule_code, link_rule_name, api_code, status, create_time, update_time, create_by, update_by
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from b_short_link_transfer_rule
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectRuleCodeListByRule" resultType="string">
+        select r.link_rule_code
+        from b_short_link_transfer_rule r
+        <where>
+            r.status = 1
+            <if test="queryStartTime != null and queryStartTime != ''">
+                <![CDATA[ and r.create_time >= #{queryStartTime} ]]>
+            </if>
+            <if test="queryEndTime != null and queryEndTime != ''">
+                <![CDATA[ and r.create_time < #{queryEndTime} ]]>
+            </if>
+            <if test="linkRuleName != null and linkRuleName != ''">
+                and r.link_rule_name like CONCAT('%',#{linkRuleName},'%')
+            </if>
+        </where>
+        group by r.link_rule_code order by r.create_time desc
+    </select>
+
+    <select id="selectCountByRuleCode" resultType="long">
+        SELECT IFNULL(COUNT(*), 0)
+        FROM (
+        SELECT 1
+        FROM b_short_link_visit_log a
+        <where>
+            <if test="linkRuleCode != null and linkRuleCode != ''">
+                and a.link_rule_code = #{linkRuleCode}
+            </if>
+        </where>
+        GROUP BY a.short_url, a.target_key_md5, a.ip, a.status
+        ) tmp
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from b_short_link_transfer_rule
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.br.marketing.entity.ShortLinkTransferRule" >
+        insert into b_short_link_transfer_rule (id, link_rule_code, link_rule_name, 
+          api_code, status, create_time, 
+          update_time, create_by, update_by
+          )
+        values (#{id,jdbcType=BIGINT}, #{linkRuleCode,jdbcType=VARCHAR}, #{linkRuleName,jdbcType=VARCHAR}, 
+          #{apiCode,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, 
+          #{updateTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, #{updateBy,jdbcType=VARCHAR}
+          )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.ShortLinkTransferRule" >
+        insert into b_short_link_transfer_rule
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="linkRuleCode != null" >
+                link_rule_code,
+            </if>
+            <if test="linkRuleName != null" >
+                link_rule_name,
+            </if>
+            <if test="apiCode != null" >
+                api_code,
+            </if>
+            <if test="status != null" >
+                status,
+            </if>
+            <if test="createTime != null" >
+                create_time,
+            </if>
+            <if test="updateTime != null" >
+                update_time,
+            </if>
+            <if test="createBy != null" >
+                create_by,
+            </if>
+            <if test="updateBy != null" >
+                update_by,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="linkRuleCode != null" >
+                #{linkRuleCode,jdbcType=VARCHAR},
+            </if>
+            <if test="linkRuleName != null" >
+                #{linkRuleName,jdbcType=VARCHAR},
+            </if>
+            <if test="apiCode != null" >
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null" >
+                #{status,jdbcType=TINYINT},
+            </if>
+            <if test="createTime != null" >
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null" >
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createBy != null" >
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateBy != null" >
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ShortLinkTransferRule" >
+        update b_short_link_transfer_rule
+        <set >
+            <if test="linkRuleCode != null" >
+                link_rule_code = #{linkRuleCode,jdbcType=VARCHAR},
+            </if>
+            <if test="linkRuleName != null" >
+                link_rule_name = #{linkRuleName,jdbcType=VARCHAR},
+            </if>
+            <if test="apiCode != null" >
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null" >
+                status = #{status,jdbcType=TINYINT},
+            </if>
+            <if test="createTime != null" >
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null" >
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createBy != null" >
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateBy != null" >
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ShortLinkTransferRule" >
+        update b_short_link_transfer_rule
+        set link_rule_code = #{linkRuleCode,jdbcType=VARCHAR},
+          link_rule_name = #{linkRuleName,jdbcType=VARCHAR},
+          api_code = #{apiCode,jdbcType=VARCHAR},
+          status = #{status,jdbcType=TINYINT},
+          create_time = #{createTime,jdbcType=TIMESTAMP},
+          update_time = #{updateTime,jdbcType=TIMESTAMP},
+          create_by = #{createBy,jdbcType=VARCHAR},
+          update_by = #{updateBy,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

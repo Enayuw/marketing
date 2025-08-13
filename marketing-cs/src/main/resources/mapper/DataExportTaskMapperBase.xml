@@ -350,4 +350,13 @@
         update_by = #{updateBy,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
+
+  <select id="selectByStatusAndFileNameTemplate" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_data_export_task 
+    where `status` = #{status} 
+    and file_name_template like #{fileNameTemplate}
+    order by id asc
+  </select>
 </mapper>
