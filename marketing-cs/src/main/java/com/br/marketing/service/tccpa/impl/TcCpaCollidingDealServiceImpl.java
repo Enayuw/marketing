@@ -159,7 +159,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                     sqlBuilder.append("('").append(escapeSqlString(apiCode)).
                             append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
                     if (data.length == 0) {
-                        sqlBuilder.append(",'").append(line).append("',NULL,NULL,NULL");
+                        sqlBuilder.append(",'").append(line).append("',NULL,NULL");
                         JSONObject extentJson = new JSONObject();
                         extentJson.put("column_0", line);
                         sqlBuilder.append(",'").append(escapeSqlString(JSONObject.toJSONString(extentJson))).append("',0,NOW(),NOW(),'")

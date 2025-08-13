@@ -89,19 +89,23 @@ public class TcCpaSuccessDownFileServiceImpl implements TcCpaSuccessDownFileServ
             //3、txt文件信息析入库
             Date nowDate = new Date();
             for (File csvFile : files) {
-                log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
-                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = new MarketingTcyrCpaSuccessFile();
-                tcyrCpaSuccessFile.setApiCode(successRecord.getApiCode());
-                tcyrCpaSuccessFile.setBatchNo(successRecord.getBatchNo());
-                tcyrCpaSuccessFile.setFileName(csvFile.getName());
-                tcyrCpaSuccessFile.setFilePath(csvFilePath+csvFile.getName());
-                tcyrCpaSuccessFile.setSyncRecordId(successRecord.getId());
-                tcyrCpaSuccessFile.setCreateTime(nowDate);
-                tcyrCpaSuccessFile.setUpdateTime(nowDate);
-                tcyrCpaSuccessFile.setSyncDataDealStatus(TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
-                tcyrCpaSuccessFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
-                tcyrCpaSuccessFile.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
-                tcyrCpaSuccessFileMapper.insertSelective(tcyrCpaSuccessFile);
+                String filePath = csvFilePath + csvFile.getName();
+                MarketingTcyrCpaSuccessFile oldFile = tcyrCpaSuccessFileMapper.selectFileByFilePath(successRecord.getApiCode(),filePath);
+                if (oldFile == null) {
+                    log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
+                    MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = new MarketingTcyrCpaSuccessFile();
+                    tcyrCpaSuccessFile.setApiCode(successRecord.getApiCode());
+                    tcyrCpaSuccessFile.setBatchNo(successRecord.getBatchNo());
+                    tcyrCpaSuccessFile.setFileName(csvFile.getName());
+                    tcyrCpaSuccessFile.setFilePath(filePath);
+                    tcyrCpaSuccessFile.setSyncRecordId(successRecord.getId());
+                    tcyrCpaSuccessFile.setCreateTime(nowDate);
+                    tcyrCpaSuccessFile.setUpdateTime(nowDate);
+                    tcyrCpaSuccessFile.setSyncDataDealStatus(TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
+                    tcyrCpaSuccessFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
+                    tcyrCpaSuccessFile.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
+                    tcyrCpaSuccessFileMapper.insertSelective(tcyrCpaSuccessFile);
+                }
             }
             //4、更新 syncRecord 状态
             tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());

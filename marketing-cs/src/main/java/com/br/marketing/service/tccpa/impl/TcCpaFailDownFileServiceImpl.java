@@ -10,6 +10,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrCpaFailFile;
 import com.br.marketing.entity.MarketingTcyrCpaFailRecord;
+import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaFailFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaFailRecordMapper;
@@ -91,18 +92,22 @@ public class TcCpaFailDownFileServiceImpl implements TcCpaFailDownFileService{
             //3、txt文件信息析入库
             Date nowDate = new Date();
             for (File csvFile : files) {
-                log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
-                MarketingTcyrCpaFailFile tcyrCpaFailFile = new MarketingTcyrCpaFailFile();
-                tcyrCpaFailFile.setApiCode(failRecord.getApiCode());
-                tcyrCpaFailFile.setBatchNo(failRecord.getBatchNo());
-                tcyrCpaFailFile.setFileName(csvFile.getName());
-                tcyrCpaFailFile.setFilePath(csvFilePath+csvFile.getName());
-                tcyrCpaFailFile.setSyncRecordId(failRecord.getId());
-                tcyrCpaFailFile.setCreateTime(nowDate);
-                tcyrCpaFailFile.setUpdateTime(nowDate);
-                tcyrCpaFailFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
-                tcyrCpaFailFile.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
-                tcyrCpaFailFileMapper.insertSelective(tcyrCpaFailFile);
+                String filePath = csvFilePath + csvFile.getName();
+                MarketingTcyrCpaFailFile oldFile = tcyrCpaFailFileMapper.selectFileByFilePath(failRecord.getApiCode(),filePath);
+                if (oldFile == null) {
+                    log.warn("{} csv文件入db,csvName:{},csvPath:{} 开始执行",TITLE,csvFile.getName(),csvFile.getAbsolutePath());
+                    MarketingTcyrCpaFailFile tcyrCpaFailFile = new MarketingTcyrCpaFailFile();
+                    tcyrCpaFailFile.setApiCode(failRecord.getApiCode());
+                    tcyrCpaFailFile.setBatchNo(failRecord.getBatchNo());
+                    tcyrCpaFailFile.setFileName(csvFile.getName());
+                    tcyrCpaFailFile.setFilePath(filePath);
+                    tcyrCpaFailFile.setSyncRecordId(failRecord.getId());
+                    tcyrCpaFailFile.setCreateTime(nowDate);
+                    tcyrCpaFailFile.setUpdateTime(nowDate);
+                    tcyrCpaFailFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
+                    tcyrCpaFailFile.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
+                    tcyrCpaFailFileMapper.insertSelective(tcyrCpaFailFile);
+                }
             }
             //4、更新 syncRecord 状态
             tcyrCpaFailRecordMapper.updateTcyrRecordDownStatus(failRecord.getId(),TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());

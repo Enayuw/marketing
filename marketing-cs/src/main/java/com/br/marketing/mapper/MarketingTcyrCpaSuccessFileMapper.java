@@ -30,4 +30,8 @@ public interface MarketingTcyrCpaSuccessFileMapper extends MarketingTcyrCpaSucce
             @Param("id") Long id,
             @Param("collidingDataDealStatus") Integer collidingDataDealStatus,
             @Param("addTotalCount")Long addTotalCount);
+
+    MarketingTcyrCpaSuccessFile selectFileByFilePath(
+            @Param("apiCode") String apiCode,
+            @Param("filePath") String filePath);
 }

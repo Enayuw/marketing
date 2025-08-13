@@ -20,6 +20,14 @@
           AND is_del = 1
         LIMIT 1
     </select>
+    <select id="selectFileByFilePath" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessFile">
+        SELECT *
+        FROM b_tcyr_cpa_success_file
+        WHERE api_code =#{apiCode}
+          AND file_path = #{filePath}
+          AND is_del = 1
+            LIMIT 1
+    </select>
 
     <update id="updateSyncDataDealStatus">
         UPDATE
