@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,19 +57,33 @@ public class QiFuEffectReportStrategy implements ReportStrategy<QiFuEffectReport
     @Override
     public List<QiFuEffectReportExcelModel> convertToExcelModel(List<QiFuEffectReportData> dataList) {
         return dataList.stream()
-                .map((QiFuEffectReportData QiFuEffectReportData) -> {
-                    QiFuEffectReportData.setLoginRate(convertPercent(QiFuEffectReportData.getLoginRate(), 6));
-                    QiFuEffectReportData.setApplySubmitRate(convertPercent(QiFuEffectReportData.getApplySubmitRate(), 6));
-                    QiFuEffectReportData.setPassRate(convertPercent(QiFuEffectReportData.getPassRate(), 6));
-                    QiFuEffectReportData.setCreditSuccessRate(convertPercent(QiFuEffectReportData.getCreditSuccessRate(), 6));
-                    QiFuEffectReportData.setDeltaApplySubmitRate(convertPercent(QiFuEffectReportData.getDeltaApplySubmitRate(), 6));
-                    QiFuEffectReportData.setDeltaCreditSuccessRate(convertPercent(QiFuEffectReportData.getDeltaCreditSuccessRate(), 6));
-                    QiFuEffectReportData.setAttrApplyRatio(convertPercent(QiFuEffectReportData.getAttrApplyRatio(), 6));
-                    QiFuEffectReportData.setAttrCreditRatio(convertPercent(QiFuEffectReportData.getAttrCreditRatio(), 6));
-                    QiFuEffectReportData.setAttrApplyRate(convertPercent(QiFuEffectReportData.getAttrApplyRate(), 6));
-                    QiFuEffectReportData.setAttrCreditRate(convertPercent(QiFuEffectReportData.getAttrCreditRate(), 6));
+                .map((QiFuEffectReportData qiFuEffectReportData) -> {
+                    //百分比取8位小数
+                    qiFuEffectReportData.setLoginRate(convertPercent(qiFuEffectReportData.getLoginRate(), 8));
+                    qiFuEffectReportData.setApplySubmitRate(convertPercent(qiFuEffectReportData.getApplySubmitRate(), 8));
+                    qiFuEffectReportData.setPassRate(convertPercent(qiFuEffectReportData.getPassRate(), 8));
+                    qiFuEffectReportData.setCreditSuccessRate(convertPercent(qiFuEffectReportData.getCreditSuccessRate(), 8));
+                    qiFuEffectReportData.setDeltaApplySubmitRate(convertPercent(qiFuEffectReportData.getDeltaApplySubmitRate(), 8));
+                    qiFuEffectReportData.setDeltaCreditSuccessRate(convertPercent(qiFuEffectReportData.getDeltaCreditSuccessRate(), 8));
+                    qiFuEffectReportData.setAttrApplyRatio(convertPercent(qiFuEffectReportData.getAttrApplyRatio(), 8));
+                    qiFuEffectReportData.setAttrCreditRatio(convertPercent(qiFuEffectReportData.getAttrCreditRatio(), 8));
+                    qiFuEffectReportData.setAttrApplyRate(convertPercent(qiFuEffectReportData.getAttrApplyRate(), 8));
+                    qiFuEffectReportData.setAttrCreditRate(convertPercent(qiFuEffectReportData.getAttrCreditRate(), 8));
+                    //数量四舍五入取整
+                    qiFuEffectReportData.setUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getUserCount()))));
+                    qiFuEffectReportData.setLoginUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getLoginUserCount()))));
+                    qiFuEffectReportData.setApplySubmitUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getApplySubmitUserCount()))));
+                    qiFuEffectReportData.setCreditSuccessUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getCreditSuccessUserCount()))));
+                    qiFuEffectReportData.setDeltaApplySubmitCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getDeltaApplySubmitCount()))));
+                    qiFuEffectReportData.setDeltaCreditSuccessCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getDeltaCreditSuccessCount()))));
+                    qiFuEffectReportData.setAttrApplyUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrApplyUserCount()))));
+                    qiFuEffectReportData.setAttrCreditUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCount()))));
+                    qiFuEffectReportData.setAttrCreditUserCountA(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCountA()))));
+                    qiFuEffectReportData.setAttrCreditUserCountB(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCountB()))));
+                    qiFuEffectReportData.setAttrCreditUserCountC(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCountC()))));
+
                     QiFuEffectReportExcelModel reportExcelModel = new QiFuEffectReportExcelModel();
-                    BeanUtils.copyProperties(QiFuEffectReportData, reportExcelModel);
+                    BeanUtils.copyProperties(qiFuEffectReportData, reportExcelModel);
                     return reportExcelModel;
                 }).collect(Collectors.toList());
     }
@@ -95,7 +110,8 @@ public class QiFuEffectReportStrategy implements ReportStrategy<QiFuEffectReport
 
     @Override
     public String getAttachmentFileName(String subject) {
-        return subject;
+        String currentDate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now());
+        return subject.concat("_").concat(currentDate);
     }
 
     /**
