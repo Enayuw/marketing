@@ -481,8 +481,8 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="【bridge】-TcCpaSyncDbDealShardJob"
-                class="com.br.marketing.bridge.job.tccpa.TcCpaSyncDbDealShardJob"
+    <job:simple id="【bridge】-TcCpaCollidingDealShardJob"
+                class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDealShardJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="同程易融CPA-撞库周期数据流程"
                 registry-center-ref="regCenter"
