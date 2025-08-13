@@ -24,6 +24,8 @@ import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.mapper.TagDataDetailMapper;
 import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.util.GeneScriptUtil;
 import com.google.common.base.Joiner;
@@ -124,29 +126,15 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
 
         @Override
         public List<Future<Result<Integer>>> call() {
-            QueryBaseBean queryBaseBean = new QueryBaseBean();
-            queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
-            queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
-            queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
-            queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
             boolean scFlag = !ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
-            if (scFlag) {
-                if (markWithEsFlag) {
-                    //赋值es脚本
-                    queryBaseBean.setScriptFields(lableObject.toString());
-                } else {
-                    scoreLables = (List<ScoreLable>) lableObject;
-                }
-            }
-            if (!isPerOrTop) {
-                queryBaseBean.setPart(part);
+            if (scFlag && !markWithEsFlag) {
+                scoreLables = (List<ScoreLable>) lableObject;
             }
             Integer pageSize = 2000;
             Integer total = isPerOrTop ? customerInfoPushMain.getmRealyNum()
                     : partDataNum;
             int totalYuShu = total % pageSize;
-            String searchAfterStr = "";
             int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
             log.warn("任务id：{}，当前片：{}，总数：{}，页数：{}"
                     , customerInfoPushMain.getId()
@@ -155,110 +143,59 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                     , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
 
-            ErrorMark errorMark = new ErrorMark();
-            int i1 = 1;
-            // 判断该任务是否为异常待补推任务
-            if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
-                    .equals(customerInfoPushMain.getmStatus())) {
+            // 使用统一的ES查询执行器，传入标签对象和标记
+            EsQueryExecutor esExecutor = createEsQueryExecutor(customerInfoPushMain, part, numList, fileIds,
+                                                              pageSize, totalPage, isPerOrTop,
+                                                              lableObject, markWithEsFlag);
 
-                // 查询待补推数据
-                ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-                errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                        .andPartEqualTo(part)
-                        .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue());
-                List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-                // 查询当前part下的异常数据
-                if (!CollectionUtils.isEmpty(errorMarks)) {
-                    errorMark = errorMarks.get(0);
-                    i1 = errorMark.getPageSize();
-                    searchAfterStr = errorMark.getSearchAfter();
-                }
-            }
-
-            for (int i = i1; i <= totalPage; i++) {
+            for (int i = esExecutor.getStartPageIndex(); i <= totalPage; i++) {
                 try {
                     String sn = String.valueOf(i);
-                    if (i == totalPage && totalYuShu > 0) {
-                        queryBaseBean.setPageSize(totalYuShu);
-                    } else {
-                        queryBaseBean.setPageSize(pageSize);
-                    }
-                    queryBaseBean.setSearchAfter(searchAfterStr);
-
-                    List<MarketingHistory> marketingHistories;
-
-                    // 模拟es异常
-                    boolean mockEsError = toPolicyByRuleService.mockSwitch(customerInfoPushMain.getmApiCode(),
-                            MockSwitchEnum.GENERAL.getValue(), MockSwitchEnum.ESRETRY.getValue());
-                    try {
-                        if (mockEsError) {
-                            throw new Exception("模拟ES异常场景");
-                        }
-                        marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-
-                        if (marketingHistories == null) {
-                            throw new Exception();
-                        }
-
-                        // 获取最后一条记录的searchAfter值
-                        if (!marketingHistories.isEmpty()) {
-                            searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
-                        }
-
-                        if (customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()) {
-                            // 解析标签规则
-                            JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
-                            String tagCode = jsonObject.getString("tagCode");
-                            int type = jsonObject.getIntValue("type");
-
-                            if (!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)) {
-                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                                        "该apiCode：" + customerInfoPushMain.getmApiCode() + "，该tag：" + tagCode + "已失效"));
-                                Result<Integer> result = new Result<>();
-                                result.setCode(ResultCode.FAIL.getValue());
-                                Callable<Result<Integer>> resultCallable = (Callable) () -> result;
-                                resList.add(pushJcPool.submit(resultCallable));
-                                return resList;
-                            }
-
-                            // 查询es 提取跑分文件中cells
-                            List<String> esCells = marketingHistories.stream()
-                                    .map(MarketingHistory::getCell_log)
-                                    .filter(Objects::nonNull)
-                                    .collect(Collectors.toList());
-
-                            // 获取 TiDB 中存在的 cells
-                            List<String> tidbCells = tagDataDetailMapper.queryCells(esCells, tagCode, LocalDate.now().toString());
-
-                            if (type == 0) {
-                                // 交集：跑分文件 与 标签数据 都存在
-                                marketingHistories = marketingHistories.stream()
-                                        .filter(history -> tidbCells.contains(history.getCell_log()))
-                                        .collect(Collectors.toList());
-                            } else {
-                                // 剔除：去掉标签存在跑分文件中cell
-                                marketingHistories = marketingHistories.stream()
-                                        .filter(history -> !tidbCells.contains(history.getCell_log()))
-                                        .collect(Collectors.toList());
-                            }
-                        }
-                    } catch (Exception e) {
-                        if (errorMark.getId() != null) {
-                            // 已存在补推记录
-                            if (errorMark.getRetryTotalAttempts() < 3) {
-                                updateErrorMark(errorMark, errorMark.getRetryTotalAttempts() + 1);
-                            }
-                        } else {
-                            insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
-                        }
+                    // 执行ES查询
+                    EsQueryResult esResult = esExecutor.executeQuery(i);
+                    if (!esResult.isSuccess()) {
+                        // ES查询失败，直接返回
                         return resList;
                     }
+                    List<MarketingHistory> marketingHistories = esResult.getMarketingHistories();
 
-                    if (errorMark.getId() != null) {
-                        ErrorMark errorMark1 = new ErrorMark();
-                        errorMark1.setId(errorMark.getId());
-                        errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
-                        errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+                    // 标签处理逻辑（PushPolicy特有）
+                    if (customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()) {
+                        // 解析标签规则
+                        JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
+                        String tagCode = jsonObject.getString("tagCode");
+                        int type = jsonObject.getIntValue("type");
+
+                        if (!tagHandleService.tagIsEnabled(customerInfoPushMain.getmApiCode(), tagCode)) {
+                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                                    "该apiCode：" + customerInfoPushMain.getmApiCode() + "，该tag：" + tagCode + "已失效"));
+                            Result<Integer> result = new Result<>();
+                            result.setCode(ResultCode.FAIL.getValue());
+                            Callable<Result<Integer>> resultCallable = (Callable) () -> result;
+                            resList.add(pushJcPool.submit(resultCallable));
+                            return resList;
+                        }
+
+                        // 查询es 提取跑分文件中cells
+                        List<String> esCells = marketingHistories.stream()
+                                .map(MarketingHistory::getCell_log)
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+
+                        // 获取 TiDB 中存在的 cells
+                        List<String> tidbCells = tagDataDetailMapper.queryCells(esCells, tagCode, LocalDate.now().toString());
+
+                        if (type == 0) {
+                            // 交集：跑分文件 与 标签数据 都存在
+                            marketingHistories = marketingHistories.stream()
+                                    .filter(history -> tidbCells.contains(history.getCell_log()))
+                                    .collect(Collectors.toList());
+                        } else {
+                            // 剔除：去掉标签存在跑分文件中cell
+                            marketingHistories = marketingHistories.stream()
+                                    .filter(history -> !tidbCells.contains(history.getCell_log()))
+                                    .collect(Collectors.toList());
+                        }
                     }
 
                     Integer realNum = marketingHistories.size();
@@ -270,12 +207,12 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                     if (realNum == 0) {
                         continue;
                     }
+                    
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
                         //人员信息
                         PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
-//                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
                         if (log.isInfoEnabled()) {
                             log.info("人员信息：cusnum:{};batchnumber:{}", marketingHistory.getCusNum(),
                                     (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
@@ -327,6 +264,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                         }
                         userDetailDTOS.add(dto1);
                     }
+                    
                     //推送任务基础信息
                     List<List<PushMarketingUserDetailDTO>> partition =
                             toPolicyByRuleService.splitParam(customerInfoPushMain.getmApiCode(), userDetailDTOS);
@@ -369,23 +307,6 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
         }
     }
 
-    // 辅助方法
-    private void insertNewErrorMark(CustomerInfoPushMain customerInfoPushMain, String part, int pageSize, String searchAfterStr, String esCondition) {
-        // 新增异常待补推数据
-        ErrorMark errorMark = new ErrorMark();
-        errorMark.setApiCode(customerInfoPushMain.getmApiCode());
-        errorMark.setmId(customerInfoPushMain.getId());
-        errorMark.setPart(part);
-        errorMark.setPageSize(pageSize);
-        errorMark.setSearchAfter(searchAfterStr);
-        errorMark.setEsCondition(esCondition);
-        errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
-        errorMark.setAppletDate(LocalDate.now().toString());
-        errorMark.setCreateTime(new Date());
-        errorMark.setUpdateTime(new Date());
-        errorMarkMapper.insertSelective(errorMark);
-    }
-
     private void markForCell(JSONObject varObject, JSONObject fields) {
         if (fields == null) {
             return;
@@ -398,15 +319,6 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
         if (valueTypeJson != null) {
             varObject.put("valueType", valueTypeJson.getString("value"));
         }
-    }
-
-    // 更新错误标记
-    private void updateErrorMark(ErrorMark errorMark, int retryAttempts) {
-        ErrorMark errorMark1 = new ErrorMark();
-        errorMark1.setId(errorMark.getId());
-        errorMark1.setRetryTotalAttempts(retryAttempts);
-        errorMark1.setUpdateTime(new Date());
-        errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
     }
 
     // 插入错误标记

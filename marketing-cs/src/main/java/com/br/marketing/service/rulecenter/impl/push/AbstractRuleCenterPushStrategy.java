@@ -1,29 +1,40 @@
 package com.br.marketing.service.rulecenter.impl.push;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerInfoPushMain;
+import com.br.marketing.entity.ErrorMark;
 import com.br.marketing.entity.ErrorMarkExample;
 import com.br.marketing.enums.ErrorMarkTypeEnum;
+import com.br.marketing.enums.MockSwitchEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.RetryStatusEnum;
+import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.service.Impl.PushRuleServiceImpl;
+import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.IRuleCenterPushStrategy;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -50,6 +61,12 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
     @Resource
     ErrorMarkMapper errorMarkMapper;
+
+    @Resource
+    private ToPolicyByRuleService toPolicyByRuleService;
+
+    @Autowired
+    private EsQueryExecutor esQueryExecutor;
 
 
     @Override
@@ -190,7 +207,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
 
     /**
-     *  统一查询ES重试数据
+     * 统一查询ES重试数据
      */
     protected int retryEsData(CustomerInfoPushMain customerInfoPushMain) {
         // 查询ES重试数据
@@ -356,6 +373,22 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         log.error("告警信息 - {}: {}", title, content);
     }
 
+    /**
+     * 创建ES查询执行器
+     */
+    protected EsQueryExecutor createEsQueryExecutor(CustomerInfoPushMain customerInfoPushMain,
+                                                    String part,
+                                                    List<String> numList,
+                                                    List<Long> fileIds,
+                                                    Integer pageSize,
+                                                    Integer totalPage,
+                                                    Boolean isPerOrTop,
+                                                    Object labelObject,
+                                                    Boolean markWithEsFlag) {
+        //注入的EsQueryExecutor并初始化
+        return esQueryExecutor.initialize(customerInfoPushMain, part, numList, fileIds, pageSize, totalPage,
+                isPerOrTop, labelObject, markWithEsFlag);
+    }
 
 
 }

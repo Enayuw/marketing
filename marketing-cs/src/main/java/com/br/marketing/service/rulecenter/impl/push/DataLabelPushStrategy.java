@@ -17,7 +17,10 @@ import com.br.marketing.mapper.MarketingSyncLabelMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -55,10 +58,13 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
     @Resource
     MarketingSyncUserMapper marketingSyncUserMapper;
 
+    @Resource
+    private ToPolicyByRuleService toPolicyByRuleService;
+
 
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
 
-/*        // 补推逻辑
+        // 补推逻辑
         CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
         if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
                 .equals(customerInfoPushMain.getmStatus())) {
@@ -75,8 +81,6 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
             }
         }
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);*/
-        CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
         MarketingRuleCenterLabelReportExample labelReportExample = new MarketingRuleCenterLabelReportExample();
         labelReportExample.createCriteria().andApiCodeEqualTo(customerInfoPushMain.getmApiCode())
                 .andLabelIdEqualTo(customerInfoPushMain.getId())
@@ -183,19 +187,10 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
         @Override
         public List<Future<Result<Integer>>> call() {
             String apiCode = customerInfoPushMain.getmApiCode();
-            QueryBaseBean queryBaseBean = new QueryBaseBean();
-            queryBaseBean.setApiCode(apiCode);
-            queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
-            queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
-            queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-            if (!isPerOrTop) {
-                queryBaseBean.setPart(part);
-            }
             Integer pageSize = 2000;
             Integer total = isPerOrTop ? customerInfoPushMain.getmRealyNum()
                     : partDataNum;
             int totalYuShu = total % pageSize;
-            String searchAfterStr = "";
             int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
             log.warn("任务id：{}，当前片：{}，总数：{}，页数：{}"
                     , customerInfoPushMain.getId()
@@ -204,26 +199,22 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                     , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
 
-            for (int i = 1; i <= totalPage; i++) {
+            // 使用统一的ES查询执行器（不启用模拟错误，不传入标签对象）
+            EsQueryExecutor esExecutor = createEsQueryExecutor(customerInfoPushMain, part, numList, fileIds,
+                    pageSize, totalPage, isPerOrTop,
+                    null, null);
+
+            for (int i = esExecutor.getStartPageIndex(); i <= totalPage; i++) {
                 try {
-                    String sn = String.valueOf(i);
-                    if (i == totalPage && totalYuShu > 0) {
-                        queryBaseBean.setPageSize(totalYuShu);
-                    } else {
-                        queryBaseBean.setPageSize(pageSize);
-                    }
-                    queryBaseBean.setSearchAfter(searchAfterStr);
+                    // 执行ES查询
+                    EsQueryResult esResult = esExecutor.executeQuery(i);
 
-                    List<MarketingHistory> marketingHistories;
-                    marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                    if (!esResult.isSuccess()) {
+                        // ES查询失败，直接返回
+                        return resList;
+                    }
 
-                    if (marketingHistories == null) {
-                        throw new Exception();
-                    }
-                    // 获取最后一条记录的searchAfter值
-                    if (!marketingHistories.isEmpty()) {
-                        searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
-                    }
+                    List<MarketingHistory> marketingHistories = esResult.getMarketingHistories();
 
                     Integer realNum = marketingHistories.size();
                     log.warn("任务id：{}，当前片：{}，获取的数量：{}，当前页码：{}"
@@ -236,7 +227,6 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                     }
                     //创建表
                     tableCreateService.createMarketingUserLabelTable(apiCode);
-                    List<MarketingSyncLabel> marketingSyncLabelList = new ArrayList<>();
                     List<String> custNumList = marketingHistories.stream().map(MarketingHistory::getCusNum).collect(Collectors.toList());
                     List<List<String>> partitionList = ListUtils.partition(custNumList, 500);
                     partitionList.forEach(custNums -> {
@@ -281,37 +271,73 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
             Result<Integer> result = new Result<>();
             //批量入库
             List<MarketingSyncLabel> marketingSyncLabelList = new ArrayList<>();
+            List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.getUserByCustNumAndAppletData(apiCode, appletDateList, custNumList);
+            marketingSyncUsers.forEach(syncUser -> {
+                MarketingSyncLabel syncLabel = new MarketingSyncLabel();
+                BeanUtils.copyProperties(syncUser, syncLabel);
+                syncLabel.setLabelId(labelId);
+                syncLabel.setSyncId(syncUser.getId());
+                syncLabel.setId(null);
+                marketingSyncLabelList.add(syncLabel);
+            });
             try {
-                List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.getUserByCustNumAndAppletData(apiCode, appletDateList, custNumList);
-                marketingSyncUsers.forEach(syncUser -> {
-                    MarketingSyncLabel syncLabel = new MarketingSyncLabel();
-                    BeanUtils.copyProperties(syncUser, syncLabel);
-                    syncLabel.setLabelId(labelId);
-                    syncLabel.setSyncId(syncUser.getId());
-                    syncLabel.setId(null);
-                    marketingSyncLabelList.add(syncLabel);
+                // 先尝试批量插入（带重试）
+                boolean batchSuccess = tryBatchInsert(apiCode, marketingSyncLabelList);
 
-                });
-                marketingSyncLabelMapper.batchInsert(apiCode, marketingSyncLabelList);
-                marketingSyncUsers.clear();
-                marketingSyncLabelList.clear();
-                result.setCode(ResultCode.SUCCESS.getValue());
-            } catch (DuplicateKeyException keyException) {
-                marketingSyncLabelList.forEach(syncLabel -> {
-                    try {
-                        marketingSyncLabelMapper.singleInsert(syncLabel.getApiCode(), syncLabel);
-                    } catch (DuplicateKeyException singlekeyException) {
-                        log.warn("规则中心数据打标-存在重复数据！sync_id={}", syncLabel.getLabelId());
-                    } catch (Exception e) {
-                        log.error("规则中心数据打标-单条入库失败", e);
-                        result.setCode(ResultCode.FAIL.getValue());
-                    }
-                });
+                if (batchSuccess) {
+                    // 批量插入成功
+                    result.setCode(ResultCode.SUCCESS.getValue());
+                } else {
+                    // 重复键异常，执行单条插入
+                    singleInsertFallback(marketingSyncLabelList, result);
+                }
             } catch (Exception e) {
-                log.error("规则中心数据打标-批量入库失败", e);
+                // 批量插入其他异常失败
                 result.setCode(ResultCode.FAIL.getValue());
             }
+            marketingSyncUsers.clear();
+            marketingSyncLabelList.clear();
             return result;
+        }
+
+        private boolean tryBatchInsert(String apiCode, List<MarketingSyncLabel> marketingSyncLabelList) {
+            int maxRetries = 3;
+            int retryCount = 0;
+
+            while (retryCount <= maxRetries) {
+                try {
+                    marketingSyncLabelMapper.batchInsert(apiCode, marketingSyncLabelList);
+                    return true; // 批量插入成功
+                } catch (DuplicateKeyException e) {
+                    log.warn("规则中心数据打标-批量插入存在重复数据，转为单条插入处理");
+                    return false; // 需要单条插入
+                } catch (Exception e) {
+                    retryCount++;
+                    if (retryCount <= maxRetries) {
+                        log.warn("规则中心数据打标-批量入库失败，重试次数：{}/{}", retryCount, maxRetries, e);
+                    } else {
+                        log.error("规则中心数据打标-批量入库重试{}次后仍然失败", maxRetries, e);
+                        throw new RuntimeException("批量插入失败", e); // 抛出异常，让主方法统一处理
+                    }
+                }
+            }
+            return Boolean.FALSE;
+        }
+
+        private void singleInsertFallback(List<MarketingSyncLabel> marketingSyncLabelList, Result<Integer> result) {
+            // 默认成功，有错误时设置失败
+            result.setCode(ResultCode.SUCCESS.getValue());
+
+            marketingSyncLabelList.forEach(syncLabel -> {
+                try {
+                    marketingSyncLabelMapper.singleInsert(syncLabel.getApiCode(), syncLabel);
+                } catch (DuplicateKeyException e) {
+                    log.warn("规则中心数据打标-存在重复数据！sync_id={}", syncLabel.getLabelId());
+                } catch (Exception e) {
+                    log.error("规则中心数据打标-单条入库失败，sync_id={}", syncLabel.getSyncId(), e);
+                    result.setCode(ResultCode.FAIL.getValue());
+                }
+            });
         }
     }
 
