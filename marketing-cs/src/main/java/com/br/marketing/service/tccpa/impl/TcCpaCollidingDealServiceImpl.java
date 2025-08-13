@@ -70,12 +70,8 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                 if (!marketingCommonConfig.getTcCpaDbDealShardConfig().getBoolean("jobSwitch")) {
                     break;
                 }
-                //1.抢锁 - 添加重试机制
-                boolean lockAcquired = acquireLockWithRetry(lockKey, lockValue);
-                if (!lockAcquired) {
-                    log.warn("{}获取锁失败，apiCode:{}，跳过本次处理", TITLE, apiCode);
-                    continue;
-                }
+                //1.抢锁
+                redisChgService.lockLoop(lockKey, lockValue, 5000L, null);
                 //2.查询单条未处理的csvFile
                 MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectColliDingNoDealSingleFile(apiCode, TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
                 if (ObjectUtil.isEmpty(tcyrCpaSuccessFile)) {

@@ -81,12 +81,8 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                 if (!marketingCommonConfig.getTcCpaQuickDealShardConfig().getBoolean("jobSwitch")) {
                     break;
                 }
-                //1.抢锁 - 添加重试机制
-                boolean lockAcquired = acquireLockWithRetry(lockKey, lockValue);
-                if (!lockAcquired) {
-                    log.warn("{}获取锁失败，apiCode:{}，跳过本次处理", TITLE, apiCode);
-                    continue;
-                }
+                //1.抢锁
+                redisChgService.lockLoop(lockKey, lockValue, 5000L, null);
                 //2.查询单条未处理的csvFile
                 MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectSyncNoDealSingleFile(apiCode, TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
                 if (ObjectUtil.isEmpty(tcyrCpaSuccessFile)) {
@@ -291,38 +287,6 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
         return uploadDataDTO;
-    }
-
-    /**
-     * 带重试机制的获取锁
-     * @param lockKey 锁的key
-     * @param lockValue 锁的值
-     * @return 是否成功获取锁
-     */
-    private boolean acquireLockWithRetry(String lockKey, String lockValue) {
-        int maxRetryTimes = 3;
-        long retryIntervalMs = 3;
-        for (int retryCount = 0; retryCount <= maxRetryTimes; retryCount++) {
-            try {
-                redisChgService.lock(lockKey, lockValue);
-                return true;
-            } catch (Exception e) {
-                if (retryCount < maxRetryTimes) {
-                    log.warn("{}获取锁失败，apiCode:{}，重试次数:{}/{}，错误信息:{}",
-                            TITLE, lockKey, retryCount + 1, maxRetryTimes, e.getMessage());
-                    try {
-                        Thread.sleep(retryIntervalMs);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.warn("{}重试等待被中断", TITLE);
-                        return false;
-                    }
-                } else {
-                    log.warn("{}获取锁最终失败，apiCode:{}，已重试{}次，错误信息:{}", TITLE, lockKey, maxRetryTimes, e.getMessage());
-                }
-            }
-        }
-        return false;
     }
 
 }
