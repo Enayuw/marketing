@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * 同程易融CPA-上传流程(file->上传明细表->撞库周期表)
+ * 同程易融CPA-上传流程(file->上传明细表)
  */
 @Component
 @Slf4j
