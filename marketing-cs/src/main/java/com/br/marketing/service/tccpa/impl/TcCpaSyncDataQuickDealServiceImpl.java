@@ -16,6 +16,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.TcCpaSyncDealStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
 import com.br.marketing.service.PushInfoService;
@@ -87,13 +88,13 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                     continue;
                 }
                 //2.查询单条未处理的csvFile
-                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectSyncNoDealSingleFile(apiCode,0);
+                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectSyncNoDealSingleFile(apiCode, TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
                 if (ObjectUtil.isEmpty(tcyrCpaSuccessFile)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
                 }
                 //3.修改文件quickDeal处理状态-释放锁
-                tcyrCpaSuccessFileMapper.updateSyncDataDealStatus(tcyrCpaSuccessFile.getId(),1);
+                tcyrCpaSuccessFileMapper.updateSyncDataDealStatus(tcyrCpaSuccessFile.getId(),TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
                 redisChgService.unlock(lockKey, lockValue);
                 //4.csvFile 快速处理流程
                 csvFileQuickDeal(tcyrCpaSuccessFile,actionPool);
@@ -114,7 +115,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
         //1.判断文件存在
         File csvFile = new File(tcyrCpaFile.getFilePath());
         if (!csvFile.exists()) {
-            tcyrCpaSuccessFileMapper.updateSyncDataDealStatus(tcyrCpaFile.getId(), 4);
+            tcyrCpaSuccessFileMapper.updateSyncDataDealStatus(tcyrCpaFile.getId(), TcCpaSyncDealStatusEnum.NO_FILE.getValue());
             return;
         }
         MarketingTcyrCpaSuccessRecord tcyrCpaSuccessRecord = tcyrCpaSuccessRecordMapper.selectByPrimaryKey(tcyrCpaFile.getSyncRecordId());
@@ -151,10 +152,10 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             //3.修改csvFile quickDeal状态、successCount
-            tcyrCpaSuccessFileMapper.updateSyncDealStatusAndSuccesCount(tcyrCpaFile.getId(), 2, successCount.get());
+            tcyrCpaSuccessFileMapper.updateSyncDealStatusAndSuccesCount(tcyrCpaFile.getId(), TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue(), successCount.get());
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态
-            tcyrCpaSuccessFileMapper.updateSyncDataDealStatus(tcyrCpaFile.getId(), 3);
+            tcyrCpaSuccessFileMapper.updateSyncDataDealStatus(tcyrCpaFile.getId(), TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
         log.warn("TITLE:{},file_id:{} cpa_sync_deal执行,time:{}", TITLE, tcyrCpaFile.getId(),System.currentTimeMillis()-startTime);

@@ -7,10 +7,10 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
+import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessDataMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
@@ -29,9 +29,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -79,13 +77,13 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                     continue;
                 }
                 //2.查询单条未处理的csvFile
-                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectColliDingNoDealSingleFile(apiCode, 0);
+                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectColliDingNoDealSingleFile(apiCode, TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
                 if (ObjectUtil.isEmpty(tcyrCpaSuccessFile)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
                 }
                 //3.修改文件quickDeal处理状态-释放锁
-                tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(tcyrCpaSuccessFile.getId(),1);
+                tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(tcyrCpaSuccessFile.getId(),TcCpaCollidingDealStatusEnum.DEAL_MIDDLE.getValue());
                 redisChgService.unlock(lockKey, lockValue);
                 //4.csvFile 快速处理流程
                 csvFileDbDeal(tcyrCpaSuccessFile,actionPool);
@@ -106,7 +104,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
         //1.判断文件存在
         File txtFile = new File(tcyrCpaSuccessFile.getFilePath());
         if (!txtFile.exists()) {
-            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(tcyrCpaSuccessFile.getId(), 4);
+            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(tcyrCpaSuccessFile.getId(), TcCpaCollidingDealStatusEnum.NO_FILE.getValue());
             return;
         }
         MarketingTcyrCpaSuccessRecord tcyrCpaSuccessRecord = tcyrCpaSuccessRecordMapper.selectByPrimaryKey(tcyrCpaSuccessFile.getSyncRecordId());
@@ -136,10 +134,10 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                 );
             }
             //3.修改csvFile totalCount数量、dbDeal状态、
-            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatusAndTotalCount(tcyrCpaSuccessFile.getId(),2,totalCount);
+            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatusAndTotalCount(tcyrCpaSuccessFile.getId(),TcCpaCollidingDealStatusEnum.DEAL_SUCCESS.getValue(), totalCount);
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态
-            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(tcyrCpaSuccessFile.getId(),3);
+            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(tcyrCpaSuccessFile.getId(),TcCpaCollidingDealStatusEnum.DEAL_FAIL.getValue());
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
         log.warn("TITLE:{},sync_file_id:{} db_deal执行结束,耗时:{}", TITLE, tcyrCpaSuccessFile.getId(), System.currentTimeMillis() - startTime);
