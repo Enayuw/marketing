@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * ES查询执行器 - 封装ES查询和错误处理逻辑
- * 独立的ES查询执行器，负责处理ES查询、错误重试、分页等逻辑
+ * 无状态单例，所有参数通过EsQueryParams传递
  */
 @Slf4j
 @Component
@@ -40,89 +40,64 @@ public class EsQueryExecutor {
     @Resource
     private ErrorMarkMapper errorMarkMapper;
 
-    // 查询参数
-    private CustomerInfoPushMain customerInfoPushMain;
-    private String part;
-    private List<String> numList;
-    private List<Long> fileIds;
-    private Integer pageSize;
-    private Integer totalPage;
-    private Boolean isPerOrTop;
-    private Object labelObject;
-    private Boolean markWithEsFlag;
-
-    // 状态变量
-    private ErrorMark errorMark = new ErrorMark();
-    private int startPageIndex = 1;
-    private String searchAfterStr = "";
-
     /**
-     * 初始化查询执行器
+     * 初始化查询参数（设置重试逻辑）
      */
-    public EsQueryExecutor initialize(CustomerInfoPushMain customerInfoPushMain,
-                                      String part,
-                                      List<String> numList,
-                                      List<Long> fileIds,
-                                      Integer pageSize,
-                                      Integer totalPage,
-                                      Boolean isPerOrTop,
-                                      Object labelObject,
-                                      Boolean markWithEsFlag) {
-        this.customerInfoPushMain = customerInfoPushMain;
-        this.part = part;
-        this.numList = numList;
-        this.fileIds = fileIds;
-        this.pageSize = pageSize;
-        this.totalPage = totalPage;
-        this.isPerOrTop = isPerOrTop;
-        this.labelObject = labelObject;
-        this.markWithEsFlag = markWithEsFlag;
-        // 重置状态
-        this.errorMark = new ErrorMark();
-        this.startPageIndex = 1;
-        this.searchAfterStr = "";
+    public EsQueryParams initializeParams(CustomerInfoPushMain customerInfoPushMain,
+                                          String part,
+                                          List<String> numList,
+                                          List<Long> fileIds,
+                                          Integer pageSize,
+                                          Integer totalPage,
+                                          Boolean isPerOrTop,
+                                          Object labelObject,
+                                          Boolean markWithEsFlag) {
+        EsQueryParams params = new EsQueryParams(customerInfoPushMain, part, numList, fileIds,
+                pageSize, totalPage, isPerOrTop, labelObject, markWithEsFlag);
+
         // 初始化重试逻辑
-        initializeRetryLogic();
-        return this;
+        initializeRetryLogic(params);
+
+        return params;
     }
 
     /**
      * 初始化重试逻辑
      */
-    private void initializeRetryLogic() {
+    private void initializeRetryLogic(EsQueryParams params) {
         // 判断该任务是否为异常待补推任务
         if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
-                .equals(customerInfoPushMain.getmStatus())) {
+                .equals(params.getCustomerInfoPushMain().getmStatus())) {
 
             // 查询待补推数据
             ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-            errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                    .andPartEqualTo(part)
+            errorMarkExample.createCriteria().andMIdEqualTo(params.getCustomerInfoPushMain().getId())
+                    .andPartEqualTo(params.getPart())
                     .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue());
             List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
 
             // 查询当前part下的异常数据
             if (!CollectionUtils.isEmpty(errorMarks)) {
-                errorMark = errorMarks.get(0);
-                startPageIndex = errorMark.getPageSize();
-                searchAfterStr = errorMark.getSearchAfter();
+                ErrorMark errorMark = errorMarks.get(0);
+                params.setErrorMark(errorMark);
+                params.setStartPageIndex(errorMark.getPageSize());
+                params.setSearchAfterStr(errorMark.getSearchAfter());
             }
         }
     }
-
 
     /**
      * 执行ES查询前置
      */
 
-    public Boolean excuteBefore(EsQueryExecutor executor) {
+    public Boolean excuteBefore(EsQueryParams params) {
         Boolean isSuccess = Boolean.TRUE;
         if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
-                .equals(customerInfoPushMain.getmStatus())) {
+                .equals(params.getCustomerInfoPushMain().getmStatus())) {
             // 查询待补推数据
             ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-            errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                    .andPartEqualTo(part)
+            errorMarkExample.createCriteria().andMIdEqualTo(params.getCustomerInfoPushMain().getId())
+                    .andPartEqualTo(params.getPart())
                     .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue());
             List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
             // 查询当前part下的异常数据
@@ -137,14 +112,14 @@ public class EsQueryExecutor {
     /**
      * 执行ES查询
      */
-    public EsQueryResult executeQuery(int currentPage) {
+    public EsQueryResult executeQuery(EsQueryParams params, int currentPage) {
         // 构建查询参数
-        QueryBaseBean queryBaseBean = createQueryBaseBean(currentPage);
+        QueryBaseBean queryBaseBean = createQueryBaseBean(params, currentPage);
 
         EsQueryResult result = new EsQueryResult();
 
         try {
-            boolean mockEsError = toPolicyByRuleService.mockSwitch(customerInfoPushMain.getmApiCode(),
+            boolean mockEsError = toPolicyByRuleService.mockSwitch(params.getCustomerInfoPushMain().getmApiCode(),
                     MockSwitchEnum.GENERAL.getValue(), MockSwitchEnum.ESRETRY.getValue());
             if (mockEsError) {
                 throw new Exception("模拟ES异常场景");
@@ -159,26 +134,27 @@ public class EsQueryExecutor {
 
             // 获取最后一条记录的searchAfter值
             if (!marketingHistories.isEmpty()) {
-                searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
+                String searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
+                params.setSearchAfterStr(searchAfterStr);
             }
 
             result.setSuccess(true);
             result.setMarketingHistories(marketingHistories);
-            result.setSearchAfter(searchAfterStr);
+            result.setSearchAfter(params.getSearchAfterStr());
             result.setQueryBaseBean(queryBaseBean);
 
             // 成功后清理错误标记
-            if (errorMark.getId() != null) {
-                clearErrorMark();
+            if (params.getErrorMark().getId() != null) {
+                clearErrorMark(params);
             }
 
         } catch (Exception e) {
             log.warn("ES查询异常，任务id：{}，当前片：{}，当前页码：{}",
-                    customerInfoPushMain.getId(), part, currentPage, e);
+                    params.getCustomerInfoPushMain().getId(), params.getPart(), currentPage, e);
             result.setSuccess(false);
             result.setException(e);
             // 处理错误标记
-            handleEsQueryError(currentPage, queryBaseBean, e);
+            handleEsQueryError(params, currentPage, queryBaseBean, e);
         }
 
         return result;
@@ -187,34 +163,33 @@ public class EsQueryExecutor {
     /**
      * 构建查询参数
      */
-    private QueryBaseBean createQueryBaseBean(int currentPage) {
+    private QueryBaseBean createQueryBaseBean(EsQueryParams params, int currentPage) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
-        queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
-        queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
-        queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
-        queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-        // 处理标签对象的逻辑（兼容PushPolicyPushStrategy的需求）
-        if (labelObject != null) {
-            if (markWithEsFlag != null && markWithEsFlag) {
-                // 赋值es脚本
-                queryBaseBean.setScriptFields(labelObject.toString());
+        queryBaseBean.setApiCode(params.getCustomerInfoPushMain().getmApiCode());
+        queryBaseBean.setBatchNumbers(Joiner.on(",").join(params.getNumList()));
+        queryBaseBean.setFileIds(Joiner.on(",").join(params.getFileIds()));
+        queryBaseBean.setJsonData(params.getCustomerInfoPushMain().getmRuleCondition());
+
+        // 处理标签对象的逻辑
+        if (params.getLabelObject() != null) {
+            if (params.getMarkWithEsFlag() != null && params.getMarkWithEsFlag()) {
+                queryBaseBean.setScriptFields(params.getLabelObject().toString());
             }
-            // 如果markWithEsFlag为false，则在子类中处理scoreLables逻辑
         }
 
-        if (!isPerOrTop) {
-            queryBaseBean.setPart(part);
+        if (!params.getIsPerOrTop()) {
+            queryBaseBean.setPart(params.getPart());
         }
 
         // 设置分页参数
-        int totalYuShu = (isPerOrTop ? customerInfoPushMain.getmRealyNum() :
-                (totalPage * pageSize)) % pageSize;
-        if (currentPage == totalPage && totalYuShu > 0) {
+        int totalYuShu = (params.getIsPerOrTop() ? params.getCustomerInfoPushMain().getmRealyNum() :
+                (params.getTotalPage() * params.getPageSize())) % params.getPageSize();
+        if (currentPage == params.getTotalPage() && totalYuShu > 0) {
             queryBaseBean.setPageSize(totalYuShu);
         } else {
-            queryBaseBean.setPageSize(pageSize);
+            queryBaseBean.setPageSize(params.getPageSize());
         }
-        queryBaseBean.setSearchAfter(searchAfterStr);
+        queryBaseBean.setSearchAfter(params.getSearchAfterStr());
 
         return queryBaseBean;
     }
@@ -222,16 +197,16 @@ public class EsQueryExecutor {
     /**
      * 处理ES查询错误
      */
-    private void handleEsQueryError(int currentPage, QueryBaseBean queryBaseBean, Exception e) {
+    private void handleEsQueryError(EsQueryParams params, int currentPage, QueryBaseBean queryBaseBean, Exception e) {
         try {
-            if (errorMark.getId() != null) {
+            if (params.getErrorMark().getId() != null) {
                 // 已存在补推记录，更新重试次数
-                if (errorMark.getRetryTotalAttempts() < 3) {
-                    updateErrorMark(errorMark, errorMark.getRetryTotalAttempts() + 1);
+                if (params.getErrorMark().getRetryTotalAttempts() < 3) {
+                    updateErrorMark(params.getErrorMark(), params.getErrorMark().getRetryTotalAttempts() + 1);
                 }
             } else {
                 // 新增异常待补推数据
-                insertNewErrorMark(customerInfoPushMain, part, currentPage, searchAfterStr,
+                insertNewErrorMark(params.getCustomerInfoPushMain(), params.getPart(), currentPage, params.getSearchAfterStr(),
                         JSONObject.toJSONString(queryBaseBean));
             }
         } catch (Exception ex) {
@@ -242,9 +217,9 @@ public class EsQueryExecutor {
     /**
      * 清理错误标记
      */
-    private void clearErrorMark() {
+    private void clearErrorMark(EsQueryParams params) {
         ErrorMark errorMark1 = new ErrorMark();
-        errorMark1.setId(errorMark.getId());
+        errorMark1.setId(params.getErrorMark().getId());
         errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
         errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
     }
@@ -282,20 +257,4 @@ public class EsQueryExecutor {
         errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
     }
 
-    // Getters
-    public int getStartPageIndex() {
-        return startPageIndex;
-    }
-
-    public String getSearchAfterStr() {
-        return searchAfterStr;
-    }
-
-    public Object getLabelObject() {
-        return labelObject;
-    }
-
-    public Boolean getMarkWithEsFlag() {
-        return markWithEsFlag;
-    }
 }

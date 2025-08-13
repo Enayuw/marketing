@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
+
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
@@ -67,6 +69,9 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
 
     @Autowired
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
+
+    @Autowired
+    private EsQueryExecutor esQueryExecutor;
 
 
     @Override
@@ -143,22 +148,26 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                     , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
 
-            // 使用统一的ES查询执行器，传入标签对象和标记
-            EsQueryExecutor esExecutor = createEsQueryExecutor(customerInfoPushMain, part, numList, fileIds,
+            // 使用统一的ES查询参数，传入标签对象和标记
+            EsQueryParams esParams = createEsQueryParams(customerInfoPushMain, part, numList, fileIds,
                     pageSize, totalPage, isPerOrTop, lableObject, markWithEsFlag);
+
             //前置处理，es补推时，非异常数据不重复处理
-            if (!esExecutor.excuteBefore(esExecutor)) {
+            if (!esQueryExecutor.excuteBefore(esParams)) {
                 return resList;
             }
-            for (int i = esExecutor.getStartPageIndex(); i <= totalPage; i++) {
+
+            for (int i = esParams.getStartPageIndex(); i <= totalPage; i++) {
                 try {
                     String sn = String.valueOf(i);
                     // 执行ES查询
-                    EsQueryResult esResult = esExecutor.executeQuery(i);
+                    EsQueryResult esResult = executeEsQuery(esParams, i);
+
                     if (!esResult.isSuccess()) {
                         // ES查询失败，直接返回
                         return resList;
                     }
+
                     List<MarketingHistory> marketingHistories = esResult.getMarketingHistories();
 
                     // 标签处理逻辑（PushPolicy特有）

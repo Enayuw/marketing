@@ -25,12 +25,14 @@ import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -385,20 +387,26 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
     }
 
     /**
-     * 创建ES查询执行器
+     * 创建ES查询参数
      */
-    protected EsQueryExecutor createEsQueryExecutor(CustomerInfoPushMain customerInfoPushMain,
-                                                    String part,
-                                                    List<String> numList,
-                                                    List<Long> fileIds,
-                                                    Integer pageSize,
-                                                    Integer totalPage,
-                                                    Boolean isPerOrTop,
-                                                    Object labelObject,
-                                                    Boolean markWithEsFlag) {
-        //注入的EsQueryExecutor并初始化
-        return esQueryExecutor.initialize(customerInfoPushMain, part, numList, fileIds, pageSize, totalPage,
+    protected EsQueryParams createEsQueryParams(CustomerInfoPushMain customerInfoPushMain,
+                                           String part,
+                                           List<String> numList,
+                                           List<Long> fileIds,
+                                           Integer pageSize,
+                                           Integer totalPage,
+                                           Boolean isPerOrTop,
+                                           Object labelObject,
+                                           Boolean markWithEsFlag) {
+        return esQueryExecutor.initializeParams(customerInfoPushMain, part, numList, fileIds, pageSize, totalPage,
                 isPerOrTop, labelObject, markWithEsFlag);
+    }
+
+    /**
+     * 执行ES查询
+     */
+    protected EsQueryResult executeEsQuery(EsQueryParams params, int currentPage) {
+        return esQueryExecutor.executeQuery(params, currentPage);
     }
 
 

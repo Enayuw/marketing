@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
+
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -58,6 +60,9 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
 
+    @Autowired
+    private EsQueryExecutor esQueryExecutor;
+
 
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
 
@@ -83,11 +88,11 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                 .andLabelIdEqualTo(customerInfoPushMain.getId())
                 .andIsDelEqualTo(1);
         List<MarketingRuleCenterLabelReport> labelReportList = marketingRuleCenterLabelReportMapper.selectByExample(labelReportExample);
-        List<Map<String,String>> conditionList = new ArrayList<>();
-        labelReportList.forEach(report->{
-            Map<String,String> dataMap = new HashMap<>();
-            dataMap.put("appletDate",report.getAppletDate());
-            dataMap.put("userType",report.getUserType());
+        List<Map<String, String>> conditionList = new ArrayList<>();
+        labelReportList.forEach(report -> {
+            Map<String, String> dataMap = new HashMap<>();
+            dataMap.put("appletDate", report.getAppletDate());
+            dataMap.put("userType", report.getUserType());
             conditionList.add(dataMap);
         });
 
@@ -176,13 +181,13 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
         private String part;
         private Boolean isPerOrTop;
         private Integer partDataNum;
-        private List<Map<String,String>> conditionList;
+        private List<Map<String, String>> conditionList;
 
 
         public DataLabelTask(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Boolean isPerOrTop, Integer partDataNum, List<Map<String,String>> conditionList) {
+                , String part, Boolean isPerOrTop, Integer partDataNum, List<Map<String, String>> conditionList) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -208,18 +213,20 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                     , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
 
-            // 使用统一的ES查询执行器（不启用模拟错误，不传入标签对象）
-            EsQueryExecutor esExecutor = createEsQueryExecutor(customerInfoPushMain, part, numList, fileIds,
+            // 使用统一的ES查询参数
+            EsQueryParams esParams = createEsQueryParams(customerInfoPushMain, part, numList, fileIds,
                     pageSize, totalPage, isPerOrTop,
                     null, null);
+
             //前置处理，es补推时，非异常数据不重复处理
-            if (!esExecutor.excuteBefore(esExecutor)) {
+            if (!esQueryExecutor.excuteBefore(esParams)) {
                 return resList;
             }
-            for (int i = esExecutor.getStartPageIndex(); i <= totalPage; i++) {
+
+            for (int i = esParams.getStartPageIndex(); i <= totalPage; i++) {
                 try {
                     // 执行ES查询
-                    EsQueryResult esResult = esExecutor.executeQuery(i);
+                    EsQueryResult esResult = executeEsQuery(esParams, i);
 
                     if (!esResult.isSuccess()) {
                         // ES查询失败，直接返回
@@ -267,11 +274,11 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
 
         private String apiCode;
 
-        private List<Map<String,String>> conditionList;
+        private List<Map<String, String>> conditionList;
 
         private Long labelId;
 
-        public LabelToDB(List<String> custNumList, String apiCode, List<Map<String,String>> conditionList, Long labelId) {
+        public LabelToDB(List<String> custNumList, String apiCode, List<Map<String, String>> conditionList, Long labelId) {
             this.custNumList = custNumList;
             this.apiCode = apiCode;
             this.conditionList = conditionList;
@@ -311,7 +318,7 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                 // 批量插入其他异常失败
                 result.setCode(ResultCode.FAIL.getValue());
             }
-            
+
             marketingSyncUsers.clear();
             marketingSyncLabelList.clear();
             return result;
