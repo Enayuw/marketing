@@ -9,7 +9,8 @@ import java.util.List;
 public interface MarketingTcyrCpaSuccessRecordMapper extends MarketingTcyrCpaSuccessRecordMapperBase{
     List<MarketingTcyrCpaSuccessRecord> searchTcyrSyncRecordList(
             @Param("apiCode") String apiCode,
-            @Param("status") Integer status);
+            @Param("status") Integer status,
+            @Param("downStatus")Integer downStatus);
 
     void updateTcyrRecordDownStatus(
             @Param("id") Long id,

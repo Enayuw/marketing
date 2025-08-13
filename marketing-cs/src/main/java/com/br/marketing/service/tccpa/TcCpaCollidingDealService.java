@@ -1,7 +1,7 @@
 package com.br.marketing.service.tccpa;
 
 
-public interface TcCpaSuccessDataDbDealService {
+public interface TcCpaCollidingDealService {
 
     void shardProcess(String apiCode);
 

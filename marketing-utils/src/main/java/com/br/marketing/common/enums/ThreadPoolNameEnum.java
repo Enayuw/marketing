@@ -44,8 +44,8 @@ public enum ThreadPoolNameEnum {
     TCYR_DATA_CLEAN(23,"tcyr_data_clean_3710038","同程易融data_clean任务"),
     TCYR_FILE_TO_DB(24,"tcyr_file_to_db_3710038","同程易融FileToDbShardJob任务"),
     TCYC_MATCH(25,"tcyr_match_3710038","同程易融MatchShardJob任务"),
-    TCYR_CPA_QUICK_DEAL(26,"tcyr_cpa_quick_deal_3710208","同程易融cpa_quick_deal上传流程"),
-    TCYR_CPA_DB_DEAL(27,"tcyr_cpa_quick_deal_3710208","同程易融cpa_db_deal撞库流程"),
+    TCYR_CPA_SYNC_DEAL(26,"tcyr_cpa_sync_deal_3710208","同程易融cpa_sync_deal上传流程"),
+    TCYR_CPA_COLLIDING_DEAL(27,"tcyr_cpa_colliding_deal_3710208","同程易融cpa_colliding_deal撞库流程"),
     TCYR_CPA_TRANSFER_DEAL(28,"tcyr_cpa_transfer_deal_3710208","同程易融cpa_transfer_deal转化清洗流程"),
 
 

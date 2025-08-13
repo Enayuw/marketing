@@ -18,7 +18,6 @@ import com.br.marketing.service.tccpa.TcCpaTransferCleanService;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -50,7 +49,7 @@ public class TcCpaTransferCleanServiceImpl implements TcCpaTransferCleanService 
         try {
             while (true) {
                 List<MarketingTcyrCpaTransferRecord> tcyrCpaTransferRecordList = tcyrCpaTransferRecordMapper.selectTcyrTransforRecordList(
-                        tcyrCpaApiCode, 1,lastSearchId,20000);
+                        tcyrCpaApiCode, 1,lastSearchId,1000);
                 if (CollectionUtils.isEmpty(tcyrCpaTransferRecordList)) {
                     break;
                 }
@@ -68,36 +67,28 @@ public class TcCpaTransferCleanServiceImpl implements TcCpaTransferCleanService 
     }
 
     private void processList(String tcyrCpaApiCode, List<MarketingTcyrCpaTransferRecord> tcyrCpaTransferRecordList) {
-        List<List<MarketingTcyrCpaTransferRecord>> partitionList = ListUtils.partition(tcyrCpaTransferRecordList, 1000);
-        for (List<MarketingTcyrCpaTransferRecord> itemList : partitionList) {
-            List<Long> idList = itemList.stream().map(MarketingTcyrCpaTransferRecord::getId).collect(Collectors.toList());
-            try {
-                List<JSONObject> jsonObjectList = itemList.stream().map(
-                        m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
-                Result transferResult = generalDataCleanService.transferClean(jsonObjectList,tcyrCpaApiCode);
-                log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,transferResult.getCode(),transferResult.isSuccess(),transferResult.getMessage());
-                if (transferResult !=null && transferResult.isSuccess()) {
-                    List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
-                    if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
-                        continue;
-                    }
-                    PushTransferDataDetailDTO dto = initTransferData(tcyrCpaApiCode,transferDataItemDTOS);
-                    Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
-                    log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
-                    if (pushResult!=null && pushResult.isSuccess()) {
-                        tcyrCpaTransferRecordMapper.updateCleanStatus(idList,1);
-                    }else {
-                        tcyrCpaTransferRecordMapper.updateCleanStatus(idList,3);
-                        return;
-                    }
+        List<Long> idList = tcyrCpaTransferRecordList.stream().map(MarketingTcyrCpaTransferRecord::getId).collect(Collectors.toList());
+        try {
+            List<JSONObject> jsonObjectList = tcyrCpaTransferRecordList.stream().map(
+                    m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
+            Result transferResult = generalDataCleanService.transferClean(jsonObjectList,tcyrCpaApiCode);
+            log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,transferResult.getCode(),transferResult.isSuccess(),transferResult.getMessage());
+            if (transferResult !=null && transferResult.isSuccess()) {
+                List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
+                PushTransferDataDetailDTO dto = initTransferData(tcyrCpaApiCode,transferDataItemDTOS);
+                Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+                log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
+                if (pushResult!=null && pushResult.isSuccess()) {
+                    tcyrCpaTransferRecordMapper.updateCleanStatus(idList,1);
                 }else {
-                    tcyrCpaTransferRecordMapper.updateCleanStatus(idList,2);
-                    return;
+                    tcyrCpaTransferRecordMapper.updateCleanStatus(idList,3);
                 }
-            }catch (Exception e) {
-                tcyrCpaTransferRecordMapper.updateCleanStatus(idList,4);
-                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
+            }else {
+                tcyrCpaTransferRecordMapper.updateCleanStatus(idList,2);
             }
+        }catch (Exception e) {
+            tcyrCpaTransferRecordMapper.updateCleanStatus(idList,4);
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }
 

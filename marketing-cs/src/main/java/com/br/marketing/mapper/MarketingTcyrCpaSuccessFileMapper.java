@@ -5,9 +5,12 @@ import org.apache.ibatis.annotations.Param;
 
 public interface MarketingTcyrCpaSuccessFileMapper extends MarketingTcyrCpaSuccessFileMapperBase{
 
-    MarketingTcyrCpaSuccessFile selectNoDealSingleSyncFile(
+    MarketingTcyrCpaSuccessFile selectSyncNoDealSingleFile(
             @Param("apiCode") String apiCode,
-            @Param("syncDataDealStatus") Integer syncDataDealStatus,
+            @Param("syncDataDealStatus") Integer syncDataDealStatus);
+
+    MarketingTcyrCpaSuccessFile selectColliDingNoDealSingleFile(
+            @Param("apiCode") String apiCode,
             @Param("collidingDataDealStatus") Integer collidingDataDealStatus);
 
     void updateSyncDataDealStatus(

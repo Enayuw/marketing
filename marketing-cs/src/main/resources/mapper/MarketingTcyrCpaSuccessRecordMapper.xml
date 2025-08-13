@@ -7,7 +7,7 @@
             FROM b_tcyr_cpa_success_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
-          AND down_status = 0
+          AND down_status = #{downStatus}
           AND is_del = 1
     </select>
 

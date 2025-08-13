@@ -10,7 +10,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrCpaFailFile;
 import com.br.marketing.entity.MarketingTcyrCpaFailRecord;
-import com.br.marketing.enums.TcCpaRecordStatusEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaFailFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaFailRecordMapper;
 import com.br.marketing.service.tccpa.TcCpaFailDownFileService;
@@ -47,8 +47,8 @@ public class TcCpaFailDownFileServiceImpl implements TcCpaFailDownFileService{
     @Override
     public void process(String apiCode) {
         try {
-            List<MarketingTcyrCpaFailRecord > failRecordList = tcyrCpaFailRecordMapper.searchTcyrFailRecordList(
-                    apiCode, TcCpaRecordStatusEnum.ACCESS_IN.getValue());
+            List<MarketingTcyrCpaFailRecord > failRecordList = tcyrCpaFailRecordMapper.searchTcyrFailRecordList(apiCode,
+                    TcCpaRecordStatusEnum.ACCESS_SUCCESS.getValue(), TcCpaDownStatusEnum.DEAL_NO.getValue());
             failRecordList.forEach(this::dealTcyrCpaFailRecordFile);
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -68,14 +68,14 @@ public class TcCpaFailDownFileServiceImpl implements TcCpaFailDownFileService{
             String gzFilePath = dirPath.concat(gzFileName);
             Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
             if (callFileResult == null || !callFileResult.isSuccess()) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         failRecord.getBatchNo()+"文件下载失败", TITLE));
                 return;
             }
             //2、gz解压
             File gzFile = new File(gzFilePath);
             if (!gzFile.exists() || !gzFile.getName().contains(".gz")) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         failRecord.getBatchNo()+"对应gz文件不存在", TITLE));
                 return;
             }
@@ -84,7 +84,7 @@ public class TcCpaFailDownFileServiceImpl implements TcCpaFailDownFileService{
             File csvDir = new File(csvFilePath);
             File[] files = csvDir.listFiles();
             if (files == null) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         failRecord.getBatchNo()+"解压csv文件不存在", TITLE));
                 return;
             }
@@ -100,12 +100,14 @@ public class TcCpaFailDownFileServiceImpl implements TcCpaFailDownFileService{
                 tcyrCpaFailFile.setSyncRecordId(failRecord.getId());
                 tcyrCpaFailFile.setCreateTime(nowDate);
                 tcyrCpaFailFile.setUpdateTime(nowDate);
+                tcyrCpaFailFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
+                tcyrCpaFailFile.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
                 tcyrCpaFailFileMapper.insertSelective(tcyrCpaFailFile);
             }
             //4、更新 syncRecord 状态
-            tcyrCpaFailRecordMapper.updateTcyrRecordDownStatus(failRecord.getId(), 2);
+            tcyrCpaFailRecordMapper.updateTcyrRecordDownStatus(failRecord.getId(),TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());
         }catch (Exception e){
-            tcyrCpaFailRecordMapper.updateTcyrRecordDownStatus(failRecord.getId(), 3);
+            tcyrCpaFailRecordMapper.updateTcyrRecordDownStatus(failRecord.getId(), TcCpaDownStatusEnum.DEAL_FAIL.getValue());
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }

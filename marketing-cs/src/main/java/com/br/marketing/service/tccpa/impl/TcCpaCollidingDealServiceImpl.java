@@ -11,14 +11,11 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
-import com.br.marketing.entity.MarketingTcyrCustCellMapping;
-import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessDataMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
-import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
+import com.br.marketing.service.tccpa.TcCpaCollidingDealService;
 import com.br.marketing.service.tccpa.TcCpaCustCellMappingService;
-import com.br.marketing.service.tccpa.TcCpaSuccessDataDbDealService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -41,9 +38,9 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class TcCpaSuccessDbDealServiceImpl implements TcCpaSuccessDataDbDealService {
+public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService {
 
-    private final static String TITLE = "【同程易融CPA-dbDealShard任务】";
+    private final static String TITLE = "【同程易融CPA-colliding任务】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -69,8 +66,7 @@ public class TcCpaSuccessDbDealServiceImpl implements TcCpaSuccessDataDbDealServ
         String lockKey = RedisKeyConstant.tcyrCpaDbDeal.concat(apiCode);;
         String lockValue = "";
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CPA_DB_DEAL.getName(), 50, 50);
-
+                ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DEAL.getName(), 50, 50);
         try {
             for (;;) {
                 if (!marketingCommonConfig.getTcCpaDbDealShardConfig().getBoolean("jobSwitch")) {
@@ -84,7 +80,7 @@ public class TcCpaSuccessDbDealServiceImpl implements TcCpaSuccessDataDbDealServ
                     continue;
                 }
                 //2.查询单条未处理的csvFile
-                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectNoDealSingleSyncFile(apiCode, 2,0);
+                MarketingTcyrCpaSuccessFile tcyrCpaSuccessFile = tcyrCpaSuccessFileMapper.selectColliDingNoDealSingleFile(apiCode, 0);
                 if (ObjectUtil.isEmpty(tcyrCpaSuccessFile)) {
                     redisChgService.unlock(lockKey, lockValue);
                     break;
@@ -154,11 +150,8 @@ public class TcCpaSuccessDbDealServiceImpl implements TcCpaSuccessDataDbDealServ
         JSONObject customJson = JSONObject.parseObject(customerData);
         SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_FORMAT);
         try {
-            //TODO 兼容表头行
-            //TODO 兼容startDate、endDate不存在
             Date startDate = sdf.parse(customJson.getString("startDate"));
             Date endDate = sdf.parse(customJson.getString("endDate"));
-
             List<List<String>> partitionList = ListUtils.partition(
                     batchData, marketingCommonConfig.getTcCpaDbDealShardConfig().getInteger("dbPartSize"));
             for (List<String> partitionItemList : partitionList) {
@@ -174,7 +167,6 @@ public class TcCpaSuccessDbDealServiceImpl implements TcCpaSuccessDataDbDealServ
                     sqlBuilder.append("('").append(escapeSqlString(apiCode)).
                             append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
                     if (data.length == 0) {
-
                         sqlBuilder.append(",'").append(line).append("',NULL,NULL,NULL");
                         JSONObject extentJson = new JSONObject();
                         extentJson.put("column_0", line);

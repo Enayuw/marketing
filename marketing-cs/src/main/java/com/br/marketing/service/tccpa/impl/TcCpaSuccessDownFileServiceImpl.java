@@ -10,7 +10,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
-import com.br.marketing.enums.TcCpaRecordStatusEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
 import com.br.marketing.service.tccpa.TcCpaSuccessDownFileService;
@@ -46,8 +46,8 @@ public class TcCpaSuccessDownFileServiceImpl implements TcCpaSuccessDownFileServ
     @Override
     public void process(String apiCode) {
         try {
-            List<MarketingTcyrCpaSuccessRecord> successRecordList = tcyrCpaSuccessRecordMapper.searchTcyrSyncRecordList(
-                    apiCode, TcCpaRecordStatusEnum.ACCESS_IN.getValue());
+            List<MarketingTcyrCpaSuccessRecord> successRecordList = tcyrCpaSuccessRecordMapper.searchTcyrSyncRecordList(apiCode,
+                    TcCpaRecordStatusEnum.ACCESS_SUCCESS.getValue(), TcCpaDownStatusEnum.DEAL_NO.getValue());
             successRecordList.forEach(this::dealTcyrCpaSyncRecordFile);
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -55,7 +55,6 @@ public class TcCpaSuccessDownFileServiceImpl implements TcCpaSuccessDownFileServ
         }
     }
 
-    // /opt/data/inloan/download/marketing/tongcheng_cpa_success_data/
     private void dealTcyrCpaSyncRecordFile(MarketingTcyrCpaSuccessRecord successRecord) {
         try{
             JSONObject dataJson = JSONObject.parseObject(successRecord.getData());
@@ -67,14 +66,14 @@ public class TcCpaSuccessDownFileServiceImpl implements TcCpaSuccessDownFileServ
             String gzFilePath = dirPath.concat(gzFileName);
             Result callFileResult = tcServiceClient.pullTcyrGzFileResult(fileUrl,gzFilePath);
             if (callFileResult == null || !callFileResult.isSuccess()) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         successRecord.getBatchNo()+"文件下载失败", TITLE));
                 return;
             }
             //2、gz解压
             File gzFile = new File(gzFilePath);
             if (!gzFile.exists() || !gzFile.getName().contains(".gz")) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         successRecord.getBatchNo()+"对应gz文件不存在", TITLE));
                 return;
             }
@@ -83,7 +82,7 @@ public class TcCpaSuccessDownFileServiceImpl implements TcCpaSuccessDownFileServ
             File csvDir = new File(csvFilePath);
             File[] files = csvDir.listFiles();
             if (files == null) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         successRecord.getBatchNo()+"解压csv文件不存在", TITLE));
                 return;
             }
@@ -99,12 +98,15 @@ public class TcCpaSuccessDownFileServiceImpl implements TcCpaSuccessDownFileServ
                 tcyrCpaSuccessFile.setSyncRecordId(successRecord.getId());
                 tcyrCpaSuccessFile.setCreateTime(nowDate);
                 tcyrCpaSuccessFile.setUpdateTime(nowDate);
+                tcyrCpaSuccessFile.setSyncDataDealStatus(TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
+                tcyrCpaSuccessFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_NO.getValue());
+                tcyrCpaSuccessFile.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
                 tcyrCpaSuccessFileMapper.insertSelective(tcyrCpaSuccessFile);
             }
             //4、更新 syncRecord 状态
-            tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), 2);
+            tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());
         }catch (Exception e){
-            tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), 3);
+            tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }
