@@ -22,6 +22,7 @@ import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.IRuleCenterPushStrategy;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -45,7 +46,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushStrategy {
 
-    private static final String TITLE = "ruleCenter";
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -120,9 +120,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
      * 预处理
      */
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
-        log.warn(TITLE + "开始执行推送策略预处理，任务ID: {}, 策略类型: {}",
+        log.warn(getPushName(context) + "开始执行推送策略预处理，任务ID: {}, 策略类型: {}",
                 context.getCustomerInfoPushMain().getId(),
-                context.getCustomerInfoPushMain().getPushTarget());
+                getPushName(context));
 
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(true);
     }
@@ -199,7 +199,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
      * 后处理
      */
     protected void postProcess(RuleCenterPushContext context, Result<Boolean> result) {
-        log.warn(TITLE + "推送策略后处理，任务ID: {}, 结果: {}",
+        log.warn(getPushName(context) + "推送策略后处理，任务ID: {}, 结果: {}",
                 context.getCustomerInfoPushMain().getId(),
                 result.getCode());
 
@@ -225,7 +225,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
      */
     protected Result<Boolean> doExecutePush(RuleCenterPushContext context) {
         long startTime = System.currentTimeMillis();
-        log.info("执行{}推送策略，任务ID: {}", context.getCustomerInfoPushMain().getPushTarget(),
+        log.info("执行{}推送策略，任务ID: {}", getPushName(context),
                 context.getCustomerInfoPushMain().getId());
 
         List<Future<List<Future<Result<Integer>>>>> futures = new ArrayList<>();
@@ -285,7 +285,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
             }
 
             // 记录结果日志 - 按照原始格式
-            log.warn(TITLE + "retryCount：" + retryCount + ",failCount:" + failCount);
+            log.warn(getPushName(context) + "retryCount：" + retryCount + ",failCount:" + failCount);
 
             // 发送失败告警 - 按照原始逻辑
             if (failCount > 0) {
@@ -306,10 +306,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         shutdownThreadPools(context);
 
         // 记录耗时日志 - 按照原始格式
-        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}",
+        log.warn(getPushName(context)+" 任务id：{}；整体耗时：{}；计划数量：{}",
                 customerInfoPushMain.getId(),
-/*                System.currentTimeMillis() - startTime,
-                System.currentTimeMillis() - initTime,*/
+              System.currentTimeMillis() - startTime,
                 customerInfoPushMain.getmRealyNum());
 
         // 更新数据库状态
@@ -340,6 +339,18 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
      * 获取成功状态 - 子类可以重写
      */
     protected abstract Integer getSuccessStatus(CustomerInfoPushMain customerInfoPushMain);
+
+
+    protected String getPushName(RuleCenterPushContext context) {
+
+        CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
+        RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(customerInfoPushMain.getPushTarget());
+        return pushTargetEnum.getDesc();
+
+    };
+
+
+
 
     /**
      * 关闭线程池 - 按照原始逻辑

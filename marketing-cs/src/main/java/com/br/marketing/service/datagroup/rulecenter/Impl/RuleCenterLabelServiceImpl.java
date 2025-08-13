@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,7 +53,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
     MarketingRuleCenterLabelReportMapper marketingRuleCenterLabelReportMapper;
 
     @Override
-    public Result<List<String>> getLabelNames(String apiCode) {
+    public Result<Set<String>> getLabelNames(String apiCode) {
 
         CustomerInfoPushMainExample pushMainExample = new CustomerInfoPushMainExample();
         pushMainExample.createCriteria()
@@ -60,7 +61,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
                 .andPushTargetEqualTo(RuleCenterPushTargetEnum.ORIGINAL_INTERFACE.getCode())
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(pushMainExample);
-        List<String> labelNames = customerInfoPushMains.stream().map(CustomerInfoPushMain::getLabelName).collect(Collectors.toList());
+        Set<String> labelNames = customerInfoPushMains.stream().map(CustomerInfoPushMain::getLabelName).collect(Collectors.toSet());
 
         return new Result<List<String>>().success().setDate(labelNames);
     }

@@ -82,8 +82,8 @@ public class RuleCenterPushContext {
     private Boolean markWithEsFlag;
 
     /**
-     * 上传数据的日期集合
+     * 上传数据条件集合
      */
-    private List<String> appletDateList;
+    private List<Map<String,String>> DataConditionList;
 
 }

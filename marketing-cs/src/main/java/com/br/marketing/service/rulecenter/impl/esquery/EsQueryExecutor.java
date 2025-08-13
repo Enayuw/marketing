@@ -30,13 +30,13 @@ import java.util.List;
 @Slf4j
 @Component
 public class EsQueryExecutor {
-    
+
     @Autowired
     private MarketingHistoryEsServiceImpl marketingHistoryEsService;
-    
+
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
-    
+
     @Resource
     private ErrorMarkMapper errorMarkMapper;
 
@@ -60,14 +60,14 @@ public class EsQueryExecutor {
      * 初始化查询执行器
      */
     public EsQueryExecutor initialize(CustomerInfoPushMain customerInfoPushMain,
-                                     String part,
-                                     List<String> numList,
-                                     List<Long> fileIds,
-                                     Integer pageSize,
-                                     Integer totalPage,
-                                     Boolean isPerOrTop,
-                                     Object labelObject,
-                                     Boolean markWithEsFlag) {
+                                      String part,
+                                      List<String> numList,
+                                      List<Long> fileIds,
+                                      Integer pageSize,
+                                      Integer totalPage,
+                                      Boolean isPerOrTop,
+                                      Object labelObject,
+                                      Boolean markWithEsFlag) {
         this.customerInfoPushMain = customerInfoPushMain;
         this.part = part;
         this.numList = numList;
@@ -81,10 +81,8 @@ public class EsQueryExecutor {
         this.errorMark = new ErrorMark();
         this.startPageIndex = 1;
         this.searchAfterStr = "";
-        
         // 初始化重试逻辑
         initializeRetryLogic();
-        
         return this;
     }
 
@@ -110,6 +108,30 @@ public class EsQueryExecutor {
                 searchAfterStr = errorMark.getSearchAfter();
             }
         }
+    }
+
+
+    /**
+     * 执行ES查询前置
+     */
+
+    public Boolean excuteBefore(EsQueryExecutor executor) {
+        Boolean isSuccess = Boolean.TRUE;
+        if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
+                .equals(customerInfoPushMain.getmStatus())) {
+            // 查询待补推数据
+            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+            errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                    .andPartEqualTo(part)
+                    .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue());
+            List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
+            // 查询当前part下的异常数据
+            if (CollectionUtils.isEmpty(errorMarks)) {
+                isSuccess = Boolean.FALSE;
+            }
+        }
+        return isSuccess;
+
     }
 
     /**
@@ -171,7 +193,6 @@ public class EsQueryExecutor {
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
         queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
         queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-
         // 处理标签对象的逻辑（兼容PushPolicyPushStrategy的需求）
         if (labelObject != null) {
             if (markWithEsFlag != null && markWithEsFlag) {
@@ -232,10 +253,10 @@ public class EsQueryExecutor {
      * 新增错误标记
      */
     private void insertNewErrorMark(CustomerInfoPushMain customerInfoPushMain,
-                                   String part,
-                                   int pageSize,
-                                   String searchAfterStr,
-                                   String esCondition) {
+                                    String part,
+                                    int pageSize,
+                                    String searchAfterStr,
+                                    String esCondition) {
         ErrorMark errorMark = new ErrorMark();
         errorMark.setApiCode(customerInfoPushMain.getmApiCode());
         errorMark.setmId(customerInfoPushMain.getId());

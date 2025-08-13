@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -297,7 +298,7 @@ public class PushRuleFilterController {
     @ApiImplicitParams({@ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
     @GetMapping("/getLableNameList")
     public ApiResult getLableNameList(@RequestParam(required = false) String apiCode) {
-        return new ApiResult<List<String>>().fromResult(ruleCenterLabelService.getLabelNames(apiCode), CODE_1);
+        return new ApiResult<Set<String>>().fromResult(ruleCenterLabelService.getLabelNames(apiCode), CODE_1);
     }
 
     /**

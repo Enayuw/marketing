@@ -8,10 +8,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.FilterTypeEnum;
-import com.br.marketing.enums.MockSwitchEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.es.bean.MarketingHistory;
-import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.mapper.MarketingRuleCenterLabelReportMapper;
 import com.br.marketing.mapper.MarketingSyncLabelMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
@@ -21,7 +19,6 @@ import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
-import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -86,8 +83,15 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                 .andLabelIdEqualTo(customerInfoPushMain.getId())
                 .andIsDelEqualTo(1);
         List<MarketingRuleCenterLabelReport> labelReportList = marketingRuleCenterLabelReportMapper.selectByExample(labelReportExample);
-        List<String> appletDates = labelReportList.stream().map(MarketingRuleCenterLabelReport::getAppletDate).collect(Collectors.toList());
-        context.setAppletDateList(appletDates);
+        List<Map<String,String>> conditionList = new ArrayList<>();
+        labelReportList.forEach(report->{
+            Map<String,String> dataMap = new HashMap<>();
+            dataMap.put("appletDate",report.getAppletDate());
+            dataMap.put("userType",report.getUserType());
+            conditionList.add(dataMap);
+        });
+
+        context.setDataConditionList(conditionList);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -146,13 +150,18 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                 partitionIndex.toString(),
                 context.getSinglePartition(),
                 context.getPartitionDataCount().get(partitionIndex),
-                context.getAppletDateList()
+                context.getDataConditionList()
         );
     }
 
     @Override
     protected Integer getSuccessStatus(CustomerInfoPushMain customerInfoPushMain) {
-        return PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue();
+        Integer status = toPolicyByRuleService.queryExistError(customerInfoPushMain.getId(),
+                FilterTypeEnum.GENERAL_POLICY.getValue());
+        if (status.equals(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue())) {
+            status = PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue();
+        }
+        return status;
     }
 
     /**
@@ -167,13 +176,13 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
         private String part;
         private Boolean isPerOrTop;
         private Integer partDataNum;
-        private List<String> appletDateList;
+        private List<Map<String,String>> conditionList;
 
 
         public DataLabelTask(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Boolean isPerOrTop, Integer partDataNum, List<String> appletDateList) {
+                , String part, Boolean isPerOrTop, Integer partDataNum, List<Map<String,String>> conditionList) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -181,7 +190,7 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
             this.part = part;
             this.isPerOrTop = isPerOrTop;
             this.partDataNum = partDataNum;
-            this.appletDateList = appletDateList;
+            this.conditionList = conditionList;
         }
 
         @Override
@@ -203,7 +212,10 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
             EsQueryExecutor esExecutor = createEsQueryExecutor(customerInfoPushMain, part, numList, fileIds,
                     pageSize, totalPage, isPerOrTop,
                     null, null);
-
+            //前置处理，es补推时，非异常数据不重复处理
+            if (!esExecutor.excuteBefore(esExecutor)) {
+                return resList;
+            }
             for (int i = esExecutor.getStartPageIndex(); i <= totalPage; i++) {
                 try {
                     // 执行ES查询
@@ -230,7 +242,7 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                     List<String> custNumList = marketingHistories.stream().map(MarketingHistory::getCusNum).collect(Collectors.toList());
                     List<List<String>> partitionList = ListUtils.partition(custNumList, 500);
                     partitionList.forEach(custNums -> {
-                                resList.add(pushJcPool.submit(new LabelToDB(custNums, apiCode, appletDateList, customerInfoPushMain.getId())));
+                                resList.add(pushJcPool.submit(new LabelToDB(custNums, apiCode, conditionList, customerInfoPushMain.getId())));
                             }
                     );
                 } catch (Exception ex) {
@@ -255,23 +267,24 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
 
         private String apiCode;
 
-        private List<String> appletDateList;
+        private List<Map<String,String>> conditionList;
 
         private Long labelId;
 
-        public LabelToDB(List<String> custNumList, String apiCode, List<String> appletDateList, Long labelId) {
+        public LabelToDB(List<String> custNumList, String apiCode, List<Map<String,String>> conditionList, Long labelId) {
             this.custNumList = custNumList;
             this.apiCode = apiCode;
-            this.appletDateList = appletDateList;
+            this.conditionList = conditionList;
             this.labelId = labelId;
         }
 
         @Override
         public Result<Integer> call() {
             Result<Integer> result = new Result<>();
+            long startTime = System.currentTimeMillis();
             //批量入库
             List<MarketingSyncLabel> marketingSyncLabelList = new ArrayList<>();
-            List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.getUserByCustNumAndAppletData(apiCode, appletDateList, custNumList);
+            List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.getUserByCustNumAndAppletData(apiCode, conditionList, custNumList);
             marketingSyncUsers.forEach(syncUser -> {
                 MarketingSyncLabel syncLabel = new MarketingSyncLabel();
                 BeanUtils.copyProperties(syncUser, syncLabel);
@@ -291,10 +304,14 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                     // 重复键异常，执行单条插入
                     singleInsertFallback(marketingSyncLabelList, result);
                 }
+                long totalTime = System.currentTimeMillis() - startTime;
+                String insertType = batchSuccess ? "批量插入" : "单条插入";
+                log.warn("数据插入处理完成 - 方式: {}, 耗时: {}ms", insertType, totalTime);
             } catch (Exception e) {
                 // 批量插入其他异常失败
                 result.setCode(ResultCode.FAIL.getValue());
             }
+            
             marketingSyncUsers.clear();
             marketingSyncLabelList.clear();
             return result;

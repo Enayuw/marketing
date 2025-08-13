@@ -145,9 +145,11 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
 
             // 使用统一的ES查询执行器，传入标签对象和标记
             EsQueryExecutor esExecutor = createEsQueryExecutor(customerInfoPushMain, part, numList, fileIds,
-                                                              pageSize, totalPage, isPerOrTop,
-                                                              lableObject, markWithEsFlag);
-
+                    pageSize, totalPage, isPerOrTop, lableObject, markWithEsFlag);
+            //前置处理，es补推时，非异常数据不重复处理
+            if (!esExecutor.excuteBefore(esExecutor)) {
+                return resList;
+            }
             for (int i = esExecutor.getStartPageIndex(); i <= totalPage; i++) {
                 try {
                     String sn = String.valueOf(i);
@@ -207,7 +209,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                     if (realNum == 0) {
                         continue;
                     }
-                    
+
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -264,7 +266,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                         }
                         userDetailDTOS.add(dto1);
                     }
-                    
+
                     //推送任务基础信息
                     List<List<PushMarketingUserDetailDTO>> partition =
                             toPolicyByRuleService.splitParam(customerInfoPushMain.getmApiCode(), userDetailDTOS);
@@ -412,7 +414,6 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
 
     }
-
 
 
     public String encrypt3k(Integer type, String content) {
