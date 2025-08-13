@@ -106,7 +106,7 @@ public class TcCpaSuccessDownFileServiceImpl implements TcCpaSuccessDownFileServ
             //4、更新 syncRecord 状态
             tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());
         }catch (Exception e){
-            tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());
+            tcyrCpaSuccessRecordMapper.updateTcyrRecordDownStatus(successRecord.getId(), TcCpaDownStatusEnum.DEAL_FAIL.getValue());
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }
