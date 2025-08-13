@@ -3327,5 +3327,10 @@ public class MarketingCommonConfig {
      * Ai数据入库和推送下游rocketmq切换开关
      */
     private Boolean aiUseRocketMq;
+
+    /**
+     * uMeng 设备注册 每页查询条数
+     */
+    private JSONObject tcyrCpaCollidingFailDealConfig;
 }
 

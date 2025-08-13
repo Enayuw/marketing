@@ -5,10 +5,10 @@ package com.br.marketing.enums;
  */
 public enum TcCpaCollidingDealStatusEnum {
 
-    DEAL_NO(0,"未完成"),
-    DEAL_MIDDLE(1,"中间态"),
-    DEAL_SUCCESS(2,"完成"),
-    DEAL_FAIL(3,"失败"),
+    DEAL_NO(0,"未处理"),
+    DEAL_MIDDLE(1,"处理中"),
+    DEAL_SUCCESS(2,"处理完成"),
+    DEAL_FAIL(3,"处理异常"),
     NO_FILE(4,"文件不存在");
     TcCpaCollidingDealStatusEnum(Integer value, String desc){
           this.value = value;

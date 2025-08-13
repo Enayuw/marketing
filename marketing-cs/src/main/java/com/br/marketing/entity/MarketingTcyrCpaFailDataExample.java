@@ -602,63 +602,63 @@ public class MarketingTcyrCpaFailDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeIsNull() {
-            addCriterion("releaseTime is null");
+        public Criteria andReleaseTimeIsNull() {
+            addCriterion("release_time is null");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeIsNotNull() {
-            addCriterion("releaseTime is not null");
+        public Criteria andReleaseTimeIsNotNull() {
+            addCriterion("release_time is not null");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeEqualTo(Date value) {
-            addCriterionForJDBCDate("releaseTime =", value, "releasetime");
+        public Criteria andReleaseTimeEqualTo(Date value) {
+            addCriterionForJDBCDate("release_time =", value, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeNotEqualTo(Date value) {
-            addCriterionForJDBCDate("releaseTime <>", value, "releasetime");
+        public Criteria andReleaseTimeNotEqualTo(Date value) {
+            addCriterionForJDBCDate("release_time <>", value, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeGreaterThan(Date value) {
-            addCriterionForJDBCDate("releaseTime >", value, "releasetime");
+        public Criteria andReleaseTimeGreaterThan(Date value) {
+            addCriterionForJDBCDate("release_time >", value, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("releaseTime >=", value, "releasetime");
+        public Criteria andReleaseTimeGreaterThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("release_time >=", value, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeLessThan(Date value) {
-            addCriterionForJDBCDate("releaseTime <", value, "releasetime");
+        public Criteria andReleaseTimeLessThan(Date value) {
+            addCriterionForJDBCDate("release_time <", value, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("releaseTime <=", value, "releasetime");
+        public Criteria andReleaseTimeLessThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("release_time <=", value, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeIn(List<Date> values) {
-            addCriterionForJDBCDate("releaseTime in", values, "releasetime");
+        public Criteria andReleaseTimeIn(List<Date> values) {
+            addCriterionForJDBCDate("release_time in", values, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeNotIn(List<Date> values) {
-            addCriterionForJDBCDate("releaseTime not in", values, "releasetime");
+        public Criteria andReleaseTimeNotIn(List<Date> values) {
+            addCriterionForJDBCDate("release_time not in", values, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("releaseTime between", value1, value2, "releasetime");
+        public Criteria andReleaseTimeBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("release_time between", value1, value2, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReleasetimeNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("releaseTime not between", value1, value2, "releasetime");
+        public Criteria andReleaseTimeNotBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("release_time not between", value1, value2, "releaseTime");
             return (Criteria) this;
         }
 
@@ -839,6 +839,76 @@ public class MarketingTcyrCpaFailDataExample {
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("`status` not between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgIsNull() {
+            addCriterion("status_msg is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgIsNotNull() {
+            addCriterion("status_msg is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgEqualTo(String value) {
+            addCriterion("status_msg =", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotEqualTo(String value) {
+            addCriterion("status_msg <>", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgGreaterThan(String value) {
+            addCriterion("status_msg >", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgGreaterThanOrEqualTo(String value) {
+            addCriterion("status_msg >=", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgLessThan(String value) {
+            addCriterion("status_msg <", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgLessThanOrEqualTo(String value) {
+            addCriterion("status_msg <=", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgLike(String value) {
+            addCriterion("status_msg like", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotLike(String value) {
+            addCriterion("status_msg not like", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgIn(List<String> values) {
+            addCriterion("status_msg in", values, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotIn(List<String> values) {
+            addCriterion("status_msg not in", values, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgBetween(String value1, String value2) {
+            addCriterion("status_msg between", value1, value2, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotBetween(String value1, String value2) {
+            addCriterion("status_msg not between", value1, value2, "statusMsg");
             return (Criteria) this;
         }
 

@@ -34,7 +34,7 @@ public class MarketingTcyrCpaSuccessData {
     private String cell;
 
     /**
-     * 是否匹配 0-否；1-是; 2匹配中
+     * 是否匹配 0-未匹配,1-匹配,2-匹配中
      */
     private Integer isMatch;
 
@@ -69,6 +69,11 @@ public class MarketingTcyrCpaSuccessData {
     private Integer status;
 
     /**
+     * 异常说明
+     */
+    private String statusMsg;
+
+    /**
      * 删除状态 1-可用 9-删除
      */
     private Integer isDel;
@@ -77,11 +82,6 @@ public class MarketingTcyrCpaSuccessData {
      * 扩展字段
      */
     private String extend;
-
-    /**
-     * 异常说明
-     */
-    private String statusMsg;
 
     public Long getId() {
         return id;
@@ -187,6 +187,14 @@ public class MarketingTcyrCpaSuccessData {
         this.status = status;
     }
 
+    public String getStatusMsg() {
+        return statusMsg;
+    }
+
+    public void setStatusMsg(String statusMsg) {
+        this.statusMsg = statusMsg == null ? null : statusMsg.trim();
+    }
+
     public Integer getIsDel() {
         return isDel;
     }
@@ -201,13 +209,5 @@ public class MarketingTcyrCpaSuccessData {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
-    }
-
-    public String getStatusMsg() {
-        return statusMsg;
-    }
-
-    public void setStatusMsg(String statusMsg) {
-        this.statusMsg = statusMsg == null ? null : statusMsg.trim();
     }
 }

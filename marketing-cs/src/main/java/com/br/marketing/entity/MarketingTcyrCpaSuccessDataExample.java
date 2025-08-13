@@ -952,6 +952,76 @@ public class MarketingTcyrCpaSuccessDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andStatusMsgIsNull() {
+            addCriterion("status_msg is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgIsNotNull() {
+            addCriterion("status_msg is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgEqualTo(String value) {
+            addCriterion("status_msg =", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotEqualTo(String value) {
+            addCriterion("status_msg <>", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgGreaterThan(String value) {
+            addCriterion("status_msg >", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgGreaterThanOrEqualTo(String value) {
+            addCriterion("status_msg >=", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgLessThan(String value) {
+            addCriterion("status_msg <", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgLessThanOrEqualTo(String value) {
+            addCriterion("status_msg <=", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgLike(String value) {
+            addCriterion("status_msg like", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotLike(String value) {
+            addCriterion("status_msg not like", value, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgIn(List<String> values) {
+            addCriterion("status_msg in", values, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotIn(List<String> values) {
+            addCriterion("status_msg not in", values, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgBetween(String value1, String value2) {
+            addCriterion("status_msg between", value1, value2, "statusMsg");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusMsgNotBetween(String value1, String value2) {
+            addCriterion("status_msg not between", value1, value2, "statusMsg");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

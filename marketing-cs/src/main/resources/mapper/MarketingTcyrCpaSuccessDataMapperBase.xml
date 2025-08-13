@@ -15,11 +15,9 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="status_msg" property="statusMsg" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingTcyrCpaSuccessData" extends="BaseResultMap" >
-    <result column="status_msg" property="statusMsg" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -80,28 +78,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_no, sync_file_id, user_key, cell, is_match, is_clean, start_date, 
-    end_date, create_time, update_time, `status`, is_del, extend
+    id, api_code, batch_no, sync_file_id, user_key, cell, is_match, is_clean, start_date,
+    end_date, create_time, update_time, `status`, status_msg, is_del, extend
   </sql>
-  <sql id="Blob_Column_List" >
-    status_msg
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessDataExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_tcyr_cpa_success_data
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessDataExample" >
     select
     <if test="distinct" >
@@ -116,11 +95,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select 
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_tcyr_cpa_success_data
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -138,18 +115,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_success_data (api_code, batch_no, sync_file_id, 
-      user_key, cell, is_match, 
-      is_clean, start_date, end_date, 
-      create_time, update_time, `status`, 
-      is_del, extend, status_msg
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
-      #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{isMatch,jdbcType=INTEGER}, 
-      #{isClean,jdbcType=INTEGER}, #{startDate,jdbcType=DATE}, #{endDate,jdbcType=DATE}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
-      #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{statusMsg,jdbcType=LONGVARCHAR}
-      )
+    insert into b_tcyr_cpa_success_data (api_code, batch_no, sync_file_id,
+    user_key, cell, is_match,
+    is_clean, start_date, end_date,
+    create_time, update_time, `status`,
+    status_msg, is_del, extend
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT},
+    #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{isMatch,jdbcType=INTEGER},
+    #{isClean,jdbcType=INTEGER}, #{startDate,jdbcType=DATE}, #{endDate,jdbcType=DATE},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER},
+    #{statusMsg,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -193,14 +170,14 @@
       <if test="status != null" >
         `status`,
       </if>
+      <if test="statusMsg != null" >
+        status_msg,
+      </if>
       <if test="isDel != null" >
         is_del,
       </if>
       <if test="extend != null" >
         extend,
-      </if>
-      <if test="statusMsg != null" >
-        status_msg,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -240,14 +217,14 @@
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
       </if>
+      <if test="statusMsg != null" >
+        #{statusMsg,jdbcType=VARCHAR},
+      </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
-      </if>
-      <if test="statusMsg != null" >
-        #{statusMsg,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -299,38 +276,16 @@
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
+      <if test="record.statusMsg != null" >
+        status_msg = #{record.statusMsg,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
-      <if test="record.statusMsg != null" >
-        status_msg = #{record.statusMsg,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_tcyr_cpa_success_data
-    set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
-      user_key = #{record.userKey,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      is_match = #{record.isMatch,jdbcType=INTEGER},
-      is_clean = #{record.isClean,jdbcType=INTEGER},
-      start_date = #{record.startDate,jdbcType=DATE},
-      end_date = #{record.endDate,jdbcType=DATE},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      `status` = #{record.status,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      status_msg = #{record.statusMsg,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -338,20 +293,21 @@
   <update id="updateByExample" parameterType="map" >
     update b_tcyr_cpa_success_data
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      batch_no = #{record.batchNo,jdbcType=VARCHAR},
-      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
-      user_key = #{record.userKey,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      is_match = #{record.isMatch,jdbcType=INTEGER},
-      is_clean = #{record.isClean,jdbcType=INTEGER},
-      start_date = #{record.startDate,jdbcType=DATE},
-      end_date = #{record.endDate,jdbcType=DATE},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      `status` = #{record.status,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    batch_no = #{record.batchNo,jdbcType=VARCHAR},
+    sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
+    user_key = #{record.userKey,jdbcType=VARCHAR},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    is_match = #{record.isMatch,jdbcType=INTEGER},
+    is_clean = #{record.isClean,jdbcType=INTEGER},
+    start_date = #{record.startDate,jdbcType=DATE},
+    end_date = #{record.endDate,jdbcType=DATE},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    `status` = #{record.status,jdbcType=INTEGER},
+    status_msg = #{record.statusMsg,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -395,53 +351,35 @@
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
+      <if test="statusMsg != null" >
+        status_msg = #{statusMsg,jdbcType=VARCHAR},
+      </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
-      <if test="statusMsg != null" >
-        status_msg = #{statusMsg,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessData" >
-    update b_tcyr_cpa_success_data
-    set api_code = #{apiCode,jdbcType=VARCHAR},
-      batch_no = #{batchNo,jdbcType=VARCHAR},
-      sync_file_id = #{syncFileId,jdbcType=BIGINT},
-      user_key = #{userKey,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      is_match = #{isMatch,jdbcType=INTEGER},
-      is_clean = #{isClean,jdbcType=INTEGER},
-      start_date = #{startDate,jdbcType=DATE},
-      end_date = #{endDate,jdbcType=DATE},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      `status` = #{status,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      status_msg = #{statusMsg,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessData" >
     update b_tcyr_cpa_success_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      batch_no = #{batchNo,jdbcType=VARCHAR},
-      sync_file_id = #{syncFileId,jdbcType=BIGINT},
-      user_key = #{userKey,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      is_match = #{isMatch,jdbcType=INTEGER},
-      is_clean = #{isClean,jdbcType=INTEGER},
-      start_date = #{startDate,jdbcType=DATE},
-      end_date = #{endDate,jdbcType=DATE},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      `status` = #{status,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR}
+        batch_no = #{batchNo,jdbcType=VARCHAR},
+        sync_file_id = #{syncFileId,jdbcType=BIGINT},
+        user_key = #{userKey,jdbcType=VARCHAR},
+        cell = #{cell,jdbcType=VARCHAR},
+        is_match = #{isMatch,jdbcType=INTEGER},
+        is_clean = #{isClean,jdbcType=INTEGER},
+        start_date = #{startDate,jdbcType=DATE},
+        end_date = #{endDate,jdbcType=DATE},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        `status` = #{status,jdbcType=INTEGER},
+        status_msg = #{statusMsg,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

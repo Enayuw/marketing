@@ -48,6 +48,8 @@ public enum ThreadPoolNameEnum {
     TCYR_CPA_COLLIDING_DEAL(27,"tcyr_cpa_colliding_deal_3710208","同程易融cpa_colliding_deal撞库流程"),
     TCYR_CPA_TRANSFER_DEAL(28,"tcyr_cpa_transfer_deal_3710208","同程易融cpa_transfer_deal转化清洗流程"),
 
+    TCYR_CPA_COLLIDING_FAIL_DEAL(27,"tcyr_cpa_colliding_fail_deal_3710208","同程易融cpa_colliding_fail_deal流程"),
+
 
     ;
 

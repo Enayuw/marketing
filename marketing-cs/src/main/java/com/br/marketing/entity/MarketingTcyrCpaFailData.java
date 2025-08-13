@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class MarketingTcyrCpaFailData {
     /**
-     * 
+     * 自增主键
      */
     private Long id;
 
@@ -34,14 +34,14 @@ public class MarketingTcyrCpaFailData {
     private String cell;
 
     /**
-     * 失败类型 1-黑名单；2-已被锁定; 3-已转化；4-无此用户
+     * 失败类型 1-黑名单；2-已被锁定；3-已转化；4-无此用户
      */
     private String failMsg;
 
     /**
      * 释放日期
      */
-    private Date releasetime;
+    private Date releaseTime;
 
     /**
      * 创建时间
@@ -59,6 +59,11 @@ public class MarketingTcyrCpaFailData {
     private Integer status;
 
     /**
+     * 异常说明
+     */
+    private String statusMsg;
+
+    /**
      * 删除状态 1-可用 9-删除
      */
     private Integer isDel;
@@ -67,11 +72,6 @@ public class MarketingTcyrCpaFailData {
      * 扩展字段
      */
     private String extend;
-
-    /**
-     * 异常说明
-     */
-    private String statusMsg;
 
     public Long getId() {
         return id;
@@ -129,12 +129,12 @@ public class MarketingTcyrCpaFailData {
         this.failMsg = failMsg == null ? null : failMsg.trim();
     }
 
-    public Date getReleasetime() {
-        return releasetime;
+    public Date getReleaseTime() {
+        return releaseTime;
     }
 
-    public void setReleasetime(Date releasetime) {
-        this.releasetime = releasetime;
+    public void setReleaseTime(Date releaseTime) {
+        this.releaseTime = releaseTime;
     }
 
     public Date getCreateTime() {
@@ -161,6 +161,14 @@ public class MarketingTcyrCpaFailData {
         this.status = status;
     }
 
+    public String getStatusMsg() {
+        return statusMsg;
+    }
+
+    public void setStatusMsg(String statusMsg) {
+        this.statusMsg = statusMsg == null ? null : statusMsg.trim();
+    }
+
     public Integer getIsDel() {
         return isDel;
     }
@@ -175,13 +183,5 @@ public class MarketingTcyrCpaFailData {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
-    }
-
-    public String getStatusMsg() {
-        return statusMsg;
-    }
-
-    public void setStatusMsg(String statusMsg) {
-        this.statusMsg = statusMsg == null ? null : statusMsg.trim();
     }
 }
