@@ -10,6 +10,9 @@ import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.dto.tc.TcRevokeDto;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.TcCpaIsDelEnum;
+import com.br.marketing.enums.TcCpaRecordStatusEnum;
+import com.br.marketing.enums.TcRecordCleanStatusEnum;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaRevokeRecordMapper;
 import com.br.marketing.service.PushInfoService;
@@ -94,9 +97,9 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
         MarketingTcyrCpaRevokeRecordExample example = new MarketingTcyrCpaRevokeRecordExample();
         example.createCriteria()
                 .andApiCodeEqualTo(apiCode)
-                .andStatusEqualTo(1)
-                .andIsCleanEqualTo(0)
-                .andIsDelEqualTo(1);
+                .andStatusEqualTo(TcCpaRecordStatusEnum.ACCESS_SUCCESS.getValue())
+                .andIsCleanEqualTo(TcRecordCleanStatusEnum.CLEAN_WAITED.getValue())
+                .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
         example.setOrderByClause("create_time desc limit 1");
         List<MarketingTcyrCpaRevokeRecord> records = marketingTcyrCpaRevokeRecordMapper.selectByExample(example);
         return CollectionUtils.isEmpty(records) ? null : records.get(0);
@@ -115,9 +118,9 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
                 processUserKeyListFromDB(apiCode, batchNo, updateRecord, record.getId());
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     TITLE + "-数据id：" + record.getId() + "外层处理撤销记录异常"), e);
-            updateRecord.setIsClean(4);
+            updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_EXCEPTION.getValue());
             marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
         }
     }
@@ -127,7 +130,7 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
                                     MarketingTcyrCpaRevokeRecord updateRecord, Long recordId) {
         List<List<String>> partitions = ListUtils.partition(userKeyList, 1000);
         if (processPartitions(apiCode, batchNo, partitions, updateRecord, recordId)) {
-            updateRecord.setIsClean(1);
+            updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_COMPLETED.getValue());
             marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
         }
     }
@@ -153,7 +156,7 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
                 return;
             }
         }
-        updateRecord.setIsClean(1);
+        updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_COMPLETED.getValue());
         marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
     }
 
@@ -171,9 +174,9 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
                     return false;
                 }
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         TITLE + "-数据id：" + recordId + "处理撤销记录异常"), e);
-                updateRecord.setIsClean(4);
+                updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_EXCEPTION.getValue());
                 marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
                 return false;
             }
@@ -189,7 +192,7 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
         if (result == null || !result.isSuccess()) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                     TITLE + "-数据id：" + recordId + "调用transferClean方法失败"));
-            updateRecord.setIsClean(2);
+            updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_CLEAN_FAIL.getValue());
             marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return false;
         }
@@ -201,7 +204,7 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
         if (pushResult == null || !pushResult.isSuccess()) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                     TITLE + "-数据id：" + recordId + "调用pushTransferByRetry方法失败"));
-            updateRecord.setIsClean(3);
+            updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_PUSH.getValue());
             marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return false;
         }

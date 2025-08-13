@@ -4,7 +4,9 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.entity.MarketingTcyrCpaRevokeRecord;
 import com.br.marketing.enums.TcCpaDownStatusEnum;
+import com.br.marketing.enums.TcCpaIsDelEnum;
 import com.br.marketing.enums.TcCpaRecordStatusEnum;
+import com.br.marketing.enums.TcRecordCleanStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaRevokeRecordMapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -43,8 +45,8 @@ public class TcCpaRevokeProcessor extends AbstractTcCustomizeProcessor{
         record.setBatchNo(batchNo);
         record.setData(tcRequestDTO.getData());
         record.setStatus(TcCpaRecordStatusEnum.ACCESS_IN.getValue());
-        record.setIsClean(0);
-        record.setIsDel(Constants.DATA_VALID);
+        record.setIsClean(TcRecordCleanStatusEnum.CLEAN_WAITED.getValue());
+        record.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         try {

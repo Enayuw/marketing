@@ -4,6 +4,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
 import com.br.marketing.enums.TcCpaDownStatusEnum;
+import com.br.marketing.enums.TcCpaIsDelEnum;
 import com.br.marketing.enums.TcCpaRecordStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
 import groovy.util.logging.Slf4j;
@@ -42,7 +43,7 @@ public class TcCpaDataPushProcessor extends AbstractTcCustomizeProcessor{
         record.setData(tcRequestDTO.getData());
         record.setStatus(TcCpaRecordStatusEnum.ACCESS_IN.getValue());
         record.setDownStatus(TcCpaDownStatusEnum.DEAL_NO.getValue());
-        record.setIsDel(Constants.DATA_VALID);
+        record.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         try {

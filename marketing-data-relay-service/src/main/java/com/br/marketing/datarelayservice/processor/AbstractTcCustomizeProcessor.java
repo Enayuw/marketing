@@ -23,10 +23,6 @@ public abstract class AbstractTcCustomizeProcessor {
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private static final int RECORD_STATUS_SUCCESS = 1;
-
-    private static final int RECORD_STATUS_FAIL = 2;
-
     /**
      * @description 模板方法
      * @param tcRequestDTO

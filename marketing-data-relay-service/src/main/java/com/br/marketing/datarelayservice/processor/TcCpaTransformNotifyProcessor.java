@@ -2,6 +2,9 @@ package com.br.marketing.datarelayservice.processor;
 
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.entity.MarketingTcyrCpaTransferRecord;
+import com.br.marketing.enums.TcCpaIsDelEnum;
+import com.br.marketing.enums.TcCpaRecordStatusEnum;
+import com.br.marketing.enums.TcRecordCleanStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaTransferRecordMapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -37,18 +40,18 @@ public class TcCpaTransformNotifyProcessor extends AbstractTcCustomizeProcessor{
         record.setRequestNo(tcRequestDTO.getRequestNo());
         record.setBatchNo(batchNo);
         record.setData(tcRequestDTO.getData());
-        record.setStatus(0);
+        record.setStatus(TcCpaRecordStatusEnum.ACCESS_IN.getValue());
+        record.setIsClean(TcRecordCleanStatusEnum.CLEAN_WAITED.getValue());
+        record.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
-        record.setIsClean(0);
-        record.setIsDel(1);
         try {
             tcyrCpaTransferRecordMapper.insertSelective(record);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
-            record.setStatus(2);
+            record.setStatus(TcCpaRecordStatusEnum.ACCESS_FAIL.getValue());
             tcyrCpaTransferRecordMapper.insertSelective(record);
             return null;
         }
