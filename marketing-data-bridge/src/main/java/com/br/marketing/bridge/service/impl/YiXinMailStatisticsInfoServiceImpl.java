@@ -40,6 +40,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,12 +81,18 @@ public class YiXinMailStatisticsInfoServiceImpl implements YiXInMailStatisticsIn
     public void transMailToMarketingBiProcess(String jobParam) {
         JSONObject param = JSONObject.parseObject(jobParam);
 
+        Map<String, String> mailReadDate = marketingCommonConfig.getYiXinMailReadDateMap();
+        String mailReadStartDate = mailReadDate.getOrDefault("startDate", "T-1")
+                .replaceAll("[^0-9\\-]", "");
+        String mailReadEndDate = mailReadDate.getOrDefault("endDate", "T-1")
+                .replaceAll("[^0-9\\-]", "");
+
         LocalDate startDate = Optional.ofNullable(param.getString("startDate"))
                 .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
-                .orElseGet(LocalDate::now);
+                .orElseGet(() -> LocalDate.now().plusDays(Long.parseLong(mailReadStartDate)));
         LocalDate endDate = Optional.ofNullable(param.getString("endDate"))
                 .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
-                .orElseGet(LocalDate::now);
+                .orElseGet(() -> LocalDate.now().plusDays(Long.parseLong(mailReadEndDate)));
 
         // 使用Stream生成日期序列并构造邮件标题列表
         List<String> dates = Stream.iterate(startDate, date -> date.plusDays(1))

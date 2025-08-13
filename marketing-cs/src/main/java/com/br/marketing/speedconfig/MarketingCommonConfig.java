@@ -3291,6 +3291,11 @@ public class MarketingCommonConfig {
     private Map<String, String> YiXinMailConfigMap;
 
     /**
+     * 邮件统计开始时间
+     */
+    private Map<String, String> yiXinMailReadDateMap;
+
+    /**
      * 转化文件落库BI批量大小
      */
     private Integer fileToMarketingBiBatchSize;
