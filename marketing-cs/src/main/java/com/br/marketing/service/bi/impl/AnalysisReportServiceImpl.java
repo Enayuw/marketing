@@ -19,7 +19,6 @@ import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.aspectj.org.eclipse.jdt.internal.core.nd.field.StructDef;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.br.common.log.AlertLog;
@@ -299,24 +298,6 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
                     return Double.parseDouble(startValue);
                 }))
                 .collect(Collectors.toList());
-    }
-
-    private List<String> determineStepLength(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
-        List<String> keys = details.stream().map(keyMapper).distinct().collect(Collectors.toList());
-        List<String> fiveStepLength = Lists.newArrayList();
-        fiveStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"));
-        List<String> fiftyStepLength = Lists.newArrayList();
-        fiftyStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"));
-        // 剔除 [-1,0) 区间做交集
-        keys.remove("[-1,0)");
-        fiveStepLength.remove("[-1,0)");
-        fiftyStepLength.remove("[-1,0)");
-        if (this.checkKeys(keys, fiveStepLength)) {
-            return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
-        } else if (this.checkKeys(keys, fiftyStepLength)) {
-            return marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
-        }
-        return keys;
     }
 
     private boolean checkKeys(List<String> keys, List<String> config) {

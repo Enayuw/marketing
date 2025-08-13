@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.SearchConditionDTO;
 import com.br.marketing.entity.ReportIntervalConfig;
@@ -91,7 +92,7 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
             ArrayList<String> slashList = new ArrayList<>(Collections.nCopies(axisWrapVO.getXAxis().size(), "/"));
             axisWrapVO.setYAxis(yAxis);
             if (AXIS_TYPE_SINGLE.equals(model.getAxisType())) {
-                List<String> keys = Splitter.on(",").splitToList(model.getxModelName());
+                List<String> keys = Splitter.on(",").splitToList(model.getxModelName().trim());
                 for (String yName : keys) {
                     yAxis.add(new WrapDataVO(yName, slashList));
                 }
@@ -152,6 +153,7 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
 
     /**
      * “[-1,0), [0,949), [950,1000), [1000,1050), [1050,1100)”，拆成List<String>
+     * “云南, 海南, 内蒙古, 广东, 四川, 青海, 西藏, 新疆, 山西, 宁夏, 福建, 重庆, 江苏, 陕西, 安徽, 浙江, 辽宁, 广西, 湖北, 甘肃, 河南, 河北, 贵州, 北京, 上海, 山东, 天津, 湖南”，也要实现拆分
      * @param intervalString
      * @return
      */
@@ -159,15 +161,12 @@ public class ScoreDistRuleServiceImpl implements ScoreDistRuleService {
         if (intervalString == null || intervalString.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        return Pattern.compile("\\),\\s*")
-                .splitAsStream(intervalString)
-                .map(str -> {
-                    // 确保以右括号结束
-                    if (!str.endsWith(")")) {
-                        return str + ")";
-                    }
-                    return str;
-                })
+        if (StringUtils.containsChinese(intervalString)) {
+            return Splitter.on(",").splitToList(intervalString.trim());
+        }
+        return Pattern.compile("(?<=[\\]\\)])\\s*,\\s*")
+                .splitAsStream(intervalString.trim())
+                .map(String::trim)
                 .collect(Collectors.toList());
-    }
+        }
 }
