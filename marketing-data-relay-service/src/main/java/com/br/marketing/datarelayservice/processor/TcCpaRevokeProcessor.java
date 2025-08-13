@@ -1,7 +1,10 @@
 package com.br.marketing.datarelayservice.processor;
 
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.entity.MarketingTcyrCpaRevokeRecord;
+import com.br.marketing.enums.TcCpaDownStatusEnum;
+import com.br.marketing.enums.TcCpaRecordStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaRevokeRecordMapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -39,7 +42,9 @@ public class TcCpaRevokeProcessor extends AbstractTcCustomizeProcessor{
         record.setRequestNo(tcRequestDTO.getRequestNo());
         record.setBatchNo(batchNo);
         record.setData(tcRequestDTO.getData());
-        record.setStatus(0);
+        record.setStatus(TcCpaRecordStatusEnum.ACCESS_IN.getValue());
+        record.setIsClean(0);
+        record.setIsDel(Constants.DATA_VALID);
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         try {
@@ -48,7 +53,7 @@ public class TcCpaRevokeProcessor extends AbstractTcCustomizeProcessor{
         } catch (DuplicateKeyException e) {
             //告警
             record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
-            record.setStatus(2);
+            record.setStatus(TcCpaRecordStatusEnum.ACCESS_FAIL.getValue());
             tcyrCpaRevokeRecordMapper.insertSelective(record);
             return null;
         }

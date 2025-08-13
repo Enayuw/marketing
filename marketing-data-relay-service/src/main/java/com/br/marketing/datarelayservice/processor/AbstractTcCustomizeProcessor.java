@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tc.TcDataDto;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.dto.tc.TcResponseDTO;
+import com.br.marketing.enums.TcCpaRecordStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.tc.RSAUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,26 +52,26 @@ public abstract class AbstractTcCustomizeProcessor {
             }
             //2.公共必输项校验
             if (StringUtils.isNotEmpty(tcRequestDTO.validate())) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, tcRequestDTO.validate());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), tcRequestDTO.validate());
                 return resdto.outterParamsFail(brPrivateKey, tcRequestDTO.validate());
             }
             //3.验签
             if (!RSAUtil.SignVf(tcRequestDTO, tcPublicKey)) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, TcResponseDTO.ResultEnum.SIGN_ERROR.getMsg());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), TcResponseDTO.ResultEnum.SIGN_ERROR.getMsg());
                 return resdto.signFail(brPrivateKey);
             }
             //4.data层必填项校验
             if (StringUtils.isNotEmpty(tcDataDto.validate())) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, tcDataDto.validate());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), tcDataDto.validate());
                 return resdto.innerParamsFail(brPrivateKey, tcDataDto.validate());
             }
             //5.将record更新为status = 1-接入成功
-            updateRecord(recordId, RECORD_STATUS_SUCCESS, null);
+            updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_SUCCESS.getValue(), null);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "同程数据接入异常！"), e);
             if (null != recordId) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, e.getMessage());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), e.getMessage());
             }
             return resdto.systemFail(brPrivateKey);
         }

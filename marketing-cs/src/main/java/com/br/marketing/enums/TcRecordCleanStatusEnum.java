@@ -1,16 +1,16 @@
 package com.br.marketing.enums;
 
 /**
- * down_status枚举
+ *
  */
-public enum TcCpaDownStatusEnum {
+public enum TcRecordCleanStatusEnum {
 
-    DEAL_NO(0,"未下载"),
-    DEALING(1,"处理中"),
-    DEAL_SUCCESS(2,"处理成功"),
-    DEAL_FAIL(3,"处理失败");
-
-    TcCpaDownStatusEnum(Integer value, String desc){
+    CLEAN_WAITED(0,"待清洗"),
+    CLEAN_COMPLETED(1,"清洗完成"),
+    CLEAN_CLEAN_FAIL(2,"清洗失败"),
+    CLEAN_PUSH(3,"清洗推送失败"),
+    CLEAN_EXCEPTION(4,"清洗异常");
+    TcRecordCleanStatusEnum(Integer value, String desc){
           this.value = value;
             this.desc=desc;
     }
