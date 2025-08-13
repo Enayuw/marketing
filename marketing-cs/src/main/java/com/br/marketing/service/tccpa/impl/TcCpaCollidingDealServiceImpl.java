@@ -164,7 +164,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                         extentJson.put("column_0", line);
                         sqlBuilder.append(",'").append(escapeSqlString(JSONObject.toJSONString(extentJson))).append("',0,NOW(),NOW(),'")
                                 .append(startDateStr).append("','").append(endDateStr).append("')");
-                    } else if (data.length >= 1) {
+                    } else {
                         String userKey = data[0].trim();
                         sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("'");
                         //cell is_match 查中间表数据(不从原始上传明细查询补充中间表)
