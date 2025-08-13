@@ -158,7 +158,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
                 continue;
             }
             ScoreStatisticsDetailExample detailExample = new ScoreStatisticsDetailExample();
-            detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getId());
+            detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getId()).andIsDelEqualTo(Constants.DATA_VALID);
             List<ScoreStatisticsDetail> details = scoreStatisticsDetailBaseMapper.selectByExample(detailExample);
             switch (statisticsScore.getReportScoreType()) {
                 case 1:

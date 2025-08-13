@@ -56,6 +56,8 @@ public class ReportScoreRuleController {
     @Resource
     private FastDfsClient fastDfsClient;
 
+    private static final Integer CODE_1 = Integer.valueOf(1);
+
     @GetMapping("/getTaskScoreProducts")
     public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids, @RequestParam(defaultValue = "all")String fieldType) {
         return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids, fieldType));
@@ -172,7 +174,7 @@ public class ReportScoreRuleController {
     @PostMapping("/refreshCustomIntervalReport")
     @AuthDataControllerPermission
     public ApiResult<Boolean> refreshCustomIntervalReport(@RequestBody RefreshReportRequestDTO requestDTO) {
-        return reportScoreRuleService.refreshCustomIntervalReport(requestDTO);
+        return new ApiResult().fromResult(reportScoreRuleService.refreshCustomIntervalReport(requestDTO), CODE_1);
     }
 
     @ApiOperation("保存评分分布模板")
@@ -180,21 +182,21 @@ public class ReportScoreRuleController {
     @AuthDataControllerPermission
     public ApiResult<Boolean> saveIntervalTemplate(@RequestBody RefreshReportRequestDTO requestDTO) {
         MarketingUserDetail user = ThreadContextInfo.getUser();
-        return reportScoreRuleService.saveIntervalTemplate(requestDTO,user);
+        return new ApiResult().fromResult(reportScoreRuleService.saveIntervalTemplate(requestDTO,user), CODE_1);
     }
 
     @ApiOperation("评分分布查询规则模板")
     @GetMapping("/getIntervalTemplate")
     @AuthDataControllerPermission
     public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(@RequestParam String apiCode) {
-        return reportScoreRuleService.getIntervalTemplate(apiCode);
+        return new ApiResult().fromResult(reportScoreRuleService.getIntervalTemplate(apiCode), CODE_1);
     }
 
     @ApiOperation("查询画像分布模型")
     @GetMapping("/getImageDistribution")
     @AuthDataControllerPermission
     public ApiResult<String> getImageDistribution() {
-        return reportScoreRuleService.getImageDistribution();
+        return new ApiResult().fromResult(reportScoreRuleService.getImageDistribution(), CODE_1);
     }
 
 }

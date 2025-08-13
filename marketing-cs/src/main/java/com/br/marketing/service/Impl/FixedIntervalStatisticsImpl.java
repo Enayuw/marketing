@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.ScoreStatisticsDetail;
 import com.br.marketing.mapper.ReportStatisticsScoreMapper;
 import com.br.marketing.mapper.ScoreStatisticsDetailMapper;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -148,6 +150,7 @@ public class FixedIntervalStatisticsImpl {
             detail.setFieldXValue(interval);
             detail.setFieldYValue(model);
             detail.setFieldNum(0);
+            detail.setIsDel(Constants.DATA_VALID);
             statisticsDetails.add(detail);
         }
         
@@ -262,7 +265,7 @@ public class FixedIntervalStatisticsImpl {
                 ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
                 statisticsDetail.setStatisticsId(statisticsId);
                 // 安全的字符串转换
-                String modelValue = (modelValueObj == null || com.br.marketing.common.utils.StringUtils.isEmpty(modelValueObj.toString()))
+                String modelValue = (modelValueObj == null || StringUtils.isEmpty(modelValueObj.toString()))
                     ? "未知" : modelValueObj.toString();
                 statisticsDetail.setFieldXValue(modelValue);
                 statisticsDetail.setFieldYValue(model);

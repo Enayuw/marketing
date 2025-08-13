@@ -1,4 +1,6 @@
 package com.br.marketing.service.Impl;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -16,7 +18,6 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.bi.ReportStatisticService;
 import com.br.marketing.vo.bi.IntervalTemplateVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
-import com.br.marketing.vo.bi.param.IntervalTemplateParam;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -657,68 +658,64 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     @Override
-    public ApiResult<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO) {
+    public Result<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO) {
         if (requestDTO.getReportId() == null || CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
-            return new ApiResult<Boolean>().fail(false, "reportId和customIntervals不能为空");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("reportId和customIntervals不能为空");
         }
         // 遍历需要刷新的统计配置
         for (RefreshReportRequestDTO.CustomIntervalConfigDTO configDTO : requestDTO.getCustomIntervals()) {
             try {
                 refreshSingleStatistics(configDTO);
             } catch (Exception e) {
-                log.error("刷新统计配置失败, statisticsId: {}", configDTO.getStatisticsId(), e);
-                return new ApiResult<Boolean>().fail(false, "刷新统计配置失败, statisticsId: " + configDTO.getStatisticsId() + ", 错误: " + e.getMessage());
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("刷新统计配置失败, statisticsId: " + configDTO.getStatisticsId() + ", 错误: " + e.getMessage());
             }
         }
         // 刷新报告文件并上传至fastdfs
         try {
             analysisReportService.uploadReportToFastDfs(requestDTO.getReportId());
         } catch (IOException e) {
-            log.error("刷新报告文件并上传至fastdfs失败, taskId: {}", requestDTO.getReportId(), e);
-            return new ApiResult<Boolean>().fail(false, "刷新报告文件并上传至fastdfs失败, taskId: " + requestDTO.getReportId() + ", 错误: " + e.getMessage());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("刷新报告文件并上传至fastdfs失败, taskId: " + requestDTO.getReportId() + ", 错误: " + e.getMessage());
         }
-        return new ApiResult<Boolean>().success(true);
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user) {
+    public Result<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user) {
         // 参数校验
         if (StringUtils.isEmpty(requestDTO.getTemplateName())) {
-            return new ApiResult<Boolean>().fail(false, "模板名称不能为空");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("模板名称不能为空");
         }
         if (CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
-            return new ApiResult<Boolean>().fail(false, "自定义区间配置不能为空");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("自定义区间配置不能为空");
         }
 
         try {
             // 检查模板名称是否重复
             if (isTemplateNameExists(requestDTO.getTemplateName())) {
-                return new ApiResult<Boolean>().fail(false, "模板名称重复: " + requestDTO.getTemplateName());
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("模板名称重复: " + requestDTO.getTemplateName());
             }
 
             // 保存配置主表
             ReportIntervalConfig config = createIntervalConfig(requestDTO, user);
             int configResult = reportIntervalConfigMapper.insertSelective(config);
             if (configResult == 0) {
-                return new ApiResult<Boolean>().fail(false, "自定义区间配置保存失败: " + requestDTO.getTemplateName());
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("自定义区间配置保存失败: " + requestDTO.getTemplateName());
             }
 
             // 批量保存模型配置
             saveIntervalModels(config.getId(), requestDTO.getCustomIntervals());
-
-            return new ApiResult<Boolean>().success(true);
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
-            log.error("保存评分分布模板失败, templateName: {}", requestDTO.getTemplateName(), e);
-            return new ApiResult<Boolean>().fail(false, "保存评分分布模板失败: " + e.getMessage());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("保存评分分布模板失败: " + e.getMessage());
         }
     }
 
     @Override
-    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(String apiCode) {
+    public Result<List<IntervalTemplateVO>> getIntervalTemplate(String apiCode) {
         // 参数校验
         if (StringUtils.isEmpty(apiCode)) {
-            return new ApiResult<List<IntervalTemplateVO>>().fail("apiCode不能为空");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("apiCode不能为空");
         }
         List<String> apiCodes = new ArrayList<>(Arrays.asList(apiCode.split(",")));
         try {
@@ -745,16 +742,15 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                 intervalTemplateVO.setIntervalModels(intervalModelsVOS);
                 list.add(intervalTemplateVO);
             }
-            return new ApiResult<List<IntervalTemplateVO>>().success().setData(list);
+            return new Result<List<IntervalTemplateVO>>().setCode(ResultCode.SUCCESS.getValue()).setDate(list);
         }catch (Exception e){
-            log.error("评分分布查询规则模板异常, apiCodes: {}", apiCodes, e);
-            return new ApiResult<List<IntervalTemplateVO>>().fail("评分分布查询规则模板异常: " + e.getMessage());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("评分分布查询规则模板异常: " + e.getMessage());
         }
     }
 
     @Override
-    public ApiResult<String> getImageDistribution() {
-        return new ApiResult<String>().success().setData(marketingCommonConfig.getImageDistribution());
+    public Result<String> getImageDistribution() {
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(marketingCommonConfig.getImageDistribution());
     }
 
     private static List<IntervalTemplateVO.IntervalModelsVO> getIntervalModelsVOS(List<ReportIntervalModel> reportIntervalModels) {
@@ -870,18 +866,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     /**
      * 刷新单个统计配置
      */
-    private void refreshSingleStatistics(RefreshReportRequestDTO.CustomIntervalConfigDTO customConfig) {
+    public void refreshSingleStatistics(RefreshReportRequestDTO.CustomIntervalConfigDTO customConfig) throws Exception {
         Long statisticsId = customConfig.getStatisticsId();
 
-        log.warn("开始刷新统计配置, statisticsId: {}, reportScoreType: {}, xIntervalList: {}, yIntervalList: {}",
-                statisticsId, customConfig.getReportScoreType(), 
-                JSON.toJSONString(customConfig.getXIntervalList()), 
-                JSON.toJSONString(customConfig.getYIntervalList()));
-
         // 先删除旧的统计详情数据
-        ScoreStatisticsDetailExample detailExample = new ScoreStatisticsDetailExample();
-        detailExample.createCriteria().andStatisticsIdEqualTo(statisticsId);
-        scoreStatisticsDetailMapper.deleteByExample(detailExample);
+        ScoreStatisticsDetailExample example = new ScoreStatisticsDetailExample();
+        example.createCriteria().andStatisticsIdEqualTo(statisticsId).andIsDelEqualTo(Constants.DATA_VALID);
+
+        ScoreStatisticsDetail scoreStatisticsDetail = new ScoreStatisticsDetail();
+        scoreStatisticsDetail.setIsDel(Constants.DATA_DEL);
+        scoreStatisticsDetail.setUpdateTime(new Date());
+        scoreStatisticsDetailMapper.updateByExampleSelective(scoreStatisticsDetail, example);
 
         // 更新统计配置的区间范围
         ReportStatisticsScore updateScore = new ReportStatisticsScore();
