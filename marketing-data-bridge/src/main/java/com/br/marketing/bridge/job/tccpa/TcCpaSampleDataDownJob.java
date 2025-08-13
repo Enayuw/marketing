@@ -35,7 +35,7 @@ public class TcCpaSampleDataDownJob extends AbstractSimpleElasticJob {
             String apiCode = StringUtils.isNotBlank(testApiCode) ? testApiCode : marketingCommonConfig.getTcyrCpaApiCode();
             tcCpaSampleDataDownService.process(apiCode);
         } catch (Exception e) {
-            String title = "58查询当天延期撞库数据作业，单次运行异常";
+            String title = "同程易融CPA，正负样本数据下载异常";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage()
                     , title));
         }
