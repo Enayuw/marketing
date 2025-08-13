@@ -1,4 +1,4 @@
-package com.br.marketing.service.tc;
+package com.br.marketing.service.tccpa.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
@@ -8,10 +8,13 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrCpaSampleRecord;
+import com.br.marketing.enums.TcCpaDownStatusEnum;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaSampleRecordMapper;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.tc.TcSampleDataDownService;
+import com.br.marketing.service.tccpa.TcCpaSampleDataDownService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +29,12 @@ import java.util.List;
 
 /**
  * @Description TcSampleDataDownService
- * @Author hong.chen
- * @CreateTime 2025/05/23
+ * @Author xiong.luo
+ * @CreateTime 2025/08/13
  */
 @Service
 @Slf4j
-public class TcCpaSampleDataDownService {
+public class TcCpaSampleDataDownServiceImpl implements TcCpaSampleDataDownService {
     private static final String TITLE = "【同程易融-CPA-正负样本数据下载】";
 
     @Autowired
@@ -49,6 +52,7 @@ public class TcCpaSampleDataDownService {
     @Resource
     private ZipFileClient zipFileClient;
 
+    @Override
     public void process(String apiCode) {
         List<MarketingTcyrCpaSampleRecord> sampleRecords = tcyrCpaSampleRecordMapper.searchTcyrSyncList(apiCode,
                 TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue(), getStartOfDay(), getEndOfDay());
@@ -56,7 +60,7 @@ public class TcCpaSampleDataDownService {
         for (MarketingTcyrCpaSampleRecord sampleRecord : sampleRecords) {
             String filePath = apiCode.concat(marketingCommonConfig.getTongChengCpaSampleZipFilePath());
             // 状态置为下载中
-            tcyrCpaSampleRecordMapper.updageTcyrSampleRecordDownStatus(sampleRecord.getBatchNo(), 1);
+            tcyrCpaSampleRecordMapper.updageTcyrSampleRecordDownStatus(sampleRecord.getBatchNo(), TcCpaDownStatusEnum.DEALING.getValue());
 
             try {
                 String dataInfo = sampleRecord.getData();
@@ -91,9 +95,10 @@ public class TcCpaSampleDataDownService {
                     log.warn("{}_batchNo:{} 对应zip文件不存在", TITLE, sampleRecord.getBatchNo());
                     return;
                 }
-
                 sftpInnerService.pushInnerSftp(gzFilePath, filePath, gzFileName);
+                tcyrCpaSampleRecordMapper.updageTcyrSampleRecordDownStatus(sampleRecord.getBatchNo(), TcCpaDownStatusEnum.DEAL_SUCCESS.getValue());
             } catch (Exception e) {
+                tcyrCpaSampleRecordMapper.updageTcyrSampleRecordDownStatus(sampleRecord.getBatchNo(), TcCpaDownStatusEnum.DEAL_FAIL.getValue());
                 log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
             }
         }

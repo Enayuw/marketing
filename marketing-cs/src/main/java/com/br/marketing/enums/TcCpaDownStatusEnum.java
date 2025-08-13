@@ -7,7 +7,9 @@ public enum TcCpaDownStatusEnum {
 
     DEAL_NO(0,"未完成"),
     DEAL_SUCCESS(1,"完成"),
-    DEAL_FAIL(2,"失败");
+    DEAL_FAIL(2,"失败"),
+    DEALING(3,"处理中"),
+    ;
     TcCpaDownStatusEnum(Integer value, String desc){
           this.value = value;
             this.desc=desc;

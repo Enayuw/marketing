@@ -3,7 +3,7 @@ package com.br.marketing.bridge.job.tccpa;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.service.tc.TcCpaSampleDataDownService;
+import com.br.marketing.service.tccpa.TcCpaSampleDataDownService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
