@@ -224,7 +224,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             data = groupedData.entrySet().stream()
                     .sorted(Comparator.comparing(entry -> {
                         String startValue = entry.getKey()
-                                .replaceAll("[\\[\\]]", "").split(",")[0];
+                                .replaceAll("[\\[\\]\\(\\)]", "").split(",")[0];
                         return Double.parseDouble(startValue);
                     }))
                     .map(entry -> entry.getValue().toString())
@@ -295,7 +295,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
                 .map(keyMapper)
                 .distinct()
                 .sorted(Comparator.comparing(interval -> {
-                    String startValue = interval.replaceAll("[\\[\\]]", "").split(",")[0];
+                    String startValue = interval.replaceAll("[\\[\\]\\(\\)]", "").split(",")[0];
                     return Double.parseDouble(startValue);
                 }))
                 .collect(Collectors.toList());
