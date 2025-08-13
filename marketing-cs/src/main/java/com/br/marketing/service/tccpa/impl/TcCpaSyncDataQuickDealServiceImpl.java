@@ -254,7 +254,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                         syncItem.setIsClean(0);
                         syncItem.setCell(cell);
                         JSONObject extentJson = new JSONObject();
-                        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
+                        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrCpaSyncSaveExcludeFieldList();
                         for (String key : customJson.keySet()) {
                             if (!tcyrSyncExcludeFieldList.contains(key)) {
                                 extentJson.put(key, customJson.get(key));

@@ -187,7 +187,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                         for (int i = 0; i < data.length; i++) {
                             extentJson.put("column_" + (i + 1), data[i]);
                         }
-                        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrSyncSaveExcludeFieldList();
+                        List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrCpaSyncSaveExcludeFieldList();
                         for (String key : customJson.keySet()) {
                             if (!tcyrSyncExcludeFieldList.contains(key)) {
                                 extentJson.put(key, customJson.get(key));
