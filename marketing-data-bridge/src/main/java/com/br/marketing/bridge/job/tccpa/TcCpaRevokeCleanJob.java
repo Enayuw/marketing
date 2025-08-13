@@ -31,7 +31,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
- * @description 同城易融撤销数据清洗任务
+ * @description 同城易融CPA-撤销数据清洗任务
  * @author hedongshuo
  * @date 2025/8/12 9:21
  **/
