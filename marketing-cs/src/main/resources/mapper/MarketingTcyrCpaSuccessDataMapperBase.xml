@@ -9,7 +9,6 @@
     <result column="user_key" property="userKey" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="is_match" property="isMatch" jdbcType="INTEGER" />
-    <result column="is_clean" property="isClean" jdbcType="INTEGER" />
     <result column="start_date" property="startDate" jdbcType="DATE" />
     <result column="end_date" property="endDate" jdbcType="DATE" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -78,8 +77,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_no, sync_file_id, user_key, cell, is_match, is_clean, start_date,
-    end_date, create_time, update_time, `status`, status_msg, is_del, extend
+    id, api_code, batch_no, sync_file_id, user_key, cell, is_match, start_date, end_date, 
+    create_time, update_time, `status`, status_msg, is_del, extend
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessDataExample" >
     select
@@ -96,7 +95,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select
+    select 
     <include refid="Base_Column_List" />
     from b_tcyr_cpa_success_data
     where id = #{id,jdbcType=BIGINT}
@@ -115,18 +114,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_success_data (api_code, batch_no, sync_file_id,
-    user_key, cell, is_match,
-    is_clean, start_date, end_date,
-    create_time, update_time, `status`,
-    status_msg, is_del, extend
-    )
-    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT},
-    #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{isMatch,jdbcType=INTEGER},
-    #{isClean,jdbcType=INTEGER}, #{startDate,jdbcType=DATE}, #{endDate,jdbcType=DATE},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER},
-    #{statusMsg,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}
-    )
+    insert into b_tcyr_cpa_success_data (api_code, batch_no, sync_file_id, 
+      user_key, cell, is_match, 
+      start_date, end_date, create_time, 
+      update_time, `status`, status_msg, 
+      is_del, extend)
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
+      #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{isMatch,jdbcType=INTEGER}, 
+      #{startDate,jdbcType=DATE}, #{endDate,jdbcType=DATE}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{statusMsg,jdbcType=VARCHAR}, 
+      #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -151,9 +148,6 @@
       </if>
       <if test="isMatch != null" >
         is_match,
-      </if>
-      <if test="isClean != null" >
-        is_clean,
       </if>
       <if test="startDate != null" >
         start_date,
@@ -198,9 +192,6 @@
       </if>
       <if test="isMatch != null" >
         #{isMatch,jdbcType=INTEGER},
-      </if>
-      <if test="isClean != null" >
-        #{isClean,jdbcType=INTEGER},
       </if>
       <if test="startDate != null" >
         #{startDate,jdbcType=DATE},
@@ -258,9 +249,6 @@
       <if test="record.isMatch != null" >
         is_match = #{record.isMatch,jdbcType=INTEGER},
       </if>
-      <if test="record.isClean != null" >
-        is_clean = #{record.isClean,jdbcType=INTEGER},
-      </if>
       <if test="record.startDate != null" >
         start_date = #{record.startDate,jdbcType=DATE},
       </if>
@@ -293,21 +281,20 @@
   <update id="updateByExample" parameterType="map" >
     update b_tcyr_cpa_success_data
     set id = #{record.id,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    batch_no = #{record.batchNo,jdbcType=VARCHAR},
-    sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
-    user_key = #{record.userKey,jdbcType=VARCHAR},
-    cell = #{record.cell,jdbcType=VARCHAR},
-    is_match = #{record.isMatch,jdbcType=INTEGER},
-    is_clean = #{record.isClean,jdbcType=INTEGER},
-    start_date = #{record.startDate,jdbcType=DATE},
-    end_date = #{record.endDate,jdbcType=DATE},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    `status` = #{record.status,jdbcType=INTEGER},
-    status_msg = #{record.statusMsg,jdbcType=VARCHAR},
-    is_del = #{record.isDel,jdbcType=INTEGER},
-    extend = #{record.extend,jdbcType=VARCHAR}
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{record.syncFileId,jdbcType=BIGINT},
+      user_key = #{record.userKey,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      is_match = #{record.isMatch,jdbcType=INTEGER},
+      start_date = #{record.startDate,jdbcType=DATE},
+      end_date = #{record.endDate,jdbcType=DATE},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      `status` = #{record.status,jdbcType=INTEGER},
+      status_msg = #{record.statusMsg,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -332,9 +319,6 @@
       </if>
       <if test="isMatch != null" >
         is_match = #{isMatch,jdbcType=INTEGER},
-      </if>
-      <if test="isClean != null" >
-        is_clean = #{isClean,jdbcType=INTEGER},
       </if>
       <if test="startDate != null" >
         start_date = #{startDate,jdbcType=DATE},
@@ -366,20 +350,19 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessData" >
     update b_tcyr_cpa_success_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-        batch_no = #{batchNo,jdbcType=VARCHAR},
-        sync_file_id = #{syncFileId,jdbcType=BIGINT},
-        user_key = #{userKey,jdbcType=VARCHAR},
-        cell = #{cell,jdbcType=VARCHAR},
-        is_match = #{isMatch,jdbcType=INTEGER},
-        is_clean = #{isClean,jdbcType=INTEGER},
-        start_date = #{startDate,jdbcType=DATE},
-        end_date = #{endDate,jdbcType=DATE},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        `status` = #{status,jdbcType=INTEGER},
-        status_msg = #{statusMsg,jdbcType=VARCHAR},
-        is_del = #{isDel,jdbcType=INTEGER},
-        extend = #{extend,jdbcType=VARCHAR}
+      batch_no = #{batchNo,jdbcType=VARCHAR},
+      sync_file_id = #{syncFileId,jdbcType=BIGINT},
+      user_key = #{userKey,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      is_match = #{isMatch,jdbcType=INTEGER},
+      start_date = #{startDate,jdbcType=DATE},
+      end_date = #{endDate,jdbcType=DATE},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      `status` = #{status,jdbcType=INTEGER},
+      status_msg = #{statusMsg,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

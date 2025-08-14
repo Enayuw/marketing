@@ -7,10 +7,14 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingTcyrCpaSuccessData;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
 import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
+import com.br.marketing.enums.TcCpaIsDelEnum;
+import com.br.marketing.enums.TcCpaMatchStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessDataMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
@@ -29,9 +33,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 @Service
@@ -67,7 +70,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                 ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DEAL.getName(), 50, 50);
         try {
             for (;;) {
-                if (!marketingCommonConfig.getTcCpaDbDealShardConfig().getBoolean("jobSwitch")) {
+                if (!marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getBoolean("jobSwitch")) {
                     break;
                 }
                 //1.抢锁
@@ -111,8 +114,8 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
             List<String> batchData = new ArrayList<>();
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
-                if (batchData.size() == marketingCommonConfig.getTcCpaDbDealShardConfig().getInteger("pageSize")) {
-                    if (!marketingCommonConfig.getTcCpaDbDealShardConfig().getBoolean("jobSwitch")) {
+                if (batchData.size() == marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("pageSize")) {
+                    if (!marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getBoolean("jobSwitch")) {
                         batchData.clear();
                         break;
                     }
@@ -140,44 +143,45 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
     }
 
     private void dbDealBatchLine(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData) {
+        List<List<String>> partitionList = ListUtils.partition(
+                batchData, marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("dbPartSize"));
+
         JSONObject customJson = JSONObject.parseObject(customerData);
-        try {
-            String startDateStr = customJson.getString("startDate");
-            String endDateStr = customJson.getString("endDate");
-            List<List<String>> partitionList = ListUtils.partition(
-                    batchData, marketingCommonConfig.getTcCpaDbDealShardConfig().getInteger("dbPartSize"));
-            for (List<String> partitionItemList : partitionList) {
-                StringBuilder sqlBuilder = new StringBuilder();
-                sqlBuilder.append("INSERT INTO b_tcyr_cpa_success_data (api_code,batch_no,sync_file_id,user_key," +
-                        "cell,is_match,extend,status,create_time,update_time,start_date,end_date) VALUES");
-                int count = 0;
-                for (String line : partitionItemList) {
-                    if (count > 0) {
-                        sqlBuilder.append(",");
-                    }
-                    String[] data = line.split(",");
-                    sqlBuilder.append("('").append(escapeSqlString(apiCode)).
-                            append("','").append(escapeSqlString(batchNo)).append("',").append(syncFileId);
-                    if (data.length == 0) {
-                        sqlBuilder.append(",'").append(line).append("',NULL,NULL");
-                        JSONObject extentJson = new JSONObject();
-                        extentJson.put("column_0", line);
-                        sqlBuilder.append(",'").append(escapeSqlString(JSONObject.toJSONString(extentJson))).append("',0,NOW(),NOW(),'")
-                                .append(startDateStr).append("','").append(endDateStr).append("')");
-                    } else {
-                        String userKey = data[0].trim();
-                        sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("'");
-                        //cell is_match 查中间表数据(不从原始上传明细查询补充中间表)
+        SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_FORMAT);
+        for (List<String> itemList : partitionList) {
+            try {
+                Date nowDate = new Date();
+                List<MarketingTcyrCpaSuccessData> tcyrCpaSuccessDataList = new ArrayList<>();
+                for(String line : itemList) {
+                    MarketingTcyrCpaSuccessData successDataItem = new MarketingTcyrCpaSuccessData();
+                    successDataItem.setApiCode(apiCode);
+                    successDataItem.setBatchNo(batchNo);
+                    successDataItem.setSyncFileId(syncFileId);
+                    successDataItem.setCreateTime(nowDate);
+                    successDataItem.setUpdateTime(nowDate);
+                    successDataItem.setStartDate(sdf.parse(customJson.getString("startDate")));
+                    successDataItem.setEndDate(sdf.parse(customJson.getString("endDate")));
+                    JSONObject extentJson = new JSONObject();
+
+                    String[] lineData = line.split(",");
+                    if (lineData.length == 0) {
+                        successDataItem.setUserKey(line);
+                        successDataItem.setStatus(0);
+                        successDataItem.setStatusMsg("原始数据异常");
+                        extentJson.put("column_1",line);
+                    }else {
+                        String userKey = lineData[0].trim();
+                        successDataItem.setUserKey(userKey);
+                        successDataItem.setStatus(1);
                         String cell = custCellMappingService.selectCell(userKey);
                         if (StringUtils.isNotBlank(cell)) {
-                            sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
-                        } else {
-                            sqlBuilder.append(",NULL,0");
+                            successDataItem.setCell(cell);
+                            successDataItem.setIsMatch(TcCpaMatchStatusEnum.MATCH_SUCCESS.getValue());
+                        }else{
+                            successDataItem.setIsMatch(TcCpaMatchStatusEnum.MATCH_NO.getValue());
                         }
-                        //extend
-                        JSONObject extentJson = new JSONObject();
-                        for (int i = 0; i < data.length; i++) {
-                            extentJson.put("column_" + (i + 1), data[i]);
+                        for (int i = 0; i < lineData.length; i++) {
+                            extentJson.put("column_" + (i + 1), lineData[i]);
                         }
                         List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrCpaSyncSaveExcludeFieldList();
                         for (String key : customJson.keySet()) {
@@ -185,22 +189,20 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                                 extentJson.put(key, customJson.get(key));
                             }
                         }
-                        extentJson.put("syncFileId", syncFileId);
-                        sqlBuilder.append(",'").append(escapeSqlString(extentJson.toJSONString())).append("',1,NOW(),NOW(),'")
-                                .append(startDateStr).append("','").append(endDateStr).append("')");
                     }
-                    count++;
+                    extentJson.put("syncFileId", syncFileId);
+                    successDataItem.setExtend(extentJson.toJSONString());
+                    successDataItem.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
+                    tcyrCpaSuccessDataList.add(successDataItem);
                 }
-                // 执行批量插入
-                log.info("{}执行批量插入，apiCode:{}, batchNo:{}, count:{},sql:{}", TITLE, apiCode, batchNo, count,sqlBuilder.toString());
-                tcyrCpaSuccessDataMapper.insertDataToDb(sqlBuilder.toString());
+                tcyrCpaSuccessDataMapper.batchSave(tcyrCpaSuccessDataList);
+                tcyrCpaSuccessDataList.clear();
+            }catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                        "同程cpa撞库成功数据插入异常，fileId:" + syncFileId + "，lines:" + itemList, TITLE));
             }
-        }catch (Exception e) {
-            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(syncFileId,3);
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
     }
-
 
     /**
      * 转义 SQL 字符串中的特殊字符
