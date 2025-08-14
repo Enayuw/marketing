@@ -588,7 +588,7 @@ public class DateHelper {
                 // 继续尝试下一个格式
             }
         }
-        throw new RuntimeException("无法解析日期格式: " + dateString);
+        return null;
     }
 
 

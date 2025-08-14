@@ -6,11 +6,14 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrCpaFailData;
 import com.br.marketing.entity.MarketingTcyrCpaFailFile;
 import com.br.marketing.entity.MarketingTcyrCpaFailFileExample;
 import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
 import com.br.marketing.enums.TcCpaIsDelEnum;
+import com.br.marketing.enums.TcFailMsgEnum;
+import com.br.marketing.enums.TcFileDataDealStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaFailDataMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaFailFileMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingFailDealService;
@@ -26,8 +29,6 @@ import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -68,7 +69,7 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                         .andApiCodeEqualTo(apiCode)
                         .andCollidingDataDealStatusEqualTo(TcCpaCollidingDealStatusEnum.DEAL_NO.getValue())
                         .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
-                failFileExample.setOrderByClause("create_time desc limit 1");
+                failFileExample.setOrderByClause("create_time asc limit 1");
                 List<MarketingTcyrCpaFailFile> tcyrCpaFailFiles = tcyrCpaFailFileMapper.selectByExample(failFileExample);
                 if (CollectionUtils.isEmpty(tcyrCpaFailFiles)) {
                     redisChgService.unlock(lockKey, lockValue);
@@ -86,7 +87,8 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                 csvFileDbDeal(tcyrCpaFailFile, updateFile, actionPool);
             }
         }catch (Exception e) {
-
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE), e);
         }finally {
             redisChgService.unlock(lockKey, lockValue);
             actionPool.shutdownAndAwaitTermination();
@@ -99,6 +101,8 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
         if (!txtFile.exists()) {
             updateFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.NO_FILE.getValue());
             tcyrCpaFailFileMapper.updateByPrimaryKeySelective(updateFile);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "文件不存在，文件id：" + tcyrCpaFailFile.getId(), TITLE));
         }
         //2.处理csvFile
         long totalCount = 0L;
@@ -142,40 +146,34 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                     failData.setApiCode(tcyrCpaFailFile.getApiCode());
                     failData.setBatchNo(tcyrCpaFailFile.getBatchNo());
                     failData.setSyncFileId(tcyrCpaFailFile.getId());
-                    List<String> lineData = splitAndLimit(line);
+                    List<String> lineData = StringUtils.splitAndLimit(line, "," , 3);
                     failData.setUserKey(lineData.get(0));
                     failData.setCell(custCellMappingService.selectCell(failData.getUserKey()));
                     failData.setFailMsg(lineData.get(1));
                     failData.setReleaseTime(DateHelper.stringToDate(lineData.get(2)));
                     failData.setCreateTime(new Date());
-                    failData.setStatus(1);
+                    if (StringUtils.isEmpty(failData.getUserKey())
+                            || StringUtils.isEmpty(failData.getCell())
+                            || StringUtils.isEmpty(failData.getFailMsg())
+                            || (failData.getFailMsg().equals(TcFailMsgEnum.FAILMSG_LOCKED.getValue()) && failData.getReleaseTime() == null)
+                            || lineData.size() > 4) {
+                        failData.setStatus(TcFileDataDealStatusEnum.STATUS_FAIL.getValue());
+                        failData.setFailMsg("数据异常");
+                        failData.setExtend(line);
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                                "数据异常，fileId:" + tcyrCpaFailFile.getId() + "，line:" + line, TITLE));
+                    } else {
+                        failData.setStatus(TcFileDataDealStatusEnum.STATUS_SUCCESS.getValue());
+                    }
                     failData.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
-                    //status_msg,extend默认null
                     failDataList.add(failData);
                 }
                 tcyrCpaFailDataMapper.batchSave(failDataList);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                        "同程cpa撞库失败数据插入异常，fileId:" + tcyrCpaFailFile.getId() + "，lines:" + lines, TITLE));
+                        "数据插入异常，fileId:" + tcyrCpaFailFile.getId() + "，lines:" + lines, TITLE), e);
             }
         }
-    }
-
-    private List<String> splitAndLimit(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            return Arrays.asList("", "", "");
-        }
-        String[] parts = input.trim().split(",");
-        List<String> result = new ArrayList<>();
-        // 添加前三个元素
-        for (int i = 0; i < Math.min(3, parts.length); i++) {
-            result.add(parts[i].trim());
-        }
-        // 如果不足3个，用空字符串填充
-        while (result.size() < 3) {
-            result.add("");
-        }
-        return result;
     }
 
 }
