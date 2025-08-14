@@ -10,6 +10,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -84,7 +86,8 @@ public class QiFuCDZAnalysisReportStrategy implements ReportStrategy<QifuActuati
 
     @Override
     public String getAttachmentFileName(String subject) {
-        return subject;
+        String currentDate = DateTimeFormatter.ofPattern("yyyyMMdd").format(LocalDate.now());
+        return subject.concat("_").concat(currentDate);
     }
 
     /**
