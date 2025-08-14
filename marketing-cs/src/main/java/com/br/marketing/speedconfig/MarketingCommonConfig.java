@@ -3332,5 +3332,10 @@ public class MarketingCommonConfig {
      * uMeng 设备注册 每页查询条数
      */
     private JSONObject tcyrCpaCollidingFailDealConfig;
+
+    /**
+     * #短信回调入队ApiCode配置
+     */
+    private List<String> smsCallBackDataPushMqApiCodes;
 }
 
