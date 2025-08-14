@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDealService {
 
-    private final static String TITLE = "【同程易融CPA-quickDealShard任务】";
+    private final static String TITLE = "【同程易融CPA-syncQuickDealShard任务】";
 
     private static final Random random = new Random();
 
@@ -80,7 +80,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                 ThreadPoolNameEnum.TCYR_CPA_SYNC_DEAL.getName(), 2, 2);
         try {
             for (;;) {
-                if (!marketingCommonConfig.getTcCpaQuickDealShardConfig().getBoolean("jobSwitch")) {
+                if (!marketingCommonConfig.getTcyrCpaSyncQuickDealShardConfig().getBoolean("jobSwitch")) {
                     break;
                 }
                 //1.抢锁
@@ -125,8 +125,8 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
             List<String> batchData = new ArrayList<>();
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
-                if (batchData.size() == marketingCommonConfig.getTcCpaQuickDealShardConfig().getInteger("pageSize")) {
-                    if (!marketingCommonConfig.getTcCpaQuickDealShardConfig().getBoolean("jobSwitch")) {
+                if (batchData.size() == marketingCommonConfig.getTcyrCpaSyncQuickDealShardConfig().getInteger("pageSize")) {
+                    if (!marketingCommonConfig.getTcyrCpaSyncQuickDealShardConfig().getBoolean("jobSwitch")) {
                         batchData.clear();
                         break;
                     }
@@ -249,7 +249,6 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                         syncItem.setSyncFileId(syncFileId);
                         syncItem.setUserKey(userKey);
                         syncItem.setIsMatch(TcCpaMatchStatusEnum.MATCH_SUCCESS.getValue());
-                        syncItem.setIsClean(TcRecordCleanStatusEnum.CLEAN_WAITED.getValue());
                         syncItem.setCell(cell);
                         JSONObject extentJson = new JSONObject();
                         List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrCpaSyncSaveExcludeFieldList();

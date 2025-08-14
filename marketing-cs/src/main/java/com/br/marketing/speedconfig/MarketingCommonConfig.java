@@ -3005,7 +3005,7 @@ public class MarketingCommonConfig {
      * "jobSwitch":true,"pageSize":2000
      * }
      */
-    private JSONObject tcCpaQuickDealShardConfig;
+    private JSONObject tcyrCpaSyncQuickDealShardConfig;
 
 
     /**
@@ -3015,7 +3015,7 @@ public class MarketingCommonConfig {
      * "lockRetryTimes":2,"lockRetryIntervalMs":1000
      * }
      */
-    private JSONObject tcCpaDbDealShardConfig;
+    private JSONObject tcyrCpaCollidingDealShardConfig;
 
     /**
      * 同程易融-quickDeal-shard job参数

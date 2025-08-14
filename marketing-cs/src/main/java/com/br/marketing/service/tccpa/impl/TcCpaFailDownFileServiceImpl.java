@@ -10,7 +10,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingTcyrCpaFailFile;
 import com.br.marketing.entity.MarketingTcyrCpaFailRecord;
-import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaFailFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaFailRecordMapper;

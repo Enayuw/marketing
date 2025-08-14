@@ -592,66 +592,6 @@ public class MarketingTcyrCpaSuccessDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsCleanIsNull() {
-            addCriterion("is_clean is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanIsNotNull() {
-            addCriterion("is_clean is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanEqualTo(Integer value) {
-            addCriterion("is_clean =", value, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanNotEqualTo(Integer value) {
-            addCriterion("is_clean <>", value, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanGreaterThan(Integer value) {
-            addCriterion("is_clean >", value, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanGreaterThanOrEqualTo(Integer value) {
-            addCriterion("is_clean >=", value, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanLessThan(Integer value) {
-            addCriterion("is_clean <", value, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanLessThanOrEqualTo(Integer value) {
-            addCriterion("is_clean <=", value, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanIn(List<Integer> values) {
-            addCriterion("is_clean in", values, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanNotIn(List<Integer> values) {
-            addCriterion("is_clean not in", values, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanBetween(Integer value1, Integer value2) {
-            addCriterion("is_clean between", value1, value2, "isClean");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsCleanNotBetween(Integer value1, Integer value2) {
-            addCriterion("is_clean not between", value1, value2, "isClean");
-            return (Criteria) this;
-        }
-
         public Criteria andStartDateIsNull() {
             addCriterion("start_date is null");
             return (Criteria) this;

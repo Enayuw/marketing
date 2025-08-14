@@ -39,11 +39,6 @@ public class MarketingTcyrCpaSuccessData {
     private Integer isMatch;
 
     /**
-     * 清洗状态 0-待清洗；1-清洗完成2:上传清洗失败 3:推送清洗失败 4:整体推送异常 5:中间态清洗中
-     */
-    private Integer isClean;
-
-    /**
      * 营销开始日期
      */
     private Date startDate;
@@ -137,14 +132,6 @@ public class MarketingTcyrCpaSuccessData {
 
     public void setIsMatch(Integer isMatch) {
         this.isMatch = isMatch;
-    }
-
-    public Integer getIsClean() {
-        return isClean;
-    }
-
-    public void setIsClean(Integer isClean) {
-        this.isClean = isClean;
     }
 
     public Date getStartDate() {

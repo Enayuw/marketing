@@ -11,6 +11,8 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingTcyrCpaTransferRecord;
+import com.br.marketing.enums.TcCpaRecordStatusEnum;
+import com.br.marketing.enums.TcRecordCleanStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaTransferRecordMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
@@ -49,7 +51,7 @@ public class TcCpaTransferCleanServiceImpl implements TcCpaTransferCleanService 
         try {
             while (true) {
                 List<MarketingTcyrCpaTransferRecord> tcyrCpaTransferRecordList = tcyrCpaTransferRecordMapper.selectTcyrTransforRecordList(
-                        tcyrCpaApiCode, 1,lastSearchId,1000);
+                        tcyrCpaApiCode, TcCpaRecordStatusEnum.ACCESS_SUCCESS.getValue(),lastSearchId,1000);
                 if (CollectionUtils.isEmpty(tcyrCpaTransferRecordList)) {
                     break;
                 }
@@ -79,15 +81,15 @@ public class TcCpaTransferCleanServiceImpl implements TcCpaTransferCleanService 
                 Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
                 log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
                 if (pushResult!=null && pushResult.isSuccess()) {
-                    tcyrCpaTransferRecordMapper.updateCleanStatus(idList,1);
+                    tcyrCpaTransferRecordMapper.updateCleanStatus(idList, TcRecordCleanStatusEnum.CLEAN_COMPLETED.getValue());
                 }else {
-                    tcyrCpaTransferRecordMapper.updateCleanStatus(idList,3);
+                    tcyrCpaTransferRecordMapper.updateCleanStatus(idList,TcRecordCleanStatusEnum.CLEAN_PUSH.getValue());
                 }
             }else {
-                tcyrCpaTransferRecordMapper.updateCleanStatus(idList,2);
+                tcyrCpaTransferRecordMapper.updateCleanStatus(idList,TcRecordCleanStatusEnum.CLEAN_CLEAN_FAIL.getValue());
             }
         }catch (Exception e) {
-            tcyrCpaTransferRecordMapper.updateCleanStatus(idList,4);
+            tcyrCpaTransferRecordMapper.updateCleanStatus(idList,TcRecordCleanStatusEnum.CLEAN_EXCEPTION.getValue());
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
         }
     }

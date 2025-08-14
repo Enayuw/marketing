@@ -10,4 +10,5 @@ public interface MarketingTcyrCpaSuccessDataMapper extends MarketingTcyrCpaSucce
 
     void insertDataToDb(@Param("insertDbSql") String insertDbSql);
 
+    void batchSave(@Param("list") List<MarketingTcyrCpaSuccessData> list);
 }
