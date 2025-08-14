@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaFailRecordMapper" >
+
+    <select id="searchTcyrFailRecordList" resultType="com.br.marketing.entity.MarketingTcyrCpaFailRecord">
+        SELECT *
+        FROM b_tcyr_cpa_fail_record
+        WHERE api_code = #{apiCode}
+          AND status = #{status}
+          AND down_status = #{downStatus}
+          AND is_del = 1
+    </select>
+
+    <update id="updateTcyrRecordDownStatus">
+        UPDATE
+            b_tcyr_cpa_fail_record
+        SET down_status=#{downStatus}
+        WHERE id = #{id}
+    </update>
+
+
+</mapper>
