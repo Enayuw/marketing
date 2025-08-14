@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingTcyrCpaFailData;
 import com.br.marketing.entity.MarketingTcyrCpaFailFile;
 import com.br.marketing.entity.MarketingTcyrCpaFailFileExample;
@@ -145,7 +146,7 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                     failData.setUserKey(lineData.get(0));
                     failData.setCell(custCellMappingService.selectCell(failData.getUserKey()));
                     failData.setFailMsg(lineData.get(1));
-                    failData.setReleaseTime(Date.from(LocalDate.parse(lineData.get(2)).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                    failData.setReleaseTime(DateHelper.stringToDate(lineData.get(2)));
                     failData.setCreateTime(new Date());
                     failData.setStatus(1);
                     failData.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
