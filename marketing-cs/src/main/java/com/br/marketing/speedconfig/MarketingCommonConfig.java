@@ -3291,5 +3291,10 @@ public class MarketingCommonConfig {
      * Ai数据入库和推送下游rocketmq切换开关
      */
     private Boolean aiUseRocketMq;
+
+    /**
+     * #短信回调入队ApiCode配置
+     */
+    private List<String> smsCallBackDataPushMqApiCodes;
 }
 
