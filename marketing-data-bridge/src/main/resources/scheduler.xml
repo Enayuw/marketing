@@ -494,7 +494,7 @@
     />
 
     <job:simple id="【bridge】-TcCpaCollidingFailDealShardJob"
-                class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDealShardJob"
+                class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingFailDealShardJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="同程易融CPA撞库失败数据处理"
                 registry-center-ref="regCenter"
