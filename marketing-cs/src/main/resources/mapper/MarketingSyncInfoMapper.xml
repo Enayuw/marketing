@@ -270,32 +270,36 @@
     </select>
 
     <select id="selectDataRuleScoreLabelWithDate" resultType="com.br.marketing.entity.MarketingSyncLabelUser">
-        select s.*
-        from b_marketing_sync_${apiCode} s
-        join b_marketing_sync_label_${apiCode} l on s.id = l.sync_id
+        select *
+        from b_marketing_sync_${apiCode}
         where ${whereStr}
         <if test="id != null and id >0">
-            <![CDATA[  and s.id>#{id} ]]>
+            <![CDATA[  and id>#{id} ]]>
         </if>
-        and s.is_repeat in (1,2)
-        and s.status = 1
-        and l.label_id = #{labelId}
-        order by s.id asc
+        and is_repeat in (1,2)
+        and status = 1
+        and id in
+        <foreach collection="syncIdList" item="syncId" separator="," open="(" close=")">
+            #{syncId}
+        </foreach>
+        order by id asc
         limit ${pageSize};
     </select>
 
     <select id="selectDataRuleScoreLabelWithDatetiflash_" resultType="com.br.marketing.entity.MarketingSyncLabelUser">
-        select s.*
-        from b_marketing_sync_${apiCode} s
-        join b_marketing_sync_label_${apiCode} l on s.id = l.sync_id
+        select *
+        from b_marketing_sync_${apiCode}
         where ${whereStr}
         <if test="id != null and id >0">
-            <![CDATA[  and s.id>#{id} ]]>
+            <![CDATA[  and id>#{id} ]]>
         </if>
-        and s.is_repeat in (1,2)
-        and s.status = 1
-        and l.label_id = #{labelId}
-        order by s.id asc
+        and is_repeat in (1,2)
+        and status = 1
+        and id in
+        <foreach collection="syncIdList" item="syncId" separator="," open="(" close=")">
+            #{syncId}
+        </foreach>
+        order by id asc
         limit ${pageSize};
     </select>
     

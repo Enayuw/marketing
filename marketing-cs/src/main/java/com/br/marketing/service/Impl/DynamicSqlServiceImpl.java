@@ -4,6 +4,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingRuleCenterLabelReportMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingSyncLabelMapper;
 import com.br.marketing.service.IDynamicSqlService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,9 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
 
     @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Resource
+    MarketingSyncLabelMapper marketingSyncLabelMapper;
 
     @Resource
     MarketingRuleCenterLabelReportMapper marketingRuleCenterLabelReportMapper;
@@ -101,11 +105,13 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         long start = System.currentTimeMillis();
         if (!DUPLICATE_REMOVE_NUM.equals(labelName) && StringUtils.isNotBlank(labelName)) {
             Long labelId = getIdByLabelName(whereStr,labelName);
+            List<Long> syncIdList = marketingSyncLabelMapper.getSyncIdByLabelId(apiCode,labelId);
+
             if (type.equals(1)) {
-                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, whereStr, id, pageSize, labelId);
+                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, whereStr, id, pageSize, syncIdList);
                 users.addAll(labelUsers);
             } else {
-                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDate(apiCode, whereStr, id, pageSize, labelId);
+                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDate(apiCode, whereStr, id, pageSize, syncIdList);
                 users.addAll(labelUsers);
             }
         } else {

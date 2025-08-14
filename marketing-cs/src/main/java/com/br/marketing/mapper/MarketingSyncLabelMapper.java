@@ -17,4 +17,5 @@ public interface MarketingSyncLabelMapper {
 
     int singleInsert(@Param("apiCode") String apiCode,@Param("syncLabel") MarketingSyncLabel syncLabel);
 
+    List<Long> getSyncIdByLabelId(@Param("apiCode") String apiCode,@Param("labelId") Long labelId);
 }

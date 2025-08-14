@@ -58,4 +58,7 @@
         group by applet_date, user_type
 
     </select>
+    <select id="getSyncIdByLabelId" resultType="java.lang.Long">
+        select sync_id from b_marketing_sync_label_${apiCode} where label_id = #{labelId}
+    </select>
 </mapper>
