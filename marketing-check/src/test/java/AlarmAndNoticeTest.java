@@ -785,95 +785,26 @@ public class AlarmAndNoticeTest {
 
     @Test
     public void testRuleCleaning(){
-        System.err.println("=== 开始测试 executeCleaningRule 接口（条件判断功能） ===");
+        System.err.println("=== 开始测试 executeCleaningRule 接口（数学运算和字段拼接） ===");
         
-        // ==================== 功能10：条件判断测试 ====================
-        System.err.println("\n========== 功能10：条件判断测试 ==========");
-        
-        // 测试用例1：客户等级判断 - 白银客户
-        System.err.println("\n=== 测试用例1：客户等级判断 - 白银客户 ===");
-        JSONObject jsonObject1 = new JSONObject();
-        jsonObject1 = JSONObject.parseObject("{\"amount\":\"1500\"}");
-        MarketingDataCleanGeneralRuleConfig ruleConfig1 = new MarketingDataCleanGeneralRuleConfig();
-        ruleConfig1.setIsDel(1);
-        ruleConfig1.setIsMapping(true);
-        ruleConfig1.setCleanFields("amount");
-        ruleConfig1.setMappingField("customerLevel");
-        ruleConfig1.setMappingRule("[{\"expression\":{\"operator\":\"condition\",\"conditions\":[{\"operator\":\">=\",\"compareValue\":\"10000\",\"resultValue\":\"钻石客户\"},{\"operator\":\">=\",\"compareValue\":\"5000\",\"resultValue\":\"黄金客户\"},{\"operator\":\">=\",\"compareValue\":\"1000\",\"resultValue\":\"白银客户\"}],\"defaultValue\":\"普通客户\"}}]");
-        Object result1 = ruleCleaningService.executeCleaningRule(jsonObject1, ruleConfig1);
-        System.err.println("输入数据: " + jsonObject1.toJSONString());
-        System.err.println("规则配置: " + ruleConfig1.getMappingRule());
-        System.err.println("实际结果: " + result1);
-        System.err.println("期望结果: 白银客户");
-        System.err.println("是否匹配: " + ("白银客户".equals(result1) ? "✅" : "❌"));
-        
-        // 测试用例2：城市分类判断 - 一线城市
-        System.err.println("\n=== 测试用例2：城市分类判断 - 一线城市 ===");
-        JSONObject jsonObject2 = new JSONObject();
-        jsonObject2 = JSONObject.parseObject("{\"city\":\"北京\"}");
-        MarketingDataCleanGeneralRuleConfig ruleConfig2 = new MarketingDataCleanGeneralRuleConfig();
-        ruleConfig2.setIsDel(1);
-        ruleConfig2.setIsMapping(true);
-        ruleConfig2.setCleanFields("city");
-        ruleConfig2.setMappingField("cityLevel");
-        ruleConfig2.setMappingRule("[{\"expression\":{\"operator\":\"condition\",\"conditions\":[{\"operator\":\"=\",\"compareValue\":\"北京\",\"resultValue\":\"一线城市\"},{\"operator\":\"=\",\"compareValue\":\"上海\",\"resultValue\":\"一线城市\"},{\"operator\":\"=\",\"compareValue\":\"广州\",\"resultValue\":\"一线城市\"}],\"defaultValue\":\"其他城市\"}}]");
-        Object result2 = ruleCleaningService.executeCleaningRule(jsonObject2, ruleConfig2);
-        System.err.println("输入数据: " + jsonObject2.toJSONString());
-        System.err.println("规则配置: " + ruleConfig2.getMappingRule());
-        System.err.println("实际结果: " + result2);
-        System.err.println("期望结果: 一线城市");
-        System.err.println("是否匹配: " + ("一线城市".equals(result2) ? "✅" : "❌"));
-        
-        // 测试用例3：不等于操作测试
-        System.err.println("\n=== 测试用例3：不等于操作测试 ===");
-        JSONObject jsonObject3 = new JSONObject();
-        jsonObject3 = JSONObject.parseObject("{\"status\":\"正常\"}");
-        MarketingDataCleanGeneralRuleConfig ruleConfig3 = new MarketingDataCleanGeneralRuleConfig();
-        ruleConfig3.setIsDel(1);
-        ruleConfig3.setIsMapping(true);
-        ruleConfig3.setCleanFields("status");
-        ruleConfig3.setMappingField("statusType");
-        ruleConfig3.setMappingRule("[{\"expression\":{\"operator\":\"condition\",\"conditions\":[{\"operator\":\"≠\",\"compareValue\":\"异常\",\"resultValue\":\"正常状态\"}],\"defaultValue\":\"异常状态\"}}]");
-        Object result3 = ruleCleaningService.executeCleaningRule(jsonObject3, ruleConfig3);
-        System.err.println("输入数据: " + jsonObject3.toJSONString());
-        System.err.println("规则配置: " + ruleConfig3.getMappingRule());
-        System.err.println("实际结果: " + result3);
-        System.err.println("期望结果: 正常状态");
-        System.err.println("是否匹配: " + ("正常状态".equals(result3) ? "✅" : "❌"));
-
-        // 测试用例4：混合比较测试 - 数值等于和字符串等于
-        System.err.println("\n=== 测试用例4：混合比较测试 - 数值等于和字符串等于 ===");
-        JSONObject jsonObject4 = new JSONObject();
-        jsonObject4 = JSONObject.parseObject("{\"amount\":\"1000\",\"city\":\"北京\"}");
-        MarketingDataCleanGeneralRuleConfig ruleConfig4 = new MarketingDataCleanGeneralRuleConfig();
-        ruleConfig4.setIsDel(1);
-        ruleConfig4.setIsMapping(true);
-        ruleConfig4.setCleanFields("amount");
-        ruleConfig4.setMappingField("category");
-        ruleConfig4.setMappingRule("[{\"expression\":{\"operator\":\"condition\",\"conditions\":[{\"operator\":\"=\",\"compareValue\":\"1000\",\"resultValue\":\"标准金额\"},{\"operator\":\"=\",\"compareValue\":\"北京\",\"resultValue\":\"北京地区\"}],\"defaultValue\":\"其他\"}}]");
-        Object result4 = ruleCleaningService.executeCleaningRule(jsonObject4, ruleConfig4);
-        System.err.println("输入数据: " + jsonObject4.toJSONString());
-        System.err.println("规则配置: " + ruleConfig4.getMappingRule());
-        System.err.println("实际结果: " + result4);
-        System.err.println("期望结果: 标准金额");
-        System.err.println("是否匹配: " + ("标准金额".equals(result4) ? "✅" : "❌"));
-
-        // 测试用例5：字符串数值混合比较 - 不等于操作
-        System.err.println("\n=== 测试用例5：字符串数值混合比较 - 不等于操作 ===");
-        JSONObject jsonObject5 = new JSONObject();
-        jsonObject5 = JSONObject.parseObject("{\"code\":\"B002\",\"value\":\"200\"}");
-        MarketingDataCleanGeneralRuleConfig ruleConfig5 = new MarketingDataCleanGeneralRuleConfig();
-        ruleConfig5.setIsDel(1);
-        ruleConfig5.setIsMapping(true);
-        ruleConfig5.setCleanFields("code");
-        ruleConfig5.setMappingField("category");
-        ruleConfig5.setMappingRule("[{\"expression\":{\"operator\":\"condition\",\"conditions\":[{\"operator\":\"≠\",\"compareValue\":\"A001\",\"resultValue\":\"非A类产品\"},{\"operator\":\"≠\",\"compareValue\":\"100\",\"resultValue\":\"非标准价格\"}],\"defaultValue\":\"其他\"}}]");
-        Object result5 = ruleCleaningService.executeCleaningRule(jsonObject5, ruleConfig5);
-        System.err.println("输入数据: " + jsonObject5.toJSONString());
-        System.err.println("规则配置: " + ruleConfig5.getMappingRule());
-        System.err.println("实际结果: " + result5);
-        System.err.println("期望结果: 非A类产品");
-        System.err.println("是否匹配: " + ("非A类产品".equals(result5) ? "✅" : "❌"));
+        // ==================== 数学运算测试 ====================
+        System.err.println("\n========== 数学运算测试 ==========");
+        // 测试用例13：多规则链式处理
+        System.err.println("\n=== 测试用例13：多规则链式处理 ===");
+        JSONObject jsonObject13 = new JSONObject();
+        jsonObject13 = JSONObject.parseObject("{\"name\":\"张三\",\"taskId\":\"TASK001\"}");
+        MarketingDataCleanGeneralRuleConfig ruleConfig13 = new MarketingDataCleanGeneralRuleConfig();
+        ruleConfig13.setIsDel(1);
+        ruleConfig13.setIsMapping(true);
+        ruleConfig13.setCleanFields("taskId");
+        ruleConfig13.setMappingField("taskId");
+        ruleConfig13.setMappingRule("[{\"expression\":{\"operator\":\"concatenate\",\"fields\":[{\"fieldName\":\"taskId\"},{\"fieldName\":\"name\",\"delimiter\":\"-\"}]}},{\"expression\":{\"operator\":\"replace\",\"keyword\":\"TASK\",\"replaceValue\":\"ORDER\"}}]");
+        Object result13 = ruleCleaningService.executeCleaningRule(jsonObject13, ruleConfig13);
+        System.err.println("输入数据: " + jsonObject13.toJSONString());
+        System.err.println("规则配置: " + ruleConfig13.getMappingRule());
+        System.err.println("实际结果: " + result13);
+        System.err.println("期望结果: ORDER001-张三");
+        System.err.println("是否匹配: " + ("ORDER001-张三".equals(result13) ? "✅" : "❌"));
 
         System.err.println("\n=== executeCleaningRule 接口测试完成 ===");
     }
