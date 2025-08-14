@@ -20,35 +20,28 @@ import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
-import com.br.marketing.entity.*;
-import com.br.marketing.enums.XieChengConsumer;
-import com.br.marketing.mapper.*;
 import com.br.marketing.entity.CallRecord;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.RoboAIBlackPhoneMark;
 import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
+import com.br.marketing.entity.SmsCallback;
+import com.br.marketing.entity.SmsCallbackExample;
+import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.mapper.CallRecordMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
-import com.br.marketing.origin.*;
+import com.br.marketing.mapper.SmsCallbackMapper;
+import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.MrpMqFact;
+import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
-import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
-import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,6 +53,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 @Service
 @Slf4j
@@ -340,19 +342,21 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             BeanUtils.copyProperties(dto, smsCallback);
             smsCallback.setApiCode(dto.getApiCode());
             smsCallbackMapper.insertSelective(smsCallback);
-
-            //推mq
-            final MqFact mqFact = new MqFact();
-            mqFact.setSourceId(smsCallback.getId());
-            mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK.getCode());
-            if (rocketMqSwitch.rocketMQSwitchFlag(dto.getApiCode(), MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
-                String message = JSON.toJSONString(mqFact);
-                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
-                        , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
-            } else {
-                producter.sendToUniversalTransferQueue(mqFact);
+            List<String> apiCodes = marketingCommonConfig.getSmsCallBackDataPushMqApiCodes();
+            String apiCode = dto.getApiCode();
+            if (apiCodes != null && apiCodes.contains(apiCode)) {
+                //推mq
+                final MqFact mqFact = new MqFact();
+                mqFact.setSourceId(smsCallback.getId());
+                mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK.getCode());
+                if (rocketMqSwitch.rocketMQSwitchFlag(dto.getApiCode(), MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
+                    String message = JSON.toJSONString(mqFact);
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                            , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+                } else {
+                    producter.sendToUniversalTransferQueue(mqFact);
+                }
             }
-
         } catch (Exception ex) {
             log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
             return "外呼短信记录落库失败(insert b_sms_callback fail)!";

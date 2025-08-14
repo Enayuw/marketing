@@ -2934,6 +2934,15 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
+    /**
+     * 同程易融apiCode
+     */
+    private String tcyrCpaApiCode;
+
+    /**
+     * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
+     */
+    private List<String> tcyrCpaSyncSaveExcludeFieldList;
 
     /**
      * 同城易融-gz查询-csv分页size
@@ -2989,6 +2998,24 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcQuickDealShardConfig;
 
+
+    /**
+     * 同程易融CPA-quickDeal-shard job参数
+     * {
+     * "jobSwitch":true,"pageSize":2000
+     * }
+     */
+    private JSONObject tcyrCpaSyncQuickDealShardConfig;
+
+
+    /**
+     * 同程易融CPA-dbDeal-shard job参数
+     * {
+     * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
+     * "lockRetryTimes":2,"lockRetryIntervalMs":1000
+     * }
+     */
+    private JSONObject tcyrCpaCollidingDealShardConfig;
 
     /**
      * 同程易融-quickDeal-shard job参数
@@ -3055,6 +3082,15 @@ public class MarketingCommonConfig {
      */
     private String tongChengSampleZipFilePath;
 
+    /**
+     * 同程CPA正负样本本地和内部SFTP-文件路径
+     */
+    private String tongChengCpaSampleZipFilePath;
+
+    /**
+     * 同程CPA正负样本默认的文件名称
+     */
+    private String tongChengCpaDefaultFileName;
 
     /**
      * 收集手机号的apiCode集合
@@ -3301,5 +3337,15 @@ public class MarketingCommonConfig {
      * Ai数据入库和推送下游rocketmq切换开关
      */
     private Boolean aiUseRocketMq;
+
+    /**
+     * uMeng 设备注册 每页查询条数
+     */
+    private JSONObject tcyrCpaCollidingFailDealConfig;
+
+    /**
+     * #短信回调入队ApiCode配置
+     */
+    private List<String> smsCallBackDataPushMqApiCodes;
 }
 

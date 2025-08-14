@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper" >
+
+
+    <select id="selectColliDingNoDealSingleFile" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessFile">
+        SELECT *
+        FROM b_tcyr_cpa_success_file
+        WHERE api_code =#{apiCode}
+          AND colliding_data_deal_status = #{collidingDataDealStatus}
+          AND is_del = 1
+        LIMIT 1
+    </select>
+
+    <select id="selectSyncNoDealSingleFile" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessFile">
+        SELECT *
+        FROM b_tcyr_cpa_success_file
+        WHERE api_code =#{apiCode}
+          AND sync_data_deal_status = #{syncDataDealStatus}
+          AND is_del = 1
+        LIMIT 1
+    </select>
+    <select id="selectFileByFilePath" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessFile">
+        SELECT *
+        FROM b_tcyr_cpa_success_file
+        WHERE api_code =#{apiCode}
+          AND file_path = #{filePath}
+          AND is_del = 1
+            LIMIT 1
+    </select>
+
+    <update id="updateSyncDataDealStatus">
+        UPDATE
+           b_tcyr_cpa_success_file
+        SET sync_data_deal_status = #{syncDataDealStatus}
+        WHERE id = #{id}
+    </update>
+    <update id="updateSyncDealStatusAndSuccesCount">
+        UPDATE
+            b_tcyr_cpa_success_file
+        SET sync_data_deal_status = #{syncDataDealStatus},success_count=success_count + #{addSuccessCount}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateColliDingDataDealStatus">
+        UPDATE
+            b_tcyr_cpa_success_file
+        SET colliding_data_deal_status = #{collidingDataDealStatus}
+        WHERE id = #{id}
+    </update>
+    <update id="updateColliDingDataDealStatusAndTotalCount">
+        UPDATE
+            b_tcyr_cpa_success_file
+        SET colliding_data_deal_status = #{collidingDataDealStatus},total_count= #{addTotalCount}
+        WHERE id = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,12 @@
+package com.br.marketing.mapper;
+
+import com.br.marketing.entity.MarketingTcyrCpaFailData;
+import com.br.marketing.entity.WubaCollidingData;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface MarketingTcyrCpaFailDataMapper extends MarketingTcyrCpaFailDataMapperBase {
+
+    void batchSave(@Param("list") List<MarketingTcyrCpaFailData> list);
+}
