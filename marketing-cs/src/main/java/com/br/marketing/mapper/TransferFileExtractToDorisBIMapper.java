@@ -12,5 +12,5 @@ public interface TransferFileExtractToDorisBIMapper {
 
     void deleteDataFromMarketingBiTablebI_(@Param("deleteDorisSqlByDate") String deleteDorisSqlByDate);
     
-    Integer countDataFromMarketingBiTable(@Param("countSql") String countSql);
+    Integer countDataFromMarketingBiTablebI_(@Param("countSql") String countSql);
 }
