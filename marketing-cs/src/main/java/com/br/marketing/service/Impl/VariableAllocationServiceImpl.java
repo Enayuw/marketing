@@ -15,12 +15,14 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.VariableAllocationVO;
 import com.github.pagehelper.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.util.Optional;
 
 /**
  * sftp账号配置业务逻辑实现
@@ -36,28 +38,28 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     @Resource
     private VariableAllocationMapper variableAllocationMapper;
 
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
-    @Autowired
-    EntityOptServiceImpl entityOptService;
+    @Resource
+    private EntityOptServiceImpl entityOptService;
 
-    @Autowired
-    XcExceptionDataRetryService xcExceptionDataRetryService;
+    @Resource
+    private XcExceptionDataRetryService xcExceptionDataRetryService;
 
     @Resource
     private RedisChgService redisChgService;
 
     final static String TYPE = "xiechengdingzhi";
-    final static String XIECHENG_TYPE = "携程定制";;
+
+    final static String XIECHENG_TYPE = "携程定制";
 
     @Override
     public VariableAllocationVO getVariableList(VariableAllocationDTO dto) {
         String apiCode = marketingCommonConfig.getXieChengDingZhiApiCode();
-        String allocationType = XIECHENG_TYPE;
+        String allocationType = Optional.ofNullable(dto.getAllocationType()).orElse(XIECHENG_TYPE);
         try {
-            LocalDate now = LocalDate.now();
-            String requestTime = "".equals(dto.getRequestTime()) ? now.toString() : dto.getRequestTime();
+            String requestTime = StringUtils.isBlank(dto.getRequestTime()) ?  LocalDate.now().toString() : dto.getRequestTime();
             VariableAllocation variableList = variableAllocationMapper.getVariableList(apiCode, allocationType);
             VariableAllocationVO allocationVO = new VariableAllocationVO();
             if (ObjectUtil.isNotEmpty(variableList)) {
