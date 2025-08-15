@@ -190,7 +190,7 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
         //清洗
         Result result = generalDataCleanService.transferClean(jsonObjects, apiCode, "revoke");
         if (result == null || !result.isSuccess()) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     TITLE + "-数据id：" + recordId + "调用transferClean方法失败"));
             updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_CLEAN_FAIL.getValue());
             marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
@@ -202,7 +202,7 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
         PushTransferDataDetailDTO dto = initTransferData(apiCode, transferDataItemDTOS);
         Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
         if (pushResult == null || !pushResult.isSuccess()) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     TITLE + "-数据id：" + recordId + "调用pushTransferByRetry方法失败"));
             updateRecord.setIsClean(TcRecordCleanStatusEnum.CLEAN_PUSH.getValue());
             marketingTcyrCpaRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);

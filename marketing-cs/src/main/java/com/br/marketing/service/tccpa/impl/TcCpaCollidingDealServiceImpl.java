@@ -64,7 +64,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
 
     @Override
     public void shardProcess(String apiCode) {
-        String lockKey = RedisKeyConstant.tcyrCpaDbDeal.concat(apiCode);;
+        String lockKey = RedisKeyConstant.tcyrCpaCollidingSuccessDeal.concat(apiCode);;
         String lockValue = UUID.randomUUID().toString();
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DEAL.getName(), 50, 50);
