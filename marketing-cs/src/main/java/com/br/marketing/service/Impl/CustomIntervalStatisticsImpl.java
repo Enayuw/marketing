@@ -360,23 +360,35 @@ public class CustomIntervalStatisticsImpl {
         
         if (reportScoreType.equals(1)) {
             // 单模型：fieldX包含多个模型名，用逗号分隔
-            // batchNumberListJson格式：{"scorencashonzawswyyym":"7410717_20250310000000_1894","scorescashonyxxy":"7410717_20250310000000_1894"}
+            // batchNumberListJson格式：{"scorencashonzawswyyym":"7410717_20250310000000_1894,7410717_20250310000000_1895","scorescashonyxxy":"7410717_20250310000000_1894"}
             String[] modelNames = fieldX.split(",");
             
             for (String modelName : modelNames) {
-                String batchNumber = batchNumberJson.getString(modelName.trim());
-                if (StringUtils.isNotEmpty(batchNumber)) {
-                    allBatchNumbers.add(batchNumber.trim());
+                String batchNumberStr = batchNumberJson.getString(modelName.trim());
+                if (StringUtils.isNotEmpty(batchNumberStr)) {
+                    // 处理每个key对应的批次号可能有多个的情况，用逗号分隔
+                    String[] batchNumbers = batchNumberStr.split(",");
+                    for (String batchNumber : batchNumbers) {
+                        if (StringUtils.isNotEmpty(batchNumber.trim())) {
+                            allBatchNumbers.add(batchNumber.trim());
+                        }
+                    }
                 }
             }
         } else {
             // 多模型：使用fieldX_fieldY作为key
-            // batchNumberListJson格式：{"scorescashonyxxy_scorefxsbbaseb":"7410717_20250310000000_1894"}
+            // batchNumberListJson格式：{"scorescashonyxxy_scorefxsbbaseb":"7410717_20250310000000_1894,7410717_20250310000000_1895"}
             String batchNumberKey = fieldX.concat("_").concat(fieldY);
-            String batchNumber = batchNumberJson.getString(batchNumberKey);
+            String batchNumberStr = batchNumberJson.getString(batchNumberKey);
             
-            if (StringUtils.isNotEmpty(batchNumber)) {
-                allBatchNumbers.add(batchNumber.trim());
+            if (StringUtils.isNotEmpty(batchNumberStr)) {
+                // 处理批次号可能有多个的情况，用逗号分隔
+                String[] batchNumbers = batchNumberStr.split(",");
+                for (String batchNumber : batchNumbers) {
+                    if (StringUtils.isNotEmpty(batchNumber.trim())) {
+                        allBatchNumbers.add(batchNumber.trim());
+                    }
+                }
             }
         }
         
