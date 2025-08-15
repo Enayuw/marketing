@@ -95,8 +95,22 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     }
 
     @Override
-    public VariableAllocation getVariableAllocation(String apiCode, String allocationType) {
-        return variableAllocationMapper.getVariableList(apiCode, allocationType);
+    public JSONObject getAllocationValue(String apiCode, String allocationType) {
+        String suffix = StringUtils.equals(allocationType, XIECHENG_TYPE) ? XIECHENG_TYPE : allocationType;
+        String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(suffix);
+        try {
+            String allocationValue = redisChgService.get(key);
+            if (StringUtil.isNotEmpty(allocationValue)) {
+                return JSON.parseObject(allocationValue);
+            }
+            VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, allocationType);
+            redisChgService.setex(key, variable.getAllocationValue(), 3600 * 12);
+            return JSON.parseObject(variable.getAllocationValue());
+        } catch (Exception e) {
+            log.error("获取携程定制配置redis异常{}", e);
+            VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, allocationType);
+            return JSON.parseObject(variable.getAllocationValue());
+        }
     }
 
 
@@ -135,7 +149,8 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         if (updateCounts > 0 ){
             entityOptService.writeOptLog(id, newData, originData);
             // 将数据保存到 Redis
-            String key = RedisKeyConstant.prefix.concat(":").concat(originData.getApiCode()).concat(":").concat(TYPE);
+            String suffix = StringUtils.equals(newData.getAllocationType(), XIECHENG_TYPE) ? XIECHENG_TYPE : newData.getAllocationType();
+            String key = RedisKeyConstant.prefix.concat(":").concat(originData.getApiCode()).concat(":").concat(suffix);
             try {
                 redisChgService.del(key);
                 redisChgService.setex(key, newData.getAllocationValue(), 5*60);
@@ -199,5 +214,4 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         }
         return null;
     }
-
 }

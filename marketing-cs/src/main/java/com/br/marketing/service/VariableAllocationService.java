@@ -28,7 +28,7 @@ public interface VariableAllocationService {
      * @param allocationType 配置类型
      * @return
      */
-    VariableAllocation getVariableAllocation(String apiCode, String allocationType);
+    JSONObject getAllocationValue(String apiCode, String allocationType);
 
     /**
      * 更新定制化配置
