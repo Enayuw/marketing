@@ -16,7 +16,6 @@ import com.br.marketing.vo.VariableAllocationVO;
 import com.github.pagehelper.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -116,18 +115,16 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         if (i > 0 ){
             entityOptService.writeOptLog(id, newData, originData);
             // 将数据保存到 Redis
-            if (XIECHENG_TYPE.equals(originData.getAllocationType())){
-                String key = RedisKeyConstant.prefix.concat(":").concat(originData.getApiCode()).concat(":").concat(TYPE);
-                try {
-                    redisChgService.del(key);
-                    redisChgService.setex(key, newData.getAllocationValue(), 5*60);
-                    return new ApiResult<Boolean>().success(true);
-                } catch (Exception e) {
-                    log.error("获取携程定制配置接口更新redis异常{}", e);
-                    return new ApiResult<Boolean>().fail(false,"更新携程定制配置redis异常");
-                }
+            String suffix = StringUtils.equals(XIECHENG_TYPE, newData.getAllocationType()) ? TYPE : newData.getAllocationType();
+            String key = RedisKeyConstant.prefix.concat(":").concat(originData.getApiCode()).concat(":").concat(suffix);
+            try {
+                redisChgService.del(key);
+                redisChgService.setex(key, newData.getAllocationValue(), 5*60);
+                return new ApiResult<Boolean>().success(true);
+            } catch (Exception e) {
+                log.error("获取携程定制配置接口更新redis异常{}", e);
+                return new ApiResult<Boolean>().fail(false,"更新携程定制配置redis异常");
             }
-            return new ApiResult<Boolean>().fail(false, "更新携程定制配置");
         }
         return new ApiResult<Boolean>().fail(false, "更新配置失败");
     }
@@ -140,7 +137,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         int normalQuantity, abnormalQuantity;
         // 读取 Redis缓存中的数据
         String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(TYPE);
-        String allocationValue = null;
+        String allocationValue;
         try {
             allocationValue = redisChgService.get(key);
             if (StringUtil.isNotEmpty(allocationValue)){
