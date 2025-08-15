@@ -152,19 +152,17 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                         producter.sendToUniversalTransferQueue(mqFact);
                     }
                 }
-                // 携程定制逻辑
-                if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
-                    if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)) {
-                        // 使用负载均衡消费者逻辑
-                        handleWithConsumerRotation(callRecord);
-                    } else {
-                        // 使用默认发送逻辑
-                        rocketMqSwitch.syncSend(
-                                MarketingXieChengConstants.TOPIC,
-                                MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-                                callRecord.getId().toString());
-                    }
+            // 携程定制逻辑
+            if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
+                if (isMockData(callRecord)) {
+                    sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+                            MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+                            callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());
+                } else {
+                    // 使用负载均衡消费者逻辑
+                    handleWithConsumerRotation(callRecord);
                 }
+            }
                 List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
                 if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
                     MrpMqFact mrpMqFact = new MrpMqFact();
@@ -194,6 +192,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         sendToRocketMQ(consumer, callRecord.getId().toString());
     }
 
+    private boolean isMockData(CallRecord callRecord) {
+        return StringUtils.isNotEmpty(callRecord.getLineName())
+                && callRecord.getLineName().contains("挡板");
+    }
+
     private void initializeConsumerQueue() {
         Long queueLength = redisChgService.llen(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME);
         if (queueLength == 0) {
@@ -211,8 +214,19 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         } catch (Exception e) {
             String errorMessage = String.format("携程上报消息发送失败,消息发送失败 [consumer: %s, topic: %s, tag: %s,message: %s",
                     consumer.name(), consumer.getTopic(), consumer.getTag(), message);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),errorMessage + e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errorMessage + e.getMessage()
                     , "携程上报消息发送失败,消息发送失败!"));
+        }
+    }
+
+    private void sendToRocketMQ(String topic, String tag, String message, long delayTime) {
+        try {
+            rocketMqSwitch.syncSendDelaySecond(topic, tag, message, delayTime);
+        } catch (Exception e) {
+            String errorMessage = String.format("携程挡板上报消息发送失败,消息发送失败 [topic: %s, tag: %s,message: %s",
+                    topic, tag, message);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errorMessage + e.getMessage()
+                    , "携程挡板上报消息发送失败,消息发送失败!"));
         }
     }
     /**

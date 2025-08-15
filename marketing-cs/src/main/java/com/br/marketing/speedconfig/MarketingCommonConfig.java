@@ -3342,5 +3342,10 @@ public class MarketingCommonConfig {
      * #短信回调入队ApiCode配置
      */
     private List<String> smsCallBackDataPushMqApiCodes;
+
+    /**
+     * 携程挡板上报延迟（单位：秒）
+     */
+    private Integer xieChengReportMockDelaySeconds;
 }
 

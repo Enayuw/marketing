@@ -3,7 +3,6 @@ package com.br.marketing.xcconsumer.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengReportService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -15,16 +14,18 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
-        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT,
-        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-        consumeThreadNumber = 16, consumeThreadMax = 16, awaitTerminationMillisWhenShutdown = 10000)
-public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> , RocketMQPushConsumerLifecycleListener {
+@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_DELAY,
+        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+        consumeThreadNumber = 25, consumeThreadMax = 65, awaitTerminationMillisWhenShutdown = 10000)
+public class MarketingXiechengReportMockDelayConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>,
+        RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -40,8 +41,9 @@ public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener 
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
-        log.warn("MARKETING_XIECHENG_REPORT_QUEUE" +
+        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
+        }.getType());
+        log.warn("MARKETING_XIECHENG_REPORT_MOCK_DELAY_QUEUE" +
                         "：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                 , messageExt.getStoreTimestamp(), messageExt.getMsgId()
                 , messageExt.getBrokerName(), messageExt.getTopic()

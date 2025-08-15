@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.chain.xiecheng.XieChengReportHandlerChain;
@@ -14,8 +15,11 @@ import com.br.marketing.entity.CallRecord;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
+import com.br.marketing.mapper.SmsCallbackMapper;
+import com.br.marketing.entity.SmsCallbackExample;
 import com.br.marketing.retry.DatabaseOperationService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +30,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -55,6 +60,10 @@ public class XieChengReportServiceImpl implements XieChengReportService {
 
     @Resource
     XieChengService xieChengService;
+    @Resource
+    VariableAllocationService variableAllocationService;
+    @Resource
+    private SmsCallbackMapper smsCallbackMapper;
 
     @Override
     public Result pushXieChengData(Long sourceId) {
@@ -145,7 +154,8 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         xieChengData.setLocalId(callRecord.getId());
         xieChengData.setCallRecordId(callRecord.getId());
         xieChengData.setType("1");
-        xieChengData.setActionType("IVR");
+        String actionType = judgeActionType(callRecord);
+        xieChengData.setActionType(actionType != null ? actionType : "ivr");
         xieChengData.setPushStatus(1);
         xieChengData.setStatus(1);
         xieChengData.setExtend(callRecord.getUserProperties());
@@ -178,6 +188,69 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             },"携程上报b_xiecheng_data写入", config);
         }
         return xieChengData;
+    }
+
+    /**
+     * 计算 actionType：按挡板/短信/接通状态与配置 realReportLineRate & mockReportLineRate
+     * 挡板非短信：使用 Redis 转盘（0~100）与 mock.ivr 阈值（<= 阈值为 ivr，否则 sms）
+     */
+    private String judgeActionType(CallRecord callRecord) {
+        try {
+            String apiCode = callRecord.getApiCode();
+            boolean isMock = callRecord.getLineName() != null && callRecord.getLineName().contains("挡板");
+            String prefix = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":");
+            JSONObject real = JSON.parseObject(redisChgService.get(prefix.concat(
+                    "realReportLineRate")));
+            JSONObject mock = JSON.parseObject(redisChgService.get(prefix.concat(
+                    "mockReportLineRate")));
+
+            if (real == null || mock == null) {
+                return "ivr";
+            }
+
+            // 非挡板
+            if (!isMock) {
+                if (real.containsKey("checkAll")) {
+                    return real.getString("checkAll");
+                }
+                if (Objects.equals(callRecord.getCallStatus(),1) ) {
+                    return real.getString("answered");
+                }
+                return real.getString("noAnswered");
+            }
+
+            // 挡板短信
+            boolean isSms = isSms(callRecord.getCaseNum(), apiCode);
+            if (isSms) {
+                if (real.containsKey("checkAll")) {
+                    return real.getString("checkAll");
+                }
+                return real.getString("mockButSms");
+            }
+
+            // 挡板非短信
+            Integer ivrPercent = mock.getInteger("ivr");
+            String random = redisChgService.rpoplpush(RedisKeyConstant.XIECHENG_REPORT_MOCK_RATE_TURNTABLE);
+            return Integer.parseInt(random) <= ivrPercent ? "ivr" : "sms";
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程上报，查询acitonType异常！"), e);
+            return null;
+        }
+    }
+
+    private boolean isSms(String caseNum, String apiCode) {
+        try {
+        SmsCallbackExample example = new SmsCallbackExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode)
+                .andCreateDateEqualTo(LocalDate.now().toString())
+                .andCaseNumEqualTo(caseNum);
+            return smsCallbackMapper.countByExample(example) > 0;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程上报，查询短信回调db异常！"), e);
+            return false;
+        }
     }
 
     /**

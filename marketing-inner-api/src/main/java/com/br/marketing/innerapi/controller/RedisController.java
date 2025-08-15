@@ -381,12 +381,6 @@ public class RedisController {
             if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)) {
                 // 使用轮询消费者逻辑
                 handleWithConsumerRotation(callRecord);
-            } else {
-                // 使用默认发送逻辑
-                rocketMqSwitch.syncSend(
-                        MarketingXieChengConstants.TOPIC,
-                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-                        callRecord.getId().toString());
             }
         }
         return "redisTest-success";
@@ -432,5 +426,11 @@ public class RedisController {
 
         redisChgService.resetListAtomic(key, items);
         return "resetList-success";
+    }
+
+    @GetMapping("rpush")
+    public String rpush(@RequestParam("key") String key, String... items) {
+        redisChgService.rpush(key, items);
+        return "rpush-success";
     }
 }
