@@ -3291,7 +3291,7 @@ public class MarketingCommonConfig {
     private Map<String, String> YiXinMailConfigMap;
 
     /**
-     * 邮件统计开始时间
+     * 邮件统计开始时间 {"startDate":"T-1", "endDate":"T-1"}
      */
     private Map<String, String> yiXinMailReadDateMap;
 
