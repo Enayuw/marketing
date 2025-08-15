@@ -198,7 +198,7 @@ public class TransFileToMarketingBiShardServiceImpl implements TransFileToMarket
         // 批量删除目标表数据，每批2000条
         int batchSize = 2000;
         String countSql = "select count(*) from " + configRecord.getDbName() + " where data_date = '" + dataDate + "'";
-        int totalCount = transferFileExtractToDorisBIMapper.countDataFromMarketingBiTable(countSql);
+        int totalCount = transferFileExtractToDorisBIMapper.countDataFromMarketingBiTablebI_(countSql);
 
         if (totalCount > 0) {
             int totalBatches = (totalCount + batchSize - 1) / batchSize;
