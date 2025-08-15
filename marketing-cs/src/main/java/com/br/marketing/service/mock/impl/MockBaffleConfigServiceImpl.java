@@ -186,7 +186,7 @@ public class MockBaffleConfigServiceImpl {
         String mockName = policy.getMockName();
         int maxRetries = 3;
         int retryCount = 0;
-        while (retryCount < maxRetries) {
+        while (true) {
             try {
                 MockInitDTO newMockInitDTO = new MockInitDTO();
                 newMockInitDTO.setMockName(mockName);

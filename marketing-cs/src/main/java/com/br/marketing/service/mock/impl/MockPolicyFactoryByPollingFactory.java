@@ -4,13 +4,11 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.service.MockPolicyFactory;
-import com.br.marketing.service.mock.MockService;
 import com.br.marketing.service.mock.enums.MockPolicyEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -23,8 +21,6 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @Slf4j
 public class MockPolicyFactoryByPollingFactory implements MockPolicyFactory {
-    @Resource(name = "newMockService")
-    private MockService mockService;
 
     @Override
     public Integer policyType() {
