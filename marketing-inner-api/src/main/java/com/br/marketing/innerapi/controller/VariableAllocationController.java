@@ -47,16 +47,10 @@ public class VariableAllocationController {
 
     @ApiOperation(value = "变更配置列表", notes = "变更配置列表")
     @PostMapping("/updateVariableList")
-    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long"),
-        @ApiImplicitParam(name = "normalQuantity", value = "撞得总量级", required = true, paramType = "query", dataType = "int"),
-        @ApiImplicitParam(name = "abnormalQuantity", value = "异常总量级", required = true, paramType = "query", dataType = "int")})
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")})
     public ApiResult<Boolean> updateVariableList(@RequestBody String params) {
-        JSONObject param = JSONObject.parseObject(params);
-        Integer normalQuantity = param.getInteger("normalQuantity");
-        Integer abnormalQuantity = param.getInteger("abnormalQuantity");
-        Long id = param.getLong("id");
         try {
-            return variableAllocationService.updateVariableList(id, normalQuantity, abnormalQuantity);
+            return variableAllocationService.updateVariableList(params);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
