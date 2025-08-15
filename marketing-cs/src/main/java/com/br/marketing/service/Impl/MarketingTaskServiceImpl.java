@@ -646,7 +646,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             if(userTypeFromConditionInfosFlag){
                 List<String> userTypeByList;
                 // 查询符合跑分数据的场景
-                if (StringUtils.isNotBlank(vo.getLabelName())){
+                if (StringUtils.isNotBlank(vo.getLabelName()) && !"去重后数据量".equals(vo.getLabelName())){
                     userTypeByList = syncInfoMapper.queryUserTypeListLabelWithDatetikv_(apiCode, null, null, whereStr);
                 }else {
                     userTypeByList = syncInfoMapper.queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
@@ -721,8 +721,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 dataIdList.add(dataId);
                 singeDTO.setDataIdDesc(dataIdList);
                 Result<List<Long>> singleResult = saveTaskSelect(singeDTO);
-                if (singleResult == null || !singleResult.isSuccess()) {
+                if (singleResult == null) {
                     throw new Exception("生成任务失败");
+                }
+                if (!singleResult.isSuccess()){
+                    return new Result<>().failure().setMessage(singleResult.getMessage());
                 }
                 if (singleResult.getData() == null) {
                     continue;
