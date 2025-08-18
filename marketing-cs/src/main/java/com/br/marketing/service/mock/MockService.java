@@ -46,6 +46,4 @@ public interface MockService {
      */
     MockCreateCaseDTO action(String redisValue);
 
-    ApiResult<String> testNote();
-
 }

@@ -154,16 +154,4 @@ public class MarketingMockController {
         }
     }
 
-    @PostMapping("/testNote")
-    @ApiOperation(value = "测试Mock注解", notes = "测试Mock注解")
-    public ApiResult<String> testNote() {
-        try {
-            return mockService.testNote();
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
-                    "测试Mock注解接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
-        }
-    }
-
 }

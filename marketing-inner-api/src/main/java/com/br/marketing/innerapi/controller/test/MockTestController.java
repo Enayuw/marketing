@@ -51,33 +51,10 @@ public class MockTestController {
             
             Result<List<MockTestDTO>> resultType = mockTestService.testResultReturn(5);
             results.put("Result", resultType);
-            
-            // 测试基本数据类型
-            results.put("boolean", mockTestService.testBooleanReturn("success"));
-            results.put("Boolean", mockTestService.testBooleanWrapperReturn("active"));
-            results.put("int", mockTestService.testIntReturn("test"));
-            results.put("Integer", mockTestService.testIntegerReturn("test"));
-            results.put("long", mockTestService.testLongReturn("test"));
-            results.put("Long", mockTestService.testLongWrapperReturn("12345"));
-            results.put("double", mockTestService.testDoubleReturn("test"));
-            results.put("Double", mockTestService.testDoubleWrapperReturn("test"));
-            results.put("float", mockTestService.testFloatReturn("test"));
-            results.put("Float", mockTestService.testFloatWrapperReturn("test"));
-            
-            // 测试字符串类型
-            results.put("String", mockTestService.testStringReturn("批量测试"));
-            
+
             // 测试复杂对象类型
             results.put("DTO", mockTestService.testDtoReturn(888L));
             results.put("List", mockTestService.testListReturn(3));
-            
-            // 测试其他基本类型
-            results.put("byte", mockTestService.testByteReturn("test"));
-            results.put("Byte", mockTestService.testByteWrapperReturn("test"));
-            results.put("short", mockTestService.testShortReturn("test"));
-            results.put("Short", mockTestService.testShortWrapperReturn("test"));
-            results.put("char", mockTestService.testCharReturn("A"));
-            results.put("Character", mockTestService.testCharacterReturn("B"));
             
         } catch (Exception e) {
             log.error("批量测试异常", e);

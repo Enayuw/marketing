@@ -3259,11 +3259,6 @@ public class MarketingCommonConfig {
     private Integer mockPollingInterval;
 
     /**
-     * Mock接口挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
-     */
-    private HashMap<String, Object> mockBaffle;
-
-    /**
      * 上传文件清洗线程数
      */
     private Integer uploadFileCleanThreadNum;

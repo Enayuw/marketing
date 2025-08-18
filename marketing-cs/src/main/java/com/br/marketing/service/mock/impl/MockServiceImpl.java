@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.StringUtils;
-import com.br.marketing.client.MockClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
@@ -65,8 +64,6 @@ public class MockServiceImpl implements MockService {
 
     @Resource
     private EntityOptServiceImpl entityOptService;
-    @Resource
-    private MockClient mockClient;
 
     @Autowired
     MockPolicyImpl mockPolicy;
@@ -367,20 +364,6 @@ public class MockServiceImpl implements MockService {
     @Override
     public ApiResult<Map<Integer, String>> getMockType() {
         return new ApiResult<Map<Integer, String>>().success().setData(MockPolicyEnum.getAllMockPolicyEnum());
-    }
-
-
-    @Override
-    public ApiResult<String> testNote() {
-        Result<String> stringResult = null;
-        try {
-            stringResult = mockClient.testMock();
-            log.warn("mock策略执行: {}", JSONObject.toJSONString(stringResult));
-        } catch (Exception e) {
-            log.error("mock策略执行失败: {}", e.getMessage());
-            return new ApiResult<String>().fail().setData(JSONObject.toJSONString(stringResult));
-        }
-        return new ApiResult<String>().success().setData(JSONObject.toJSONString(stringResult));
     }
 
     @Override
