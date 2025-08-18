@@ -23,6 +23,7 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.CustomerQueueEnum;
+import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.CaseShuheUploadDataMapper;
 import com.br.marketing.mapper.CaseShuheUserMapper;
@@ -219,7 +220,11 @@ public class ShuHeUserServiceImpl {
         syncInfo.setUpdateTime(shuheUploadData.getCreateTime());
         syncInfo.setActualNum(userDTO.getDataItems().size());
         syncInfo.setJsonData(JSON.toJSONString(userDTO, SerializerFeature.WriteNullStringAsEmpty, SerializerFeature.WriteNullListAsEmpty));
+        //数禾-赋值datasourceType
+        syncInfo.setDataSourceType(DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+        //发送json接续MQ
+        pushRuleService.sendJsonParseMq(shuheUploadData.getApiCode(), syncInfo.getId().toString(), DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
         return syncInfo.getId();
     }

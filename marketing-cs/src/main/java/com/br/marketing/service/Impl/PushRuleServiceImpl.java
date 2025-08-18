@@ -2532,7 +2532,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      * @param syncInfoId
      */
-    private void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType) {
+    public void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType) {
         //发送Json解析消息,定制清洗不在发送MQ
         if (1 == dataSourceType) {
             return;
