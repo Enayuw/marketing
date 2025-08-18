@@ -230,4 +230,6 @@ public interface PushRuleService {
     void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType);
 
     void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType);
+
+    void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType);
 }
