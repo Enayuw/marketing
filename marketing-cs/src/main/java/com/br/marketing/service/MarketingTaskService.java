@@ -84,7 +84,7 @@ public interface MarketingTaskService {
 
     Integer getPartNum(Integer sum);
 
-    Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds, String labelName, CustomerScoreRuleVO datum, String conditionInfo);
+    Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds, CustomerScoreRuleVO datum, String conditionInfo);
 
     void disableTask(MarketingTask task);
 }

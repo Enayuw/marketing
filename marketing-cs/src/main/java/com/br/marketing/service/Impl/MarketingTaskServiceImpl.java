@@ -649,7 +649,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             if(userTypeFromConditionInfosFlag){
                 List<String> userTypeByList;
                 // 查询符合跑分数据的场景
-                if (StringUtils.isNotBlank(vo.getLabelName()) && !"去重后数据量".equals(vo.getLabelName())){
+                if (StringUtils.isNotBlank(vo.getLabelName())){
                     userTypeByList = syncInfoMapper.queryUserTypeListLabelWithDatetikv_(apiCode, null, null, whereStr);
                 }else {
                     userTypeByList = syncInfoMapper.queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
@@ -751,10 +751,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         // getConditionInfo
         String conditionInfo = getConditionInfo(dto.getDataIdDesc(), userTypeList);
         for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigResult.getData()) {
-
+            customerScoreRuleVO.setLabelName(dto.getLabelName());
             // 每个任务的周期：校验该配置是否已存在
             if (customerScoreRuleVO.getExecType() == 3) {
-                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), dto.getLabelName(), customerScoreRuleVO, conditionInfo);
+                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), customerScoreRuleVO, conditionInfo);
             }
 
             customerScoreRuleVO.setConditionInfo(conditionInfo);
@@ -766,7 +766,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 customerScoreRuleVO.setDataLimit(dto.getDataLimit());
             }
             customerScoreRuleVO.setBuildType(1);
-            customerScoreRuleVO.setLabelName(dto.getLabelName());
 
             Result<Long> result = buildScoreTaskOfSelect(customerScoreRuleVO, userTypeList);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -777,7 +776,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds,String labelName,
+    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds,
                                          CustomerScoreRuleVO datum, String conditionInfo) {
         MarketingTaskAutoBuildConfigExample example = new MarketingTaskAutoBuildConfigExample();
         example.createCriteria().andIsDeletedEqualTo(0).andScoreRuleIdEqualTo(datum.getId().intValue())
@@ -793,12 +792,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         buildConfig.setScoreRuleId(datum.getId().intValue());
         buildConfig.setSyncReportId(Joiner.on(",").join(syncReportIds));
         buildConfig.setDataCondition(conditionInfo);
-        buildConfig.setLabelName(datum.getLabelName());
         buildConfig.setStartDate(startDate);
         buildConfig.setStartTime(startTime);
         buildConfig.setCloseDate(datum.getCycleEndDay());
         buildConfig.setCycleDay(datum.getCycleDay());
-        buildConfig.setLabelName(labelName);
+        buildConfig.setLabelName(datum.getLabelName());
         int insert = buildConfigMapper.insertSelective(buildConfig);
 
         ScoreRuleConfig scoreRuleConfig = new ScoreRuleConfig();
@@ -1184,7 +1182,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if(index==null||index==0){
             throw new RuntimeException("参数不能为空或者0");
         }
-         return index%mo;
+        return index%mo;
     }
 
     @Override

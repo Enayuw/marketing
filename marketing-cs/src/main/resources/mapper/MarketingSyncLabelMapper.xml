@@ -59,6 +59,16 @@
 
     </select>
     <select id="getSyncIdByLabelId" resultType="java.lang.Long">
-        select sync_id from b_marketing_sync_label_${apiCode} where label_id = #{labelId}
+        select sync_id
+        from b_marketing_sync_label_${apiCode}
+        where ${whereStr}
+        <if test="syncId != null and syncId >0">
+            <![CDATA[  and sync_id>#{syncId} ]]>
+        </if>
+        and is_repeat in (1,2)
+        and status = 1
+        and label_id = #{labelId}
+        order by sync_id asc
+        limit ${pageSize};
     </select>
 </mapper>

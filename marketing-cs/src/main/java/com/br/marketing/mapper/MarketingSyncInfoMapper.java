@@ -99,11 +99,9 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<MarketingSyncUser> selectDataRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr, @Param("id") Long id, @Param("pageSize") Integer pageSize);
 
-    List<MarketingSyncLabelUser> selectDataRuleScoreLabelWithDate(@Param("apiCode") String apiCode
-            , @Param("whereStr") String whereStr, @Param("id") Long id, @Param("pageSize") Integer pageSize, @Param("syncIdList") List<Long> syncIdList);
+    List<MarketingSyncLabelUser> selectDataRuleScoreLabelWithDate(@Param("apiCode") String apiCode, @Param("syncIdList") List<Long> syncIdList);
 
-    List<MarketingSyncLabelUser> selectDataRuleScoreLabelWithDatetiflash_(@Param("apiCode") String apiCode
-            , @Param("whereStr") String whereStr, @Param("id") Long id, @Param("pageSize") Integer pageSize, @Param("syncIdList") List<Long> syncIdList);
+    List<MarketingSyncLabelUser> selectDataRuleScoreLabelWithDatetiflash_(@Param("apiCode") String apiCode, @Param("syncIdList") List<Long> syncIdList);
 
 
     Long getMaxIdByRuleScore(@Param("apiCode") String apiCode

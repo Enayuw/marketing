@@ -42,8 +42,6 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
     private static final String TI_FLASH = "tiflash";
     private static final String TI_KV = "tikv";
 
-    private static final String DUPLICATE_REMOVE_NUM = "去重后数据量";
-
     @Override
     public Integer countByRuleScoreWithDate(String apiCode, String whereStr, String labelName) {
 
@@ -52,8 +50,8 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         Integer count;
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
-        if (!DUPLICATE_REMOVE_NUM.equals(labelName) && StringUtils.isNotBlank(labelName)) {
-            Long labelId = getIdByLabelName(whereStr,labelName);
+        if (StringUtils.isNotBlank(labelName)) {
+            Long labelId = getIdByLabelName(whereStr, labelName);
             if (type.equals(1)) {
                 count = marketingSyncInfoMapper.countByRuleScoreLabelWithDatetiflash_(apiCode, whereStr, labelId);
             } else {
@@ -77,8 +75,8 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         Long mid;
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
-        if (!DUPLICATE_REMOVE_NUM.equals(labelName) && StringUtils.isNotBlank(labelName)) {
-            Long labelId = getIdByLabelName(whereStr,labelName);
+        if (StringUtils.isNotBlank(labelName)) {
+            Long labelId = getIdByLabelName(whereStr, labelName);
             if (type.equals(1)) {
                 mid = marketingSyncInfoMapper.minIdRuleScoreLabelWithDatetiflash_(apiCode, whereStr, labelId);
             } else {
@@ -103,15 +101,15 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         List<MarketingSyncLabelUser> labelUsers;
         String storageType = type == 1 ? TI_FLASH : TI_KV;
         long start = System.currentTimeMillis();
-        if (!DUPLICATE_REMOVE_NUM.equals(labelName) && StringUtils.isNotBlank(labelName)) {
-            Long labelId = getIdByLabelName(whereStr,labelName);
-            List<Long> syncIdList = marketingSyncLabelMapper.getSyncIdByLabelId(apiCode,labelId);
+        if (StringUtils.isNotBlank(labelName)) {
+            Long labelId = getIdByLabelName(whereStr, labelName);
+            List<Long> syncIdList = marketingSyncLabelMapper.getSyncIdByLabelId(apiCode, whereStr, id, pageSize, labelId);
 
             if (type.equals(1)) {
-                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, whereStr, id, pageSize, syncIdList);
+                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, syncIdList);
                 users.addAll(labelUsers);
             } else {
-                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDate(apiCode, whereStr, id, pageSize, syncIdList);
+                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDate(apiCode, syncIdList);
                 users.addAll(labelUsers);
             }
         } else {
@@ -127,7 +125,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
 
     public Long getIdByLabelName(String whereStr, String labelName) {
         try {
-            List<Long> idList = marketingRuleCenterLabelReportMapper.selectLabelIdWithLabelName(whereStr,labelName);
+            List<Long> idList = marketingRuleCenterLabelReportMapper.selectLabelIdWithLabelName(whereStr, labelName);
             if (idList.isEmpty()) {
                 log.warn("未找到标签名为 {} 的记录", labelName);
                 return null;
