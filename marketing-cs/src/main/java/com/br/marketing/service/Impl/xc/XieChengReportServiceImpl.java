@@ -198,11 +198,8 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         try {
             String apiCode = callRecord.getApiCode();
             boolean isMock = callRecord.getLineName() != null && callRecord.getLineName().contains("挡板");
-            String prefix = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":");
-            JSONObject real = JSON.parseObject(redisChgService.get(prefix.concat(
-                    "realReportLineRate")));
-            JSONObject mock = JSON.parseObject(redisChgService.get(prefix.concat(
-                    "mockReportLineRate")));
+            JSONObject real = variableAllocationService.getAllocationValue(apiCode,"realReportLineRate");;
+            JSONObject mock =  variableAllocationService.getAllocationValue(apiCode,"mockReportLineRate");;
 
             if (real == null || mock == null) {
                 return "ivr";
