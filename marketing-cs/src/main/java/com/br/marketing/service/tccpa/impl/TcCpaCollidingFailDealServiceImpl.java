@@ -12,7 +12,6 @@ import com.br.marketing.entity.MarketingTcyrCpaFailFile;
 import com.br.marketing.entity.MarketingTcyrCpaFailFileExample;
 import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
 import com.br.marketing.enums.TcCpaIsDelEnum;
-import com.br.marketing.enums.TcFailMsgEnum;
 import com.br.marketing.enums.TcFileDataDealStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaFailDataMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaFailFileMapper;
@@ -155,14 +154,19 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                     if (StringUtils.isEmpty(failData.getUserKey())
                             || StringUtils.isEmpty(failData.getCell())
                             || StringUtils.isEmpty(failData.getFailMsg())
-                            || (failData.getFailMsg().equals(TcFailMsgEnum.FAILMSG_LOCKED.getValue()) && failData.getReleaseTime() == null)
-                            || lineData.size() > 4) {
+                            || failData.getReleaseTime() == null) {
                         failData.setStatus(TcFileDataDealStatusEnum.STATUS_FAIL.getValue());
                         failData.setStatusMsg("数据异常");
                         failData.setExtend(line);
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                                 "数据异常，fileId:" + tcyrCpaFailFile.getId() + "，line:" + line, TITLE));
                     } else {
+                        if (lineData.size() > 3) {
+                            failData.setStatusMsg("客户新增字段传输");
+                            failData.setExtend(line);
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                                    "客户新增字段传输，fileId:" + tcyrCpaFailFile.getId() + "，line:" + line, TITLE));
+                        }
                         failData.setStatus(TcFileDataDealStatusEnum.STATUS_SUCCESS.getValue());
                     }
                     failData.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
