@@ -3,6 +3,7 @@ package com.br.marketing.client;
 import com.br.marketing.aspect.Mockable;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.constants.MockConstants;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class MockClient {
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
-    @Mockable(mockName = "test_random")
+    @Mockable(mockName = MockConstants.TEST_RANDOM)
     public Result<String> testMock() {
         //获取挡板开关
 

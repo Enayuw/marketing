@@ -26,7 +26,7 @@ import com.br.marketing.mapper.MockPolicyMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.MockPolicyFactory;
 import com.br.marketing.service.mock.MockService;
-import com.br.marketing.service.mock.enums.MockNameEnum;
+import com.br.marketing.constants.MockConstants;
 import com.br.marketing.service.mock.enums.MockPolicyEnum;
 import com.br.marketing.util.TimeUtils;
 import com.github.pagehelper.PageHelper;
@@ -207,7 +207,7 @@ public class MockServiceImpl implements MockService {
             return new ApiResult<Boolean>().fail("Mock用例不能为空，请修改后重新请求！");
         }
 
-        if (!MockNameEnum.getAllCodes().contains(dto.getMockName())) {
+        if (!MockConstants.contains(dto.getMockName())) {
             return new ApiResult<Boolean>().fail("当前mockName不存在，请确认mockName是否正确！mockName:" + dto.getMockName());
         }
 
@@ -361,7 +361,7 @@ public class MockServiceImpl implements MockService {
 
     @Override
     public ApiResult<List<String>> getMockName() {
-        return new ApiResult<List<String>>().success().setData(MockNameEnum.getAllCodes());
+        return new ApiResult<List<String>>().success().setData(MockConstants.getAllMockNames());
     }
 
     @Override

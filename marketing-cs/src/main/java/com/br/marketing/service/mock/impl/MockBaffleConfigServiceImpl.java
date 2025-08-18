@@ -8,7 +8,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.origin.CaffeineCache;
-import com.br.marketing.service.mock.enums.MockNameEnum;
+import com.br.marketing.constants.MockConstants;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -117,7 +117,7 @@ public class MockBaffleConfigServiceImpl {
      */
     private void checkAndUpdateMockCache() {
         log.warn(TITLE + "开始轮询线程更新，本地缓存："+JSON.toJSONString(caffeineCache.getAllMockLocalCache().asMap()));
-        List<String> allCodes = MockNameEnum.getAllCodes();
+        List<String> allCodes = MockConstants.getAllMockNames();
         for (String code : allCodes) {
             String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + code);
             try {
