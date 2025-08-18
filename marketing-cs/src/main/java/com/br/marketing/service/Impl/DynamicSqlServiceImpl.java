@@ -104,13 +104,14 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         if (StringUtils.isNotBlank(labelName)) {
             Long labelId = getIdByLabelName(whereStr, labelName);
             List<Long> syncIdList = marketingSyncLabelMapper.getSyncIdByLabelId(apiCode, whereStr, id, pageSize, labelId);
-
-            if (type.equals(1)) {
-                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, syncIdList);
-                users.addAll(labelUsers);
-            } else {
-                labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDate(apiCode, syncIdList);
-                users.addAll(labelUsers);
+            if (syncIdList != null && !syncIdList.isEmpty()) {
+                if (type.equals(1)) {
+                    labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, syncIdList);
+                    users.addAll(labelUsers);
+                } else {
+                    labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDate(apiCode, syncIdList);
+                    users.addAll(labelUsers);
+                }
             }
         } else {
             if (type.equals(1)) {
