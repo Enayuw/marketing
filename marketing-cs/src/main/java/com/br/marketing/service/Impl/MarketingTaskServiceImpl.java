@@ -308,6 +308,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
             for (MarketingTaskAutoBuildConfig autoBuildConfig : autoBuildConfigList) {
                 Integer cycleDay = autoBuildConfig.getCycleDay();
+                String labelName = autoBuildConfig.getLabelName();
                 if (cycleDay == null || cycleDay == 0) {
                     log.error(String.format("该周期生成任务规则，没有配置周期天数，任务id：%d", vo.getId()));
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -328,6 +329,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     List<String> userTypeList = new ArrayList<>();
 
                     vo.setAutoBuildConfigId(autoBuildConfig.getId());
+                    vo.setLabelName(labelName);
                     Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
                     if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -790,6 +792,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         buildConfig.setScoreRuleId(datum.getId().intValue());
         buildConfig.setSyncReportId(Joiner.on(",").join(syncReportIds));
         buildConfig.setDataCondition(conditionInfo);
+        buildConfig.setLabelName(datum.getLabelName());
         buildConfig.setStartDate(startDate);
         buildConfig.setStartTime(startTime);
         buildConfig.setCloseDate(datum.getCycleEndDay());
