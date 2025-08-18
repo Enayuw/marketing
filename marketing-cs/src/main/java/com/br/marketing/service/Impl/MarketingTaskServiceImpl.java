@@ -48,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -753,7 +754,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
             // 每个任务的周期：校验该配置是否已存在
             if (customerScoreRuleVO.getExecType() == 3) {
-                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), customerScoreRuleVO, conditionInfo);
+                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), dto.getLabelName(), customerScoreRuleVO, conditionInfo);
             }
 
             customerScoreRuleVO.setConditionInfo(conditionInfo);
@@ -776,7 +777,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds,
+    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds,String labelName,
                                          CustomerScoreRuleVO datum, String conditionInfo) {
         MarketingTaskAutoBuildConfigExample example = new MarketingTaskAutoBuildConfigExample();
         example.createCriteria().andIsDeletedEqualTo(0).andScoreRuleIdEqualTo(datum.getId().intValue())
@@ -797,6 +798,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         buildConfig.setStartTime(startTime);
         buildConfig.setCloseDate(datum.getCycleEndDay());
         buildConfig.setCycleDay(datum.getCycleDay());
+        buildConfig.setLabelName(labelName);
         int insert = buildConfigMapper.insertSelective(buildConfig);
 
         ScoreRuleConfig scoreRuleConfig = new ScoreRuleConfig();
