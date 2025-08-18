@@ -266,7 +266,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
     @Override
     public List<String> extendField(String ids, String apiCode) {
         List<String> fieldList = Lists.newArrayList("apiCode", "custNum", "idCard", "name", "cell", "userType");
-        //TODO 数禾上传需改造
+        //数禾上传需改造
         MarketingJsonNodeParseExample jsonNodeParseExample = new MarketingJsonNodeParseExample();
         jsonNodeParseExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getDataType()).
                 andAcceptTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getAcceptType())
@@ -274,7 +274,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         List<MarketingJsonNodeParse> jsonNodeParseList = marketingJsonNodeParseMapper.selectByExample(jsonNodeParseExample);
         List<String> result = jsonNodeParseList.stream().map(MarketingJsonNodeParse::getNodeName).collect(Collectors.toList());
         result.addAll(fieldList);
-        return result;
+        return result.stream().distinct().collect(Collectors.toList());
     }
 
     @Override

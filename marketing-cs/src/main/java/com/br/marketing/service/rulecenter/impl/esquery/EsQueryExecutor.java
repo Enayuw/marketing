@@ -135,6 +135,7 @@ public class EsQueryExecutor {
             // 获取最后一条记录的searchAfter值
             if (!marketingHistories.isEmpty()) {
                 String searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
+                //下一页searchAfter
                 params.setSearchAfterStr(searchAfterStr);
             }
 

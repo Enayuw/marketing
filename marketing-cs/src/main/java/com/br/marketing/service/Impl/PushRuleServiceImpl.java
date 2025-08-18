@@ -57,6 +57,7 @@ import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.es.bean.ESQueryRequest;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -3405,10 +3406,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(dataTime);
             syncInfo.setJsonData(jdStr);
             syncInfo.setActualNum(size);
+            syncInfo.setDataSourceType(DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
             //todo 模拟异常
             mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
+            //发送json解析MQ
+            sendJsonParseMq(apiCode, syncInfoId, DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s", jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());

@@ -92,6 +92,7 @@ public class ShuHeUserServiceImpl {
         pushRuleService.mockDbOrRedisError(1, shuheUploadData.getApiCode());
         caseShuheUploadDataMapper.insertSelective(shuheUploadData);
         return saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
+
     }
 
     /**
@@ -223,8 +224,6 @@ public class ShuHeUserServiceImpl {
         //数禾-赋值datasourceType
         syncInfo.setDataSourceType(DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         marketingUserMapper.insertMarketingPreUserByText(syncInfo);
-        //发送json接续MQ
-        pushRuleService.sendJsonParseMq(shuheUploadData.getApiCode(), syncInfo.getId().toString(), DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
         return syncInfo.getId();
     }
