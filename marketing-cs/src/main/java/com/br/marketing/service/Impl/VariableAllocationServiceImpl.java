@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -98,19 +99,23 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     public JSONObject getAllocationValue(String apiCode, String allocationType) {
         String suffix = StringUtils.equals(allocationType, XIECHENG_TYPE) ? XIECHENG_TYPE : allocationType;
         String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(suffix);
+        VariableAllocation variable;
         try {
             String allocationValue = redisChgService.get(key);
             if (StringUtil.isNotEmpty(allocationValue)) {
                 return JSON.parseObject(allocationValue);
             }
-            VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, allocationType);
+            variable = variableAllocationMapper.getVariable(apiCode, allocationType);
+            if(Objects.isNull(variable)) {
+                log.error("该定制化配置不存在，apiCode:{}，allocationType:{}", apiCode, allocationType);
+                return null;
+            }
             redisChgService.setex(key, variable.getAllocationValue(), 3600 * 12);
-            return JSON.parseObject(variable.getAllocationValue());
         } catch (Exception e) {
-            log.error("获取携程定制配置redis异常{}", e);
-            VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, allocationType);
-            return JSON.parseObject(variable.getAllocationValue());
+            log.error("获取携程定制配置redis异常{}", e.getMessage());
+            variable = variableAllocationMapper.getVariable(apiCode, allocationType);
         }
+        return JSON.parseObject(Optional.ofNullable(variable).orElse(new VariableAllocation()).getAllocationValue());
     }
 
 
@@ -123,7 +128,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         VariableAllocation originData = variableAllocationMapper.selectByPrimaryKey(id.intValue());
 
         VariableAllocationVO allocationVO = JSON.parseObject(params, VariableAllocationVO.class);
-        String allocationValue = allocationVO.getAllocationValue();
+        String allocationValue = JSON.toJSONString(allocationVO.getAllocationValueMap());
         String origAllocationValue = originData.getAllocationValue();
 
         if(StringUtils.equals(originData.getAllocationType(), XIECHENG_TYPE)) {
@@ -143,6 +148,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             if (StringUtils.equals(allocationValue, origAllocationValue)) {
                 return new ApiResult<Boolean>().success(true, "修改前后数据一致");
             }
+            allocationVO.setAllocationValue(allocationValue);
         }
         int updateCounts = variableAllocationMapper.updateByPrimaryMutchKeySelective(allocationVO);
         VariableAllocation newData = variableAllocationMapper.selectByPrimaryKey(id.intValue());

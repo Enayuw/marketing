@@ -45,6 +45,13 @@ public class VariableAllocationController {
         return new ApiResult<VariableAllocationVO>().success(variableAllocationService.getVariableList(dto));
     }
 
+    @PostMapping("/getAllocationValue")
+    @ApiOperation(value = "配置列表", notes = "配置列表")
+    @AddDataAuthBusiness
+    public ApiResult<JSONObject> getAllocationValue(@RequestBody VariableAllocationDTO dto) {
+        return new ApiResult<JSONObject>().success(variableAllocationService.getAllocationValue(dto.getApiCode(), dto.getAllocationType()));
+    }
+
     @ApiOperation(value = "变更配置列表", notes = "变更配置列表")
     @PostMapping("/updateVariableList")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")})
