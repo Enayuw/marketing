@@ -9,10 +9,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.ErrorMark;
 import com.br.marketing.entity.ErrorMarkExample;
-import com.br.marketing.enums.ErrorMarkTypeEnum;
-import com.br.marketing.enums.MockSwitchEnum;
-import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.enums.RetryStatusEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
@@ -27,6 +24,8 @@ import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +68,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
     @Autowired
     private EsQueryExecutor esQueryExecutor;
+
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
 
 
     @Override
@@ -379,11 +381,17 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
     }
 
     /**
-     * 发送告警 - 子类可以重写
+     * 发送告警
      */
-    protected void sendAlert(String title, String content) {
-        // 这里可以调用具体的告警服务
-        log.error("告警信息 - {}: {}", title, content);
+    protected void sendAlert(String title, String text) {
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+        dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString(), dingDingMarkdownMessage, true);
     }
 
     /**
