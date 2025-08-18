@@ -30,8 +30,6 @@ public class MockTestService {
     @Mockable(mockName = MockConstants.TEST_VOID_RETURN)
     public void testVoidReturn(String message) {
         log.warn("执行void方法，参数：{}", message);
-        // 实际业务逻辑
-        System.out.println("实际执行的void方法：" + message);
     }
 
     /**
