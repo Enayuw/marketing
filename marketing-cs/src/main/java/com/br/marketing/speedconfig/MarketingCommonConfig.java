@@ -3001,19 +3001,14 @@ public class MarketingCommonConfig {
 
     /**
      * 同程易融CPA-quickDeal-shard job参数
-     * {
-     * "jobSwitch":true,"pageSize":2000
-     * }
+     * {"jobSwitch":true,"pageSize":2000}
      */
     private JSONObject tcyrCpaSyncQuickDealShardConfig;
 
 
     /**
-     * 同程易融CPA-dbDeal-shard job参数
-     * {
-     * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
-     * "lockRetryTimes":2,"lockRetryIntervalMs":1000
-     * }
+     * 同程易融CPA-collidingDeal job参数
+     * {"jobSwitch":true,"pageSize":1000,"dbPartSize":50}
      */
     private JSONObject tcyrCpaCollidingDealShardConfig;
 
@@ -3294,6 +3289,11 @@ public class MarketingCommonConfig {
      * {"userName":"xxx", "password":"xxx"}
      */
     private Map<String, String> YiXinMailConfigMap;
+
+    /**
+     * 邮件统计开始时间 {"startDate":"T-1", "endDate":"T-1"}
+     */
+    private Map<String, String> yiXinMailReadDateMap;
 
     /**
      * 转化文件落库BI批量大小

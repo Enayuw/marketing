@@ -40,6 +40,12 @@ public class DateHelper {
     public static final String LINE_DATE_COLON_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String LINE_DATE_COLON_TIME_FORMAT_SSS = "yyyy-MM-dd HH:mm:ss[:SSS]";
 
+    private static final List<SimpleDateFormat> DATE_FORMATS = Arrays.asList(
+            new SimpleDateFormat("yyyy-MM-dd"),
+            new SimpleDateFormat("yyyyMMdd"),
+            new SimpleDateFormat("yyyy/MM/dd")
+    );
+
     //key为正则 value为日期格式
     private static Map<String, String> PATTERNS = new HashMap();
 
@@ -567,6 +573,22 @@ public class DateHelper {
         if (!unit.equalsIgnoreCase("d") && !unit.equalsIgnoreCase("m")) {
             throw new IllegalArgumentException("仅支持 d（天）和 m（月）");
         }
+    }
+
+    public static Date stringToDate(String dateString) {
+        if (dateString == null || dateString.trim().isEmpty()) {
+            return null;
+        }
+        String trimmedDate = dateString.trim();
+        for (SimpleDateFormat sdf : DATE_FORMATS) {
+            try {
+                sdf.setLenient(false); // 严格模式
+                return sdf.parse(trimmedDate);
+            } catch (Exception e) {
+                // 继续尝试下一个格式
+            }
+        }
+        return null;
     }
 
 
