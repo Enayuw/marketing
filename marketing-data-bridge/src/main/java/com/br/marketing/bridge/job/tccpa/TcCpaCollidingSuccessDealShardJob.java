@@ -14,7 +14,7 @@ import javax.annotation.Resource;
  */
 @Component
 @Slf4j
-public class TcCpaCollidingDealShardJob extends AbstractSimpleElasticJob {
+public class TcCpaCollidingSuccessDealShardJob extends AbstractSimpleElasticJob {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
