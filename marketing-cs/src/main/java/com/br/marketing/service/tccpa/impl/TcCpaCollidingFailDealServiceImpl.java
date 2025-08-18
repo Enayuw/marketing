@@ -158,7 +158,7 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                             || (failData.getFailMsg().equals(TcFailMsgEnum.FAILMSG_LOCKED.getValue()) && failData.getReleaseTime() == null)
                             || lineData.size() > 4) {
                         failData.setStatus(TcFileDataDealStatusEnum.STATUS_FAIL.getValue());
-                        failData.setFailMsg("数据异常");
+                        failData.setStatusMsg("数据异常");
                         failData.setExtend(line);
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                                 "数据异常，fileId:" + tcyrCpaFailFile.getId() + "，line:" + line, TITLE));
