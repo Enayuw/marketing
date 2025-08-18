@@ -6,7 +6,6 @@ import com.br.marketing.mapper.MarketingTcyrSampleRecordMapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.Date;
 
@@ -16,6 +15,11 @@ public class TcSampleDataPushProcessor extends AbstractTcCustomizeProcessor{
 
     @Resource
     private MarketingTcyrSampleRecordMapper tcyrSampleRecordMapper;
+
+    @Override
+    protected String fetchApiCode() {
+        return apiCode();
+    }
 
     @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {

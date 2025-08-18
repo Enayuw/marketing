@@ -12,6 +12,7 @@ import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
+import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import io.swagger.annotations.*;
@@ -71,6 +72,28 @@ public class RuleCleaningController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
                     "获取规则列表接口错误！错误信息：" + e.getMessage()), e);
             return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/getRuleDetailById")
+    @ApiOperation(value = "根据规则ID查询规则明细", notes = "根据规则ID查询规则明细", httpMethod = "GET")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ruleId", value = "规则ID", paramType = "query", dataType = "Long", required = true)
+    })
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    public ApiResult<MarketingDataCleanGeneralConfig> getRuleDetailById(@RequestParam("ruleId") Long ruleId) {
+        try {
+            MarketingDataCleanGeneralConfig ruleDetail = ruleCleaningService.getRuleDetailById(ruleId);
+            if (ruleDetail == null) {
+                return new ApiResult<MarketingDataCleanGeneralConfig>().fail("规则不存在");
+            }
+            return new ApiResult<MarketingDataCleanGeneralConfig>().success(ruleDetail);
+        } catch (BusinessException be) {
+            return new ApiResult<MarketingDataCleanGeneralConfig>().fail(be.getMsg());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "根据规则ID查询规则明细接口错误！错误信息：" + e.getMessage()), e);
+            return new ApiResult<MarketingDataCleanGeneralConfig>().fail(ServiceResultEnum.FAILED);
         }
     }
 
