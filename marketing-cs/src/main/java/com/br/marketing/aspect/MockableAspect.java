@@ -43,6 +43,7 @@ public class MockableAspect {
     private MockService mockService;
 
     private final ObjectMapper objectMapper = createConfiguredObjectMapper();
+    private final String TITLE = "【mock切面】";
 
     /**
      * 创建配置好的ObjectMapper实例，支持时间类型转换
@@ -97,7 +98,7 @@ public class MockableAspect {
             return joinPoint.proceed();
 
         } catch (Exception e) {
-            log.error("【Mock拦截异常】方法 {} 执行失败，原因：{}", methodName, e.getMessage(), e);
+            log.error(TITLE + "【拦截异常】方法 {} 执行失败，原因：{}", methodName, e.getMessage(), e);
             throw e;
         }
     }
@@ -117,7 +118,7 @@ public class MockableAspect {
             // 尝试解析为JSON对象
             return objectMapper.readValue(responseBodyStr, Object.class);
         } catch (Exception e) {
-            log.warn("【Mock JSON解析失败】方法 {} 无法解析响应体JSON，返回原始字符串。JSON: {}, 错误：{}",
+            log.warn(TITLE + "【JSON解析失败】方法 {} 无法解析响应体JSON，返回原始字符串。JSON: {}, 错误：{}",
                     methodName, responseBodyStr, e.getMessage());
             // 解析失败时返回原始字符串
             return responseBodyStr;
@@ -176,7 +177,7 @@ public class MockableAspect {
             return convertToTargetType(responseBody, method.getGenericReturnType(), returnType, methodName);
 
         } catch (Exception e) {
-            log.warn("【Mock类型适配失败】方法 {} 无法将响应数据适配为 {} 类型，返回原始数据。错误：{}",
+            log.warn(TITLE + "【类型适配失败】方法 {} 无法将响应数据适配为 {} 类型，返回原始数据。错误：{}",
                     methodName, returnType.getSimpleName(), e.getMessage());
             return responseBody;
         }
@@ -204,14 +205,14 @@ public class MockableAspect {
             return objectMapper.convertValue(responseBody, rawType);
             
         } catch (Exception e) {
-            log.warn("【Mock泛型类型转换失败】方法 {} 无法将响应数据转换为 {} 类型，尝试普通转换。错误：{}",
+            log.warn(TITLE + "【泛型类型转换失败】方法 {} 无法将响应数据转换为 {} 类型，尝试普通转换。错误：{}",
                     methodName, rawType.getSimpleName(), e.getMessage());
             
             try {
                 // 降级到普通类型转换
                 return objectMapper.convertValue(responseBody, rawType);
             } catch (Exception e2) {
-                log.warn("【Mock普通类型转换失败】方法 {} 无法将响应数据转换为 {} 类型，返回原始数据。错误：{}",
+                log.warn(TITLE + "【普通类型转换失败】方法 {} 无法将响应数据转换为 {} 类型，返回原始数据。错误：{}",
                         methodName, rawType.getSimpleName(), e2.getMessage());
                 return responseBody;
             }
@@ -236,7 +237,7 @@ public class MockableAspect {
             return convertToTargetType(responseBody, method.getGenericReturnType(), method.getReturnType(), methodName);
                 
         } catch (Exception e) {
-            log.warn("【Mock List类型适配失败】方法 {} 无法将响应数据适配为List类型，返回空List。错误：{}",
+            log.warn(TITLE + "【List类型适配失败】方法 {} 无法将响应数据适配为List类型，返回空List。错误：{}",
                     methodName, e.getMessage());
             return new java.util.ArrayList<>();
         }
