@@ -7,7 +7,7 @@ package com.br.marketing.common.constants.rocketmq;
  */
 public class MarketingXieChengConstants {
 
-    //携程促活 撞库
+    //携程促活队列
     public static final String TOPIC_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "marketingXieChengActivateCollidingQueue";
 
     public static final String GROUP_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "Marketing_XieCheng_Activate_Colliding_Queue";
