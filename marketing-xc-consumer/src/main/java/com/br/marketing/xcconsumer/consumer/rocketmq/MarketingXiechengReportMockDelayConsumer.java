@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
         consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_DELAY,
         selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
-        consumeThreadNumber = 25, consumeThreadMax = 65, awaitTerminationMillisWhenShutdown = 10000)
+        awaitTerminationMillisWhenShutdown = 10000)
 public class MarketingXiechengReportMockDelayConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>,
         RocketMQPushConsumerLifecycleListener {
 
