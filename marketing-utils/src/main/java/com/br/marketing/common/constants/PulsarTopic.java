@@ -37,9 +37,4 @@ public class PulsarTopic {
      * 定制客户上传接口主题
      */
     public final static String uploadCustomTopic = pulsarPreFix.concat(topicPreFix).concat("upload-custom");
-
-    /**
-     * 定制黑名单数据接入接口主题 persistent://CDC/API/marketing-black-custom
-     */
-    public final static String blackCustomTopic = pulsarPreFix.concat(topicPreFix).concat("black-custom");
 }
