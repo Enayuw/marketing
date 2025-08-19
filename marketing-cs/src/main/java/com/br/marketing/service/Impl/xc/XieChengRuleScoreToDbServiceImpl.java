@@ -322,9 +322,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 if (!batchData.isEmpty()) {
                     writeFileDataToTidb(tableName, transferColumn, new ArrayList<>(batchData));
                 }
-
-                // 删除该表所有重复数据
-                deleteCount = deleteRepeatData(tableName, deleteCount);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                         "携程跑分文件同步DB异常, " + e.getMessage()), e);
