@@ -207,7 +207,7 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
             xieChengActivateDTO.setDataId(sourceId);
             String msg = JSONObject.toJSONString(xieChengActivateDTO);
 
-            if(marketingCommonConfig.getXieChengActivateRabbitMqSwitch()){
+            if(!marketingCommonConfig.getXieChengActivateRabbitMqSwitch()){
                 rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE
                         , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE, msg);
             } else{
