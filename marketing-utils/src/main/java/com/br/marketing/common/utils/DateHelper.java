@@ -40,10 +40,10 @@ public class DateHelper {
     public static final String LINE_DATE_COLON_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String LINE_DATE_COLON_TIME_FORMAT_SSS = "yyyy-MM-dd HH:mm:ss[:SSS]";
 
-    private static final List<SimpleDateFormat> DATE_FORMATS = Arrays.asList(
-            new SimpleDateFormat("yyyy-MM-dd"),
-            new SimpleDateFormat("yyyyMMdd"),
-            new SimpleDateFormat("yyyy/MM/dd")
+    private static final List<DateTimeFormatter> DATE_FORMATS = Arrays.asList(
+            DateTimeFormat.forPattern("yyyy-MM-dd"),
+            DateTimeFormat.forPattern("yyyyMMdd"),
+            DateTimeFormat.forPattern("yyyy/MM/dd")
     );
 
     //key为正则 value为日期格式
@@ -580,10 +580,9 @@ public class DateHelper {
             return null;
         }
         String trimmedDate = dateString.trim();
-        for (SimpleDateFormat sdf : DATE_FORMATS) {
+        for (DateTimeFormatter sdf : DATE_FORMATS) {
             try {
-                sdf.setLenient(false); // 严格模式
-                return sdf.parse(trimmedDate);
+                return DateTime.parse(trimmedDate, sdf).toDate();
             } catch (Exception e) {
                 // 继续尝试下一个格式
             }

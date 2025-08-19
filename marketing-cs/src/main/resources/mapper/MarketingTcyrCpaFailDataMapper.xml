@@ -2,10 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaFailDataMapper" >
     <insert id="batchSave">
-        INSERT INTO b_tcyr_cpa_fail_data (api_code,batch_no,sync_file_id,user_key,cell,fail_msg,release_time,create_time,status,is_del)
+        INSERT INTO b_tcyr_cpa_fail_data (api_code,batch_no,sync_file_id,user_key,cell,fail_msg,release_time,create_time,status,status_msg,is_del,extend)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.apiCode}, #{item.batchNo}, #{item.syncFileId}, #{item.userKey}, #{item.cell}, #{item.failMsg}, #{item.releaseTime}, #{item.createTime}, #{item.status}, #{item.isDel})
+            (#{item.apiCode}, #{item.batchNo}, #{item.syncFileId}, #{item.userKey}, #{item.cell}, #{item.failMsg}, #{item.releaseTime}, #{item.createTime}, #{item.status}, #{item.statusMsg}, #{item.isDel}, #{item.extend})
         </foreach>
     </insert>
 </mapper>
