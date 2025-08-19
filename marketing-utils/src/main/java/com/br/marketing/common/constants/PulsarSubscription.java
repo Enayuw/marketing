@@ -39,4 +39,12 @@ public class PulsarSubscription {
      * 主题 {@link com.br.marketing.common.constants.PulsarTopic#uploadCustomTopic}
      */
     public final static String uploadCustomSubscription = subscriptionPreFix.concat("upload_custom");
+
+
+    /**
+     * 定制客户黑名单上传接口订阅者
+     * 主题 {@link com.br.marketing.common.constants.PulsarTopic#blackCustomTopic}
+     */
+    public final static String blackCustomSubscription = subscriptionPreFix.concat("black_custom");
+
 }

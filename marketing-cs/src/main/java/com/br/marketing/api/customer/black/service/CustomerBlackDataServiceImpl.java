@@ -152,7 +152,7 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
      */
     private CustomerResponseDTO sendMq(CustomerBlackDataHandler customerBlackDataHandler, String apiCode, String jsonData) {
         try {
-            ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.uploadCustomTopic);
+            ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.blackCustomTopic);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("apiCode", apiCode);
             jsonObject.put("jsonData", jsonData);
