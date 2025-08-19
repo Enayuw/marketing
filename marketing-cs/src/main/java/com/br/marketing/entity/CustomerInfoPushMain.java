@@ -173,7 +173,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmApiCode(String mApiCode) {
-        this.mApiCode = mApiCode;
+        this.mApiCode = mApiCode == null ? null : mApiCode.trim();
     }
 
     public String getmModel() {
@@ -181,7 +181,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmModel(String mModel) {
-        this.mModel = mModel;
+        this.mModel = mModel == null ? null : mModel.trim();
     }
 
     public String getmModelVersion() {
@@ -189,7 +189,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmModelVersion(String mModelVersion) {
-        this.mModelVersion = mModelVersion;
+        this.mModelVersion = mModelVersion == null ? null : mModelVersion.trim();
     }
 
     public Integer getmNumMin() {
@@ -245,7 +245,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmCusBatchNumberList(String mCusBatchNumberList) {
-        this.mCusBatchNumberList = mCusBatchNumberList;
+        this.mCusBatchNumberList = mCusBatchNumberList == null ? null : mCusBatchNumberList.trim();
     }
 
     public Integer getmStatus() {
@@ -293,7 +293,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmRuleCondition(String mRuleCondition) {
-        this.mRuleCondition = mRuleCondition;
+        this.mRuleCondition = mRuleCondition == null ? null : mRuleCondition.trim();
     }
 
     public String getmRuleConditionShow() {
@@ -301,7 +301,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmRuleConditionShow(String mRuleConditionShow) {
-        this.mRuleConditionShow = mRuleConditionShow;
+        this.mRuleConditionShow = mRuleConditionShow == null ? null : mRuleConditionShow.trim();
     }
 
     public String getmScoreCondition() {
@@ -309,7 +309,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmScoreCondition(String mScoreCondition) {
-        this.mScoreCondition = mScoreCondition;
+        this.mScoreCondition = mScoreCondition == null ? null : mScoreCondition.trim();
     }
 
     public BigDecimal getmPercentage() {
@@ -325,7 +325,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setOptUserId(String optUserId) {
-        this.optUserId = optUserId;
+        this.optUserId = optUserId == null ? null : optUserId.trim();
     }
 
     public String getOptUserName() {
@@ -333,7 +333,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setOptUserName(String optUserName) {
-        this.optUserName = optUserName;
+        this.optUserName = optUserName == null ? null : optUserName.trim();
     }
 
     public Integer getFilterType() {
@@ -349,7 +349,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setBatchName(String batchName) {
-        this.batchName = batchName;
+        this.batchName = batchName == null ? null : batchName.trim();
     }
 
     public String getExtend() {
@@ -357,7 +357,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setExtend(String extend) {
-        this.extend = extend;
+        this.extend = extend == null ? null : extend.trim();
     }
 
     public Integer getSourceType() {
@@ -381,7 +381,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setStrategyCode(String strategyCode) {
-        this.strategyCode = strategyCode;
+        this.strategyCode = strategyCode == null ? null : strategyCode.trim();
     }
 
     public String getTagContent() {
@@ -389,7 +389,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setTagContent(String tagContent) {
-        this.tagContent = tagContent;
+        this.tagContent = tagContent == null ? null : tagContent.trim();
     }
 
     public Integer getPushTarget() {
