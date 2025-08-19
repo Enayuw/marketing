@@ -273,12 +273,12 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             log.error("countDownLatch 线程执行异常", e);
         }
         //插入扩展字段key统计表
-        try {
+       /* try {
             handlerDataFieldDict(uploadDate);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                     "扩展字段添加失败"), e);
-        }
+        }*/
 
     }
 
