@@ -31,6 +31,13 @@ public interface RuleCleaningService {
     PageResultReturn getRuleList(@Validated int current, @Validated int size,  String apiCode, String accountType,  Integer acceptType);
 
     /**
+     * 根据规则ID查询规则明细
+     * @param ruleId 规则ID
+     * @return 规则明细信息
+     */
+    MarketingDataCleanGeneralConfig getRuleDetailById(Long ruleId);
+
+    /**
      * 保存或更新规则
      * @param config 规则配置信息
      * @return 操作结果

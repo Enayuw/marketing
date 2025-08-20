@@ -41,4 +41,7 @@ public class TaskSelectSaveDTO {
 
     @ApiModelProperty(value = "taskCreateMethod")
     private String taskCreateMethod;
+
+    @ApiModelProperty(value = "标签名称")
+    private String labelName;
 }

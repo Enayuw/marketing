@@ -371,6 +371,22 @@ public class RedisKeyConstant {
      */
     public static final String tcyrDbDeal = prefix.concat("tcyr_sync:dbDeal");
 
+
+    /**
+     * 同程CPA-syncDeal流程锁
+     */
+    public static final String tcyrCpaSyncQuickDeal = prefix.concat("tcyr_cpa:syncQuickDeal");
+
+    /**
+     * 同程CPA-collidingSuccess流程锁
+     */
+    public static final String tcyrCpaCollidingSuccessDeal = prefix.concat("tcyr_cpa:collidingSuccessDeal");
+
+    /**
+     * 同程CPA-撞库失败数据处理流程锁
+     */
+    public static final String tcyrCpaCollidingFailDeal = prefix.concat("tcyr_cpa:collidingFailDeal");
+
     /**
      * 雪花算法
      */

@@ -11,6 +11,7 @@
     <result column="close_date" property="closeDate" jdbcType="VARCHAR" />
     <result column="cycle_day" property="cycleDay" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="label_name" property="labelName" jdbcType="VARCHAR" />
     <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, score_rule_id, sync_report_id, data_condition, start_date, start_time, close_date, 
-    cycle_day, extend, is_deleted, create_time, update_time
+    id, score_rule_id, sync_report_id, data_condition, start_date, start_time, close_date,
+    cycle_day, extend, label_name, is_deleted, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfigExample" >
     select
@@ -92,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_task_auto_build_config
     where id = #{id,jdbcType=BIGINT}
@@ -111,14 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_task_auto_build_config (score_rule_id, sync_report_id, data_condition, 
-      start_date, start_time, close_date, 
-      cycle_day, extend, is_deleted, 
-      create_time, update_time)
-    values (#{scoreRuleId,jdbcType=INTEGER}, #{syncReportId,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR}, 
-      #{startDate,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, #{closeDate,jdbcType=VARCHAR}, 
-      #{cycleDay,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_marketing_task_auto_build_config (score_rule_id, sync_report_id, data_condition,
+    start_date, start_time, close_date,
+    cycle_day, extend, label_name,
+    is_deleted, create_time, update_time
+    )
+    values (#{scoreRuleId,jdbcType=INTEGER}, #{syncReportId,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR},
+    #{startDate,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, #{closeDate,jdbcType=VARCHAR},
+    #{cycleDay,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{labelName,jdbcType=VARCHAR},
+    #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -149,6 +152,9 @@
       </if>
       <if test="extend != null" >
         extend,
+      </if>
+      <if test="labelName != null" >
+        label_name,
       </if>
       <if test="isDeleted != null" >
         is_deleted,
@@ -184,6 +190,9 @@
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="labelName != null" >
+        #{labelName,jdbcType=VARCHAR},
       </if>
       <if test="isDeleted != null" >
         #{isDeleted,jdbcType=INTEGER},
@@ -232,6 +241,9 @@
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
+      <if test="record.labelName != null" >
+        label_name = #{record.labelName,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDeleted != null" >
         is_deleted = #{record.isDeleted,jdbcType=INTEGER},
       </if>
@@ -249,17 +261,18 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_task_auto_build_config
     set id = #{record.id,jdbcType=BIGINT},
-      score_rule_id = #{record.scoreRuleId,jdbcType=INTEGER},
-      sync_report_id = #{record.syncReportId,jdbcType=VARCHAR},
-      data_condition = #{record.dataCondition,jdbcType=VARCHAR},
-      start_date = #{record.startDate,jdbcType=VARCHAR},
-      start_time = #{record.startTime,jdbcType=VARCHAR},
-      close_date = #{record.closeDate,jdbcType=VARCHAR},
-      cycle_day = #{record.cycleDay,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      is_deleted = #{record.isDeleted,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    score_rule_id = #{record.scoreRuleId,jdbcType=INTEGER},
+    sync_report_id = #{record.syncReportId,jdbcType=VARCHAR},
+    data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+    start_date = #{record.startDate,jdbcType=VARCHAR},
+    start_time = #{record.startTime,jdbcType=VARCHAR},
+    close_date = #{record.closeDate,jdbcType=VARCHAR},
+    cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    label_name = #{record.labelName,jdbcType=VARCHAR},
+    is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -291,6 +304,9 @@
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
+      <if test="labelName != null" >
+        label_name = #{labelName,jdbcType=VARCHAR},
+      </if>
       <if test="isDeleted != null" >
         is_deleted = #{isDeleted,jdbcType=INTEGER},
       </if>
@@ -306,16 +322,17 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig" >
     update b_marketing_task_auto_build_config
     set score_rule_id = #{scoreRuleId,jdbcType=INTEGER},
-      sync_report_id = #{syncReportId,jdbcType=VARCHAR},
-      data_condition = #{dataCondition,jdbcType=VARCHAR},
-      start_date = #{startDate,jdbcType=VARCHAR},
-      start_time = #{startTime,jdbcType=VARCHAR},
-      close_date = #{closeDate,jdbcType=VARCHAR},
-      cycle_day = #{cycleDay,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      is_deleted = #{isDeleted,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        sync_report_id = #{syncReportId,jdbcType=VARCHAR},
+        data_condition = #{dataCondition,jdbcType=VARCHAR},
+        start_date = #{startDate,jdbcType=VARCHAR},
+        start_time = #{startTime,jdbcType=VARCHAR},
+        close_date = #{closeDate,jdbcType=VARCHAR},
+        cycle_day = #{cycleDay,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        label_name = #{labelName,jdbcType=VARCHAR},
+        is_deleted = #{isDeleted,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

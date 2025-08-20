@@ -1190,5 +1190,25 @@
         and id > #{maxId} order by id limit #{pageSize}
     </select>
 
+    <select id="getUserByCustNumAndAppletData" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select id,api_code,user_type,applet_date,status,is_repeat,create_time,update_time
+        from b_marketing_sync_${apiCode}
+        <where>
+            <if test="list != null and list.size()>0">
+                <foreach collection="list" item="item" open="(" separator="or" close=")">
+                    (applet_date = #{item.appletDate} and user_type = #{item.userType})
+                </foreach>
+            </if>
+            <if test="custNums != null and custNums.size() > 0">
+                and cust_num in
+                <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                    '${custNum}'
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+
+
 
 </mapper>

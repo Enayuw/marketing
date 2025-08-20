@@ -82,7 +82,7 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                 boolean lockAcquired = acquireLockWithRetry(lockKey, lockValue);
                 if (!lockAcquired) {
                     log.warn("{}获取锁失败，apiCode:{}，跳过本次处理", TITLE, apiCode);
-                    continue;
+                    break;
                 }
                 //2.查询单条未处理的csvFile(查询quick_deal_status=1,db_deal_status=0的数据)
                 MarketingTcyrSyncFile tcyrSyncFile = tcyrSyncFileMapper.selectNoDealSingleSyncFile(apiCode, 2,0);
