@@ -194,7 +194,8 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
                     String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", pushMain.getId().toString(), integerResult.getMessage())));
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
-
+        //赋值加密方式
+        context.setEncryptType(integerResult.getData());
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(true);
     }
 
