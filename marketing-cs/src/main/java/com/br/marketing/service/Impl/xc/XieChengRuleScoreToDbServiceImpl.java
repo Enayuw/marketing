@@ -399,7 +399,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 .append(" create_time datetime,")
                 .append(" update_time timestamp null on update CURRENT_TIMESTAMP,")
                 .append(" is_delete int default 0,")
-                .append(" index idx_cell (cell) ")
+                .append(" unique index idx_cell (cell) ")
                 .append("); ");
 
         scoreRecordMapper.createXieChengScoreTidbTableByBatchNum(createTidbDDL.toString());
@@ -442,7 +442,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData) {
         try {
-            StringBuilder insertSql = new StringBuilder("INSERT INTO ");
+            StringBuilder insertSql = new StringBuilder("INSERT IGNORE INTO ");
             insertSql.append(tableName).append(" (");
             List<Integer> numColumns = new ArrayList<>(columns.size());
             for (int i = 0; i < columns.size(); i++) {
