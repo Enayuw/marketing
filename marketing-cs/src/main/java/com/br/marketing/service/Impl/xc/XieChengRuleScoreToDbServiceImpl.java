@@ -338,18 +338,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private int deleteRepeatData(String tableName, int deleteCount) {
-        String extend = "删除原因:cell重复";
-        while (true) {
-            Integer count = scoreRecordMapper.updateDeleteByIdstikv_(tableName, extend);
-            if (count <= 0) {
-                break;
-            }
-            deleteCount += count;
-        }
-        return deleteCount;
-    }
-
     private void checkIsCamelCase(List<String> transferColumn, File file) {
         List<String> xieChengScoreToDbKeepCamelColumns = marketingCommonConfig.getXieChengScoreToDbKeepCamelColumns();
         for (String column : transferColumn) {
