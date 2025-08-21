@@ -258,7 +258,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                                 if (!CollectionUtils.isEmpty(conditions)) {
                                     Map<String, Object> scoreMap = conditions.stream()
                                             .filter(condition -> condition.getDValue() != null)
-                                            .collect(Collectors.toMap(MarketingCondition::getCode
+                                            .collect(Collectors.toMap(MarketingCondition::getFieldKey
                                                     , MarketingCondition::getDValue
                                                     , (existing, replacement) -> replacement));
                                     ScoreLable scoreLable = GeneScriptUtil.scoreLableWithSpel(scoreMap, scoreLables);

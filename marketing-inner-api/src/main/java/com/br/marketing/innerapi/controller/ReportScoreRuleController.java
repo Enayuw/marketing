@@ -8,10 +8,14 @@ import java.util.Map;
 import javax.annotation.Resource;
 import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.exception.KnowException;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.InterfaceOperationsEnum;
+import com.br.marketing.vo.bi.IntervalTemplateVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
+import com.br.marketing.vo.bi.param.IntervalTemplateParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +34,7 @@ import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
+import com.br.marketing.dto.report.RefreshReportRequestDTO;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,6 +55,8 @@ public class ReportScoreRuleController {
     private AnalysisReportService analysisReportService;
     @Resource
     private FastDfsClient fastDfsClient;
+
+    private static final Integer CODE_1 = Integer.valueOf(1);
 
     @GetMapping("/getTaskScoreProducts")
     public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids, @RequestParam(defaultValue = "all")String fieldType) {
@@ -149,8 +156,6 @@ public class ReportScoreRuleController {
         }
     }
 
-
-
     @ApiOperation(value = "重命名报表名称")
     @GetMapping("/updateReportName")
     @AuthDataControllerPermission
@@ -163,6 +168,35 @@ public class ReportScoreRuleController {
     @AuthDataControllerPermission
     public ApiResult<Boolean> deleteReport(@RequestParam Long id) {
         return reportScoreRuleService.deleteReport(id);
+    }
+
+    @ApiOperation("刷新报表数据")
+    @PostMapping("/refreshCustomIntervalReport")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> refreshCustomIntervalReport(@RequestBody RefreshReportRequestDTO requestDTO) {
+        return new ApiResult().fromResult(reportScoreRuleService.refreshCustomIntervalReport(requestDTO), CODE_1);
+    }
+
+    @ApiOperation("保存评分分布模板")
+    @PostMapping("/saveIntervalTemplate")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> saveIntervalTemplate(@RequestBody RefreshReportRequestDTO requestDTO) {
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        return new ApiResult().fromResult(reportScoreRuleService.saveIntervalTemplate(requestDTO,user), CODE_1);
+    }
+
+    @ApiOperation("评分分布查询规则模板")
+    @GetMapping("/getIntervalTemplate")
+    @AuthDataControllerPermission
+    public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(@RequestParam String apiCode) {
+        return new ApiResult().fromResult(reportScoreRuleService.getIntervalTemplate(apiCode), CODE_1);
+    }
+
+    @ApiOperation("查询画像分布模型")
+    @GetMapping("/getImageDistribution")
+    @AuthDataControllerPermission
+    public ApiResult<String> getImageDistribution() {
+        return new ApiResult().fromResult(reportScoreRuleService.getImageDistribution(), CODE_1);
     }
 
 }
