@@ -27,6 +27,9 @@ public class TableCreateServiceImpl {
 
     final static String marketingTransferUserTable = "b_marketing_transfer_sync_";
 
+    final static String MARKETINGSYNCLABELTABLE = "b_marketing_sync_label_";
+
+
     @PostConstruct
     void init(){
         tableNameSet = new HashSet<String>();
@@ -121,4 +124,14 @@ public class TableCreateServiceImpl {
             tableNameSet.add(tableName);
         }
     }
+
+    public void createMarketingUserLabelTable(String apiCode){
+        String tableName = MARKETINGSYNCLABELTABLE.concat(apiCode);
+        if(!tableNameSet.contains(tableName)){
+            marketingUserMapper.createUserLabelTable(tableName);
+            tableNameSet.add(tableName);
+        }
+    }
+
+
 }

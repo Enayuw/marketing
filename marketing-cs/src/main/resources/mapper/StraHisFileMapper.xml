@@ -104,4 +104,12 @@
         where batch_number = #{batchNumber}
     </select>
 
+
+    <select id="getCondition" resultType="java.lang.String">
+        select bmte.data_condition
+        from b_marketing_task bmt
+                 inner join b_marketing_task_extend bmte on bmt.id = bmte.task_id
+        where bmt.batch_number = #{batchNumber}
+    </select>
+
 </mapper>

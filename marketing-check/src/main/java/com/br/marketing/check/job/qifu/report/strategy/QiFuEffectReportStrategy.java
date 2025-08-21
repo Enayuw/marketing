@@ -57,36 +57,76 @@ public class QiFuEffectReportStrategy implements ReportStrategy<QiFuEffectReport
     @Override
     public List<QiFuEffectReportExcelModel> convertToExcelModel(List<QiFuEffectReportData> dataList) {
         return dataList.stream()
-                .map((QiFuEffectReportData qiFuEffectReportData) -> {
-                    //百分比取8位小数
-                    qiFuEffectReportData.setLoginRate(convertPercent(qiFuEffectReportData.getLoginRate(), 8));
-                    qiFuEffectReportData.setApplySubmitRate(convertPercent(qiFuEffectReportData.getApplySubmitRate(), 8));
-                    qiFuEffectReportData.setPassRate(convertPercent(qiFuEffectReportData.getPassRate(), 8));
-                    qiFuEffectReportData.setCreditSuccessRate(convertPercent(qiFuEffectReportData.getCreditSuccessRate(), 8));
-                    qiFuEffectReportData.setDeltaApplySubmitRate(convertPercent(qiFuEffectReportData.getDeltaApplySubmitRate(), 8));
-                    qiFuEffectReportData.setDeltaCreditSuccessRate(convertPercent(qiFuEffectReportData.getDeltaCreditSuccessRate(), 8));
-                    qiFuEffectReportData.setAttrApplyRatio(convertPercent(qiFuEffectReportData.getAttrApplyRatio(), 8));
-                    qiFuEffectReportData.setAttrCreditRatio(convertPercent(qiFuEffectReportData.getAttrCreditRatio(), 8));
-                    qiFuEffectReportData.setAttrApplyRate(convertPercent(qiFuEffectReportData.getAttrApplyRate(), 8));
-                    qiFuEffectReportData.setAttrCreditRate(convertPercent(qiFuEffectReportData.getAttrCreditRate(), 8));
-                    //数量四舍五入取整
-                    qiFuEffectReportData.setUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getUserCount()))));
-                    qiFuEffectReportData.setLoginUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getLoginUserCount()))));
-                    qiFuEffectReportData.setApplySubmitUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getApplySubmitUserCount()))));
-                    qiFuEffectReportData.setCreditSuccessUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getCreditSuccessUserCount()))));
-                    qiFuEffectReportData.setDeltaApplySubmitCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getDeltaApplySubmitCount()))));
-                    qiFuEffectReportData.setDeltaCreditSuccessCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getDeltaCreditSuccessCount()))));
-                    qiFuEffectReportData.setAttrApplyUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrApplyUserCount()))));
-                    qiFuEffectReportData.setAttrCreditUserCount(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCount()))));
-                    qiFuEffectReportData.setAttrCreditUserCountA(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCountA()))));
-                    qiFuEffectReportData.setAttrCreditUserCountB(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCountB()))));
-                    qiFuEffectReportData.setAttrCreditUserCountC(String.valueOf(Math.round(Float.parseFloat(qiFuEffectReportData.getAttrCreditUserCountC()))));
-
-                    QiFuEffectReportExcelModel reportExcelModel = new QiFuEffectReportExcelModel();
-                    BeanUtils.copyProperties(qiFuEffectReportData, reportExcelModel);
-                    return reportExcelModel;
-                }).collect(Collectors.toList());
+                .map(this::convertSingleRecord)
+                .collect(Collectors.toList());
     }
+
+    /**
+     * 转换单条记录
+     */
+    private QiFuEffectReportExcelModel convertSingleRecord(QiFuEffectReportData data) {
+        // 处理百分比字段（保留8位小数）
+        processPercentFields(data);
+
+        // 处理数量字段（四舍五入取整）
+        processCountFields(data);
+
+        // 转换为Excel模型
+        QiFuEffectReportExcelModel excelModel = new QiFuEffectReportExcelModel();
+        BeanUtils.copyProperties(data, excelModel);
+        return excelModel;
+    }
+
+    /**
+     * 处理百分比字段
+     */
+    private void processPercentFields(QiFuEffectReportData data) {
+        data.setLoginRate(convertPercent(data.getLoginRate(), 8));
+        data.setApplySubmitRate(convertPercent(data.getApplySubmitRate(), 8));
+        data.setPassRate(convertPercent(data.getPassRate(), 8));
+        data.setCreditSuccessRate(convertPercent(data.getCreditSuccessRate(), 8));
+        data.setDeltaApplySubmitRate(convertPercent(data.getDeltaApplySubmitRate(), 8));
+        data.setDeltaCreditSuccessRate(convertPercent(data.getDeltaCreditSuccessRate(), 8));
+        data.setAttrApplyRatio(convertPercent(data.getAttrApplyRatio(), 8));
+        data.setAttrCreditRatio(convertPercent(data.getAttrCreditRatio(), 8));
+        data.setAttrApplyRate(convertPercent(data.getAttrApplyRate(), 8));
+        data.setAttrCreditRate(convertPercent(data.getAttrCreditRate(), 8));
+    }
+
+    /**
+     * 处理数量字段
+     */
+    private void processCountFields(QiFuEffectReportData data) {
+        data.setUserCount(roundToInteger(data.getUserCount()));
+        data.setLoginUserCount(roundToInteger(data.getLoginUserCount()));
+        data.setApplySubmitUserCount(roundToInteger(data.getApplySubmitUserCount()));
+        data.setCreditSuccessUserCount(roundToInteger(data.getCreditSuccessUserCount()));
+        data.setDeltaApplySubmitCount(roundToInteger(data.getDeltaApplySubmitCount()));
+        data.setDeltaCreditSuccessCount(roundToInteger(data.getDeltaCreditSuccessCount()));
+        data.setAttrApplyUserCount(roundToInteger(data.getAttrApplyUserCount()));
+        data.setAttrCreditUserCount(roundToInteger(data.getAttrCreditUserCount()));
+        data.setAttrCreditUserCountA(roundToInteger(data.getAttrCreditUserCountA()));
+        data.setAttrCreditUserCountB(roundToInteger(data.getAttrCreditUserCountB()));
+        data.setAttrCreditUserCountC(roundToInteger(data.getAttrCreditUserCountC()));
+    }
+
+    /**
+     * 四舍五入取整
+     */
+    private String roundToInteger(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return value;
+        }
+
+        try {
+            return String.valueOf(Math.round(Float.parseFloat(value)));
+        } catch (NumberFormatException e) {
+            logger.warn("数量转换失败，原值: {}", value, e);
+            return value; // 转换失败时返回原值
+        }
+    }
+
+
 
     @Override
     public List<QiFuEffectReportExcelModel> postProcess(List<QiFuEffectReportExcelModel> excelList) {

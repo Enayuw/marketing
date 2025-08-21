@@ -4,12 +4,12 @@ import java.util.Date;
 
 public class MarketingTaskExtend {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -19,7 +19,7 @@ public class MarketingTaskExtend {
     private Long taskId;
 
     /**
-     * 
+     *
      */
     private String cusTaskId;
 
@@ -77,6 +77,11 @@ public class MarketingTaskExtend {
      * 扩展信息字段
      */
     private String extendConfigInfo;
+
+    /**
+     * 标签名称
+     */
+    private String labelName;
 
     public Long getId() {
         return id;
@@ -196,5 +201,13 @@ public class MarketingTaskExtend {
 
     public void setExtendConfigInfo(String extendConfigInfo) {
         this.extendConfigInfo = extendConfigInfo == null ? null : extendConfigInfo.trim();
+    }
+
+    public String getLabelName() {
+        return labelName;
+    }
+
+    public void setLabelName(String labelName) {
+        this.labelName = labelName == null ? null : labelName.trim();
     }
 }

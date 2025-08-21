@@ -17,6 +17,8 @@ import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.enums.clean.DataSourceTypeEnum;
+import com.br.marketing.service.PushRuleService;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -77,6 +79,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private AlarmApiClient alarmClient;
     @Autowired
     private RocketMqTemplate template;
+
+    @Autowired
+    PushRuleService pushRuleService;
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 2);
     private final String title = "数禾转化数据定制化清洗入库";
@@ -227,6 +232,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         Long infoId = null;
         try {
             infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
+            //发送json解析MQ
+            pushRuleService.sendJsonParseMq(shuheUploadData.getApiCode(), infoId.toString(), DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
+
         } catch (DuplicateKeyException keyException) {
             log.error(String.format("数禾上传数据重复requestId requestId:%s,jsonData:%s,apiCode:%s", requestId, jsonData, apiCode));
             return response2ShuheDTO.success();
@@ -313,6 +321,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 uploadDataDTO.remove("test");
             }
             infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
+            //发送json解析MQ
+            pushRuleService.sendJsonParseMq(shuheUploadData.getApiCode(), infoId.toString(), DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         } catch (DuplicateKeyException keyException) {
             log.error(String.format("数禾上传数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s", requestId, jsonData, apiCode));
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());

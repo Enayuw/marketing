@@ -49,6 +49,11 @@ public class MarketingTaskAutoBuildConfig {
     private String extend;
 
     /**
+     * 标签名称
+     */
+    private String labelName;
+
+    /**
      * 是否删除 0:否;1:是;
      */
     private Integer isDeleted;
@@ -133,6 +138,14 @@ public class MarketingTaskAutoBuildConfig {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
+    }
+
+    public String getLabelName() {
+        return labelName;
+    }
+
+    public void setLabelName(String labelName) {
+        this.labelName = labelName == null ? null : labelName.trim();
     }
 
     public Integer getIsDeleted() {
