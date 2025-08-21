@@ -3,7 +3,7 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingLog,marketingBI
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&a'pi=false&failOverReadOnly=false&useConfigs=maxPerformance
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       type: com.alibaba.druid.pool.DruidDataSource
