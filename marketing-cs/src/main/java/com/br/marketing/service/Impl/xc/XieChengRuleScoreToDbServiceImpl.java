@@ -329,12 +329,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             }
         }
 
-        // 发送钉钉告警
-        if (deleteCount > 0) {
-            String msg = "携程跑分数据同步后删除重复数据,表:" + tableName + ",删除量级:" + deleteCount;
-            sendDingDing(msg);
-        }
-
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
