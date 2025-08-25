@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingTcyrCpaLoopCycle {
+public class MarketingTcyrCpaRob {
     /**
      * 
      */
@@ -17,6 +17,16 @@ public class MarketingTcyrCpaLoopCycle {
      * 数据包id
      */
     private Long packageId;
+
+    /**
+     * 数据状态：1-筛选数据；2-在途数据；3-滚动数据
+     */
+    private Integer robStatus;
+
+    /**
+     * 价值级别：1-top；2-下探1；3-下探2；4：下探3
+     */
+    private Integer valueLevel;
 
     /**
      * 数据来源：T -周期，F-代表非周期
@@ -95,6 +105,22 @@ public class MarketingTcyrCpaLoopCycle {
 
     public void setPackageId(Long packageId) {
         this.packageId = packageId;
+    }
+
+    public Integer getRobStatus() {
+        return robStatus;
+    }
+
+    public void setRobStatus(Integer robStatus) {
+        this.robStatus = robStatus;
+    }
+
+    public Integer getValueLevel() {
+        return valueLevel;
+    }
+
+    public void setValueLevel(Integer valueLevel) {
+        this.valueLevel = valueLevel;
     }
 
     public String getDataSourceType() {

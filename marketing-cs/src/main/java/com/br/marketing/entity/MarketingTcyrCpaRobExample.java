@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MarketingTcyrCpaLoopCycleExample {
+public class MarketingTcyrCpaRobExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public MarketingTcyrCpaLoopCycleExample() {
+    public MarketingTcyrCpaRobExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -292,6 +292,126 @@ public class MarketingTcyrCpaLoopCycleExample {
 
         public Criteria andPackageIdNotBetween(Long value1, Long value2) {
             addCriterion("package_id not between", value1, value2, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusIsNull() {
+            addCriterion("rob_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusIsNotNull() {
+            addCriterion("rob_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusEqualTo(Integer value) {
+            addCriterion("rob_status =", value, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusNotEqualTo(Integer value) {
+            addCriterion("rob_status <>", value, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusGreaterThan(Integer value) {
+            addCriterion("rob_status >", value, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("rob_status >=", value, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusLessThan(Integer value) {
+            addCriterion("rob_status <", value, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("rob_status <=", value, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusIn(List<Integer> values) {
+            addCriterion("rob_status in", values, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusNotIn(List<Integer> values) {
+            addCriterion("rob_status not in", values, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusBetween(Integer value1, Integer value2) {
+            addCriterion("rob_status between", value1, value2, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andRobStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("rob_status not between", value1, value2, "robStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelIsNull() {
+            addCriterion("value_level is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelIsNotNull() {
+            addCriterion("value_level is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelEqualTo(Integer value) {
+            addCriterion("value_level =", value, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelNotEqualTo(Integer value) {
+            addCriterion("value_level <>", value, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelGreaterThan(Integer value) {
+            addCriterion("value_level >", value, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelGreaterThanOrEqualTo(Integer value) {
+            addCriterion("value_level >=", value, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelLessThan(Integer value) {
+            addCriterion("value_level <", value, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelLessThanOrEqualTo(Integer value) {
+            addCriterion("value_level <=", value, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelIn(List<Integer> values) {
+            addCriterion("value_level in", values, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelNotIn(List<Integer> values) {
+            addCriterion("value_level not in", values, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelBetween(Integer value1, Integer value2) {
+            addCriterion("value_level between", value1, value2, "valueLevel");
+            return (Criteria) this;
+        }
+
+        public Criteria andValueLevelNotBetween(Integer value1, Integer value2) {
+            addCriterion("value_level not between", value1, value2, "valueLevel");
             return (Criteria) this;
         }
 

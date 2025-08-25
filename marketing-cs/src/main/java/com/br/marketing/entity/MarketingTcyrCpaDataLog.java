@@ -2,16 +2,16 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingTcyrCpaLoopCycle {
+public class MarketingTcyrCpaDataLog {
     /**
      * 
      */
     private Long id;
 
     /**
-     * 商户编号
+     * 数据id
      */
-    private String apiCode;
+    private Long cpaCollidingDataId;
 
     /**
      * 数据包id
@@ -22,11 +22,6 @@ public class MarketingTcyrCpaLoopCycle {
      * 数据来源：T -周期，F-代表非周期
      */
     private String dataSourceType;
-
-    /**
-     * 原始数据id
-     */
-    private Long dataId;
 
     /**
      * 用户唯一编号
@@ -49,9 +44,24 @@ public class MarketingTcyrCpaLoopCycle {
     private Date receiveTime;
 
     /**
-     * 推送/提取时间
+     * 是否锁定 true：锁定中，false：非锁定中
      */
-    private Date pushTime;
+    private Boolean result;
+
+    /**
+     * 原始文本
+     */
+    private String originText;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
+
+    /**
+     * 删除状态 1-可用 9-删除
+     */
+    private Integer isDel;
 
     /**
      * 创建时间
@@ -63,16 +73,6 @@ public class MarketingTcyrCpaLoopCycle {
      */
     private Date updateTime;
 
-    /**
-     * 删除状态 1-可用 9-删除
-     */
-    private Integer isDel;
-
-    /**
-     * 扩展字段
-     */
-    private String extend;
-
     public Long getId() {
         return id;
     }
@@ -81,12 +81,12 @@ public class MarketingTcyrCpaLoopCycle {
         this.id = id;
     }
 
-    public String getApiCode() {
-        return apiCode;
+    public Long getCpaCollidingDataId() {
+        return cpaCollidingDataId;
     }
 
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
+    public void setCpaCollidingDataId(Long cpaCollidingDataId) {
+        this.cpaCollidingDataId = cpaCollidingDataId;
     }
 
     public Long getPackageId() {
@@ -103,14 +103,6 @@ public class MarketingTcyrCpaLoopCycle {
 
     public void setDataSourceType(String dataSourceType) {
         this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
-    }
-
-    public Long getDataId() {
-        return dataId;
-    }
-
-    public void setDataId(Long dataId) {
-        this.dataId = dataId;
     }
 
     public String getUserKey() {
@@ -145,12 +137,36 @@ public class MarketingTcyrCpaLoopCycle {
         this.receiveTime = receiveTime;
     }
 
-    public Date getPushTime() {
-        return pushTime;
+    public Boolean getResult() {
+        return result;
     }
 
-    public void setPushTime(Date pushTime) {
-        this.pushTime = pushTime;
+    public void setResult(Boolean result) {
+        this.result = result;
+    }
+
+    public String getOriginText() {
+        return originText;
+    }
+
+    public void setOriginText(String originText) {
+        this.originText = originText == null ? null : originText.trim();
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
     }
 
     public Date getCreateTime() {
@@ -167,21 +183,5 @@ public class MarketingTcyrCpaLoopCycle {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Integer getIsDel() {
-        return isDel;
-    }
-
-    public void setIsDel(Integer isDel) {
-        this.isDel = isDel;
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
     }
 }

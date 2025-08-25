@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MarketingTcyrCpaLoopCycleExample {
+public class MarketingTcyrCpaValuelessExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public MarketingTcyrCpaLoopCycleExample() {
+    public MarketingTcyrCpaValuelessExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -235,136 +235,6 @@ public class MarketingTcyrCpaLoopCycleExample {
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdIsNull() {
-            addCriterion("package_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdIsNotNull() {
-            addCriterion("package_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdEqualTo(Long value) {
-            addCriterion("package_id =", value, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdNotEqualTo(Long value) {
-            addCriterion("package_id <>", value, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdGreaterThan(Long value) {
-            addCriterion("package_id >", value, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("package_id >=", value, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdLessThan(Long value) {
-            addCriterion("package_id <", value, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdLessThanOrEqualTo(Long value) {
-            addCriterion("package_id <=", value, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdIn(List<Long> values) {
-            addCriterion("package_id in", values, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdNotIn(List<Long> values) {
-            addCriterion("package_id not in", values, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdBetween(Long value1, Long value2) {
-            addCriterion("package_id between", value1, value2, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andPackageIdNotBetween(Long value1, Long value2) {
-            addCriterion("package_id not between", value1, value2, "packageId");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeIsNull() {
-            addCriterion("data_source_type is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeIsNotNull() {
-            addCriterion("data_source_type is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeEqualTo(String value) {
-            addCriterion("data_source_type =", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeNotEqualTo(String value) {
-            addCriterion("data_source_type <>", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeGreaterThan(String value) {
-            addCriterion("data_source_type >", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("data_source_type >=", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeLessThan(String value) {
-            addCriterion("data_source_type <", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeLessThanOrEqualTo(String value) {
-            addCriterion("data_source_type <=", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeLike(String value) {
-            addCriterion("data_source_type like", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeNotLike(String value) {
-            addCriterion("data_source_type not like", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeIn(List<String> values) {
-            addCriterion("data_source_type in", values, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeNotIn(List<String> values) {
-            addCriterion("data_source_type not in", values, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeBetween(String value1, String value2) {
-            addCriterion("data_source_type between", value1, value2, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeNotBetween(String value1, String value2) {
-            addCriterion("data_source_type not between", value1, value2, "dataSourceType");
-            return (Criteria) this;
-        }
-
         public Criteria andDataIdIsNull() {
             addCriterion("data_id is null");
             return (Criteria) this;
@@ -425,323 +295,73 @@ public class MarketingTcyrCpaLoopCycleExample {
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyIsNull() {
-            addCriterion("user_key is null");
+        public Criteria andFailMsgIsNull() {
+            addCriterion("fail_msg is null");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyIsNotNull() {
-            addCriterion("user_key is not null");
+        public Criteria andFailMsgIsNotNull() {
+            addCriterion("fail_msg is not null");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyEqualTo(String value) {
-            addCriterion("user_key =", value, "userKey");
+        public Criteria andFailMsgEqualTo(String value) {
+            addCriterion("fail_msg =", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyNotEqualTo(String value) {
-            addCriterion("user_key <>", value, "userKey");
+        public Criteria andFailMsgNotEqualTo(String value) {
+            addCriterion("fail_msg <>", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyGreaterThan(String value) {
-            addCriterion("user_key >", value, "userKey");
+        public Criteria andFailMsgGreaterThan(String value) {
+            addCriterion("fail_msg >", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyGreaterThanOrEqualTo(String value) {
-            addCriterion("user_key >=", value, "userKey");
+        public Criteria andFailMsgGreaterThanOrEqualTo(String value) {
+            addCriterion("fail_msg >=", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyLessThan(String value) {
-            addCriterion("user_key <", value, "userKey");
+        public Criteria andFailMsgLessThan(String value) {
+            addCriterion("fail_msg <", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyLessThanOrEqualTo(String value) {
-            addCriterion("user_key <=", value, "userKey");
+        public Criteria andFailMsgLessThanOrEqualTo(String value) {
+            addCriterion("fail_msg <=", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyLike(String value) {
-            addCriterion("user_key like", value, "userKey");
+        public Criteria andFailMsgLike(String value) {
+            addCriterion("fail_msg like", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyNotLike(String value) {
-            addCriterion("user_key not like", value, "userKey");
+        public Criteria andFailMsgNotLike(String value) {
+            addCriterion("fail_msg not like", value, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyIn(List<String> values) {
-            addCriterion("user_key in", values, "userKey");
+        public Criteria andFailMsgIn(List<String> values) {
+            addCriterion("fail_msg in", values, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyNotIn(List<String> values) {
-            addCriterion("user_key not in", values, "userKey");
+        public Criteria andFailMsgNotIn(List<String> values) {
+            addCriterion("fail_msg not in", values, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyBetween(String value1, String value2) {
-            addCriterion("user_key between", value1, value2, "userKey");
+        public Criteria andFailMsgBetween(String value1, String value2) {
+            addCriterion("fail_msg between", value1, value2, "failMsg");
             return (Criteria) this;
         }
 
-        public Criteria andUserKeyNotBetween(String value1, String value2) {
-            addCriterion("user_key not between", value1, value2, "userKey");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellIsNull() {
-            addCriterion("cell is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellIsNotNull() {
-            addCriterion("cell is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellEqualTo(String value) {
-            addCriterion("cell =", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotEqualTo(String value) {
-            addCriterion("cell <>", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellGreaterThan(String value) {
-            addCriterion("cell >", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellGreaterThanOrEqualTo(String value) {
-            addCriterion("cell >=", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellLessThan(String value) {
-            addCriterion("cell <", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellLessThanOrEqualTo(String value) {
-            addCriterion("cell <=", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellLike(String value) {
-            addCriterion("cell like", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotLike(String value) {
-            addCriterion("cell not like", value, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellIn(List<String> values) {
-            addCriterion("cell in", values, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotIn(List<String> values) {
-            addCriterion("cell not in", values, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellBetween(String value1, String value2) {
-            addCriterion("cell between", value1, value2, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andCellNotBetween(String value1, String value2) {
-            addCriterion("cell not between", value1, value2, "cell");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeIsNull() {
-            addCriterion("release_time is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeIsNotNull() {
-            addCriterion("release_time is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeEqualTo(Date value) {
-            addCriterion("release_time =", value, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeNotEqualTo(Date value) {
-            addCriterion("release_time <>", value, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeGreaterThan(Date value) {
-            addCriterion("release_time >", value, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("release_time >=", value, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeLessThan(Date value) {
-            addCriterion("release_time <", value, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeLessThanOrEqualTo(Date value) {
-            addCriterion("release_time <=", value, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeIn(List<Date> values) {
-            addCriterion("release_time in", values, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeNotIn(List<Date> values) {
-            addCriterion("release_time not in", values, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeBetween(Date value1, Date value2) {
-            addCriterion("release_time between", value1, value2, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReleaseTimeNotBetween(Date value1, Date value2) {
-            addCriterion("release_time not between", value1, value2, "releaseTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeIsNull() {
-            addCriterion("receive_time is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeIsNotNull() {
-            addCriterion("receive_time is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeEqualTo(Date value) {
-            addCriterion("receive_time =", value, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeNotEqualTo(Date value) {
-            addCriterion("receive_time <>", value, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeGreaterThan(Date value) {
-            addCriterion("receive_time >", value, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("receive_time >=", value, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeLessThan(Date value) {
-            addCriterion("receive_time <", value, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeLessThanOrEqualTo(Date value) {
-            addCriterion("receive_time <=", value, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeIn(List<Date> values) {
-            addCriterion("receive_time in", values, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeNotIn(List<Date> values) {
-            addCriterion("receive_time not in", values, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeBetween(Date value1, Date value2) {
-            addCriterion("receive_time between", value1, value2, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andReceiveTimeNotBetween(Date value1, Date value2) {
-            addCriterion("receive_time not between", value1, value2, "receiveTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeIsNull() {
-            addCriterion("push_time is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeIsNotNull() {
-            addCriterion("push_time is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeEqualTo(Date value) {
-            addCriterion("push_time =", value, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeNotEqualTo(Date value) {
-            addCriterion("push_time <>", value, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeGreaterThan(Date value) {
-            addCriterion("push_time >", value, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("push_time >=", value, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeLessThan(Date value) {
-            addCriterion("push_time <", value, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeLessThanOrEqualTo(Date value) {
-            addCriterion("push_time <=", value, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeIn(List<Date> values) {
-            addCriterion("push_time in", values, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeNotIn(List<Date> values) {
-            addCriterion("push_time not in", values, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeBetween(Date value1, Date value2) {
-            addCriterion("push_time between", value1, value2, "pushTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andPushTimeNotBetween(Date value1, Date value2) {
-            addCriterion("push_time not between", value1, value2, "pushTime");
+        public Criteria andFailMsgNotBetween(String value1, String value2) {
+            addCriterion("fail_msg not between", value1, value2, "failMsg");
             return (Criteria) this;
         }
 
