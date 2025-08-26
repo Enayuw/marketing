@@ -8,25 +8,21 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
-import com.br.marketing.mapper.MarketingRuleCenterLabelReportMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
-import com.br.marketing.mapper.CustomerInfoPushMainMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.vo.RuleConditionFactorVo;
 import com.br.marketing.vo.RuleConditionVo;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +47,12 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
 
     @Resource
     MarketingRuleCenterLabelReportMapper marketingRuleCenterLabelReportMapper;
+
+    @Resource
+    ScoreDorisLogMapper scoreDorisLogMapper;
+
+    @Autowired
+    private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
 
     @Override
     public Result<Set<String>> getLabelNames(String apiCode) {
@@ -148,5 +150,65 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
             });
         });
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
+    }
+
+    @Override
+    public Result<Boolean> getScoreMergeMark(String batchNumbers, String apiCode) {
+
+        List<String> batchNumberList = Arrays.asList(batchNumbers.split(","));
+        for (String batchNumber : batchNumberList) {
+            ScoreDorisLogExample dorisLogExample = new ScoreDorisLogExample();
+            dorisLogExample.createCriteria().andApiCodeEqualTo(apiCode)
+                    .andBatchNumberEqualTo(batchNumber)
+                    .andStatusEqualTo(2);
+            List<ScoreDorisLog> scoreDorisLogList = scoreDorisLogMapper.selectByExample(dorisLogExample);
+            if (CollectionUtils.isEmpty(scoreDorisLogList)) {
+                return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage(batchNumber + "跑分文件同步中，请稍后进行合并");
+
+            }
+        }
+
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+    }
+
+
+    @Override
+    public Result<Map<String, Integer>> getScoreMergeNum(String batchNumbers, String apiCode) {
+
+        List<String> batchNumberList = Arrays.asList(batchNumbers.split(","));
+        if (batchNumberList.size() < 2) {
+            return new Result<Map<String, Integer>>().setCode(ResultCode.FAIL.getValue()).setMessage("至少需要两个批次进行合并统计");
+        }
+        List<String> tableNames = batchNumberList.stream()
+                .map(batchNumber -> "b_score_" + "_" + batchNumber)
+                .collect(Collectors.toList());
+        String cellJoinSql = buildInnerJoinCountSql(tableNames, "cell");
+        Integer cellNum = tagDataRuleCalculateMapper.getCountbI_(cellJoinSql);
+        String custNumJoinSql = buildInnerJoinCountSql(tableNames, "cus_num");
+        Integer custNum = tagDataRuleCalculateMapper.getCountbI_(custNumJoinSql);
+        Map<String, Integer> numMap = new HashMap<>();
+        numMap.put("cell", cellNum);
+        numMap.put("custNum", custNum);
+        return new Result<Map<String, Integer>>().setCode(ResultCode.SUCCESS.getValue()).setDate(numMap);
+    }
+
+    /**
+     * 构建多表交集统计SQL（INNER JOIN）
+     */
+    private String buildInnerJoinCountSql(List<String> tableNames, String joinColumn) {
+
+        StringBuilder sql = new StringBuilder();
+        // 主表
+        String mainTable = tableNames.get(0);
+        sql.append("SELECT COUNT(1) FROM ").append(mainTable).append(" a");
+        // 关联其他表
+        for (int i = 1; i < tableNames.size(); i++) {
+            char alias = (char) ('a' + i); // b, c, d, e...
+            sql.append(" INNER JOIN ").append(tableNames.get(i))
+                    .append(" ").append(alias)
+                    .append(" ON a.").append(joinColumn)
+                    .append(" = ").append(alias).append(".").append(joinColumn);
+        }
+        return sql.toString();
     }
 }
