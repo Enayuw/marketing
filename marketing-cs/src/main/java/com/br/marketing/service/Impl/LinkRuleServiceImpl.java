@@ -90,7 +90,7 @@ public class LinkRuleServiceImpl implements LinkRuleService {
                     task.setFieldMapping(taskData.getFieldMapping());
                     task.setQueryCondition(taskData.getQueryCondition());
                     
-                    task.setTaskRule("{\"extraScene\":\"file_export_marketing_shortlink_data\"}");
+                    task.setTaskRule("{\"extraScene\":\"文件提取_营销短链数据提取\"}");
                     task.setStatus((byte) 1);
                     task.setCreateBy(taskData.getUserName());
                     task.setUpdateBy(taskData.getUserName());
