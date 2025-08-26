@@ -1,23 +1,21 @@
-package com.br.marketing.vo.bi;
+package com.br.marketing.vo.bi.param;
 
+import com.br.marketing.vo.bi.WrapDataVO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 /**
- * 坐标轴数据
- *
- * @author senyang.zheng
- * @date 2024/08/15
+ * @ClassName RefreshReportParam
+ * @Description 重刷报表对象
+ * @Author kongbx
+ * @Date 2025/8/5 14:31
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class AxisWrapVO {
+public class RefreshReportParam extends ReportTaskParam{
+
     @ApiModelProperty(value = "X轴对应产品")
     @JsonProperty(value = "xAxisProduct")
     private String xAxisProduct;
@@ -32,12 +30,5 @@ public class AxisWrapVO {
     private List<WrapDataVO> yAxis;
     @ApiModelProperty(value = "模型分布类型 1-单模型(field_x可多个,field_y无值)；2-多模型（field_x和field_y各一个值）")
     private Integer reportScoreType;
-    @ApiModelProperty(value = "报表描述")
-    private String statisticsDesc;
-    @ApiModelProperty(value = "跑分分布报表id")
-    @JsonProperty(value = "statisticsId")
-    private Long statisticsId;
-    @ApiModelProperty(value = "顺序")
-    @JsonProperty(value = "order")
-    private Integer order;
+
 }

@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ReportIntervalModelMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ReportIntervalModel" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="config_id" property="configId" jdbcType="BIGINT" />
+    <result column="axis_type" property="axisType" jdbcType="VARCHAR" />
+    <result column="x_model_name" property="xModelName" jdbcType="VARCHAR" />
+    <result column="y_model_name" property="yModelName" jdbcType="VARCHAR" />
+    <result column="x_interval_list" property="xIntervalList" jdbcType="VARCHAR" />
+    <result column="y_interval_list" property="yIntervalList" jdbcType="VARCHAR" />
+    <result column="order" property="order" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, config_id, axis_type, x_model_name, y_model_name, x_interval_list, y_interval_list, 
+    `order`, is_del, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ReportIntervalModelExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_report_interval_model
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_report_interval_model
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_report_interval_model
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ReportIntervalModelExample" >
+    delete from b_report_interval_model
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ReportIntervalModel" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_report_interval_model (config_id, axis_type, x_model_name, 
+      y_model_name, x_interval_list, y_interval_list, 
+      `order`, is_del, create_time, 
+      update_time)
+    values (#{configId,jdbcType=BIGINT}, #{axisType,jdbcType=VARCHAR}, #{xModelName,jdbcType=VARCHAR}, 
+      #{yModelName,jdbcType=VARCHAR}, #{xIntervalList,jdbcType=VARCHAR}, #{yIntervalList,jdbcType=VARCHAR}, 
+      #{order,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ReportIntervalModel" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_report_interval_model
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="configId != null" >
+        config_id,
+      </if>
+      <if test="axisType != null" >
+        axis_type,
+      </if>
+      <if test="xModelName != null" >
+        x_model_name,
+      </if>
+      <if test="yModelName != null" >
+        y_model_name,
+      </if>
+      <if test="xIntervalList != null" >
+        x_interval_list,
+      </if>
+      <if test="yIntervalList != null" >
+        y_interval_list,
+      </if>
+      <if test="order != null" >
+        `order`,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="configId != null" >
+        #{configId,jdbcType=BIGINT},
+      </if>
+      <if test="axisType != null" >
+        #{axisType,jdbcType=VARCHAR},
+      </if>
+      <if test="xModelName != null" >
+        #{xModelName,jdbcType=VARCHAR},
+      </if>
+      <if test="yModelName != null" >
+        #{yModelName,jdbcType=VARCHAR},
+      </if>
+      <if test="xIntervalList != null" >
+        #{xIntervalList,jdbcType=VARCHAR},
+      </if>
+      <if test="yIntervalList != null" >
+        #{yIntervalList,jdbcType=VARCHAR},
+      </if>
+      <if test="order != null" >
+        #{order,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ReportIntervalModelExample" resultType="java.lang.Integer" >
+    select count(*) from b_report_interval_model
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_report_interval_model
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.configId != null" >
+        config_id = #{record.configId,jdbcType=BIGINT},
+      </if>
+      <if test="record.axisType != null" >
+        axis_type = #{record.axisType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.xModelName != null" >
+        x_model_name = #{record.xModelName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.yModelName != null" >
+        y_model_name = #{record.yModelName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.xIntervalList != null" >
+        x_interval_list = #{record.xIntervalList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.yIntervalList != null" >
+        y_interval_list = #{record.yIntervalList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.order != null" >
+        `order` = #{record.order,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_report_interval_model
+    set id = #{record.id,jdbcType=BIGINT},
+      config_id = #{record.configId,jdbcType=BIGINT},
+      axis_type = #{record.axisType,jdbcType=VARCHAR},
+      x_model_name = #{record.xModelName,jdbcType=VARCHAR},
+      y_model_name = #{record.yModelName,jdbcType=VARCHAR},
+      x_interval_list = #{record.xIntervalList,jdbcType=VARCHAR},
+      y_interval_list = #{record.yIntervalList,jdbcType=VARCHAR},
+      `order` = #{record.order,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ReportIntervalModel" >
+    update b_report_interval_model
+    <set >
+      <if test="configId != null" >
+        config_id = #{configId,jdbcType=BIGINT},
+      </if>
+      <if test="axisType != null" >
+        axis_type = #{axisType,jdbcType=VARCHAR},
+      </if>
+      <if test="xModelName != null" >
+        x_model_name = #{xModelName,jdbcType=VARCHAR},
+      </if>
+      <if test="yModelName != null" >
+        y_model_name = #{yModelName,jdbcType=VARCHAR},
+      </if>
+      <if test="xIntervalList != null" >
+        x_interval_list = #{xIntervalList,jdbcType=VARCHAR},
+      </if>
+      <if test="yIntervalList != null" >
+        y_interval_list = #{yIntervalList,jdbcType=VARCHAR},
+      </if>
+      <if test="order != null" >
+        `order` = #{order,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ReportIntervalModel" >
+    update b_report_interval_model
+    set config_id = #{configId,jdbcType=BIGINT},
+      axis_type = #{axisType,jdbcType=VARCHAR},
+      x_model_name = #{xModelName,jdbcType=VARCHAR},
+      y_model_name = #{yModelName,jdbcType=VARCHAR},
+      x_interval_list = #{xIntervalList,jdbcType=VARCHAR},
+      y_interval_list = #{yIntervalList,jdbcType=VARCHAR},
+      `order` = #{order,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ReportIntervalConfigMapper" >
+    <select id="getScoreDistRuleList" resultType="com.br.marketing.vo.ScoreDistRuleVo">
+        select id, api_code, template_number, template_name, status, create_time, update_time
+        from b_report_interval_config
+        where
+        is_del = 1
+        <if test="apiCode !=null and apiCode !=''">
+            and api_code = #{apiCode}
+        </if>
+        <if test="name !=null and name !=''">
+            and template_name = #{name}
+        </if>
+        <if test="status !=null">
+            and status = #{status}
+        </if>
+        order by update_time desc
+    </select>
+</mapper>

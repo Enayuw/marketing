@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface ReportStatisticsScoreBaseMapper {
-    long countByExample(ReportStatisticsScoreExample example);
+    int countByExample(ReportStatisticsScoreExample example);
 
     int deleteByExample(ReportStatisticsScoreExample example);
 
