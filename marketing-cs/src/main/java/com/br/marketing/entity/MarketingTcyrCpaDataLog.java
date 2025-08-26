@@ -73,6 +73,11 @@ public class MarketingTcyrCpaDataLog {
      */
     private Date updateTime;
 
+    /**
+     * mq发送的request_id，幂等判断
+     */
+    private String requestId;
+
     public Long getId() {
         return id;
     }
@@ -183,5 +188,13 @@ public class MarketingTcyrCpaDataLog {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId == null ? null : requestId.trim();
     }
 }

@@ -16,6 +16,7 @@
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="request_id" property="requestId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -77,7 +78,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, cpa_colliding_data_id, package_id, data_source_type, user_key, cell, release_time, 
-    receive_time, `result`, origin_text, extend, is_del, create_time, update_time
+    receive_time, `result`, origin_text, extend, is_del, create_time, update_time, request_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaDataLogExample" >
     select
@@ -117,12 +118,12 @@
       user_key, cell, release_time, 
       receive_time, `result`, origin_text, 
       extend, is_del, create_time, 
-      update_time)
+      update_time, request_id)
     values (#{cpaCollidingDataId,jdbcType=BIGINT}, #{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, 
       #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{releaseTime,jdbcType=TIMESTAMP}, 
       #{receiveTime,jdbcType=TIMESTAMP}, #{result,jdbcType=BIT}, #{originText,jdbcType=VARCHAR}, 
       #{extend,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{updateTime,jdbcType=TIMESTAMP}, #{requestId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -169,6 +170,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="requestId != null" >
+        request_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cpaCollidingDataId != null" >
@@ -209,6 +213,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="requestId != null" >
+        #{requestId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -263,6 +270,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.requestId != null" >
+        request_id = #{record.requestId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -283,7 +293,8 @@
       extend = #{record.extend,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      request_id = #{record.requestId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -330,6 +341,9 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="requestId != null" >
+        request_id = #{requestId,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -347,7 +361,8 @@
       extend = #{extend,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      request_id = #{requestId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
