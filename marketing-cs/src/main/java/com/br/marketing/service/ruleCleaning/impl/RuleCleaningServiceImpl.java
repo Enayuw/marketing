@@ -8,10 +8,8 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.rulecleaning.CleanConfigDTO;
 import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -157,72 +155,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Override
     public MarketingDataCleanGeneralConfig getRuleDetailById(Long configId) {
         return cleanGeneralConfigMapper.selectByPrimaryKey(configId);
-    }
-
-    /**
-     * 保存或更新规则
-     * @param config 规则配置信息
-     * @return 操作结果
-     */
-    @Override
-    public boolean saveOrUpdateRule(MarketingDataCleanGeneralConfig config) {
-
-        // 参数验证
-        if (config == null) {
-            throw new BusinessException("规则配置不能为空");
-        }
-        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
-        MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
-        criteria.andApiCodeEqualTo(config.getApiCode());
-        marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
-        List<MarketingCustomer> customers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
-        Integer accountType = customers.get(0).getAccountType();
-        if (accountType != null && accountType == DataProcessEnum.AccountTypeEnum.CUSTOM.getCode()) {
-            config.setAccountType("正式");
-        } else if (accountType != null && accountType == DataProcessEnum.AccountTypeEnum.GENERAL.getCode()) {
-            config.setAccountType("测试");
-        } else {
-            config.setAccountType("未知");
-        }
-
-        MarketingUserDetail user = ThreadContextInfo.getUser();
-        Long userId = Long.valueOf(user.getId());
-        String userName = user.getUserName();
-        config.setOptUserId(userId);
-        config.setOptUserName(userName);
-        // 设置默认参数
-        config.setIsDel(1);
-
-        Date now = new Date();
-
-        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(config.getApiCode())
-                .andDataTypeEqualTo(config.getDataType())
-                .andAcceptTypeEqualTo(config.getAcceptType())
-                .andIsDelEqualTo(1);
-        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
-
-        // 判断是新增还是修改
-        if (configs == null || configs.isEmpty()) {
-            // 新增
-            config.setCreateTime(now);
-            config.setUpdateTime(now);
-            int rows = cleanGeneralConfigMapper.insertSelective(config);
-            if (rows <= 0) {
-                throw new BusinessException("新增规则配置失败");
-            }
-            return true;
-        } else {
-            config.setId(configs.get(0).getId());
-            config.setUpdateTime(now);
-            int rows = cleanGeneralConfigMapper.updateByPrimaryKeySelective(config);
-            if (rows <= 0) {
-                throw new BusinessException("更新规则配置失败，可能规则不存在");
-            }
-            // 不允许修改
-            return true;
-        }
     }
 
     /**
@@ -582,29 +514,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
 
-    @Override
-    public boolean saveFieldCleaningConfig(FieldCleaningConfigDTO configDTO) {
-        // 参数验证
-        if (configDTO == null) {
-            throw new BusinessException("字段清洗配置不能为空");
-        }
-
-        log.info("开始保存字段清洗配置: apiCode={}, dataType={}, acceptType={}",
-                configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
-
-        // 1. 查询或创建通用配置
-        Long cleanConfigId = getOrCreateCleanGeneralConfig(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
-        if (cleanConfigId == null) {
-            throw new BusinessException("获取或创建清洗通用配置失败");
-        }
-
-        // 2. 保存字段清洗规则
-        saveFieldCleaningRule(cleanConfigId, configDTO);
-
-        log.info("字段清洗配置保存成功: apiCode={}, cleanConfigId={}", configDTO.getApiCode(), cleanConfigId);
-        return true;
-    }
-
     /**
      * 获取或创建清洗通用配置
      *
@@ -688,6 +597,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
             updateRule.setId(existingRule.getId());
             updateRule.setCleanFields(configDTO.getCleanField());
+            updateRule.setLevel(configDTO.getLevel());
             updateRule.setIsMapping(configDTO.getIsMapping());
             updateRule.setMappingRule(configDTO.getMappingRule());
             updateRule.setIsDerived(configDTO.getFieldType());
@@ -705,6 +615,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             newRule.setApiCode(configDTO.getApiCode());
             newRule.setMappingField(configDTO.getMappingField());
             newRule.setCleanFields(configDTO.getCleanField());
+            newRule.setLevel(configDTO.getLevel());
             newRule.setIsMapping(configDTO.getIsMapping());
             newRule.setMappingRule(configDTO.getMappingRule());
             newRule.setResultPreview(resultPreview);
@@ -1644,68 +1555,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     /**
-     * 保存规则及其清洗配置
-     * @param configDTO 包含规则和清洗配置的DTO
-     * @return 操作结果
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO) {
-        if (configDTO == null) {
-            throw new BusinessException("规则配置不能为空");
-        }
-
-        log.info("开始保存规则及清洗配置: {}", configDTO);
-
-        // 构建规则配置对象
-        MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
-        config.setApiCode(configDTO.getApiCode());
-        config.setDataType(configDTO.getDataType());
-        config.setAcceptType(configDTO.getAcceptType());
-
-        // 先保存或更新规则
-        boolean ruleResult = saveOrUpdateRule(config);
-
-        // 保存字段清洗配置
-        boolean cleaningResult = true;
-        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
-
-        if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
-            // 提取所有清洗字段
-            List<String> mappingFields = cleaningConfigs.stream()
-                    .map(FieldCleaningConfigDTO::getMappingField)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-
-            // 删除不在当前配置中的规则
-            boolean deleteResult = deleteRule(config, mappingFields);
-            if (!deleteResult) {
-                // 继续处理，不要因为删除失败而中断整个流程
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                        "删除不在当前配置中的规则失败！"));
-            }
-
-            // 保存清洗配置
-            for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
-                // 设置API编码信息
-                fieldConfig.setApiCode(configDTO.getApiCode());
-                fieldConfig.setDataType(configDTO.getDataType());
-                fieldConfig.setAcceptType(configDTO.getAcceptType());
-
-                log.info("保存字段清洗配置: {}", fieldConfig);
-                boolean singleResult = saveFieldCleaningConfig(fieldConfig);
-                if (!singleResult) {
-                    cleaningResult = false;
-                    log.warn("保存字段清洗配置失败: {}", fieldConfig);
-                }
-            }
-        }
-        dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
-
-        return ruleResult && cleaningResult;
-    }
-
-    /**
      * 从JSON数据中提取指定字段的值
      * 支持处理简单JSON、嵌套JSON和JSON数组
      *
@@ -1971,7 +1820,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (StringUtil.isBlank(nodeName)) {
                 continue;
             }
-            List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(nodeName)).collect(Collectors.toList());
+
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream()
+                    .filter(rule -> rule.getCleanFields().equals(nodeName)
+                            && rule.getLevel().equals(level))
+                    .collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(ruleConfigs)) {
                 ruleConfigs.forEach(ruleConfig -> {
                     FieldSampleDTO dto = new FieldSampleDTO();
@@ -2020,13 +1873,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
             // 提取所有清洗字段
-            List<String> cleanFields = cleaningConfigs.stream()
-                    .map(FieldCleaningConfigDTO::getCleanField)
+            List<String> nonMappingFields = cleaningConfigs.stream()
+                    .map(FieldCleaningConfigDTO::getMappingField)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
             // 删除不在当前配置中的规则
-            boolean deleteResult = deleteRule(config, cleanFields);
+            boolean deleteResult = deleteRule(config, nonMappingFields);
             if (!deleteResult) {
                 // 继续处理，不要因为删除失败而中断整个流程
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),

@@ -36,6 +36,11 @@ public class MarketingDataCleanGeneralRuleConfig implements Serializable {
     private String cleanFields;
 
     /**
+     * 清洗字段层级
+     */
+    private Integer level;
+
+    /**
      * 是否映射：0-否，1-是
      */
     private Boolean isMapping;
