@@ -12,7 +12,7 @@ import com.br.marketing.entity.NfsFileTOBiRecord;
 import com.br.marketing.entity.NfsFileTOBiRecordExample;
 import com.br.marketing.mapper.BMailBiConfigMapper;
 import com.br.marketing.mapper.NfsFileTOBiRecordMapper;
-import com.br.marketing.mapper.TransferFileExtractToDorisMapper;
+import com.br.marketing.mapper.TransferFileExtractToDorisBIMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +71,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TransferFileExtractToDorisMapper transferFileExtractToDorisMapper;
+    private TransferFileExtractToDorisBIMapper transferFileExtractToDorisBIMapper;
 
     @Override
     public void transMailToMarketingBiProcess(String jobParam) {
@@ -214,7 +214,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
             if (insertSql.charAt(insertSql.length() - 1) == ',') {
                 insertSql.setLength(insertSql.length() - 1);
             }
-            transferFileExtractToDorisMapper.insertDataToMarketingBiTable(insertSql.toString());
+            transferFileExtractToDorisBIMapper.insertDataToMarketingBiTablebI_(insertSql.toString());
 
             NfsFileTOBiRecord record = new NfsFileTOBiRecord();
             record.setApiCode(apiCode);
