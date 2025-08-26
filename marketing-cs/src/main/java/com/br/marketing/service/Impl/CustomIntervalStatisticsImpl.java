@@ -159,6 +159,8 @@ public class CustomIntervalStatisticsImpl {
 
         // 构建X轴CASE WHEN
         sql.append(", CASE ");
+        // 首先处理空值情况
+        sql.append("WHEN ").append(fieldX).append(" IS NULL THEN '[-1,0)' ");
         for (IntervalRangeDTO interval : xIntervalList) {
             sql.append("WHEN ").append(fieldX);
             if (interval.getMinInclusive()) {
@@ -179,6 +181,8 @@ public class CustomIntervalStatisticsImpl {
         // 如果是多模型，构建Y轴CASE WHEN
         if (fieldY != null && !CollectionUtils.isEmpty(yIntervalList)) {
             sql.append(", CASE ");
+            // 首先处理空值情况
+            sql.append("WHEN ").append(fieldY).append(" IS NULL THEN '[-1,0)' ");
             for (IntervalRangeDTO interval : yIntervalList) {
                 sql.append("WHEN ").append(fieldY);
                 if (interval.getMinInclusive()) {
@@ -198,10 +202,7 @@ public class CustomIntervalStatisticsImpl {
         }
 
         sql.append(" FROM (").append(baseSql).append(") a");
-        sql.append(" WHERE ").append(fieldX).append(" IS NOT NULL");
-        if (fieldY != null) {
-            sql.append(" AND ").append(fieldY).append(" IS NOT NULL");
-        }
+        // 移除空值过滤条件，让空值也能被统计到[-1,0)区间中
         sql.append(") ");
 
         // 构建最终查询
