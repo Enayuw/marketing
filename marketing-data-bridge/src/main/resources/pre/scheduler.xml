@@ -342,7 +342,7 @@
 
     <job:simple id="【bridge】-MailStatisticsInfoJob"
                 class="com.br.marketing.bridge.job.MailStatisticsInfoJob"
-                cron="0 */10 10-23 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="宜信邮件统计信息抓取任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

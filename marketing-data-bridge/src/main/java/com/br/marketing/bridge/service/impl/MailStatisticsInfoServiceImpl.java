@@ -6,7 +6,6 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bridge.service.MailStatisticsInfoService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import org.apache.commons.lang3.StringUtils;
 import com.br.marketing.entity.BMailBiConfig;
 import com.br.marketing.entity.BMailBiConfigExample;
 import com.br.marketing.entity.NfsFileTOBiRecord;
@@ -19,10 +18,8 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -60,8 +57,6 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
     public static final String START_DATE = "startDate";
 
     public static final String END_DATE = "endDate";
-
-    public static final String SUBJECT = "subject";
 
     @Resource
     private JavaMailSenderImpl mailSender;
@@ -108,7 +103,8 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
                 String mailReadStartDate = bMailBiConfig.getStartDate().replaceAll("[^0-9\\-]", "");
                 String mailReadEndDate = bMailBiConfig.getEndDate().replaceAll("[^0-9\\-]", "");
 
-                DateTimeFormatter mailSubjectFormatter = DateTimeFormatter.ofPattern(bMailBiConfig.getDateFormat());
+                DateTimeFormatter mailSubjectFormatter = StringUtils.isBlank(bMailBiConfig.getDateFormat()) ?
+                        null : DateTimeFormatter.ofPattern(bMailBiConfig.getDateFormat());
                 LocalDate startDate = Optional.ofNullable(param.getString(START_DATE))
                         .map(dateStr -> LocalDate.parse(dateStr, FORMATTER))
                         .orElseGet(() -> LocalDate.now().plusDays(Long.parseLong(mailReadStartDate)));
@@ -125,7 +121,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
 
                 for (String date : dates) {
                     log.warn("邮件统计数据抓取任务，apiCode:{}, 处理日期:{}", apiCode, date);
-                    String mailDate = LocalDate.parse(date, FORMATTER).format(mailSubjectFormatter);
+                    String mailDate = Objects.isNull(mailSubjectFormatter) ? null : LocalDate.parse(date, FORMATTER).format(mailSubjectFormatter);
                     String fileName = mailPrefix.concat(date);
                     NfsFileTOBiRecordExample nfsFileTOBiRecordExample = new NfsFileTOBiRecordExample();
                     nfsFileTOBiRecordExample.createCriteria().andApiCodeEqualTo(apiCode).andFileNameEqualTo(fileName)
@@ -134,18 +130,23 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
                     List<String> mailSendTimeList = nfsFileTOBiRecordMapper.selectByExample(nfsFileTOBiRecordExample)
                             .stream().map(NfsFileTOBiRecord::getSendTime).collect(Collectors.toList());
 
-                    SearchTerm term = new SubjectTerm(mailPrefix.concat(mailDate));
+                    String fullSubject = Objects.isNull(mailDate) ? mailPrefix : mailPrefix.concat(mailDate);
+                    SearchTerm term = new SubjectTerm(fullSubject);
                     try {
                         Message[] messages = inbox.search(term);
                         if (ArrayUtils.isEmpty(messages)) {
-                            log.warn("未找到邮件:{}", mailPrefix.concat(mailDate));
+                            log.warn("未找到邮件:{}", fullSubject);
                             continue;
                         }
                         for (Message message : messages) {
                             try {
                                 String sendTime = SIMPLE_DATE_FORMAT.format(message.getSentDate());
+                                // 对于邮件标题中没有日期的数据，判断发件日期是否等于当前要处理的数据日期
+                                if(Objects.isNull(mailDate) && !StringUtils.equals(date, sendTime.substring(0, 8))) {
+                                    continue;
+                                }
                                 if (CollectionUtils.isEmpty(mailSendTimeList) || !mailSendTimeList.contains(sendTime)) {
-                                    dealDailyMail(date, message, bMailBiConfig, mailPrefix, sendTime, apiCode);
+                                    dealDailyMail(date, message, bMailBiConfig, mailPrefix, sendTime, apiCode, mailReadEndDate);
                                 }
                             } catch (Exception e) {
                                 String errMsg = "邮件统计数据抓取任务异常, apiCode:" + apiCode + " , fileName:" + fileName + " Exception: " + e.getMessage();
@@ -180,7 +181,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
     }
 
     private void dealDailyMail(String date, Message message, BMailBiConfig bFileBiConfig,
-                               String mailPrefix, String sendTime, String apiCode) throws Exception {
+                               String mailPrefix, String sendTime, String apiCode, String mailReadEndDate) throws Exception {
         List<BodyPart> attachments = getExcelAttachments(message);
         if (CollectionUtils.isEmpty(attachments)) {
             return;
@@ -208,7 +209,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
                 if (row == null) {
                     continue;
                 }
-                parseRow(sheet, mergedRegions, rowIndex, insertSql, date, indexFieldMap, sendTime);
+                parseRow(sheet, mergedRegions, rowIndex, insertSql, date, indexFieldMap, sendTime, mailReadEndDate);
             }
             if (insertSql.charAt(insertSql.length() - 1) == ',') {
                 insertSql.setLength(insertSql.length() - 1);
@@ -247,10 +248,10 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
 
     // 解析单行数据
     private void parseRow(Sheet sheet, List<CellRangeAddress> mergedRegions, int rowIndex,
-                          StringBuilder insertSql, String date, Map<String, Integer> colFieldMap, String sendTime) {
+                          StringBuilder insertSql, String date, Map<String, Integer> colFieldMap, String sendTime, String mailReadEndDate) {
         insertSql.append("\n(");
         colFieldMap.forEach((field, index) -> {
-            String rawValue = getCellStringValue(sheet, mergedRegions, rowIndex, index, field, date, sendTime);
+            String rawValue = getCellStringValue(sheet, mergedRegions, rowIndex, index, field, date, sendTime, mailReadEndDate);
             if (StringUtils.isEmpty(rawValue)) {
                 insertSql.append("NULL, ");
             } else {
@@ -263,9 +264,9 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
 
     // 合并单元格特殊处理
     private String getCellStringValue(Sheet sheet, List<CellRangeAddress> regions, int row, int col, String colName,
-                                      String date, String sendTime) {
+                                      String date, String sendTime, String mailReadEndDate) {
         if (StringUtils.equals(colName, "data_date") || StringUtils.equals(colName, "date_data")) {
-            return date;
+            return LocalDate.parse(date, FORMATTER).minusDays(Long.parseLong(mailReadEndDate) + 1).format(FORMATTER);
         } else if(StringUtils.equals(colName, "send_time")) {
             return sendTime;
         }
@@ -287,8 +288,12 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
             case STRING:
                 return cell.getStringCellValue().trim();
             case NUMERIC:
-                double numValue = cell.getNumericCellValue();
-                return new BigDecimal(numValue).setScale(6, RoundingMode.HALF_UP).toPlainString();
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    return sdf.format(cell.getDateCellValue());
+                } else {
+                    return BigDecimal.valueOf(cell.getNumericCellValue()).setScale(6, RoundingMode.HALF_UP).toPlainString();
+                }
             default:
                 return cell.toString();
         }
