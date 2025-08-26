@@ -6,7 +6,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bridge.service.MailStatisticsInfoService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.br.marketing.entity.BMailBiConfig;
 import com.br.marketing.entity.BMailBiConfigExample;
 import com.br.marketing.entity.NfsFileTOBiRecord;
@@ -126,7 +126,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
                 for (String date : dates) {
                     log.warn("邮件统计数据抓取任务，apiCode:{}, 处理日期:{}", apiCode, date);
                     String mailDate = LocalDate.parse(date, FORMATTER).format(mailSubjectFormatter);
-                    String fileName = mailPrefix.concat(mailDate);
+                    String fileName = mailPrefix.concat(date);
                     NfsFileTOBiRecordExample nfsFileTOBiRecordExample = new NfsFileTOBiRecordExample();
                     nfsFileTOBiRecordExample.createCriteria().andApiCodeEqualTo(apiCode).andFileNameEqualTo(fileName)
                             .andBusTypeEqualTo("9");
@@ -138,7 +138,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
                     try {
                         Message[] messages = inbox.search(term);
                         if (ArrayUtils.isEmpty(messages)) {
-                            log.warn("未找到邮件:{}", mailPrefix.concat(date));
+                            log.warn("未找到邮件:{}", mailPrefix.concat(mailDate));
                             continue;
                         }
                         for (Message message : messages) {
@@ -208,7 +208,7 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
                 if (row == null) {
                     continue;
                 }
-                parseRow(sheet, mergedRegions, rowIndex, insertSql, date, indexFieldMap);
+                parseRow(sheet, mergedRegions, rowIndex, insertSql, date, indexFieldMap, sendTime);
             }
             if (insertSql.charAt(insertSql.length() - 1) == ',') {
                 insertSql.setLength(insertSql.length() - 1);
@@ -247,10 +247,10 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
 
     // 解析单行数据
     private void parseRow(Sheet sheet, List<CellRangeAddress> mergedRegions, int rowIndex,
-                          StringBuilder insertSql, String date, Map<String, Integer> colFieldMap) {
+                          StringBuilder insertSql, String date, Map<String, Integer> colFieldMap, String sendTime) {
         insertSql.append("\n(");
         colFieldMap.forEach((field, index) -> {
-            String rawValue = getCellStringValue(sheet, mergedRegions, rowIndex, index, field, date);
+            String rawValue = getCellStringValue(sheet, mergedRegions, rowIndex, index, field, date, sendTime);
             if (StringUtils.isEmpty(rawValue)) {
                 insertSql.append("NULL, ");
             } else {
@@ -262,9 +262,12 @@ public class MailStatisticsInfoServiceImpl implements MailStatisticsInfoService 
     }
 
     // 合并单元格特殊处理
-    private String getCellStringValue(Sheet sheet, List<CellRangeAddress> regions, int row, int col, String colName, String date) {
-        if (org.apache.commons.lang3.StringUtils.equals(colName, "data_date")) {
+    private String getCellStringValue(Sheet sheet, List<CellRangeAddress> regions, int row, int col, String colName,
+                                      String date, String sendTime) {
+        if (StringUtils.equals(colName, "data_date") || StringUtils.equals(colName, "date_data")) {
             return date;
+        } else if(StringUtils.equals(colName, "send_time")) {
+            return sendTime;
         }
         for (CellRangeAddress region : regions) {
             if (region.isInRange(row, col)) {
