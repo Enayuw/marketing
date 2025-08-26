@@ -5,12 +5,22 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.constants.MockConstants;
 import com.br.marketing.dto.test.MockTestDTO;
+import com.br.marketing.entity.MarketingMockTest;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.enums.TcRecordCleanStatusEnum;
+import com.br.marketing.mapper.MarketingMockTestMapper;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName MockTestService
@@ -21,6 +31,12 @@ import java.util.List;
 @Slf4j
 @Service
 public class MockTestService {
+
+    @Resource
+    MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    MarketingMockTestMapper marketingMockTestMapper;
 
     // ==================== 基础类型测试 ====================
 
@@ -111,6 +127,36 @@ public class MockTestService {
         MockTestDTO dto1 = new MockTestDTO(100L, "列表用户1", 25, "list1@test.com", true, 1500.0, LocalDateTime.now(), "列表数据1");
         MockTestDTO dto2 = new MockTestDTO(200L, "列表用户2", 35, "list2@test.com", false, 2500.0, LocalDateTime.now(), "列表数据2");
         return Arrays.asList(dto1, dto2);
+    }
+
+    /**
+     * 测试注解性能
+     */
+    @Mockable(mockName = MockConstants.TEST_VOID_RETURN)
+    public void processNote(String apiCode, String appletDate) {
+        this.action(apiCode,appletDate);
+    }
+
+    public void process(String apiCode, String appletDate) {
+        this.action(apiCode,appletDate);
+    }
+
+    public void action(String apiCode, String appletDate) {
+        Long minId = null;
+        while (true) {
+            List<MarketingSyncUser> syncUsers = marketingSyncUserMapper.getUserByAppletData(apiCode, appletDate, minId, 2000);
+
+            if (CollectionUtils.isEmpty(syncUsers)) {
+                break;
+            }
+            minId = syncUsers.get(syncUsers.size() - 1).getId();
+
+            for(MarketingSyncUser syncUser : syncUsers){
+                MarketingMockTest marketingMockTest = new MarketingMockTest();
+                BeanUtils.copyProperties(syncUser, marketingMockTest);
+                marketingMockTestMapper.insertSelective(marketingMockTest);
+            }
+        }
     }
 
 }

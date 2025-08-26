@@ -3348,5 +3348,10 @@ public class MarketingCommonConfig {
      * #短信回调入队ApiCode配置
      */
     private List<String> smsCallBackDataPushMqApiCodes;
+
+    /**
+     * 测试mock注解性能开关 true:带mock注解 false:不带mock注解
+     */
+    private Boolean mockPerformanceSwitch;
 }
 
