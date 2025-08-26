@@ -57,6 +57,7 @@ import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.es.bean.ESQueryRequest;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -1783,7 +1784,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
-    private Result<Integer> queryTotal(CustomerInfoPushMain customerInfoPushMain, List<String> numList, QueryBaseBean queryBaseBean) {
+    public Result<Integer> queryTotal(CustomerInfoPushMain customerInfoPushMain, List<String> numList, QueryBaseBean queryBaseBean) {
         try {
             // 解析标签规则
             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
@@ -2073,7 +2074,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 if (!CollectionUtils.isEmpty(conditions)) {
                                     Map<String, Object> scoreMap = conditions.stream()
                                             .filter(condition -> condition.getDValue() != null)
-                                            .collect(Collectors.toMap(MarketingCondition::getCode
+                                            .collect(Collectors.toMap(MarketingCondition::getFieldKey
                                                     , MarketingCondition::getDValue
                                                     , (existing, replacement) -> replacement));
                                     ScoreLable scoreLable = GeneScriptUtil.scoreLableWithSpel(scoreMap, scoreLables);
@@ -2532,7 +2533,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      * @param syncInfoId
      */
-    private void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType) {
+    public void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType) {
         //发送Json解析消息,定制清洗不在发送MQ
         if (1 == dataSourceType) {
             return;
@@ -3405,10 +3406,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(dataTime);
             syncInfo.setJsonData(jdStr);
             syncInfo.setActualNum(size);
+            syncInfo.setDataSourceType(DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
             //todo 模拟异常
             mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
+            //发送json解析MQ
+            sendJsonParseMq(apiCode, syncInfoId, DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s", jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());

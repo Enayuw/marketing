@@ -206,7 +206,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                     Date appletEndTime = DateHelper.parseDate(uploadMagnStatInfo.get("appletEndTime").toString());
                                     MarketingSyncReport modifyReport = new MarketingSyncReport();
                                     //统计reserve_field1的key集合
-                                    HashSet<String> keySet = new HashSet<>();
+                                   /* HashSet<String> keySet = new HashSet<>();
                                     try {
                                         List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode, userType, appletDate);
                                         keysList.forEach((String key) -> {
@@ -221,7 +221,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                     } catch (Exception e) {
                                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                                                 "上传数据统计扩展字段key异常"), e);
-                                    }
+                                    }*/
                                     //数据正常入库条数
                                     modifyReport.setNormalNum(normalNum);
                                     //去重后数据量
@@ -273,12 +273,12 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             log.error("countDownLatch 线程执行异常", e);
         }
         //插入扩展字段key统计表
-        try {
+       /* try {
             handlerDataFieldDict(uploadDate);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                     "扩展字段添加失败"), e);
-        }
+        }*/
 
     }
 

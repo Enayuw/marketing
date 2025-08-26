@@ -1,9 +1,13 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.report.RefreshReportRequestDTO;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.bi.IntervalTemplateVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
@@ -88,4 +92,16 @@ public interface ReportScoreRuleService {
 
     ApiResult<Boolean> deleteReport(Long id);
 
+    /**
+     * 刷新自定义区间报表数据
+     *
+     * @param requestDTO 刷新请求参数
+     */
+    Result<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO);
+
+    Result<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user);
+
+    Result<List<IntervalTemplateVO>> getIntervalTemplate(String apiCode);
+
+    Result<String> getImageDistribution();
 }

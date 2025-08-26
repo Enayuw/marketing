@@ -9,7 +9,6 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
-import com.br.marketing.mapper.ReportStatisticsScoreMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -46,13 +45,14 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-
+        log.warn("【跑分报表任务统计】开始");
+        long start = System.currentTimeMillis();
         ReportTask reportTask = getScoreReportTask();
         if (Objects.isNull(reportTask)) {
             return;
         }
         scoreReportTaskService.scoreReportCount(reportTask);
-
+        log.warn("【跑分报表任务统计】结束耗时{} ms", System.currentTimeMillis() - start);
     }
 
     private ReportTask getScoreReportTask() {

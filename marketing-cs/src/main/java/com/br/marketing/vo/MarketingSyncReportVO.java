@@ -1,5 +1,6 @@
 package com.br.marketing.vo;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -77,6 +78,12 @@ public class MarketingSyncReportVO {
      */
     @ApiModelProperty(value = "数据失效日期")
     private String validEndDate;
+
+    /**
+     * 标签量级
+     */
+    @ApiModelProperty(value = "标签量级")
+    private String labelMessage;
 
     /**
      * 备注

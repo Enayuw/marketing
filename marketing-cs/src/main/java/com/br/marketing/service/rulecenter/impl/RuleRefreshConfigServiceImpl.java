@@ -173,7 +173,7 @@ public class RuleRefreshConfigServiceImpl implements IRuleRefreshConfigService {
         List<PushDecisions> pushDecisionsList = pushDecisionsMapper.selectByExample(pushDecisionsExample);
         log.warn(TITLE + "决策规则编号查询决策配置:{}", JSONObject.toJSONString(pushDecisionsList));
         if(CollectionUtil.isEmpty(pushDecisionsList)){
-            return pushDecisions;
+            return null;
         }
         pushDecisions = pushDecisionsList.get(0);
         return pushDecisions;

@@ -598,6 +598,8 @@ public class TaskScoreServiceImpl {
             String redisOpen = redisChgService.get(RedisEsOpen);
             String esOpenMark = StringUtils.isNotBlank(redisOpen) ? redisOpen : "1";
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
+            //获取扩展表中labelName字段
+            String labelName = marketingTaskExtend.getLabelName();
             //析出客户上传字段
             BaseHeadConfigVO baseHeadConfigVO = baseHeadHandle(marketingTaskExtend, blt);
             //析出画像字段
@@ -624,11 +626,11 @@ public class TaskScoreServiceImpl {
                     continue;
                 }
                 // 取分级和自适应的较小值，避免单批过大
-                int totalCount = iDynamicSqlService.countByRuleScoreWithDate(blt.getApiCode(), conditionData);
+                int totalCount = iDynamicSqlService.countByRuleScoreWithDate(blt.getApiCode(), conditionData, labelName);
                 int totalPages = (int) Math.ceil((double) totalCount / 100);
                 // 限定范围 1000-5000
                 totalPages = Math.max(1000, Math.min(totalPages, 5000));
-                Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData);
+                Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData, labelName);
                 log.warn(TITLE + "每页最小id--{},页码--{},总量级--{},每页量级--{}", minId, currentPage,totalCount, isVerScore ? verNum : totalPages);
                 if (minId != null && minId > 0L) {
                     Integer actNum = 0;
@@ -647,7 +649,8 @@ public class TaskScoreServiceImpl {
                                         selectDataRuleScoreWithDate(blt.getApiCode()
                                                 , conditionData
                                                 , begin
-                                                , isVerScore ? verNum : totalPages);
+                                                , isVerScore ? verNum : totalPages
+                                                , labelName);
                                 break;
                             } catch (Exception ex) {
                                 log.error(String.format(TITLE + "该跑分任务捞取数据异常：%s;错误信息：%s", blt.getBatchNumber(), ex.getMessage()), ex);

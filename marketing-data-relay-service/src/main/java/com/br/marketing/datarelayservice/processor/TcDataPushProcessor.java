@@ -17,6 +17,11 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
     private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
 
     @Override
+    protected String fetchApiCode() {
+        return apiCode();
+    }
+
+    @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {
         MarketingTcyrSyncRecord record = new MarketingTcyrSyncRecord();
         record.setId(recordId);

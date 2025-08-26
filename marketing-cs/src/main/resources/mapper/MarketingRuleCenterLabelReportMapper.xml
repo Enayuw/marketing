@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingRuleCenterLabelReportMapper" >
+
+    <select id="selectLabelIdWithLabelName" resultType="java.lang.Long">
+        select label_id
+        from
+            b_marketing_rule_center_label_report
+        where ${whereStr}
+                and label_name = #{labelNme}
+            and is_del = 1
+    </select>
+
+</mapper>

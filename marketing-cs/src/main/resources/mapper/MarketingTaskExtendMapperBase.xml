@@ -17,6 +17,7 @@
     <result column="condition_type" property="conditionType" jdbcType="INTEGER" />
     <result column="condition_info_show" property="conditionInfoShow" jdbcType="VARCHAR" />
     <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
+    <result column="label_name" property="labelName" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -77,9 +78,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, task_id, cus_task_id, rule_id, group_type, is_del, create_time, upload_time, 
-    extend_show_title, strategy_product_json, data_condition, condition_type, condition_info_show, 
-    extend_config_info
+    id, api_code, task_id, cus_task_id, rule_id, group_type, is_del, create_time, upload_time,
+    extend_show_title, strategy_product_json, data_condition, condition_type, condition_info_show,
+    extend_config_info, label_name
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExtendExample" >
     select
@@ -96,7 +97,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_task_extend
     where id = #{id,jdbcType=BIGINT}
@@ -115,16 +116,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_task_extend (api_code, task_id, cus_task_id, 
-      rule_id, group_type, is_del, 
-      create_time, upload_time, extend_show_title, 
-      strategy_product_json, data_condition, condition_type, 
-      condition_info_show, extend_config_info)
-    values (#{apiCode,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{cusTaskId,jdbcType=VARCHAR}, 
-      #{ruleId,jdbcType=BIGINT}, #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR}, 
-      #{strategyProductJson,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR}, #{conditionType,jdbcType=INTEGER}, 
-      #{conditionInfoShow,jdbcType=VARCHAR}, #{extendConfigInfo,jdbcType=VARCHAR})
+    insert into b_marketing_task_extend (api_code, task_id, cus_task_id,
+    rule_id, group_type, is_del,
+    create_time, upload_time, extend_show_title,
+    strategy_product_json, data_condition, condition_type,
+    condition_info_show, extend_config_info, label_name
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{taskId,jdbcType=BIGINT}, #{cusTaskId,jdbcType=VARCHAR},
+    #{ruleId,jdbcType=BIGINT}, #{groupType,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{uploadTime,jdbcType=VARCHAR}, #{extendShowTitle,jdbcType=VARCHAR},
+    #{strategyProductJson,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR}, #{conditionType,jdbcType=INTEGER},
+    #{conditionInfoShow,jdbcType=VARCHAR}, #{extendConfigInfo,jdbcType=VARCHAR}, #{labelName,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -174,6 +177,9 @@
       <if test="extendConfigInfo != null" >
         extend_config_info,
       </if>
+      <if test="labelName != null" >
+        label_name,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -217,6 +223,9 @@
       </if>
       <if test="extendConfigInfo != null" >
         #{extendConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="labelName != null" >
+        #{labelName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -274,6 +283,9 @@
       <if test="record.extendConfigInfo != null" >
         extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
       </if>
+      <if test="record.labelName != null" >
+        label_name = #{record.labelName,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -282,20 +294,21 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_task_extend
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      task_id = #{record.taskId,jdbcType=BIGINT},
-      cus_task_id = #{record.cusTaskId,jdbcType=VARCHAR},
-      rule_id = #{record.ruleId,jdbcType=BIGINT},
-      group_type = #{record.groupType,jdbcType=VARCHAR},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      upload_time = #{record.uploadTime,jdbcType=VARCHAR},
-      extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
-      strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
-      data_condition = #{record.dataCondition,jdbcType=VARCHAR},
-      condition_type = #{record.conditionType,jdbcType=INTEGER},
-      condition_info_show = #{record.conditionInfoShow,jdbcType=VARCHAR},
-      extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    task_id = #{record.taskId,jdbcType=BIGINT},
+    cus_task_id = #{record.cusTaskId,jdbcType=VARCHAR},
+    rule_id = #{record.ruleId,jdbcType=BIGINT},
+    group_type = #{record.groupType,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    upload_time = #{record.uploadTime,jdbcType=VARCHAR},
+    extend_show_title = #{record.extendShowTitle,jdbcType=VARCHAR},
+    strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
+    data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+    condition_type = #{record.conditionType,jdbcType=INTEGER},
+    condition_info_show = #{record.conditionInfoShow,jdbcType=VARCHAR},
+    extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+    label_name = #{record.labelName,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -345,25 +358,29 @@
       <if test="extendConfigInfo != null" >
         extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
       </if>
+      <if test="labelName != null" >
+        label_name = #{labelName,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTaskExtend" >
     update b_marketing_task_extend
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      task_id = #{taskId,jdbcType=BIGINT},
-      cus_task_id = #{cusTaskId,jdbcType=VARCHAR},
-      rule_id = #{ruleId,jdbcType=BIGINT},
-      group_type = #{groupType,jdbcType=VARCHAR},
-      is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      upload_time = #{uploadTime,jdbcType=VARCHAR},
-      extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
-      strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
-      data_condition = #{dataCondition,jdbcType=VARCHAR},
-      condition_type = #{conditionType,jdbcType=INTEGER},
-      condition_info_show = #{conditionInfoShow,jdbcType=VARCHAR},
-      extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR}
+        task_id = #{taskId,jdbcType=BIGINT},
+        cus_task_id = #{cusTaskId,jdbcType=VARCHAR},
+        rule_id = #{ruleId,jdbcType=BIGINT},
+        group_type = #{groupType,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        upload_time = #{uploadTime,jdbcType=VARCHAR},
+        extend_show_title = #{extendShowTitle,jdbcType=VARCHAR},
+        strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
+        data_condition = #{dataCondition,jdbcType=VARCHAR},
+        condition_type = #{conditionType,jdbcType=INTEGER},
+        condition_info_show = #{conditionInfoShow,jdbcType=VARCHAR},
+        extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+        label_name = #{labelName,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

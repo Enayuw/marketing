@@ -55,22 +55,22 @@ public class QiFuEffectReportData {
     /**
      * 名单量
      */
-    private Integer userCount;
+    private String userCount;
 
     /**
      * 登录用户数
      */
-    private Integer loginUserCount;
+    private String loginUserCount;
 
     /**
      * 完件用户数
      */
-    private Integer applySubmitUserCount;
+    private String applySubmitUserCount;
 
     /**
      * 授信用户数
      */
-    private Integer creditSuccessUserCount;
+    private String creditSuccessUserCount;
 
     /**
      * 登录率
@@ -105,37 +105,37 @@ public class QiFuEffectReportData {
     /**
      * delta完件量
      */
-    private Integer deltaApplySubmitCount;
+    private String deltaApplySubmitCount;
 
     /**
      * delta授信量
      */
-    private Integer deltaCreditSuccessCount;
+    private String deltaCreditSuccessCount;
 
     /**
      * 归因完件用户数
      */
-    private Integer attrApplyUserCount;
+    private String attrApplyUserCount;
 
     /**
      * 归因授信用户数
      */
-    private Integer attrCreditUserCount;
+    private String attrCreditUserCount;
 
     /**
      * 归因授信用户数A
      */
-    private Integer attrCreditUserCountA;
+    private String attrCreditUserCountA;
 
     /**
      * 归因授信用户数B
      */
-    private Integer attrCreditUserCountB;
+    private String attrCreditUserCountB;
 
     /**
      * 归因授信用户数C
      */
-    private Integer attrCreditUserCountC;
+    private String attrCreditUserCountC;
 
     /**
      * 归因完件占比
