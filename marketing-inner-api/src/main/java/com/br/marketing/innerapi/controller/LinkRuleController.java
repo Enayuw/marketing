@@ -1,12 +1,8 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.linkgo.CreateTaskDataDTO;
-import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.LinkRuleService;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

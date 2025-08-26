@@ -1,27 +1,16 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.dto.linkgo.CreateTaskDataDTO;
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.entity.DataExportTask;
-import com.br.marketing.enums.DataSourceEnum;
 import com.br.marketing.mapper.DataExportTaskMapper;
-import com.br.marketing.mapper.ShortLinkTransferRuleMapper;
 import com.br.marketing.service.LinkRuleService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -38,8 +27,6 @@ public class LinkRuleServiceImpl implements LinkRuleService {
     @Resource
     private DataExportTaskMapper dataExportTaskMapper;
 
-    @Resource
-    private ShortLinkTransferRuleMapper shortLinkTransferRuleMapper;
 
     /**
      * Get next sequence number for time-based task name
