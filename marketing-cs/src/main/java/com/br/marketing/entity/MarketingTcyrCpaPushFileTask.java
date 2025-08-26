@@ -14,14 +14,19 @@ public class MarketingTcyrCpaPushFileTask {
     private String apiCode;
 
     /**
-     * 文件名称,以逗号隔开
+     * 本地路径
      */
-    private String fileNames;
+    private String localPath;
 
     /**
-     * 文件路径
+     * 内部sftp路径
      */
-    private String filePath;
+    private String innerSftpPath;
+
+    /**
+     * 运营sftp路径
+     */
+    private String opeSftpPath;
 
     /**
      * 执行日期
@@ -37,6 +42,11 @@ public class MarketingTcyrCpaPushFileTask {
      * 文件总量级
      */
     private Integer total;
+
+    /**
+     * 提取详情
+     */
+    private String info;
 
     /**
      * 1-正常；9-删除
@@ -69,20 +79,28 @@ public class MarketingTcyrCpaPushFileTask {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
-    public String getFileNames() {
-        return fileNames;
+    public String getLocalPath() {
+        return localPath;
     }
 
-    public void setFileNames(String fileNames) {
-        this.fileNames = fileNames == null ? null : fileNames.trim();
+    public void setLocalPath(String localPath) {
+        this.localPath = localPath == null ? null : localPath.trim();
     }
 
-    public String getFilePath() {
-        return filePath;
+    public String getInnerSftpPath() {
+        return innerSftpPath;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath == null ? null : filePath.trim();
+    public void setInnerSftpPath(String innerSftpPath) {
+        this.innerSftpPath = innerSftpPath == null ? null : innerSftpPath.trim();
+    }
+
+    public String getOpeSftpPath() {
+        return opeSftpPath;
+    }
+
+    public void setOpeSftpPath(String opeSftpPath) {
+        this.opeSftpPath = opeSftpPath == null ? null : opeSftpPath.trim();
     }
 
     public Date getPushDate() {
@@ -107,6 +125,14 @@ public class MarketingTcyrCpaPushFileTask {
 
     public void setTotal(Integer total) {
         this.total = total;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info == null ? null : info.trim();
     }
 
     public Integer getIsDel() {

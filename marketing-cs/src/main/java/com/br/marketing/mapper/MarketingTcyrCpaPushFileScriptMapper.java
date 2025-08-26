@@ -1,4 +1,16 @@
 package com.br.marketing.mapper;
 
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
 public interface MarketingTcyrCpaPushFileScriptMapper extends MarketingTcyrCpaPushFileScriptMapperBase{
+
+    List<String> getTcyrCpaPushFileDatatikv_(@Param("extraSql") String querySql);
+
+    List<String> getTcyrCpaPushFileDatadoris_(@Param("extraSql") String querySql);
+
+    Integer getTcyrCpaPushFileDataCounttikv_(@Param("extraCountSql") String querySql);
+
+    Integer getTcyrCpaPushFileDataCountdoris_(@Param("extraCountSql") String querySql);
 }

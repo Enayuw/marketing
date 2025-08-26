@@ -262,143 +262,213 @@ public class MarketingTcyrCpaPushFileTaskExample {
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesIsNull() {
-            addCriterion("file_names is null");
+        public Criteria andLocalPathIsNull() {
+            addCriterion("local_path is null");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesIsNotNull() {
-            addCriterion("file_names is not null");
+        public Criteria andLocalPathIsNotNull() {
+            addCriterion("local_path is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesEqualTo(String value) {
-            addCriterion("file_names =", value, "fileNames");
+        public Criteria andLocalPathEqualTo(String value) {
+            addCriterion("local_path =", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesNotEqualTo(String value) {
-            addCriterion("file_names <>", value, "fileNames");
+        public Criteria andLocalPathNotEqualTo(String value) {
+            addCriterion("local_path <>", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesGreaterThan(String value) {
-            addCriterion("file_names >", value, "fileNames");
+        public Criteria andLocalPathGreaterThan(String value) {
+            addCriterion("local_path >", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesGreaterThanOrEqualTo(String value) {
-            addCriterion("file_names >=", value, "fileNames");
+        public Criteria andLocalPathGreaterThanOrEqualTo(String value) {
+            addCriterion("local_path >=", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesLessThan(String value) {
-            addCriterion("file_names <", value, "fileNames");
+        public Criteria andLocalPathLessThan(String value) {
+            addCriterion("local_path <", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesLessThanOrEqualTo(String value) {
-            addCriterion("file_names <=", value, "fileNames");
+        public Criteria andLocalPathLessThanOrEqualTo(String value) {
+            addCriterion("local_path <=", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesLike(String value) {
-            addCriterion("file_names like", value, "fileNames");
+        public Criteria andLocalPathLike(String value) {
+            addCriterion("local_path like", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesNotLike(String value) {
-            addCriterion("file_names not like", value, "fileNames");
+        public Criteria andLocalPathNotLike(String value) {
+            addCriterion("local_path not like", value, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesIn(List<String> values) {
-            addCriterion("file_names in", values, "fileNames");
+        public Criteria andLocalPathIn(List<String> values) {
+            addCriterion("local_path in", values, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesNotIn(List<String> values) {
-            addCriterion("file_names not in", values, "fileNames");
+        public Criteria andLocalPathNotIn(List<String> values) {
+            addCriterion("local_path not in", values, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesBetween(String value1, String value2) {
-            addCriterion("file_names between", value1, value2, "fileNames");
+        public Criteria andLocalPathBetween(String value1, String value2) {
+            addCriterion("local_path between", value1, value2, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFileNamesNotBetween(String value1, String value2) {
-            addCriterion("file_names not between", value1, value2, "fileNames");
+        public Criteria andLocalPathNotBetween(String value1, String value2) {
+            addCriterion("local_path not between", value1, value2, "localPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathIsNull() {
-            addCriterion("file_path is null");
+        public Criteria andInnerSftpPathIsNull() {
+            addCriterion("inner_sftp_path is null");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathIsNotNull() {
-            addCriterion("file_path is not null");
+        public Criteria andInnerSftpPathIsNotNull() {
+            addCriterion("inner_sftp_path is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathEqualTo(String value) {
-            addCriterion("file_path =", value, "filePath");
+        public Criteria andInnerSftpPathEqualTo(String value) {
+            addCriterion("inner_sftp_path =", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathNotEqualTo(String value) {
-            addCriterion("file_path <>", value, "filePath");
+        public Criteria andInnerSftpPathNotEqualTo(String value) {
+            addCriterion("inner_sftp_path <>", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathGreaterThan(String value) {
-            addCriterion("file_path >", value, "filePath");
+        public Criteria andInnerSftpPathGreaterThan(String value) {
+            addCriterion("inner_sftp_path >", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathGreaterThanOrEqualTo(String value) {
-            addCriterion("file_path >=", value, "filePath");
+        public Criteria andInnerSftpPathGreaterThanOrEqualTo(String value) {
+            addCriterion("inner_sftp_path >=", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathLessThan(String value) {
-            addCriterion("file_path <", value, "filePath");
+        public Criteria andInnerSftpPathLessThan(String value) {
+            addCriterion("inner_sftp_path <", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathLessThanOrEqualTo(String value) {
-            addCriterion("file_path <=", value, "filePath");
+        public Criteria andInnerSftpPathLessThanOrEqualTo(String value) {
+            addCriterion("inner_sftp_path <=", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathLike(String value) {
-            addCriterion("file_path like", value, "filePath");
+        public Criteria andInnerSftpPathLike(String value) {
+            addCriterion("inner_sftp_path like", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathNotLike(String value) {
-            addCriterion("file_path not like", value, "filePath");
+        public Criteria andInnerSftpPathNotLike(String value) {
+            addCriterion("inner_sftp_path not like", value, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathIn(List<String> values) {
-            addCriterion("file_path in", values, "filePath");
+        public Criteria andInnerSftpPathIn(List<String> values) {
+            addCriterion("inner_sftp_path in", values, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathNotIn(List<String> values) {
-            addCriterion("file_path not in", values, "filePath");
+        public Criteria andInnerSftpPathNotIn(List<String> values) {
+            addCriterion("inner_sftp_path not in", values, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathBetween(String value1, String value2) {
-            addCriterion("file_path between", value1, value2, "filePath");
+        public Criteria andInnerSftpPathBetween(String value1, String value2) {
+            addCriterion("inner_sftp_path between", value1, value2, "innerSftpPath");
             return (Criteria) this;
         }
 
-        public Criteria andFilePathNotBetween(String value1, String value2) {
-            addCriterion("file_path not between", value1, value2, "filePath");
+        public Criteria andInnerSftpPathNotBetween(String value1, String value2) {
+            addCriterion("inner_sftp_path not between", value1, value2, "innerSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathIsNull() {
+            addCriterion("ope_sftp_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathIsNotNull() {
+            addCriterion("ope_sftp_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathEqualTo(String value) {
+            addCriterion("ope_sftp_path =", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathNotEqualTo(String value) {
+            addCriterion("ope_sftp_path <>", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathGreaterThan(String value) {
+            addCriterion("ope_sftp_path >", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathGreaterThanOrEqualTo(String value) {
+            addCriterion("ope_sftp_path >=", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathLessThan(String value) {
+            addCriterion("ope_sftp_path <", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathLessThanOrEqualTo(String value) {
+            addCriterion("ope_sftp_path <=", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathLike(String value) {
+            addCriterion("ope_sftp_path like", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathNotLike(String value) {
+            addCriterion("ope_sftp_path not like", value, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathIn(List<String> values) {
+            addCriterion("ope_sftp_path in", values, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathNotIn(List<String> values) {
+            addCriterion("ope_sftp_path not in", values, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathBetween(String value1, String value2) {
+            addCriterion("ope_sftp_path between", value1, value2, "opeSftpPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andOpeSftpPathNotBetween(String value1, String value2) {
+            addCriterion("ope_sftp_path not between", value1, value2, "opeSftpPath");
             return (Criteria) this;
         }
 
@@ -579,6 +649,76 @@ public class MarketingTcyrCpaPushFileTaskExample {
 
         public Criteria andTotalNotBetween(Integer value1, Integer value2) {
             addCriterion("total not between", value1, value2, "total");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoIsNull() {
+            addCriterion("info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoIsNotNull() {
+            addCriterion("info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoEqualTo(String value) {
+            addCriterion("info =", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotEqualTo(String value) {
+            addCriterion("info <>", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoGreaterThan(String value) {
+            addCriterion("info >", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("info >=", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoLessThan(String value) {
+            addCriterion("info <", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoLessThanOrEqualTo(String value) {
+            addCriterion("info <=", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoLike(String value) {
+            addCriterion("info like", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotLike(String value) {
+            addCriterion("info not like", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoIn(List<String> values) {
+            addCriterion("info in", values, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotIn(List<String> values) {
+            addCriterion("info not in", values, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoBetween(String value1, String value2) {
+            addCriterion("info between", value1, value2, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotBetween(String value1, String value2) {
+            addCriterion("info not between", value1, value2, "info");
             return (Criteria) this;
         }
 

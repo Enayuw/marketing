@@ -145,6 +145,7 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                     failData.setApiCode(tcyrCpaFailFile.getApiCode());
                     failData.setBatchNo(tcyrCpaFailFile.getBatchNo());
                     failData.setSyncFileId(tcyrCpaFailFile.getId());
+                    failData.setOriginText(line);
                     List<String> lineData = StringUtils.splitAndLimit(line, "," , 3);
                     failData.setUserKey(lineData.get(0));
                     failData.setCell(custCellMappingService.selectCell(failData.getUserKey()));

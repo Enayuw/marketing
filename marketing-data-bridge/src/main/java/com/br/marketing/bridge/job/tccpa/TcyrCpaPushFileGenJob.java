@@ -1,0 +1,35 @@
+package com.br.marketing.bridge.job.tccpa;
+
+import com.br.marketing.service.tccpa.TcyrCpaPushFileService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+
+/**
+ * @description 同程易融cpa推送文件生成任务
+ * document https://c.100credit.cn/pages/viewpage.action?pageId=217148341
+ * @author hedongshuo
+ * @date 2025/8/26 11:49
+ **/
+@Component
+@Slf4j
+public class TcyrCpaPushFileGenJob extends AbstractSimpleElasticJob {
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private TcyrCpaPushFileService tcyrCpaPushFileService;
+
+    @Override
+    public void process(JobExecutionMultipleShardingContext shardingContext) {
+        if (!marketingCommonConfig.getTcyrCpaPushFileConfig().getBoolean("isPush")) {
+            return;
+        }
+        tcyrCpaPushFileService.fileGen();
+    }
+}
