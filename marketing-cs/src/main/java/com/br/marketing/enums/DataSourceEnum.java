@@ -2,8 +2,6 @@ package com.br.marketing.enums;
 
 /**
  * 数据源枚举
- * @author system
- * @date 2025/01/17
  */
 public enum DataSourceEnum {
 
@@ -13,26 +11,40 @@ public enum DataSourceEnum {
     MARKETING_LOG(4, "marketingLog", "日志数据源"),
     MARKETING_LINK(5, "marketingLink", "短链数据源");
 
-    private Integer code;
-    private String sourceCode;
-    private String desc;
-
     DataSourceEnum(Integer code, String sourceCode, String desc) {
         this.code = code;
         this.sourceCode = sourceCode;
         this.desc = desc;
     }
 
+    private Integer code;
+
+    private String sourceCode;
+
+    private String desc;
+
     public Integer getCode() {
         return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
     }
 
     public String getSourceCode() {
         return sourceCode;
     }
 
+    public void setSourceCode(String sourceCode) {
+        this.sourceCode = sourceCode;
+    }
+
     public String getDesc() {
         return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 
     /**
