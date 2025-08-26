@@ -1,6 +1,6 @@
 package com.br.marketing.bridge.job;
 
-import com.br.marketing.bridge.service.YiXInMailStatisticsInfoService;
+import com.br.marketing.bridge.service.MailStatisticsInfoService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +15,16 @@ import javax.annotation.Resource;
  */
 @Component
 @Slf4j
-public class YiXinMailStatisticsInfoJob extends AbstractSimpleElasticJob {
+public class MailStatisticsInfoJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private YiXInMailStatisticsInfoService yiXInMailStatisticsInfoService;
+    private MailStatisticsInfoService mailStatisticsInfoService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         long curTime = System.currentTimeMillis();
-        log.warn("宜信邮件统计信息提取到marketingBI任务开始");
-        yiXInMailStatisticsInfoService.transMailToMarketingBiProcess(context.getJobParameter());
-        log.warn("宜信邮件统计信息提取到marketingBI任务结束, 耗时:{}s", (System.currentTimeMillis() - curTime) / 1000);
+        log.warn("邮件统计信息提取到marketingBI任务开始");
+        mailStatisticsInfoService.transMailToMarketingBiProcess(context.getJobParameter());
+        log.warn("邮件统计信息提取到marketingBI任务结束, 耗时:{}s", (System.currentTimeMillis() - curTime) / 1000);
     }
 }
