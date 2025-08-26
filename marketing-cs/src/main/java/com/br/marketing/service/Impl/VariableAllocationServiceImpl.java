@@ -107,7 +107,6 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             }
             variable = variableAllocationMapper.getVariable(apiCode, allocationType);
             if(Objects.isNull(variable)) {
-                log.error("该定制化配置不存在，apiCode:{}，allocationType:{}", apiCode, allocationType);
                 return null;
             }
             redisChgService.setex(key, variable.getAllocationValue(), 3600 * 12);
