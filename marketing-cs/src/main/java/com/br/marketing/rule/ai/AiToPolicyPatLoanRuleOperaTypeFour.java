@@ -5,7 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.PushRuleService;
@@ -16,6 +18,7 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -30,6 +33,9 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Autowired
+    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -99,10 +105,25 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
             if (StringUtils.isNotBlank(operateType) && "4".equals(operateType)) {
+                insertRecord(syncUser);
+
                 return true;
             }
         }
         return false;
+    }
+
+    private void insertRecord(MarketingSyncUser syncUser) {
+        AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
+        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
+        aiToPolicyRecord.setApiCode(syncUser.getApiCode());
+        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
+        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode());
+        try {
+            aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
+        } catch (DuplicateKeyException e) {
+            log.warn("AI自动化推决策_操作类型4,数据重复，fingerprint:{}", syncUser.getFingerprint());
+        }
     }
 
     @Override

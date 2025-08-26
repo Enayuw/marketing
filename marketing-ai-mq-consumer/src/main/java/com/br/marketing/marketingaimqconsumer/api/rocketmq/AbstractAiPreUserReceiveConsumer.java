@@ -60,6 +60,6 @@ public abstract class AbstractAiPreUserReceiveConsumer extends BaseMqMessageList
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setClientRebalance(false);
-        defaultMQPushConsumer.setPopInvisibleTime(300000L);
+        defaultMQPushConsumer.setPopInvisibleTime(1500000L);
     }
 }
