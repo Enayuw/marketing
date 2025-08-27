@@ -224,7 +224,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                         , MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE, msg);
             }catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage()
-                        , "同程CPA撞库成功消息-rocketMq异常！requestId:"+requestId), e);
+                        , "同程CPA撞库成功-发送RocketMq消息异常！requestId:"+requestId), e);
             }
             log.warn("同程CPA撞库成功消息下发 requestId:{},dataId:{}", requestId, dataId);
         });
