@@ -29,18 +29,20 @@ public class MockTestJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    private final static String TITLE = "【Mock测试job】";
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
 
-        //log.warn(TITLE + "start");
-        String parameter = jobExecutionMultipleShardingContext.getJobParameter();
+        log.warn(TITLE + "start");
+        long start = System.currentTimeMillis();
 
+        String parameter = jobExecutionMultipleShardingContext.getJobParameter();
         JSONObject jsonObject = JSONObject.parseObject(parameter);
         String apiCode = jsonObject.getString("apiCode");
         String appletDate = jsonObject.getString("appletDate");
 
         if(StringUtils.isEmpty(apiCode) || StringUtils.isEmpty(appletDate)){
-            log.warn("job参数不能为空,parameter:" + parameter);
+            log.warn(TITLE + "job参数不能为空,parameter:" + parameter);
             return;
         }
 
@@ -51,7 +53,8 @@ public class MockTestJob extends AbstractSimpleElasticJob {
             mockTestService.process(apiCode,appletDate);
         }
 
-
+        long end = System.currentTimeMillis();
+        log.warn(TITLE + "end, 耗时{}ms", end - start);
     }
 
 }

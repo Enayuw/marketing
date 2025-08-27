@@ -1211,7 +1211,7 @@
     <select id="getUserByAppletData" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from b_marketing_sync_${apiCode}
-        where applet_date = #{item.appletDate}
+        where applet_date = #{appletDate}
         and status = 1
         and is_repeat in (1,2)
         <if test="minId != null and minId>0">
