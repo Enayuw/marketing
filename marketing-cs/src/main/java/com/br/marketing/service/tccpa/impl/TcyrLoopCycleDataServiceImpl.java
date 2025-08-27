@@ -106,6 +106,7 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
         loopCycle.setCreateTime(nowDate);
         loopCycle.setUpdateTime(nowDate);
         loopCycle.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
+        loopCycle.setExtend(cpaSuccessData.getExtend());
         loopCycleMapper.insertSelective(loopCycle);
     }
 
