@@ -598,6 +598,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             updateRule.setId(existingRule.getId());
             updateRule.setCleanFields(configDTO.getCleanField());
             updateRule.setLevel(configDTO.getLevel());
+            updateRule.setParentPath(configDTO.getParentPath());
             updateRule.setIsMapping(configDTO.getIsMapping());
             updateRule.setMappingRule(configDTO.getMappingRule());
             updateRule.setIsDerived(configDTO.getFieldType());
@@ -616,6 +617,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             newRule.setMappingField(configDTO.getMappingField());
             newRule.setCleanFields(configDTO.getCleanField());
             newRule.setLevel(configDTO.getLevel());
+            newRule.setParentPath(configDTO.getParentPath());
             newRule.setIsMapping(configDTO.getIsMapping());
             newRule.setMappingRule(configDTO.getMappingRule());
             newRule.setResultPreview(resultPreview);

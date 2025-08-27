@@ -39,6 +39,9 @@ public class FieldCleaningConfigDTO implements Serializable {
     @ApiModelProperty(value = "清洗字段层级")
     private Integer level;
 
+    @ApiModelProperty(value = "父节点完整路径")
+    private String parentPath;
+
     @ApiModelProperty(value = "字段样例")
     private String fieldSample;
 

@@ -41,6 +41,11 @@ public class MarketingDataCleanGeneralRuleConfig implements Serializable {
     private Integer level;
 
     /**
+     * 父节点完整路径
+     */
+    private String parentPath;
+
+    /**
      * 是否映射：0-否，1-是
      */
     private Boolean isMapping;
