@@ -2,13 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaLoopCycleMapper" >
 
-    <select id="selectByDataId" resultType="com.br.marketing.entity.MarketingTcyrCpaLoopCycle">
+    <select id="selectByUserKey" resultType="com.br.marketing.entity.MarketingTcyrCpaLoopCycle">
         SELECT *
         FROM
             b_tcyr_cpa_loop_cycle
-        WHERE data_id = #{dataId}
-              AND is_del = #{delStatus}
-        LIMIT 1
+        WHERE user_key = #{userKey}
+          AND is_del = #{delStatus}
+            LIMIT 1
     </select>
 
     <update id="updateInfoById">

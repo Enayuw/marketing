@@ -57,15 +57,15 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
         try {
             MarketingTcyrCpaSuccessData cpaSuccessData = successDataMapper.selectByPrimaryKey(dataId);
             if (cpaSuccessData.getStatus() == 1 && cpaSuccessData.getCell() != null) {
-                MarketingTcyrCpaRob tcyrCpaRob = robMapper.selectByDataId(dataId, TcCpaIsDelEnum.DEL_NO.getValue());
+                MarketingTcyrCpaRob tcyrCpaRob = robMapper.selectByUserKey(cpaSuccessData.getUserKey(), TcCpaIsDelEnum.DEL_NO.getValue());
                 if (tcyrCpaRob != null) {
                     sourceType = "F";
                     packageId = tcyrCpaRob.getPackageId();
                     robMapper.updateDelStatusById(tcyrCpaRob.getId(),TcCpaIsDelEnum.DEL_YES.getValue());
                     saveTcyrCpaLoopCyle(cpaSuccessData,packageId,sourceType);
-                }else {
+                } else {
                     sourceType = "T";
-                    MarketingTcyrCpaLoopCycle oldLoopCycle = loopCycleMapper.selectByDataId(dataId,TcCpaIsDelEnum.DEL_NO.getValue());
+                    MarketingTcyrCpaLoopCycle oldLoopCycle = loopCycleMapper.selectByUserKey(cpaSuccessData.getUserKey(),TcCpaIsDelEnum.DEL_NO.getValue());
                     if (oldLoopCycle != null) {
                         loopCycleMapper.updateInfoById(oldLoopCycle.getId(),cpaSuccessData.getEndDate(),sourceType);
                     }else {
@@ -76,12 +76,12 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
             }
             saveCollidingLog(cpaSuccessData,requestId,sourceType,packageId,lockResult);
             result.setDate(Boolean.FALSE);
-        }catch (DuplicateKeyException e) {
+        } catch (DuplicateKeyException e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     "同程cpa撞库成功周期剔除数据重入异常,requestId:" + requestId +e.getMessage(), TITLE), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             result.setDate(Boolean.FALSE);
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     "同程cpa撞库成功周期剔除数据异常,requestId:" + requestId +e.getMessage(), TITLE), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

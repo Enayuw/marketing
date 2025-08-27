@@ -2,14 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrCpaRobMapper" >
 
-    <select id="selectByDataId" resultType="com.br.marketing.entity.MarketingTcyrCpaRob">
+    <select id="selectByUserKey" resultType="com.br.marketing.entity.MarketingTcyrCpaRob">
         SELECT *
         FROM
             b_tcyr_cpa_rob
         WHERE
-            data_id = #{dataId}
-            and is_del = #{delStatus}
-        LIMIT 1
+            user_key = #{userKey}
+          and is_del = #{delStatus}
+            LIMIT 1
     </select>
 
     <update id="updateDelStatusById">
