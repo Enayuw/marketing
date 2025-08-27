@@ -5,7 +5,6 @@ package com.br.marketing.common.constants.rocketmq;
  */
 public class MarketingTcCpaConstants {
 
-    //携程促活队列
     public static final String TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE = "marketingTcyrCpaCollidingSuccessQueue";
 
     public static final String GROUP_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE = "Marketing_Tcyr_Cpa_Colliding_Success_Queue";
