@@ -27,11 +27,14 @@ import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.RoboAIBlackPhoneMark;
 import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
 import com.br.marketing.entity.SmsCallback;
+import com.br.marketing.entity.SmsCallbackAtOnce;
+import com.br.marketing.entity.SmsCallbackAtOnceExample;
 import com.br.marketing.entity.SmsCallbackExample;
 import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
+import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
 import com.br.marketing.mapper.SmsCallbackMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
@@ -72,6 +75,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Autowired
     private SmsCallbackMapper smsCallbackMapper;
+
+    @Autowired
+    private SmsCallbackAtOnceMapper smsCallbackAtOnceMapper;
 
     @Autowired
     private RoboAIBlackPhoneMarkMapperBase roboAIBlackPhoneMarkMapper;
@@ -375,6 +381,41 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
             return "外呼短信记录落库失败(insert b_sms_callback fail)!";
         }
+        return "success";
+    }
+
+    /**
+     * 外呼短信发送即回调实现
+     * @param dto
+     * @return
+     */
+    @Override
+    public String smsCallBackAtOnce(SmsRecordDTO dto) {
+        try {
+            String value = checkValues(dto);
+            if (!value.isEmpty()) {
+                return value;
+            }
+            String thirdCallNo = dto.getThirdCallNo();
+            // 校验是否已经落库
+            SmsCallbackAtOnceExample smsCallbackAtOnceExample = new SmsCallbackAtOnceExample();
+            smsCallbackAtOnceExample.createCriteria().andThirdCallNoEqualTo(thirdCallNo);
+            int i = smsCallbackAtOnceMapper.countByExample(smsCallbackAtOnceExample);
+            if (i > 0) {
+                log.warn("短信流水号重复：" + thirdCallNo);
+                return "短信流水号重复：" + thirdCallNo;
+            }
+            SmsCallbackAtOnce smsCallbackAtOnce = new SmsCallbackAtOnce();
+            smsCallbackAtOnce.setCreateDate(String.valueOf(LocalDate.now()));
+            smsCallbackAtOnce.setCreateTime(new Date());
+            BeanUtils.copyProperties(dto, smsCallbackAtOnce);
+            smsCallbackAtOnceMapper.insertSelective(smsCallbackAtOnce);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                            "外呼短信即回调入库失败，流水号:" + dto.getThirdCallNo() + "。" + ex.getMessage()), ex);
+            return "外呼短信即回调，记录落库失败(insert b_sms_callback_at_once fail)!";
+        }
+
         return "success";
     }
 
