@@ -2,8 +2,10 @@ package com.br.marketing.rule.ai;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -11,7 +13,6 @@ import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -45,12 +46,12 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
         Integer jc3keyType = customerTagsVO.getPushJc3keyType();
-        pushRuleService.judgeEncryptType(pushData,syncUser,jc3keyType);
+        pushRuleService.judgeEncryptType(pushData, syncUser, jc3keyType);
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
-        customizFieldMapping(context,jsonObject);
+        customizFieldMapping(context, jsonObject);
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
             String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
@@ -105,15 +106,13 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
             if (StringUtils.isNotBlank(operateType) && "4".equals(operateType)) {
-                insertRecord(syncUser);
-
-                return true;
+                return insertRecord(syncUser);
             }
         }
         return false;
     }
 
-    private void insertRecord(MarketingSyncUser syncUser) {
+    private boolean insertRecord(MarketingSyncUser syncUser) {
         AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
         aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
         aiToPolicyRecord.setApiCode(syncUser.getApiCode());
@@ -121,8 +120,13 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode());
         try {
             aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
+            return true;
         } catch (DuplicateKeyException e) {
             log.warn("AI自动化推决策_操作类型4,数据重复，fingerprint:{}", syncUser.getFingerprint());
+            return false;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型4,写去重表db异常："), e);
+            return true;
         }
     }
 
@@ -158,9 +162,8 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
 
     /**
      * 构建营销同步用户的JSON对象
-     *
      * @param jsonObject 目标JSON对象
-     * @param syncUser 营销同步用户数据
+     * @param syncUser   营销同步用户数据
      * @param jc3keyType 加密类型(null表示未配置)
      * @return 构建好的JSON对象
      */

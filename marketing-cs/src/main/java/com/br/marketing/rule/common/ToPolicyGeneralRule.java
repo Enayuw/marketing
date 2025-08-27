@@ -2,8 +2,10 @@ package com.br.marketing.rule.common;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -109,24 +111,29 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
             if (StringUtils.isNotBlank(operateType) && "3".equals(operateType)) {
-                insertRecord(syncUser);
-                return true;
+                return insertRecord(syncUser);
             }
         }
         return false;
     }
 
-    private void insertRecord(MarketingSyncUser syncUser) {
+    private boolean insertRecord(MarketingSyncUser syncUser) {
         AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
         aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
         aiToPolicyRecord.setApiCode(syncUser.getApiCode());
         aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
-        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode());
+        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode());
         try {
             aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
+            return true;
         } catch (DuplicateKeyException e) {
             log.warn("AI自动化推决策_操作类型3,数据重复，fingerprint:{}", syncUser.getFingerprint());
+            return false;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型3,写去重表db异常："), e);
+            return true;
         }
+
     }
 
     @Override
