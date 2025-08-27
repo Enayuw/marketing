@@ -3279,21 +3279,19 @@ public class MarketingCommonConfig {
     private List<Boolean> xieChengCpsCollidingRetrySwitch;
 
     /**
-     * 邮件主题和API Code对应关系
-     * {"3710012":"三方营销效果监控-百融"}
+     * 邮件API Code和对应邮件主题以及邮件格式
+     * {
+     * "3710012":{"subject":"三方营销效果监控-百融", "dateFormat": "yyyyMMdd", "startDate":"T-1", "endDate":"T-1"},
+     * "3710058":{"subject":"【携程金融】百融对账单-", "dateFormat": "yyyy-MM-dd", "startDate":"T-1", "endDate":"T-1"}
+     * }
      */
-    private Map<String, String> mailApiCodeSubjectMap;
+    private Map<String, Map<String, String>> mailApiCodeSubjectConfig;
 
     /**
-     * 邮件主题和API Code对应关系
+     * 读取邮件任务的账户和密码
      * {"userName":"xxx", "password":"xxx"}
      */
-    private Map<String, String> YiXinMailConfigMap;
-
-    /**
-     * 邮件统计开始时间 {"startDate":"T-1", "endDate":"T-1"}
-     */
-    private Map<String, String> yiXinMailReadDateMap;
+    private Map<String, String> mailReadConfigMap;
 
     /**
      * 转化文件落库BI批量大小
