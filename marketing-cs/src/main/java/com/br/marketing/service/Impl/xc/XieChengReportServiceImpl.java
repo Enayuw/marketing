@@ -12,8 +12,10 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.SmsCallbackAtOnceExample;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.CallRecordMapper;
+import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.mapper.SmsCallbackMapper;
 import com.br.marketing.entity.SmsCallbackExample;
@@ -63,7 +65,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
     @Resource
     VariableAllocationService variableAllocationService;
     @Resource
-    private SmsCallbackMapper smsCallbackMapper;
+    private SmsCallbackAtOnceMapper smsCallbackAtOnceMapper;
 
     @Override
     public Result pushXieChengData(Long sourceId) {
@@ -238,11 +240,11 @@ public class XieChengReportServiceImpl implements XieChengReportService {
 
     private boolean isSms(String caseNum, String apiCode) {
         try {
-        SmsCallbackExample example = new SmsCallbackExample();
+        SmsCallbackAtOnceExample example = new SmsCallbackAtOnceExample();
         example.createCriteria().andApiCodeEqualTo(apiCode)
                 .andCreateDateEqualTo(LocalDate.now().toString())
                 .andCaseNumEqualTo(caseNum);
-            return smsCallbackMapper.countByExample(example) > 0;
+            return smsCallbackAtOnceMapper.countByExample(example) > 0;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "携程上报，查询短信回调db异常！"), e);
