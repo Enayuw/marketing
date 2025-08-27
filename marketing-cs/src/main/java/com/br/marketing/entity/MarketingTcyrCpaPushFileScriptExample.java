@@ -305,6 +305,76 @@ public class MarketingTcyrCpaPushFileScriptExample {
             return (Criteria) this;
         }
 
+        public Criteria andOutputFieldIsNull() {
+            addCriterion("output_field is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldIsNotNull() {
+            addCriterion("output_field is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldEqualTo(String value) {
+            addCriterion("output_field =", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldNotEqualTo(String value) {
+            addCriterion("output_field <>", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldGreaterThan(String value) {
+            addCriterion("output_field >", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldGreaterThanOrEqualTo(String value) {
+            addCriterion("output_field >=", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldLessThan(String value) {
+            addCriterion("output_field <", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldLessThanOrEqualTo(String value) {
+            addCriterion("output_field <=", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldLike(String value) {
+            addCriterion("output_field like", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldNotLike(String value) {
+            addCriterion("output_field not like", value, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldIn(List<String> values) {
+            addCriterion("output_field in", values, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldNotIn(List<String> values) {
+            addCriterion("output_field not in", values, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldBetween(String value1, String value2) {
+            addCriterion("output_field between", value1, value2, "outputField");
+            return (Criteria) this;
+        }
+
+        public Criteria andOutputFieldNotBetween(String value1, String value2) {
+            addCriterion("output_field not between", value1, value2, "outputField");
+            return (Criteria) this;
+        }
+
         public Criteria andDataSourceIsNull() {
             addCriterion("data_source is null");
             return (Criteria) this;

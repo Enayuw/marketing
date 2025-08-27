@@ -20,6 +20,7 @@ import com.br.marketing.mapper.MarketingTcyrCpaPushFileTaskMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.tccpa.TcyrCpaPushFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,8 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
     private final static String TITLE_GEN = "【同程易融CPA-推送文件数据生成】";
 
     private final static String TITLE_SYNC = "【同程易融CPA-推送文件数据同步】";
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -71,7 +74,11 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         }
         //2.服务器路径
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        String localPath = syncConfigService.getPath()
+//        String localPath = syncConfigService.getPath()
+//                .concat("tongcheng_cpa_push_file/")
+//                .concat(yyyyMMdd)
+//                .concat("/");
+        String localPath = "D:/"
                 .concat("tongcheng_cpa_push_file/")
                 .concat(yyyyMMdd)
                 .concat("/");
@@ -84,6 +91,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         task.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
         tcyrCpaPushFileTaskMapper.insertSelective(task);
         FilePushTaskInfo info = new FilePushTaskInfo();
+        String infoString = null;
         try {
             //4.文件写入
             Boolean isCompleted = write(apiCode, localPath, yyyyMMdd, info);
@@ -96,8 +104,17 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     e.getMessage(), TITLE_GEN), e);
         }
+        try {
+            infoString = objectMapper.writeValueAsString(info);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE_GEN), e);
+        }
         //6.更新推送文件任务
         MarketingTcyrCpaPushFileTask updateTask = new MarketingTcyrCpaPushFileTask();
+        updateTask.setId(task.getId());
+        updateTask.setTotal(info.getExtraNumAct());
+        updateTask.setInfo(infoString);
         if (StringUtils.isEmpty(info.getMessage())) {
             updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_SUCCESS.getValue());
         } else {
@@ -126,7 +143,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                 .mapToInt(AtomicInteger::get) // 转换为int值
                 .sum();
         info.setExtraNumAct(extraNumAct);
-        if (extraNumAct != info.getExtraNumExp()) {
+        if (extraNumAct.intValue() != (info.getExtraNumExp().intValue())) {
             logWarnAndinfoRecord(
                     "期望提取量级：" + info.getExtraNumExp() + ",实际提取量级：" + extraNumAct + "，请核对！", info);
         }
@@ -162,7 +179,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         for (MarketingTcyrCpaPushFileScript script : scripts) {
             String extraCountSql = "select count(0) from ("
                     .concat(script.getExtractScript())
-                    .concat(") as a");
+                    .concat(") as countTable");
             Integer count = 0;
             if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_TIDB.getValue()) {
                 count = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDataCounttikv_(extraCountSql);
@@ -175,8 +192,9 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
             scriptNumDTOS.add(scriptNumDTO);
             scriptNum += count;
         }
+        info.setScriptNumDTOS(scriptNumDTOS);
         info.setScriptNum(scriptNum);
-        if (scriptNum == 0) {
+        if (scriptNum.intValue() == 0) {
             logWarnAndinfoRecord("脚本查询量级为0！", info);
             return false;
         }
@@ -185,6 +203,8 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         Integer extraNumSingle = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("extraNumSingle");
         Integer pageSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("pageSize");
         Integer threadPoolSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("threadPoolSize");
+        info.setExtraNumTotal(extraNumTotal);
+        info.setExtraNumSingle(extraNumSingle);
         //4.创建目录
         File writeDic = new File(localPath);
         if (!writeDic.exists()) {
@@ -196,6 +216,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         }
         //期望提取量级
         Integer extraNumExp = Math.min(extraNumTotal, scriptNum);
+        info.setExtraNumExp(extraNumExp);
         //数据提取量级
         Integer extraDataNum = 0;
         //脚本提取量级
@@ -217,8 +238,8 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
             String minCusNum = "";
             for (; ; ) {
                 String extraSql = script.getExtractScript()
-                        .concat(StringUtils.isEmpty(minCusNum) ? " " : " and a.cus_num > '" + minCusNum + "' ")
-                        .concat("order by user_key limit ")
+                        .concat(StringUtils.isEmpty(minCusNum) ? " " : " and " + script.getOutputField() + " > " + "'" + minCusNum + "' ")
+                        .concat("order by " + script.getOutputField() + " limit ")
                         .concat(pageSize.toString());
                 List<String> result = null;
                 if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_TIDB.getValue()) {
@@ -258,7 +279,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                         extraCsvNum = 0;
                     }
                 }
-                if (extraDataNum == extraNumTotal) {
+                if (extraDataNum.intValue() == extraNumTotal.intValue()) {
                     break outerLoop;
                 }
             }
@@ -321,7 +342,8 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         String fileName;
         FilePushTaskFileDTO taskFileDTO = new FilePushTaskFileDTO();
         if (StringUtils.isEmpty(suffix)) {
-            fileName = yyyyMMdd.concat(".ok");
+            suffix = "ok";
+            fileName = yyyyMMdd.concat(".").concat(suffix);
         } else {
             fileName = yyyyMMdd.concat("_").concat(suffix).concat(".csv");
         }

@@ -19,6 +19,11 @@ public class MarketingTcyrCpaPushFileScript {
     private String extractScript;
 
     /**
+     * 输出字段
+     */
+    private String outputField;
+
+    /**
      * 数据源：1-tidb；2-doris
      */
     private Integer dataSource;
@@ -65,6 +70,14 @@ public class MarketingTcyrCpaPushFileScript {
 
     public void setExtractScript(String extractScript) {
         this.extractScript = extractScript == null ? null : extractScript.trim();
+    }
+
+    public String getOutputField() {
+        return outputField;
+    }
+
+    public void setOutputField(String outputField) {
+        this.outputField = outputField == null ? null : outputField.trim();
     }
 
     public Integer getDataSource() {

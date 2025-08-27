@@ -27,7 +27,7 @@ public class TcyrCpaPushFileGenJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        if (!marketingCommonConfig.getTcyrCpaPushFileConfig().getBoolean("isPush")) {
+        if (!marketingCommonConfig.getTcyrCpaPushFileConfig().getBoolean("isGen")) {
             return;
         }
         tcyrCpaPushFileService.fileGen();

@@ -538,6 +538,21 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="【bridge】-TcyrCpaPushFileGenJob"
+                class="com.br.marketing.bridge.job.tccpa.TcyrCpaPushFileGenJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="同城易融CPA-推送文件生成任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
 
 
 </beans>
