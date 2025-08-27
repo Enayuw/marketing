@@ -288,6 +288,22 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         actionPool.shutdownAndAwaitTermination();
         //7.补充标识文件
         fwMap.put("ok", genWriter(localPath, yyyyMMdd, null));
+        //8.关闭writer
+        for (ImmutablePair<BufferedWriter, FilePushTaskFileDTO> pair : fwMap.values()) {
+            if (pair == null) {
+                continue;
+            }
+            BufferedWriter writer = pair.getLeft();
+            if (writer == null) {
+                continue;
+            }
+            try {
+                writer.close();
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                        "close writer error", TITLE_GEN));
+            }
+        }
         //8.补充info
         List<FilePushTaskFileDTO> files = fwMap.values().stream()
                 .filter(Objects::nonNull)
@@ -315,18 +331,20 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
      * @param cusNums
      */
     private void writeData(ImmutablePair<BufferedWriter, FilePushTaskFileDTO> pair, List<String> cusNums) {
-        Writer writer = pair.getLeft();
-        FilePushTaskFileDTO taskFileDTO = pair.getRight();
-        for (String cusNum : cusNums) {
-            //csv行
-            StringBuilder line = new StringBuilder();
-            line.append(cusNum).append("\r\n");
-            try {
+        try {
+            Writer writer = pair.getLeft();
+            FilePushTaskFileDTO taskFileDTO = pair.getRight();
+            for (String cusNum : cusNums) {
+                //csv行
+                StringBuilder line = new StringBuilder();
+                line.append(cusNum).append("\r\n");
                 writer.write(line.toString());
                 taskFileDTO.getTotal().incrementAndGet();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
             }
+            writer.flush();
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "文件写入异常", TITLE_GEN));
         }
     }
 
