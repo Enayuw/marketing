@@ -1,12 +1,13 @@
 package com.br.marketing.service.tccpa.impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.tccpa.FilePushTaskFileDTO;
+import com.br.marketing.dto.tccpa.FilePushTaskInfo;
+import com.br.marketing.dto.tccpa.FilePushTaskScriptNumDTO;
 import com.br.marketing.entity.MarketingTcyrCpaPushFileScript;
 import com.br.marketing.entity.MarketingTcyrCpaPushFileScriptExample;
 import com.br.marketing.entity.MarketingTcyrCpaPushFileTask;
@@ -23,6 +24,7 @@ import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.*;
@@ -31,6 +33,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -79,24 +83,67 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         task.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_GENINAG.getValue());
         task.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
         tcyrCpaPushFileTaskMapper.insertSelective(task);
-        //4.文件写入
+        FilePushTaskInfo info = new FilePushTaskInfo();
         try {
-            write(apiCode, localPath, yyyyMMdd);
+            //4.文件写入
+            Boolean isCompleted = write(apiCode, localPath, yyyyMMdd, info);
+            //5.整理并核验info
+            if (isCompleted) {
+                checkInfo(info);
+            }
         } catch (Exception e) {
+            info.setMessage(e.getMessage());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE_GEN), e);
+        }
+        //6.更新推送文件任务
+        MarketingTcyrCpaPushFileTask updateTask = new MarketingTcyrCpaPushFileTask();
+        if (StringUtils.isEmpty(info.getMessage())) {
+            updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_SUCCESS.getValue());
+        } else {
+            updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue());
+        }
+        tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTask);
+    }
 
+    /**
+     * 整理并核验info
+     * @param info
+     */
+    private void checkInfo(FilePushTaskInfo info) {
+        //1.校验标识文件是否生成
+        boolean isOk = info.getFiles().stream()
+                .filter(Objects::nonNull)
+                .anyMatch(file -> "ok".equals(file.getCsvIndex()));
+        if (!isOk) {
+            logWarnAndinfoRecord("未生成标识文件！", info);
+        }
+        //2.核对量级
+        Integer extraNumAct = info.getFiles().stream()
+                .filter(Objects::nonNull) // 过滤空对象
+                .map(FilePushTaskFileDTO::getTotal) // 获取AtomicInteger对象
+                .filter(Objects::nonNull) // 过滤空的AtomicInteger
+                .mapToInt(AtomicInteger::get) // 转换为int值
+                .sum();
+        info.setExtraNumAct(extraNumAct);
+        if (extraNumAct != info.getExtraNumExp()) {
+            logWarnAndinfoRecord(
+                    "期望提取量级：" + info.getExtraNumExp() + ",实际提取量级：" + extraNumAct + "，请核对！", info);
         }
     }
 
     /**
-     * @description 文件写入
+     * 写入主流程
      * @param apiCode
      * @param localPath 服务器路径
-     * @param yyyyMMdd 日期
+     * @param yyyyMMdd  日期
+     * @param info 执行情况
      * @return Boolean 是否成功
+     * @description 文件写入
      * @author hedongshuo
      * @date 2025/8/26 16:19
      **/
-    private Boolean write(String apiCode, String localPath, String yyyyMMdd) throws FileNotFoundException {
+    private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info) throws FileNotFoundException {
         //1.查询提取脚本
         MarketingTcyrCpaPushFileScriptExample scriptExample = new MarketingTcyrCpaPushFileScriptExample();
         scriptExample.createCriteria()
@@ -109,11 +156,10 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                     "未配置提取脚本，请检查！", TITLE_GEN));
             return false;
         }
-        JSONArray info = new JSONArray();
         //2.查询量级
-        Integer queryCountTotal = 0;
+        List<FilePushTaskScriptNumDTO> scriptNumDTOS = new ArrayList<>();
+        Integer scriptNum = 0;
         for (MarketingTcyrCpaPushFileScript script : scripts) {
-            JSONObject json = new JSONObject();
             String extraCountSql = "select count(0) from ("
                     .concat(script.getExtractScript())
                     .concat(") as a");
@@ -123,14 +169,15 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
             } else if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_DORIS.getValue()) {
                 count = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDataCountdoris_(extraCountSql);
             }
-            json.put("priority", script.getPriority());
-            json.put("queryCount", count);
-            info.add(json);
-            queryCountTotal += count;
+            FilePushTaskScriptNumDTO scriptNumDTO = new FilePushTaskScriptNumDTO();
+            scriptNumDTO.setPriority(script.getPriority());
+            scriptNumDTO.setCount(count);
+            scriptNumDTOS.add(scriptNumDTO);
+            scriptNum += count;
         }
-        if (queryCountTotal == 0) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "脚本查询量级为0！", TITLE_GEN));
+        info.setScriptNum(scriptNum);
+        if (scriptNum == 0) {
+            logWarnAndinfoRecord("脚本查询量级为0！", info);
             return false;
         }
         //3.所需配置
@@ -143,20 +190,20 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
             if (!mkdirs) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                        "目录创建失败！", TITLE_GEN));
+                logWarnAndinfoRecord("目录创建失败！", info);
                 return false;
             }
         }
-        //5.文件写入
+        //期望提取量级
+        Integer extraNumExp = Math.min(extraNumTotal, scriptNum);
         //数据提取量级
         Integer extraDataNum = 0;
         //脚本提取量级
         Integer extraCsvNum = 0;
-        StringBuilder fileNames = new StringBuilder();
-        Map<String, Writer> fwMap = new HashMap();
-        for (int i = 1; i <= (extraNumTotal + extraNumSingle - 1) / extraNumSingle; i++) {
-            fwMap.put(String.valueOf(i), genWriter(localPath, yyyyMMdd, "_" + i, fileNames));
+        //5.创建writer池
+        Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
+        for (int i = 1; i <= (extraNumExp  + extraNumSingle - 1) / extraNumSingle; i++) {
+            fwMap.put(String.valueOf(i), genWriter(localPath, yyyyMMdd, String.valueOf(i)));
         }
         //csv索引
         Integer csvIndex = 1;
@@ -194,18 +241,21 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                 Integer finalCsvIndex = csvIndex;
                 if (extraCsvNum + result.size() > extraNumSingle) {
                     List<String> resultThisCsv = result.subList(0, extraNumSingle - extraCsvNum);
-                    futures.add(CompletableFuture.runAsync(() -> writeData(fwMap.get(finalCsvIndex.toString()), resultThisCsv), actionPool));
+                    futures.add(CompletableFuture.runAsync(()
+                            -> writeData(fwMap.get(finalCsvIndex.toString()), resultThisCsv), actionPool));
                     csvIndex++;
                     List<String> resultNextCsv = result.subList(extraNumSingle - extraDataNum, result.size());
                     Integer finalCsvIndexPlus = csvIndex;
-                    futures.add(CompletableFuture.runAsync(() -> writeData(fwMap.get(finalCsvIndexPlus.toString()), resultNextCsv), actionPool));
+                    futures.add(CompletableFuture.runAsync(()
+                            -> writeData(fwMap.get(finalCsvIndexPlus.toString()), resultNextCsv), actionPool));
                     extraCsvNum = resultNextCsv.size();
                 } else {
                     List<String> finalResult = result;
-                    futures.add(CompletableFuture.runAsync(() -> writeData(fwMap.get(finalCsvIndex.toString()), finalResult), actionPool));
+                    futures.add(CompletableFuture.runAsync(()
+                            -> writeData(fwMap.get(finalCsvIndex.toString()), finalResult), actionPool));
                     if (extraCsvNum + result.size() == extraNumSingle) {
-                        extraCsvNum = 0;
                         csvIndex++;
+                        extraCsvNum = 0;
                     }
                 }
                 if (extraDataNum == extraNumTotal) {
@@ -213,16 +263,74 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                 }
             }
         }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        actionPool.shutdownAndAwaitTermination();
+        //7.补充标识文件
+        fwMap.put("ok", genWriter(localPath, yyyyMMdd, null));
+        //8.补充info
+        List<FilePushTaskFileDTO> files = fwMap.values().stream()
+                .filter(Objects::nonNull)
+                .map(ImmutablePair::getRight)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        info.setFiles(files);
         return true;
     }
 
-    private void writeData(Writer fw, List<String> resultThisCsv) {
+    /**
+     * 更新message并告警
+     * @param message
+     * @param info
+     */
+    private void logWarnAndinfoRecord(String message, FilePushTaskInfo info) {
+        info.setMessage(message);
+        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                message, TITLE_GEN));
     }
 
-    private Writer genWriter(String localPath, String yyyyMMdd, String suffix, StringBuilder fileNames) throws FileNotFoundException {
-        String fileName = yyyyMMdd.concat(suffix).concat(".csv");
-        fileNames.append(fileName).append(";");
+    /**
+     * 文件写入
+     * @param pair
+     * @param cusNums
+     */
+    private void writeData(ImmutablePair<BufferedWriter, FilePushTaskFileDTO> pair, List<String> cusNums) {
+        Writer writer = pair.getLeft();
+        FilePushTaskFileDTO taskFileDTO = pair.getRight();
+        for (String cusNum : cusNums) {
+            //csv行
+            StringBuilder line = new StringBuilder();
+            line.append(cusNum).append("\r\n");
+            try {
+                writer.write(line.toString());
+                taskFileDTO.getTotal().incrementAndGet();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
+     * 生成writer及文件信息
+     * @param localPath
+     * @param yyyyMMdd
+     * @param suffix
+     * @return
+     * @throws FileNotFoundException
+     */
+    private ImmutablePair<BufferedWriter, FilePushTaskFileDTO> genWriter(String localPath, String yyyyMMdd, String suffix) throws FileNotFoundException {
+        String fileName;
+        FilePushTaskFileDTO taskFileDTO = new FilePushTaskFileDTO();
+        if (StringUtils.isEmpty(suffix)) {
+            fileName = yyyyMMdd.concat(".ok");
+        } else {
+            fileName = yyyyMMdd.concat("_").concat(suffix).concat(".csv");
+        }
+        taskFileDTO.setCsvIndex(suffix);
+        taskFileDTO.setFileName(fileName);
+        AtomicInteger total = new AtomicInteger(0);
+        taskFileDTO.setTotal(total);
         File file = new File(localPath.concat(fileName));
-        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
+        return ImmutablePair.of(writer, taskFileDTO);
     }
 }
