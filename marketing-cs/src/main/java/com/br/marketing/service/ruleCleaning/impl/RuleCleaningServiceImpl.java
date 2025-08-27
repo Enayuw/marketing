@@ -729,6 +729,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             Boolean isMapping = cleaningRule.getIsMapping();
             String cleanFields = cleaningRule.getCleanFields();
+            String parentPath = cleaningRule.getParentPath();
             Integer isDel = cleaningRule.getIsDel();
             
             if ("9".equals(isDel)) {
@@ -739,7 +740,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 throw new BusinessException("清洗字段不能为空");
             }
             
-            Object fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields);
+            Object fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields, parentPath);
             if (fieldValue == null) {
                 log.warn("未找到字段值: cleanFields={}", cleanFields);
                 return "";

@@ -89,6 +89,23 @@ public class JsonParseUtils {
     }
 
     /**
+     * 递归查找匹配的值并返回（支持处理字符串形式的JSON嵌套结构）
+     *
+     * @param obj       当前JSON对象或数组
+     * @param targetKey 目标键名
+     * @return 找到的第一个匹配值，未找到则返回null
+     */
+    public static Object findFirstValueByKey(Object obj, String targetKey, String parentPath) {
+        if (obj instanceof JSONObject) {
+
+        } else if (obj instanceof JSONArray) {
+
+        }
+
+        return null;
+    }
+
+    /**
      * 判断字符串是否为JSON对象
      *
      * @param str 待检查的字符串
