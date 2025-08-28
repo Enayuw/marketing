@@ -877,7 +877,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 从nodeParse中获取实际值
             if (ObjectUtil.isNotEmpty(nodeParse)) {
                 String fieldName = String.valueOf(ruleMap.get("fieldName"));
-                value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                String parentPath = String.valueOf(ruleMap.get("parentPath"));
+                value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
                 log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
             } else {
                 value = ruleMap.get("fieldValue");
@@ -2341,7 +2342,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                 if (nodeParse != null) {
                     // 从nodeParse中获取字段值
-                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                    String parentPath = String.valueOf(fieldConfig.get("parentPath"));
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
                     log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
                 } else {
                     // 使用规则中的预设值
