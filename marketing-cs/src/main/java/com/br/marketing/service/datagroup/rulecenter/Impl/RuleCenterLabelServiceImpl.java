@@ -1,6 +1,7 @@
 package com.br.marketing.service.datagroup.rulecenter.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -11,6 +12,7 @@ import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
+import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.vo.RuleConditionFactorVo;
 import com.br.marketing.vo.RuleConditionVo;
 import com.google.common.base.Joiner;
@@ -53,6 +55,10 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
 
     @Autowired
     private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
+
+
+    @Resource
+    FlagDataMapper flagDataMapper;
 
     @Override
     public Result<Set<String>> getLabelNames(String apiCode) {
@@ -192,6 +198,46 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
         return new Result<Map<String, Integer>>().setCode(ResultCode.SUCCESS.getValue()).setDate(numMap);
     }
 
+    @Override
+    public Integer scoreMergePreCalculate(PushCustomerDTO dto) {
+
+        JSONObject esCondition = JSON.parseObject(dto.getmRuleCondition());
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(esCondition, "");
+        List<String> batchNumberList = dto.getBatchNumberList();
+
+        // 1. 构建表名列表，与getScoreMergeNum方法保持一致
+        List<String> tableNames = batchNumberList.stream()
+                .map(batchNumber -> "b_score_" + "_" + batchNumber)
+                .collect(Collectors.toList());
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria().andBatchNumberIn(batchNumberList).andApiCodeEqualTo(dto.getApiCode());
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        // 2. 获取所有表的字段信息
+        Map<String, List<String>> tableColumnsMap = new HashMap<>();
+        Map<String, Date> tableUpdateTimeMap = new HashMap<>();
+
+        for (String batchNumber : batchNumberList) {
+            Date updateTime = straHisFiles.stream().filter(straHisFile -> straHisFile.getBatchNumber().equals(batchNumber)).findFirst().get().getUpdateTime();
+            String tableName = "b_score_" + "_" + batchNumber;
+            List<String> columns = flagDataMapper.queryColumnNamebI_(tableName);
+            tableColumnsMap.put(tableName, columns);
+            tableNames.add(tableName);
+        }
+        // 3. 分析字段分布，确定每个字段应该使用哪个表
+        Map<String, String> fieldToTableMap = analyzeFieldDistribution(tableColumnsMap, tableNames);
+        
+        // 4. 处理SQL条件，根据字段分布替换字段前缀
+        String processedSqlCondition = processSqlConditionWithFieldMapping(sqlCondition, fieldToTableMap, tableNames);
+        
+        // 5. 构建多表关联的查询SQL
+        String countSql = buildInnerJoinCountSqlWithCondition(tableNames, "cell", processedSqlCondition);
+        
+        // 6. 执行查询获取统计数量
+        Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+        
+        return count != null ? count : 0;
+    }
+
     /**
      * 构建多表交集统计SQL（INNER JOIN）
      */
@@ -209,6 +255,110 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
                     .append(" ON a.").append(joinColumn)
                     .append(" = ").append(alias).append(".").append(joinColumn);
         }
+        return sql.toString();
+    }
+
+
+    /**
+     * 分析字段分布，确定每个字段应该使用哪个表
+     * 规则：
+     * 1. 如果字段在多个表中都存在，使用最新的表（列表中最后一个）
+     * 2. 如果字段只在一个表中存在，使用该表
+     */
+    private Map<String, String> analyzeFieldDistribution(Map<String, List<String>> tableColumnsMap, List<String> tableNames) {
+        Map<String, String> fieldToTableMap = new HashMap<>();
+        // 收集所有字段
+        Set<String> allFields = new HashSet<>();
+        for (List<String> columns : tableColumnsMap.values()) {
+            allFields.addAll(columns);
+        }
+        
+        // 为每个字段确定使用哪个表
+        for (String field : allFields) {
+            List<String> tablesWithField = new ArrayList<>();
+            // 找出包含该字段的所有表
+            for (String tableName : tableNames) {
+                List<String> columns = tableColumnsMap.get(tableName);
+                if (columns != null && columns.contains(field)) {
+                    tablesWithField.add(tableName);
+                }
+            }
+            
+            if (tablesWithField.size() == 1) {
+                // 只有一个表有该字段，使用该表
+                fieldToTableMap.put(field, tablesWithField.get(0));
+            } else if (tablesWithField.size() > 1) {
+                // 多个表都有该字段，使用最新的表（列表中最后一个）
+                String latestTable = tablesWithField.get(tablesWithField.size() - 1);
+                fieldToTableMap.put(field, latestTable);
+            }
+        }
+        
+        return fieldToTableMap;
+    }
+
+    /**
+     * 根据字段映射处理SQL条件
+     */
+    private String processSqlConditionWithFieldMapping(String sqlCondition, Map<String, String> fieldToTableMap, List<String> tableNames) {
+        if (sqlCondition == null || sqlCondition.trim().isEmpty()) {
+            return "";
+        }
+        
+        String processedCondition = sqlCondition;
+        
+        // 为每个字段替换为对应的表别名.字段名
+        for (Map.Entry<String, String> entry : fieldToTableMap.entrySet()) {
+            String field = entry.getKey();
+            String tableName = entry.getValue();
+            
+            // 获取表对应的别名
+            String tableAlias = getTableAlias(tableName, tableNames);
+            
+            // 使用正则表达式匹配字段名（避免部分匹配）
+            String fieldPattern = "\\b" + field + "\\b";
+            String replacement = tableAlias + "." + field;
+            processedCondition = processedCondition.replaceAll(fieldPattern, replacement);
+        }
+        
+        return processedCondition;
+    }
+
+    /**
+     * 根据表名获取对应的别名
+     */
+    private String getTableAlias(String tableName, List<String> tableNames) {
+        int index = tableNames.indexOf(tableName);
+        if (index >= 0) {
+            return String.valueOf((char) ('a' + index));
+        }
+        return "a"; // 默认返回'a'
+    }
+
+    /**
+     * 构建多表交集统计SQL（INNER JOIN）并添加条件
+     */
+    private String buildInnerJoinCountSqlWithCondition(List<String> tableNames, String joinColumn, String condition) {
+        StringBuilder sql = new StringBuilder();
+        
+        // 主表
+        String mainTable = tableNames.get(0);
+        sql.append("SELECT COUNT(1) FROM ").append(mainTable).append(" a");
+        
+        // 关联其他表
+        for (int i = 1; i < tableNames.size(); i++) {
+            char alias = (char) ('a' + i); // b, c, d, e...
+            sql.append(" INNER JOIN ").append(tableNames.get(i))
+                    .append(" ").append(alias)
+                    .append(" ON a.").append(joinColumn)
+                    .append(" = ").append(alias).append(".").append(joinColumn);
+        }
+        
+        // 添加WHERE条件
+        if (condition != null && !condition.trim().isEmpty()) {
+            sql.append(" WHERE ").append(condition);
+        }
+        
         return sql.toString();
     }
 }

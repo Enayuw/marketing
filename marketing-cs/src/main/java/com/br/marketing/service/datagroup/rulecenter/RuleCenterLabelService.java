@@ -15,4 +15,7 @@ public interface RuleCenterLabelService {
     Result<Boolean> getScoreMergeMark(String batchNumbers,String apiCode);
 
     Result<Map<String, Integer>> getScoreMergeNum(String batchNumbers, String apiCode);
+
+
+    Integer scoreMergePreCalculate(PushCustomerDTO dto);
 }

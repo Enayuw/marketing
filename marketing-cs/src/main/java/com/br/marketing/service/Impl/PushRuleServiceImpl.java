@@ -79,6 +79,7 @@ import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceIm
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
@@ -273,6 +274,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
+    @Resource
+    private RuleCenterLabelService ruleCenterLabelService;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -639,6 +643,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
+        //合并跑分计算
+        if(dto.getScoreMerge()){
+            Integer totalNum = ruleCenterLabelService.scoreMergePreCalculate(dto);
+            pushViewVO.setTotal(totalNum);
+            return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+        }
+
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));

@@ -80,6 +80,9 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "标签字段名称")
     private String labelName;
 
+    @ApiModelProperty(value = "跑分是否合并")
+    private Boolean isScoreMerge;
+
 
     public Integer getmPrePlanNum() {
         return mPrePlanNum;
@@ -231,5 +234,14 @@ public class PushCustomerDTO {
 
     public void setLabelName(String labelName) {
         this.labelName = labelName;
+    }
+
+
+    public Boolean getScoreMerge() {
+        return isScoreMerge;
+    }
+
+    public void setScoreMerge(Boolean scoreMerge) {
+        isScoreMerge = scoreMerge;
     }
 }
