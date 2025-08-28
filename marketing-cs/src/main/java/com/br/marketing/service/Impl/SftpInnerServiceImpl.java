@@ -119,9 +119,7 @@ public class SftpInnerServiceImpl {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public Result pushInnerSftp(String innerPath, String outerPath, List<String> fileNames) {
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        String uploadPath = upLoadPath.concat(outerPath).concat(yyyyMMdd);
+    public Result pushInnerSftp(String innerPath, String uploadPath, List<String> fileNames) {
         SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
         try {
             sftpClient.connect();

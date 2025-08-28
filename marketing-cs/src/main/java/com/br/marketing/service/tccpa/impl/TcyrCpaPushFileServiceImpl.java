@@ -27,6 +27,7 @@ import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.*;
@@ -41,6 +42,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
+
+    @Value("${innerSftp.uploadpath:00}")
+    private String upLoadPath;
 
     private final static String TITLE_GEN = "【同程易融CPA-推送文件数据生成】";
 
@@ -137,9 +141,11 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         List<String> fileNames = info.getFiles().stream()
                 .map(FilePushTaskFileDTO::getFileName)
                 .collect(Collectors.toList());
-        sftpInnerService.pushInnerSftp(localPath, apiCode.concat(FILE_PATH), fileNames);
+        String uploadPath = upLoadPath.concat(apiCode).concat(FILE_PATH).concat(yyyyMMdd);
+        sftpInnerService.pushInnerSftp(localPath, uploadPath, fileNames);
         MarketingTcyrCpaPushFileTask updateTaskPutInnerSftp = new MarketingTcyrCpaPushFileTask();
         updateTaskPutInnerSftp.setId(task.getId());
+        updateTaskPutInnerSftp.setInnerSftpPath(uploadPath);
         updateTaskPutInnerSftp.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue());
         tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTaskPutInnerSftp);
     }

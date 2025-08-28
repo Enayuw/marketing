@@ -6,7 +6,6 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
 
 /**
@@ -17,7 +16,7 @@ import javax.annotation.Resource;
  **/
 @Component
 @Slf4j
-public class TcyrCpaPushFileGenJob extends AbstractSimpleElasticJob {
+public class TcCpaPushFileGenJob extends AbstractSimpleElasticJob {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
