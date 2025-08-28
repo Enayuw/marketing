@@ -160,7 +160,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 }
             // 携程定制逻辑
             if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
-                if (isMockData(callRecord)) {
+                if (isMockData(callRecord) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(apiCode)) {
                     sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
                             MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
                             callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());

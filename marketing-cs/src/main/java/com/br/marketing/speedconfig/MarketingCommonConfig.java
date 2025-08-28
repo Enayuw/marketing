@@ -3342,5 +3342,10 @@ public class MarketingCommonConfig {
      * 携程挡板上报延迟（单位：秒）
      */
     private Integer xieChengReportMockDelaySeconds;
+
+    /**
+     * 携程CPA-apiCode集合
+     */
+    private List<String> xieChengCpaApiCodeList;
 }
 
