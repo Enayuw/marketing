@@ -17,6 +17,7 @@ import com.br.marketing.enums.TcCpaPushFileScriptPriorityEnum;
 import com.br.marketing.enums.TcCpaPushFileTaskStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileScriptMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileTaskMapper;
+import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.tccpa.TcyrCpaPushFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -45,6 +46,8 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
 
     private final static String TITLE_SYNC = "【同程易融CPA-推送文件数据同步】";
 
+    private final static String FILE_PATH = "/tongcheng_cpa_push_file/";
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Resource
@@ -58,6 +61,9 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
 
     @Resource
     SyncConfigService syncConfigService;
+
+    @Resource
+    private SftpInnerServiceImpl sftpInnerService;
 
     @Override
     public void fileGen() {
@@ -74,14 +80,15 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         }
         //2.服务器路径
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-//        String localPath = syncConfigService.getPath()
+        String localPath = syncConfigService.getPath()
+                .concat(apiCode)
+                .concat(FILE_PATH)
+                .concat(yyyyMMdd)
+                .concat("/");
+//        String localPath = "D:/"
 //                .concat("tongcheng_cpa_push_file/")
 //                .concat(yyyyMMdd)
 //                .concat("/");
-        String localPath = "D:/"
-                .concat("tongcheng_cpa_push_file/")
-                .concat(yyyyMMdd)
-                .concat("/");
         //3.新增一条推送文件任务
         MarketingTcyrCpaPushFileTask task = new MarketingTcyrCpaPushFileTask();
         task.setApiCode(apiCode);
@@ -111,16 +118,30 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                     e.getMessage(), TITLE_GEN), e);
         }
         //6.更新推送文件任务
-        MarketingTcyrCpaPushFileTask updateTask = new MarketingTcyrCpaPushFileTask();
-        updateTask.setId(task.getId());
-        updateTask.setTotal(info.getExtraNumAct());
-        updateTask.setInfo(infoString);
+        MarketingTcyrCpaPushFileTask updateTaskGen = new MarketingTcyrCpaPushFileTask();
+        updateTaskGen.setId(task.getId());
+        updateTaskGen.setTotal(info.getExtraNumAct());
+        updateTaskGen.setInfo(infoString);
         if (StringUtils.isEmpty(info.getMessage())) {
-            updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_SUCCESS.getValue());
+            updateTaskGen.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_SUCCESS.getValue());
         } else {
-            updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue());
+            updateTaskGen.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "文件生成异常，请检查！", TITLE_GEN));
         }
-        tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTask);
+        tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTaskGen);
+        if (updateTaskGen.getStatus() == TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue()) {
+            return;
+        }
+        //7.上传至内部sftp
+        List<String> fileNames = info.getFiles().stream()
+                .map(FilePushTaskFileDTO::getFileName)
+                .collect(Collectors.toList());
+        sftpInnerService.pushInnerSftp(localPath, apiCode.concat(FILE_PATH), fileNames);
+        MarketingTcyrCpaPushFileTask updateTaskPutInnerSftp = new MarketingTcyrCpaPushFileTask();
+        updateTaskPutInnerSftp.setId(task.getId());
+        updateTaskPutInnerSftp.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue());
+        tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTaskPutInnerSftp);
     }
 
     /**
