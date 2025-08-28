@@ -2,21 +2,21 @@ package com.br.marketing.service.tccpa.impl;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tccpa.FilePushTaskFileDTO;
 import com.br.marketing.dto.tccpa.FilePushTaskInfo;
 import com.br.marketing.dto.tccpa.FilePushTaskScriptNumDTO;
-import com.br.marketing.entity.MarketingTcyrCpaPushFileScript;
-import com.br.marketing.entity.MarketingTcyrCpaPushFileScriptExample;
-import com.br.marketing.entity.MarketingTcyrCpaPushFileTask;
-import com.br.marketing.entity.MarketingTcyrCpaPushFileTaskExample;
+import com.br.marketing.entity.*;
+import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.enums.TcCpaIsDelEnum;
 import com.br.marketing.enums.TcCpaPushFileScriptPriorityEnum;
 import com.br.marketing.enums.TcCpaPushFileTaskStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileScriptMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileTaskMapper;
+import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.tccpa.TcyrCpaPushFileService;
@@ -62,6 +62,9 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
 
     @Resource
     private MarketingTcyrCpaPushFileScriptMapper tcyrCpaPushFileScriptMapper;
+
+    @Resource
+    SyncConfigMapper syncConfigMapper;
 
     @Resource
     SyncConfigService syncConfigService;
@@ -148,6 +151,43 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         updateTaskPutInnerSftp.setInnerSftpPath(uploadPath);
         updateTaskPutInnerSftp.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue());
         tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTaskPutInnerSftp);
+    }
+
+    @Override
+    public void fileSync() {
+        String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
+        //1.查询今天是否有待同步文件任务
+        MarketingTcyrCpaPushFileTaskExample taskExample = new MarketingTcyrCpaPushFileTaskExample();
+        taskExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andPushDateEqualTo(new Date())
+                .andStatusEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_OPE_SFTP.getValue())
+                .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
+        List<MarketingTcyrCpaPushFileTask> tasks = tcyrCpaPushFileTaskMapper.selectByExample(taskExample);
+        if (tasks.size() == 0) {
+            return;
+        }
+        for (MarketingTcyrCpaPushFileTask task : tasks) {
+            fileSyncProcess(task);
+        }
+    }
+
+
+    private void fileSyncProcess(MarketingTcyrCpaPushFileTask task) {
+        //1.查询sftp配置
+        SyncConfigExample syncConfigExample = new SyncConfigExample();
+        syncConfigExample.createCriteria()
+                .andApiCodeEqualTo(task.getApiCode())
+                .andStatusEqualTo(1)
+                .andTypeEqualTo(2)
+                .andDataTypeEqualTo(DataTypeEnum.TC_CPA_PUSH_FILE.getValue())
+                .andCustomizedTypeEqualTo(SyncConfigCustomizedTypeEnum.TC_CPA_PUSH_FILE.getCode());
+        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
+        if (CollectionUtils.isEmpty(syncConfigs)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "未找到sftp配置，请检查！", TITLE_SYNC));
+        }
+        SyncConfig syncConfig = syncConfigs.get(0);
     }
 
     /**
