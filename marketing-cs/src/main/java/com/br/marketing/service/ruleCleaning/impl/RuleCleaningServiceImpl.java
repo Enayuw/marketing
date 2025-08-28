@@ -2275,38 +2275,114 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<List<RuleCleaningResult>> assembleCleanResult(String jsonData, Integer actualNum, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDTO marketingPreUserDTO){
         List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
         List<MarketingPreUserDetailDTO> preUserDetailDTOS = marketingPreUserDTO.getDataItems();
-        //获取字段映射关系
-        Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
-        for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
-            cleaningToMappingFieldMap.put(ruleConfig.getMappingField(),ruleConfig.getCleanFields());
-        }
+        // 获取字段映射关系和父路径
+        Map<String, MarketingDataCleanGeneralRuleConfig> ruleMap = ruleConfigList.stream()
+            .collect(Collectors.toMap(
+                MarketingDataCleanGeneralRuleConfig::getMappingField,
+                rule -> rule,
+                (existing, replacement) -> existing
+            ));
+
         JSONObject jsonObject = JSON.parseObject(jsonData);
         List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
-        if (cleaningToMappingFieldMap.containsKey("dataItems")){
-            JSONArray dataItems = jsonObject.getJSONArray(cleaningToMappingFieldMap.get("dataItems"));
-            cleaningToMappingFieldMap.remove("dataItems");
+        
+        // 检查是否有dataItems规则
+        MarketingDataCleanGeneralRuleConfig dataItemsRule = ruleMap.get("dataItems");
+        if (dataItemsRule != null) {
+            JSONArray dataItems = jsonObject.getJSONArray(dataItemsRule.getCleanFields());
+            ruleMap.remove("dataItems");
             int size = actualNum > dataItems.size() ? dataItems.size() : actualNum;
+            
             for (int i = 0; i < size; i++) {
                 JSONObject item = dataItems.getJSONObject(i);
-                MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, "custNum")).toString())).findFirst().orElse(null);
-                for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
+                
+                // 获取custNum，使用规则中的parentPath
+                MarketingDataCleanGeneralRuleConfig custNumRule = ruleMap.get("custNum");
+                Object custNumObj = JsonParseUtils.findFirstValueByKey(
+                    item, 
+                    "custNum",
+                    custNumRule != null ? custNumRule.getParentPath() : ""
+                );
+                String custNum = custNumObj != null ? custNumObj.toString() : null;
+                
+                MarketingPreUserDetailDTO result = preUserDetailDTOS.stream()
+                    .filter(detail -> detail.getCustNum().equals(custNum))
+                    .findFirst()
+                    .orElse(null);
+                
+                for (Map.Entry<String, MarketingDataCleanGeneralRuleConfig> entry : ruleMap.entrySet()) {
                     RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
-                    ruleCleaningResult.setCleanFields(entry.getValue());
-                    ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getKey())).toString());
+                    MarketingDataCleanGeneralRuleConfig rule = entry.getValue();
+                    
+                    ruleCleaningResult.setCleanFields(rule.getCleanFields());
                     ruleCleaningResult.setMappingField(entry.getKey());
-                    ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
+                    
+                    // 获取清洗值
+                    Object cleanValue = JsonParseUtils.findFirstValueByKey(
+                        item, 
+                        entry.getKey(),
+                        rule.getParentPath()
+                    );
+                    ruleCleaningResult.setCleanValue(
+                        cleanValue != null ? cleanValue.toString() : ""
+                    );
+                    
+                    // 获取映射值
+                    Object mappingValue = JsonParseUtils.findFirstValueByKey(
+                        JSON.toJSON(result), 
+                        rule.getCleanFields(),
+                        rule.getParentPath()
+                    );
+                    ruleCleaningResult.setMappingValue(
+                        mappingValue != null ? mappingValue.toString() : ""
+                    );
+                    
                     cleaningResultItems.add(ruleCleaningResult);
                 }
                 cleaningResults.add(cleaningResultItems);
             }
-        }else {
-            MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, "custNum")).toString())).findFirst().orElse(null);
-            for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
+        } else {
+            // 获取custNum，使用规则中的parentPath
+            MarketingDataCleanGeneralRuleConfig custNumRule = ruleMap.get("custNum");
+            Object custNumObj = JsonParseUtils.findFirstValueByKey(
+                jsonObject, 
+                "custNum",
+                custNumRule != null ? custNumRule.getParentPath() : ""
+            );
+            String custNum = custNumObj != null ? custNumObj.toString() : null;
+            
+            MarketingPreUserDetailDTO result = preUserDetailDTOS.stream()
+                .filter(detail -> detail.getCustNum().equals(custNum))
+                .findFirst()
+                .orElse(null);
+            
+            for (Map.Entry<String, MarketingDataCleanGeneralRuleConfig> entry : ruleMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
-                ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey())).toString());
+                MarketingDataCleanGeneralRuleConfig rule = entry.getValue();
+                
+                ruleCleaningResult.setCleanFields(rule.getCleanFields());
                 ruleCleaningResult.setMappingField(entry.getKey());
-                ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
+                
+                // 获取清洗值
+                Object cleanValue = JsonParseUtils.findFirstValueByKey(
+                    jsonObject, 
+                    entry.getKey(),
+                    rule.getParentPath()
+                );
+                ruleCleaningResult.setCleanValue(
+                    cleanValue != null ? cleanValue.toString() : ""
+                );
+                
+                // 获取映射值
+                Object mappingValue = JsonParseUtils.findFirstValueByKey(
+                    JSON.toJSON(result), 
+                    rule.getCleanFields(),
+                    rule.getParentPath()
+                );
+                ruleCleaningResult.setMappingValue(
+                    mappingValue != null ? mappingValue.toString() : ""
+                );
+                
                 cleaningResultItems.add(ruleCleaningResult);
             }
             cleaningResults.add(cleaningResultItems);
