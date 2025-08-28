@@ -2107,8 +2107,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
         //获取字段映射关系
         Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
+        Map<String, String> parentPathMap = new HashMap<>();
         for (Map.Entry<String, MarketingDataCleanGeneralRuleConfig> entry : ruleConfigMap.entrySet()) {
-            cleaningToMappingFieldMap.put(entry.getKey(),entry.getValue().getCleanFields());
+            cleaningToMappingFieldMap.put(entry.getKey(), entry.getValue().getCleanFields());
+            parentPathMap.put(entry.getKey(), entry.getValue().getParentPath());
         }
         //解析jsonData，获取清洗字段及其原始值
         JSONObject jsonObject = JSON.parseObject(syncInfo.getJsonData());
@@ -2118,15 +2120,39 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
             JSONObject item = dataItems.getJSONObject(i);
             item.put("taskId",syncInfo.getCusBatch());
-            Object custNumObj = JsonParseUtils.findFirstValueByKey(item, "custNum");
+            
+            // 修改：使用parentPath获取custNum
+            String custNumParentPath = parentPathMap.get("custNum");
+            Object custNumObj = JsonParseUtils.findFirstValueByKey(item, "custNum", custNumParentPath != null ? custNumParentPath : "");
             String custNum = Objects.nonNull(custNumObj) ? custNumObj.toString() : null;
-            MarketingSyncUser result = marketingSyncInfoByRequestBatch.stream().filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum)).findFirst().orElse(null);
+            
+            MarketingSyncUser result = marketingSyncInfoByRequestBatch.stream()
+                .filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum))
+                .findFirst()
+                .orElse(null);
+            
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(item, entry.getValue())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getValue())).toString() : "");
+                
+                // 修改：使用parentPath获取cleanValue
+                String cleanParentPath = parentPathMap.get(entry.getKey());
+                Object cleanValueObj = JsonParseUtils.findFirstValueByKey(item, entry.getValue(), cleanParentPath != null ? cleanParentPath : "");
+                ruleCleaningResult.setCleanValue(
+                    ObjectUtil.isNotEmpty(cleanValueObj) ? 
+                    Objects.requireNonNull(cleanValueObj).toString() : ""
+                );
+                
                 ruleCleaningResult.setMappingField(entry.getKey());
-                ruleCleaningResult.setMappingValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())).toString() : "");
+
+                // 修改：使用parentPath获取mappingValue
+                String mappingParentPath = parentPathMap.get(entry.getKey());
+                Object mappingValueObj = JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey(), mappingParentPath != null ? mappingParentPath : "");
+                ruleCleaningResult.setMappingValue(
+                    ObjectUtil.isNotEmpty(mappingValueObj) ? 
+                    Objects.requireNonNull(mappingValueObj).toString() : ""
+                );
+                
                 cleaningResultItems.add(ruleCleaningResult);
             }
             cleaningResults.add(cleaningResultItems);
