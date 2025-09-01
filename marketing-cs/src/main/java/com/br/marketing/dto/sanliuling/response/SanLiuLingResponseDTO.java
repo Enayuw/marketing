@@ -40,7 +40,6 @@ public class SanLiuLingResponseDTO implements Serializable {
         SUCCESS(0, "成功"),
         FAILED_PARAM_ERROR(400, "失败,参数校验错误"),
         FAILED_SYSTEM_ERROR(500, "失败,系统异常"),
-        FAILED_BIZ_ERROR(501, "失败，业务异常"),
         ;
 
         private int code;

@@ -3341,5 +3341,12 @@ public class MarketingCommonConfig {
      * #短信回调入队ApiCode配置
      */
     private List<String> smsCallBackDataPushMqApiCodes;
+
+    /**
+     * 360客制化传输数据配置
+     * {"uploadApiCode":"3710196","cipherMode":"CBC","paddingScheme":"PKCS5Padding","dynamicKeys":"fC8tzaLDItGjIjOr"}
+     */
+    private JSONObject sanLiuLingCustomizeDataConfig;
+
 }
 
