@@ -286,7 +286,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         info.setExtraNumExp(extraNumExp);
         //数据提取量级
         Integer extraDataNum = 0;
-        //脚本提取量级
+        //文件提取量级
         Integer extraCsvNum = 0;
         //5.创建writer池
         Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
@@ -326,25 +326,24 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                 minCusNum = result.get(result.size() - 1);
                 extraDataNum = extraDataNum + result.size();
                 //判断可写入文件的量级
-                Integer finalCsvIndex = csvIndex;
-                if (extraCsvNum + result.size() > extraNumSingle) {
+                while (extraCsvNum + result.size() > extraNumSingle) {
                     List<String> resultThisCsv = result.subList(0, extraNumSingle - extraCsvNum);
+                    Integer subCsvIndex = csvIndex;
                     futures.add(CompletableFuture.runAsync(()
-                            -> writeData(fwMap.get(finalCsvIndex.toString()), resultThisCsv), actionPool));
+                            -> writeData(fwMap.get(subCsvIndex.toString()), resultThisCsv), actionPool));
+                    result = result.subList(extraNumSingle - extraCsvNum, result.size());
                     csvIndex++;
-                    List<String> resultNextCsv = result.subList(extraNumSingle - extraDataNum, result.size());
-                    Integer finalCsvIndexPlus = csvIndex;
-                    futures.add(CompletableFuture.runAsync(()
-                            -> writeData(fwMap.get(finalCsvIndexPlus.toString()), resultNextCsv), actionPool));
-                    extraCsvNum = resultNextCsv.size();
+                    extraCsvNum = 0;
+                }
+                List<String> finalResult = result;
+                Integer finalCsvIndex = csvIndex;
+                futures.add(CompletableFuture.runAsync(()
+                        -> writeData(fwMap.get(finalCsvIndex.toString()), finalResult), actionPool));
+                if (extraCsvNum + result.size() == extraNumSingle) {
+                    csvIndex++;
+                    extraCsvNum = 0;
                 } else {
-                    List<String> finalResult = result;
-                    futures.add(CompletableFuture.runAsync(()
-                            -> writeData(fwMap.get(finalCsvIndex.toString()), finalResult), actionPool));
-                    if (extraCsvNum + result.size() == extraNumSingle) {
-                        csvIndex++;
-                        extraCsvNum = 0;
-                    }
+                    extraCsvNum = extraCsvNum + result.size();
                 }
                 if (extraDataNum.intValue() == extraNumTotal.intValue()) {
                     break outerLoop;
