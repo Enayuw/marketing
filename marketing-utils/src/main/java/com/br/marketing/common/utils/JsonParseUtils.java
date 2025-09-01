@@ -110,15 +110,8 @@ public class JsonParseUtils {
      * @return 找到的第一个匹配值，未找到则返回null
      */
     private static Object findFirstValueByKeyWithPath(Object obj, String targetKey, String parentPath, String currentPath) {
-        // 处理特殊的父节点路径
-        String expectedPath = StringUtils.isNotBlank(parentPath) ? parentPath : "";
-        if (expectedPath.contains("dataItems")) {
-            expectedPath = expectedPath.replace("dataItems", "");
-        } else if (expectedPath.contains("dataItems.item")) {
-            expectedPath = expectedPath.replace("dataItems.item", "");
-        }
-        // 去除开头和结尾的点
-        expectedPath = expectedPath.replaceAll("^\\.|\\.$", "");
+        String expectedPath = processNodePaths(parentPath);
+        currentPath = processNodePaths(currentPath);
 
         if (obj instanceof JSONObject) {
             JSONObject jsonObj = (JSONObject) obj;
@@ -370,5 +363,30 @@ public class JsonParseUtils {
 
         return false;
     }
+
+    /**
+     * 检查JSON对象或数组是否包含指定名称的数组
+     *
+     * @param obj JSON对象或数组
+     * @param arrayName 要查找的数组名称
+     * @return 是否包含指定数组
+     */
+    private static String processNodePaths(String arrayName) {
+        // 处理特殊的父节点路径
+        String expectedPath = StringUtils.isNotBlank(arrayName) ? arrayName : "";
+        if (expectedPath.contains("dataItems")) {
+            expectedPath = expectedPath.replace("dataItems", "");
+        } else if (expectedPath.contains("dataItems.item.")) {
+            expectedPath = expectedPath.replace("dataItems.item.", "");
+        }  else if (expectedPath.contains("item.")) {
+            expectedPath = expectedPath.replace("item.", "");
+        }
+        // 去除开头和结尾的点
+        expectedPath = expectedPath.replaceAll("^\\.|\\.$", "");
+
+        return expectedPath;
+    }
+
+
 
 }

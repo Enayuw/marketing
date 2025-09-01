@@ -1,11 +1,8 @@
 package com.br.marketing.innerapi.controller;
 
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
@@ -54,16 +51,8 @@ public class RuleCleaningController {
             @RequestParam(required = false) String accountType,
             @RequestParam(required = false) Integer acceptType) {
         
-        try {
-            PageResultReturn pageResultReturn = ruleCleaningService.getRuleList(current, size, apiCode, accountType, acceptType);
-            return new ApiResult<PageResultReturn>().success(pageResultReturn);
-        } catch (BusinessException be) {
-            return new ApiResult<PageResultReturn>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "获取规则列表接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
-        }
+        PageResultReturn pageResultReturn = ruleCleaningService.getRuleList(current, size, apiCode, accountType, acceptType);
+        return new ApiResult<PageResultReturn>().success(pageResultReturn);
     }
 
     @GetMapping("/getRuleDetailById")
@@ -73,19 +62,11 @@ public class RuleCleaningController {
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
     public ApiResult<MarketingDataCleanGeneralConfig> getRuleDetailById(@RequestParam("ruleId") Long ruleId) {
-        try {
-            MarketingDataCleanGeneralConfig ruleDetail = ruleCleaningService.getRuleDetailById(ruleId);
-            if (ruleDetail == null) {
-                return new ApiResult<MarketingDataCleanGeneralConfig>().fail("规则不存在");
-            }
-            return new ApiResult<MarketingDataCleanGeneralConfig>().success(ruleDetail);
-        } catch (BusinessException be) {
-            return new ApiResult<MarketingDataCleanGeneralConfig>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "根据规则ID查询规则明细接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<MarketingDataCleanGeneralConfig>().fail(ServiceResultEnum.FAILED);
+        MarketingDataCleanGeneralConfig ruleDetail = ruleCleaningService.getRuleDetailById(ruleId);
+        if (ruleDetail == null) {
+            throw new BusinessException("规则不存在");
         }
+        return new ApiResult<MarketingDataCleanGeneralConfig>().success(ruleDetail);
     }
 
     @GetMapping("/getPreviewFieldSamples")
@@ -101,16 +82,8 @@ public class RuleCleaningController {
             @RequestParam Integer dataType,
             @RequestParam Integer acceptType) {
 
-        try {
-            List<FieldSampleDTO> fieldSamples = ruleCleaningService.getPreviewFieldSamples(apiCode, dataType, acceptType);
-            return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
-        } catch (BusinessException be) {
-            return new ApiResult<List<FieldSampleDTO>>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "获取字段样例接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<List<FieldSampleDTO>>().fail(ServiceResultEnum.FAILED);
-        }
+        List<FieldSampleDTO> fieldSamples = ruleCleaningService.getPreviewFieldSamples(apiCode, dataType, acceptType);
+        return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
     }
 
 
@@ -128,16 +101,8 @@ public class RuleCleaningController {
             @RequestParam Integer dataType,
             @RequestParam Integer acceptType) {
         
-        try {
-            List<FieldSampleDTO> fieldSamples = ruleCleaningService.getFieldSamples(apiCode, dataType, acceptType);
-            return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
-        } catch (BusinessException be) {
-            return new ApiResult<List<FieldSampleDTO>>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "获取字段样例接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<List<FieldSampleDTO>>().fail(ServiceResultEnum.FAILED);
-        }
+        List<FieldSampleDTO> fieldSamples = ruleCleaningService.getFieldSamples(apiCode, dataType, acceptType);
+        return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
     }
 
 
@@ -154,16 +119,8 @@ public class RuleCleaningController {
             @RequestParam Integer dataType,
             @RequestParam Integer acceptType) {
         
-        try {
-            String fieldSamples = ruleCleaningService.getpreviewField(apiCode, dataType, acceptType);
-            return new ApiResult<String>().success().setData(fieldSamples);
-        } catch (BusinessException be) {
-            return new ApiResult<String>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "获取数据预览接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<String>().fail(ServiceResultEnum.FAILED);
-        }
+        String fieldSamples = ruleCleaningService.getpreviewField(apiCode, dataType, acceptType);
+        return new ApiResult<String>().success().setData(fieldSamples);
     }
 
 
@@ -174,18 +131,10 @@ public class RuleCleaningController {
     public ApiResult<Object> previewFieldCleaning(
             @RequestBody @ApiParam(value = "预览请求参数", required = true) FieldCleaningPreviewDTO previewDTO) {
         
-        try {
-            log.info("接收到字段清洗预览请求: {}", previewDTO);
-            Object cleanedData = ruleCleaningService.previewFieldCleaning(previewDTO.getFieldSample(),
-                    previewDTO.getCleaningRule(), null);
-            return new ApiResult<Object>().success(cleanedData);
-        } catch (BusinessException be) {
-            return new ApiResult<Object>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "预览字段清洗结果接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<Object>().fail(ServiceResultEnum.FAILED);
-        }
+        log.info("接收到字段清洗预览请求: {}", previewDTO);
+        Object cleanedData = ruleCleaningService.previewFieldCleaning(previewDTO.getFieldSample(),
+                previewDTO.getCleaningRule(), null);
+        return new ApiResult<Object>().success(cleanedData);
     }
 
 
@@ -193,16 +142,8 @@ public class RuleCleaningController {
     @ApiOperation(value = "模版字段配置保存更新", notes = "模版字段配置保存更新", httpMethod = "POST")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> fieldSaveOrUpdate(@RequestBody CleanFieldConfigVO fieldConfigVO) {
-        try {
-            boolean result = ruleCleaningService.fieldSaveOrUpdate(fieldConfigVO);
-            return new ApiResult<Boolean>().success(result);
-        } catch (BusinessException be) {
-            return new ApiResult<Boolean>().fail(false, be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "模版字段配置保存更新接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
-        }
+        boolean result = ruleCleaningService.fieldSaveOrUpdate(fieldConfigVO);
+        return new ApiResult<Boolean>().success(result);
     }
 
 
@@ -216,16 +157,8 @@ public class RuleCleaningController {
     public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam(required = true) Integer dataType,
                                                                          @RequestParam(required = false) Integer acceptType) {
         
-        try {
-            MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(dataType, acceptType);
-            return new ApiResult<MarketingDataCleanGeneralFieldConfig>().success(fieldConfg);
-        } catch (BusinessException be) {
-            return new ApiResult<MarketingDataCleanGeneralFieldConfig>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "获取模版字段配置接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<MarketingDataCleanGeneralFieldConfig>().fail(ServiceResultEnum.FAILED);
-        }
+        MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(dataType, acceptType);
+        return new ApiResult<MarketingDataCleanGeneralFieldConfig>().success(fieldConfg);
     }
 
     @GetMapping("/getLastMonthDataDates")
@@ -237,16 +170,8 @@ public class RuleCleaningController {
     })
     public ApiResult<List<String>> getLastMonthDataDates(@RequestParam("apiCode") String apiCode, @RequestParam("acceptType") Integer acceptType, @RequestParam(required = false) String sftpPath) {
 
-        try {
-            List<String> result = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
-            return new ApiResult<List<String>>().success(result);
-        }catch (BusinessException be){
-            return new ApiResult<List<String>>().fail(be.getMsg());
-        }catch (Exception e){
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.LASTMONTHDATDDATES_SERVICEERROR.getCode(),
-                    "获取近一个月有数据的日期失败！错误信息：" + e.getMessage()),e);
-            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
-        }
+        List<String> result = ruleCleaningService.getLastMonthDataDates(apiCode, acceptType, sftpPath);
+        return new ApiResult<List<String>>().success(result);
     }
 
 
@@ -254,17 +179,9 @@ public class RuleCleaningController {
     @ApiOperation(value = "清洗配置保存", notes = "清洗配置保存", httpMethod = "POST")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> saveConfig(@RequestBody @Validated CleanConfigDTO configDTO) {
-        try {
-            // 调用Service处理业务逻辑
-            boolean result = ruleCleaningService.saveCleanConfig(configDTO);
-            return new ApiResult<Boolean>().success(result);
-        } catch (BusinessException be) {
-            return new ApiResult<Boolean>().fail(false, be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "规则配置保存接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
-        }
+        // 调用Service处理业务逻辑
+        boolean result = ruleCleaningService.saveCleanConfig(configDTO);
+        return new ApiResult<Boolean>().success(result);
     }
 
 
@@ -276,16 +193,8 @@ public class RuleCleaningController {
 
     })
     public ApiResult<List<String>> getFileSftpPath(@RequestParam("apiCode") String apiCode,@RequestParam("fileType") Integer fileType) {
-        try {
-            List<String> dates = ruleCleaningService.getFileSftpPath(apiCode, fileType);
-            return new ApiResult<List<String>>().success(dates);
-        } catch (BusinessException be) {
-            return new ApiResult<List<String>>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "获取文件SFTP路径失败！错误信息：" + e.getMessage()), e);
-            return new ApiResult<List<String>>().fail(ServiceResultEnum.FAILED);
-        }
+        List<String> dates = ruleCleaningService.getFileSftpPath(apiCode, fileType);
+        return new ApiResult<List<String>>().success(dates);
     }
 
     @GetMapping("/getRuleDetail")
@@ -295,16 +204,8 @@ public class RuleCleaningController {
 
     })
     public ApiResult<List<FieldSampleDTO>> getRuleDetail(@RequestParam("configId") Long configId) {
-        try {
-            List<FieldSampleDTO> ruleDetails = ruleCleaningService.getRuleDetail(configId);
-            return new ApiResult<List<FieldSampleDTO>>().success(ruleDetails);
-        } catch (BusinessException be) {
-            return new ApiResult<List<FieldSampleDTO>>().fail(be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "获取清洗规则配置！错误信息：" + e.getMessage()), e);
-            return new ApiResult<List<FieldSampleDTO>>().fail(ServiceResultEnum.FAILED);
-        }
+        List<FieldSampleDTO> ruleDetails = ruleCleaningService.getRuleDetail(configId);
+        return new ApiResult<List<FieldSampleDTO>>().success(ruleDetails);
     }
 
 
@@ -315,38 +216,21 @@ public class RuleCleaningController {
         // 调用Service处理业务逻辑
         boolean result = ruleCleaningService.saveCleanRule(ruleCleaningConfigDTO);
         return new ApiResult<Boolean>().success(result);
-
     }
 
 
     @PostMapping("/trailProcess")
     @ApiOperation(value = "试跑验证规则有效性",notes = "试跑验证规则有效性",httpMethod = "POST")
     public ApiResult<List<List<RuleCleaningResult>>> trailProcess(@RequestBody RuleTrialConfigDTO ruleTrialConfigDTO){
-        try {
-            Result<List<List<RuleCleaningResult>>> result = ruleCleaningService.trialProcess(ruleTrialConfigDTO);
-            return new ApiResult<List<List<RuleCleaningResult>>>().setData(result.getData()).success(result.getMessage());
-        }catch (BusinessException be) {
-            return new ApiResult<List<List<RuleCleaningResult>>>().fail("",be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "规则试跑接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<List<List<RuleCleaningResult>>>().fail(ServiceResultEnum.FAILED);
-        }
+        Result<List<List<RuleCleaningResult>>> result = ruleCleaningService.trialProcess(ruleTrialConfigDTO);
+        return new ApiResult<List<List<RuleCleaningResult>>>().setData(result.getData()).success(result.getMessage());
     }
 
     @PostMapping("/ruleEffect")
     @ApiOperation(value = "规则生效处理",notes = "规则生效处理",httpMethod = "POST")
     public ApiResult<Boolean> ruleEffect(@RequestParam("ruleId") Long ruleId){
-        try {
-            boolean result = ruleCleaningService.ruleEffect(ruleId);
-            return new ApiResult<Boolean>().success(result);
-        }catch (BusinessException be) {
-            return new ApiResult<Boolean>().fail(false,be.getMsg());
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                    "规则生效处理接口错误！错误信息：" + e.getMessage()), e);
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
-        }
+        boolean result = ruleCleaningService.ruleEffect(ruleId);
+        return new ApiResult<Boolean>().success(result);
     }
 
 }
