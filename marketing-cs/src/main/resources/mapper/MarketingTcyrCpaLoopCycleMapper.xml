@@ -14,7 +14,7 @@
     <update id="updateInfoById">
         UPDATE
             b_tcyr_cpa_loop_cycle
-        SET release_time = #{releaseTime},data_source_type = #{sourceType}
+        SET release_time = #{releaseTime},data_source_type = #{sourceType},extend=#{extend},receive_time = now()
         WHERE
             id = #{id}
     </update>

@@ -12,5 +12,9 @@ public interface MarketingTcyrCpaLoopCycleMapper extends MarketingTcyrCpaLoopCyc
     MarketingTcyrCpaLoopCycle selectByUserKey(@Param("userKey") String userKey, @Param("delStatus") Integer delStatus);
 
 
-    void updateInfoById(@Param("id") Long id, @Param("releaseTime") Date releaseTime, @Param("sourceType") String sourceType);
+    void updateInfoById(@Param("id") Long id,
+                        @Param("releaseTime") Date releaseTime,
+                        @Param("sourceType") String sourceType,
+                        @Param("extend")String extend
+    );
 }
