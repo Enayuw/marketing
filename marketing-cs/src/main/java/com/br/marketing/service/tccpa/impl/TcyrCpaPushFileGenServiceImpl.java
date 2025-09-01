@@ -10,16 +10,13 @@ import com.br.marketing.dto.tccpa.FilePushTaskFileDTO;
 import com.br.marketing.dto.tccpa.FilePushTaskInfo;
 import com.br.marketing.dto.tccpa.FilePushTaskScriptNumDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
-import com.br.marketing.enums.TcCpaIsDelEnum;
-import com.br.marketing.enums.TcCpaPushFileScriptPriorityEnum;
-import com.br.marketing.enums.TcCpaPushFileTaskStatusEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileScriptMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.service.tccpa.TcyrCpaPushFileService;
+import com.br.marketing.service.tccpa.TcyrCpaPushFileGenService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
@@ -41,14 +38,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
+public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService {
 
     @Value("${innerSftp.uploadpath:00}")
     private String upLoadPath;
 
-    private final static String TITLE_GEN = "【同程易融CPA-推送文件数据生成】";
-
-    private final static String TITLE_SYNC = "【同程易融CPA-推送文件数据同步】";
+    private final static String TITLE = "【同程易融CPA-推送文件数据生成】";
 
     private final static String FILE_PATH = "/tongcheng_cpa_push_file/";
 
@@ -64,9 +59,6 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
     private MarketingTcyrCpaPushFileScriptMapper tcyrCpaPushFileScriptMapper;
 
     @Resource
-    SyncConfigMapper syncConfigMapper;
-
-    @Resource
     SyncConfigService syncConfigService;
 
     @Resource
@@ -80,6 +72,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         taskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andPushDateEqualTo(new Date())
+                .andStatusNotEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue())
                 .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
         List<MarketingTcyrCpaPushFileTask> tasks = tcyrCpaPushFileTaskMapper.selectByExample(taskExample);
         if (tasks.size() > 0) {
@@ -116,13 +109,13 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         } catch (Exception e) {
             info.setMessage(e.getMessage());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    e.getMessage(), TITLE_GEN), e);
+                    e.getMessage(), TITLE), e);
         }
         try {
             infoString = objectMapper.writeValueAsString(info);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    e.getMessage(), TITLE_GEN), e);
+                    e.getMessage(), TITLE), e);
         }
         //6.更新推送文件任务
         MarketingTcyrCpaPushFileTask updateTaskGen = new MarketingTcyrCpaPushFileTask();
@@ -134,7 +127,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         } else {
             updateTaskGen.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "文件生成异常，请检查！", TITLE_GEN));
+                    "文件生成异常，请检查！", TITLE));
         }
         tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTaskGen);
         if (updateTaskGen.getStatus() == TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue()) {
@@ -151,43 +144,6 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         updateTaskPutInnerSftp.setInnerSftpPath(uploadPath);
         updateTaskPutInnerSftp.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue());
         tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTaskPutInnerSftp);
-    }
-
-    @Override
-    public void fileSync() {
-        String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
-        //1.查询今天是否有待同步文件任务
-        MarketingTcyrCpaPushFileTaskExample taskExample = new MarketingTcyrCpaPushFileTaskExample();
-        taskExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andPushDateEqualTo(new Date())
-                .andStatusEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_OPE_SFTP.getValue())
-                .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
-        List<MarketingTcyrCpaPushFileTask> tasks = tcyrCpaPushFileTaskMapper.selectByExample(taskExample);
-        if (tasks.size() == 0) {
-            return;
-        }
-        for (MarketingTcyrCpaPushFileTask task : tasks) {
-            fileSyncProcess(task);
-        }
-    }
-
-
-    private void fileSyncProcess(MarketingTcyrCpaPushFileTask task) {
-        //1.查询sftp配置
-        SyncConfigExample syncConfigExample = new SyncConfigExample();
-        syncConfigExample.createCriteria()
-                .andApiCodeEqualTo(task.getApiCode())
-                .andStatusEqualTo(1)
-                .andTypeEqualTo(2)
-                .andDataTypeEqualTo(DataTypeEnum.TC_CPA_PUSH_FILE.getValue())
-                .andCustomizedTypeEqualTo(SyncConfigCustomizedTypeEnum.TC_CPA_PUSH_FILE.getCode());
-        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
-        if (CollectionUtils.isEmpty(syncConfigs)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "未找到sftp配置，请检查！", TITLE_SYNC));
-        }
-        SyncConfig syncConfig = syncConfigs.get(0);
     }
 
     /**
@@ -237,7 +193,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
         List<MarketingTcyrCpaPushFileScript> scripts = tcyrCpaPushFileScriptMapper.selectByExample(scriptExample);
         if (CollectionUtils.isEmpty(scripts)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "未配置提取脚本，请检查！", TITLE_GEN));
+                    "未配置提取脚本，请检查！", TITLE));
             return false;
         }
         //2.查询量级
@@ -367,7 +323,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
                 writer.close();
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                        "close writer error", TITLE_GEN));
+                        "close writer error", TITLE));
             }
         }
         //8.补充info
@@ -388,7 +344,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
     private void logWarnAndinfoRecord(String message, FilePushTaskInfo info) {
         info.setMessage(message);
         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                message, TITLE_GEN));
+                message, TITLE));
     }
 
     /**
@@ -410,7 +366,7 @@ public class TcyrCpaPushFileServiceImpl implements TcyrCpaPushFileService {
             writer.flush();
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "文件写入异常", TITLE_GEN));
+                    "文件写入异常", TITLE));
         }
     }
 

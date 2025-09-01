@@ -3,16 +3,12 @@ package com.br.marketing.enums;
 /**
  * 推送文件状态枚举
  */
-public enum TcCpaPushFileTaskStatusEnum {
+public enum SyncConfigTypeEnum {
 
-    STATUS_GENINAG(1, "生成中"),
-    STATUS_SUCCESS(2, "生成成功"),
-    STATUS_FAIL(3, "生成失败"),
-    STATUS_INNER_SFTP(4, "同步至内部sftp"),
-    STATUS_OPE_SFTP(5, "同步至运营sftp");
+    STATUS_USABLE(1, "可用"),
+    STATUS_DEL(2, "删除");
 
-
-    TcCpaPushFileTaskStatusEnum(Integer value, String desc){
+    SyncConfigTypeEnum(Integer value, String desc){
         this.value = value;
         this.desc=desc;
     }

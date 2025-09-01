@@ -19,6 +19,7 @@ public enum SyncConfigCustomizedTypeEnum {
      */
     SHUHE_AUTO_MATCH_DATA(1),
 
+    //同程cpa推送文件
     TC_CPA_PUSH_FILE(2);
 
     private final Integer code;
