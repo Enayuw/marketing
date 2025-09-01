@@ -67,7 +67,7 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
                     sourceType = "T";
                     MarketingTcyrCpaLoopCycle oldLoopCycle = loopCycleMapper.selectByUserKey(cpaSuccessData.getUserKey(),TcCpaIsDelEnum.DEL_NO.getValue());
                     if (oldLoopCycle != null) {
-                        loopCycleMapper.updateInfoById(oldLoopCycle.getId(),cpaSuccessData.getEndDate(),sourceType);
+                        loopCycleMapper.updateInfoById(oldLoopCycle.getId(),cpaSuccessData.getEndDate(),sourceType,cpaSuccessData.getExtend());
                     }else {
                         saveTcyrCpaLoopCyle(cpaSuccessData,null,sourceType);
                     }
