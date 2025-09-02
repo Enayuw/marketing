@@ -756,45 +756,21 @@ public class DataCleanServiceImpl implements DataCleanService {
         if(CollectionUtils.isEmpty(syncUserList)){
             return;
         }
-        Map<String, MarketingDataCleanGeneralRuleConfig> ruleMap = ruleList.stream().collect(
-                Collectors.toMap(
-                        MarketingDataCleanGeneralRuleConfig::getMappingField,
-                        rule -> rule,
-                        (existing, replacement) -> existing
-                ));
+        Map<String,String> ruleMap =  ruleList.stream().collect(Collectors.toMap(MarketingDataCleanGeneralRuleConfig::getMappingField,
+                MarketingDataCleanGeneralRuleConfig::getCleanFields, (existing, replacement) -> existing));
         //组装数据
         int size = actualNum > jsonObjects.size() ? jsonObjects.size() : actualNum;
         for (int i = 0; i < size; i++) {
             List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
             JSONObject item = jsonObjects.get(i);
-            MarketingDataCleanGeneralRuleConfig custNumRule = ruleMap.get("custNum");
-            String custNum = (String) JsonParseUtils.findFirstValueByKey(
-                    item,
-                    custNumRule.getCleanFields(),
-                    custNumRule.getParentPath()
-            );
-            MarketingSyncUser result = syncUserList.stream()
-                    .filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum))
-                    .findFirst()
-                    .orElse(null);
-            ruleMap.forEach((mappingField, rule) -> {
+            String custNum = (String) JsonParseUtils.findFirstValueByKey(item, ruleMap.get("custNum"));
+            MarketingSyncUser result = syncUserList.stream().filter(marketingSyncUser -> marketingSyncUser.getCustNum().equals(custNum)).findFirst().orElse(null);
+            ruleMap.forEach((mappingField,cleanField)->{
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
-                ruleCleaningResult.setCleanFields(rule.getCleanFields());
-                ruleCleaningResult.setCleanValue(
-                        (String) JsonParseUtils.findFirstValueByKey(
-                                item,
-                                rule.getCleanFields(),
-                                rule.getParentPath()
-                        )
-                );
+                ruleCleaningResult.setCleanFields(cleanField);
+                ruleCleaningResult.setCleanValue((String) JsonParseUtils.findFirstValueByKey(item, cleanField));
                 ruleCleaningResult.setMappingField(mappingField);
-                ruleCleaningResult.setMappingValue(
-                        (String) JsonParseUtils.findFirstValueByKey(
-                                JSON.toJSON(result),
-                                mappingField,
-                                rule.getParentPath()
-                        )
-                );
+                ruleCleaningResult.setMappingValue((String) JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), mappingField));
                 cleaningResultItems.add(ruleCleaningResult);
             });
             resultList.add(cleaningResultItems);
