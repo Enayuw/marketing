@@ -192,8 +192,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         scriptExample.setOrderByClause("priority asc");
         List<MarketingTcyrCpaPushFileScript> scripts = tcyrCpaPushFileScriptMapper.selectByExample(scriptExample);
         if (CollectionUtils.isEmpty(scripts)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "未配置提取脚本，请检查！", TITLE));
+            logWarnAndinfoRecord("未配置提取脚本，请检查！", info);
             return false;
         }
         //2.查询量级
@@ -224,7 +223,6 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         //3.所需配置
         Integer extraNumTotal = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("extraNumTotal");
         Integer extraNumSingle = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("extraNumSingle");
-        Integer pageSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("pageSize");
         Integer threadPoolSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("threadPoolSize");
         info.setExtraNumTotal(extraNumTotal);
         info.setExtraNumSingle(extraNumSingle);
@@ -260,6 +258,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
             //用cus_num卡
             String minCusNum = "";
             for (; ; ) {
+                Integer pageSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("pageSize");
                 String extraSql = script.getExtractScript()
                         .concat(StringUtils.isEmpty(minCusNum) ? " " : " and " + script.getOutputField() + " > " + "'" + minCusNum + "' ")
                         .concat("order by " + script.getOutputField() + " limit ")
