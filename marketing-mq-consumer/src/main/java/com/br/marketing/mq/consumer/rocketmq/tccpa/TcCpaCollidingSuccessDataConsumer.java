@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
         consumerGroup = MarketingTcCpaConstants.GROUP_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
         selectorExpression = MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
-        consumeThreadNumber = 1, consumeThreadMax = 5)
+        consumeThreadMax = 20)
 public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
