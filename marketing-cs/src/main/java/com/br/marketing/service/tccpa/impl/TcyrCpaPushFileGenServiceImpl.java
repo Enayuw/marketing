@@ -207,7 +207,10 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
                 if (!writeSuccess) return false;
             }
             //3.生成标识文件
+            List<String> countResult = null;
+            countResult.add(String.valueOf(fwMap.size()));
             fwMap.put("ok", genWriter(localPath, yyyyMMdd, null));
+            writeData(fwMap.get("ok"), countResult);
         } catch (Exception e) {
             info.setMessage(e.getMessage());
         } finally {
