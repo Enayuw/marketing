@@ -31,4 +31,6 @@ public class FilePushTaskInfo {
     //错误信息
     private String message;
 
+    private Boolean onlyOk;
+
 }

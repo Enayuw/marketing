@@ -80,15 +80,15 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         }
         //2.服务器路径
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        String localPath = syncConfigService.getPath()
-                .concat(apiCode)
-                .concat(FILE_PATH)
-                .concat(yyyyMMdd)
-                .concat("/");
-//        String localPath = "D:/"
-//                .concat("tongcheng_cpa_push_file/")
+//        String localPath = syncConfigService.getPath()
+//                .concat(apiCode)
+//                .concat(FILE_PATH)
 //                .concat(yyyyMMdd)
 //                .concat("/");
+        String localPath = "D:/"
+                .concat("tongcheng_cpa_push_file/")
+                .concat(yyyyMMdd)
+                .concat("/");
         //3.新增一条推送文件任务
         MarketingTcyrCpaPushFileTask task = new MarketingTcyrCpaPushFileTask();
         task.setApiCode(apiCode);
@@ -158,6 +158,9 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         if (!isOk) {
             logWarnAndinfoRecord("未生成标识文件！", info);
         }
+        if (info.getOnlyOk()) {
+            return;
+        }
         //2.核对量级
         Integer extraNumAct = info.getFiles().stream()
                 .filter(Objects::nonNull) // 过滤空对象
@@ -184,6 +187,58 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
      * @date 2025/8/26 16:19
      **/
     private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info) throws FileNotFoundException {
+        Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
+        try {
+            //1.创建目录
+            File writeDic = new File(localPath);
+            if (!writeDic.exists()) {
+                boolean mkdirs = writeDic.mkdirs();
+                if (!mkdirs) {
+                    logWarnAndinfoRecord("目录创建失败！", info);
+                    return false;
+                }
+            }
+            //判断是否生成数据文件
+            Boolean onlyOk = marketingCommonConfig.getTcyrCpaPushFileConfig().getBoolean("onlyOk");
+            info.setOnlyOk(onlyOk);
+            if(!onlyOk){
+                //2.生成数据文件
+                Boolean writeSuccess = writeFile(apiCode, localPath, yyyyMMdd, info, fwMap);
+                if (!writeSuccess) return false;
+            }
+            //3.生成标识文件
+            fwMap.put("ok", genWriter(localPath, yyyyMMdd, null));
+        } catch (Exception e) {
+            info.setMessage(e.getMessage());
+        } finally {
+            //4.关闭writer
+            for (ImmutablePair<BufferedWriter, FilePushTaskFileDTO> pair : fwMap.values()) {
+                if (pair == null) {
+                    continue;
+                }
+                BufferedWriter writer = pair.getLeft();
+                if (writer == null) {
+                    continue;
+                }
+                try {
+                    writer.close();
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                            "close writer error", TITLE));
+                }
+            }
+        }
+        //4.补充info
+        List<FilePushTaskFileDTO> files = fwMap.values().stream()
+                .filter(Objects::nonNull)
+                .map(ImmutablePair::getRight)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        info.setFiles(files);
+        return true;
+    }
+
+    private Boolean writeFile(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info, Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap) throws FileNotFoundException {
         //1.查询提取脚本
         MarketingTcyrCpaPushFileScriptExample scriptExample = new MarketingTcyrCpaPushFileScriptExample();
         scriptExample.createCriteria()
@@ -226,15 +281,6 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         Integer threadPoolSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("threadPoolSize");
         info.setExtraNumTotal(extraNumTotal);
         info.setExtraNumSingle(extraNumSingle);
-        //4.创建目录
-        File writeDic = new File(localPath);
-        if (!writeDic.exists()) {
-            boolean mkdirs = writeDic.mkdirs();
-            if (!mkdirs) {
-                logWarnAndinfoRecord("目录创建失败！", info);
-                return false;
-            }
-        }
         //期望提取量级
         Integer extraNumExp = Math.min(extraNumTotal, scriptNum);
         info.setExtraNumExp(extraNumExp);
@@ -242,14 +288,13 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         Integer extraDataNum = 0;
         //文件提取量级
         Integer extraCsvNum = 0;
-        //5.创建writer池
-        Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
+        //4.创建writer池
         for (int i = 1; i <= (extraNumExp  + extraNumSingle - 1) / extraNumSingle; i++) {
             fwMap.put(String.valueOf(i), genWriter(localPath, yyyyMMdd, String.valueOf(i)));
         }
         //csv索引
         Integer csvIndex = 1;
-        //6.创建线程池
+        //5.创建线程池
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_CPA_PUSH_FILE_GEN.getName(), threadPoolSize, threadPoolSize);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -307,31 +352,6 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         actionPool.shutdownAndAwaitTermination();
-        //7.补充标识文件
-        fwMap.put("ok", genWriter(localPath, yyyyMMdd, null));
-        //8.关闭writer
-        for (ImmutablePair<BufferedWriter, FilePushTaskFileDTO> pair : fwMap.values()) {
-            if (pair == null) {
-                continue;
-            }
-            BufferedWriter writer = pair.getLeft();
-            if (writer == null) {
-                continue;
-            }
-            try {
-                writer.close();
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                        "close writer error", TITLE));
-            }
-        }
-        //8.补充info
-        List<FilePushTaskFileDTO> files = fwMap.values().stream()
-                .filter(Objects::nonNull)
-                .map(ImmutablePair::getRight)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-        info.setFiles(files);
         return true;
     }
 

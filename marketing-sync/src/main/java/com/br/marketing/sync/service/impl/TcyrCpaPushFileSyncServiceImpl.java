@@ -19,15 +19,12 @@ import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.sync.SyncApplication;
-import com.br.marketing.sync.service.SyncService;
 import com.br.marketing.sync.service.TcyrCpaPushFileSyncService;
 import com.br.marketing.util.TimeUtils;
-import com.google.common.base.Splitter;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.*;
 
@@ -48,11 +45,6 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
 
     @Resource
     SyncLogMapper syncLogMapper;
-
-    @Resource
-    private SyncServiceImpl syncServiceImpl;
-
-
 
     @Override
     public void fileSync(String pushDate) {
