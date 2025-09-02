@@ -194,7 +194,6 @@ public class ReportScoreRuleController {
 
     @ApiOperation("查询画像分布模型")
     @GetMapping("/getImageDistribution")
-    @AuthDataControllerPermission
     public ApiResult<String> getImageDistribution() {
         return new ApiResult().fromResult(reportScoreRuleService.getImageDistribution(), CODE_1);
     }

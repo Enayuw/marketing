@@ -160,17 +160,15 @@ public class FixedIntervalStatisticsImpl {
             Object numObj = resultMap.get("num");
             
             // 空值检查
-            if (intervalValue == null || numObj == null) {
-                log.warn(TITLE + "跳过空值记录，model: {}, intervalValue: {}, num: {}", model, intervalValue, numObj);
-                continue;
+            if (intervalValue == null) {
+                log.warn(TITLE + "空区间赋值记录，model: {}, intervalValue: {}, num: {}", model, intervalValue, numObj);
+                intervalValue = "[-1,0)";
             }
-            
-            Integer count;
-            try {
+
+            Integer count = 0;
+            // 空值检查
+            if (numObj != null) {
                 count = ((Long) numObj).intValue();
-            } catch (ClassCastException e) {
-                log.warn(TITLE + "数据类型转换异常，model: {}, numObj: {}, type: {}", model, numObj, numObj.getClass().getSimpleName());
-                continue;
             }
             
             for (ScoreStatisticsDetail detail : statisticsDetails) {
@@ -204,6 +202,18 @@ public class FixedIntervalStatisticsImpl {
                 String xValue = (String) resultMap.get(fieldX);
                 String yValue = (String) resultMap.get(fieldY);
                 Integer count = ((Long) resultMap.get("num")).intValue();
+
+                // 处理空值情况：如果x或y有null的情况，默认将该区间置为[-1,0)
+                if (xValue == null) {
+                    log.warn(TITLE + "X字段空值赋值记录，field: {}, xValue: {}, yValue: {}, num: {}", 
+                            fieldX, xValue, yValue, count);
+                    xValue = "[-1,0)";
+                }
+                if (yValue == null) {
+                    log.warn(TITLE + "Y字段空值赋值记录，field: {}, xValue: {}, yValue: {}, num: {}", 
+                            fieldY, xValue, yValue, count);
+                    yValue = "[-1,0)";
+                }
 
                 actualResults.computeIfAbsent(xValue, k -> new HashMap<>()).put(yValue, count);
             }
@@ -255,11 +265,11 @@ public class FixedIntervalStatisticsImpl {
             for (Map<String, Object> resultMap : results) {
                 Object modelValueObj = resultMap.get(model);
                 Object numObj = resultMap.get("num");
-
                 // 空值检查
-                if (numObj == null) {
-                    log.warn(TITLE + "跳过空值记录，model: {}, modelValue: {}, num: {}", model, modelValueObj, numObj);
-                    continue;
+                Integer count = 0;
+                // 空值检查
+                if (numObj != null) {
+                    count = ((Long) numObj).intValue();
                 }
 
                 ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
@@ -269,14 +279,6 @@ public class FixedIntervalStatisticsImpl {
                     ? "未知" : modelValueObj.toString();
                 statisticsDetail.setFieldXValue(modelValue);
                 statisticsDetail.setFieldYValue(model);
-
-                Integer count;
-                try {
-                    count = ((Long) numObj).intValue();
-                } catch (ClassCastException e) {
-                    log.warn(TITLE + "数据类型转换异常，model: {}, numObj: {}, type: {}", model, numObj, numObj.getClass().getSimpleName());
-                    continue;
-                }
 
                 statisticsDetail.setFieldNum(count);
                 statisticsDetails.add(statisticsDetail);

@@ -160,33 +160,17 @@ public class CustomIntervalStatisticsImpl {
         // 构建X轴CASE WHEN
         sql.append(", CASE ");
         for (IntervalRangeDTO interval : xIntervalList) {
-            sql.append("WHEN ").append(fieldX);
-            if (interval.getMinInclusive()) {
-                sql.append(" >= ").append(interval.getMin());
-            } else {
-                sql.append(" > ").append(interval.getMin());
-            }
-            sql.append(" AND ").append(fieldX);
-            if (interval.getMaxInclusive()) {
-                sql.append(" <= ").append(interval.getMax());
-            } else {
-                sql.append(" < ").append(interval.getMax());
-            }
-            sql.append(" THEN '").append(interval.getText()).append("' ");
-        }
-        sql.append("ELSE 'OUT_OF_RANGE' END AS x_range");
-
-        // 如果是多模型，构建Y轴CASE WHEN
-        if (fieldY != null && !CollectionUtils.isEmpty(yIntervalList)) {
-            sql.append(", CASE ");
-            for (IntervalRangeDTO interval : yIntervalList) {
-                sql.append("WHEN ").append(fieldY);
+            // 如果是[-1,0)区间，先处理空值情况
+            if ("[-1,0)".equals(interval.getText())) {
+                sql.append("WHEN ").append(fieldX).append(" IS NULL THEN '").append(interval.getText()).append("' ");
+            }else{
+                sql.append("WHEN ").append(fieldX);
                 if (interval.getMinInclusive()) {
                     sql.append(" >= ").append(interval.getMin());
                 } else {
                     sql.append(" > ").append(interval.getMin());
                 }
-                sql.append(" AND ").append(fieldY);
+                sql.append(" AND ").append(fieldX);
                 if (interval.getMaxInclusive()) {
                     sql.append(" <= ").append(interval.getMax());
                 } else {
@@ -194,14 +178,37 @@ public class CustomIntervalStatisticsImpl {
                 }
                 sql.append(" THEN '").append(interval.getText()).append("' ");
             }
+        }
+        sql.append("ELSE 'OUT_OF_RANGE' END AS x_range");
+
+        // 如果是多模型，构建Y轴CASE WHEN
+        if (fieldY != null && !CollectionUtils.isEmpty(yIntervalList)) {
+            sql.append(", CASE ");
+            for (IntervalRangeDTO interval : yIntervalList) {
+                // 如果是[-1,0)区间，先处理空值情况
+                if ("[-1,0)".equals(interval.getText())) {
+                    sql.append("WHEN ").append(fieldY).append(" IS NULL THEN '").append(interval.getText()).append("' ");
+                }else {
+                    sql.append("WHEN ").append(fieldY);
+                    if (interval.getMinInclusive()) {
+                        sql.append(" >= ").append(interval.getMin());
+                    } else {
+                        sql.append(" > ").append(interval.getMin());
+                    }
+                    sql.append(" AND ").append(fieldY);
+                    if (interval.getMaxInclusive()) {
+                        sql.append(" <= ").append(interval.getMax());
+                    } else {
+                        sql.append(" < ").append(interval.getMax());
+                    }
+                    sql.append(" THEN '").append(interval.getText()).append("' ");
+                }
+            }
             sql.append("ELSE 'OUT_OF_RANGE' END AS y_range");
         }
 
         sql.append(" FROM (").append(baseSql).append(") a");
-        sql.append(" WHERE ").append(fieldX).append(" IS NOT NULL");
-        if (fieldY != null) {
-            sql.append(" AND ").append(fieldY).append(" IS NOT NULL");
-        }
+        // 移除空值过滤条件，让空值也能被统计到[-1,0)区间中
         sql.append(") ");
 
         // 构建最终查询

@@ -5,10 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingTcCpaConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessData;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
@@ -61,6 +64,9 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
 
     @Autowired
     private RedisChgService redisChgService;
+
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
 
     @Override
     public void shardProcess(String apiCode) {
@@ -157,18 +163,17 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                     successDataItem.setApiCode(apiCode);
                     successDataItem.setBatchNo(batchNo);
                     successDataItem.setSyncFileId(syncFileId);
+                    successDataItem.setOriginText(line);
                     successDataItem.setCreateTime(nowDate);
                     successDataItem.setUpdateTime(nowDate);
                     successDataItem.setStartDate(sdf.parse(customJson.getString("startDate")));
                     successDataItem.setEndDate(sdf.parse(customJson.getString("endDate")));
                     JSONObject extentJson = new JSONObject();
-
                     String[] lineData = line.split(",");
                     if (lineData.length == 0) {
                         successDataItem.setUserKey(line);
                         successDataItem.setStatus(0);
                         successDataItem.setStatusMsg("原始数据异常");
-                        extentJson.put("column_1",line);
                     }else {
                         String userKey = lineData[0].trim();
                         successDataItem.setUserKey(userKey);
@@ -179,9 +184,6 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                             successDataItem.setIsMatch(TcCpaMatchStatusEnum.MATCH_SUCCESS.getValue());
                         }else{
                             successDataItem.setIsMatch(TcCpaMatchStatusEnum.MATCH_NO.getValue());
-                        }
-                        for (int i = 0; i < lineData.length; i++) {
-                            extentJson.put("column_" + (i + 1), lineData[i]);
                         }
                         List<String> tcyrSyncExcludeFieldList = marketingCommonConfig.getTcyrCpaSyncSaveExcludeFieldList();
                         for (String key : customJson.keySet()) {
@@ -196,12 +198,36 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                     tcyrCpaSuccessDataList.add(successDataItem);
                 }
                 tcyrCpaSuccessDataMapper.batchSave(tcyrCpaSuccessDataList);
+                collidingSuccessSyncSendMq(tcyrCpaSuccessDataList);
                 tcyrCpaSuccessDataList.clear();
             }catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         "同程cpa撞库成功数据插入异常，fileId:" + syncFileId + "，lines:" + itemList, TITLE));
             }
         }
+    }
+
+    /**
+     * 发送sendMq
+     * @param tcyrCpaSuccessDataList
+     */
+    private void collidingSuccessSyncSendMq(List<MarketingTcyrCpaSuccessData> tcyrCpaSuccessDataList) {
+        tcyrCpaSuccessDataList.forEach(item -> {
+            Long dataId = item.getId();
+            String requestId = item.getBatchNo()+"_"+item.getSyncFileId()+"_"+ dataId + "_"+System.currentTimeMillis();
+            try {
+                TcyrCpaSuccessMqDTO cpaSuccessMqDTO = new TcyrCpaSuccessMqDTO();
+                cpaSuccessMqDTO.setDataId(dataId);
+                cpaSuccessMqDTO.setRequestId(requestId);
+                String msg = JSONObject.toJSONString(cpaSuccessMqDTO);
+                rocketMqSwitch.syncSend(MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE
+                        , MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE, msg);
+            }catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage()
+                        , "同程CPA撞库成功-发送RocketMq消息异常！requestId:"+requestId), e);
+            }
+            log.warn("同程CPA撞库成功消息下发 requestId:{},dataId:{}", requestId, dataId);
+        });
     }
 
     /**
