@@ -374,12 +374,17 @@ public class JsonParseUtils {
     private static String processNodePaths(String arrayName) {
         // 处理特殊的父节点路径
         String expectedPath = StringUtils.isNotBlank(arrayName) ? arrayName : "";
+        if (expectedPath.contains("dataItems.item.")) {
+            expectedPath = expectedPath.replace("dataItems.item.", "");
+        }
         if (expectedPath.contains("dataItems")) {
             expectedPath = expectedPath.replace("dataItems", "");
-        } else if (expectedPath.contains("dataItems.item.")) {
-            expectedPath = expectedPath.replace("dataItems.item.", "");
-        }  else if (expectedPath.contains("item.")) {
+        }
+        if (expectedPath.contains("item.")) {
             expectedPath = expectedPath.replace("item.", "");
+        }
+        if (expectedPath.contains("item")) {
+            expectedPath = expectedPath.replace("item", "");
         }
         // 去除开头和结尾的点
         expectedPath = expectedPath.replaceAll("^\\.|\\.$", "");
