@@ -1022,6 +1022,76 @@ public class MarketingTcyrCpaSuccessDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andOriginTextIsNull() {
+            addCriterion("origin_text is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextIsNotNull() {
+            addCriterion("origin_text is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextEqualTo(String value) {
+            addCriterion("origin_text =", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotEqualTo(String value) {
+            addCriterion("origin_text <>", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextGreaterThan(String value) {
+            addCriterion("origin_text >", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextGreaterThanOrEqualTo(String value) {
+            addCriterion("origin_text >=", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextLessThan(String value) {
+            addCriterion("origin_text <", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextLessThanOrEqualTo(String value) {
+            addCriterion("origin_text <=", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextLike(String value) {
+            addCriterion("origin_text like", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotLike(String value) {
+            addCriterion("origin_text not like", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextIn(List<String> values) {
+            addCriterion("origin_text in", values, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotIn(List<String> values) {
+            addCriterion("origin_text not in", values, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextBetween(String value1, String value2) {
+            addCriterion("origin_text between", value1, value2, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotBetween(String value1, String value2) {
+            addCriterion("origin_text not between", value1, value2, "originText");
+            return (Criteria) this;
+        }
+
         public Criteria andExtendIsNull() {
             addCriterion("extend is null");
             return (Criteria) this;

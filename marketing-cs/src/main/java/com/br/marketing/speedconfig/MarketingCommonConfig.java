@@ -3333,7 +3333,7 @@ public class MarketingCommonConfig {
     private Boolean aiUseRocketMq;
 
     /**
-     * uMeng 设备注册 每页查询条数
+     * 同程易融cpa撞库失败数据处理配置
      */
     private JSONObject tcyrCpaCollidingFailDealConfig;
 
@@ -3341,5 +3341,10 @@ public class MarketingCommonConfig {
      * #短信回调入队ApiCode配置
      */
     private List<String> smsCallBackDataPushMqApiCodes;
+
+    /**
+     * 同程易融cpa推送文件配置
+     */
+    private JSONObject tcyrCpaPushFileConfig;
 }
 
