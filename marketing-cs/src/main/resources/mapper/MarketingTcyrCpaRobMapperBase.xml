@@ -18,6 +18,7 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="request_id" property="requestId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -79,7 +80,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, package_id, rob_status, value_level, data_source_type, data_id, user_key, 
-    cell, release_time, receive_time, push_time, create_time, update_time, is_del, extend
+    cell, release_time, receive_time, push_time, create_time, update_time, is_del, extend, 
+    request_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaRobExample" >
     select
@@ -119,14 +121,14 @@
       value_level, data_source_type, data_id, 
       user_key, cell, release_time, 
       receive_time, push_time, create_time, 
-      update_time, is_del, extend
-      )
+      update_time, is_del, extend, 
+      request_id)
     values (#{apiCode,jdbcType=VARCHAR}, #{packageId,jdbcType=BIGINT}, #{robStatus,jdbcType=INTEGER}, 
       #{valueLevel,jdbcType=INTEGER}, #{dataSourceType,jdbcType=VARCHAR}, #{dataId,jdbcType=BIGINT}, 
       #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{releaseTime,jdbcType=TIMESTAMP}, 
       #{receiveTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}
-      )
+      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, 
+      #{requestId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaRob" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -179,6 +181,9 @@
       <if test="extend != null" >
         extend,
       </if>
+      <if test="requestId != null" >
+        request_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -225,6 +230,9 @@
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="requestId != null" >
+        #{requestId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -285,6 +293,9 @@
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
+      <if test="record.requestId != null" >
+        request_id = #{record.requestId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -307,7 +318,8 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_del = #{record.isDel,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR}
+      extend = #{record.extend,jdbcType=VARCHAR},
+      request_id = #{record.requestId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -360,6 +372,9 @@
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
+      <if test="requestId != null" >
+        request_id = #{requestId,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -379,7 +394,8 @@
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_del = #{isDel,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR}
+      extend = #{extend,jdbcType=VARCHAR},
+      request_id = #{requestId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

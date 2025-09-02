@@ -16,6 +16,7 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="request_id" property="requestId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -76,8 +77,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, package_id, data_source_type, data_id, user_key, cell, release_time,
-    receive_time, push_time, create_time, update_time, is_del, extend
+    id, api_code, package_id, data_source_type, data_id, user_key, cell, release_time, 
+    receive_time, push_time, create_time, update_time, is_del, extend, request_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaLoopCycleExample" >
     select
@@ -94,7 +95,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select
+    select 
     <include refid="Base_Column_List" />
     from b_tcyr_cpa_loop_cycle
     where id = #{id,jdbcType=BIGINT}
@@ -113,16 +114,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_loop_cycle (api_code, package_id, data_source_type,
-    data_id, user_key, cell,
-    release_time, receive_time, push_time,
-    create_time, update_time, is_del,
-    extend)
-    values (#{apiCode,jdbcType=VARCHAR}, #{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR},
-    #{dataId,jdbcType=BIGINT}, #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR},
-    #{releaseTime,jdbcType=TIMESTAMP}, #{receiveTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER},
-    #{extend,jdbcType=VARCHAR})
+    insert into b_tcyr_cpa_loop_cycle (api_code, package_id, data_source_type, 
+      data_id, user_key, cell, 
+      release_time, receive_time, push_time, 
+      create_time, update_time, is_del, 
+      extend, request_id)
+    values (#{apiCode,jdbcType=VARCHAR}, #{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, 
+      #{dataId,jdbcType=BIGINT}, #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
+      #{releaseTime,jdbcType=TIMESTAMP}, #{receiveTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, 
+      #{extend,jdbcType=VARCHAR}, #{requestId,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaLoopCycle" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -169,6 +170,9 @@
       <if test="extend != null" >
         extend,
       </if>
+      <if test="requestId != null" >
+        request_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -209,6 +213,9 @@
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="requestId != null" >
+        #{requestId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -263,6 +270,9 @@
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
+      <if test="record.requestId != null" >
+        request_id = #{record.requestId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -271,19 +281,20 @@
   <update id="updateByExample" parameterType="map" >
     update b_tcyr_cpa_loop_cycle
     set id = #{record.id,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    package_id = #{record.packageId,jdbcType=BIGINT},
-    data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
-    data_id = #{record.dataId,jdbcType=BIGINT},
-    user_key = #{record.userKey,jdbcType=VARCHAR},
-    cell = #{record.cell,jdbcType=VARCHAR},
-    release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
-    receive_time = #{record.receiveTime,jdbcType=TIMESTAMP},
-    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    is_del = #{record.isDel,jdbcType=INTEGER},
-    extend = #{record.extend,jdbcType=VARCHAR}
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      package_id = #{record.packageId,jdbcType=BIGINT},
+      data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
+      data_id = #{record.dataId,jdbcType=BIGINT},
+      user_key = #{record.userKey,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
+      receive_time = #{record.receiveTime,jdbcType=TIMESTAMP},
+      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      request_id = #{record.requestId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -330,24 +341,28 @@
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
+      <if test="requestId != null" >
+        request_id = #{requestId,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrCpaLoopCycle" >
     update b_tcyr_cpa_loop_cycle
     set api_code = #{apiCode,jdbcType=VARCHAR},
-        package_id = #{packageId,jdbcType=BIGINT},
-        data_source_type = #{dataSourceType,jdbcType=VARCHAR},
-        data_id = #{dataId,jdbcType=BIGINT},
-        user_key = #{userKey,jdbcType=VARCHAR},
-        cell = #{cell,jdbcType=VARCHAR},
-        release_time = #{releaseTime,jdbcType=TIMESTAMP},
-        receive_time = #{receiveTime,jdbcType=TIMESTAMP},
-        push_time = #{pushTime,jdbcType=TIMESTAMP},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        is_del = #{isDel,jdbcType=INTEGER},
-        extend = #{extend,jdbcType=VARCHAR}
+      package_id = #{packageId,jdbcType=BIGINT},
+      data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+      data_id = #{dataId,jdbcType=BIGINT},
+      user_key = #{userKey,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      release_time = #{releaseTime,jdbcType=TIMESTAMP},
+      receive_time = #{receiveTime,jdbcType=TIMESTAMP},
+      push_time = #{pushTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_del = #{isDel,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR},
+      request_id = #{requestId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

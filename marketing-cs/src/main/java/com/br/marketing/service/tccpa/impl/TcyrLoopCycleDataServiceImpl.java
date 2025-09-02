@@ -62,14 +62,14 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
                     sourceType = "F";
                     packageId = tcyrCpaRob.getPackageId();
                     robMapper.updateDelStatusById(tcyrCpaRob.getId(),TcCpaIsDelEnum.DEL_YES.getValue());
-                    saveTcyrCpaLoopCyle(cpaSuccessData,packageId,sourceType);
+                    saveTcyrCpaLoopCyle(cpaSuccessData,packageId,sourceType,requestId);
                 } else {
                     sourceType = "T";
                     MarketingTcyrCpaLoopCycle oldLoopCycle = loopCycleMapper.selectByUserKey(cpaSuccessData.getUserKey(),TcCpaIsDelEnum.DEL_NO.getValue());
                     if (oldLoopCycle != null) {
                         loopCycleMapper.updateInfoById(oldLoopCycle.getId(),cpaSuccessData.getEndDate(),sourceType,cpaSuccessData.getExtend());
                     }else {
-                        saveTcyrCpaLoopCyle(cpaSuccessData,null,sourceType);
+                        saveTcyrCpaLoopCyle(cpaSuccessData,null,sourceType,requestId);
                     }
                 }
                 lockResult = true;
@@ -92,7 +92,7 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
 
 
 
-    private void saveTcyrCpaLoopCyle(MarketingTcyrCpaSuccessData cpaSuccessData, Long packageId, String sourceType) {
+    private void saveTcyrCpaLoopCyle(MarketingTcyrCpaSuccessData cpaSuccessData, Long packageId, String sourceType,String requestId) {
         Date nowDate = new Date();
         MarketingTcyrCpaLoopCycle loopCycle = new MarketingTcyrCpaLoopCycle();
         loopCycle.setApiCode(cpaSuccessData.getApiCode());
@@ -107,6 +107,7 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
         loopCycle.setUpdateTime(nowDate);
         loopCycle.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
         loopCycle.setExtend(cpaSuccessData.getExtend());
+        loopCycle.setRequestId(requestId);
         loopCycleMapper.insertSelective(loopCycle);
     }
 

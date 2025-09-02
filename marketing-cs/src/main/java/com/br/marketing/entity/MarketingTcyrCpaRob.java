@@ -83,6 +83,11 @@ public class MarketingTcyrCpaRob {
      */
     private String extend;
 
+    /**
+     * mq发送的request_id，幂等判断
+     */
+    private String requestId;
+
     public Long getId() {
         return id;
     }
@@ -209,5 +214,13 @@ public class MarketingTcyrCpaRob {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId == null ? null : requestId.trim();
     }
 }
