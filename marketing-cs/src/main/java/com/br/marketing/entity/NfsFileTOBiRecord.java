@@ -18,12 +18,13 @@ public class NfsFileTOBiRecord {
 
     /**
      * 文件类型
+     *
      */
     private Integer fileType;
 
     /**
      * 1-转化提取文件同步至marketing-bi
-     * 9-宜信邮件读取任务的类型
+     * 9-邮件读取任务的类型
      */
     private String busType;
 
