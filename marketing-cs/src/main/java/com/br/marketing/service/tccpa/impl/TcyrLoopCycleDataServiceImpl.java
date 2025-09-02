@@ -56,7 +56,7 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
         boolean lockResult = false;
         try {
             MarketingTcyrCpaSuccessData cpaSuccessData = successDataMapper.selectByPrimaryKey(dataId);
-            if (cpaSuccessData.getStatus() == 1 && cpaSuccessData.getCell() != null) {
+            if (cpaSuccessData != null && cpaSuccessData.getStatus() == 1 && cpaSuccessData.getCell() != null) {
                 MarketingTcyrCpaRob tcyrCpaRob = robMapper.selectByUserKey(cpaSuccessData.getUserKey(), TcCpaIsDelEnum.DEL_NO.getValue());
                 if (tcyrCpaRob != null) {
                     sourceType = "F";
