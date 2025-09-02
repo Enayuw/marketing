@@ -392,9 +392,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Override
     public String smsCallBackAtOnce(SmsRecordDTO dto) {
         try {
-            String value = checkValues(dto);
-            if (!value.isEmpty()) {
-                return value;
+            if(StringUtils.isEmpty(dto.getThirdCallNo())){
+                return "短信流水号 thirdCallNo 为空";
             }
             String thirdCallNo = dto.getThirdCallNo();
             // 校验是否已经落库
