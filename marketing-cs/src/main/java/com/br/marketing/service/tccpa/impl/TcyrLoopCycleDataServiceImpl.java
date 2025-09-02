@@ -56,25 +56,27 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
         boolean lockResult = false;
         try {
             MarketingTcyrCpaSuccessData cpaSuccessData = successDataMapper.selectByPrimaryKey(dataId);
-            if (cpaSuccessData != null && cpaSuccessData.getStatus() == 1 && cpaSuccessData.getCell() != null) {
-                MarketingTcyrCpaRob tcyrCpaRob = robMapper.selectByUserKey(cpaSuccessData.getUserKey(), TcCpaIsDelEnum.DEL_NO.getValue());
-                if (tcyrCpaRob != null) {
-                    sourceType = "F";
-                    packageId = tcyrCpaRob.getPackageId();
-                    robMapper.updateDelStatusById(tcyrCpaRob.getId(),TcCpaIsDelEnum.DEL_YES.getValue());
-                    saveTcyrCpaLoopCyle(cpaSuccessData,packageId,sourceType,requestId);
-                } else {
-                    sourceType = "T";
-                    MarketingTcyrCpaLoopCycle oldLoopCycle = loopCycleMapper.selectByUserKey(cpaSuccessData.getUserKey(),TcCpaIsDelEnum.DEL_NO.getValue());
-                    if (oldLoopCycle != null) {
-                        loopCycleMapper.updateInfoById(oldLoopCycle.getId(),cpaSuccessData.getEndDate(),sourceType,cpaSuccessData.getExtend());
-                    }else {
-                        saveTcyrCpaLoopCyle(cpaSuccessData,null,sourceType,requestId);
+            if (cpaSuccessData != null) {
+                if (cpaSuccessData.getStatus() == 1 && cpaSuccessData.getCell() != null) {
+                    MarketingTcyrCpaRob tcyrCpaRob = robMapper.selectByUserKey(cpaSuccessData.getUserKey(), TcCpaIsDelEnum.DEL_NO.getValue());
+                    if (tcyrCpaRob != null) {
+                        sourceType = "F";
+                        packageId = tcyrCpaRob.getPackageId();
+                        robMapper.updateDelStatusById(tcyrCpaRob.getId(),TcCpaIsDelEnum.DEL_YES.getValue());
+                        saveTcyrCpaLoopCyle(cpaSuccessData,packageId,sourceType,requestId);
+                    } else {
+                        sourceType = "T";
+                        MarketingTcyrCpaLoopCycle oldLoopCycle = loopCycleMapper.selectByUserKey(cpaSuccessData.getUserKey(),TcCpaIsDelEnum.DEL_NO.getValue());
+                        if (oldLoopCycle != null) {
+                            loopCycleMapper.updateInfoById(oldLoopCycle.getId(),cpaSuccessData.getEndDate(),sourceType,cpaSuccessData.getExtend());
+                        }else {
+                            saveTcyrCpaLoopCyle(cpaSuccessData,null,sourceType,requestId);
+                        }
                     }
+                    lockResult = true;
                 }
-                lockResult = true;
+                saveCollidingLog(cpaSuccessData,requestId,sourceType,packageId,lockResult);
             }
-            saveCollidingLog(cpaSuccessData,requestId,sourceType,packageId,lockResult);
             result.setDate(Boolean.FALSE);
         } catch (DuplicateKeyException e) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
