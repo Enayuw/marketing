@@ -163,9 +163,10 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         }
         //2.核对量级
         Integer extraNumAct = info.getFiles().stream()
+                .filter(dto -> !dto.getCsvIndex().equals("ok"))
                 .filter(Objects::nonNull) // 过滤空对象
                 .map(FilePushTaskFileDTO::getTotal) // 获取AtomicInteger对象
-                .filter(Objects::nonNull) // 过滤空的AtomicInteger
+                .filter(Objects::nonNull)// 过滤空的AtomicInteger
                 .mapToInt(AtomicInteger::get) // 转换为int值
                 .sum();
         info.setExtraNumAct(extraNumAct);
@@ -207,7 +208,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
                 if (!writeSuccess) return false;
             }
             //3.生成标识文件
-            List<String> countResult = null;
+            List<String> countResult = new ArrayList<>();
             countResult.add(String.valueOf(fwMap.size()));
             fwMap.put("ok", genWriter(localPath, yyyyMMdd, null));
             writeData(fwMap.get("ok"), countResult);
