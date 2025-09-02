@@ -80,15 +80,15 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         }
         //2.服务器路径
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-//        String localPath = syncConfigService.getPath()
-//                .concat(apiCode)
-//                .concat(FILE_PATH)
-//                .concat(yyyyMMdd)
-//                .concat("/");
-        String localPath = "D:/"
-                .concat("tongcheng_cpa_push_file/")
+        String localPath = syncConfigService.getPath()
+                .concat(apiCode)
+                .concat(FILE_PATH)
                 .concat(yyyyMMdd)
                 .concat("/");
+//        String localPath = "D:/"
+//                .concat("tongcheng_cpa_push_file/")
+//                .concat(yyyyMMdd)
+//                .concat("/");
         //3.新增一条推送文件任务
         MarketingTcyrCpaPushFileTask task = new MarketingTcyrCpaPushFileTask();
         task.setApiCode(apiCode);
