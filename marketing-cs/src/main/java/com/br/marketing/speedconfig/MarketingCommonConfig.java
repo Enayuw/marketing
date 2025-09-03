@@ -3346,5 +3346,15 @@ public class MarketingCommonConfig {
      * 同程易融cpa推送文件配置
      */
     private JSONObject tcyrCpaPushFileConfig;
+
+    /**
+     * 携程挡板上报延迟（单位：秒）
+     */
+    private Integer xieChengReportMockDelaySeconds;
+
+    /**
+     * 携程CPA-apiCode集合
+     */
+    private List<String> xieChengCpaApiCodeList;
 }
 
