@@ -44,4 +44,11 @@ public interface ZnkfPushService {
     Boolean isPushBlackPhoneEnd(String apiCode, String pushDate);
 
     String smsCallBack(SmsRecordDTO dto);
+
+    /**
+     * 外呼短信发送即回调实现
+     * @param dto
+     * @return
+     */
+    String smsCallBackAtOnce(SmsRecordDTO dto);
 }

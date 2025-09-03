@@ -411,4 +411,10 @@ public class RedisKeyConstant {
      * ai客户推送下游负载队列
      */
     public static final String AI_UNIVERSAL_RECEIVE_MQ_BALANCER = prefix.concat("aiuniversalreceive:mq:balancer");
+
+    /**
+     * 携程上报判断actionType阈值转盘
+     * list中放置字符串"1"~"100"，取号：rpoplpush(key) 与 ivr 阈值比较
+     */
+    public static final String XIECHENG_REPORT_MOCK_RATE_TURNTABLE = prefix.concat("xieChengReport:mockRate:turntable");
 }
