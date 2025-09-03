@@ -42,5 +42,10 @@ public class ScoreStatisticsDetail implements Serializable {
      */
     private Date updateTime;
 
+    /**
+     * 1-有效；9-无效
+     */
+    private Integer isDel;
+
     private static final long serialVersionUID = 1L;
 }

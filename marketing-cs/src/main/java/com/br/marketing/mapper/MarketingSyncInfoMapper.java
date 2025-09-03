@@ -1,10 +1,7 @@
 package com.br.marketing.mapper;
 
 
-import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingSyncInfo;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransfer;
+import com.br.marketing.entity.*;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
 import org.apache.ibatis.annotations.Param;
@@ -60,6 +57,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("configList") List<MarketingDataValidConfig> configList, @Param("whereStr") String whereStr,
                                             @Param("validTimeStr") String validTimeStr);
 
+    List<String> queryUserTypeListLabelWithDatetikv_(@Param("apiCode") String apiCode
+            , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
+
     List<String> queryUserTypeListWithDatetikv_(@Param("apiCode") String apiCode
             , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
@@ -74,17 +75,34 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     Integer countByRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr);
 
+    Integer countByRuleScoreLabelWithDate(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr, @Param("labelId") Long labelId);
+
+    Integer countByRuleScoreLabelWithDatetiflash_(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr, @Param("labelId") Long labelId);
+
     Long minIdRuleScoreWithDate(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr);
 
     Long minIdRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr);
 
+    Long minIdRuleScoreLabelWithDate(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr, @Param("labelId") Long labelId);
+
+    Long minIdRuleScoreLabelWithDatetiflash_(@Param("apiCode") String apiCode
+            , @Param("whereStr") String whereStr, @Param("labelId") Long labelId);
+
     List<MarketingSyncUser> selectDataRuleScoreWithDate(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr, @Param("id") Long id, @Param("pageSize") Integer pageSize);
 
     List<MarketingSyncUser> selectDataRuleScoreWithDatetiflash_(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr, @Param("id") Long id, @Param("pageSize") Integer pageSize);
+
+    List<MarketingSyncLabelUser> selectDataRuleScoreLabelWithDate(@Param("apiCode") String apiCode, @Param("syncIdList") List<Long> syncIdList);
+
+    List<MarketingSyncLabelUser> selectDataRuleScoreLabelWithDatetiflash_(@Param("apiCode") String apiCode, @Param("syncIdList") List<Long> syncIdList);
+
 
     Long getMaxIdByRuleScore(@Param("apiCode") String apiCode
             , @Param("sTimeStr") String sTimeStr, @Param("eTimeStr") String eTimeStr

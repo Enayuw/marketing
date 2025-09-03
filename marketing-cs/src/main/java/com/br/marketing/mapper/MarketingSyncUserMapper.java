@@ -472,4 +472,8 @@ public interface MarketingSyncUserMapper {
             @Param("pageSize") Integer pageSize);
 
 
+    List<MarketingSyncUser>getUserByCustNumAndAppletData(@Param("apiCode") String apiCode, @Param("list") List<Map<String,String>> dataCondition,@Param("custNums") List<String> custNums);
+
+
+
 }

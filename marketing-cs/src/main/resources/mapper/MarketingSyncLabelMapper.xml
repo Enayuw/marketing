@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingSyncLabelMapper">
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO b_marketing_sync_label_${apiCode} (
+            label_id,
+            sync_id,
+            api_code,
+            user_type,
+            create_time,
+            update_time,
+            applet_date,
+            status,
+            is_repeat
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.labelId},
+                #{item.syncId},
+                #{item.apiCode},
+                #{item.userType},
+                #{item.createTime},
+                #{item.updateTime},
+                #{item.appletDate},
+                #{item.status},
+                #{item.isRepeat}
+            )
+        </foreach>
+    </insert>
+    <insert id="singleInsert">
+        INSERT INTO b_marketing_sync_label_${apiCode} (
+            label_id,
+            sync_id,
+            api_code,
+            user_type,
+            create_time,
+            update_time,
+            applet_date,
+            status,
+            is_repeat
+        ) VALUES (
+            #{syncLabel.labelId},
+            #{syncLabel.syncId},
+            #{syncLabel.apiCode},
+            #{syncLabel.userType},
+            #{syncLabel.createTime},
+            #{syncLabel.updateTime},
+            #{syncLabel.appletDate},
+            #{syncLabel.status},
+            #{syncLabel.isRepeat}
+        )
+    </insert>
+    <select id="getLabelNum" resultType="java.util.Map">
+        select applet_date, user_type, count(id) as num
+        from b_marketing_sync_label_${apiCode}
+        where label_id = #{labelId}
+        group by applet_date, user_type
+
+    </select>
+    <select id="getSyncIdByLabelId" resultType="java.lang.Long">
+        select sync_id
+        from b_marketing_sync_label_${apiCode}
+        where ${whereStr}
+        <if test="syncId != null and syncId >0">
+            <![CDATA[  and sync_id>#{syncId} ]]>
+        </if>
+        and is_repeat in (1,2)
+        and status = 1
+        and label_id = #{labelId}
+        order by sync_id asc
+        limit ${pageSize};
+    </select>
+</mapper>

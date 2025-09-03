@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.rule.service.XieChengCollidingService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.rulecenter.IRuleCenterPushService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,9 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
     @Resource
     XieChengCollidingService xieChengCollidingService;
 
+    @Resource
+    IRuleCenterPushService iRuleCenterPushService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Boolean actionMark = Boolean.TRUE;
@@ -42,7 +46,7 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
                 log.warn("推送决策业务开始" + "start");
                 long start = System.currentTimeMillis();
                 if(pushTaskData.getFilterType().equals(0)) {
-                    booleanResult = pushRuleService.consumerPushCustomer(pushTaskData.getId());
+                    booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
                 }else{
                     //携程撞库数据推决策
                     booleanResult = xieChengCollidingService.collidingDataPushPolicy(pushTaskData.getId());

@@ -470,7 +470,7 @@ public class GeneScriptUtil {
             List<CrossIndexBean> listGroupByX = new ArrayList<>();
             for (Map.Entry<Pair<String, String>, List<CrossIndexBean>> entry : entriesByx) {
                 List<CrossIndexBean> listByX = entry.getValue();
-                listByX.sort(Comparator.comparingInt((CrossIndexBean bean) -> compareValue(bean, true)));
+                listByX.sort(Comparator.comparingDouble((CrossIndexBean bean) -> compareValue(bean, true)));
                 for (int i = listByX.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByX.get(i);
                     CrossIndexBean former = listByX.get(i-1);
@@ -489,7 +489,7 @@ public class GeneScriptUtil {
             List<CrossIndexBean> listGroupByY = new ArrayList<>();
             for (Map.Entry<Pair<String, String>, List<CrossIndexBean>> entry : entriesByY) {
                 List<CrossIndexBean> listByY = entry.getValue();
-                listByY.sort(Comparator.comparingInt((CrossIndexBean bean) -> compareValue(bean, false)));
+                listByY.sort(Comparator.comparingDouble((CrossIndexBean bean) -> compareValue(bean, false)));
                 for (int i = listByY.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByY.get(i);
                     CrossIndexBean former = listByY.get(i-1);
@@ -551,7 +551,7 @@ public class GeneScriptUtil {
                 }
             }
             //排序
-            list.sort(Comparator.comparingInt((SingleIndexBean bean) -> compareValue(bean, null)));
+            list.sort(Comparator.comparingDouble((SingleIndexBean bean) -> compareValue(bean, null)));
             for (int i = list.size() - 1; i > 0; i--) {
                 SingleIndexBean later = list.get(i);
                 SingleIndexBean former = list.get(i - 1);
@@ -575,13 +575,13 @@ public class GeneScriptUtil {
         }
     }
 
-    private static int compareValue(Object bean, Boolean isX) {
+    private static double compareValue(Object bean, Boolean isX) {
         if (isX == null) {
             SingleIndexBean singleIndexBean = (SingleIndexBean) bean;
             if (StringUtils.isEmpty(singleIndexBean.getLeftValue())) {
                 return -1;
             } else {
-                return Integer.parseInt(singleIndexBean.getLeftValue());
+                return Double.parseDouble(singleIndexBean.getLeftValue());
             }
         } else {
             CrossIndexBean crossIndexBean = (CrossIndexBean) bean;
@@ -589,13 +589,13 @@ public class GeneScriptUtil {
                 if (StringUtils.isEmpty(crossIndexBean.getYLeftValue())) {
                     return -1;
                 } else {
-                    return Integer.parseInt(crossIndexBean.getYLeftValue());
+                    return Double.parseDouble(crossIndexBean.getYLeftValue());
                 }
             } else {
                 if (StringUtils.isEmpty(crossIndexBean.getXLeftValue())) {
                     return -1;
                 } else {
-                    return Integer.parseInt(crossIndexBean.getXLeftValue());
+                    return Double.parseDouble(crossIndexBean.getXLeftValue());
                 }
             }
         }

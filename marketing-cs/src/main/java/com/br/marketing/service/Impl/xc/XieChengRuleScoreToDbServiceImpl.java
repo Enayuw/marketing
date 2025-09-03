@@ -322,9 +322,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 if (!batchData.isEmpty()) {
                     writeFileDataToTidb(tableName, transferColumn, new ArrayList<>(batchData));
                 }
-
-                // 删除该表所有重复数据
-                deleteCount = deleteRepeatData(tableName, deleteCount);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                         "携程跑分文件同步DB异常, " + e.getMessage()), e);
@@ -332,25 +329,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             }
         }
 
-        // 发送钉钉告警
-        if (deleteCount > 0) {
-            String msg = "携程跑分数据同步后删除重复数据,表:" + tableName + ",删除量级:" + deleteCount;
-            sendDingDing(msg);
-        }
-
         return result.setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    private int deleteRepeatData(String tableName, int deleteCount) {
-        String extend = "删除原因:cell重复";
-        while (true) {
-            Integer count = scoreRecordMapper.updateDeleteByIdstikv_(tableName, extend);
-            if (count <= 0) {
-                break;
-            }
-            deleteCount += count;
-        }
-        return deleteCount;
     }
 
     private void checkIsCamelCase(List<String> transferColumn, File file) {
@@ -402,7 +381,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 .append(" create_time datetime,")
                 .append(" update_time timestamp null on update CURRENT_TIMESTAMP,")
                 .append(" is_delete int default 0,")
-                .append(" index idx_cell (cell) ")
+                .append(" unique index idx_cell (cell) ")
                 .append("); ");
 
         scoreRecordMapper.createXieChengScoreTidbTableByBatchNum(createTidbDDL.toString());
@@ -445,7 +424,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData) {
         try {
-            StringBuilder insertSql = new StringBuilder("INSERT INTO ");
+            StringBuilder insertSql = new StringBuilder("INSERT IGNORE INTO ");
             insertSql.append(tableName).append(" (");
             List<Integer> numColumns = new ArrayList<>(columns.size());
             for (int i = 0; i < columns.size(); i++) {

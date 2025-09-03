@@ -77,8 +77,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, report_id, report_rule, batch_number_list, field_x, field_y, field_x_range, field_y_range, 
-    report_score_type, `status`, statistics_desc, statistics_order, is_del, create_time, 
+    id, report_id, report_rule, batch_number_list, field_x, field_y, field_x_range, field_y_range,
+    report_score_type, `status`, statistics_desc, statistics_order, is_del, create_time,
     update_time
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.ReportStatisticsScoreExample" resultMap="BaseResultMap">
@@ -96,7 +96,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_report_statistics_score
     where id = #{id,jdbcType=BIGINT}
@@ -112,15 +112,15 @@
     </if>
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ReportStatisticsScore" useGeneratedKeys="true">
-    insert into b_report_statistics_score (report_id, report_rule, batch_number_list, 
-      field_x, field_y, field_x_range, 
-      field_y_range, report_score_type, `status`, 
-      statistics_desc, statistics_order, is_del, 
+    insert into b_report_statistics_score (report_id, report_rule, batch_number_list,
+      field_x, field_y, field_x_range,
+      field_y_range, report_score_type, `status`,
+      statistics_desc, statistics_order, is_del,
       create_time, update_time)
-    values (#{reportId,jdbcType=BIGINT}, #{reportRule,jdbcType=VARCHAR}, #{batchNumberList,jdbcType=VARCHAR}, 
-      #{fieldX,jdbcType=VARCHAR}, #{fieldY,jdbcType=VARCHAR}, #{fieldXRange,jdbcType=VARCHAR}, 
-      #{fieldYRange,jdbcType=VARCHAR}, #{reportScoreType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
-      #{statisticsDesc,jdbcType=VARCHAR}, #{statisticsOrder,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+    values (#{reportId,jdbcType=BIGINT}, #{reportRule,jdbcType=VARCHAR}, #{batchNumberList,jdbcType=VARCHAR},
+      #{fieldX,jdbcType=VARCHAR}, #{fieldY,jdbcType=VARCHAR}, #{fieldXRange,jdbcType=VARCHAR},
+      #{fieldYRange,jdbcType=VARCHAR}, #{reportScoreType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+      #{statisticsDesc,jdbcType=VARCHAR}, #{statisticsOrder,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER},
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ReportStatisticsScore" useGeneratedKeys="true">

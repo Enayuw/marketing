@@ -112,6 +112,7 @@
     , remark
     , DATE_FORMAT(bmsr.create_time,'%Y-%m-%d %H:%i:%s') as createTime
     , DATE_FORMAT(bmsr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+    , label_message as labelMessage
     from b_marketing_sync_report bmsr
     <where>
       <if test="appletTimeStart !=null and appletTimeStart!=''">
