@@ -61,6 +61,11 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
             String recordSql = "select batch_number from b_marketing_score_doris_log where api_code = " + apiCode + " and status = 2 order by update_time desc limit 1";
             batchNumber = scoreDorisLogMapper.selectNewestBatchNumberLog(recordSql);
         }
+        if(StringUtils.isBlank(batchNumber)) {
+            String errMsg = "哈啰硅基人业务回调，无批次记录数据";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
+            return;
+        }
         MarketingHaloCallbackRecordExample example = new MarketingHaloCallbackRecordExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andBatchNumberEqualTo(batchNumber);
         List<MarketingHaloCallbackRecord> records = haloCallbackRecordMapper.selectByExample(example);
