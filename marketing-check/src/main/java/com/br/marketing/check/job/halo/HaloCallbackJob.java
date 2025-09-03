@@ -32,7 +32,6 @@ public class HaloCallbackJob extends AbstractSimpleElasticJob {
         JSONObject param = JSON.parseObject(context.getJobParameter());
         String batchNumber = param.getString("batchNumber");
         String whereSql = Optional.ofNullable(param.getString("whereSql")).orElse("");
-        log.warn("哈啰硅基人数据回传调度开始 batchNumber:{}", batchNumber);
         haloCallbackService.pushDataCallback(batchNumber, whereSql);
         long end = System.currentTimeMillis();
         log.warn("哈啰硅基人数据回传调度结束, 耗时:{}", end - start);

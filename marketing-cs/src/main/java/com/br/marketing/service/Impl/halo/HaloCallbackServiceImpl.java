@@ -65,6 +65,7 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
             return;
         }
+        log.warn("哈啰硅基人数据回传调度开始，batchNumber:{}", batchNumber);
         MarketingHaloCallbackRecordExample example = new MarketingHaloCallbackRecordExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andBatchNumberEqualTo(batchNumber);
         List<MarketingHaloCallbackRecord> records = haloCallbackRecordMapper.selectByExample(example);
@@ -150,6 +151,7 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
 
     private boolean doProcess(List<Map<String, Object>> submitList) {
         try {
+            submitList.forEach(record -> record.remove("id"));
             ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
             reqHaluoApiDTO.setData(JSON.toJSONString(submitList));
             return haluoAiApiServiceClient.postHaluoCallbackApi(reqHaluoApiDTO).isSuccess();
