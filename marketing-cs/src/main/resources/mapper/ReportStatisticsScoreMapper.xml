@@ -7,8 +7,16 @@
         ${querySql}
     </select>
 
+    <select id="queryDataMapNum" resultType="java.util.Map">
+        ${querySql}
+    </select>
 
     <select id="queryNumBybI_" resultType="java.lang.Integer">
         ${querySql}
     </select>
+
+    <insert id="insert">
+        ${querySql}
+    </insert>
+
 </mapper>

@@ -3346,5 +3346,10 @@ public class MarketingCommonConfig {
      * 同程易融cpa推送文件配置
      */
     private JSONObject tcyrCpaPushFileConfig;
+
+    /**
+     * 哈啰硅基人回调配置
+     */
+    private JSONObject haloAiCallbackConfig;
 }
 
