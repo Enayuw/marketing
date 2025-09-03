@@ -700,6 +700,7 @@
                 description="哈啰硅基人数据回传"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
+                job-parameter="{}"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"
