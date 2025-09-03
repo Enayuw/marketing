@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,7 +85,7 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
 
         while (!Thread.interrupted()) {
             String retrySql = retry ? " and status = 2 " : " and status = 0 ";
-            String scoreSql = "select id, cell, section from b_marketing_score_" + batchNumber +
+            String scoreSql = "select id, cell, section, cus_num custNum from b_marketing_score_" + batchNumber +
                     " where 1 = 1 " + whereSql + retrySql + " and id > " + lastId + " order by id asc limit " + pageSize;
             List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
 
@@ -151,9 +152,20 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
 
     private boolean doProcess(List<Map<String, Object>> submitList) {
         try {
-            submitList.forEach(record -> record.remove("id"));
             ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
-            reqHaluoApiDTO.setData(JSON.toJSONString(submitList));
+            List<Map<String, Object>> dataWithoutId = Lists.newArrayList();
+
+            for (Map<String, Object> originalRecord : submitList) {
+                Map<String, Object> copyRecord = new HashMap<>();
+                for (Map.Entry<String, Object> entry : originalRecord.entrySet()) {
+                    if (!"id".equals(entry.getKey())) {
+                        copyRecord.put(entry.getKey(), entry.getValue());
+                    }
+                }
+                dataWithoutId.add(copyRecord);
+            }
+
+            reqHaluoApiDTO.setData(JSON.toJSONString(dataWithoutId));
             return haluoAiApiServiceClient.postHaluoCallbackApi(reqHaluoApiDTO).isSuccess();
         } catch (Exception e) {
             String errMsg = "哈啰硅基人处理数据发生异常: " + e.getMessage();
