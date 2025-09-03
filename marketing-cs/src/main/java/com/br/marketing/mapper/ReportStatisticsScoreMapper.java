@@ -12,6 +12,8 @@ public interface ReportStatisticsScoreMapper extends ReportStatisticsScoreBaseMa
 
     List<Map<String, Object>> queryDataMapNum(@Param("querySql") String querySql);
 
+    void updateStatusbI_(@Param("tableName") String tableName, @Param("ids") List<Integer> ids, @Param("status") Integer status);
+
     Integer queryNumBybI_(@Param("querySql") String scoreSql);
 
     void insert(@Param("querySql") String scoreSql);

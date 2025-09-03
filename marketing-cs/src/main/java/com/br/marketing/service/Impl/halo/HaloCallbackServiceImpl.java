@@ -10,8 +10,8 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.entity.MarketingHaloCallbackRecord;
 import com.br.marketing.entity.MarketingHaloCallbackRecordExample;
 import com.br.marketing.mapper.MarketingHaloCallbackRecordMapper;
-import com.br.marketing.mapper.ScoreDorisLogMapper;
 import com.br.marketing.mapper.ReportStatisticsScoreMapper;
+import com.br.marketing.mapper.ScoreDorisLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
@@ -22,12 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author xiong luo
@@ -53,13 +53,12 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
     private MarketingHaloCallbackRecordMapper haloCallbackRecordMapper;
 
     @Override
-    public void pushDataCallback(String batchNumber, LocalDate localDate, String whereSql) {
+    public void pushDataCallback(String batchNumber, String whereSql) {
         JSONObject haloAiCallbackConfig = marketingCommonConfig.getHaloAiCallbackConfig();
         String apiCode = haloAiCallbackConfig.getString("apiCode");
-        boolean forceCallback = StringUtils.isNotBlank(batchNumber);
-        if (!forceCallback) {
-            String recordSql = "select batch_number from b_marketing_score_doris_log where api_code = " + apiCode + " and status = 2 order by update_time desc limit 1";
-            batchNumber = scoreDorisLogMapper.selectNewestBatchNumberLog(recordSql);
+        boolean retry = StringUtils.isNotBlank(batchNumber);
+        if (!retry) {
+            batchNumber = scoreDorisLogMapper.selectNewestBatchNumberLogbI_(apiCode);
         }
         if(StringUtils.isBlank(batchNumber)) {
             String errMsg = "哈啰硅基人业务回调，无批次记录数据";
@@ -69,7 +68,7 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
         MarketingHaloCallbackRecordExample example = new MarketingHaloCallbackRecordExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andBatchNumberEqualTo(batchNumber);
         List<MarketingHaloCallbackRecord> records = haloCallbackRecordMapper.selectByExample(example);
-        if (CollectionUtils.isNotEmpty(records) && !forceCallback) {
+        if (CollectionUtils.isNotEmpty(records) && !retry) {
             log.warn("该批次数据已处理完成: {}", batchNumber);
             return;
         }
@@ -83,10 +82,10 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
         int threadBatchSize = haloAiCallbackConfig.getInteger("threadBatchSize");
 
         while (!Thread.interrupted()) {
+            String retrySql = retry ? " and status = 2 " : " and status = 0 ";
             String scoreSql = "select id, cell, section from b_marketing_score_" + batchNumber +
-                    " where 1 = 1 " + whereSql + " and id > " + lastId + " order by id asc limit " + pageSize;
-
-            List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNum(scoreSql);
+                    " where 1 = 1 " + whereSql + retrySql + " and id > " + lastId + " order by id asc limit " + pageSize;
+            List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
 
             if (CollectionUtils.isEmpty(results)) {
                 break;
@@ -95,28 +94,27 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
             Map<String, Object> lastRecord = results.get(results.size() - 1);
             lastId = ((Number) lastRecord.get("id")).longValue();
 
-            int index = 0;
-            while (index < results.size()) {
-                int endIndex = Math.min(index + threadBatchSize, results.size());
-                List<Map<String, Object>> batchToProcess = results.subList(index, endIndex);
+            for (List<Map<String, Object>> batchToProcess : Lists.partition(results, threadBatchSize)) {
+                String finalBatchNumber = batchNumber;
+                List<Integer> ids = batchToProcess.stream().map(record -> ((Number) record.get("id")).intValue()).collect(Collectors.toList());
                 CompletableFuture<Boolean> batchFuture = CompletableFuture.supplyAsync(() -> {
                     try {
-                        return doProcess(batchToProcess);
+                        boolean success = doProcess(batchToProcess);
+                        reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 1);
+                        return success;
                     } catch (Exception e) {
+                        reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 2);
                         String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
                         log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
                         return false;
                     }
                 }, executor).handle((result, e) -> {
                     if (Objects.nonNull(e)) {
-                        String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
                         return false;
                     }
                     return result;
                 });
                 allFutures.add(batchFuture);
-                index = endIndex;
             }
 
             if (results.size() < pageSize) {
@@ -154,7 +152,6 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
         try {
             ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
             reqHaluoApiDTO.setData(JSON.toJSONString(submitList));
-            reqHaluoApiDTO.setMethod("hello.finance.loan.marketing.callback.end");
             return haluoAiApiServiceClient.postHaluoCallbackApi(reqHaluoApiDTO).isSuccess();
         } catch (Exception e) {
             String errMsg = "哈啰硅基人处理数据发生异常: " + e.getMessage();

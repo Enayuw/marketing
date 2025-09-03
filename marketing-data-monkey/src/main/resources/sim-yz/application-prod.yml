@@ -186,13 +186,6 @@ api:
     secret: 9c07d3b9923d4269bb8da6a6963fcd27
     method: hello.finance.loan.marketing.callback
     isProxy: true
-
-    ai:
-      callbackUrl: https://fat-hello-openapi.hellobike.com/callback/externalData/BR_MARKETING_SCORE
-      appKey: hellobikefinance-bwYuIVvO
-      secret: b3392af427b6449e94269433bdf5fb58
-      method: hello.finance.loan.marketing.callback
-      isProxy: false
   xiecheng:
     openUrl: https://jr.ctrip.com/nemoweb/ad/common/outAdMonitor.do
     appId: bairong001

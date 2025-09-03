@@ -9,12 +9,14 @@ import com.br.marketing.client.halo.send.PublicParamsConstants;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,14 +25,9 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class HaluoAiApiServiceClient {
-    @Value("${api.halo.ai.callbackUrl:0}")
-    private String haloCallbackUrl;
 
-    @Value("${api.halo.ai.appKey:0}")
-    private String haloCallbackAppKey;
-
-    @Value("${api.halo.ai.secret:0}")
-    private String haloCallbackSecret;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Value("${api.halo.ai.isProxy:false}")
     private boolean isProxy;
@@ -47,16 +44,9 @@ public class HaluoAiApiServiceClient {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> postHaluoCallbackApi(ReqHaluoApiDTO reqHaluoApiDTO) {
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         Map paramsMap = new HashMap();
-        paramsMap.put(PublicParamsConstants.APPKEY, haloCallbackAppKey);
-        paramsMap.put(PublicParamsConstants.METHOD, reqHaluoApiDTO.getMethod());
-        paramsMap.put(PublicParamsConstants.TIMESTAMP, timestamp.toString());
-        paramsMap.put("token", null);
         paramsMap.put("data", reqHaluoApiDTO.getData());
-        paramsMap.put("channelNo", "BR");
-        String sign = EncryptUtil.signTopRequest(paramsMap, haloCallbackSecret);
-        paramsMap.put(PublicParamsConstants.SIGN, sign);
+        String haloCallbackUrl = marketingCommonConfig.getHaloAiCallbackConfig().getString("haloCallbackUrl");
         HashMap<String, String> response = httpProxyClient.sendByCode(paramsMap
                 , haloCallbackUrl
                 , isProxy

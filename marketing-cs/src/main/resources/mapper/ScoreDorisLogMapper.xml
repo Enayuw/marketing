@@ -18,11 +18,11 @@
   </select>
 
   <select id="selectNewestBatchNumberLog" resultType="java.lang.String">
-    ${querySql}
+    select batch_number from b_marketing_score_doris_log where api_code = #{apiCode} and status = 2 order by update_time desc limit 1
   </select>
 
   <select id="selectNewestBatchNumberLogbI_" resultType="java.lang.String">
-    ${querySql}
+    select batch_number from b_marketing_score_doris_log where api_code = #{apiCode} and status = 2 order by update_time desc limit 1
   </select>
 
 </mapper>

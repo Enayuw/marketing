@@ -12,7 +12,6 @@ public interface IHaloCallbackService {
      * 2025-09-01 17:57
      *
      * @param batchNumber 批次号
-     * @param localDate 执行时间
      */
-    void pushDataCallback(String batchNumber, LocalDate localDate, String whereSql);
+    void pushDataCallback(String batchNumber, String whereSql);
 }

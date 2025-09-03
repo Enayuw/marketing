@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.job.halo;
+package com.br.marketing.check.job.halo;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
@@ -33,12 +31,9 @@ public class HaloCallbackJob extends AbstractSimpleElasticJob {
 
         JSONObject param = JSON.parseObject(context.getJobParameter());
         String batchNumber = param.getString("batchNumber");
-        LocalDate date = Optional.ofNullable(param.getString("date"))
-                .map(dateStr -> LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd")))
-                .orElseGet(LocalDate::now);
         String whereSql = Optional.ofNullable(param.getString("whereSql")).orElse("");
-        log.warn("哈啰硅基人数据回传调度开始 batchNumber:{},处理文件的日期：{}", batchNumber, date);
-        haloCallbackService.pushDataCallback(batchNumber, date, whereSql);
+        log.warn("哈啰硅基人数据回传调度开始 batchNumber:{}", batchNumber);
+        haloCallbackService.pushDataCallback(batchNumber, whereSql);
         long end = System.currentTimeMillis();
         log.warn("哈啰硅基人数据回传调度结束, 耗时:{}", end - start);
     }

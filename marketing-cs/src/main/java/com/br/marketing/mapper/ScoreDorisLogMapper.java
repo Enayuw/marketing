@@ -7,7 +7,8 @@ public interface ScoreDorisLogMapper extends ScoreDorisLogMapperBase {
 
     ScoreDorisLog selectNewestLog(@Param("apiCode") String apiCode);
 
-    String selectNewestBatchNumberLogbI_(@Param("querySql") String scoreSql);
+    String selectNewestBatchNumberLogbI_(@Param("apiCode") String apiCode);
 
-    String selectNewestBatchNumberLog(@Param("querySql") String scoreSql);
+    String selectNewestBatchNumberLog(@Param("apiCode") String apiCode);
 }
+
