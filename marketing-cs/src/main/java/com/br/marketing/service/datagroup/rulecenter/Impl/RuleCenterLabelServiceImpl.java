@@ -186,7 +186,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
             return new Result<Map<String, Integer>>().setCode(ResultCode.FAIL.getValue()).setMessage("至少需要两个批次进行合并统计");
         }
         List<String> tableNames = batchNumberList.stream()
-                .map(batchNumber -> "b_score_" + "_" + batchNumber)
+                .map(batchNumber -> "b_score_" + batchNumber)
                 .collect(Collectors.toList());
         String cellJoinSql = buildInnerJoinCountSql(tableNames, "cell");
         Integer cellNum = tagDataRuleCalculateMapper.getCountbI_(cellJoinSql);
