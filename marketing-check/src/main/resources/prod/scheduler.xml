@@ -1320,7 +1320,7 @@
 
     <job:simple id="HaloCallbackJob"
                 class="com.br.marketing.check.job.halo.HaloCallbackJob"
-                cron="0 0/20 * * * ?"
+                cron="0 0 18 29 9 ? 2099-2099"
                 description="哈啰硅基人数据回传"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
