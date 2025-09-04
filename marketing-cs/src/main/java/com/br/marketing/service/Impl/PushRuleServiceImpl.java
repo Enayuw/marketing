@@ -2634,7 +2634,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             dataArray = JSON.parseObject(jsonData).getJSONArray(Constants.JSON_DATA_KEYARR);
         } catch (Exception e) {
-            log.warn("客户上传数据格式错误！jsonData:{}，ermsg:{}", jsonData, e.getMessage(), e);
+            log.warn("客户上传数据格式错误！jsonData:{}，errMsg:{}", jsonData, e.getMessage(), e);
             return false;
         }
         if (CollectionUtils.isEmpty(dataArray)) {
