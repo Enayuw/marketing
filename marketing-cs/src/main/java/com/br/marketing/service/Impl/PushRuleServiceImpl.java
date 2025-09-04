@@ -279,6 +279,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     private RuleCenterLabelService ruleCenterLabelService;
 
+    @Autowired
+    private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
+
     private static final String TITLE = "【通用跑分文件推决策】";
 
 
@@ -584,8 +587,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMain.setTagContent(dto.getmTagCondition());
-        if(dto.getIsScoreMerge()){
-            customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.ORIGINAL_INTERFACE.getCode());
+        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            customerInfoPushMain.setPushTarget(2);
+            customerInfoPushMain.setExtend(ruleCenterLabelService.scoreMergeAssemble(dto));
         }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
@@ -648,12 +652,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
         //合并跑分计算
-        if(dto.getIsScoreMerge()){
-            Integer totalNum = ruleCenterLabelService.scoreMergePreCalculate(dto);
-            pushViewVO.setTotal(totalNum);
+        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            // 组装查询sql
+            String countSql = ruleCenterLabelService.scoreMergeAssemble(dto);
+            // 执行查询获取统计数量
+            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+            pushViewVO.setTotal(count != null ? count : 0);
             return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
         }
-
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));

@@ -199,7 +199,20 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
 
     @Override
     public Integer scoreMergePreCalculate(PushCustomerDTO dto) {
+        // 组装查询sql
+        String countSql = scoreMergeAssemble(dto);
+        // 执行查询获取统计数量
+        Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
 
+        return count != null ? count : 0;
+    }
+
+    /**
+     * 跑分合并数据组装
+     *
+     * @param dto 任务参数
+     */
+    public String scoreMergeAssemble(PushCustomerDTO dto) {
         JSONObject esCondition = JSON.parseObject(dto.getmRuleCondition());
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(esCondition, "");
         List<String> batchNumberList = dto.getBatchNumberList();
@@ -207,10 +220,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
         List<String> tableNames = generateTableNames(batchNumberList);
         String processedSqlCondition = scoreMergeFieldMapping(sqlCondition, batchNumberList, dto.getApiCode());
         // 构建多表关联的查询SQL
-        String countSql = buildInnerJoinCountSql(tableNames, dto.getScoreMergeField(), processedSqlCondition);
-        // 执行查询获取统计数量
-        Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
-        return count != null ? count : 0;
+        return buildInnerJoinCountSql(tableNames, dto.getScoreMergeField(), processedSqlCondition);
     }
 
     @Override
