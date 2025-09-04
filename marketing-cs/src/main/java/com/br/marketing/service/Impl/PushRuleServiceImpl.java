@@ -83,6 +83,7 @@ import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -583,6 +584,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMain.setTagContent(dto.getmTagCondition());
+        if(dto.getIsScoreMerge()){
+            customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.ORIGINAL_INTERFACE.getCode());
+        }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
         String batchName;
@@ -644,7 +648,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
         //合并跑分计算
-        if(dto.getScoreMerge()){
+        if(dto.getIsScoreMerge()){
             Integer totalNum = ruleCenterLabelService.scoreMergePreCalculate(dto);
             pushViewVO.setTotal(totalNum);
             return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);

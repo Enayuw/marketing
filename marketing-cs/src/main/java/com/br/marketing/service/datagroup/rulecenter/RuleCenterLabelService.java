@@ -18,4 +18,7 @@ public interface RuleCenterLabelService {
 
 
     Integer scoreMergePreCalculate(PushCustomerDTO dto);
+
+    String scoreMergeFieldMapping(String sqlCondition, List<String> batchNumberList, String apiCode);
+
 }

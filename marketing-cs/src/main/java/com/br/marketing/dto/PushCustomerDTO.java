@@ -240,12 +240,12 @@ public class PushCustomerDTO {
     }
 
 
-    public Boolean getScoreMerge() {
+    public Boolean getIsScoreMerge() {
         return isScoreMerge;
     }
 
-    public void setScoreMerge(Boolean scoreMerge) {
-        isScoreMerge = scoreMerge;
+    public void setIsScoreMerge(Boolean isScoreMerge) {
+        this.isScoreMerge = isScoreMerge;
     }
 
     public String getScoreMergeField() {
