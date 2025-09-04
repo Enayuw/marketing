@@ -589,7 +589,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setTagContent(dto.getmTagCondition());
         if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
             customerInfoPushMain.setPushTarget(2);
-            customerInfoPushMain.setExtend(ruleCenterLabelService.scoreMergeAssemble(dto));
         }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
@@ -654,7 +653,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //合并跑分计算
         if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
             // 组装查询sql
-            String countSql = ruleCenterLabelService.scoreMergeAssemble(dto);
+            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
             // 执行查询获取统计数量
             Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
             pushViewVO.setTotal(count != null ? count : 0);

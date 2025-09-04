@@ -220,7 +220,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
         List<String> tableNames = generateTableNames(batchNumberList);
         String processedSqlCondition = scoreMergeFieldMapping(sqlCondition, batchNumberList, dto.getApiCode());
         // 构建多表关联的查询SQL
-        return buildInnerJoinCountSql(tableNames, dto.getScoreMergeField(), processedSqlCondition);
+        return buildInnerJoinSql(tableNames, dto.getScoreMergeField(), processedSqlCondition);
     }
 
     @Override
@@ -250,6 +250,16 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
 
 
     /**
+     * 构建多表交集统计Count SQL（INNER JOIN）
+     * @return SQL语句
+     */
+    private String buildInnerJoinCountSql(List<String> tableNames, String joinColumn, String condition) {
+        String whereSql  = buildInnerJoinSql(tableNames, joinColumn, condition);
+        return "SELECT COUNT(1) ".concat(whereSql);
+    }
+
+
+    /**
      * 构建多表交集统计SQL（INNER JOIN）
      *
      * @param tableNames 表名列表
@@ -257,13 +267,12 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
      * @param condition  WHERE条件（可选，为null或空字符串时不添加WHERE子句）
      * @return SQL语句
      */
-    private String buildInnerJoinCountSql(List<String> tableNames, String joinColumn, String condition) {
+    public String buildInnerJoinSql(List<String> tableNames, String joinColumn, String condition) {
         StringBuilder sql = new StringBuilder();
-
         // 主表
         String mainTable = tableNames.get(0);
         String mainAlias = getTableAlias(mainTable, tableNames);
-        sql.append("SELECT COUNT(1) FROM ").append(mainTable).append(" ").append(mainAlias);
+        sql.append("FROM ").append(mainTable).append(" ").append(mainAlias);
 
         // 关联其他表
         for (int i = 1; i < tableNames.size(); i++) {
@@ -274,14 +283,15 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
                     .append(" ON ").append(mainAlias).append(".").append(joinColumn)
                     .append(" = ").append(currentAlias).append(".").append(joinColumn);
         }
-
         // 添加WHERE条件（如果有）
         if (StringUtils.isNotEmpty(condition)) {
             sql.append(" WHERE ").append(condition);
         }
-
         return sql.toString();
     }
+
+
+
 
 
     /**
