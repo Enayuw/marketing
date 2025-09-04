@@ -25,9 +25,7 @@ import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -76,7 +74,7 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
         }
         saveHaloCallbackRecord(batchNumber, apiCode);
 
-        List<CompletableFuture<Boolean>> allFutures = Lists.newArrayList();
+        List<CompletableFuture<Void>> allFutures = Lists.newArrayList();
         int pageSize = haloAiCallbackConfig.getInteger("pageSize");
         long lastId = 0L;
         int threadBatchSize = haloAiCallbackConfig.getInteger("threadBatchSize");
@@ -103,64 +101,33 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
                 for (List<Map<String, Object>> batchToProcess : Lists.partition(results, threadBatchSize)) {
                     String finalBatchNumber = batchNumber;
                     List<Integer> ids = batchToProcess.stream().map(record -> ((Number) record.get("id")).intValue()).collect(Collectors.toList());
-                    CompletableFuture<Boolean> batchFuture = CompletableFuture.supplyAsync(() -> {
+                    allFutures.add(CompletableFuture.runAsync(() -> {
                         try {
-                            boolean success = doProcess(batchToProcess);
+                            doProcess(batchToProcess);
                             reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 1);
-                            return success;
                         } catch (Exception e) {
                             reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 2);
                             String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
                             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
-                            return false;
                         }
-                    }, executor).handle((result, e) -> {
-                        if (Objects.nonNull(e)) {
-                            return false;
-                        }
-                        return result;
-                    });
-                    allFutures.add(batchFuture);
+                    }, executor));
                 }
 
                 if (results.size() < pageSize) {
                     break;
                 }
             }
-
-            CompletableFuture<Void> allTasks = CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0]));
-            CompletableFuture<Boolean> overallSuccessFuture = allTasks.thenApply(v -> {
-                for (CompletableFuture<Boolean> future : allFutures) {
-                    Boolean batchSuccess = future.getNow(false);
-                    if (!batchSuccess) {
-                        return false;
-                    }
-                }
-                return true;
-            });
-
-            boolean overallSuccess = false;
-            try {
-                overallSuccess = overallSuccessFuture.get(8, TimeUnit.HOURS);
-            } catch (Exception e) {
-                String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
-                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
-            }
-
-            if (overallSuccess) {
-                haloCallbackRecordMapper.updateStatusByBatchNumber(1, batchNumber);
-            } else {
-                haloCallbackRecordMapper.updateStatusByBatchNumber(2, batchNumber);
-            }
+            CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0])).join();
         } catch (Exception e) {
             String errMsg = "哈啰硅基人任务异常" + e.getMessage();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
         } finally {
             executor.shutdownAndAwaitTermination();
+            haloCallbackRecordMapper.updateStatusByBatchNumber(1, batchNumber);
         }
     }
 
-    private boolean doProcess(List<Map<String, Object>> submitList) {
+    private void doProcess(List<Map<String, Object>> submitList) {
         try {
             ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
             List<Map<String, Object>> dataWithoutId = Lists.newArrayList();
@@ -176,11 +143,10 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
             }
 
             reqHaluoApiDTO.setData(JSON.toJSONString(dataWithoutId));
-            return haluoAiApiServiceClient.postHaluoCallbackApi(reqHaluoApiDTO).isSuccess();
+            haluoAiApiServiceClient.postHaluoCallbackApi(reqHaluoApiDTO).isSuccess();
         } catch (Exception e) {
             String errMsg = "哈啰硅基人处理数据发生异常: " + e.getMessage();
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
-            return false;
         }
     }
 
