@@ -14,7 +14,7 @@
         ${extraCountSql}
     </select>
 
-    <select id="getTcyrCpaPushFileDataCountdoris_" resultType="java.lang.Integer">
+    <select id="getTcyrCpaPushFileDataCountbI_" resultType="java.lang.Integer">
         ${extraCountSql}
     </select>
 </mapper>

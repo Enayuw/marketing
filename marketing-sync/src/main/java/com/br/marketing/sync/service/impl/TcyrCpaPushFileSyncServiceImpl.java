@@ -69,16 +69,20 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
             return;
         }
         for (MarketingTcyrCpaPushFileTask task : tasks) {
+            MarketingTcyrCpaPushFileTask updateTask = new MarketingTcyrCpaPushFileTask();
             try {
-                fileSyncProcess(task);
+                updateTask.setId(task.getId());
+                fileSyncProcess(task, updateTask);
+                updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_OPE_SFTP.getValue());
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         "sftp同步异常！", TITLE), e);
             }
+            tcyrCpaPushFileTaskMapper.updateByPrimaryKeySelective(updateTask);
         }
     }
 
-    private void fileSyncProcess(MarketingTcyrCpaPushFileTask task) {
+    private void fileSyncProcess(MarketingTcyrCpaPushFileTask task, MarketingTcyrCpaPushFileTask updateTask) {
         //1.查询sftp配置
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria()
@@ -94,6 +98,7 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
         }
         for (SyncConfig syncConfig : syncConfigs) {
             fillDate(syncConfig);
+            updateTask.setOpeSftpPath(syncConfig.getTargetPath());
             Map<String, List<String>> listMap = listFile(syncConfig);
             if (listMap.size() == 0 || (listMap.containsKey("csv") && !listMap.containsKey("ok"))) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),

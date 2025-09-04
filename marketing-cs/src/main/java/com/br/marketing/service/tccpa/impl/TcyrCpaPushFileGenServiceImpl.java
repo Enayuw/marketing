@@ -187,7 +187,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
      * @author hedongshuo
      * @date 2025/8/26 16:19
      **/
-    private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info) throws FileNotFoundException {
+    private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info) {
         Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
         try {
             //1.创建目录
@@ -242,7 +242,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         return true;
     }
 
-    private Boolean writeFile(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info, Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap) throws FileNotFoundException {
+    private Boolean writeFile(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info, Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap) throws Exception {
         //1.查询提取脚本
         MarketingTcyrCpaPushFileScriptExample scriptExample = new MarketingTcyrCpaPushFileScriptExample();
         scriptExample.createCriteria()
@@ -265,7 +265,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
             if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_TIDB.getValue()) {
                 count = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDataCounttikv_(extraCountSql);
             } else if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_DORIS.getValue()) {
-                count = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDataCountdoris_(extraCountSql);
+                count = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDataCountbI_(extraCountSql);
             }
             FilePushTaskScriptNumDTO scriptNumDTO = new FilePushTaskScriptNumDTO();
             scriptNumDTO.setPriority(script.getPriority());
@@ -401,7 +401,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
      * @return
      * @throws FileNotFoundException
      */
-    private ImmutablePair<BufferedWriter, FilePushTaskFileDTO> genWriter(String localPath, String yyyyMMdd, String suffix) throws FileNotFoundException {
+    private ImmutablePair<BufferedWriter, FilePushTaskFileDTO> genWriter(String localPath, String yyyyMMdd, String suffix) throws Exception {
         String fileName;
         FilePushTaskFileDTO taskFileDTO = new FilePushTaskFileDTO();
         if (StringUtils.isEmpty(suffix)) {
