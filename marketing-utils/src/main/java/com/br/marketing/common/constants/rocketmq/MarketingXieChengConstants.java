@@ -11,10 +11,6 @@ public class MarketingXieChengConstants {
      */
     public static final String TOPIC = "marketing_xie_cheng";
 
-    public static final String GROUP_MARKETING_XIECHENG_REPORT = "Marketing_XieCheng_Report";
-
-    public static final String TAG_MARKETING_XIECHENG_REPORT = "marketing.xiecheng.report";
-
     /**
      * 携程上报负载均衡队列A
      */
@@ -60,7 +56,14 @@ public class MarketingXieChengConstants {
 
     public static final String TAG_MARKETING_XIECHENG_REPORT_E = "marketing.xiecheng.report.e";
 
+    /**
+     * 携程上报延迟队列（挡板用）
+     */
+    public static final String TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY = "marketingXieChengReportMockDelay";
 
+    public static final String GROUP_MARKETING_XIECHENG_REPORT_DELAY = "Marketing_XieCheng_Report_Delay";
+
+    public static final String TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY = "marketing.xiecheng.report.mock.delay";
 
     /**
      * 携程日志的 consumerGroup

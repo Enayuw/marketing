@@ -12,5 +12,5 @@ public interface MarketingTcyrCpaPushFileScriptMapper extends MarketingTcyrCpaPu
 
     Integer getTcyrCpaPushFileDataCounttikv_(@Param("extraCountSql") String querySql);
 
-    Integer getTcyrCpaPushFileDataCountdoris_(@Param("extraCountSql") String querySql);
+    Integer getTcyrCpaPushFileDataCountbI_(@Param("extraCountSql") String querySql);
 }

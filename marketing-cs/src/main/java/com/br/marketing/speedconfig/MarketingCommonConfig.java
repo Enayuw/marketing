@@ -3348,6 +3348,16 @@ public class MarketingCommonConfig {
     private JSONObject tcyrCpaPushFileConfig;
 
     /**
+     * 携程挡板上报延迟（单位：秒）
+     */
+    private Integer xieChengReportMockDelaySeconds;
+
+    /**
+     * 携程CPA-apiCode集合
+     */
+    private List<String> xieChengCpaApiCodeList;
+
+    /**
      * 哈啰硅基人回调配置
      */
     private JSONObject haloAiCallbackConfig;
