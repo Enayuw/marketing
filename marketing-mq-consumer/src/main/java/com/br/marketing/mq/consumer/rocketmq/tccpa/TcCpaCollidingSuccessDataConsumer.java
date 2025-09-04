@@ -47,19 +47,20 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
 
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
+        long start = System.currentTimeMillis();
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
                 new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
-        //consumerService.consumerRun(messageExt, tcyrLoopCycleDataService::process, tcCpaSuccessMqDTO);
-        long start = System.currentTimeMillis();
+        log.warn("TITLE:{}MQ消费,msgId:{}, requestId:{}, dataId:{}",
+                TITLE,messageExt.getMsgId(),
+                tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId()
+        );
         Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
-        long costMs = System.currentTimeMillis() - start;
-        log.warn("TITLE:{}.process cost:{}ms, requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
-                TITLE,costMs,tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId(), result.getCode(), result.getData());
-        consumerService.consumerRun(
-                messageExt,
-                (TcyrCpaSuccessMqDTO ignored) -> result,
-                tcCpaSuccessMqDTO
+        consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
+        log.warn("TITLE:{}MQ消费，msgId:{},耗时:{}ms, ,requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+                TITLE,messageExt.getMsgId(),System.currentTimeMillis() - start,
+                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
+                result.getCode(), result.getData()
         );
     }
 
