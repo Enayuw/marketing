@@ -84,6 +84,11 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
         int threadBatchSize = haloAiCallbackConfig.getInteger("threadBatchSize");
 
         while (!Thread.interrupted()) {
+            Boolean interrupt = haloAiCallbackConfig.getBoolean("interrupt");
+            if(Boolean.TRUE.equals(interrupt)) {
+                log.warn("任务中断触发，停止硅基人回调读取");
+                break;
+            }
             String retrySql = retry ? " and status = 2 " : " and status = 0 ";
             String scoreSql = "select id, cell, section, cus_num custNum from b_marketing_score_" + batchNumber +
                     " where 1 = 1 " + whereSql + retrySql + " and id > " + lastId + " order by id asc limit " + pageSize;
