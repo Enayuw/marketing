@@ -3,6 +3,7 @@ package com.br.marketing.mq.consumer.rocketmq.tccpa;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rocketmq.MarketingTcCpaConstants;
 import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
@@ -31,6 +32,8 @@ import java.nio.charset.StandardCharsets;
         consumeThreadMax = 20)
 public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
+    private final static String TITLE = "【同程易融CPA-colliding周期剔除任务】";
+
     @Autowired
     RocketMqConsumerService consumerService;
 
@@ -47,7 +50,17 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
                 new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
-        consumerService.consumerRun(messageExt, tcyrLoopCycleDataService::process, tcCpaSuccessMqDTO);
+        //consumerService.consumerRun(messageExt, tcyrLoopCycleDataService::process, tcCpaSuccessMqDTO);
+        long start = System.currentTimeMillis();
+        Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
+        long costMs = System.currentTimeMillis() - start;
+        log.warn("TITLE:{}.process cost:{}ms, requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+                TITLE,costMs,tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId(), result.getCode(), result.getData());
+        consumerService.consumerRun(
+                messageExt,
+                (TcyrCpaSuccessMqDTO ignored) -> result,
+                tcCpaSuccessMqDTO
+        );
     }
 
     @Override
