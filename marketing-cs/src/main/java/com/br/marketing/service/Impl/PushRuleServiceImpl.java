@@ -2573,8 +2573,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             return false;
         }
 
+        boolean isBatch = judgeIsBatch(jsonData);
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
@@ -2594,7 +2595,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
 
         if (hasType3Rule && hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
@@ -2613,19 +2614,34 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         // 缓存和数据中都有
         if (hasType3Rule || hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         // 发消息到通用入明细队列
         return false;
+    }
+
+    private boolean judgeIsBatch(String jsonData) {
+        JSONArray dataArray;
+        try {
+            dataArray = JSON.parseObject(jsonData).getJSONArray(Constants.JSON_DATA_KEYARR);
+        } catch (Exception e) {
+            log.warn("客户上传数据格式错误！jsonData:{}，ermsg:{}", jsonData, e.getMessage(), e);
+            return false;
+        }
+        if (CollectionUtils.isEmpty(dataArray)) {
+            return false;
+        }
+
+        return dataArray.size() > 1;
     }
 
     /**
@@ -2682,8 +2698,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         return true;
     }
 
-    private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
+    private void getRoutingKeyAndSendToAiMq(String syncInfoId, boolean isBatch) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
+            if (isBatch) {
+                rocketMqSwitch.syncSend(AiRocketMQConstants.TOPIC_MARKETING_AI_PREUSER_RECEIVE_BATCH,
+                        AiRocketMQConstants.TAG_MARKETING_AI_PREUSER_RECEIVE_BATCH, syncInfoId);
+                return;
+            }
+
             AiPreUserReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiPreUserReceiveEnum.class,
                     RedisKeyConstant.AI_PREUSER_RECEIVE_MQ_BALANCER);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), syncInfoId);
@@ -3196,8 +3218,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.INITDATA_MUST_ERROR.getMessage()));
         }
 
+        boolean isBatch = dto.getDataItems().size() > 1;
         // 发消息到推送下游队列
-        sendToUniversalQueue(infoId, status, apiCode);
+        sendToUniversalQueue(infoId, status, apiCode, isBatch);
 
         List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
         if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)) {
@@ -3250,7 +3273,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode) {
+    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode, boolean isBatch) {
         if (!status) {
             return;
         }
@@ -3273,21 +3296,27 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
         if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
-            sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact, isBatch);
             return;
         }
 
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
         if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
-            sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact, isBatch);
         }
     }
 
-    private void sendToAIUniversalQueue(MqFact mqFact){
+    private void sendToAIUniversalQueue(MqFact mqFact, boolean isBatch) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
+            String message = JSON.toJSONString(mqFact);
+            if (isBatch) {
+                rocketMqSwitch.syncSend(AiRocketMQConstants.TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH,
+                        AiRocketMQConstants.GROUP_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH, message);
+                return;
+            }
+
             AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
                     RedisKeyConstant.AI_UNIVERSAL_RECEIVE_MQ_BALANCER);
-            String message = JSON.toJSONString(mqFact);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), message);
             return;
         }
