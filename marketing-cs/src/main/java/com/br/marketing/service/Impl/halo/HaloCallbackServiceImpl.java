@@ -76,81 +76,87 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
         }
         saveHaloCallbackRecord(batchNumber, apiCode);
 
-        TpDynamicExecutor executor = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.HALO_CALLBACK_3710212.getName(), 100, 100);
         List<CompletableFuture<Boolean>> allFutures = Lists.newArrayList();
-
         int pageSize = haloAiCallbackConfig.getInteger("pageSize");
         long lastId = 0L;
         int threadBatchSize = haloAiCallbackConfig.getInteger("threadBatchSize");
 
-        while (!Thread.interrupted()) {
-            Boolean interrupt = haloAiCallbackConfig.getBoolean("interrupt");
-            if(Boolean.TRUE.equals(interrupt)) {
-                log.warn("任务中断触发，停止硅基人回调读取");
-                break;
-            }
-            String scoreSql = "select id, cell, section, cus_num custNum from b_marketing_score_" + batchNumber +
-                    " where 1 = 1 " + whereSql + " and id > " + lastId + " order by id asc limit " + pageSize;
-            List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
+        TpDynamicExecutor executor = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.HALO_CALLBACK_3710212.getName(), 100, 100);
+        try {
+            while (!Thread.interrupted()) {
+                Boolean interrupt = haloAiCallbackConfig.getBoolean("interrupt");
+                if (Boolean.TRUE.equals(interrupt)) {
+                    log.warn("任务中断触发，停止硅基人回调读取");
+                    break;
+                }
+                String scoreSql = "select id, cell, section, cus_num custNum from b_marketing_score_" + batchNumber +
+                        " where 1 = 1 " + whereSql + " and id > " + lastId + " order by id asc limit " + pageSize;
+                List<Map<String, Object>> results = reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
 
-            if (CollectionUtils.isEmpty(results)) {
-                break;
-            }
+                if (CollectionUtils.isEmpty(results)) {
+                    break;
+                }
 
-            Map<String, Object> lastRecord = results.get(results.size() - 1);
-            lastId = ((Number) lastRecord.get("id")).longValue();
+                Map<String, Object> lastRecord = results.get(results.size() - 1);
+                lastId = ((Number) lastRecord.get("id")).longValue();
 
-            for (List<Map<String, Object>> batchToProcess : Lists.partition(results, threadBatchSize)) {
-                String finalBatchNumber = batchNumber;
-                List<Integer> ids = batchToProcess.stream().map(record -> ((Number) record.get("id")).intValue()).collect(Collectors.toList());
-                CompletableFuture<Boolean> batchFuture = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        boolean success = doProcess(batchToProcess);
-                        reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 1);
-                        return success;
-                    } catch (Exception e) {
-                        reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 2);
-                        String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
-                        return false;
-                    }
-                }, executor).handle((result, e) -> {
-                    if (Objects.nonNull(e)) {
-                        return false;
-                    }
-                    return result;
-                });
-                allFutures.add(batchFuture);
-            }
+                for (List<Map<String, Object>> batchToProcess : Lists.partition(results, threadBatchSize)) {
+                    String finalBatchNumber = batchNumber;
+                    List<Integer> ids = batchToProcess.stream().map(record -> ((Number) record.get("id")).intValue()).collect(Collectors.toList());
+                    CompletableFuture<Boolean> batchFuture = CompletableFuture.supplyAsync(() -> {
+                        try {
+                            boolean success = doProcess(batchToProcess);
+                            reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 1);
+                            return success;
+                        } catch (Exception e) {
+                            reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 2);
+                            String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
+                            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
+                            return false;
+                        }
+                    }, executor).handle((result, e) -> {
+                        if (Objects.nonNull(e)) {
+                            return false;
+                        }
+                        return result;
+                    });
+                    allFutures.add(batchFuture);
+                }
 
-            if (results.size() < pageSize) {
-                break;
-            }
-        }
-
-        CompletableFuture<Void> allTasks = CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0]));
-        CompletableFuture<Boolean> overallSuccessFuture = allTasks.thenApply(v -> {
-            for (CompletableFuture<Boolean> future : allFutures) {
-                Boolean batchSuccess = future.getNow(false);
-                if (!batchSuccess) {
-                    return false;
+                if (results.size() < pageSize) {
+                    break;
                 }
             }
-            return true;
-        });
 
-        boolean overallSuccess = false;
-        try {
-            overallSuccess = overallSuccessFuture.get(8, TimeUnit.HOURS);
+            CompletableFuture<Void> allTasks = CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0]));
+            CompletableFuture<Boolean> overallSuccessFuture = allTasks.thenApply(v -> {
+                for (CompletableFuture<Boolean> future : allFutures) {
+                    Boolean batchSuccess = future.getNow(false);
+                    if (!batchSuccess) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            boolean overallSuccess = false;
+            try {
+                overallSuccess = overallSuccessFuture.get(8, TimeUnit.HOURS);
+            } catch (Exception e) {
+                String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
+                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
+            }
+
+            if (overallSuccess) {
+                haloCallbackRecordMapper.updateStatusByBatchNumber(1, batchNumber);
+            } else {
+                haloCallbackRecordMapper.updateStatusByBatchNumber(2, batchNumber);
+            }
         } catch (Exception e) {
-            String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
-        }
-
-        if (overallSuccess) {
-            haloCallbackRecordMapper.updateStatusByBatchNumber(1, batchNumber);
-        } else {
-            haloCallbackRecordMapper.updateStatusByBatchNumber(2, batchNumber);
+            String errMsg = "哈啰硅基人任务异常" + e.getMessage();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BI_SERVICEERROR.getCode(), errMsg));
+        } finally {
+            executor.shutdownAndAwaitTermination();
         }
     }
 
