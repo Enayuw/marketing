@@ -108,7 +108,7 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
                         } catch (Exception e) {
                             reportStatisticsScoreMapper.updateStatusbI_("b_marketing_score_" + finalBatchNumber, ids, 2);
                             String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
-                            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
                         }
                     }, executor));
                 }
@@ -146,7 +146,7 @@ public class HaloCallbackServiceImpl implements IHaloCallbackService {
             haluoAiApiServiceClient.postHaluoCallbackApi(reqHaluoApiDTO).isSuccess();
         } catch (Exception e) {
             String errMsg = "哈啰硅基人处理数据发生异常: " + e.getMessage();
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
         }
     }
 
