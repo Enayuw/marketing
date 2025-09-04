@@ -3356,5 +3356,10 @@ public class MarketingCommonConfig {
      * 携程CPA-apiCode集合
      */
     private List<String> xieChengCpaApiCodeList;
+
+    /**
+     * 哈啰硅基人回调配置
+     */
+    private JSONObject haloAiCallbackConfig;
 }
 

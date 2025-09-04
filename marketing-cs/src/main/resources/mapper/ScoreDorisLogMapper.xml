@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.ScoreDorisLogMapper">
+
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ScoreDorisLog">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="batch_number" jdbcType="VARCHAR" property="batchNumber" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <select id="selectNewestLog" resultMap="BaseResultMap">
+    select * from b_score_doris_log
+    where api_code = #{apiCode} and status = 2
+    order by update_time desc limit 1
+  </select>
+
+  <select id="selectNewestBatchNumberLog" resultType="java.lang.String">
+    select batch_number from b_marketing_score_doris_log where api_code = #{apiCode} and status = 2 order by update_time desc limit 1
+  </select>
+
+  <select id="selectNewestBatchNumberLogbI_" resultType="java.lang.String">
+    select batch_number from b_marketing_score_doris_log where api_code = #{apiCode} and status = 2 order by update_time desc limit 1
+  </select>
+
+</mapper>
