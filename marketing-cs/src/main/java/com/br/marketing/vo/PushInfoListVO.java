@@ -52,6 +52,9 @@ public class PushInfoListVO {
     @ApiModelProperty(value = "数据集名称")
     private String batchName;
 
+    @ApiModelProperty(value = "扩展字段")
+    private String extend;
+
     public String getmStatusDesc() {
         if (mStatus.equals(PushRuleStatusEnum.RUNNING.getValue())
                 || mStatus.equals(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue())
@@ -194,5 +197,13 @@ public class PushInfoListVO {
 
     public void setBatchName(String batchName) {
         this.batchName = batchName;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend;
     }
 }
