@@ -11,7 +11,7 @@ public class SanLiuLingResponseDTO implements Serializable {
     private static final long serialVersionUID = -1;
 
     @ApiModelProperty("响应码")
-    private Integer code;
+    private String code;
     @ApiModelProperty("响应消息")
     private String msg;
 
@@ -37,15 +37,14 @@ public class SanLiuLingResponseDTO implements Serializable {
     @Getter
     public enum ResultEnum {
 
-        SUCCESS(0, "成功"),
-        FAILED_PARAM_ERROR(400, "失败,参数校验错误"),
-        FAILED_SYSTEM_ERROR(500, "失败,系统异常"),
+        SUCCESS("S", "成功"),
+        FAILED_PARAM_ERROR("F", "失败")
         ;
 
-        private int code;
+        private String code;
         private String desc;
 
-        ResultEnum(int code, String desc) {
+        ResultEnum(String code, String desc) {
             this.code = code;
             this.desc = desc;
         }

@@ -75,7 +75,7 @@ public class SanLiuLingUploadDataService {
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULINGCOLLECTION_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                     "360催收定制上传数据接入异常！！！"), e);
-            sanLiuLingResponseDTO = sanLiuLingResponseDTO.failed(SanLiuLingResponseDTO.ResultEnum.FAILED_SYSTEM_ERROR);
+            sanLiuLingResponseDTO = sanLiuLingResponseDTO.failed(SanLiuLingResponseDTO.ResultEnum.FAILED_PARAM_ERROR);
         }
         log.warn("360催收数据上传接口被调用");
         return sanLiuLingResponseDTO;
