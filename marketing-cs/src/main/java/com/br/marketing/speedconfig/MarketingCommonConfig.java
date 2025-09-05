@@ -3343,5 +3343,10 @@ public class MarketingCommonConfig {
      * #短信回调入队ApiCode配置
      */
     private List<String> smsCallBackDataPushMqApiCodes;
+
+    /**
+     * 合并数据推决策配置
+     */
+    private Map<String,String> pushPolicyConfig;
 }
 
