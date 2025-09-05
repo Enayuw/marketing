@@ -215,10 +215,15 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
         tcyrCpaSuccessDataList.forEach(item -> {
             Long dataId = item.getId();
             String requestId = item.getBatchNo()+"_"+item.getSyncFileId()+"_"+ dataId + "_"+System.currentTimeMillis();
+            String speedFixedRquestId = marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getString("fixedRequestId");
             try {
                 TcyrCpaSuccessMqDTO cpaSuccessMqDTO = new TcyrCpaSuccessMqDTO();
                 cpaSuccessMqDTO.setDataId(dataId);
-                cpaSuccessMqDTO.setRequestId(requestId);
+                if(StringUtils.isNotEmpty(speedFixedRquestId)){
+                    cpaSuccessMqDTO.setRequestId(speedFixedRquestId);
+                }else {
+                    cpaSuccessMqDTO.setRequestId(requestId);
+                }
                 String msg = JSONObject.toJSONString(cpaSuccessMqDTO);
                 rocketMqSwitch.syncSend(MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE
                         , MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE, msg);
@@ -226,6 +231,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage()
                         , "同程CPA撞库成功-发送RocketMq消息异常！requestId:"+requestId), e);
             }
+            requestId =  StringUtils.isNotEmpty(speedFixedRquestId) ? speedFixedRquestId : requestId;
             log.warn("同程CPA撞库成功消息下发 requestId:{},dataId:{}", requestId, dataId);
         });
     }
