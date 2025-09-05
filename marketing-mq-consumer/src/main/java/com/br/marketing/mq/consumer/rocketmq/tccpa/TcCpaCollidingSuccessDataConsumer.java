@@ -51,20 +51,19 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
                 new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
-        log.warn("TITLE:{}MQ消费,msgId:{}, requestId:{}, dataId:{}",
-                TITLE,messageExt.getMsgId(),
-                tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId()
-        );
-        Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
-        log.warn("TITLE:{}-process执行完成 MQ消费耗时,msgId:{},耗时:{}ms,requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+//        log.warn("TITLE:{}MQ消费,msgId:{}, requestId:{}, dataId:{}",
+//                TITLE,messageExt.getMsgId(),
+//                tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId()
+//        );
+//        Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
+//        log.warn("TITLE:{}-process执行完成 MQ消费耗时,msgId:{},耗时:{}ms,requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+//                TITLE,messageExt.getMsgId(),System.currentTimeMillis() - start,
+//                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
+//                result.getCode(), result.getData());
+//        consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
+        log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时,msgId:{},耗时:{}ms,requestId:{}, dataId:{}",
                 TITLE,messageExt.getMsgId(),System.currentTimeMillis() - start,
-                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
-                result.getCode(), result.getData());
-        consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
-        log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时,msgId:{},耗时:{}ms,requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
-                TITLE,messageExt.getMsgId(),System.currentTimeMillis() - start,
-                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
-                result.getCode(), result.getData()
+                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
         );
     }
 
