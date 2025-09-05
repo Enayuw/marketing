@@ -39,8 +39,7 @@ public class MockTestController {
         
         try {
             // 测试基础类型
-            mockTestService.testVoidReturn("批量测试");
-            results.put("void", "执行成功");
+            mockTestService.testVoidReturn(results,"批量测试");
             
             Object objResult = mockTestService.testObjectReturn("批量测试");
             results.put("Object", objResult);

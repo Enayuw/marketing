@@ -7,12 +7,10 @@ import com.br.marketing.constants.MockConstants;
 import com.br.marketing.dto.test.MockTestDTO;
 import com.br.marketing.entity.MarketingMockTest;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.enums.TcRecordCleanStatusEnum;
 import com.br.marketing.mapper.MarketingMockTestMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +18,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * @ClassName MockTestService
@@ -44,8 +42,9 @@ public class MockTestService {
      * 测试void返回类型
      */
     @Mockable(mockName = MockConstants.TEST_VOID_RETURN)
-    public void testVoidReturn(String message) {
+    public void testVoidReturn(Map<String, Object> results, String message) {
         log.warn("执行void方法，参数：{}", message);
+        results.put("void", "实际返回Void");
     }
 
     /**
