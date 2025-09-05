@@ -3456,6 +3456,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region 写入上传明细MQ
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
+            // 非ai客户
             if(Objects.equals(intoAiQueue,false)){
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
