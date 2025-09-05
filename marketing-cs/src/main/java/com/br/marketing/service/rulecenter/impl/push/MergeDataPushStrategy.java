@@ -95,7 +95,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 FilterTypeEnum.GENERAL_POLICY.getValue());
     }
 
-    protected Result<Boolean> validateData(RuleCenterPushContext context){
+    protected Result<Boolean> validateData(RuleCenterPushContext context) {
         logger.warn(getPushName(context) + "开始执行推送策略数据校验，任务ID: {}, 策略类型: {}",
                 context.getCustomerInfoPushMain().getId(),
                 getPushName(context));
@@ -137,7 +137,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
 
             //基础字段列表
             List<String> baseColumns = flagDataMapper.queryColumnNamebI_(B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA);
-            String finalSelect = (customerInfoPushMain.getmApiCode() + " as api_code," + customerInfoPushMain.getId() + " as m_id, " )
+            String finalSelect = (customerInfoPushMain.getmApiCode() + " as api_code," + customerInfoPushMain.getId() + " as m_id, ")
                     .concat(generateSelectColumns(processSelect, baseColumns));
             String selectSql = "select ".concat(finalSelect).concat(" ").concat(processFrom);
 
@@ -221,13 +221,13 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     }
                     //构建conditions
                     List<MarketingCondition> conditions = new ArrayList<>();
-                    Set<Map.Entry<String,Object>> entrySet = varObject.entrySet();
-                    for (Map.Entry<String,Object> entry : entrySet) {
+                    Set<Map.Entry<String, Object>> entrySet = varObject.entrySet();
+                    for (Map.Entry<String, Object> entry : entrySet) {
                         MarketingCondition marketingCondition = new MarketingCondition();
                         marketingCondition.setFieldKey(entry.getKey());
                         String strValue = JSON.toJSONString(entry.getValue());
                         marketingCondition.setStrValue(strValue);
-                        if (NumberUtils.isNumber(strValue)){
+                        if (NumberUtils.isNumber(strValue)) {
                             marketingCondition.setDValue(Double.valueOf(strValue));
                         }
                         conditions.add(marketingCondition);
@@ -240,28 +240,20 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     varObject.put("taskId", marketingRuleCenterMergePushData.getmId());
                     varObject.put("userType", marketingRuleCenterMergePushData.getUserType());
 
-
                     if (scFlag) {
-                        //es处理
-                        if (markWithEsFlag) {
-                            markForCell(varObject, new JSONObject());
-                            //代码处理逻辑
-                        } else {
-                            if (!CollectionUtils.isEmpty(conditions)) {
-                                Map<String, Object> scoreMap = conditions.stream()
-                                        .filter(condition -> condition.getDValue() != null)
-                                        .collect(Collectors.toMap(MarketingCondition::getFieldKey
-                                                , MarketingCondition::getDValue
-                                                , (existing, replacement) -> replacement));
-                                ScoreLable scoreLable = GeneScriptUtil.scoreLableWithSpel(scoreMap, scoreLables);
-                                if (scoreLable != null) {
-                                    varObject.put("listValue", scoreLable.getListValue());
-                                    varObject.put("valueType", scoreLable.getValueType());
-                                }
+                        if (!CollectionUtils.isEmpty(conditions)) {
+                            Map<String, Object> scoreMap = conditions.stream()
+                                    .filter(condition -> condition.getDValue() != null)
+                                    .collect(Collectors.toMap(MarketingCondition::getFieldKey
+                                            , MarketingCondition::getDValue
+                                            , (existing, replacement) -> replacement));
+                            ScoreLable scoreLable = GeneScriptUtil.scoreLableWithSpel(scoreMap, scoreLables);
+                            if (scoreLable != null) {
+                                varObject.put("listValue", scoreLable.getListValue());
+                                varObject.put("valueType", scoreLable.getValueType());
                             }
                         }
                     }
-
 
                     dto1.setVariables(varObject);
                     if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {
@@ -278,7 +270,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
                     pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId().toString()+ "_" + batch);
+                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId().toString() + "_" + batch);
                     pushMarketingUserTaskInfoDTO.setData(userDetailDTOList);
                     pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
                     pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
@@ -310,17 +302,17 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
     private void syncDataToTiDB() {
         try {
             long start = System.currentTimeMillis();
-            
+
             // 检查配置是否为空
             if (marketingCommonConfig == null || marketingCommonConfig.getPushPolicyConfig() == null) {
                 logger.warn(TITLE + "配置信息为空，跳过同步数据到TiDB");
                 return;
             }
-            
+
             Map<String, String> pushPolicyConfig = marketingCommonConfig.getPushPolicyConfig();
             String syncDBName = pushPolicyConfig.get("syncDBName");
             String fromDBName = pushPolicyConfig.get("fromDBName");
-            
+
             // 检查必要的配置项
             if (StringUtils.isBlank(syncDBName) || StringUtils.isBlank(fromDBName)) {
                 logger.warn(TITLE + "同步数据库配置项为空，syncDBName={}, fromDBName={}", syncDBName, fromDBName);
@@ -339,24 +331,10 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             logger.warn(TITLE + "执行同步SQL: {}", syncTiDBSql);
             flagDataMapper.insertbI_(syncTiDBSql);
             logger.warn(TITLE + "同步数据到Tidb明细表,耗时={}ms", System.currentTimeMillis() - start);
-            
+
         } catch (Exception e) {
             logger.error(TITLE + "同步数据到TiDB异常", e);
             // 不抛出异常，避免影响主流程
-        }
-    }
-
-    private void markForCell(JSONObject varObject, JSONObject fields) {
-        if (fields == null) {
-            return;
-        }
-        JSONObject listValueJson = fields.getJSONObject("listValue");
-        JSONObject valueTypeJson = fields.getJSONObject("valueType");
-        if (listValueJson != null) {
-            varObject.put("listValue", listValueJson.getString("value"));
-        }
-        if (valueTypeJson != null) {
-            varObject.put("valueType", valueTypeJson.getString("value"));
         }
     }
 
@@ -372,7 +350,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 .map(String::trim)
                 .distinct()
                 .collect(Collectors.toList());
-        
+
         // 建立字段名到完整字段表达式的映射
         Map<String, String> fieldMap = new HashMap<>();
         for (String field : allFields) {
@@ -386,11 +364,11 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 fieldMap.put(fieldName, field);
             }
         }
-        
+
         StringBuilder columns = new StringBuilder();
         StringBuilder extend = new StringBuilder("JSON_OBJECT(");
         List<String> extendFields = new ArrayList<>();
-        
+
         // 按照baseColumns的顺序拼接字段
         for (String baseColumn : baseColumns) {
             if (fieldMap.containsKey(baseColumn)) {
@@ -399,20 +377,20 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 fieldMap.remove(baseColumn); // 移除已处理的字段
             }
         }
-        
+
         // 处理剩余不在baseColumns中的字段，添加到extend JSON对象中
         for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
             String originalFieldName = extractFieldName(entry.getValue());
             extendFields.add("'" + originalFieldName + "'");
             extendFields.add(entry.getValue());
         }
-        
+
         // 构建extend JSON对象
         if (!extendFields.isEmpty()) {
             extend.append(String.join(",", extendFields));
         }
         extend.append(") as extend");
-        
+
         return columns.append(extend).toString();
     }
 
