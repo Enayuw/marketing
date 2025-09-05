@@ -41,6 +41,7 @@
         DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime,
         m_status as mStatus,
         batch_name as  batchName,
+        push_target as pushTarget,
         extend
         from b_customer_info_push_main
         where is_del=1

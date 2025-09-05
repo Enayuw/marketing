@@ -55,6 +55,12 @@ public class PushInfoListVO {
     @ApiModelProperty(value = "扩展字段")
     private String extend;
 
+    /**
+     * 0:推送决策,1:数据打标,2合并跑分
+     */
+    @ApiModelProperty(value = "推送类型")
+    private Integer pushTarget;
+
     public String getmStatusDesc() {
         if (mStatus.equals(PushRuleStatusEnum.RUNNING.getValue())
                 || mStatus.equals(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue())
@@ -205,5 +211,13 @@ public class PushInfoListVO {
 
     public void setExtend(String extend) {
         this.extend = extend;
+    }
+
+    public Integer getPushTarget() {
+        return pushTarget;
+    }
+
+    public void setPushTarget(Integer pushTarget) {
+        this.pushTarget = pushTarget;
     }
 }
