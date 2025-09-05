@@ -10,8 +10,8 @@ public enum TcFailMsgEnum {
     FAILMSG_TRANSFER("3","已转化"),
     FAILMSG_NO_USERKEY("4","无此用户");
     TcFailMsgEnum(String value, String desc){
-          this.value = value;
-            this.desc=desc;
+        this.value = value;
+        this.desc=desc;
     }
     private String value;
 

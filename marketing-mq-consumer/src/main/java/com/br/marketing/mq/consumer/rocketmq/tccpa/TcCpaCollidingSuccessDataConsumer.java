@@ -1,61 +1,63 @@
-package com.br.marketing.xcconsumer.consumer.rocketmq;
+package com.br.marketing.mq.consumer.rocketmq.tccpa;
+
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
-import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.common.constants.rocketmq.MarketingTcCpaConstants;
+import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.Impl.xc.XieChengReportService;
+import com.br.marketing.service.tccpa.TcyrLoopCycleDataService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * 消费 同程CPA撞库成功数据消费
+ */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
-        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT,
-        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-        consumeThreadNumber = 16, consumeThreadMax = 16, awaitTerminationMillisWhenShutdown = 10000)
-public class MarketingXiechengReportQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> , RocketMQPushConsumerLifecycleListener {
+@RocketMQMessageListener(topic = MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
+        consumerGroup = MarketingTcCpaConstants.GROUP_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
+        selectorExpression = MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
+        consumeThreadMax = 20)
+public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Resource
-    XieChengReportService xieChengReportService;
+    private TcyrLoopCycleDataService tcyrLoopCycleDataService;
 
     @Override
     protected String consumerName() {
-        return null;
+        return "";
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) {
+    protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
-        log.warn("MARKETING_XIECHENG_REPORT_QUEUE" +
-                        "：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), o);
-        consumerService.consumerRun(messageExt, xieChengReportService::pushXieChengData, o);
+        TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
+                new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
+        consumerService.consumerRun(messageExt, tcyrLoopCycleDataService::process, tcCpaSuccessMqDTO);
     }
 
     @Override
     protected void overMaxRetryTimesMessage(MessageExt messageExt) {
-
+        log.warn("overMaxRetryTimes messageExt is [{}]", JSON.toJSONString(messageExt));
     }
 
     @Override
     protected boolean isThrowException() {
+        log.warn("messageExt ThrowException");
         // true会重新消费消息
         return true;
     }

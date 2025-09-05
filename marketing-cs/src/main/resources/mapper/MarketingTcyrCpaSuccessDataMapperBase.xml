@@ -16,6 +16,7 @@
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="status_msg" property="statusMsg" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="origin_text" property="originText" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -78,7 +79,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, batch_no, sync_file_id, user_key, cell, is_match, start_date, end_date, 
-    create_time, update_time, `status`, status_msg, is_del, extend
+    create_time, update_time, `status`, status_msg, is_del, origin_text, extend
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessDataExample" >
     select
@@ -118,12 +119,14 @@
       user_key, cell, is_match, 
       start_date, end_date, create_time, 
       update_time, `status`, status_msg, 
-      is_del, extend)
+      is_del, origin_text, extend
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{syncFileId,jdbcType=BIGINT}, 
       #{userKey,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{isMatch,jdbcType=INTEGER}, 
       #{startDate,jdbcType=DATE}, #{endDate,jdbcType=DATE}, #{createTime,jdbcType=TIMESTAMP}, 
       #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{statusMsg,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR})
+      #{isDel,jdbcType=INTEGER}, #{originText,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTcyrCpaSuccessData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -170,6 +173,9 @@
       <if test="isDel != null" >
         is_del,
       </if>
+      <if test="originText != null" >
+        origin_text,
+      </if>
       <if test="extend != null" >
         extend,
       </if>
@@ -213,6 +219,9 @@
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="originText != null" >
+        #{originText,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -270,6 +279,9 @@
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
+      <if test="record.originText != null" >
+        origin_text = #{record.originText,jdbcType=VARCHAR},
+      </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
@@ -294,6 +306,7 @@
       `status` = #{record.status,jdbcType=INTEGER},
       status_msg = #{record.statusMsg,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
+      origin_text = #{record.originText,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -341,6 +354,9 @@
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
+      <if test="originText != null" >
+        origin_text = #{originText,jdbcType=VARCHAR},
+      </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
@@ -362,6 +378,7 @@
       `status` = #{status,jdbcType=INTEGER},
       status_msg = #{statusMsg,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
+      origin_text = #{originText,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>

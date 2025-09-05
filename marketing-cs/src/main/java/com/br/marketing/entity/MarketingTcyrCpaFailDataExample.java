@@ -2,7 +2,6 @@ package com.br.marketing.entity;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 public class MarketingTcyrCpaFailDataExample {
@@ -104,32 +103,6 @@ public class MarketingTcyrCpaFailDataExample {
                 throw new RuntimeException("Between values for " + property + " cannot be null");
             }
             criteria.add(new Criterion(condition, value1, value2));
-        }
-
-        protected void addCriterionForJDBCDate(String condition, Date value, String property) {
-            if (value == null) {
-                throw new RuntimeException("Value for " + property + " cannot be null");
-            }
-            addCriterion(condition, new java.sql.Date(value.getTime()), property);
-        }
-
-        protected void addCriterionForJDBCDate(String condition, List<Date> values, String property) {
-            if (values == null || values.size() == 0) {
-                throw new RuntimeException("Value list for " + property + " cannot be null or empty");
-            }
-            List<java.sql.Date> dateList = new ArrayList<java.sql.Date>();
-            Iterator<Date> iter = values.iterator();
-            while (iter.hasNext()) {
-                dateList.add(new java.sql.Date(iter.next().getTime()));
-            }
-            addCriterion(condition, dateList, property);
-        }
-
-        protected void addCriterionForJDBCDate(String condition, Date value1, Date value2, String property) {
-            if (value1 == null || value2 == null) {
-                throw new RuntimeException("Between values for " + property + " cannot be null");
-            }
-            addCriterion(condition, new java.sql.Date(value1.getTime()), new java.sql.Date(value2.getTime()), property);
         }
 
         public Criteria andIdIsNull() {
@@ -613,52 +586,52 @@ public class MarketingTcyrCpaFailDataExample {
         }
 
         public Criteria andReleaseTimeEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time =", value, "releaseTime");
+            addCriterion("release_time =", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeNotEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time <>", value, "releaseTime");
+            addCriterion("release_time <>", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeGreaterThan(Date value) {
-            addCriterionForJDBCDate("release_time >", value, "releaseTime");
+            addCriterion("release_time >", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time >=", value, "releaseTime");
+            addCriterion("release_time >=", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeLessThan(Date value) {
-            addCriterionForJDBCDate("release_time <", value, "releaseTime");
+            addCriterion("release_time <", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time <=", value, "releaseTime");
+            addCriterion("release_time <=", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeIn(List<Date> values) {
-            addCriterionForJDBCDate("release_time in", values, "releaseTime");
+            addCriterion("release_time in", values, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeNotIn(List<Date> values) {
-            addCriterionForJDBCDate("release_time not in", values, "releaseTime");
+            addCriterion("release_time not in", values, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("release_time between", value1, value2, "releaseTime");
+            addCriterion("release_time between", value1, value2, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("release_time not between", value1, value2, "releaseTime");
+            addCriterion("release_time not between", value1, value2, "releaseTime");
             return (Criteria) this;
         }
 
@@ -969,6 +942,76 @@ public class MarketingTcyrCpaFailDataExample {
 
         public Criteria andIsDelNotBetween(Integer value1, Integer value2) {
             addCriterion("is_del not between", value1, value2, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextIsNull() {
+            addCriterion("origin_text is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextIsNotNull() {
+            addCriterion("origin_text is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextEqualTo(String value) {
+            addCriterion("origin_text =", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotEqualTo(String value) {
+            addCriterion("origin_text <>", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextGreaterThan(String value) {
+            addCriterion("origin_text >", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextGreaterThanOrEqualTo(String value) {
+            addCriterion("origin_text >=", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextLessThan(String value) {
+            addCriterion("origin_text <", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextLessThanOrEqualTo(String value) {
+            addCriterion("origin_text <=", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextLike(String value) {
+            addCriterion("origin_text like", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotLike(String value) {
+            addCriterion("origin_text not like", value, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextIn(List<String> values) {
+            addCriterion("origin_text in", values, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotIn(List<String> values) {
+            addCriterion("origin_text not in", values, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextBetween(String value1, String value2) {
+            addCriterion("origin_text between", value1, value2, "originText");
+            return (Criteria) this;
+        }
+
+        public Criteria andOriginTextNotBetween(String value1, String value2) {
+            addCriterion("origin_text not between", value1, value2, "originText");
             return (Criteria) this;
         }
 
