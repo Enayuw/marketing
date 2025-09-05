@@ -79,16 +79,21 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
             }
             result.setDate(Boolean.FALSE);
         } catch (DuplicateKeyException e) {
-//            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-//                    "同程cpa撞库成功周期剔除数据重入异常,requestId:" + requestId +e.getMessage(), TITLE), e);
             log.warn("TITLE:{},同程cpa撞库成功周期剔除数据重入异常,requestId:{}",TITLE, requestId  , e);
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            result.setDate(Boolean.FALSE);
+            try {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                result.setDate(Boolean.FALSE);
+            }catch (Exception e1) {
+                log.warn("TITLE:{},resultId:{},通用异常->DuplicateKeyException",TITLE,requestId,e);
+            }
         } catch (Exception e) {
-            log.warn("TITLE:{},同程cpa撞库成功周期剔除数据异常,requestId:{}", TITLE,requestId, e);//            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-//                    "同程cpa撞库成功周期剔除数据异常,requestId:" + requestId +e.getMessage(), TITLE), e);
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            result.setDate(Boolean.TRUE);
+            try {
+                log.warn("TITLE:{},同程cpa撞库成功周期剔除数据异常,requestId:{}", TITLE,requestId, e);
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                result.setDate(Boolean.TRUE);
+            }catch (Exception e1) {
+                log.warn("TITLE:{},resultId:{},通用异常->Exception",TITLE,requestId,e);
+            }
         }
         return  result;
     }
