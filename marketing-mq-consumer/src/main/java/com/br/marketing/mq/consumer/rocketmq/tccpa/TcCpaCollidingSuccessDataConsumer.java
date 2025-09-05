@@ -56,8 +56,12 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
                 tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId()
         );
         Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
+        log.warn("TITLE:{}-process执行完成 MQ消费耗时,msgId:{},耗时:{}ms,requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+                TITLE,messageExt.getMsgId(),System.currentTimeMillis() - start,
+                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
+                result.getCode(), result.getData());
         consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
-        log.warn("TITLE:{}MQ消费耗时,msgId:{},耗时:{}ms,requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+        log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时,msgId:{},耗时:{}ms,requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
                 TITLE,messageExt.getMsgId(),System.currentTimeMillis() - start,
                 tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
                 result.getCode(), result.getData()
