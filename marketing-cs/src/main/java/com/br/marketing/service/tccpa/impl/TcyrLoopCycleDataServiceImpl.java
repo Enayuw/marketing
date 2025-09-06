@@ -79,21 +79,13 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
             }
             result.setDate(Boolean.FALSE);
         } catch (DuplicateKeyException e) {
-            try {
-                log.warn("TITLE:{},同程cpa撞库成功周期剔除数据重入异常,requestId:{}",TITLE, requestId  , e);
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                result.setDate(Boolean.FALSE);
-            }catch (Exception e1) {
-                log.warn("TITLE:{},resultId:{},通用异常->DuplicateKeyException",TITLE,requestId,e);
-            }
+            log.warn("TITLE:{},同程cpa撞库成功周期剔除数据重入异常,requestId:{}",TITLE, requestId  , e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            result.setDate(Boolean.FALSE);
         } catch (Exception e) {
-            try {
-                log.warn("TITLE:{},同程cpa撞库成功周期剔除数据异常,requestId:{}", TITLE,requestId, e);
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                result.setDate(Boolean.TRUE);
-            }catch (Exception e1) {
-                log.warn("TITLE:{},resultId:{},通用异常->Exception",TITLE,requestId,e);
-            }
+            log.warn("TITLE:{},同程cpa撞库成功周期剔除数据异常,requestId:{}", TITLE,requestId, e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            result.setDate(Boolean.TRUE);
         }
         return  result;
     }
