@@ -109,8 +109,8 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setClientRebalance(false);
         defaultMQPushConsumer.setPopInvisibleTime(300000L);
-        Integer popBatchSize = marketingCommonConfig.getTcyrCpaCollidingConsumerConfig().getInteger("popBatchSize");
-        popBatchSize = popBatchSize == null ? 32 : popBatchSize;
-        defaultMQPushConsumer.setPopBatchNums(popBatchSize);
+//        Integer popBatchSize = marketingCommonConfig.getTcyrCpaCollidingConsumerConfig().getInteger("popBatchSize");
+//        popBatchSize = popBatchSize == null ? 32 : popBatchSize;
+//        defaultMQPushConsumer.setPopBatchNums(popBatchSize);
     }
 }
