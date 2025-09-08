@@ -57,7 +57,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
     private static final Logger logger = LoggerFactory.getLogger(MergeDataPushStrategy.class);
 
     public static final String TITLE = "[合并数据推送决策]";
-    
+
     // 常量定义
     private static final String B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA = "b_marketing_rule_center_merge_push_data";
     private static final String B_SCORE_PREFIX = "b_score_";
@@ -88,7 +88,6 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 context.getPushThreadPool(),
                 context.getCustomerInfoPushMain(),
                 context.getMarkWithEsFlag(),
-                context.getEncryptType(),
                 context.getLabelObject()
         );
     }
@@ -170,14 +169,12 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         private ThreadPoolExecutor pushJcPool;
         private CustomerInfoPushMain customerInfoPushMain;
         private Boolean markWithEsFlag;
-        private Integer _3kEncrypt;
         private Object lableObject;
 
-        public MergePushPolicyTask(ThreadPoolExecutor pushJcPool, CustomerInfoPushMain customerInfoPushMain, Boolean markWithEsFlag, Integer _3kEncrypt, Object lableObject) {
+        public MergePushPolicyTask(ThreadPoolExecutor pushJcPool, CustomerInfoPushMain customerInfoPushMain, Boolean markWithEsFlag, Object lableObject) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.markWithEsFlag = markWithEsFlag;
-            this._3kEncrypt = _3kEncrypt;
             this.lableObject = lableObject;
         }
 
@@ -218,7 +215,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                                 (StringUtils.isNotBlank(marketingRuleCenterMergePushData.getBatchNumber()) ? marketingRuleCenterMergePushData.getBatchNumber() : ""));
                     }
                     dto1.setCaseNumber(marketingRuleCenterMergePushData.getCusNum());
-                    dto1.setPhone(encrypt3k(_3kEncrypt, marketingRuleCenterMergePushData.getCell()));
+                    dto1.setPhone(marketingRuleCenterMergePushData.getCell());
                     JSONObject varObject = JSON.parseObject(marketingRuleCenterMergePushData.getExtend());
                     if (varObject == null) {
                         varObject = new JSONObject();
@@ -238,8 +235,8 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     }
 
                     varObject.put("custNum", marketingRuleCenterMergePushData.getCusNum());
-                    varObject.put("idCard", encrypt3k(_3kEncrypt, marketingRuleCenterMergePushData.getIdCard()));
-                    varObject.put("name", encrypt3k(_3kEncrypt, marketingRuleCenterMergePushData.getName()));
+                    varObject.put("idCard", marketingRuleCenterMergePushData.getIdCard());
+                    varObject.put("name", marketingRuleCenterMergePushData.getName());
                     varObject.put("batchNumber", marketingRuleCenterMergePushData.getBatchNumber());
                     varObject.put("taskId", marketingRuleCenterMergePushData.getmId());
                     varObject.put("userType", marketingRuleCenterMergePushData.getUserType());
@@ -407,19 +404,6 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             return fullField.split("\\.")[1];
         }
         return fullField;
-    }
-
-    public String encrypt3k(Integer type, String content) {
-        if (StringUtils.isBlank(content)) {
-            return "";
-        }
-        if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)) {
-            return DigestUtils.md5DigestAsHex(content.getBytes());
-        }
-        if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
-            return Sha256Util.getSHA256Encrypt(content);
-        }
-        return content;
     }
 
 
