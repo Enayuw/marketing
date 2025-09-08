@@ -102,23 +102,21 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         logger.warn(getPushName(context) + "开始执行推送策略数据校验，任务ID: {}, 策略类型: {}",
                 context.getCustomerInfoPushMain().getId(),
                 getPushName(context));
-        CustomerInfoPushMain pushMain = context.getCustomerInfoPushMain();
-        //加密校验
-        Result<Integer> integerResult = pushRuleService.checkThreekEnc(context.getFileIds());
-        if (!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                    String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", pushMain.getId().toString(), integerResult.getMessage())));
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        }
-        //赋值加密方式
-        context.setEncryptType(integerResult.getData());
 
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(true);
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
         try {
             CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
+            if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
+                    .equals(customerInfoPushMain.getmStatus())) {
+                // 推决策重试
+                toPolicyByRuleService.makeUpPolicyData(customerInfoPushMain,
+                        MockSwitchEnum.GENERAL.getValue());
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+            }
+
             String cusBatchNumberString = customerInfoPushMain.getmCusBatchNumberList();
             String[] cusBatchNumberList = cusBatchNumberString.split(",");
             Set<String> unionColumns = new HashSet<>();
