@@ -57,26 +57,30 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
     private static final Logger logger = LoggerFactory.getLogger(MergeDataPushStrategy.class);
 
     public static final String TITLE = "[合并数据推送决策]";
+    
+    // 常量定义
+    private static final String B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA = "b_marketing_rule_center_merge_push_data";
+    private static final String B_SCORE_PREFIX = "b_score_";
+    private static final String CASE_ADD_METHOD = "caseAdd";
+    private static final int DEFAULT_PAGE_SIZE = 2000;
 
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
 
     @Resource
-    FlagDataMapper flagDataMapper;
+    private FlagDataMapper flagDataMapper;
 
     @Resource
     private RuleCenterLabelService ruleCenterLabelService;
 
     @Resource
-    MarketingRuleCenterMergePushDataMapper marketingRuleCenterMergePushDataMapper;
+    private MarketingRuleCenterMergePushDataMapper marketingRuleCenterMergePushDataMapper;
 
     @Autowired
-    IntelligentCustomerServiceClient intelligentCustomerServiceClient;
+    private IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
     @Resource
-    ErrorMarkMapper errorMarkMapper;
-
-    private static final String B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA = "b_marketing_rule_center_merge_push_data";
+    private ErrorMarkMapper errorMarkMapper;
 
     @Override
     protected Callable<List<Future<Result<Integer>>>> createPushTask(RuleCenterPushContext context, Integer partitionIndex) {
@@ -120,7 +124,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             String[] cusBatchNumberList = cusBatchNumberString.split(",");
             Set<String> unionColumns = new HashSet<>();
             for (String cusBatchNumber : cusBatchNumberList) {
-                List<String> columnList = flagDataMapper.queryColumnNamebI_("b_score_" + cusBatchNumber);
+                List<String> columnList = flagDataMapper.queryColumnNamebI_(B_SCORE_PREFIX + cusBatchNumber);
                 unionColumns.addAll(columnList);
             }
             String originalSelect = StringUtils.join(unionColumns, ",");
@@ -179,22 +183,22 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
 
         @Override
         public List<Future<Result<Integer>>> call() {
-
-            boolean scFlag = !ObjectUtils.isEmpty(lableObject);
+            // 初始化评分标签处理
+            boolean hasScoreLabel = !ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
-            if (scFlag && !markWithEsFlag) {
+            if (hasScoreLabel && !markWithEsFlag) {
                 scoreLables = (List<ScoreLable>) lableObject;
             }
 
-            //分页查询
-            Long mId = customerInfoPushMain.getId();
-            Integer pageSize = 2000;
+            // 分页查询
+            Long taskId = customerInfoPushMain.getId();
+            Integer pageSize = DEFAULT_PAGE_SIZE;
             Long minId = null;
-            List<Future<Result<Integer>>> resList = new ArrayList<>();
+            List<Future<Result<Integer>>> resultList = new ArrayList<>();
 
             while (true) {
                 List<MarketingRuleCenterMergePushData> marketingRuleCenterMergePushDataList =
-                        marketingRuleCenterMergePushDataMapper.selectByMId(mId, pageSize, minId);
+                        marketingRuleCenterMergePushDataMapper.selectByTaskId(taskId, pageSize, minId);
                 if (marketingRuleCenterMergePushDataList.isEmpty()) {
                     break;
                 }
@@ -240,7 +244,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     varObject.put("taskId", marketingRuleCenterMergePushData.getmId());
                     varObject.put("userType", marketingRuleCenterMergePushData.getUserType());
 
-                    if (scFlag) {
+                    if (hasScoreLabel) {
                         if (!CollectionUtils.isEmpty(conditions)) {
                             Map<String, Object> scoreMap = conditions.stream()
                                     .filter(condition -> condition.getDValue() != null)
@@ -268,7 +272,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 Integer batch = 0;
                 for (List<PushMarketingUserDetailDTO> userDetailDTOList : partition) {
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
-                    pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+                    pushMarketingUserTaskInfoDTO.setMethod(CASE_ADD_METHOD);
                     pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
                     pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId().toString() + "_" + batch);
                     pushMarketingUserTaskInfoDTO.setData(userDetailDTOList);
@@ -278,20 +282,20 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                         pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
                     }
                     //传输参数信息
-                    PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                    PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
                     pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
                     pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
                     pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-                    resList.add(pushJcPool.submit(new MergeDataPushStrategy.PushJcAction(pushMarketingUserDTO
-                            , pushMarketingUserTaskInfoDTO.getAccessNumber()
-                            , customerInfoPushMain.getId()
-                            , userDetailDTOList.size(), null)));
+                    resultList.add(pushJcPool.submit(new MergeDataPushStrategy.PushJcAction(pushMarketingUserDTO,
+                            pushMarketingUserTaskInfoDTO.getAccessNumber(),
+                            customerInfoPushMain.getId(),
+                            userDetailDTOList.size())));
                     batch++;
                 }
 
 
             }
-            return resList;
+            return resultList;
         }
     }
 
@@ -322,7 +326,6 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             String refreshSql = "refresh catalog ".concat(syncDBName);
             flagDataMapper.insertbI_(refreshSql);
 
-            // 修复SQL中的拼写错误：markeitng -> marketing
             String syncTiDBSql = String.format(
                     "insert into %s.marketing.b_marketing_rule_center_merge_push_data (api_code,m_id,cus_num,cell,id_card,user_type,name,batch_number,extend) " +
                             "select api_code,m_id,cus_num,cell,id_card,user_type,name,batch_number,extend from %s.b_marketing_rule_center_merge_push_data",
@@ -425,18 +428,16 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
      */
     class PushJcAction implements Callable<Result<Integer>> {
 
-        private PushMarketingUserDTO pushMarketingUserDTO;
+        private PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO;
         private String accessNumber;
         private Long mainId;
         private Integer size;
-        private ErrorMark errorMark;
 
-        public PushJcAction(PushMarketingUserDTO pushMarketingUserDTO, String accessNumber, Long mainId, Integer size, ErrorMark errorMark) {
+        public PushJcAction(PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO, String accessNumber, Long mainId, Integer size) {
             this.pushMarketingUserDTO = pushMarketingUserDTO;
             this.accessNumber = accessNumber;
             this.mainId = mainId;
             this.size = size;
-            this.errorMark = errorMark;
         }
 
         @Override
@@ -472,7 +473,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
     }
 
     // 插入错误标记
-    private void insertErrorMark(PushMarketingUserDTO pushMarketingUserDTO, Long mainId, String accessNumber, int size) {
+    private void insertErrorMark(PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO, Long mainId, String accessNumber, int size) {
         ErrorMark errorMark = new ErrorMark();
         errorMark.setApiCode(pushMarketingUserDTO.getApiCode());
         errorMark.setmId(mainId);

@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface MarketingRuleCenterMergePushDataMapper extends MarketingRuleCenterMergePushDataMapperBase{
 
-    List<MarketingRuleCenterMergePushData> selectByMId(@Param("mId") Long mId, @Param("pageSize") Integer pageSize, @Param("minId") Long minId);
+    List<MarketingRuleCenterMergePushData> selectByTaskId(@Param("taskId") Long taskId, @Param("pageSize") Integer pageSize, @Param("minId") Long minId);
 
 }
