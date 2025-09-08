@@ -2564,21 +2564,26 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 发送定制json解析MQ
      *
      * @param apiCode
-     * @param customId
+     * @param id
      */
-    public void sendCustomJsonParseMq(String apiCode, Long customId) {
+    public void sendJsonParseMq(String apiCode, Long id, Integer dataSourceType,
+                                Integer dataType, Integer acceptType) {
+        //发送Json解析消息,定制清洗不在发送MQ
+        if (dataSourceType != null && 1 == dataSourceType) {
+            return;
+        }
         try {
             //使用caffeineCache存储 mq发送标识
-            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
-                    .concat(":").concat(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode().toString());
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode).concat(":").concat(dataType.toString())
+                    .concat(":").concat(acceptType.toString());
             boolean exists = caffeineCache.hasIdentifier(cacheKey);
             if (exists) {
                 return;
             }
             MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
-            mqDataJsonParse.setDataId(customId);
-            mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
-            mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
+            mqDataJsonParse.setDataId(id);
+            mqDataJsonParse.setDataType(dataType);
+            mqDataJsonParse.setAcceptType(acceptType);
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
                     JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             //存储标识

@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 @Data
 public class SanLiuLingResponseDTO implements Serializable {
-    private static final long serialVersionUID = -1;
 
     @ApiModelProperty("响应码")
     private String code;
@@ -29,7 +28,7 @@ public class SanLiuLingResponseDTO implements Serializable {
 
     public SanLiuLingResponseDTO failed(SanLiuLingResponseDTO.ResultEnum resultEnum, String msg) {
         this.code = resultEnum.getCode();
-        this.msg = resultEnum.getDesc().concat(msg);
+        this.msg = msg;
         return this;
     }
 

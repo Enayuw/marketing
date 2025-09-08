@@ -9,8 +9,6 @@ import java.util.List;
 
 @Data
 public class SanLiuLingUploadRequestDTO implements Serializable {
-    private static final long serialVersionUID = -1L;
-
     @ApiModelProperty("任务id 跟业务一起约定(对应机器人模板号)")
     @JsonProperty("taskId")
     private String taskId;

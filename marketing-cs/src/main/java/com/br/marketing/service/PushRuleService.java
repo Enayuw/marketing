@@ -233,5 +233,5 @@ public interface PushRuleService {
 
     void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType);
 
-    void sendCustomJsonParseMq(String apiCode, Long customId);
+    void sendJsonParseMq(String apiCode, Long id, Integer dataSourceType, Integer dataType, Integer acceptType);
 }
