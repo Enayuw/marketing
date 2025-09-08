@@ -30,7 +30,8 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
         consumerGroup = MarketingTcCpaConstants.GROUP_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
         selectorExpression = MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
-        consumeThreadMax = 20)
+        consumeThreadMax = 20,
+        enableMsgTrace = true)
 public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     private final static String TITLE = "【同程易融CPA-colliding周期剔除任务】";
