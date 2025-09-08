@@ -346,3 +346,7 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
+
+logging:
+  level:
+    org.apache.rocketmq: DEBUG
