@@ -54,10 +54,9 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
     protected void handleMessage(MessageExt messageExt) throws Exception {
         try {
             long start = System.currentTimeMillis();
-            Integer priority = marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("priority");
-            String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-            log.warn("TITLE:{}MQ消费,msgId:{},msgBody:{}",TITLE,messageExt.getMsgId(),bodyString);
+            Integer priority = marketingCommonConfig.getTcyrCpaCollidingConsumerConfig().getInteger("priority");
             if (priority > 1) {
+                String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
                 TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
                         new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
                 log.warn("TITLE:{}MQ消费,msgId:{}, requestId:{}, dataId:{}",
@@ -109,5 +108,8 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setClientRebalance(false);
         defaultMQPushConsumer.setPopInvisibleTime(300000L);
+        Integer popBatchSize = marketingCommonConfig.getTcyrCpaCollidingConsumerConfig().getInteger("popBatchSize");
+        popBatchSize = popBatchSize == null ? 32 : popBatchSize;
+        defaultMQPushConsumer.setPopBatchNums(popBatchSize);
     }
 }

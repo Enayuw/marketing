@@ -15,6 +15,7 @@ import com.br.marketing.mapper.MarketingTcyrCpaLoopCycleMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaRobMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessDataMapper;
 import com.br.marketing.service.tccpa.TcyrLoopCycleDataService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -45,10 +46,22 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
     @Resource
     private MarketingTcyrCpaDataLogMapper dataLogMapper;
 
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> process(TcyrCpaSuccessMqDTO tcyrCpaSuccessMqDTO) {
+        long start = System.currentTimeMillis();
+        log.warn("TITLE:{},process方法执行开始-requestId:{}",TITLE,tcyrCpaSuccessMqDTO.getRequestId());
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        Integer dealProcessStatus = marketingCommonConfig.getTcyrCpaCollidingConsumerConfig().getInteger("dealProcessStatus");
+        if (dealProcessStatus != null && dealProcessStatus == 0) {
+            result.setDate(false);
+            log.warn("TITLE:{},process方法结束执行-requestId:{},耗时:{}ms",TITLE,tcyrCpaSuccessMqDTO.getRequestId(),System.currentTimeMillis() - start);
+            return result;
+        }
         Long dataId = tcyrCpaSuccessMqDTO.getDataId();
         String requestId = tcyrCpaSuccessMqDTO.getRequestId();
         String sourceType =null;
@@ -87,6 +100,7 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             result.setDate(Boolean.TRUE);
         }
+        log.warn("TITLE:{},process方法结束执行-requestId:{},耗时:{}ms",TITLE,tcyrCpaSuccessMqDTO.getRequestId(),System.currentTimeMillis() - start);
         return  result;
     }
 

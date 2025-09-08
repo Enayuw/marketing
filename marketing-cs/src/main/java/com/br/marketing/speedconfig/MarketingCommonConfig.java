@@ -3013,6 +3013,12 @@ public class MarketingCommonConfig {
     private JSONObject tcyrCpaCollidingDealShardConfig;
 
     /**
+     * 同程易融CPA-collidingDeal job参数
+     * {"jobSwitch":true,"pageSize":1000,"dbPartSize":50}
+     */
+    private JSONObject tcyrCpaCollidingConsumerConfig;
+
+    /**
      * 同程易融-quickDeal-shard job参数
      * {
      * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
