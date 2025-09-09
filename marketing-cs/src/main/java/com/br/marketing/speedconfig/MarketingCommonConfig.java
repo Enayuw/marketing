@@ -3333,7 +3333,7 @@ public class MarketingCommonConfig {
     private Boolean aiUseRocketMq;
 
     /**
-     * uMeng 设备注册 每页查询条数
+     * 同程易融cpa撞库失败数据处理配置
      */
     private JSONObject tcyrCpaCollidingFailDealConfig;
 
@@ -3348,5 +3348,25 @@ public class MarketingCommonConfig {
      */
     private JSONObject sanLiuLingCustomizeDataConfig;
 
+
+    /**
+     * 同程易融cpa推送文件配置
+     */
+    private JSONObject tcyrCpaPushFileConfig;
+
+    /**
+     * 携程挡板上报延迟（单位：秒）
+     */
+    private Integer xieChengReportMockDelaySeconds;
+
+    /**
+     * 携程CPA-apiCode集合
+     */
+    private List<String> xieChengCpaApiCodeList;
+
+    /**
+     * 哈啰硅基人回调配置
+     */
+    private JSONObject haloAiCallbackConfig;
 }
 

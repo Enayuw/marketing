@@ -1,7 +1,9 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.VariableAllocationDTO;
+import com.br.marketing.entity.VariableAllocation;
 import com.br.marketing.vo.VariableAllocationVO;
 
 
@@ -21,13 +23,19 @@ public interface VariableAllocationService {
     VariableAllocationVO getVariableList(VariableAllocationDTO dto);
 
     /**
-     * 更新定制化配置
-     * @param id
-     * @param normalQuantity
-     * @param abnormalQuantity
+     * 获取定制化配置
+     * @param apiCode API Code
+     * @param allocationType 配置类型
      * @return
      */
-    ApiResult<Boolean> updateVariableList(Long id, int normalQuantity, int abnormalQuantity);
+    JSONObject getAllocationValue(String apiCode, String allocationType);
+
+    /**
+     * 更新定制化配置
+     * @param params
+     * @return
+     */
+    ApiResult<Boolean> updateVariableList(String params);
 
     /**
      * 获取携程异常与正常可撞配置

@@ -69,6 +69,11 @@ public class MarketingTcyrCpaFailData {
     private Integer isDel;
 
     /**
+     * 文件原始数据
+     */
+    private String originText;
+
+    /**
      * 扩展字段
      */
     private String extend;
@@ -175,6 +180,14 @@ public class MarketingTcyrCpaFailData {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public String getOriginText() {
+        return originText;
+    }
+
+    public void setOriginText(String originText) {
+        this.originText = originText == null ? null : originText.trim();
     }
 
     public String getExtend() {
