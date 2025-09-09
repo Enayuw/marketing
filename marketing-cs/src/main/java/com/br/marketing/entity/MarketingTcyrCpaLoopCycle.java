@@ -14,9 +14,19 @@ public class MarketingTcyrCpaLoopCycle {
     private String apiCode;
 
     /**
+     * 数据包id
+     */
+    private Long packageId;
+
+    /**
      * 数据来源：T -周期，F-代表非周期
      */
     private String dataSourceType;
+
+    /**
+     * 原始数据id
+     */
+    private Long dataId;
 
     /**
      * 用户唯一编号
@@ -29,14 +39,14 @@ public class MarketingTcyrCpaLoopCycle {
     private String cell;
 
     /**
-     * 释放日期
+     * 释放时间
      */
     private Date releaseTime;
 
     /**
-     * 接收日期
+     * 接收时间
      */
-    private Date receiveDate;
+    private Date receiveTime;
 
     /**
      * 推送/提取时间
@@ -63,6 +73,11 @@ public class MarketingTcyrCpaLoopCycle {
      */
     private String extend;
 
+    /**
+     * mq发送的request_id，幂等判断
+     */
+    private String requestId;
+
     public Long getId() {
         return id;
     }
@@ -79,12 +94,28 @@ public class MarketingTcyrCpaLoopCycle {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
+    public Long getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(Long packageId) {
+        this.packageId = packageId;
+    }
+
     public String getDataSourceType() {
         return dataSourceType;
     }
 
     public void setDataSourceType(String dataSourceType) {
         this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
+    }
+
+    public Long getDataId() {
+        return dataId;
+    }
+
+    public void setDataId(Long dataId) {
+        this.dataId = dataId;
     }
 
     public String getUserKey() {
@@ -111,12 +142,12 @@ public class MarketingTcyrCpaLoopCycle {
         this.releaseTime = releaseTime;
     }
 
-    public Date getReceiveDate() {
-        return receiveDate;
+    public Date getReceiveTime() {
+        return receiveTime;
     }
 
-    public void setReceiveDate(Date receiveDate) {
-        this.receiveDate = receiveDate;
+    public void setReceiveTime(Date receiveTime) {
+        this.receiveTime = receiveTime;
     }
 
     public Date getPushTime() {
@@ -157,5 +188,13 @@ public class MarketingTcyrCpaLoopCycle {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId == null ? null : requestId.trim();
     }
 }

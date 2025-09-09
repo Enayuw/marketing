@@ -64,6 +64,18 @@ public class ZnkfPushController {
         }
     }
 
+    @ApiOperation(value = "短信发送即回调接口")
+    @PostMapping("/smsCallBackAtOnce")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public String smsCallBackAtOnce(@RequestBody SmsRecordDTO dto) {
+        try {
+            return znkfPushService.smsCallBackAtOnce(dto);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            return "fail";
+        }
+    }
+
     @ApiOperation(value = "客服推送营销黑名单结束标识接口")
     @PostMapping("/znkfPushBlackPhoneMark")
     public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {

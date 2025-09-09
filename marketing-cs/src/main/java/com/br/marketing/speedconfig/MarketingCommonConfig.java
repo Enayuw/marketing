@@ -3274,21 +3274,19 @@ public class MarketingCommonConfig {
     private List<Boolean> xieChengCpsCollidingRetrySwitch;
 
     /**
-     * 邮件主题和API Code对应关系
-     * {"3710012":"三方营销效果监控-百融"}
+     * 邮件API Code和对应邮件主题以及邮件格式
+     * {
+     * "3710012":{"subject":"三方营销效果监控-百融", "dateFormat": "yyyyMMdd", "startDate":"T-1", "endDate":"T-1"},
+     * "3710058":{"subject":"【携程金融】百融对账单-", "dateFormat": "yyyy-MM-dd", "startDate":"T-1", "endDate":"T-1"}
+     * }
      */
-    private Map<String, String> mailApiCodeSubjectMap;
+    private Map<String, Map<String, String>> mailApiCodeSubjectConfig;
 
     /**
-     * 邮件主题和API Code对应关系
+     * 读取邮件任务的账户和密码
      * {"userName":"xxx", "password":"xxx"}
      */
-    private Map<String, String> YiXinMailConfigMap;
-
-    /**
-     * 邮件统计开始时间 {"startDate":"T-1", "endDate":"T-1"}
-     */
-    private Map<String, String> yiXinMailReadDateMap;
+    private Map<String, String> mailReadConfigMap;
 
     /**
      * 转化文件落库BI批量大小
@@ -3335,7 +3333,7 @@ public class MarketingCommonConfig {
     private Boolean aiUseRocketMq;
 
     /**
-     * uMeng 设备注册 每页查询条数
+     * 同程易融cpa撞库失败数据处理配置
      */
     private JSONObject tcyrCpaCollidingFailDealConfig;
 
@@ -3343,5 +3341,32 @@ public class MarketingCommonConfig {
      * #短信回调入队ApiCode配置
      */
     private List<String> smsCallBackDataPushMqApiCodes;
+
+    /**
+     * 360客制化传输数据配置
+     * {"uploadApiCode":"3710196","cipherMode":"CBC","paddingScheme":"PKCS5Padding","dynamicKeys":"fC8tzaLDItGjIjOr"}
+     */
+    private JSONObject sanLiuLingCustomizeDataConfig;
+
+
+    /**
+     * 同程易融cpa推送文件配置
+     */
+    private JSONObject tcyrCpaPushFileConfig;
+
+    /**
+     * 携程挡板上报延迟（单位：秒）
+     */
+    private Integer xieChengReportMockDelaySeconds;
+
+    /**
+     * 携程CPA-apiCode集合
+     */
+    private List<String> xieChengCpaApiCodeList;
+
+    /**
+     * 哈啰硅基人回调配置
+     */
+    private JSONObject haloAiCallbackConfig;
 }
 

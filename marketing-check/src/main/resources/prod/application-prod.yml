@@ -254,6 +254,9 @@ api:
     secret: 9c07d3b9923d4269bb8da6a6963fcd27
     method: hello.finance.loan.marketing.callback
     isProxy: true
+
+    ai:
+      isProxy: true
   xiecheng:
     openUrl: https://jr.ctrip.com/nemoweb/ad/common/outAdMonitor.do
     appId: bairong001
