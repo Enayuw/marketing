@@ -56,8 +56,8 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
 //            long start = System.currentTimeMillis();
 //            Integer priority = marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("priority");
 //            String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-            //log.warn("TITLE:{}MQ消费,msgId:{}",TITLE,messageExt.getMsgId());
             long start = System.currentTimeMillis();
+            log.warn("TITLE:{}MQ消费,msgId:{}",TITLE,messageExt.getMsgId());
             String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
             TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
                         new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
