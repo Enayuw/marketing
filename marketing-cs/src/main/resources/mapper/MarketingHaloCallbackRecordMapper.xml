@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingHaloCallbackRecordMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingHaloCallbackRecord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <update id="updateStatusByBatchNumber">
+    update b_halo_callback_record
+    set `status` = #{status}
+    where batch_number = #{batchNumber}
+  </update>
+
+</mapper>

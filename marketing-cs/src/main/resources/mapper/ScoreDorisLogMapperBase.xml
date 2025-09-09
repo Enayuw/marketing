@@ -70,6 +70,13 @@
   <sql id="Base_Column_List">
     id, api_code, batch_number, `status`, create_time, update_time
   </sql>
+
+  <select id="selectNewestLog" resultMap="BaseResultMap">
+    select * from b_score_doris_log
+             where api_code = #{apiCode} and status = 2
+             order by update_time desc limit 1
+  </select>
+
   <select id="selectByExample" parameterType="com.br.marketing.entity.ScoreDorisLogExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
@@ -85,7 +92,6 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select 
     <include refid="Base_Column_List" />
     from b_score_doris_log
     where id = #{id,jdbcType=BIGINT}
@@ -106,7 +112,11 @@
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ScoreDorisLog" useGeneratedKeys="true">
+
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreDorisLog">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_score_doris_log
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="apiCode != null">

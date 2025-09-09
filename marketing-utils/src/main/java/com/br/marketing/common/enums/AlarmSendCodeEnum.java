@@ -110,8 +110,10 @@ public enum AlarmSendCodeEnum {
     QIFUAI_INTERFACEERROR("6004004", "360ai接口调用失败"),
     //360促动支业务错误,立即推送
     QIFUCUDONGZHI_SERVICEERROR("6004005", "360促动支业务告警码"),
-    //360促动支报表业务错误,立即推送
+    //360催收定制上传数据错误,立即推送
     QIFUCUDONGZHIREPORT_SERVICEERROR("6004006", "360促动支报表业务告警码"),
+    //360促动支报表业务错误,立即推送
+    SANLIULINGCOLLECTION_SERVICEERROR("6004007", "360催收定制上传数据告警码"),
     //携程业务错误,立即推送
     XIECHENG_SERVICEERROR("6005001", "携程业务告警码"),
     //携程接口错误,阶梯推送
