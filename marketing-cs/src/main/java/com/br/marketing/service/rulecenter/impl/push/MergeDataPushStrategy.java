@@ -146,7 +146,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             flagDataMapper.insertbI_(insertDorisSql);
 
             //同步tidb
-            syncDataToTiDB();
+            syncDataToTiDB(customerInfoPushMain.getId());
 
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
         } catch (Exception e) {
@@ -296,7 +296,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
     /**
      * 同步数据到TiDB表
      */
-    private void syncDataToTiDB() {
+    private void syncDataToTiDB(Long id) {
         try {
             long start = System.currentTimeMillis();
 
@@ -321,8 +321,8 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
 
             String syncTiDBSql = String.format(
                     "insert into %s.marketing.b_marketing_rule_center_merge_push_data (api_code,m_id,cus_num,cell,id_card,user_type,name,batch_number,extend) " +
-                            "select api_code,m_id,cus_num,cell,id_card,user_type,name,batch_number,extend from %s.b_marketing_rule_center_merge_push_data",
-                    syncDBName, fromDBName);
+                            "select api_code,m_id,cus_num,cell,id_card,user_type,name,batch_number,extend from %s.b_marketing_rule_center_merge_push_data where m_id = %s",
+                    syncDBName, fromDBName, id);
 
             logger.warn(TITLE + "执行同步SQL: {}", syncTiDBSql);
             flagDataMapper.insertbI_(syncTiDBSql);
@@ -372,7 +372,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 String fieldExpression = fieldMap.get(baseColumn);
                 columns.append(fieldExpression).append(" as ").append(baseColumn).append(",");
                 fieldMap.remove(baseColumn); // 移除已处理的字段
-            }else {
+            } else {
                 columns.append("null as ").append(baseColumn).append(",");
             }
         }
