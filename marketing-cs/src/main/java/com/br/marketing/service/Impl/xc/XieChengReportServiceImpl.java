@@ -157,7 +157,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         xieChengData.setCallRecordId(callRecord.getId());
         xieChengData.setType("1");
         String actionType = judgeActionType(callRecord);
-        xieChengData.setActionType(actionType != null ? actionType : "ivr");
+        xieChengData.setActionType(actionType != null ? actionType.toUpperCase() : "IVR");
         xieChengData.setPushStatus(1);
         xieChengData.setStatus(1);
         xieChengData.setExtend(callRecord.getUserProperties());
@@ -204,7 +204,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             JSONObject mock =  variableAllocationService.getAllocationValue(apiCode,"mockReportLineRate");;
 
             if (real == null || mock == null) {
-                return "ivr";
+                return "IVR";
             }
 
             // 非挡板
@@ -230,7 +230,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             // 挡板非短信
             Integer ivrPercent = mock.getInteger("ivr");
             String random = redisChgService.rpoplpush(RedisKeyConstant.XIECHENG_REPORT_MOCK_RATE_TURNTABLE);
-            return Integer.parseInt(random) <= ivrPercent ? "ivr" : "sms";
+            return Integer.parseInt(random) <= ivrPercent ? "IVR" : "SMS";
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "携程上报，查询acitonType异常！"), e);
