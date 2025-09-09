@@ -117,8 +117,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
             }
 
-            String cusBatchNumberString = customerInfoPushMain.getmCusBatchNumberList();
-            String[] cusBatchNumberList = cusBatchNumberString.split(",");
+            List<String> cusBatchNumberList = Arrays.asList(customerInfoPushMain.getmCusBatchNumberList().split(","));
             Set<String> unionColumns = new HashSet<>();
             for (String cusBatchNumber : cusBatchNumberList) {
                 List<String> columnList = flagDataMapper.queryColumnNamebI_(B_SCORE_PREFIX + cusBatchNumber);
@@ -126,12 +125,11 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             }
             String originalSelect = StringUtils.join(unionColumns, ",");
             //调用方法拼接sql，多表情况下字段取哪张表
-            List<String> batchNumberList = Arrays.asList(customerInfoPushMain.getmCusBatchNumberList().split(","));
-            String processSelect = ruleCenterLabelService.scoreMergeFieldMapping(originalSelect, batchNumberList, customerInfoPushMain.getmApiCode());
+            String processSelect = ruleCenterLabelService.scoreMergeFieldMapping(originalSelect, cusBatchNumberList, customerInfoPushMain.getmApiCode());
 
             PushCustomerDTO pushCustomerDTO = new PushCustomerDTO();
             pushCustomerDTO.setmRuleCondition(customerInfoPushMain.getmRuleCondition());
-            pushCustomerDTO.setBatchNumberList(batchNumberList);
+            pushCustomerDTO.setBatchNumberList(cusBatchNumberList);
             pushCustomerDTO.setScoreMergeField(customerInfoPushMain.getExtend());
             pushCustomerDTO.setApiCode(customerInfoPushMain.getmApiCode());
             String processFrom = ruleCenterLabelService.scoreMergeAssemble(pushCustomerDTO);
