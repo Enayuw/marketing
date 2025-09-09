@@ -138,12 +138,12 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
 
             //基础字段列表
             List<String> baseColumns = flagDataMapper.queryColumnNamebI_(B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA);
+            String insertColumn = String.join(",", baseColumns);
             String finalSelect = (customerInfoPushMain.getmApiCode() + " as api_code," + customerInfoPushMain.getId() + " as m_id, ")
                     .concat(generateSelectColumns(processSelect, baseColumns));
             String selectSql = "select ".concat(finalSelect).concat(" ").concat(processFrom);
 
             baseColumns.remove("id");
-            String insertColumn = String.join(",", baseColumns);
             String insertDorisSql = "insert into ".concat(B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA).concat("(").concat(insertColumn).concat(")").concat(selectSql);
             flagDataMapper.insertbI_(insertDorisSql);
 
@@ -368,11 +368,14 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         List<String> extendFields = new ArrayList<>();
 
         // 按照baseColumns的顺序拼接字段
+        baseColumns.removeAll(new ArrayList<>(Arrays.asList("api_code", "m_id", "extend")));
         for (String baseColumn : baseColumns) {
             if (fieldMap.containsKey(baseColumn)) {
                 String fieldExpression = fieldMap.get(baseColumn);
                 columns.append(fieldExpression).append(" as ").append(baseColumn).append(",");
                 fieldMap.remove(baseColumn); // 移除已处理的字段
+            }else {
+                columns.append("null as ").append(baseColumn).append(",");
             }
         }
 
