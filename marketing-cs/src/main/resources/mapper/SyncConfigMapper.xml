@@ -88,6 +88,7 @@
              , target_sftp_pwd  as targetSftpPwd
              , src_type         as srcType
              , target_type      as targetType
+		     , execute_time      as executeTime
         from b_sync_config sc
         <where>
             status = 1
