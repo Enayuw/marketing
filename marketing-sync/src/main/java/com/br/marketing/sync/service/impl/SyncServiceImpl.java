@@ -92,9 +92,6 @@ public class SyncServiceImpl implements SyncService {
 
     public void sync(List<SyncConfig> loanSyncConfigs){
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
-            if(!loanSyncConfig.getApiCode().equals("7491777")){
-                continue;
-            }
             log.warn("LoanSyncConfig:{}", JSONObject.toJSONString(loanSyncConfig));
 
             Set<String> dateSet = new TreeSet<>();
