@@ -287,4 +287,12 @@
         </foreach>
     </update>
 
+    <select id="queryCountBySql" resultType="java.lang.Long">
+        ${querySql}
+    </select>
+
+    <select id="queryCountBySqlbI_" resultType="java.lang.Long">
+        ${querySql}
+    </select>
+
 </mapper>

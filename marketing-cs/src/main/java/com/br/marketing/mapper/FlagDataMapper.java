@@ -89,4 +89,8 @@ public interface FlagDataMapper extends FlagDataMapperBase {
     List<String> queryColumnNamebI_(@Param("tableName") String tableName);
 
     void insertbI_(@Param("querySql") String querySql);
+
+    Long queryCountBySql(@Param("querySql") String querySql);
+
+    Long queryCountBySqlbI_(@Param("querySql") String querySql);
 }
