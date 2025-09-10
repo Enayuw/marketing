@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +15,9 @@ import java.util.regex.Pattern;
 public class StringUtils {
 
     private static final String NumberRegex = "[+-]?(?:\\d+\\.\\d*|\\.\\d+|\\d+)(?:[eE][+-]?\\d+)?";
+
+    //正则表达式检测任意汉字
+    private static final Pattern CHINESE_CHAR_PATTERN = Pattern.compile("[\u4e00-\u9fa5]");
 
     public static boolean isEmpty(Object obj) {
         return (obj == null || obj.toString().length() == 0);
@@ -231,5 +232,41 @@ public class StringUtils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * 将字符串按split分割，并返回至少limit个元素
+     * @param input
+     * @param split
+     * @param limit
+     * @return
+     */
+    public static List<String> splitAndLimit(String input, String split, int limit) {
+        if (input == null || input.trim().isEmpty()) {
+            return Collections.nCopies(limit, "");
+        }
+        //保留空项（如 "a,,c"）
+        String[] parts = input.trim().split(split, -1);
+        List<String> result = new ArrayList<>(parts.length);
+        for (String p : parts) {
+            result.add(p == null ? "" : p.trim());
+        }
+        if (result.size() <= limit) {
+            while (result.size() < limit) {
+                result.add("");
+            }
+        }
+        //大于limit时直接返回全部
+        return result;
+    }
+
+    /**
+     * 检查单个字符串是否包含汉字
+     * @param str 输入字符串
+     * @return 包含汉字返回true，否则false
+     */
+    public static boolean containsChinese(String str) {
+        if (str == null || str.isEmpty()) return false;
+        return CHINESE_CHAR_PATTERN.matcher(str).find();
     }
 }

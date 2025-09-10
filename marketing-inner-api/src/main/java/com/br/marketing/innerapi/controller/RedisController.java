@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,6 +41,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("redis")
@@ -228,8 +230,7 @@ public class RedisController {
     }
 
     /**
-     * 外采映射数据生成SQL
-     *
+     * 外采映射数据生成SQL     *
      * @return
      */
     @GetMapping("/getCarClueInit")
@@ -380,12 +381,6 @@ public class RedisController {
             if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)) {
                 // 使用轮询消费者逻辑
                 handleWithConsumerRotation(callRecord);
-            } else {
-                // 使用默认发送逻辑
-                rocketMqSwitch.syncSend(
-                        MarketingXieChengConstants.TOPIC,
-                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-                        callRecord.getId().toString());
             }
         }
         return "redisTest-success";
@@ -414,5 +409,28 @@ public class RedisController {
         rocketMqSwitch.syncSend(consumer.getTopic(), consumer.getTag(), message);
         log.warn("消息发送 [consumer: {}, topic: {}, tag: {}]",
                 consumer.name(), consumer.getTopic(), consumer.getTag());
+    }
+
+    @GetMapping("lrange")
+    public String lrange(@RequestParam("key") String key) {
+        List<String> lrange = redisChgService.lrange(key);
+        return JSON.toJSONString(lrange);
+    }
+
+    @GetMapping("resetList")
+    public String resetList(@RequestParam("key") String key, String... items) {
+        List<String> lrange = redisChgService.lrange(key);
+        if (CollectionUtils.isEmpty(lrange)) {
+            return "该key在redis中不存在";
+        }
+
+        redisChgService.resetListAtomic(key, items);
+        return "resetList-success";
+    }
+
+    @GetMapping("rpush")
+    public String rpush(@RequestParam("key") String key, String... items) {
+        redisChgService.rpush(key, items);
+        return "rpush-success";
     }
 }

@@ -100,9 +100,7 @@ public class ErrorControllerAspect {
         if(saveLog!=null){
             interfaceLog.setRequestId(UUID.randomUUID().toString());
             String parms = Arrays.asList(jp.getArgs()).stream().map(t -> t.toString()).collect(Collectors.joining("&"));
-            interfaceLog.setRequestParam(parms.length()>5000
-                    ?parms.substring(0,5000)
-                    :parms);
+            interfaceLog.setRequestParam(parms);
             interfaceLog.setMethodName(httpServletRequest.getRequestURI());
         }
 

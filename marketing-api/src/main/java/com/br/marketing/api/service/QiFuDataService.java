@@ -20,4 +20,6 @@ public interface QiFuDataService {
 
     ApiNoDataResult analysisStatistics(String apiCode, String jsonData);
 
+    ApiNoDataResult effectReport(String apiCode, String jsonData);
+
 }

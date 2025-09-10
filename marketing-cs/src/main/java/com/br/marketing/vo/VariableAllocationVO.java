@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.Map;
 
 @Data
 public class VariableAllocationVO {
@@ -20,6 +21,9 @@ public class VariableAllocationVO {
 
     @ApiModelProperty(value = "配置值")
     private String allocationValue;
+
+    @ApiModelProperty(value = "配置值Map")
+    private Map<String, Object> allocationValueMap;
 
     @ApiModelProperty(value = "撞得总量级")
     private Integer normalQuantity;

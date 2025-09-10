@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ReportIntervalModelMapper" >
+    <select id="getByConfigId" resultType="com.br.marketing.entity.ReportIntervalModel">
+        SELECT
+            b.id,
+            b.config_id,
+            b.axis_type,
+            b.x_model_name,
+            b.y_model_name,
+            GROUP_CONCAT(
+                JSON_UNQUOTE(JSON_EXTRACT(b.x_interval_list, CONCAT('$[', n.n, '].text')))
+                ORDER BY n.n
+                SEPARATOR ', '
+            ) AS x_interval_list,
+            GROUP_CONCAT(
+                JSON_UNQUOTE(JSON_EXTRACT(b.y_interval_list, CONCAT('$[', n.n, '].text')))
+                ORDER BY n.n
+                SEPARATOR ', '
+            ) AS y_interval_list,
+            b.`order`,
+            b.is_del,
+            b.create_time,
+            b.update_time
+        FROM b_report_interval_model b
+        JOIN tools_numbers n ON 1 = 1
+        WHERE b.config_id = #{configId}
+        AND n.n <![CDATA[ < GREATEST ]]>
+        (COALESCE(JSON_LENGTH(b.x_interval_list), 0),
+        COALESCE(JSON_LENGTH(b.y_interval_list), 0)
+        )
+        GROUP BY b.id
+        order by b.`order`;
+    </select>
+
+    <insert id="batchSaveIntervalModel" parameterType="java.util.List">
+        INSERT INTO b_report_interval_model
+        (config_id, axis_type, x_model_name, y_model_name, x_interval_list,
+        y_interval_list, `order`, is_del, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.configId}, #{item.axisType}, #{item.xModelName}, #{item.yModelName}, #{item.xIntervalList},
+            #{item.yIntervalList}, #{item.order}, #{item.isDel}, #{item.createTime}, #{item.updateTime})
+        </foreach>
+    </insert>
+
+</mapper>

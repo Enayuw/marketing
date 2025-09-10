@@ -57,6 +57,7 @@ public class RedisKeyConstant {
     public static final String conditionNumber = prefix.concat("conditionnumber");
 
     public static final String decisionsNumber = prefix.concat("decisionsnumber");
+    public static final String intervalNumber = prefix.concat("intervalnumber");
 
     public static final String offLineLock = prefix.concat("offlinecallback");
 
@@ -370,6 +371,22 @@ public class RedisKeyConstant {
      */
     public static final String tcyrDbDeal = prefix.concat("tcyr_sync:dbDeal");
 
+
+    /**
+     * 同程CPA-syncDeal流程锁
+     */
+    public static final String tcyrCpaSyncQuickDeal = prefix.concat("tcyr_cpa:syncQuickDeal");
+
+    /**
+     * 同程CPA-collidingSuccess流程锁
+     */
+    public static final String tcyrCpaCollidingSuccessDeal = prefix.concat("tcyr_cpa:collidingSuccessDeal");
+
+    /**
+     * 同程CPA-撞库失败数据处理流程锁
+     */
+    public static final String tcyrCpaCollidingFailDeal = prefix.concat("tcyr_cpa:collidingFailDeal");
+
     /**
      * 雪花算法
      */
@@ -384,4 +401,20 @@ public class RedisKeyConstant {
      */
     public static final String XIECHENG_REPORT_CONSUME_RNAME = prefix.concat("xieChengReport:consumer:name");
 
+
+    /**
+     * ai客户数据入明细负载队列
+     */
+    public static final String AI_PREUSER_RECEIVE_MQ_BALANCER = prefix.concat("aipreuserreceive:mq:balancer");
+
+    /**
+     * ai客户推送下游负载队列
+     */
+    public static final String AI_UNIVERSAL_RECEIVE_MQ_BALANCER = prefix.concat("aiuniversalreceive:mq:balancer");
+
+    /**
+     * 携程上报判断actionType阈值转盘
+     * list中放置字符串"1"~"100"，取号：rpoplpush(key) 与 ivr 阈值比较
+     */
+    public static final String XIECHENG_REPORT_MOCK_RATE_TURNTABLE = prefix.concat("xieChengReport:mockRate:turntable");
 }

@@ -1,9 +1,22 @@
 package com.br.marketing.service.Impl;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.google.common.collect.Lists;
+
+import java.io.IOException;
+import java.time.ZoneId;
+import java.util.Date;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.dto.report.IntervalRangeDTO;
+import com.br.marketing.dto.report.RefreshReportRequestDTO;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.bi.ReportStatisticService;
+import com.br.marketing.vo.bi.IntervalTemplateVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
@@ -40,9 +53,9 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -67,6 +80,21 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     private ReportTaskMapper reportTaskMapper;
     @Resource
     private ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
+
+    @Resource
+    private ReportStatisticsScoreMapper reportStatisticsScoreMapper;
+
+    @Resource
+    private ReportIntervalConfigMapper reportIntervalConfigMapper;
+
+    @Resource
+    private ReportIntervalModelMapper reportIntervalModelMapper;
+
+    @Resource
+    private ScoreStatisticsDetailMapper scoreStatisticsDetailMapper;
+
+    @Resource
+    private CustomIntervalStatisticsImpl customIntervalStatistics;
 
     @Resource
     private MarketingTaskMapper marketingTaskMapper;
@@ -103,6 +131,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Resource
     ReportStatisticService reportStatisticService;
 
+    @Autowired
+    RedisChgService redisChgService;
+
     @Override
     public Map getProducts(String ids, String fieldType) {
         Map map = new HashMap();
@@ -115,6 +146,8 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         Set<String> reportScorePrefixSet = null;
         if ("all".equals(fieldType)) {
             reportScorePrefixSet = marketingCommonConfig.getReportScorePrefixSet();
+            // 添加画像分布配置到前缀集合中
+            addImageDistribution(reportScorePrefixSet);
         } else if ("score".equals(fieldType)) {
             reportScorePrefixSet = marketingCommonConfig.getReportScoreOnlyPrefixSet();
         } else if ("multPoint".equals(fieldType)) {
@@ -162,6 +195,11 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         return map;
     }
 
+    public void addImageDistribution(Set<String> reportScorePrefixSet) {
+        String imageDistribution = marketingCommonConfig.getImageDistribution();
+        String[] distributions = imageDistribution.split(",");
+        reportScorePrefixSet.addAll(Arrays.asList(distributions));
+    }
     /**
      * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
      * 方法处理前：
@@ -320,6 +358,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         reportTask.setReportRules(json.toJSONString());
         reportTask.setStatus(0);
+        reportTask.setTemplateId(reportTaskParam.getStatisticsId() == null ? null: String.valueOf(reportTaskParam.getStatisticsId()));
         reportTask.setIsDel(1);
         reportTask.setCreateTime(new Date());
         reportTask.setUpdateTime(new Date());
@@ -616,6 +655,275 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             log.warn("报表删除有误，id：{}", id);
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    public Result<Boolean> refreshCustomIntervalReport(RefreshReportRequestDTO requestDTO) {
+        if (requestDTO.getReportId() == null || CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("reportId和customIntervals不能为空");
+        }
+        // 遍历需要刷新的统计配置
+        for (RefreshReportRequestDTO.CustomIntervalConfigDTO configDTO : requestDTO.getCustomIntervals()) {
+            try {
+                refreshSingleStatistics(configDTO);
+            } catch (Exception e) {
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("刷新统计配置失败, statisticsId: " + configDTO.getStatisticsId() + ", 错误: " + e.getMessage());
+            }
+        }
+        // 刷新报告文件并上传至fastdfs
+        try {
+            analysisReportService.uploadReportToFastDfs(requestDTO.getReportId());
+        } catch (IOException e) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("刷新报告文件并上传至fastdfs失败, taskId: " + requestDTO.getReportId() + ", 错误: " + e.getMessage());
+        }
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<Boolean> saveIntervalTemplate(RefreshReportRequestDTO requestDTO, MarketingUserDetail user) {
+        // 参数校验
+        if (StringUtils.isEmpty(requestDTO.getTemplateName())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("模板名称不能为空");
+        }
+        if (CollectionUtils.isEmpty(requestDTO.getCustomIntervals())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("自定义区间配置不能为空");
+        }
+
+        try {
+            // 检查模板名称是否重复
+            if (isTemplateNameExists(requestDTO.getTemplateName())) {
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("模板名称重复: " + requestDTO.getTemplateName());
+            }
+
+            // 保存配置主表
+            ReportIntervalConfig config = createIntervalConfig(requestDTO, user);
+            int configResult = reportIntervalConfigMapper.insertSelective(config);
+            if (configResult == 0) {
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("自定义区间配置保存失败: " + requestDTO.getTemplateName());
+            }
+
+            // 批量保存模型配置
+            saveIntervalModels(config.getId(), requestDTO.getCustomIntervals());
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
+        } catch (Exception e) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("保存评分分布模板失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<List<IntervalTemplateVO>> getIntervalTemplate(String apiCode) {
+        // 参数校验
+        if (StringUtils.isEmpty(apiCode)) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("apiCode不能为空");
+        }
+        List<String> apiCodes = new ArrayList<>(Arrays.asList(apiCode.split(",")));
+        try {
+            List<IntervalTemplateVO> list = new ArrayList<>();
+            ReportIntervalConfigExample example = new ReportIntervalConfigExample();
+            example.createCriteria().andApiCodeIn(apiCodes)
+                    .andStatusEqualTo(Constants.DATA_VALID).andIsDelEqualTo(Constants.DATA_VALID);
+            List<ReportIntervalConfig> reportIntervalConfigs = reportIntervalConfigMapper.selectByExample(example);
+
+            for (ReportIntervalConfig config : reportIntervalConfigs) {
+
+                IntervalTemplateVO intervalTemplateVO = new IntervalTemplateVO();
+                intervalTemplateVO.setId(config.getId());
+                intervalTemplateVO.setApiCode(config.getApiCode());
+                intervalTemplateVO.setReportId(config.getReportId());
+                intervalTemplateVO.setTemplateName(config.getTemplateName());
+                intervalTemplateVO.setTemplateNumber(config.getTemplateNumber());
+
+                ReportIntervalModelExample reportIntervalModelExample = new ReportIntervalModelExample();
+                reportIntervalModelExample.createCriteria().andConfigIdEqualTo(config.getId()).andIsDelEqualTo(Constants.DATA_VALID);
+                List<ReportIntervalModel> reportIntervalModels = reportIntervalModelMapper.selectByExample(reportIntervalModelExample);
+
+                List<IntervalTemplateVO.IntervalModelsVO> intervalModelsVOS = getIntervalModelsVOS(reportIntervalModels);
+                intervalTemplateVO.setIntervalModels(intervalModelsVOS);
+                list.add(intervalTemplateVO);
+            }
+            return new Result<List<IntervalTemplateVO>>().setCode(ResultCode.SUCCESS.getValue()).setDate(list);
+        }catch (Exception e){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("评分分布查询规则模板异常: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<String> getImageDistribution() {
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(marketingCommonConfig.getImageDistribution());
+    }
+
+    private static List<IntervalTemplateVO.IntervalModelsVO> getIntervalModelsVOS(List<ReportIntervalModel> reportIntervalModels) {
+        List<IntervalTemplateVO.IntervalModelsVO> intervalModelsVOS = new ArrayList<>();
+        for (ReportIntervalModel reportIntervalModel : reportIntervalModels){
+            IntervalTemplateVO.IntervalModelsVO intervalModelsVO = new IntervalTemplateVO.IntervalModelsVO();
+            intervalModelsVO.setId(reportIntervalModel.getId());
+            intervalModelsVO.setConfigId(reportIntervalModel.getConfigId());
+            intervalModelsVO.setAxisType(reportIntervalModel.getAxisType());
+            intervalModelsVO.setXModelName(reportIntervalModel.getxModelName());
+            intervalModelsVO.setYModelName(reportIntervalModel.getyModelName());
+            intervalModelsVO.setXIntervalList(reportIntervalModel.getxIntervalList());
+            intervalModelsVO.setYIntervalList(reportIntervalModel.getyIntervalList());
+            intervalModelsVO.setOrder(reportIntervalModel.getOrder());
+            intervalModelsVOS.add(intervalModelsVO);
+        }
+        return intervalModelsVOS;
+    }
+
+    /**
+     * 检查模板名称是否存在
+     */
+    private boolean isTemplateNameExists(String templateName) {
+        ReportIntervalConfigExample example = new ReportIntervalConfigExample();
+        example.createCriteria()
+                .andTemplateNameEqualTo(templateName)
+                .andStatusEqualTo(Constants.DATA_VALID)
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        return reportIntervalConfigMapper.countByExample(example) > 0;
+    }
+
+    /**
+     * 创建区间配置对象
+     */
+    private ReportIntervalConfig createIntervalConfig(RefreshReportRequestDTO requestDTO, MarketingUserDetail user) {
+        ReportIntervalConfig config = new ReportIntervalConfig();
+        config.setApiCode(requestDTO.getApiCode());
+        config.setReportId(requestDTO.getReportId());
+        config.setTemplateName(requestDTO.getTemplateName());
+        config.setTemplateNumber(generateTemplateNumber(requestDTO.getApiCode()));
+        config.setOptUserId(Long.valueOf(user.getId()));
+        config.setOptUserName(user.getUserName());
+        config.setStatus(Constants.DATA_VALID);
+        config.setIsDel(Constants.DATA_VALID);
+        config.setCreateTime(new Date());
+        config.setUpdateTime(new Date());
+        return config;
+    }
+
+    /**
+     * 生成模板编号
+     */
+    String generateTemplateNumber(String apiCode) {
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = RedisKeyConstant.intervalNumber.concat(":").concat(yyyyMMdd);
+        Long incr = redisChgService.incr(key);
+        redisChgService.expire(key, getKeyExpiration());
+        String s = incr.toString();
+        int length = s.length();
+        for (int i = 3; i > length; i--) {
+            s = "0" + s;
+        }
+        return yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(s);
+    }
+
+    /**
+     * 获取当前时间到第二天凌晨的秒
+     *
+     */
+    private int getKeyExpiration() {
+        final LocalDateTime now = LocalDateTime.now();
+        // 当前毫秒数
+        long l = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        LocalDateTime localDateTime = now.plusDays(1);
+        // 第二天凌晨毫秒数
+        long l1 = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return (int) (l1 - l) / 1000;
+    }
+
+    /**
+     * 批量保存区间模型配置
+     */
+    private void saveIntervalModels(Long configId, List<RefreshReportRequestDTO.CustomIntervalConfigDTO> customIntervals) {
+        List<ReportIntervalModel> list = new ArrayList<>();
+        for (RefreshReportRequestDTO.CustomIntervalConfigDTO dto : customIntervals) {
+            ReportIntervalModel model = createIntervalModel(configId, dto);
+            list.add(model);
+        }
+        int i = reportIntervalModelMapper.batchSaveIntervalModel(list);
+        if (i == 0) {
+            throw new RuntimeException("区间模型配置保存失败");
+        }
+    }
+
+    /**
+     * 创建区间模型对象
+     */
+    private ReportIntervalModel createIntervalModel(Long configId, RefreshReportRequestDTO.CustomIntervalConfigDTO dto) {
+        ReportIntervalModel model = new ReportIntervalModel();
+        model.setConfigId(configId);
+        model.setAxisType(String.valueOf(dto.getReportScoreType()));
+        model.setxModelName(dto.getFieldX());
+        model.setyModelName(dto.getFieldY());
+        model.setxIntervalList(JSON.toJSONString(dto.getXIntervalList()));
+        model.setyIntervalList(dto.getReportScoreType().equals(2) ? JSON.toJSONString(dto.getYIntervalList()) : null);
+        model.setOrder(dto.getOrder() != null ? String.valueOf(dto.getOrder()) : "1");
+        model.setIsDel(Constants.DATA_VALID);
+        model.setCreateTime(new Date());
+        model.setUpdateTime(new Date());
+        return model;
+    }
+
+    /**
+     * 刷新单个统计配置
+     */
+    public void refreshSingleStatistics(RefreshReportRequestDTO.CustomIntervalConfigDTO customConfig) throws Exception {
+        Long statisticsId = customConfig.getStatisticsId();
+
+        // 先删除旧的统计详情数据
+        ScoreStatisticsDetailExample example = new ScoreStatisticsDetailExample();
+        example.createCriteria().andStatisticsIdEqualTo(statisticsId).andIsDelEqualTo(Constants.DATA_VALID);
+
+        ScoreStatisticsDetail scoreStatisticsDetail = new ScoreStatisticsDetail();
+        scoreStatisticsDetail.setIsDel(Constants.DATA_DEL);
+        scoreStatisticsDetail.setUpdateTime(new Date());
+        scoreStatisticsDetailMapper.updateByExampleSelective(scoreStatisticsDetail, example);
+
+        // 更新统计配置的区间范围
+        ReportStatisticsScore updateScore = new ReportStatisticsScore();
+        updateScore.setId(statisticsId);
+        updateScore.setFieldXRange(JSON.toJSONString(customConfig.getXIntervalList()));
+        if (customConfig.getReportScoreType().equals(2)) {
+            updateScore.setFieldYRange(JSON.toJSONString(customConfig.getYIntervalList()));
+        }
+        updateScore.setUpdateTime(new Date());
+        reportStatisticsScoreMapper.updateByPrimaryKeySelective(updateScore);
+
+        // 重新执行统计计算
+        ReportStatisticsScore refreshedScore = reportStatisticsScoreMapper.selectByPrimaryKey(statisticsId);
+        if (refreshedScore.getReportScoreType().equals(1)) {
+            // 单模型自定义区间统计
+            executeCustomIntervalCount(refreshedScore, customConfig.getXIntervalList(), null, "刷新单模型");
+        } else {
+            // 多模型自定义区间统计
+            executeCustomIntervalCount(refreshedScore, customConfig.getXIntervalList(), customConfig.getYIntervalList(), "刷新多模型");
+        }
+        // 更新统计状态为成功
+        updateReportScore(refreshedScore, 1, null);
+    }
+
+    /**
+     * 执行自定义区间统计（统一的统计逻辑）
+     */
+    private void executeCustomIntervalCount(ReportStatisticsScore statisticsScore, 
+                                           List<IntervalRangeDTO> xIntervalList, 
+                                           List<IntervalRangeDTO> yIntervalList,
+                                           String logPrefix) {
+        List<String> batchNumberList = customIntervalStatistics.getBatchNumberKey(statisticsScore);
+        customIntervalStatistics.executeCustomIntervalCount(
+                statisticsScore.getId(), 
+                statisticsScore.getFieldX(), 
+                statisticsScore.getFieldY(), 
+                batchNumberList, 
+                xIntervalList, 
+                yIntervalList, 
+                logPrefix);
+    }
+
+    private void updateReportScore(ReportStatisticsScore statisticsScore, Integer status, String errorDesc) {
+        statisticsScore.setStatus(status);
+        statisticsScore.setUpdateTime(new Date());
+        statisticsScore.setStatisticsDesc(errorDesc);
+        reportStatisticsScoreMapper.updateByPrimaryKey(statisticsScore);
     }
 
     /**

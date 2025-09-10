@@ -17,6 +17,11 @@ public class TcRevokeProcessor extends AbstractTcCustomizeProcessor{
     private MarketingTcyrRevokeRecordMapper tcyrRevokeRecordMapper;
 
     @Override
+    protected String fetchApiCode() {
+        return apiCode();
+    }
+
+    @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {
         MarketingTcyrRevokeRecord record = new MarketingTcyrRevokeRecord();
         record.setId(recordId);

@@ -7,7 +7,7 @@
     <delete id = "deleteDataFromMarketingBiTablebI_">
         ${deleteDorisSqlByDate}
     </delete>
-    <select id="countDataFromMarketingBiTable" resultType="java.lang.Integer">
+    <select id="countDataFromMarketingBiTablebI_" resultType="java.lang.Integer">
         ${countSql}
     </select>
 </mapper>

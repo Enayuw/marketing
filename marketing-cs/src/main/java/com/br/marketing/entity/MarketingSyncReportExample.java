@@ -12,7 +12,7 @@ public class MarketingSyncReportExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingSyncReportExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingSyncReportExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -895,6 +895,76 @@ public class MarketingSyncReportExample {
             return (Criteria) this;
         }
 
+        public Criteria andLabelMessageIsNull() {
+            addCriterion("label_message is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageIsNotNull() {
+            addCriterion("label_message is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageEqualTo(String value) {
+            addCriterion("label_message =", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageNotEqualTo(String value) {
+            addCriterion("label_message <>", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageGreaterThan(String value) {
+            addCriterion("label_message >", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageGreaterThanOrEqualTo(String value) {
+            addCriterion("label_message >=", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageLessThan(String value) {
+            addCriterion("label_message <", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageLessThanOrEqualTo(String value) {
+            addCriterion("label_message <=", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageLike(String value) {
+            addCriterion("label_message like", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageNotLike(String value) {
+            addCriterion("label_message not like", value, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageIn(List<String> values) {
+            addCriterion("label_message in", values, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageNotIn(List<String> values) {
+            addCriterion("label_message not in", values, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageBetween(String value1, String value2) {
+            addCriterion("label_message between", value1, value2, "labelMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelMessageNotBetween(String value1, String value2) {
+            addCriterion("label_message not between", value1, value2, "labelMessage");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;
@@ -1016,9 +1086,8 @@ public class MarketingSyncReportExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

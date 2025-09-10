@@ -20,35 +20,31 @@ import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
-import com.br.marketing.entity.*;
-import com.br.marketing.enums.XieChengConsumer;
-import com.br.marketing.mapper.*;
 import com.br.marketing.entity.CallRecord;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.RoboAIBlackPhoneMark;
 import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
+import com.br.marketing.entity.SmsCallback;
+import com.br.marketing.entity.SmsCallbackAtOnce;
+import com.br.marketing.entity.SmsCallbackAtOnceExample;
+import com.br.marketing.entity.SmsCallbackExample;
+import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.mapper.CallRecordMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
-import com.br.marketing.origin.*;
+import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
+import com.br.marketing.mapper.SmsCallbackMapper;
+import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.MrpMqFact;
+import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
-import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
-import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,6 +56,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 @Service
 @Slf4j
@@ -70,6 +75,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Autowired
     private SmsCallbackMapper smsCallbackMapper;
+
+    @Autowired
+    private SmsCallbackAtOnceMapper smsCallbackAtOnceMapper;
 
     @Autowired
     private RoboAIBlackPhoneMarkMapperBase roboAIBlackPhoneMarkMapper;
@@ -150,19 +158,17 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                         producter.sendToUniversalTransferQueue(mqFact);
                     }
                 }
-                // 携程定制逻辑
-                if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
-                    if (marketingCommonConfig.getXieChengReportMqConfig().getBoolean(apiCode)) {
-                        // 使用负载均衡消费者逻辑
-                        handleWithConsumerRotation(callRecord);
-                    } else {
-                        // 使用默认发送逻辑
-                        rocketMqSwitch.syncSend(
-                                MarketingXieChengConstants.TOPIC,
-                                MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-                                callRecord.getId().toString());
-                    }
+            // 携程定制逻辑
+            if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
+                if (isMockData(callRecord) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(apiCode)) {
+                    sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+                            MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+                            callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());
+                } else {
+                    // 使用负载均衡消费者逻辑
+                    handleWithConsumerRotation(callRecord);
                 }
+            }
                 List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
                 if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
                     MrpMqFact mrpMqFact = new MrpMqFact();
@@ -192,6 +198,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         sendToRocketMQ(consumer, callRecord.getId().toString());
     }
 
+    private boolean isMockData(CallRecord callRecord) {
+        return StringUtils.isNotEmpty(callRecord.getLineName())
+                && callRecord.getLineName().contains("挡板");
+    }
+
     private void initializeConsumerQueue() {
         Long queueLength = redisChgService.llen(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME);
         if (queueLength == 0) {
@@ -209,8 +220,19 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         } catch (Exception e) {
             String errorMessage = String.format("携程上报消息发送失败,消息发送失败 [consumer: %s, topic: %s, tag: %s,message: %s",
                     consumer.name(), consumer.getTopic(), consumer.getTag(), message);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),errorMessage + e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errorMessage + e.getMessage()
                     , "携程上报消息发送失败,消息发送失败!"));
+        }
+    }
+
+    private void sendToRocketMQ(String topic, String tag, String message, long delayTime) {
+        try {
+            rocketMqSwitch.syncSendDelaySecond(topic, tag, message, delayTime);
+        } catch (Exception e) {
+            String errorMessage = String.format("携程挡板上报消息发送失败,消息发送失败 [topic: %s, tag: %s,message: %s",
+                    topic, tag, message);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errorMessage + e.getMessage()
+                    , "携程挡板上报消息发送失败,消息发送失败!"));
         }
     }
     /**
@@ -340,23 +362,59 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             BeanUtils.copyProperties(dto, smsCallback);
             smsCallback.setApiCode(dto.getApiCode());
             smsCallbackMapper.insertSelective(smsCallback);
-
-            //推mq
-            final MqFact mqFact = new MqFact();
-            mqFact.setSourceId(smsCallback.getId());
-            mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK.getCode());
-            if (rocketMqSwitch.rocketMQSwitchFlag(dto.getApiCode(), MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
-                String message = JSON.toJSONString(mqFact);
-                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
-                        , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
-            } else {
-                producter.sendToUniversalTransferQueue(mqFact);
+            List<String> apiCodes = marketingCommonConfig.getSmsCallBackDataPushMqApiCodes();
+            String apiCode = dto.getApiCode();
+            if (apiCodes != null && apiCodes.contains(apiCode)) {
+                //推mq
+                final MqFact mqFact = new MqFact();
+                mqFact.setSourceId(smsCallback.getId());
+                mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK.getCode());
+                if (rocketMqSwitch.rocketMQSwitchFlag(dto.getApiCode(), MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
+                    String message = JSON.toJSONString(mqFact);
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                            , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+                } else {
+                    producter.sendToUniversalTransferQueue(mqFact);
+                }
             }
-
         } catch (Exception ex) {
             log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
             return "外呼短信记录落库失败(insert b_sms_callback fail)!";
         }
+        return "success";
+    }
+
+    /**
+     * 外呼短信发送即回调实现
+     * @param dto
+     * @return
+     */
+    @Override
+    public String smsCallBackAtOnce(SmsRecordDTO dto) {
+        try {
+            if(StringUtils.isEmpty(dto.getThirdCallNo())){
+                return "短信流水号 thirdCallNo 为空";
+            }
+            String thirdCallNo = dto.getThirdCallNo();
+            // 校验是否已经落库
+            SmsCallbackAtOnceExample smsCallbackAtOnceExample = new SmsCallbackAtOnceExample();
+            smsCallbackAtOnceExample.createCriteria().andThirdCallNoEqualTo(thirdCallNo);
+            int i = smsCallbackAtOnceMapper.countByExample(smsCallbackAtOnceExample);
+            if (i > 0) {
+                log.warn("短信流水号重复：" + thirdCallNo);
+                return "短信流水号重复：" + thirdCallNo;
+            }
+            SmsCallbackAtOnce smsCallbackAtOnce = new SmsCallbackAtOnce();
+            smsCallbackAtOnce.setCreateDate(String.valueOf(LocalDate.now()));
+            smsCallbackAtOnce.setCreateTime(new Date());
+            BeanUtils.copyProperties(dto, smsCallbackAtOnce);
+            smsCallbackAtOnceMapper.insertSelective(smsCallbackAtOnce);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                            "外呼短信即回调入库失败，流水号:" + dto.getThirdCallNo() + "。" + ex.getMessage()), ex);
+            return "外呼短信即回调，记录落库失败(insert b_sms_callback_at_once fail)!";
+        }
+
         return "success";
     }
 

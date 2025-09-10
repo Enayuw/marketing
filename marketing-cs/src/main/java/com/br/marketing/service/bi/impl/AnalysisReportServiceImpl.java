@@ -7,18 +7,11 @@ import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Resource;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -28,7 +21,6 @@ import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -48,7 +40,6 @@ import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -158,13 +149,15 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             AxisWrapVO axisWrapVo = new AxisWrapVO();
             axisWrapVo.setXAxisProduct(statisticsScore.getFieldX());
             axisWrapVo.setYAxisProduct(statisticsScore.getFieldY());
+            axisWrapVo.setStatisticsId(statisticsScore.getId());
+            axisWrapVo.setOrder(statisticsScore.getStatisticsOrder());
             if (ObjectUtil.notEqual(statisticsScore.getStatus(), 1)) {
                 axisWrapVo.setStatisticsDesc(StringUtils.isEmpty(statisticsScore.getStatisticsDesc()) ? "统计异常" : statisticsScore.getStatisticsDesc());
                 axisWrapVOS.add(axisWrapVo);
                 continue;
             }
             ScoreStatisticsDetailExample detailExample = new ScoreStatisticsDetailExample();
-            detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getId());
+            detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getId()).andIsDelEqualTo(Constants.DATA_VALID);
             List<ScoreStatisticsDetail> details = scoreStatisticsDetailBaseMapper.selectByExample(detailExample);
             switch (statisticsScore.getReportScoreType()) {
                 case 1:
@@ -184,67 +177,127 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     }
 
     private void multipleConvert(AxisWrapVO axisWrapVo, List<ScoreStatisticsDetail> details) {
-        List<String> xAxis = determineStepLength(details, ScoreStatisticsDetail::getFieldXValue);
-        List<String> yStep = determineStepLength(details, ScoreStatisticsDetail::getFieldYValue);
-        // 按 field_y_value 和 field_x_value 分组
+        //1.获取x轴
+        List<String> xAxis = getAxais(details, ScoreStatisticsDetail::getFieldXValue);
+        //2.获取y轴
+        List<String> yStep = getAxais(details, ScoreStatisticsDetail::getFieldYValue);
+        //3.按field_y_value把数据分组为多列
         Map<String, Map<String, Integer>> groupedByY = details.stream().collect(Collectors.groupingBy(ScoreStatisticsDetail::getFieldYValue,
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
-        // 构建 yAxis 列表
+        //4.构建yAxis列表
         List<WrapDataVO> yAxisData = yStep.stream().map((String yValue) -> {
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yValue, Collections.emptyMap()).getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
+            //总计数量
+            int sum = data.stream().mapToInt(Integer::parseInt).sum();
+            data.add(String.valueOf(sum));
             return new WrapDataVO(yValue, data);
         }).collect(Collectors.toList());
+        //5.增加行总计
+        WrapDataVO yaxisSum = getYaxisSum(details, xAxis);
+        yAxisData.add(yaxisSum);
+        xAxis.add("总计");
         axisWrapVo.setXAxis(xAxis);
         axisWrapVo.setYAxis(yAxisData);
     }
 
+    private WrapDataVO getYaxisSum(List<ScoreStatisticsDetail> details, List<String> xAxis) {
+        // 先计算分组结果
+        Map<String, Integer> groupedData = details.stream()
+                .collect(Collectors.groupingBy(
+                        ScoreStatisticsDetail::getFieldXValue,
+                        Collectors.summingInt(ScoreStatisticsDetail::getFieldNum)
+                ));
+        List<String> data;
+        // 检查是否包含中文
+        boolean hasChinese = xAxis.stream()
+                .anyMatch(com.br.marketing.common.utils.StringUtils::containsChinese);
+        if (hasChinese) {
+            // 包含中文，直接返回所有值
+            data = groupedData.values().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toList());
+        } else {
+            // 不包含中文，按数字排序
+            data = groupedData.entrySet().stream()
+                    .sorted(Comparator.comparing(entry -> {
+                        String startValue = entry.getKey()
+                                .replaceAll("[\\[\\]\\(\\)]", "").split(",")[0];
+                        return Double.parseDouble(startValue);
+                    }))
+                    .map(entry -> entry.getValue().toString())
+                    .collect(Collectors.toList());
+        }
+        data.add(Integer.toString(data.stream().mapToInt(Integer::parseInt).sum()));
+        return new WrapDataVO("总计", data);
+    }
+
+    /**
+     * x轴步长 eg:[0,5),[5,10),[10,15)...
+     * y轴模型 eg:scorencashonxchx
+     * @param axisWrapVo
+     * @param details
+     */
     private void singleConvert(AxisWrapVO axisWrapVo, List<ScoreStatisticsDetail> details) {
-        // 根据数据确定使用哪种步长
-        List<String> xAxis = determineStepLength(details, ScoreStatisticsDetail::getFieldXValue);
-        // 按 field_y_value 分组
+        //1.获取x轴
+        List<String> xAxis = getAxais(details, ScoreStatisticsDetail::getFieldXValue);
+        //2.按模型field_y_value把数据分组为多列
         Map<String, Map<String, Integer>> groupedByY = details.stream().collect(Collectors.groupingBy(ScoreStatisticsDetail::getFieldYValue,
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
-        // 构建 yAxis 列表
+        //3.构建yAxis列表
         List<String> keys = Splitter.on(",").splitToList(axisWrapVo.getXAxisProduct());
         List<WrapDataVO> yAxis = Lists.newArrayList();
         for (String yName : keys) {
-            // 根据 X轴步长 填充Y轴数据
+            //每列数据
+            Map<String, Integer> columnDetail = groupedByY.getOrDefault(yName, Collections.emptyMap());
+            //根据X轴步长 填充Y轴数据
             List<String> data =
-                xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yName, Collections.emptyMap()).getOrDefault(xValue, 0)))
+                xAxis.stream().map(xValue -> String.valueOf(columnDetail.getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
+            //总计数量
+            BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
+            data.add(String.valueOf(total));
             WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
             yAxis.add(numWrapDataVo);
-            BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
-            List<String> proportion =
-                data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
-                    .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
+            //计算占比
+            List<String> proportion;
+            if (total.compareTo(BigDecimal.ZERO) == 0) {
+                proportion = data.stream().map(num -> "/").collect(Collectors.toList());
+            } else {
+                proportion = data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
+                        .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
+            }
             WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
             yAxis.add(proportionWrapDataVo);
         }
-        // 设置横纵坐标轴的内容
+        //设置横纵坐标轴的内容
+        xAxis.add("总计");
         axisWrapVo.setXAxis(xAxis);
         axisWrapVo.setYAxis(yAxis);
     }
 
-    private List<String> determineStepLength(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
-        Map<String, List<ScoreStatisticsDetail>> sectionData = details.stream().collect(Collectors.groupingBy(keyMapper));
-        List<String> keys = Lists.newArrayList(sectionData.keySet());
-        List<String> fiveStepLength = Lists.newArrayList();
-        fiveStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"));
-        List<String> fiftyStepLength = Lists.newArrayList();
-        fiftyStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"));
-        // 剔除 [-1,0) 区间做交集
-        keys.remove("[-1,0)");
-        fiveStepLength.remove("[-1,0)");
-        fiftyStepLength.remove("[-1,0)");
-        if (this.checkKeys(keys, fiveStepLength)) {
-            return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
-        } else if (this.checkKeys(keys, fiftyStepLength)) {
-            return marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+    /**
+     * 返回排序好的坐标
+     * @param details
+     * @param keyMapper
+     * @return
+     */
+    private List<String> getAxais(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
+        List<String> distinctAxais = details.stream().map(keyMapper).distinct().collect(Collectors.toList());
+        for (String s : distinctAxais) {
+            if(com.br.marketing.common.utils.StringUtils.containsChinese(s)){
+                return distinctAxais;
+            }
         }
-        return keys;
+        return details.stream()
+                .map(keyMapper)
+                .distinct()
+                .sorted(Comparator.comparing(interval -> {
+                    String startValue = interval.replaceAll("[\\[\\]\\(\\)]", "").split(",")[0];
+                    return Double.parseDouble(startValue);
+                }))
+                .collect(Collectors.toList());
     }
 
     private boolean checkKeys(List<String> keys, List<String> config) {

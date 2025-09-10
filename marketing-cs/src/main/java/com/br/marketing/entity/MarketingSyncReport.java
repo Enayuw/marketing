@@ -1,13 +1,11 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * b_marketing_sync_report
- * @author 
- */
-public class MarketingSyncReport implements Serializable {
+public class MarketingSyncReport {
+    /**
+     *
+     */
     private Long id;
 
     /**
@@ -75,7 +73,10 @@ public class MarketingSyncReport implements Serializable {
      */
     private Date updateTime;
 
-    private static final long serialVersionUID = 1L;
+    /**
+     * 标签信息json结构
+     */
+    private String labelMessage;
 
     public Long getId() {
         return id;
@@ -90,7 +91,7 @@ public class MarketingSyncReport implements Serializable {
     }
 
     public void setCid(String cid) {
-        this.cid = cid;
+        this.cid = cid == null ? null : cid.trim();
     }
 
     public String getApiCode() {
@@ -98,7 +99,7 @@ public class MarketingSyncReport implements Serializable {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public String getShortName() {
@@ -106,7 +107,7 @@ public class MarketingSyncReport implements Serializable {
     }
 
     public void setShortName(String shortName) {
-        this.shortName = shortName;
+        this.shortName = shortName == null ? null : shortName.trim();
     }
 
     public String getAppletDate() {
@@ -114,7 +115,7 @@ public class MarketingSyncReport implements Serializable {
     }
 
     public void setAppletDate(String appletDate) {
-        this.appletDate = appletDate;
+        this.appletDate = appletDate == null ? null : appletDate.trim();
     }
 
     public String getUserType() {
@@ -122,7 +123,7 @@ public class MarketingSyncReport implements Serializable {
     }
 
     public void setUserType(String userType) {
-        this.userType = userType;
+        this.userType = userType == null ? null : userType.trim();
     }
 
     public Integer getNormalNum() {
@@ -162,7 +163,7 @@ public class MarketingSyncReport implements Serializable {
     }
 
     public void setReserveField1Key(String reserveField1Key) {
-        this.reserveField1Key = reserveField1Key;
+        this.reserveField1Key = reserveField1Key == null ? null : reserveField1Key.trim();
     }
 
     public String getRemark() {
@@ -170,7 +171,7 @@ public class MarketingSyncReport implements Serializable {
     }
 
     public void setRemark(String remark) {
-        this.remark = remark;
+        this.remark = remark == null ? null : remark.trim();
     }
 
     public Date getCreateTime() {
@@ -187,5 +188,13 @@ public class MarketingSyncReport implements Serializable {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getLabelMessage() {
+        return labelMessage;
+    }
+
+    public void setLabelMessage(String labelMessage) {
+        this.labelMessage = labelMessage == null ? null : labelMessage.trim();
     }
 }

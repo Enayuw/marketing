@@ -1,0 +1,75 @@
+package com.br.marketing.mq.consumer.rocketmq.tccpa;
+
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.rocketmq.MarketingTcCpaConstants;
+import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
+import com.br.marketing.service.Impl.RocketMqConsumerService;
+import com.br.marketing.service.tccpa.TcyrLoopCycleDataService;
+import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
+import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * 消费 同程CPA撞库成功数据消费
+ */
+@Slf4j
+@Service
+@RocketMQMessageListener(topic = MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
+        consumerGroup = MarketingTcCpaConstants.GROUP_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
+        selectorExpression = MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
+        consumeThreadMax = 20)
+public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
+
+    @Autowired
+    RocketMqConsumerService consumerService;
+
+    @Resource
+    private TcyrLoopCycleDataService tcyrLoopCycleDataService;
+
+    @Override
+    protected String consumerName() {
+        return "";
+    }
+
+    @Override
+    protected void handleMessage(MessageExt messageExt) throws Exception {
+        String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
+        TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
+                new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
+        consumerService.consumerRun(messageExt, tcyrLoopCycleDataService::process, tcCpaSuccessMqDTO);
+    }
+
+    @Override
+    protected void overMaxRetryTimesMessage(MessageExt messageExt) {
+        log.warn("overMaxRetryTimes messageExt is [{}]", JSON.toJSONString(messageExt));
+    }
+
+    @Override
+    protected boolean isThrowException() {
+        log.warn("messageExt ThrowException");
+        // true会重新消费消息
+        return true;
+    }
+
+    @Override
+    public void onMessage(MessageExt messageExt) {
+        super.dispatchMessage(messageExt);
+    }
+
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setClientRebalance(false);
+        defaultMQPushConsumer.setPopInvisibleTime(300000L);
+    }
+}
