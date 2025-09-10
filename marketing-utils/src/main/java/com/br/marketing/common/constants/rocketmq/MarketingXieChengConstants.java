@@ -15,6 +15,14 @@ public class MarketingXieChengConstants {
     public static final String TAG_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE = "marketing.xiecheng.cpa.colliding.logqueue";
 
 
+
+    //携程促活队列
+    public static final String TOPIC_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "marketingXieChengActivateCollidingQueue";
+
+    public static final String GROUP_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "Marketing_XieCheng_Activate_Colliding_Queue";
+
+    public static final String TAG_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE = "marketing.xiecheng.activate.colliding.activatequeue";
+
     /**
      *
      */
