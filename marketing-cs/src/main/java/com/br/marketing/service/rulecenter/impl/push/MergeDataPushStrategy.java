@@ -151,8 +151,8 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
         } catch (Exception e) {
             logger.error("{}前置处理异常", TITLE, e);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
-        return null;
     }
 
 
