@@ -70,6 +70,12 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
                     tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
                     result.getCode(), result.getData());
 
+            consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
+            log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}",
+                    TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
+                    tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
+            );
+
 //            if (priority > 1) {
 //                TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
 //                        new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
