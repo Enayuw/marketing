@@ -3368,5 +3368,10 @@ public class MarketingCommonConfig {
      * 哈啰硅基人回调配置
      */
     private JSONObject haloAiCallbackConfig;
+
+    /**
+     * 携程cpa 撞库日志写入rabbit-rocket 切换开关
+     */
+    private Boolean xieChengCallingCpaLogSwitch;
 }
 
