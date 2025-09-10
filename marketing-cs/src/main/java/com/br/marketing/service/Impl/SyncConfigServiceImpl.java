@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.SyncConfig;
@@ -196,5 +197,22 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     public String getPullCustomerFilePath(String apiCode) {
         return getPath().concat("pullCustomerFile")
                 .concat(File.separator).concat(apiCode).concat(File.separator);
+    }
+
+    @Override
+    public ApiResult<Boolean> batchDeleteSftpList(List<Long> ids) {
+        if(ids.isEmpty()){
+            return new ApiResult<Boolean>().fail("删除失败，参数为空！");
+        }
+        try {
+            SyncConfigExample syncConfigExample = new SyncConfigExample();
+            syncConfigExample.createCriteria().andIdIn(ids);
+            SyncConfig syncConfig = new SyncConfig();
+            syncConfig.setStatus(Constants.STATUS_DELETE);
+            syncConfigMapper.updateByExampleSelective(syncConfig,syncConfigExample);
+        }catch (Exception e){
+            return new ApiResult<Boolean>().fail("删除失败:{}",e.getMessage());
+        }
+        return new ApiResult<Boolean>().success(true);
     }
 }

@@ -112,4 +112,11 @@ public class SyncConfigEditVO {
     @ApiModelProperty(value = "同步文件的类型。1：sftp>>本地磁盘，2：本地磁盘>>sftp")
     private Integer type;
 
+    /**
+     * 定时执行时间
+     * {"day":"0","time":"12:00"}   day枚举：0:T-1  1:T
+     */
+    @ApiModelProperty(value = "公司文件服务器类型")
+    private String executeTime;
+
 }
