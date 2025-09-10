@@ -1,0 +1,30 @@
+package com.br.marketing.service.rulecenter.enums;
+
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
+public enum RuleCenterPushTargetEnum {
+
+    PUSH_POLICY(0, "pushPolicyPushStrategy", "推送决策"),
+    ORIGINAL_INTERFACE(1, "dataLabelPushStrategy", "数据打标");
+
+    private Integer code;
+    private String pushAchieve;
+    private String desc;
+
+
+    public static RuleCenterPushTargetEnum findPushNameByCode(Integer code) {
+        for (RuleCenterPushTargetEnum e : RuleCenterPushTargetEnum.values()) {
+            if (e.getCode().equals(code)) {
+                return e;
+            }
+        }
+        return null;
+
+    }
+
+
+}

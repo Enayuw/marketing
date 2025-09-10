@@ -144,7 +144,7 @@ public class MrpUniversalTransferProcessResend implements ValidityPeriodResendSt
         mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
         mqFact.setApiCode(info.getApiCode());
         JSONObject resendData = JSONObject.parseObject(record.getResendData());
-        if (resendData != null && StringUtils.isNotEmpty((resendData.getString("includeRules")))) {
+        if (resendData != null && StringUtils.isNotEmpty((resendData.getString("ruleScene")))) {
             String ruleScene = resendData.getString("ruleScene");
             mqFact.setRuleScene(ruleScene);
         }

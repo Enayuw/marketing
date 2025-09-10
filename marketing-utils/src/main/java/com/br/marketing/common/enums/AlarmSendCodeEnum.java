@@ -110,8 +110,10 @@ public enum AlarmSendCodeEnum {
     QIFUAI_INTERFACEERROR("6004004", "360ai接口调用失败"),
     //360促动支业务错误,立即推送
     QIFUCUDONGZHI_SERVICEERROR("6004005", "360促动支业务告警码"),
-    //360促动支报表业务错误,立即推送
+    //360催收定制上传数据错误,立即推送
     QIFUCUDONGZHIREPORT_SERVICEERROR("6004006", "360促动支报表业务告警码"),
+    //360促动支报表业务错误,立即推送
+    SANLIULINGCOLLECTION_SERVICEERROR("6004007", "360催收定制上传数据告警码"),
     //携程业务错误,立即推送
     XIECHENG_SERVICEERROR("6005001", "携程业务告警码"),
     //携程接口错误,阶梯推送
@@ -313,6 +315,9 @@ public enum AlarmSendCodeEnum {
     //车线索业务异常,立即推送
     CARCLUE_SERVICEERROR("6052001", "车线索业务异常"),
 
+    //中台清洗规则执行错误,立即推送
+    DATACLEA_SERVICEERROR("6053001", "中台清洗规则执行错误"),
+
     //pp停车业务告警码
     PP_MARKING_SERVICEERROR("6060001", "pp停车业务异常"),
 
@@ -329,7 +334,9 @@ public enum AlarmSendCodeEnum {
 
     SANLIULING_SERVICEERROR("6090002", "360-pp流量业务异常"),
 
-    IBMP_LINE_SERVICEERROR("7000001", "IBMP-获取线路信息异常")
+    IBMP_LINE_SERVICEERROR("7000001", "IBMP-获取线路信息异常"),
+
+    TONGCHENG_CPA_SERVICEERROR("7001001", "同程CPA业务异常"),
     ;
 
     /**

@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tc.TcDataDto;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.dto.tc.TcResponseDTO;
+import com.br.marketing.enums.TcCpaRecordStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.tc.RSAUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,11 +21,7 @@ public abstract class AbstractTcCustomizeProcessor {
     private MarketingCommonConfig marketingCommonConfig;
 
     private static final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);;
-
-    private static final int RECORD_STATUS_SUCCESS = 1;
-
-    private static final int RECORD_STATUS_FAIL = 2;
+            .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /**
      * @description 模板方法
@@ -34,8 +31,8 @@ public abstract class AbstractTcCustomizeProcessor {
      * @author hedongshuo
      * @date 2025/4/23 20:04
      **/
-    public final <T extends TcDataDto> TcResponseDTO process(TcRequestDTO tcRequestDTO, String apiCode, Class<T> clazz) {
-        log.warn("接收到同程易融请求数据，clazz:{}，data:{}",clazz.getName(), tcRequestDTO);
+    public final <T extends TcDataDto> TcResponseDTO process(TcRequestDTO tcRequestDTO, String apiCode, Class<T> clazz, String bizCode) {
+        log.warn("接收到同程易融{}请求数据，data:{}", bizCode, tcRequestDTO);
         TcResponseDTO resdto = new TcResponseDTO();
         Long recordId = null;
         JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
@@ -44,38 +41,40 @@ public abstract class AbstractTcCustomizeProcessor {
         try {
             //1.保存记录
             TcDataDto tcDataDto = objectMapper.readValue(tcRequestDTO.getData(), clazz);
-            apiCode = StringUtils.isNotBlank(apiCode) ? apiCode : marketingCommonConfig.getTcyrApiCode();
+            apiCode = StringUtils.isNotBlank(apiCode) ? apiCode : fetchApiCode();
             recordId = recordSave(tcRequestDTO, tcDataDto.getBatchNo(), apiCode, brPrivateKey);
             if(null == recordId){
                 return resdto.idempotentFail(brPrivateKey);
             }
             //2.公共必输项校验
             if (StringUtils.isNotEmpty(tcRequestDTO.validate())) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, tcRequestDTO.validate());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), tcRequestDTO.validate());
                 return resdto.outterParamsFail(brPrivateKey, tcRequestDTO.validate());
             }
             //3.验签
             if (!RSAUtil.SignVf(tcRequestDTO, tcPublicKey)) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, TcResponseDTO.ResultEnum.SIGN_ERROR.getMsg());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), TcResponseDTO.ResultEnum.SIGN_ERROR.getMsg());
                 return resdto.signFail(brPrivateKey);
             }
             //4.data层必填项校验
             if (StringUtils.isNotEmpty(tcDataDto.validate())) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, tcDataDto.validate());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), tcDataDto.validate());
                 return resdto.innerParamsFail(brPrivateKey, tcDataDto.validate());
             }
             //5.将record更新为status = 1-接入成功
-            updateRecord(recordId, RECORD_STATUS_SUCCESS, null);
+            updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_SUCCESS.getValue(), null);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "同程数据接入异常！"), e);
             if (null != recordId) {
-                updateRecord(recordId, RECORD_STATUS_FAIL, e.getMessage());
+                updateRecord(recordId, TcCpaRecordStatusEnum.ACCESS_FAIL.getValue(), e.getMessage());
             }
             return resdto.systemFail(brPrivateKey);
         }
         return resdto.success(brPrivateKey);
     }
+
+    protected abstract String fetchApiCode();
 
     /**
      * @description record更新
@@ -99,4 +98,12 @@ public abstract class AbstractTcCustomizeProcessor {
      * @date 2025/4/23 18:09
      **/
     protected abstract Long recordSave(TcRequestDTO tcRequestDTO, String batchNo, String apiCode, String brPrivateKey);
+
+    public String apiCode() {
+        return marketingCommonConfig.getTcyrApiCode();
+    }
+
+    public String cpaApiCode() {
+        return marketingCommonConfig.getTcyrCpaApiCode();
+    }
 }

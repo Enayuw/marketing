@@ -1,5 +1,6 @@
 package com.br.marketing.rule.shuhe;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,6 +39,18 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
 
     @Autowired
     PushRuleService pushRuleService;
+
+    private static final String[] MONTH_CN = {
+            "", "一月", "二月", "三月", "四月", "五月", "六月",
+            "七月", "八月", "九月", "十月", "十一月", "十二月"
+    };
+
+    private static final String[] DAY_CN = {
+            "", "一日", "二日", "三日", "四日", "五日", "六日", "七日", "八日", "九日", "十日",
+            "十一日", "十二日", "十三日", "十四日", "十五日", "十六日", "十七日", "十八日", "十九日", "二十日",
+            "二十一日", "二十二日", "二十三日", "二十四日", "二十五日", "二十六日", "二十七日", "二十八日", "二十九日", "三十日", "三十一日"
+    };
+
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -85,6 +100,12 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         if (StringUtils.isNotBlank(userType) && "轻资产".equals(userType) && StringUtils.isNotBlank(currentAvailableLimitDp)){
             String clcDerived = getReportAmount(currentAvailableLimitDp);
             varDto.put("clc_usr_light_current_available_limit_dp_derived", clcDerived);
+        }
+
+        String clcUsrLstNonDcpTrsTim = parseObject.getOrDefault("clc_usr_lst_non_dcp_trs_tim", "").toString();
+        if (StringUtils.isNotBlank(clcUsrLstNonDcpTrsTim)){
+            String clcUsrLstNonDcpTrsTimDerived = formatToChineseMonthDay(clcUsrLstNonDcpTrsTim);
+            varDto.put("clc_usr_lst_non_dcp_trs_tim_derived", clcUsrLstNonDcpTrsTimDerived);
         }
 
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
@@ -144,5 +165,17 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
     @Override
     public Integer ruleDataCollection() {
         return null;
+    }
+
+    public static String formatToChineseMonthDay(String dateTime) {
+        if (ObjectUtil.isEmpty(dateTime)) {
+            return "";
+        }
+        try {
+            LocalDate date = LocalDate.parse(dateTime.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return MONTH_CN[date.getMonthValue()] + DAY_CN[date.getDayOfMonth()];
+        } catch (DateTimeParseException e) {
+            return dateTime;
+        }
     }
 }

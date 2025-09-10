@@ -27,4 +27,12 @@ public interface DataExportTaskMapperBase {
     int updateByPrimaryKeySelective(DataExportTask record);
 
     int updateByPrimaryKey(DataExportTask record);
+
+    /**
+     * 根据状态和文件名模板查询导出任务列表
+     * @param status 状态
+     * @param fileNameTemplate 文件名模板
+     * @return 导出任务列表
+     */
+    List<DataExportTask> selectByStatusAndFileNameTemplate(@Param("status") Integer status, @Param("fileNameTemplate") String fileNameTemplate);
 } 

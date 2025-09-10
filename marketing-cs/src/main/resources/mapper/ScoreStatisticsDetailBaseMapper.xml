@@ -9,26 +9,27 @@
     <result column="field_num" jdbcType="INTEGER" property="fieldNum" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="is_del" jdbcType="INTEGER" property="isDel" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -39,25 +40,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -68,126 +69,142 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
-    id, statistics_id, field_x_value, field_y_value, field_num, create_time, update_time
+  <sql id="Base_Column_List" >
+    id, statistics_id, field_x_value, field_y_value, field_num, create_time, update_time, 
+    is_del
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample" resultMap="BaseResultMap">
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_score_statistics_detail
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
     from b_score_statistics_detail
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_score_statistics_detail
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample" >
     delete from b_score_statistics_detail
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" useGeneratedKeys="true">
+  <insert id="insert" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_score_statistics_detail (statistics_id, field_x_value, field_y_value, 
-      field_num, create_time, update_time
-      )
+      field_num, create_time, update_time, 
+      is_del)
     values (#{statisticsId,jdbcType=BIGINT}, #{fieldXValue,jdbcType=VARCHAR}, #{fieldYValue,jdbcType=VARCHAR}, 
-      #{fieldNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{fieldNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{isDel,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" useGeneratedKeys="true">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_score_statistics_detail
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="statisticsId != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="statisticsId != null" >
         statistics_id,
       </if>
-      <if test="fieldXValue != null">
+      <if test="fieldXValue != null" >
         field_x_value,
       </if>
-      <if test="fieldYValue != null">
+      <if test="fieldYValue != null" >
         field_y_value,
       </if>
-      <if test="fieldNum != null">
+      <if test="fieldNum != null" >
         field_num,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="statisticsId != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="statisticsId != null" >
         #{statisticsId,jdbcType=BIGINT},
       </if>
-      <if test="fieldXValue != null">
+      <if test="fieldXValue != null" >
         #{fieldXValue,jdbcType=VARCHAR},
       </if>
-      <if test="fieldYValue != null">
+      <if test="fieldYValue != null" >
         #{fieldYValue,jdbcType=VARCHAR},
       </if>
-      <if test="fieldNum != null">
+      <if test="fieldNum != null" >
         #{fieldNum,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample" resultType="java.lang.Integer" >
     select count(*) from b_score_statistics_detail
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_score_statistics_detail
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.statisticsId != null">
+      <if test="record.statisticsId != null" >
         statistics_id = #{record.statisticsId,jdbcType=BIGINT},
       </if>
-      <if test="record.fieldXValue != null">
+      <if test="record.fieldXValue != null" >
         field_x_value = #{record.fieldXValue,jdbcType=VARCHAR},
       </if>
-      <if test="record.fieldYValue != null">
+      <if test="record.fieldYValue != null" >
         field_y_value = #{record.fieldYValue,jdbcType=VARCHAR},
       </if>
-      <if test="record.fieldNum != null">
+      <if test="record.fieldNum != null" >
         field_num = #{record.fieldNum,jdbcType=INTEGER},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null">
+      <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExample" parameterType="map" >
     update b_score_statistics_detail
     set id = #{record.id,jdbcType=BIGINT},
       statistics_id = #{record.statisticsId,jdbcType=BIGINT},
@@ -195,43 +212,48 @@
       field_y_value = #{record.fieldYValue,jdbcType=VARCHAR},
       field_num = #{record.fieldNum,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
-    <if test="_parameter != null">
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_del = #{record.isDel,jdbcType=INTEGER}
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ScoreStatisticsDetail">
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" >
     update b_score_statistics_detail
-    <set>
-      <if test="statisticsId != null">
+    <set >
+      <if test="statisticsId != null" >
         statistics_id = #{statisticsId,jdbcType=BIGINT},
       </if>
-      <if test="fieldXValue != null">
+      <if test="fieldXValue != null" >
         field_x_value = #{fieldXValue,jdbcType=VARCHAR},
       </if>
-      <if test="fieldYValue != null">
+      <if test="fieldYValue != null" >
         field_y_value = #{fieldYValue,jdbcType=VARCHAR},
       </if>
-      <if test="fieldNum != null">
+      <if test="fieldNum != null" >
         field_num = #{fieldNum,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ScoreStatisticsDetail">
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" >
     update b_score_statistics_detail
     set statistics_id = #{statisticsId,jdbcType=BIGINT},
       field_x_value = #{fieldXValue,jdbcType=VARCHAR},
       field_y_value = #{fieldYValue,jdbcType=VARCHAR},
       field_num = #{fieldNum,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

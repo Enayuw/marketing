@@ -77,6 +77,10 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "规则模版名称")
     private String ruleModelName;
 
+    @ApiModelProperty(value = "标签字段名称")
+    private String labelName;
+
+
     public Integer getmPrePlanNum() {
         return mPrePlanNum;
     }
@@ -218,5 +222,14 @@ public class PushCustomerDTO {
 
     public void setmTagCondition(String mTagCondition) {
         this.mTagCondition = mTagCondition;
+    }
+
+
+    public String getLabelName() {
+        return labelName;
+    }
+
+    public void setLabelName(String labelName) {
+        this.labelName = labelName;
     }
 }

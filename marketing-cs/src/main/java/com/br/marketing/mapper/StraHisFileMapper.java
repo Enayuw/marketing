@@ -29,4 +29,7 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
     StraHisFile getStFileByBatchNumber(@Param("batchNumber") String batchNumber);
 
 
+    String getCondition(@Param("batchNumber") String batchNumber);
+
+
 }

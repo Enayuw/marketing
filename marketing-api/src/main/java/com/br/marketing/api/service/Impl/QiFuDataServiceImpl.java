@@ -8,14 +8,16 @@ import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.QiFuEffectReportData;
 import com.br.marketing.entity.QifuActuation;
 import com.br.marketing.entity.QifuStrategyReportData;
+import com.br.marketing.mapper.QiFuEffectReportDataMapper;
 import com.br.marketing.mapper.QifuActuationMapper;
 import com.br.marketing.mapper.QifuStrategyReportDataMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -29,7 +31,6 @@ import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
 
 /**
  * This is a Javadoc comment
- * @param <T> the parameter of the class
  */
 @Service
 @Slf4j
@@ -40,6 +41,8 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     private QifuStrategyReportDataMapper qifuStrategyReportDataMapper;
     @Resource
     private QifuActuationMapper qifuActuationMapper;
+    @Resource
+    private QiFuEffectReportDataMapper qifuEffectReportDataMapper;
 
     @Override
     public ApiNoDataResult strategyReportData(String apiCode, String jsonData) {
@@ -75,7 +78,8 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     @Override
     public ApiNoDataResult analysisStatistics(String apiCode, String jsonData) {
         try {
-            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {}.getType());
+            List<QifuActuation> reportDataList = JSON.parseObject(jsonData, new TypeReference<List<QifuActuation>>() {
+            }.getType());
 
             reportDataList.parallelStream().forEach(item -> {
                 item.setApiCode(apiCode);
@@ -98,5 +102,42 @@ public class QiFuDataServiceImpl implements QiFuDataService {
         }
     }
 
+    @Override
+    public ApiNoDataResult effectReport(String apiCode, String jsonData) {
+        List<QiFuEffectReportData> qiFuEffectReportDataList = JSON.parseArray(jsonData, QiFuEffectReportData.class);
 
+        if (CollectionUtils.isEmpty(qiFuEffectReportDataList)) {
+            return new ApiNoDataResult().setCode(MarketingErrorInfo.QUANTITY_ERROR.getErrorCode()).
+                    setMessage(MarketingErrorInfo.QUANTITY_ERROR.getErrorMsg());
+        }
+
+        for (QiFuEffectReportData qiFuEffectReportData : qiFuEffectReportDataList) {
+            boolean hasEmptyField = StringUtils.isEmpty(qiFuEffectReportData.getBelongMonth())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getStrategyMonth())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getUpdDate())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getCanvasName())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getAgentOperator())
+                    || StringUtils.isEmpty(qiFuEffectReportData.getGroupName());
+            if (hasEmptyField) {
+                return new ApiNoDataResult().setCode(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorCode()).
+                        setMessage(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorMsg());
+            }
+
+            qiFuEffectReportData.setApiCode(apiCode);
+            qiFuEffectReportData.setCreateTime(new Date());
+            qiFuEffectReportData.setUpdateTime(new Date());
+            qiFuEffectReportData.setIsDel(1); // 1-有效
+
+            try {
+                qifuEffectReportDataMapper.insertSelective(qiFuEffectReportData);
+            } catch (DuplicateKeyException keyException) {
+                log.warn("奇富效果报告数据存在重复数据！");
+            } catch (Exception e) {
+                log.error("奇富效果报告数据插入异常。apiCode:{}, jsonData:{}", apiCode, jsonData, e);
+                return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
+                        .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+            }
+        }
+        return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
+    }
 }

@@ -2933,6 +2933,15 @@ public class MarketingCommonConfig {
      */
     private String tcyrApiCode;
 
+    /**
+     * 同程易融apiCode
+     */
+    private String tcyrCpaApiCode;
+
+    /**
+     * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
+     */
+    private List<String> tcyrCpaSyncSaveExcludeFieldList;
 
     /**
      * 同城易融-gz查询-csv分页size
@@ -2988,6 +2997,19 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcQuickDealShardConfig;
 
+
+    /**
+     * 同程易融CPA-quickDeal-shard job参数
+     * {"jobSwitch":true,"pageSize":2000}
+     */
+    private JSONObject tcyrCpaSyncQuickDealShardConfig;
+
+
+    /**
+     * 同程易融CPA-collidingDeal job参数
+     * {"jobSwitch":true,"pageSize":1000,"dbPartSize":50}
+     */
+    private JSONObject tcyrCpaCollidingDealShardConfig;
 
     /**
      * 同程易融-quickDeal-shard job参数
@@ -3054,6 +3076,15 @@ public class MarketingCommonConfig {
      */
     private String tongChengSampleZipFilePath;
 
+    /**
+     * 同程CPA正负样本本地和内部SFTP-文件路径
+     */
+    private String tongChengCpaSampleZipFilePath;
+
+    /**
+     * 同程CPA正负样本默认的文件名称
+     */
+    private String tongChengCpaDefaultFileName;
 
     /**
      * 收集手机号的apiCode集合
@@ -3242,16 +3273,19 @@ public class MarketingCommonConfig {
     private List<Boolean> xieChengCpsCollidingRetrySwitch;
 
     /**
-     * 邮件主题和API Code对应关系
-     * {"3710012":"三方营销效果监控-百融"}
+     * 邮件API Code和对应邮件主题以及邮件格式
+     * {
+     * "3710012":{"subject":"三方营销效果监控-百融", "dateFormat": "yyyyMMdd", "startDate":"T-1", "endDate":"T-1"},
+     * "3710058":{"subject":"【携程金融】百融对账单-", "dateFormat": "yyyy-MM-dd", "startDate":"T-1", "endDate":"T-1"}
+     * }
      */
-    private Map<String, String> mailApiCodeSubjectMap;
+    private Map<String, Map<String, String>> mailApiCodeSubjectConfig;
 
     /**
-     * 邮件主题和API Code对应关系
+     * 读取邮件任务的账户和密码
      * {"userName":"xxx", "password":"xxx"}
      */
-    private Map<String, String> YiXinMailConfigMap;
+    private Map<String, String> mailReadConfigMap;
 
     /**
      * 转化文件落库BI批量大小
@@ -3285,6 +3319,59 @@ public class MarketingCommonConfig {
      * #众安拨打&短信上报配置
      */
     private JSONObject zhongAnCollidingDataConfig;
+
+    /**
+     * 画像分布析出字段
+     */
+    private String imageDistribution;
+
+
+    /**
+     * Ai数据入库和推送下游rocketmq切换开关
+     */
+    private Boolean aiUseRocketMq;
+
+    /**
+     * 同程易融cpa撞库失败数据处理配置
+     */
+    private JSONObject tcyrCpaCollidingFailDealConfig;
+
+    /**
+     * #短信回调入队ApiCode配置
+     */
+    private List<String> smsCallBackDataPushMqApiCodes;
+
+    /**
+     * 360客制化传输数据配置
+     * {"uploadApiCode":"3710196","cipherMode":"CBC","paddingScheme":"PKCS5Padding","dynamicKeys":"fC8tzaLDItGjIjOr"}
+     */
+    private JSONObject sanLiuLingCustomizeDataConfig;
+
+
+    /**
+     * 同程易融cpa推送文件配置
+     */
+    private JSONObject tcyrCpaPushFileConfig;
+
+    /**
+     * 携程挡板上报延迟（单位：秒）
+     */
+    private Integer xieChengReportMockDelaySeconds;
+
+    /**
+     * 携程CPA-apiCode集合
+     */
+    private List<String> xieChengCpaApiCodeList;
+
+    /**
+     * 哈啰硅基人回调配置
+     */
+    private JSONObject haloAiCallbackConfig;
+
+    /**
+     * 携程cpa 撞库日志写入rabbit-rocket 切换开关
+     */
+    private Boolean xieChengCallingCpaLogSwitch;
 
     /**
      * #携程促活使用rabbitmq开关

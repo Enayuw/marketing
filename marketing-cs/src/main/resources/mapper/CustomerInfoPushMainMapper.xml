@@ -43,7 +43,7 @@
         batch_name as  batchName
         from b_customer_info_push_main
         where is_del=1
-          and m_status !=-1
+          and m_status !=-1 and push_target = 0
         <if test="mApiCode !=null and mApiCode !=''">
             and m_api_code = #{mApiCode}
         </if>

@@ -804,7 +804,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="QiFuCWJStrategyReportEmailJob"
+    <job:simple id="【check】-QiFuCWJStrategyReportEmailJob"
                 class="com.br.marketing.check.job.qifu.report.job.QiFuCWJStrategyReportEmailJob"
                 cron="0 30 13 * * ?"
                 description="360策略效果数据发送Email任务"
@@ -820,9 +820,9 @@
 
     />
 
-    <job:simple id="QiFuCDZAnalysisReportEmailJob"
+    <job:simple id="【check】-QiFuCDZAnalysisReportEmailJob"
                 class="com.br.marketing.check.job.qifu.report.job.QiFuCDZAnalysisReportEmailJob"
-                cron="0 0 9 * * ?"
+                cron="0 30 12 * * ?"
                 description="360促动支分析效果统计数据发送Email任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -836,10 +836,26 @@
 
     />
 
-    <job:simple id="QiFuAiRobotRankingReportEmailJob"
+    <job:simple id="【check】-QiFuAiRobotRankingReportEmailJob"
                 class="com.br.marketing.check.job.qifu.report.job.QiFuAiRobotRankingReportEmailJob"
-                cron="0 0 9 * * ?"
+                cron="0 0 12 * * ?"
                 description="360AI语音机器人排名数据发送Email任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+
+    />
+
+    <job:simple id="【check】-QiFuEffectReportEmailJob"
+                class="com.br.marketing.check.job.qifu.report.job.QiFuEffectReportEmailJob"
+                cron="0 30 12 * * ?"
+                description="360促申效果统计报表数据发送Email任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
@@ -884,7 +900,7 @@
 
     <job:simple id="XieChengCollidingRuleScoreToDbJob"
                 class="com.br.marketing.check.job.xiecheng.XieChengCollidingRuleScoreToDbJob"
-                cron="0 0 10 * * ? *"
+                cron="0 0/10 * * * ?"
                 description="携程跑分数据同步作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="9"
@@ -1295,6 +1311,22 @@
                 sharding-total-count="4"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="HaloCallbackJob"
+                class="com.br.marketing.check.job.halo.HaloCallbackJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="哈啰硅基人数据回传"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                job-parameter="{}"
                 failover="false"
                 misfire="false"
                 disabled="true"

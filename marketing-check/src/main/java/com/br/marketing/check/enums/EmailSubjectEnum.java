@@ -15,7 +15,8 @@ public enum EmailSubjectEnum {
 
     QIFU_STRATEGYREPORT_SUNJECT(1,"qiFuCWJStrategyReportStrategy", "360日统计报表"),
     QIFU_ANALYSIS_REPORT_SUBJECT(2,"qiFuCDZAnalysisReportStrategy","360促动分析效果统计数据报表"),
-    QIFU_ROBOT_RANKING_REPORT_SUBJECT(3,"qiFuAiRobotRankingReportStrategy","360AI语音机器人排名报表")
+    QIFU_ROBOT_RANKING_REPORT_SUBJECT(3,"qiFuAiRobotRankingReportStrategy","360AI语音机器人排名报表"),
+    QIFU_EFFECT_REPORT_SUBJECT(4,"qiFuEffectReportStrategy","360促申效果统计数据报表")
     ;
 
     private Integer value;

@@ -154,6 +154,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         return PageResultReturn.setPageResult(ruleList, current, size, total);
     }
 
+    @Override
+    public MarketingDataCleanGeneralConfig getRuleDetailById(Long configId) {
+        return cleanGeneralConfigMapper.selectByPrimaryKey(configId);
+    }
+
     /**
      * 保存或更新规则
      * @param config 规则配置信息
@@ -223,11 +228,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 删除规则
      * @param config 规则配置信息
-     * @param cleanFields 要删除的清洗字段列表
+     * @param mappingFields 要删除的清洗字段列表
      * @return 操作结果
      */
     @Override
-    public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> cleanFields) {
+    public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> mappingFields) {
         try {
             // 查询已存在的规则配置
             MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
@@ -258,18 +263,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             
             // 标记不在当前配置中的规则为删除状态
             for (MarketingDataCleanGeneralRuleConfig rule : existingRules) {
-                String cleanField = rule.getCleanFields();
-                if (!cleanFields.contains(cleanField)) {
+                String mappingField = rule.getMappingField();
+                if (!mappingFields.contains(mappingField)) {
                     MarketingDataCleanGeneralRuleConfig updateRule = new MarketingDataCleanGeneralRuleConfig();
                     updateRule.setId(rule.getId());
                     updateRule.setIsDel(9);
                     updateRule.setUpdateTime(new Date());
-                    
+
                     int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
                     if (rows > 0) {
-                        log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), cleanField);
+                        log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), mappingField);
                     } else {
-                        log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), cleanField);
+                        log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), mappingField);
                     }
                 }
             }
@@ -736,7 +741,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (configDTO.getIsMapping()) {
             try {
                 // 直接调用预览方法
-                Object result = previewFieldCleaning(fieldSample, configDTO.getMappingRule());
+                Object result = previewFieldCleaning(fieldSample, configDTO.getMappingRule(), null);
                 return result != null ? result.toString() : "";
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
@@ -756,7 +761,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 清洗后的数据值
      */
     @Override
-    public Object previewFieldCleaning(String fieldSample, String cleaningRule) {
+    public Object previewFieldCleaning(String fieldSample, String cleaningRule, Object nodeParse) {
         //log.warn("执行字段清洗预览: fieldSample={}, cleaningRule={}", fieldSample, cleaningRule);
 
         // 尝试解析为规则列表（支持多规则按顺序执行）
@@ -784,7 +789,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     //log.warn("规则#{} 处理前的值: {}, 表达式: {}", i + 1, currentValue, expressionJson);
 
                     // 关键：使用当前值作为输入，执行规则
-                    Object stepResult = executeSingleRule(currentValue, expressionJson, null);
+                    // nodeParse 预览接口不传输，清洗传输
+                    Object stepResult = executeSingleRule(currentValue, expressionJson, nodeParse);
                     currentValue = String.valueOf(stepResult);
 
                     //log.warn("规则#{} 处理后的值: {}", i + 1, currentValue);
@@ -835,13 +841,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     return firstValueByKey;
                 }
                 
-                Object result = previewFieldCleaning(firstValueByKey, mappingRule);
+                Object result = previewFieldCleaning(firstValueByKey, mappingRule, nodeParse);
                 return result;
             }
             
             return firstValueByKey;
         } catch (Exception e) {
-            throw new BusinessException("执行清洗规则失败: " + e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "执行清洗规则失败！错误信息：" + e.getMessage()), e);
+            throw new BusinessException("执行清洗规则失败! 错误信息：" + e.getMessage(), e);
         }
     }
 
@@ -882,11 +890,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             case "multiply":
             case "divide":
                 // 数学运算
-                if (ObjectUtil.isNotEmpty(nodeParse)) {
-                    result = handleMathOperation(fieldSample, ruleMap, nodeParse);
-                } else {
-                    result = handleMathOperation(fieldSample, ruleMap);
-                }
+                result = handleMathOperation(fieldSample, ruleMap, nodeParse);
                 break;
             case "percentage":
                 // 百分比操作 - 直接在数值后附加百分比符号
@@ -921,6 +925,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 字段优先级
                 result = handlePriorityOperation(fieldSample, ruleMap);
                 break;
+            case "concatenate":
+                // 字段拼接
+                if (ObjectUtil.isNotEmpty(nodeParse)) {
+                    result = handleConcatenateOperation(fieldSample, ruleMap, nodeParse);
+                } else {
+                    result = handleConcatenateOperation(fieldSample, ruleMap);
+                }
+                break;
+            case "condition":
+                // 条件判断
+                result = handleConditionOperation(fieldSample, ruleMap);
+                break;
             default:
                 log.warn("未知的操作类型: {}", operator);
                 break;
@@ -931,116 +947,76 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     }
 
-    /**
-     * 处理数学运算（不使用nodeParse版本）
-     */
-    private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap) {
-        return handleMathOperation(fieldSample, ruleMap, null);
-    }
 
     /**
-     * 支持从nodeParse中获取值的数学运算方法
+     * 数学运算方法
      */
     private Object handleMathOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
         // 字段运算逻辑处理
         String operator = String.valueOf(ruleMap.get("operator"));
-        List<Map<String, Object>> operands = (List<Map<String, Object>>) ruleMap.get("operands");
-
         log.warn("处理数学运算 - 输入值: {}, 操作符: {}", fieldSample, operator);
-
-        if (operands == null || operands.isEmpty()) {
-            return fieldSample;
-        }
+        String type = String.valueOf(ruleMap.get("type"));
         
         // 计算所有操作数
-        List<BigDecimal> values = new ArrayList<>();
-        boolean firstFieldProcessed = false;
-
-        for (Map<String, Object> operand : operands) {
-            String type = String.valueOf(operand.get("type"));
-            Object value = null;
-
-            if ("field".equals(type)) {
-                if (nodeParse != null) {
-                    // 从nodeParse中获取实际值
-                    String fieldName = String.valueOf(operand.get("fieldName"));
-                    value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
-                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
-                } else {
-                    // 如果是第一个字段类型操作数，使用输入值
-                    if (!firstFieldProcessed) {
-                        value = fieldSample;
-                        firstFieldProcessed = true;
-                        log.warn("使用当前输入值作为第一个字段操作数: {}", value);
-                    } else {
-                        // 其他情况使用规则中的预设值
-                        value = operand.get("fieldValue");
-                        log.warn("使用规则中预设的字段值: {}", value);
-                    }
-                }
-            } else if ("constant".equals(type)) {
-                // 常量类型，直接获取值
-                value = operand.get("value");
-                log.warn("使用常量值: {}", value);
-            } else if ("expression".equals(type)) {
-                // 表达式类型，递归计算
-                Map<String, Object> expression = (Map<String, Object>) operand.get("expression");
-                value = handleMathOperation("0", expression, nodeParse);
-                log.warn("嵌套表达式计算结果: {}", value);
+        Object value = null;
+        if ("field".equals(type)) {
+            // 从nodeParse中获取实际值
+            if (ObjectUtil.isNotEmpty(nodeParse)) {
+                String fieldName = String.valueOf(ruleMap.get("fieldName"));
+                value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
+            } else {
+                value = ruleMap.get("fieldValue");
+                log.warn("使用预览值常量值: {}", value);
+            }
+        } else if ("constant".equals(type)) {
+            // 常量类型，直接获取值
+            value = ruleMap.get("value");
+            log.warn("使用常量值: {}", value);
+        }
+        BigDecimal numValue = null;
+        if (value != null) {
+            boolean validBigDecimal = isValidBigDecimal(String.valueOf(value));
+            if (validBigDecimal) {
+                numValue = new BigDecimal(String.valueOf(value));
+                log.warn("转换为BigDecimal: {} -> {}", value, numValue);
+            } else {
+                throw new BusinessException("转化为数据格式失败！");
             }
 
-            if (value != null) {
-                boolean validBigDecimal = isValidBigDecimal(String.valueOf(value));
-                if (validBigDecimal) {
-                    BigDecimal numValue = new BigDecimal(String.valueOf(value));
-                    values.add(numValue);
-                    log.warn("转换为BigDecimal: {} -> {}", value, numValue);
-                } else {
-                    throw new BusinessException("转化为数据格式失败！");
-                }
-
-            }
         }
 
-        if (values.isEmpty()) {
-            return fieldSample;
-        }
-
+        BigDecimal result = null;
         // 执行运算
-        BigDecimal result = values.get(0);
-        for (int i = 1; i < values.size(); i++) {
-            BigDecimal value = values.get(i);
-            switch (operator) {
-                case "add":
-                    result = result.add(value);
-                    break;
-                case "subtract":
-                    result = result.subtract(value);
-                    break;
-                case "multiply":
-                    result = result.multiply(value);
-                    break;
-                case "divide":
-                    if (value.compareTo(BigDecimal.ZERO) != 0) {
-                        int scale = value.stripTrailingZeros().scale();
-                        int maxScale = 10;
-                        int scaleToUse = Math.max(scale, maxScale);
-                        result = result.divide(value, scaleToUse, RoundingMode.HALF_UP);
+        BigDecimal oldNumber = new BigDecimal(fieldSample);
+        switch (operator) {
+            case "add":
+                result = oldNumber.add(numValue);
+                break;
+            case "subtract":
+                result = oldNumber.subtract(numValue);
+                break;
+            case "multiply":
+                result = oldNumber.multiply(numValue);
+                break;
+            case "divide":
+                if (numValue.compareTo(BigDecimal.ZERO) != 0) {
+                    int scale = numValue.stripTrailingZeros().scale();
+                    int maxScale = 10;
+                    int scaleToUse = Math.max(scale, maxScale);
+                    result = oldNumber.divide(numValue, scaleToUse, RoundingMode.HALF_UP);
 
-                        // 如果是整数，去掉末尾0；如果是带原始小数的，保留原样
-                        if (scale > 0) {
-                            return result.setScale(scale, RoundingMode.HALF_UP).toPlainString();
-                        } else {
-                            return result.stripTrailingZeros().toPlainString();
-                        }
+                    // 如果是整数，去掉末尾0；如果是带原始小数的，保留原样
+                    if (scale > 0) {
+                        return result.setScale(scale, RoundingMode.HALF_UP).toPlainString();
+                    } else {
+                        return result.stripTrailingZeros().toPlainString();
                     }
-                    break;
-//                    case "percentage":
-//                        result = result.multiply(value).divide(new BigDecimal(100), 10, RoundingMode.HALF_UP);
-//                        break;
-                default:
-                    break;
-            }
+                } else {
+                    throw new BusinessException("执行除法操作失败！除数不能为0! 原始数据值：" + fieldSample);
+                }
+            default:
+                break;
         }
 
         return formatNumberResult(result);
@@ -1696,13 +1672,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         if (ruleResult && cleaningConfigs != null && !cleaningConfigs.isEmpty()) {
             // 提取所有清洗字段
-            List<String> cleanFields = cleaningConfigs.stream()
-                    .map(FieldCleaningConfigDTO::getCleanField)
+            List<String> mappingFields = cleaningConfigs.stream()
+                    .map(FieldCleaningConfigDTO::getMappingField)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
             // 删除不在当前配置中的规则
-            boolean deleteResult = deleteRule(config, cleanFields);
+            boolean deleteResult = deleteRule(config, mappingFields);
             if (!deleteResult) {
                 // 继续处理，不要因为删除失败而中断整个流程
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
@@ -1756,7 +1732,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         } catch (Exception e) {
-            log.warn("JSON解析失败: " + e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "JSON解析失败！错误信息：" + e.getMessage()), e);
         }
         
         return null;
@@ -1857,7 +1834,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("在清洗规则中未找到fieldValue: {}", mappingRule);
             
         } catch (Exception e) {
-            log.warn("解析清洗规则提取fieldValue失败: {}, 错误: {}", mappingRule, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "解析清洗规则提取fieldValue失败！错误信息：" + e.getMessage()), e);
         }
         
         return "";
@@ -2300,6 +2278,112 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     /**
+     * 处理条件判断操作
+     * 根据字段值与指定条件的比较结果，设置不同的输出值
+     * 注意：如果条件中包含字符串比较（=、≠、!=），则字段值可以是任意字符串
+     * 如果条件中只包含数值比较（>、>=、<、<=），则字段值必须为有效的数值格式
+     * @param fieldSample 字段样本值
+     * @param ruleMap 规则配置
+     * @return 处理结果
+     */
+    private Object handleConditionOperation(String fieldSample, Map<String, Object> ruleMap) {
+        if (StringUtils.isBlank(fieldSample)) {
+            log.warn("条件判断操作输入为空");
+            return fieldSample;
+        }
+
+        log.warn("执行条件判断操作 - 原始输入: '{}'", fieldSample);
+
+        // 获取条件规则列表
+        List<Map<String, Object>> conditions = (List<Map<String, Object>>) ruleMap.get("conditions");
+        String defaultValue = String.valueOf(ruleMap.get("defaultValue"));
+
+        if (conditions == null || conditions.isEmpty()) {
+            log.warn("条件规则列表为空，返回默认值: {}", defaultValue);
+            return defaultValue;
+        }
+
+        // 按顺序逐一判断条件
+        for (Map<String, Object> condition : conditions) {
+            String operator = String.valueOf(condition.get("operator"));
+            String compareValue = String.valueOf(condition.get("compareValue"));
+            String resultValue = String.valueOf(condition.get("resultValue"));
+            log.warn("判断条件: 操作符={}, 比较值={}, 结果值={}", operator, compareValue, resultValue);
+
+            if (ObjectUtil.isEmpty(operator)) {
+                throw new BusinessException("比较符为空 '" + operator);
+            }
+
+            boolean conditionMet = false;
+            try {
+                conditionMet = compareValues(fieldSample, compareValue, operator);
+            } catch (NumberFormatException e) {
+                throw new BusinessException("比较值 '" + compareValue + "' 转换为数值格式失败！");
+            }
+
+            if (conditionMet) {
+                log.warn("条件满足，返回结果值: {}", resultValue);
+                return resultValue;
+            }
+        }
+
+        // 所有条件都不满足，返回默认值
+        log.warn("所有条件都不满足，返回默认值: {}", defaultValue);
+        return defaultValue;
+    }
+
+    /**
+     * 比较数值
+     * @param fieldSample 字段值
+     * @param oldCompareValue 比较值
+     * @param operator 操作符
+     * @return 比较结果
+     */
+    private boolean compareValues(String fieldSample, String oldCompareValue, String operator) {
+        BigDecimal fieldValue = null;
+        BigDecimal compareValue = null;
+        boolean flag = true;
+        if ("=".equals(operator) || "!=".equals(operator)) {
+            if (ObjectUtil.isEmpty(oldCompareValue)) {
+                flag = false;
+            }
+            try {
+                fieldValue = new BigDecimal(fieldSample);
+                compareValue = new BigDecimal(oldCompareValue);
+                flag = true;
+            } catch (NumberFormatException e) {
+                flag = false;
+            }
+        } else {
+            fieldValue = new BigDecimal(fieldSample);
+            compareValue = new BigDecimal(oldCompareValue);
+        }
+        switch (operator) {
+            case ">":
+                return fieldValue.compareTo(compareValue) > 0;
+            case ">=":
+                return fieldValue.compareTo(compareValue) >= 0;
+            case "=":
+                if (flag) {
+                    return fieldValue.compareTo(compareValue) == 0;
+                }
+                return fieldSample.equals(oldCompareValue);
+            case "!=":
+                if (flag) {
+                    return fieldValue.compareTo(compareValue) != 0;
+                }
+                return !fieldSample.equals(oldCompareValue);
+            case "<=":
+                return fieldValue.compareTo(compareValue) <= 0;
+            case "<":
+                return fieldValue.compareTo(compareValue) < 0;
+            default:
+                throw new BusinessException("未知的数值比较操作符 '" + operator);
+        }
+    }
+
+
+    /**
      * 定制上传结果展示
      * @param jsonData  原始数据
      * @param ruleConfigList    规则列表
@@ -2346,6 +2430,87 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         return cleaningResults;
+    }
+
+    /**
+     * 处理字段拼接操作（不使用nodeParse版本）
+     */
+    private Object handleConcatenateOperation(String fieldSample, Map<String, Object> ruleMap) {
+        return handleConcatenateOperation(fieldSample, ruleMap, null);
+    }
+
+    /**
+     * 处理字段拼接操作
+     * 支持将多个字段按指定分隔符拼接成一个字段
+     *
+     * @param fieldSample 当前字段值（作为第一个字段）
+     * @param ruleMap 规则配置
+     * @param nodeParse 原始数据对象
+     * @return 拼接后的结果
+     */
+    private Object handleConcatenateOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
+        try {
+            log.warn("处理字段拼接操作 - 输入值: {}, 规则: {}", fieldSample, ruleMap);
+
+            // 获取字段配置列表
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) ruleMap.get("fields");
+            if (fields == null || fields.isEmpty()) {
+                log.warn("字段拼接配置为空，返回原值");
+                return fieldSample;
+            }
+
+            // 验证字段数量限制（最多10个字段）
+            if (fields.size() > 10) {
+                log.warn("字段数量超过限制(10个)，只处理前10个字段");
+                fields = fields.subList(0, 10);
+            }
+
+            // 验证最少字段限制（至少1个字段）
+            if (fields.size() < 1) {
+                log.warn("字段配置为空，无法进行拼接，返回原值");
+                return fieldSample;
+            }
+
+            StringBuilder result = new StringBuilder();
+            result.append(fieldSample);
+
+            // 处理所有字段
+            for (int i = 0; i < fields.size(); i++) {
+                Map<String, Object> fieldConfig = fields.get(i);
+                String fieldName = String.valueOf(fieldConfig.get("fieldName"));
+                String delimiter = String.valueOf(fieldConfig.get("delimiter"));
+
+                // 获取字段值
+                Object fieldValue = null;
+
+                if (nodeParse != null) {
+                    // 从nodeParse中获取字段值
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                } else {
+                    // 使用规则中的预设值
+                    fieldValue = fieldConfig.get("fieldValue");
+                    log.warn("使用规则中预设的字段值: {}", fieldValue);
+                }
+
+                // 如果字段值不为空，添加到结果中
+                if (fieldValue != null && StringUtils.isNotBlank(String.valueOf(fieldValue))) {
+                    if (StringUtils.isNotBlank(delimiter)) {
+                        result.append(delimiter);
+                    }
+                    result.append(String.valueOf(fieldValue));
+                }
+            }
+
+            String concatenatedResult = result.toString();
+            log.warn("字段拼接结果: {}", concatenatedResult);
+            return concatenatedResult;
+
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEA_SERVICEERROR.getCode(),
+                    "字段拼接操作失败！错误信息：" + e.getMessage()), e);
+            return fieldSample;
+        }
     }
 
 }

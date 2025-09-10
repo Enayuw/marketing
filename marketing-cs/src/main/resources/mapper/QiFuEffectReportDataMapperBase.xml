@@ -1,0 +1,822 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.QiFuEffectReportDataMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.QiFuEffectReportData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="belong_month" property="belongMonth" jdbcType="VARCHAR" />
+    <result column="strategy_month" property="strategyMonth" jdbcType="VARCHAR" />
+    <result column="upd_date" property="updDate" jdbcType="VARCHAR" />
+    <result column="canvas_name" property="canvasName" jdbcType="VARCHAR" />
+    <result column="agent_operator" property="agentOperator" jdbcType="VARCHAR" />
+    <result column="group_name" property="groupName" jdbcType="VARCHAR" />
+    <result column="user_count" property="userCount" jdbcType="INTEGER" />
+    <result column="login_user_count" property="loginUserCount" jdbcType="INTEGER" />
+    <result column="apply_submit_user_count" property="applySubmitUserCount" jdbcType="INTEGER" />
+    <result column="credit_success_user_count" property="creditSuccessUserCount" jdbcType="INTEGER" />
+    <result column="login_rate" property="loginRate" jdbcType="VARCHAR" />
+    <result column="apply_submit_rate" property="applySubmitRate" jdbcType="VARCHAR" />
+    <result column="pass_rate" property="passRate" jdbcType="VARCHAR" />
+    <result column="credit_success_rate" property="creditSuccessRate" jdbcType="VARCHAR" />
+    <result column="delta_apply_submit_rate" property="deltaApplySubmitRate" jdbcType="VARCHAR" />
+    <result column="delta_credit_success_rate" property="deltaCreditSuccessRate" jdbcType="VARCHAR" />
+    <result column="delta_apply_submit_count" property="deltaApplySubmitCount" jdbcType="INTEGER" />
+    <result column="delta_credit_success_count" property="deltaCreditSuccessCount" jdbcType="INTEGER" />
+    <result column="attr_apply_user_count" property="attrApplyUserCount" jdbcType="INTEGER" />
+    <result column="attr_credit_user_count" property="attrCreditUserCount" jdbcType="INTEGER" />
+    <result column="attr_credit_user_count_a" property="attrCreditUserCountA" jdbcType="INTEGER" />
+    <result column="attr_credit_user_count_b" property="attrCreditUserCountB" jdbcType="INTEGER" />
+    <result column="attr_credit_user_count_c" property="attrCreditUserCountC" jdbcType="INTEGER" />
+    <result column="attr_apply_ratio" property="attrApplyRatio" jdbcType="VARCHAR" />
+    <result column="attr_credit_ratio" property="attrCreditRatio" jdbcType="VARCHAR" />
+    <result column="attr_apply_rate" property="attrApplyRate" jdbcType="VARCHAR" />
+    <result column="attr_credit_rate" property="attrCreditRate" jdbcType="VARCHAR" />
+    <result column="attr_credit_count_ratio_a" property="attrCreditCountRatioA" jdbcType="VARCHAR" />
+    <result column="attr_credit_count_ratio_b" property="attrCreditCountRatioB" jdbcType="VARCHAR" />
+    <result column="attr_credit_count_ratio_c" property="attrCreditCountRatioC" jdbcType="VARCHAR" />
+    <result column="attr_avg_credit_limit" property="attrAvgCreditLimit" jdbcType="VARCHAR" />
+    <result column="attr_user_per_rate" property="attrUserPerRate" jdbcType="VARCHAR" />
+    <result column="attr_user_act_rate" property="attrUserActRate" jdbcType="VARCHAR" />
+    <result column="attr_user_per_aprl_rate" property="attrUserPerAprlRate" jdbcType="VARCHAR" />
+    <result column="attr_amt_per_rate" property="attrAmtPerRate" jdbcType="VARCHAR" />
+    <result column="attr_amt_act_rate" property="attrAmtActRate" jdbcType="VARCHAR" />
+    <result column="attr_amt_per_aprl_rate" property="attrAmtPerAprlRate" jdbcType="VARCHAR" />
+    <result column="attr_credit_avg_act_amt" property="attrCreditAvgActAmt" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, belong_month, strategy_month, upd_date, canvas_name, agent_operator,
+    group_name, user_count, login_user_count, apply_submit_user_count, credit_success_user_count,
+    login_rate, apply_submit_rate, pass_rate, credit_success_rate, delta_apply_submit_rate,
+    delta_credit_success_rate, delta_apply_submit_count, delta_credit_success_count,
+    attr_apply_user_count, attr_credit_user_count, attr_credit_user_count_a, attr_credit_user_count_b,
+    attr_credit_user_count_c, attr_apply_ratio, attr_credit_ratio, attr_apply_rate, attr_credit_rate,
+    attr_credit_count_ratio_a, attr_credit_count_ratio_b, attr_credit_count_ratio_c,
+    attr_avg_credit_limit, attr_user_per_rate, attr_user_act_rate, attr_user_per_aprl_rate,
+    attr_amt_per_rate, attr_amt_act_rate, attr_amt_per_aprl_rate, attr_credit_avg_act_amt,
+    create_time, update_time, is_del
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.QiFuEffectReportDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_qifu_effect_report_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_qifu_effect_report_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_qifu_effect_report_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.QiFuEffectReportDataExample" >
+    delete from b_qifu_effect_report_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.QiFuEffectReportData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_qifu_effect_report_data (api_code, belong_month, strategy_month,
+    upd_date, canvas_name, agent_operator,
+    group_name, user_count, login_user_count,
+    apply_submit_user_count, credit_success_user_count,
+    login_rate, apply_submit_rate, pass_rate,
+    credit_success_rate, delta_apply_submit_rate,
+    delta_credit_success_rate, delta_apply_submit_count,
+    delta_credit_success_count, attr_apply_user_count,
+    attr_credit_user_count, attr_credit_user_count_a,
+    attr_credit_user_count_b, attr_credit_user_count_c,
+    attr_apply_ratio, attr_credit_ratio, attr_apply_rate,
+    attr_credit_rate, attr_credit_count_ratio_a,
+    attr_credit_count_ratio_b, attr_credit_count_ratio_c,
+    attr_avg_credit_limit, attr_user_per_rate, attr_user_act_rate,
+    attr_user_per_aprl_rate, attr_amt_per_rate, attr_amt_act_rate,
+    attr_amt_per_aprl_rate, attr_credit_avg_act_amt,
+    create_time, update_time, is_del
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{belongMonth,jdbcType=VARCHAR}, #{strategyMonth,jdbcType=VARCHAR},
+    #{updDate,jdbcType=VARCHAR}, #{canvasName,jdbcType=VARCHAR}, #{agentOperator,jdbcType=VARCHAR},
+    #{groupName,jdbcType=VARCHAR}, #{userCount,jdbcType=INTEGER}, #{loginUserCount,jdbcType=INTEGER},
+    #{applySubmitUserCount,jdbcType=INTEGER}, #{creditSuccessUserCount,jdbcType=INTEGER},
+    #{loginRate,jdbcType=VARCHAR}, #{applySubmitRate,jdbcType=VARCHAR}, #{passRate,jdbcType=VARCHAR},
+    #{creditSuccessRate,jdbcType=VARCHAR}, #{deltaApplySubmitRate,jdbcType=VARCHAR},
+    #{deltaCreditSuccessRate,jdbcType=VARCHAR}, #{deltaApplySubmitCount,jdbcType=INTEGER},
+    #{deltaCreditSuccessCount,jdbcType=INTEGER}, #{attrApplyUserCount,jdbcType=INTEGER},
+    #{attrCreditUserCount,jdbcType=INTEGER}, #{attrCreditUserCountA,jdbcType=INTEGER},
+    #{attrCreditUserCountB,jdbcType=INTEGER}, #{attrCreditUserCountC,jdbcType=INTEGER},
+    #{attrApplyRatio,jdbcType=VARCHAR}, #{attrCreditRatio,jdbcType=VARCHAR}, #{attrApplyRate,jdbcType=VARCHAR},
+    #{attrCreditRate,jdbcType=VARCHAR}, #{attrCreditCountRatioA,jdbcType=VARCHAR},
+    #{attrCreditCountRatioB,jdbcType=VARCHAR}, #{attrCreditCountRatioC,jdbcType=VARCHAR},
+    #{attrAvgCreditLimit,jdbcType=VARCHAR}, #{attrUserPerRate,jdbcType=VARCHAR}, #{attrUserActRate,jdbcType=VARCHAR},
+    #{attrUserPerAprlRate,jdbcType=VARCHAR}, #{attrAmtPerRate,jdbcType=VARCHAR}, #{attrAmtActRate,jdbcType=VARCHAR},
+    #{attrAmtPerAprlRate,jdbcType=VARCHAR}, #{attrCreditAvgActAmt,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
+    )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.QiFuEffectReportData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_qifu_effect_report_data
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="belongMonth != null" >
+        belong_month,
+      </if>
+      <if test="strategyMonth != null" >
+        strategy_month,
+      </if>
+      <if test="updDate != null" >
+        upd_date,
+      </if>
+      <if test="canvasName != null" >
+        canvas_name,
+      </if>
+      <if test="agentOperator != null" >
+        agent_operator,
+      </if>
+      <if test="groupName != null" >
+        group_name,
+      </if>
+      <if test="userCount != null" >
+        user_count,
+      </if>
+      <if test="loginUserCount != null" >
+        login_user_count,
+      </if>
+      <if test="applySubmitUserCount != null" >
+        apply_submit_user_count,
+      </if>
+      <if test="creditSuccessUserCount != null" >
+        credit_success_user_count,
+      </if>
+      <if test="loginRate != null" >
+        login_rate,
+      </if>
+      <if test="applySubmitRate != null" >
+        apply_submit_rate,
+      </if>
+      <if test="passRate != null" >
+        pass_rate,
+      </if>
+      <if test="creditSuccessRate != null" >
+        credit_success_rate,
+      </if>
+      <if test="deltaApplySubmitRate != null" >
+        delta_apply_submit_rate,
+      </if>
+      <if test="deltaCreditSuccessRate != null" >
+        delta_credit_success_rate,
+      </if>
+      <if test="deltaApplySubmitCount != null" >
+        delta_apply_submit_count,
+      </if>
+      <if test="deltaCreditSuccessCount != null" >
+        delta_credit_success_count,
+      </if>
+      <if test="attrApplyUserCount != null" >
+        attr_apply_user_count,
+      </if>
+      <if test="attrCreditUserCount != null" >
+        attr_credit_user_count,
+      </if>
+      <if test="attrCreditUserCountA != null" >
+        attr_credit_user_count_a,
+      </if>
+      <if test="attrCreditUserCountB != null" >
+        attr_credit_user_count_b,
+      </if>
+      <if test="attrCreditUserCountC != null" >
+        attr_credit_user_count_c,
+      </if>
+      <if test="attrApplyRatio != null" >
+        attr_apply_ratio,
+      </if>
+      <if test="attrCreditRatio != null" >
+        attr_credit_ratio,
+      </if>
+      <if test="attrApplyRate != null" >
+        attr_apply_rate,
+      </if>
+      <if test="attrCreditRate != null" >
+        attr_credit_rate,
+      </if>
+      <if test="attrCreditCountRatioA != null" >
+        attr_credit_count_ratio_a,
+      </if>
+      <if test="attrCreditCountRatioB != null" >
+        attr_credit_count_ratio_b,
+      </if>
+      <if test="attrCreditCountRatioC != null" >
+        attr_credit_count_ratio_c,
+      </if>
+      <if test="attrAvgCreditLimit != null" >
+        attr_avg_credit_limit,
+      </if>
+      <if test="attrUserPerRate != null" >
+        attr_user_per_rate,
+      </if>
+      <if test="attrUserActRate != null" >
+        attr_user_act_rate,
+      </if>
+      <if test="attrUserPerAprlRate != null" >
+        attr_user_per_aprl_rate,
+      </if>
+      <if test="attrAmtPerRate != null" >
+        attr_amt_per_rate,
+      </if>
+      <if test="attrAmtActRate != null" >
+        attr_amt_act_rate,
+      </if>
+      <if test="attrAmtPerAprlRate != null" >
+        attr_amt_per_aprl_rate,
+      </if>
+      <if test="attrCreditAvgActAmt != null" >
+        attr_credit_avg_act_amt,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="belongMonth != null" >
+        #{belongMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyMonth != null" >
+        #{strategyMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="updDate != null" >
+        #{updDate,jdbcType=VARCHAR},
+      </if>
+      <if test="canvasName != null" >
+        #{canvasName,jdbcType=VARCHAR},
+      </if>
+      <if test="agentOperator != null" >
+        #{agentOperator,jdbcType=VARCHAR},
+      </if>
+      <if test="groupName != null" >
+        #{groupName,jdbcType=VARCHAR},
+      </if>
+      <if test="userCount != null" >
+        #{userCount,jdbcType=INTEGER},
+      </if>
+      <if test="loginUserCount != null" >
+        #{loginUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="applySubmitUserCount != null" >
+        #{applySubmitUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="creditSuccessUserCount != null" >
+        #{creditSuccessUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="loginRate != null" >
+        #{loginRate,jdbcType=VARCHAR},
+      </if>
+      <if test="applySubmitRate != null" >
+        #{applySubmitRate,jdbcType=VARCHAR},
+      </if>
+      <if test="passRate != null" >
+        #{passRate,jdbcType=VARCHAR},
+      </if>
+      <if test="creditSuccessRate != null" >
+        #{creditSuccessRate,jdbcType=VARCHAR},
+      </if>
+      <if test="deltaApplySubmitRate != null" >
+        #{deltaApplySubmitRate,jdbcType=VARCHAR},
+      </if>
+      <if test="deltaCreditSuccessRate != null" >
+        #{deltaCreditSuccessRate,jdbcType=VARCHAR},
+      </if>
+      <if test="deltaApplySubmitCount != null" >
+        #{deltaApplySubmitCount,jdbcType=INTEGER},
+      </if>
+      <if test="deltaCreditSuccessCount != null" >
+        #{deltaCreditSuccessCount,jdbcType=INTEGER},
+      </if>
+      <if test="attrApplyUserCount != null" >
+        #{attrApplyUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCount != null" >
+        #{attrCreditUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCountA != null" >
+        #{attrCreditUserCountA,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCountB != null" >
+        #{attrCreditUserCountB,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCountC != null" >
+        #{attrCreditUserCountC,jdbcType=INTEGER},
+      </if>
+      <if test="attrApplyRatio != null" >
+        #{attrApplyRatio,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditRatio != null" >
+        #{attrCreditRatio,jdbcType=VARCHAR},
+      </if>
+      <if test="attrApplyRate != null" >
+        #{attrApplyRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditRate != null" >
+        #{attrCreditRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditCountRatioA != null" >
+        #{attrCreditCountRatioA,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditCountRatioB != null" >
+        #{attrCreditCountRatioB,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditCountRatioC != null" >
+        #{attrCreditCountRatioC,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAvgCreditLimit != null" >
+        #{attrAvgCreditLimit,jdbcType=VARCHAR},
+      </if>
+      <if test="attrUserPerRate != null" >
+        #{attrUserPerRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrUserActRate != null" >
+        #{attrUserActRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrUserPerAprlRate != null" >
+        #{attrUserPerAprlRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAmtPerRate != null" >
+        #{attrAmtPerRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAmtActRate != null" >
+        #{attrAmtActRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAmtPerAprlRate != null" >
+        #{attrAmtPerAprlRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditAvgActAmt != null" >
+        #{attrCreditAvgActAmt,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.QiFuEffectReportDataExample" resultType="java.lang.Integer" >
+    select count(*) from b_qifu_effect_report_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_qifu_effect_report_data
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.belongMonth != null" >
+        belong_month = #{record.belongMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyMonth != null" >
+        strategy_month = #{record.strategyMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="record.updDate != null" >
+        upd_date = #{record.updDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.canvasName != null" >
+        canvas_name = #{record.canvasName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.agentOperator != null" >
+        agent_operator = #{record.agentOperator,jdbcType=VARCHAR},
+      </if>
+      <if test="record.groupName != null" >
+        group_name = #{record.groupName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userCount != null" >
+        user_count = #{record.userCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.loginUserCount != null" >
+        login_user_count = #{record.loginUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.applySubmitUserCount != null" >
+        apply_submit_user_count = #{record.applySubmitUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.creditSuccessUserCount != null" >
+        credit_success_user_count = #{record.creditSuccessUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.loginRate != null" >
+        login_rate = #{record.loginRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.applySubmitRate != null" >
+        apply_submit_rate = #{record.applySubmitRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.passRate != null" >
+        pass_rate = #{record.passRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.creditSuccessRate != null" >
+        credit_success_rate = #{record.creditSuccessRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deltaApplySubmitRate != null" >
+        delta_apply_submit_rate = #{record.deltaApplySubmitRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deltaCreditSuccessRate != null" >
+        delta_credit_success_rate = #{record.deltaCreditSuccessRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deltaApplySubmitCount != null" >
+        delta_apply_submit_count = #{record.deltaApplySubmitCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.deltaCreditSuccessCount != null" >
+        delta_credit_success_count = #{record.deltaCreditSuccessCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.attrApplyUserCount != null" >
+        attr_apply_user_count = #{record.attrApplyUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.attrCreditUserCount != null" >
+        attr_credit_user_count = #{record.attrCreditUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.attrCreditUserCountA != null" >
+        attr_credit_user_count_a = #{record.attrCreditUserCountA,jdbcType=INTEGER},
+      </if>
+      <if test="record.attrCreditUserCountB != null" >
+        attr_credit_user_count_b = #{record.attrCreditUserCountB,jdbcType=INTEGER},
+      </if>
+      <if test="record.attrCreditUserCountC != null" >
+        attr_credit_user_count_c = #{record.attrCreditUserCountC,jdbcType=INTEGER},
+      </if>
+      <if test="record.attrApplyRatio != null" >
+        attr_apply_ratio = #{record.attrApplyRatio,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrCreditRatio != null" >
+        attr_credit_ratio = #{record.attrCreditRatio,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrApplyRate != null" >
+        attr_apply_rate = #{record.attrApplyRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrCreditRate != null" >
+        attr_credit_rate = #{record.attrCreditRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrCreditCountRatioA != null" >
+        attr_credit_count_ratio_a = #{record.attrCreditCountRatioA,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrCreditCountRatioB != null" >
+        attr_credit_count_ratio_b = #{record.attrCreditCountRatioB,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrCreditCountRatioC != null" >
+        attr_credit_count_ratio_c = #{record.attrCreditCountRatioC,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrAvgCreditLimit != null" >
+        attr_avg_credit_limit = #{record.attrAvgCreditLimit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrUserPerRate != null" >
+        attr_user_per_rate = #{record.attrUserPerRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrUserActRate != null" >
+        attr_user_act_rate = #{record.attrUserActRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrUserPerAprlRate != null" >
+        attr_user_per_aprl_rate = #{record.attrUserPerAprlRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrAmtPerRate != null" >
+        attr_amt_per_rate = #{record.attrAmtPerRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrAmtActRate != null" >
+        attr_amt_act_rate = #{record.attrAmtActRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrAmtPerAprlRate != null" >
+        attr_amt_per_aprl_rate = #{record.attrAmtPerAprlRate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attrCreditAvgActAmt != null" >
+        attr_credit_avg_act_amt = #{record.attrCreditAvgActAmt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_qifu_effect_report_data
+    set id = #{record.id,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    belong_month = #{record.belongMonth,jdbcType=VARCHAR},
+    strategy_month = #{record.strategyMonth,jdbcType=VARCHAR},
+    upd_date = #{record.updDate,jdbcType=VARCHAR},
+    canvas_name = #{record.canvasName,jdbcType=VARCHAR},
+    agent_operator = #{record.agentOperator,jdbcType=VARCHAR},
+    group_name = #{record.groupName,jdbcType=VARCHAR},
+    user_count = #{record.userCount,jdbcType=INTEGER},
+    login_user_count = #{record.loginUserCount,jdbcType=INTEGER},
+    apply_submit_user_count = #{record.applySubmitUserCount,jdbcType=INTEGER},
+    credit_success_user_count = #{record.creditSuccessUserCount,jdbcType=INTEGER},
+    login_rate = #{record.loginRate,jdbcType=VARCHAR},
+    apply_submit_rate = #{record.applySubmitRate,jdbcType=VARCHAR},
+    pass_rate = #{record.passRate,jdbcType=VARCHAR},
+    credit_success_rate = #{record.creditSuccessRate,jdbcType=VARCHAR},
+    delta_apply_submit_rate = #{record.deltaApplySubmitRate,jdbcType=VARCHAR},
+    delta_credit_success_rate = #{record.deltaCreditSuccessRate,jdbcType=VARCHAR},
+    delta_apply_submit_count = #{record.deltaApplySubmitCount,jdbcType=INTEGER},
+    delta_credit_success_count = #{record.deltaCreditSuccessCount,jdbcType=INTEGER},
+    attr_apply_user_count = #{record.attrApplyUserCount,jdbcType=INTEGER},
+    attr_credit_user_count = #{record.attrCreditUserCount,jdbcType=INTEGER},
+    attr_credit_user_count_a = #{record.attrCreditUserCountA,jdbcType=INTEGER},
+    attr_credit_user_count_b = #{record.attrCreditUserCountB,jdbcType=INTEGER},
+    attr_credit_user_count_c = #{record.attrCreditUserCountC,jdbcType=INTEGER},
+    attr_apply_ratio = #{record.attrApplyRatio,jdbcType=VARCHAR},
+    attr_credit_ratio = #{record.attrCreditRatio,jdbcType=VARCHAR},
+    attr_apply_rate = #{record.attrApplyRate,jdbcType=VARCHAR},
+    attr_credit_rate = #{record.attrCreditRate,jdbcType=VARCHAR},
+    attr_credit_count_ratio_a = #{record.attrCreditCountRatioA,jdbcType=VARCHAR},
+    attr_credit_count_ratio_b = #{record.attrCreditCountRatioB,jdbcType=VARCHAR},
+    attr_credit_count_ratio_c = #{record.attrCreditCountRatioC,jdbcType=VARCHAR},
+    attr_avg_credit_limit = #{record.attrAvgCreditLimit,jdbcType=VARCHAR},
+    attr_user_per_rate = #{record.attrUserPerRate,jdbcType=VARCHAR},
+    attr_user_act_rate = #{record.attrUserActRate,jdbcType=VARCHAR},
+    attr_user_per_aprl_rate = #{record.attrUserPerAprlRate,jdbcType=VARCHAR},
+    attr_amt_per_rate = #{record.attrAmtPerRate,jdbcType=VARCHAR},
+    attr_amt_act_rate = #{record.attrAmtActRate,jdbcType=VARCHAR},
+    attr_amt_per_aprl_rate = #{record.attrAmtPerAprlRate,jdbcType=VARCHAR},
+    attr_credit_avg_act_amt = #{record.attrCreditAvgActAmt,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    is_del = #{record.isDel,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.QiFuEffectReportData" >
+    update b_qifu_effect_report_data
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="belongMonth != null" >
+        belong_month = #{belongMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyMonth != null" >
+        strategy_month = #{strategyMonth,jdbcType=VARCHAR},
+      </if>
+      <if test="updDate != null" >
+        upd_date = #{updDate,jdbcType=VARCHAR},
+      </if>
+      <if test="canvasName != null" >
+        canvas_name = #{canvasName,jdbcType=VARCHAR},
+      </if>
+      <if test="agentOperator != null" >
+        agent_operator = #{agentOperator,jdbcType=VARCHAR},
+      </if>
+      <if test="groupName != null" >
+        group_name = #{groupName,jdbcType=VARCHAR},
+      </if>
+      <if test="userCount != null" >
+        user_count = #{userCount,jdbcType=INTEGER},
+      </if>
+      <if test="loginUserCount != null" >
+        login_user_count = #{loginUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="applySubmitUserCount != null" >
+        apply_submit_user_count = #{applySubmitUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="creditSuccessUserCount != null" >
+        credit_success_user_count = #{creditSuccessUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="loginRate != null" >
+        login_rate = #{loginRate,jdbcType=VARCHAR},
+      </if>
+      <if test="applySubmitRate != null" >
+        apply_submit_rate = #{applySubmitRate,jdbcType=VARCHAR},
+      </if>
+      <if test="passRate != null" >
+        pass_rate = #{passRate,jdbcType=VARCHAR},
+      </if>
+      <if test="creditSuccessRate != null" >
+        credit_success_rate = #{creditSuccessRate,jdbcType=VARCHAR},
+      </if>
+      <if test="deltaApplySubmitRate != null" >
+        delta_apply_submit_rate = #{deltaApplySubmitRate,jdbcType=VARCHAR},
+      </if>
+      <if test="deltaCreditSuccessRate != null" >
+        delta_credit_success_rate = #{deltaCreditSuccessRate,jdbcType=VARCHAR},
+      </if>
+      <if test="deltaApplySubmitCount != null" >
+        delta_apply_submit_count = #{deltaApplySubmitCount,jdbcType=INTEGER},
+      </if>
+      <if test="deltaCreditSuccessCount != null" >
+        delta_credit_success_count = #{deltaCreditSuccessCount,jdbcType=INTEGER},
+      </if>
+      <if test="attrApplyUserCount != null" >
+        attr_apply_user_count = #{attrApplyUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCount != null" >
+        attr_credit_user_count = #{attrCreditUserCount,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCountA != null" >
+        attr_credit_user_count_a = #{attrCreditUserCountA,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCountB != null" >
+        attr_credit_user_count_b = #{attrCreditUserCountB,jdbcType=INTEGER},
+      </if>
+      <if test="attrCreditUserCountC != null" >
+        attr_credit_user_count_c = #{attrCreditUserCountC,jdbcType=INTEGER},
+      </if>
+      <if test="attrApplyRatio != null" >
+        attr_apply_ratio = #{attrApplyRatio,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditRatio != null" >
+        attr_credit_ratio = #{attrCreditRatio,jdbcType=VARCHAR},
+      </if>
+      <if test="attrApplyRate != null" >
+        attr_apply_rate = #{attrApplyRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditRate != null" >
+        attr_credit_rate = #{attrCreditRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditCountRatioA != null" >
+        attr_credit_count_ratio_a = #{attrCreditCountRatioA,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditCountRatioB != null" >
+        attr_credit_count_ratio_b = #{attrCreditCountRatioB,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditCountRatioC != null" >
+        attr_credit_count_ratio_c = #{attrCreditCountRatioC,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAvgCreditLimit != null" >
+        attr_avg_credit_limit = #{attrAvgCreditLimit,jdbcType=VARCHAR},
+      </if>
+      <if test="attrUserPerRate != null" >
+        attr_user_per_rate = #{attrUserPerRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrUserActRate != null" >
+        attr_user_act_rate = #{attrUserActRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrUserPerAprlRate != null" >
+        attr_user_per_aprl_rate = #{attrUserPerAprlRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAmtPerRate != null" >
+        attr_amt_per_rate = #{attrAmtPerRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAmtActRate != null" >
+        attr_amt_act_rate = #{attrAmtActRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrAmtPerAprlRate != null" >
+        attr_amt_per_aprl_rate = #{attrAmtPerAprlRate,jdbcType=VARCHAR},
+      </if>
+      <if test="attrCreditAvgActAmt != null" >
+        attr_credit_avg_act_amt = #{attrCreditAvgActAmt,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.QiFuEffectReportData" >
+    update b_qifu_effect_report_data
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+        belong_month = #{belongMonth,jdbcType=VARCHAR},
+        strategy_month = #{strategyMonth,jdbcType=VARCHAR},
+        upd_date = #{updDate,jdbcType=VARCHAR},
+        canvas_name = #{canvasName,jdbcType=VARCHAR},
+        agent_operator = #{agentOperator,jdbcType=VARCHAR},
+        group_name = #{groupName,jdbcType=VARCHAR},
+        user_count = #{userCount,jdbcType=INTEGER},
+        login_user_count = #{loginUserCount,jdbcType=INTEGER},
+        apply_submit_user_count = #{applySubmitUserCount,jdbcType=INTEGER},
+        credit_success_user_count = #{creditSuccessUserCount,jdbcType=INTEGER},
+        login_rate = #{loginRate,jdbcType=VARCHAR},
+        apply_submit_rate = #{applySubmitRate,jdbcType=VARCHAR},
+        pass_rate = #{passRate,jdbcType=VARCHAR},
+        credit_success_rate = #{creditSuccessRate,jdbcType=VARCHAR},
+        delta_apply_submit_rate = #{deltaApplySubmitRate,jdbcType=VARCHAR},
+        delta_credit_success_rate = #{deltaCreditSuccessRate,jdbcType=VARCHAR},
+        delta_apply_submit_count = #{deltaApplySubmitCount,jdbcType=INTEGER},
+        delta_credit_success_count = #{deltaCreditSuccessCount,jdbcType=INTEGER},
+        attr_apply_user_count = #{attrApplyUserCount,jdbcType=INTEGER},
+        attr_credit_user_count = #{attrCreditUserCount,jdbcType=INTEGER},
+        attr_credit_user_count_a = #{attrCreditUserCountA,jdbcType=INTEGER},
+        attr_credit_user_count_b = #{attrCreditUserCountB,jdbcType=INTEGER},
+        attr_credit_user_count_c = #{attrCreditUserCountC,jdbcType=INTEGER},
+        attr_apply_ratio = #{attrApplyRatio,jdbcType=VARCHAR},
+        attr_credit_ratio = #{attrCreditRatio,jdbcType=VARCHAR},
+        attr_apply_rate = #{attrApplyRate,jdbcType=VARCHAR},
+        attr_credit_rate = #{attrCreditRate,jdbcType=VARCHAR},
+        attr_credit_count_ratio_a = #{attrCreditCountRatioA,jdbcType=VARCHAR},
+        attr_credit_count_ratio_b = #{attrCreditCountRatioB,jdbcType=VARCHAR},
+        attr_credit_count_ratio_c = #{attrCreditCountRatioC,jdbcType=VARCHAR},
+        attr_avg_credit_limit = #{attrAvgCreditLimit,jdbcType=VARCHAR},
+        attr_user_per_rate = #{attrUserPerRate,jdbcType=VARCHAR},
+        attr_user_act_rate = #{attrUserActRate,jdbcType=VARCHAR},
+        attr_user_per_aprl_rate = #{attrUserPerAprlRate,jdbcType=VARCHAR},
+        attr_amt_per_rate = #{attrAmtPerRate,jdbcType=VARCHAR},
+        attr_amt_act_rate = #{attrAmtActRate,jdbcType=VARCHAR},
+        attr_amt_per_aprl_rate = #{attrAmtPerAprlRate,jdbcType=VARCHAR},
+        attr_credit_avg_act_amt = #{attrCreditAvgActAmt,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        is_del = #{isDel,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
