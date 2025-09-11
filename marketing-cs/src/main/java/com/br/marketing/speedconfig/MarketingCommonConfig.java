@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
 @Data
 public class MarketingCommonConfig {
-
     /**
      * 推送客服
      */
@@ -3013,6 +3012,12 @@ public class MarketingCommonConfig {
     private JSONObject tcyrCpaCollidingDealShardConfig;
 
     /**
+     * 同程易融CPA-collidingDeal job参数
+     * {"jobSwitch":true,"pageSize":1000,"dbPartSize":50}
+     */
+    private JSONObject tcyrCpaCollidingConsumerConfig;
+
+    /**
      * 同程易融-quickDeal-shard job参数
      * {
      * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
@@ -3368,5 +3373,15 @@ public class MarketingCommonConfig {
      * 哈啰硅基人回调配置
      */
     private JSONObject haloAiCallbackConfig;
+
+    /**
+     * 携程cpa 撞库日志写入rabbit-rocket 切换开关
+     */
+    private Boolean xieChengCallingCpaLogSwitch;
+
+    /**
+     * #携程促活使用rabbitmq开关
+     */
+    private Boolean xieChengActivateRabbitMqSwitch;
 }
 

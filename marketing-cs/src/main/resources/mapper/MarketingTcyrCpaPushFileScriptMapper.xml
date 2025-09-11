@@ -6,7 +6,7 @@
         ${extraSql}
     </select>
 
-    <select id="getTcyrCpaPushFileDatadoris_" resultType="java.lang.String">
+    <select id="getTcyrCpaPushFileDatabI_" resultType="java.lang.String">
         ${extraSql}
     </select>
 
