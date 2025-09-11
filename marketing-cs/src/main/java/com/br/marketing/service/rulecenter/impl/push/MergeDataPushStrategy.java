@@ -112,10 +112,24 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         try {
             if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
                     .equals(customerInfoPushMain.getmStatus())) {
-                // 推决策重试
-                toPolicyByRuleService.makeUpPolicyData(customerInfoPushMain,
-                        MockSwitchEnum.GENERAL.getValue());
-                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+
+                //根据taskId比较doris和tidb的量级，如果doris中存在数据且和tidb相等，同步完成，不再执行同步
+                String countSql = "select count(1) from ".concat(B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA)
+                        .concat(" where m_id=").concat(String.valueOf(customerInfoPushMain.getId()));
+                Long dorisCount = flagDataMapper.queryCountBySqlbI_(countSql);
+                Long tiDbCount = flagDataMapper.queryCountBySql(countSql);
+
+                if (dorisCount > 0 && dorisCount.equals(tiDbCount)) {
+                    logger.warn("tidb同步完成");
+
+                    // 推决策重试
+                    toPolicyByRuleService.makeUpPolicyData(customerInfoPushMain,
+                            MockSwitchEnum.GENERAL.getValue());
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+                }else {
+                    updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+                }
             }
 
             List<String> cusBatchNumberList = Arrays.asList(customerInfoPushMain.getmCusBatchNumberList().split(","));
@@ -142,17 +156,6 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     .concat(generateSelectColumns(processSelect, baseColumns));
             String selectSql = "select ".concat(finalSelect).concat(" ").concat(processFrom);
 
-            //根据taskId比较doris和tidb的量级，如果doris中存在数据且和tidb相等，同步完成，不再执行同步
-            String countSql = "select count(1) from ".concat(B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA)
-                    .concat(" where m_id=").concat(String.valueOf(customerInfoPushMain.getId()));
-            Long dorisCount = flagDataMapper.queryCountBySqlbI_(countSql);
-            Long tiDbCount = flagDataMapper.queryCountBySql(countSql);
-
-            if (dorisCount > 0 && dorisCount.equals(tiDbCount)) {
-                logger.warn("tidb同步完成");
-                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
-            }
-
             baseColumns.remove("id");
             String insertDorisSql = "insert into ".concat(B_MARKETING_RULE_CENTER_MERGE_PUSH_DATA).concat("(").concat(insertColumn).concat(")").concat(selectSql);
             flagDataMapper.insertbI_(insertDorisSql);
@@ -163,12 +166,16 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
         } catch (Exception e) {
             logger.error("{}前置处理异常", TITLE, e);
-            CustomerInfoPushMain main = new CustomerInfoPushMain();
-            main.setId(customerInfoPushMain.getId());
-            main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-            customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+            updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
+    }
+
+    private void updatePushMainStatus(Long id, Integer mStatus) {
+        CustomerInfoPushMain main = new CustomerInfoPushMain();
+        main.setId(id);
+        main.setmStatus(mStatus);
+        customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
     }
 
 
