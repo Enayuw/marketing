@@ -628,6 +628,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         PushViewVO pushViewVO = new PushViewVO();
         if (isXieChengData(dto)) {
             total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
+        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            //合并跑分计算
+            long start = System.currentTimeMillis();
+            // 组装查询sql
+            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
+            // 执行查询获取统计数量
+            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
+            total = (count != null ? count : 0);
         } else {
             Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
             if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
@@ -651,17 +660,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
-        //合并跑分计算
-        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
-            long start = System.currentTimeMillis();
-            // 组装查询sql
-            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
-            // 执行查询获取统计数量
-            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
-            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
-            pushViewVO.setTotal(count != null ? count : 0);
-            return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
-        }
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(dto.getApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));

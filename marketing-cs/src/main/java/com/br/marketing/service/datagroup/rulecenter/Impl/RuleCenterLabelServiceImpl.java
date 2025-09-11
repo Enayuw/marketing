@@ -232,7 +232,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
         Map<String, List<String>> tableColumnsMap = new HashMap<>();
         Map<String, Date> tableUpdateTimeMap = new HashMap<>();
         for (String batchNumber : batchNumberList) {
-            Date updateTime = straHisFiles.stream().filter(straHisFile -> straHisFile.getBatchNumber().equals(batchNumber)).findFirst().get().getUpdateTime();
+            Date updateTime = straHisFiles.stream().filter(straHisFile -> straHisFile.getBatchNumber().equals(batchNumber)).findFirst().get().getCreateTime();
             String tableName = "b_score_" + batchNumber;
             List<String> columns = flagDataMapper.queryColumnNamebI_(tableName);
             tableColumnsMap.put(tableName, columns);
@@ -342,7 +342,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
         if (sqlCondition == null || sqlCondition.trim().isEmpty()) {
             return "";
         }
-        String processedCondition = sqlCondition;
+        String processedCondition = dorisSqlFieldTransfer(sqlCondition);
 
         // 为每个字段替换为对应的表别名.字段名
         for (Map.Entry<String, String> entry : fieldToTableMap.entrySet()) {
@@ -383,5 +383,24 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
         return batchNumberList.stream()
                 .map(batchNumber -> "b_score_" + batchNumber)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Doris SQL字段转换：兼容es存储的字段
+     * @param sqlCondition SQL条件
+     * @return 转换后的SQL条件
+     */
+    private String dorisSqlFieldTransfer(String sqlCondition) {
+        if (sqlCondition == null || sqlCondition.trim().isEmpty()) {
+            return sqlCondition;
+        }
+        
+        String processedCondition = sqlCondition;
+        // 字段名转换：snake_case 转 camelCase
+        processedCondition = processedCondition.replaceAll("\\buser_type\\b", "userType");
+        processedCondition = processedCondition.replaceAll("\\bid_card\\b", "id");
+        processedCondition = processedCondition.replaceAll("\\btask_id\\b", "taskId");
+        
+        return processedCondition;
     }
 }
