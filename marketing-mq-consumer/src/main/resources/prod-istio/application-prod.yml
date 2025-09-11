@@ -329,7 +329,7 @@ rocketmq:
     # secret-key
     #secretKey: xxx
     # 是否启用消息跟踪，默认false
-    enableMsgTrace: false
+    enableMsgTrace: true
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
   consumer:
