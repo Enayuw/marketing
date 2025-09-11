@@ -127,7 +127,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
         String apiCode = syncUser.getApiCode();
         String userType = syncUser.getUserType();
         String custNum = syncUser.getCustNum();
-        String key = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(String.format("%d:%d:%s:%s", yyyyMMdd, apiCode, userType, custNum));
+        String key = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(String.format("%s:%s:%s:%s", yyyyMMdd, apiCode, userType, custNum));
         String batchNumber;
 
         try {
@@ -139,6 +139,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
             batchNumber = yyyyMMdd + "-" + apiCode + "-" + userType + "-" + pushCount;
         } catch (Exception e) {
             redisChgService.unlock(key, lockValue);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,redis加锁异常,消费端自动重试："), e);
             throw new RuntimeException(e);
         } finally {
             redisChgService.unlock(key, lockValue);
