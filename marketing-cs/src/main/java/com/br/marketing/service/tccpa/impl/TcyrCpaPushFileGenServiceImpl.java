@@ -316,7 +316,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
                 if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_TIDB.getValue()) {
                     result = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDatatikv_(extraSql);
                 } else if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_DORIS.getValue()) {
-                    result = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDatadoris_(extraSql);
+                    result = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDatabI_(extraSql);
                 }
                 if(CollectionUtils.isEmpty(result)){
                     //未查到数据，执行下一个脚本
