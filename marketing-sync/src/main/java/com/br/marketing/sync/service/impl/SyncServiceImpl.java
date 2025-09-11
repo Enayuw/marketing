@@ -38,6 +38,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -117,8 +119,10 @@ public class SyncServiceImpl implements SyncService {
                     // 根据day值决定要拉取的文件日期
                     if(Objects.equals(day, ExecuteTimeEnum.YESTERDAY.getValue())){
                         // day=0: T-1，拉取昨天的文件
-                        dateSet.add(DateHelper.getDateAddYyMmDd(-1));
-                        log.warn("day=0，拉取昨天的文件，日期：{}", DateHelper.getDateAddYyMmDd(-1));
+                        LocalDate yesterday = LocalDate.now().minusDays(1);
+                        String format = yesterday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                        dateSet.add(format);
+                        log.warn("day=0，拉取昨天的文件，日期：{}", format);
                     } else {
                         // 默认逻辑：当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
                         dateSet.add(DateHelper.getDateByMinute(-60));
