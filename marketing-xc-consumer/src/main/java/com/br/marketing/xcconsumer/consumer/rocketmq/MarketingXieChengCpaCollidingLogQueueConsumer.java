@@ -1,4 +1,4 @@
-package com.br.marketing.xc.consumer.rocketmq;
+package com.br.marketing.xcconsumer.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
@@ -26,11 +26,10 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
-        consumerGroup = MarketingXieChengConstants.MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
-        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
-        consumeThreadNumber = 2, consumeThreadMax = 10)
-public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
+@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE,
+        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE,
+        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE)
+public class MarketingXieChengCpaCollidingLogQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -67,8 +66,8 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
 
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
-        defaultMQPushConsumer.setPullBatchSize(2);
-        defaultMQPushConsumer.setPopBatchNums(2);
+        defaultMQPushConsumer.setClientRebalance(false);
+        defaultMQPushConsumer.setPopInvisibleTime(300000L);
     }
 
 }

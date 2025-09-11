@@ -8,6 +8,7 @@ import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.xiecheng.XieChengActivateDataService;
 import com.br.marketing.api.customer.upload.service.xiecheng.dto.XieChengActivateDataResponseDTO;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
@@ -15,6 +16,7 @@ import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -37,6 +39,9 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
     private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
     /**
      * 解密jsonData
      *
@@ -201,16 +206,18 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
             xieChengActivateDTO.setCId(tCid);
             xieChengActivateDTO.setDataId(sourceId);
             String msg = JSONObject.toJSONString(xieChengActivateDTO);
-            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
-                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
-                        , MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
-            }else{
+
+            if(!marketingCommonConfig.getXieChengActivateRabbitMqSwitch()){
+                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE
+                        , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_ACTIVE_COLLIDING_QUEUE, msg);
+            } else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
             }
-            log.warn("携程促活数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                    , "推送携程促活数据消息异常！"), e);
+                    , "推送携程促活数据消息-rocketMq异常！"), e);
         }
+        log.warn("携程促活数据下发 tCid:{},sourceId:{}", tCid, sourceId);
+
     }
 }
