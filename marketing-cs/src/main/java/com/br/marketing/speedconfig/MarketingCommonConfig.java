@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
 @Data
 public class MarketingCommonConfig {
-
     /**
      * 推送客服
      */
@@ -3349,6 +3348,13 @@ public class MarketingCommonConfig {
     private List<String> smsCallBackDataPushMqApiCodes;
 
     /**
+     * 360客制化传输数据配置
+     * {"uploadApiCode":"3710196","cipherMode":"CBC","paddingScheme":"PKCS5Padding","dynamicKeys":"fC8tzaLDItGjIjOr"}
+     */
+    private JSONObject sanLiuLingCustomizeDataConfig;
+
+
+    /**
      * 同程易融cpa推送文件配置
      */
     private JSONObject tcyrCpaPushFileConfig;
@@ -3367,5 +3373,15 @@ public class MarketingCommonConfig {
      * 哈啰硅基人回调配置
      */
     private JSONObject haloAiCallbackConfig;
+
+    /**
+     * 携程cpa 撞库日志写入rabbit-rocket 切换开关
+     */
+    private Boolean xieChengCallingCpaLogSwitch;
+
+    /**
+     * #携程促活使用rabbitmq开关
+     */
+    private Boolean xieChengActivateRabbitMqSwitch;
 }
 
