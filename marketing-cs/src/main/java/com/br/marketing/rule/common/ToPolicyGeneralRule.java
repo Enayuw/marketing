@@ -121,7 +121,6 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
         aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
         aiToPolicyRecord.setApiCode(syncUser.getApiCode());
-        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
         aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode());
         try {
             aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);

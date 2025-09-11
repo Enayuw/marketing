@@ -116,7 +116,6 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
         aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
         aiToPolicyRecord.setApiCode(syncUser.getApiCode());
-        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
         aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode());
         try {
             aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
