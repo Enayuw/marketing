@@ -375,4 +375,25 @@
     GROUP BY applet_date
     ORDER BY applet_date DESC
   </select>
+
+  <select id="selectByIdList" resultType="com.br.marketing.vo.MarketingSyncReportVO">
+    select id, cid
+         , api_code
+         , short_name as shortName
+         , applet_date as appletDate
+         , user_type as userType
+         , normal_num as normalNum
+         , duplicate_removal_num as duplicateRemovalNum
+         , DATE_FORMAT(bmsr.applet_begin_time,'%Y-%m-%d %H:%i:%s') as appletBeginTime
+         , DATE_FORMAT(bmsr.applet_end_time,'%Y-%m-%d %H:%i:%s') as appletEndTime
+         , remark
+         , DATE_FORMAT(bmsr.create_time,'%Y-%m-%d %H:%i:%s') as createTime
+         , DATE_FORMAT(bmsr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+         , label_message as labelMessage
+    from b_marketing_sync_report bmsr
+    where id  in
+      <foreach collection="idList" item="idItem" open="(" separator="," close=")">
+        #{idItem}
+      </foreach>
+  </select>
 </mapper>

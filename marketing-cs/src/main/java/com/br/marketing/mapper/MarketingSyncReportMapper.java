@@ -120,4 +120,8 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
      */
     List<String> getLastMonthDataDates(@Param("apiCode") String apiCode);
 
+    /**
+     * 查询指定id列表对应的数据
+     */
+    List<MarketingSyncReportVO> selectByIdList(@Param("idList")List<Long> selectIdList);
 }

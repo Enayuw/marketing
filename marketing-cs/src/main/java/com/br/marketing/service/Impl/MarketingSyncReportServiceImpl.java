@@ -54,7 +54,15 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -933,4 +941,119 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     public List<String> getLastMonthDataDates(String apiCode) {
         return syncReportMapper.getLastMonthDataDates(apiCode);
     }
+
+    @Override
+    public void exportData(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes,
+                           String userTypes,Integer selectType,String selectExportIds, HttpServletResponse response){
+        try {
+            String yyyyMMdd = new SimpleDateFormat(DateHelper.SHORT_DATE_FORMAT).format(new Date());
+            String encodeFileName  = URLEncoder.encode("数据导出"+ yyyyMMdd +".txt",StandardCharsets.UTF_8.toString());
+            response.setContentType("text/plain; charset=UTF-8");
+            response.setHeader("Content-Disposition", "attachment; filename=" + encodeFileName);
+            ServletOutputStream out = response.getOutputStream();
+            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+            // 写入UTF-8 BOM，确保Excel等软件正确识别编码
+            out.write(0xEF);
+            out.write(0xBB);
+            out.write(0xBF);
+            writer.append("上传日期").append(",").append("客户编号").append(",").append("APIcode").append(",")
+                    .append("客户名称").append(",").append("场景").append(",").append("数据正常入库条数").append(",")
+                    .append("去重后数量").append(",").append("创建时间").append(",").append("上传开始时间").append(",")
+                    .append("上传结束时间").append(",").append("数据生效日期").append(",").append("数据失效日期").append("\r\n");
+
+            fillExportData(cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,selectType,selectExportIds,writer,out);
+        } catch (IOException e) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SYNC_REPORT_EXPORT_SERVICEERROR.getCode(), e.getMessage()), e);
+        }
+    }
+
+    private void fillExportData(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes,
+                                Integer selectType, String selectExportIds, OutputStreamWriter writer, ServletOutputStream out)  throws IOException{
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+            if (selectType == 1) {
+                if (StringUtils.isNotEmpty(appletTimeEnd)) {
+                    appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+                }
+                if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")) {
+                    cidOrName = cidOrName.replace("_", "\\_");
+                }
+                List<String> apiCodeList = new ArrayList<>();
+                List<String> userTypeList = new ArrayList<>();
+                if (apiCodes != null && !"".equals(apiCodes)) {
+                    String[] split = apiCodes.split(",");
+                    for (String item : split) {
+                        apiCodeList.add(item);
+                    }
+                }
+                if (userTypes != null && !"".equals(userTypes)) {
+                    String[] split = userTypes.split(",");
+                    for (String item : split) {
+                        userTypeList.add(item);
+                    }
+                }
+                Map params = new HashMap();
+                params.put("cidOrName", cidOrName);
+                params.put("appletTimeStart", appletTimeStart);
+                params.put("appletTimeEnd", appletTimeEnd);
+                params.put("apiCodeList", apiCodeList);
+                params.put("userTypeList", userTypeList);
+                Integer pageNum = 1;
+                Integer pageSize = 1000;
+                boolean stillFlag = true;
+                while (stillFlag) {
+                    PageHelper.startPage(pageNum, pageSize);
+                    List<MarketingSyncReportVO> list = syncReportMapper.selectList(params);
+                    exportAppendListData(list,simpleDateFormat,writer);
+                    stillFlag = !list.isEmpty();
+                    pageNum++;
+                    writer.flush();
+                    out.flush();
+                }
+            } else {
+                List<Long> selectIdList = new ArrayList<>();
+                String[] split = selectExportIds.split(",");
+                for (String item : split) {
+                    selectIdList.add(Long.parseLong(item));
+                }
+                if (!CollectionUtils.isEmpty(selectIdList)) {
+                    List<MarketingSyncReportVO> list = syncReportMapper.selectByIdList(selectIdList);
+                    exportAppendListData(list,simpleDateFormat,writer);
+                }
+                writer.flush();
+                out.flush();
+            }
+    }
+
+    private void exportAppendListData(List<MarketingSyncReportVO> list,SimpleDateFormat simpleDateFormat, OutputStreamWriter writer) throws IOException {
+        for (MarketingSyncReportVO marketingSyncReportVO : list) {
+            String apiCode = marketingSyncReportVO.getApiCode();
+            String userType = marketingSyncReportVO.getUserType();
+            String appletDate = marketingSyncReportVO.getAppletDate();
+            MarketingDataValidConfig validDate = changeMapper.getValidDate(apiCode, userType, appletDate);
+            if (ObjectUtil.isNotEmpty(validDate)) {
+                marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
+                marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
+            } else {
+                log.warn("该apiCode={} , userType={} , appletDate={}维度不存在有效期起止时间", apiCode, userType, appletDate);
+            }
+            writer.append(getNullSafeString(marketingSyncReportVO.getAppletDate())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getCid())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getApiCode())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getShortName())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getUserType())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getNormalNum())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getDuplicateRemovalNum())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getCreateTime())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getAppletBeginTime())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getAppletEndTime())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getValidStartDate())).append(",")
+                    .append(getNullSafeString(marketingSyncReportVO.getValidEndDate())).append("\r\n");
+        }
+
+    }
+
+    private String getNullSafeString(Object value) {
+        return value != null ? value.toString() : "";
+    }
+
 }
