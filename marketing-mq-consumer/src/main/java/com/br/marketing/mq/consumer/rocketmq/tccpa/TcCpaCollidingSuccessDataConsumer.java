@@ -52,59 +52,20 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
 
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
-//        try {
-//            long start = System.currentTimeMillis();
-//            Integer priority = marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("priority");
-//            String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-            long start = System.currentTimeMillis();
-            log.warn("TITLE:{}MQ消费,msgId:{}",TITLE,messageExt.getMsgId());
-            String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-            TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
-                        new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
-            log.warn("TITLE:{}MQ消费耗时:{}ms,msgId:{}, requestId:{}, dataId:{}",
-                    TITLE,System.currentTimeMillis()-start,messageExt.getMsgId(),tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId());
-
-            Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
-            log.warn("TITLE:{}-process执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
-                    TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
-                    tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
-                    result.getCode(), result.getData());
-
-            consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
-            log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}",
-                    TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
-                    tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
-            );
-
-//            if (priority > 1) {
-//                TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
-//                        new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
-//                log.warn("TITLE:{}MQ消费,msgId:{}, requestId:{}, dataId:{}",
-//                        TITLE,messageExt.getMsgId(),tcCpaSuccessMqDTO.getRequestId(),tcCpaSuccessMqDTO.getDataId());
-//                if (priority > 3) {
-//                    Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
-//                    log.warn("TITLE:{}-process执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
-//                            TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
-//                            tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
-//                            result.getCode(), result.getData());
-//                    if (priority > 5) {
-//                        consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
-//                        log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}",
-//                                TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
-//                                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
-//                        );
-//                    }
-//                }
-//            }
-//        }catch (Exception e) {
-//            log.warn("TITLE:{},handleMessage异常",TITLE, e);
-//            try {
-//                log.warn("TITLE:{},handleMessage异常,requestId:{},msgBody:{}",TITLE,messageExt.getMsgId(), new String(messageExt.getBody(), StandardCharsets.UTF_8), e);
-//            }catch (Exception e1) {
-//                log.warn("TITLE:{},handleMessage异常-line84日志异常",TITLE, e1);
-//            }
-//            throw e;
-//        }
+        long start = System.currentTimeMillis();
+        String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
+        TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
+                    new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
+        Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
+        log.warn("TITLE:{}-process执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+                TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
+                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
+                result.getCode(), result.getData());
+        consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
+        log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}",
+                TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
+                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
+        );
     }
 
     @Override
@@ -128,8 +89,5 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setClientRebalance(false);
         defaultMQPushConsumer.setPopInvisibleTime(300000L);
-//        Integer popBatchSize = marketingCommonConfig.getTcyrCpaCollidingConsumerConfig().getInteger("popBatchSize");
-//        popBatchSize = popBatchSize == null ? 32 : popBatchSize;
-//        defaultMQPushConsumer.setPopBatchNums(popBatchSize);
     }
 }

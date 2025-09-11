@@ -198,7 +198,10 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                     tcyrCpaSuccessDataList.add(successDataItem);
                 }
                 tcyrCpaSuccessDataMapper.batchSave(tcyrCpaSuccessDataList);
-                collidingSuccessSyncSendMq(tcyrCpaSuccessDataList);
+                Integer tcyrCpaAutoMqStatus = marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("tcyrCpaAutoMqStatus");
+                if (ObjectUtil.isNotEmpty(tcyrCpaAutoMqStatus) && tcyrCpaAutoMqStatus == 1) {
+                    collidingSuccessSyncSendMq(tcyrCpaSuccessDataList);
+                }
                 tcyrCpaSuccessDataList.clear();
             }catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),

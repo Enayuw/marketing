@@ -1,9 +1,7 @@
 package com.br.marketing.service.tccpa.impl;
 
-import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
 import com.br.marketing.entity.MarketingTcyrCpaDataLog;
 import com.br.marketing.entity.MarketingTcyrCpaLoopCycle;
@@ -19,8 +17,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -46,22 +42,9 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
     @Resource
     private MarketingTcyrCpaDataLogMapper dataLogMapper;
 
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> process(TcyrCpaSuccessMqDTO tcyrCpaSuccessMqDTO) {
-        long start = System.currentTimeMillis();
-        log.warn("TITLE:{},process方法执行开始-requestId:{}",TITLE,tcyrCpaSuccessMqDTO.getRequestId());
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue());
-        Integer dealProcessStatus = marketingCommonConfig.getTcyrCpaCollidingConsumerConfig().getInteger("dealProcessStatus");
-        if (dealProcessStatus != null && dealProcessStatus == 0) {
-            result.setDate(false);
-            log.warn("TITLE:{},process方法结束执行-requestId:{},耗时:{}ms",TITLE,tcyrCpaSuccessMqDTO.getRequestId(),System.currentTimeMillis() - start);
-            return result;
-        }
         Long dataId = tcyrCpaSuccessMqDTO.getDataId();
         String requestId = tcyrCpaSuccessMqDTO.getRequestId();
         String sourceType =null;
@@ -93,14 +76,11 @@ public class TcyrLoopCycleDataServiceImpl implements TcyrLoopCycleDataService {
             result.setDate(Boolean.FALSE);
         } catch (DuplicateKeyException e) {
             log.warn("TITLE:{},同程cpa撞库成功周期剔除数据重入异常,requestId:{}",TITLE, requestId  , e);
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             result.setDate(Boolean.FALSE);
         } catch (Exception e) {
             log.warn("TITLE:{},同程cpa撞库成功周期剔除数据异常,requestId:{}", TITLE,requestId, e);
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             result.setDate(Boolean.TRUE);
         }
-        log.warn("TITLE:{},process方法结束执行-requestId:{},耗时:{}ms",TITLE,tcyrCpaSuccessMqDTO.getRequestId(),System.currentTimeMillis() - start);
         return  result;
     }
 
