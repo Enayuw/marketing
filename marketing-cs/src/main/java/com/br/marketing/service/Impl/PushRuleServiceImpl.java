@@ -142,6 +142,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
     public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
+    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
     public static final String TO_POLICY_GENERAL = CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode();
 
     private static HashMap<String, String> errorCodeHm;
@@ -2617,19 +2618,21 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 没配置成init和ai客户
         boolean hasOperateType3 = containsOperateType(jsonData, "3");
         boolean hasOperateType4 = containsOperateType(jsonData, "4");
+        boolean hasOperateType5 = containsOperateType(jsonData, "5");
 
-        // jsonData中没有3也没有4
-        if (!hasOperateType3 && !hasOperateType4) {
+        // jsonData中没有345
+        if (!hasOperateType3 && !hasOperateType4 && !hasOperateType5) {
             return false;
         }
 
-        // jsonData包含3或者4，查db
+        // jsonData包含3或者4或者5，查db
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
 
         boolean hasType3Rule = customerRules.contains(TO_POLICY_GENERAL) && hasOperateType3;
         boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
+        boolean hasType5Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE) && hasOperateType5;
 
-        if (hasType3Rule && hasType4Rule) {
+        if (hasType3Rule && hasType4Rule && hasType5Rule) {
             getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
@@ -2647,8 +2650,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             ruleAdded = true;
         }
 
+        // 缓存中没有5
+        if (!hasType5Rule && hasOperateType5
+                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)) {
+            ruleAdded = true;
+        }
+
         // 缓存和数据中都有
-        if (hasType3Rule || hasType4Rule) {
+        if (hasType3Rule || hasType4Rule || hasType5Rule) {
             getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
@@ -3336,7 +3345,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
+        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)
+                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
+                || customerRules.contains(TO_POLICY_GENERAL)) {
             sendToAIUniversalQueue(mqFact, isBatch);
         }
     }

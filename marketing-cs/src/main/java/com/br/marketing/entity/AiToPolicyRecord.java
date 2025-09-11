@@ -14,9 +14,24 @@ public class AiToPolicyRecord {
     private Long fingerprint;
 
     /**
-     * APICODE
+     * 批次号
+     */
+    private String batchNumber;
+
+    /**
+     * 客户编号
      */
     private String apiCode;
+
+    /**
+     * 场景
+     */
+    private String userType;
+
+    /**
+     * 用户编号
+     */
+    private String custNum;
 
     /**
      * 客户规则标签
@@ -32,6 +47,11 @@ public class AiToPolicyRecord {
      * 扩展字段
      */
     private String extend;
+
+    /**
+     * 创建日期
+     */
+    private Integer createDate;
 
     /**
      * 创建时间
@@ -59,12 +79,36 @@ public class AiToPolicyRecord {
         this.fingerprint = fingerprint;
     }
 
+    public String getBatchNumber() {
+        return batchNumber;
+    }
+
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber == null ? null : batchNumber.trim();
+    }
+
     public String getApiCode() {
         return apiCode;
     }
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType == null ? null : userType.trim();
+    }
+
+    public String getCustNum() {
+        return custNum;
+    }
+
+    public void setCustNum(String custNum) {
+        this.custNum = custNum == null ? null : custNum.trim();
     }
 
     public String getRuleLabel() {
@@ -89,6 +133,14 @@ public class AiToPolicyRecord {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
+    }
+
+    public Integer getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Integer createDate) {
+        this.createDate = createDate;
     }
 
     public Date getCreateTime() {

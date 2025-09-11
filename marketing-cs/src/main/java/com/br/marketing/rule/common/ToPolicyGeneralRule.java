@@ -6,6 +6,7 @@ import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -22,6 +23,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -120,8 +123,12 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
     private boolean insertRecord(MarketingSyncUser syncUser) {
         AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
         aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
+        aiToPolicyRecord.setUserType(syncUser.getUserType());
+        aiToPolicyRecord.setCustNum(syncUser.getCustNum());
         aiToPolicyRecord.setApiCode(syncUser.getApiCode());
         aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode());
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        aiToPolicyRecord.setCreateDate(Integer.valueOf(yyyyMMdd));
         try {
             aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
             return true;
