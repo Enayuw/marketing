@@ -3357,7 +3357,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             String message = JSON.toJSONString(mqFact);
             if (isBatch) {
                 rocketMqSwitch.syncSend(AiRocketMQConstants.TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH,
-                        AiRocketMQConstants.GROUP_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH, message);
+                        AiRocketMQConstants.TAG_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH, message);
                 return;
             }
 
