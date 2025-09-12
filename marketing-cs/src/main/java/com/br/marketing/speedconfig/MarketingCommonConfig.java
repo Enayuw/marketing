@@ -3383,5 +3383,19 @@ public class MarketingCommonConfig {
      * #携程促活使用rabbitmq开关
      */
     private Boolean xieChengActivateRabbitMqSwitch;
+
+    /**
+     * 规则中心执行查询es模板
+     * {“apiCode”:{"pushTarget":"must/filter"}}
+     * {"7410770":{"1":"filter","2":"must"}}
+     */
+    private Map<String,JSONObject> ruleCenterPushType;
+
+
+    /**
+     * 规则中心筛选预览量级
+     * ["7410770"]
+     */
+    private List<String> ruleCenterPushView;
 }
 

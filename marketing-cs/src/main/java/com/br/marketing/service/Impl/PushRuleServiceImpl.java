@@ -80,6 +80,7 @@ import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
+import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
@@ -447,6 +448,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     TagHandleService tagHandleService;
 
+    @Resource
+    IEsActionService iEsActionService;
+
 
     @Override
     public Result<CustomerInfoPushMain> getPushTask() {
@@ -656,7 +660,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             String mTagCondition = dto.getmTagCondition();
             if (mTagCondition == null) {
-                total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                total = iEsActionService.getTotal(queryBaseBean);
             } else {
                 // 解析标签规则
                 JSONObject jsonObject = JSON.parseObject(mTagCondition);
@@ -1814,7 +1818,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isEmpty(querySql)) {
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
             }
-            log.warn("标签查询sql："+querySql);
+            log.warn("标签查询sql：" + querySql);
             Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
         } catch (Exception e) {
@@ -1969,7 +1973,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
                         }
 
-                        if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
+                        if (customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()) {
                             // 解析标签规则
                             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
                             String tagCode = jsonObject.getString("tagCode");
@@ -2484,7 +2488,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region 写入上传明细MQ
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jsonData);
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -2501,7 +2505,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 批量添加唯一ID
      *
-     * @param list 数据列表
+     * @param list        数据列表
      * @param setConsumer 赋值函数
      * @param getFunction 获取ID函数，如果获取ID为空，则添加ID,可为 null
      */
@@ -2597,6 +2601,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
+     *
      * @param apiCode    API代码
      * @param syncInfoId 同步信息ID
      * @param jsonData   JSON数据
@@ -2750,10 +2755,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType) {
-        log.warn("进入自动化推决策规则ToPolicyCommonRule："+JSONObject.toJSONString(syncUser));
+        log.warn("进入自动化推决策规则ToPolicyCommonRule：" + JSONObject.toJSONString(syncUser));
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(!isOpenNewEncrypt){
-            if(jc3keyType == null){
+        if (!isOpenNewEncrypt) {
+            if (jc3keyType == null) {
                 jc3keyType = CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue();
             }
             pushData.setPhone(getOld3keyValue(syncUser.getCell(), "cell", jc3keyType));
@@ -2812,7 +2817,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(isOpenNewEncrypt){
+        if (isOpenNewEncrypt) {
             if (CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue().equals(encryptionType)) {
                 return StringUtils.isNotBlank(content) ? BrCipherMaker.getInstance().decode(content) : content;
             }
@@ -2857,6 +2862,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return null;
     }
+
     /**
      * 根据配置表发送到对应MQ
      * 配置表：b_marketing_customer_routingKey_mapping
@@ -3317,7 +3323,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private void sendToAIUniversalQueue(MqFact mqFact){
+    private void sendToAIUniversalQueue(MqFact mqFact) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
             AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
                     RedisKeyConstant.AI_UNIVERSAL_RECEIVE_MQ_BALANCER);
@@ -3460,7 +3466,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region 写入上传明细MQ
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
