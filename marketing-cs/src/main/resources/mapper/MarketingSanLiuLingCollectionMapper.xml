@@ -15,4 +15,57 @@
         </foreach>
     </insert>
 
+    <!-- 分页查询不重复的applicationId列表 -->
+    <select id="selectDistinctApplicationIdsWithPaging" resultType="java.lang.String">
+        SELECT application_id
+        FROM (
+            SELECT DISTINCT application_id
+            FROM b_sanliuling_collection_details
+            WHERE api_code = #{apiCode}
+              AND receive_date = #{receiveDate}
+              AND clean_status = #{cleanStatus}
+              AND is_delete = 0
+              AND application_id IS NOT NULL
+              AND application_id != ''
+            ORDER BY application_id
+        ) t
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 查询不重复applicationId的总数量 -->
+    <select id="countDistinctApplicationIds" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT application_id)
+        FROM b_sanliuling_collection_details
+        WHERE api_code = #{apiCode}
+          AND receive_date = #{receiveDate}
+          AND clean_status = #{cleanStatus}
+          AND is_delete = 0
+          AND application_id IS NOT NULL
+          AND application_id != ''
+    </select>
+
+    <!-- 根据applicationId查询所有相关数据 -->
+    <select id="selectByApplicationId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM b_sanliuling_collection_details
+        WHERE api_code = #{apiCode}
+          AND receive_date = #{receiveDate}
+          AND clean_status = #{cleanStatus}
+          AND application_id = #{applicationId}
+          AND is_delete = 0
+    </select>
+
+    <!-- 根据applicationId批量更新cleanStatus状态 -->
+    <update id="updateCleanStatusByApplicationId">
+        UPDATE b_sanliuling_collection_details
+        SET clean_status = #{newCleanStatus},
+            update_time = NOW()
+        WHERE api_code = #{apiCode}
+          AND receive_date = #{receiveDate}
+          AND application_id = #{applicationId}
+          AND clean_status = #{oldCleanStatus}
+          AND is_delete = 0
+    </update>
+
 </mapper>

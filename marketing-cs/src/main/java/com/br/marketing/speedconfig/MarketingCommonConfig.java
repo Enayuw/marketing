@@ -3383,5 +3383,10 @@ public class MarketingCommonConfig {
      * #携程促活使用rabbitmq开关
      */
     private Boolean xieChengActivateRabbitMqSwitch;
+
+    /**
+     * 催收360上传数据清洗时间 HH:ss
+     */
+    private String sanLiuLingCollectionTime;
 }
 

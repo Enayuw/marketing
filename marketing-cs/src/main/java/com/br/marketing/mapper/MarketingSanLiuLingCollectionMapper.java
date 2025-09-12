@@ -11,4 +11,37 @@ public interface MarketingSanLiuLingCollectionMapper extends MarketingSanLiuLing
 
     int batchInsert(@Param("list") List<MarketingSanLiuLingCollection> list);
 
+    /**
+     * 查询不重复applicationId的总数量
+     */
+    Long countDistinctApplicationIds(@Param("apiCode") String apiCode,
+                                     @Param("receiveDate") String receiveDate,
+                                     @Param("cleanStatus") Integer cleanStatus);
+
+    /**
+     * 分页查询不重复的applicationId列表
+     */
+    List<String> selectDistinctApplicationIdsWithPaging(@Param("apiCode") String apiCode,
+                                                        @Param("receiveDate") String receiveDate,
+                                                        @Param("cleanStatus") Integer cleanStatus,
+                                                        @Param("offset") Long offset,
+                                                        @Param("pageSize") Integer pageSize);
+
+    /**
+     * 根据applicationId查询所有相关数据
+     */
+    List<MarketingSanLiuLingCollection> selectByApplicationId(@Param("apiCode") String apiCode,
+                                                              @Param("receiveDate") String receiveDate,
+                                                              @Param("cleanStatus") Integer cleanStatus,
+                                                              @Param("applicationId") String applicationId);
+
+    /**
+     * 根据applicationId批量更新cleanStatus状态
+     */
+    int updateCleanStatusByApplicationId(@Param("apiCode") String apiCode,
+                                         @Param("receiveDate") String receiveDate,
+                                         @Param("applicationId") String applicationId,
+                                         @Param("oldCleanStatus") Integer oldCleanStatus,
+                                         @Param("newCleanStatus") Integer newCleanStatus);
+
 }
