@@ -7,6 +7,7 @@ import com.br.marketing.common.bean.CrossIndexBean;
 import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.bean.SingleIndexBean;
 import com.br.marketing.common.utils.StringUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.expression.ExpressionParser;
@@ -85,7 +86,7 @@ public class GeneScriptUtil {
 
     private static Map<String, String> opetatorMap;
 
-    static{
+    static {
         logicMap = ImmutableMap.of(
                 LOGIC_AND, LOGIC_OPERATOR_AND,
                 LOGIC_OR, LOGIC_OPERATOR_OR);
@@ -102,9 +103,9 @@ public class GeneScriptUtil {
     }
 
     /**
-     * @description 生成es打标脚本
      * @param scoreLables
      * @return java.lang.String
+     * @description 生成es打标脚本
      * @author hedongshuo
      * @date 2024/10/26 18:32
      **/
@@ -133,6 +134,7 @@ public class GeneScriptUtil {
 
     /**
      * 将条件json转为list
+     *
      * @param scoreLables
      * @return
      */
@@ -239,7 +241,7 @@ public class GeneScriptUtil {
             conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
             process(conditionBuilder, data, markWithEsFlag);
             conditionBuilder.append(PARENTHESIS_FRAG_RIGHT);
-        //底层解析
+            //底层解析
         } else if ("operation".equals(type)) {
             conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
             String key = data.getString("key");
@@ -282,10 +284,10 @@ public class GeneScriptUtil {
     }
 
     /**
-     * @description 返回数据打标
      * @param scoreLables
      * @param scoreMap
      * @return com.alibaba.fastjson.JSONObject
+     * @description 返回数据打标
      * @author hedongshuo
      * @date 2024/10/29 13:38
      **/
@@ -320,10 +322,10 @@ public class GeneScriptUtil {
     }
 
     /**
-     * @description 传入分值scoreMap，解析condition，是否满足条件
      * @param condition
      * @param scoreMap
      * @return java.lang.Boolean
+     * @description 传入分值scoreMap，解析condition，是否满足条件
      * @author hedongshuo
      * @date 2024/10/29 13:43
      **/
@@ -350,7 +352,7 @@ public class GeneScriptUtil {
             } else {
                 return false;
             }
-        //底层解析
+            //底层解析
         } else {
             return valueOperate(condition, scoreMap);
         }
@@ -473,7 +475,7 @@ public class GeneScriptUtil {
                 listByX.sort(Comparator.comparingDouble((CrossIndexBean bean) -> compareValue(bean, true)));
                 for (int i = listByX.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByX.get(i);
-                    CrossIndexBean former = listByX.get(i-1);
+                    CrossIndexBean former = listByX.get(i - 1);
                     if (later.getYLeftValue().equals(former.getYRightValue())) {
                         former.setYRightValue(later.getYRightValue());
                         listByX.remove(i);
@@ -492,7 +494,7 @@ public class GeneScriptUtil {
                 listByY.sort(Comparator.comparingDouble((CrossIndexBean bean) -> compareValue(bean, false)));
                 for (int i = listByY.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByY.get(i);
-                    CrossIndexBean former = listByY.get(i-1);
+                    CrossIndexBean former = listByY.get(i - 1);
                     if (later.getXLeftValue().equals(former.getXRightValue())) {
                         former.setXRightValue(later.getXRightValue());
                         listByY.remove(i);
@@ -535,12 +537,11 @@ public class GeneScriptUtil {
                 }
             }
         } else {
-            String singleKey = sample.getString("key");
-            List<SingleIndexBean> list = new ArrayList<>();
-            for (int i = 0; i < data.size(); i++) {
+            Map<String, SingleIndexBean> map = new HashMap<>();
+            for (Object datum : data) {
+                String singleKey = ((JSONObject)datum).getString("key");
                 SingleIndexBean singleIndexBean = new SingleIndexBean();
-                list.add(singleIndexBean);
-                JSONObject singleIndex = JSON.parseObject(data.get(i).toString());
+                JSONObject singleIndex = JSON.parseObject(datum.toString());
                 List<String> values = Arrays.asList(singleIndex.getString("value").split(","));
                 if (values.size() < 2) {
                     singleIndexBean.setLeftValue("");
@@ -549,30 +550,29 @@ public class GeneScriptUtil {
                     singleIndexBean.setLeftValue(values.get(0));
                     singleIndexBean.setRightValue(values.get(1));
                 }
+                map.put(singleKey, singleIndexBean);
             }
-            //排序
-            list.sort(Comparator.comparingDouble((SingleIndexBean bean) -> compareValue(bean, null)));
-            for (int i = list.size() - 1; i > 0; i--) {
-                SingleIndexBean later = list.get(i);
-                SingleIndexBean former = list.get(i - 1);
-                if (later.getLeftValue().equals(former.getRightValue())) {
-                    former.setRightValue(later.getRightValue());
-                    list.remove(i);
-                }
-            }
-            //合并完，反显为Json
-            JSONArray array = new JSONArray();
+
+            JSONArray array = getJsonArray(map);
             condition.put("data", array);
-            for (int i = 0; i < list.size(); i++) {
-                SingleIndexBean singleIndexBean = list.get(i);
-                JSONObject singleIndexJson = new JSONObject();
-                array.set(i, singleIndexJson);
-                singleIndexJson.put("type", "operation");
-                singleIndexJson.put("key", singleKey);
-                singleIndexJson.put("operation", "between_right");
-                singleIndexJson.put("value", singleIndexBean.getLeftValue() + "," + singleIndexBean.getRightValue());
-            }
         }
+
+    }
+
+    private static JSONArray getJsonArray(Map<String, SingleIndexBean> map) {
+        JSONArray array = new JSONArray();
+        for (Map.Entry<String, SingleIndexBean> entry : map.entrySet()) {
+            String leftValue = entry.getValue().getLeftValue();
+            String rightValue = entry.getValue().getRightValue();
+            JSONObject singleIndexJson = new JSONObject();
+            singleIndexJson.put("type", "operation");
+            singleIndexJson.put("key", entry.getKey());
+            singleIndexJson.put("operation", "between_right");
+            singleIndexJson.put("value", leftValue + "," + rightValue);
+            array.add(singleIndexJson);
+
+        }
+        return array;
     }
 
     private static double compareValue(Object bean, Boolean isX) {
