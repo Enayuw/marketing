@@ -10,10 +10,11 @@ import com.br.marketing.dto.sanliuling.request.CustomerInformationDTO;
 import com.br.marketing.dto.sanliuling.request.SanLiuLingUploadRequestDTO;
 import com.br.marketing.dto.sanliuling.response.SanLiuLingResponseDTO;
 import com.br.marketing.entity.MarketingCustomerInitialData;
-import com.br.marketing.entity.MarketingCustomerOriginalData;
+import com.br.marketing.entity.MarketingSanLiuLingCollection;
+import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.MarketingCustomerInitialDataMapper;
-import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
+import com.br.marketing.mapper.MarketingSanLiuLingCollectionMapper;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,7 +43,7 @@ public class SanLiuLingUploadDataService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
+    MarketingSanLiuLingCollectionMapper marketingSanLiuLingCollectionMapper;
     @Resource
     MarketingCustomerInitialDataMapper marketingCustomerInitialDataMapper;
 
@@ -85,6 +87,8 @@ public class SanLiuLingUploadDataService {
                         "360催收定制上传数据入库失败(b_marketing_customer_initial_data)！！！"));
             }
 
+            String taskId = dto.getTaskId();
+            String batchNo = dto.getBatchNo();
             List<CustomerInformationDTO> list = dto.getList();
             //存储错误的客户id
             List<String> failIdList = new ArrayList<>();
@@ -103,14 +107,13 @@ public class SanLiuLingUploadDataService {
             //处理失败数据
             if (!failIdList.isEmpty()) {
                 log.warn("【360催收数据上传】参数校验失败: {}, jsonData: {}", failIdList, jsonData);
+                insertOriginalData(apiCode, taskId, batchNo, 1, successList);
                 sanLiuLingResponseDTO = sanLiuLingResponseDTO.failed(SanLiuLingResponseDTO.ResultEnum.FAILED_PARAM_ERROR, failIdList.toString());
             }
             //处理成功数据
             if (!successList.isEmpty()) {
-                dto.setList(successList);
-                insertOriginalData(apiCode, requestId, dto);
+                insertOriginalData(apiCode, taskId, batchNo,0, successList);
             }
-
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULINGCOLLECTION_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                     "360催收定制上传数据接入异常！！！"), e);
@@ -132,23 +135,37 @@ public class SanLiuLingUploadDataService {
         return marketingCustomerInitialDataMapper.insertSelective(initialData);
     }
 
-    private void insertOriginalData(String apiCode, String requestId, SanLiuLingUploadRequestDTO dto) {
-        MarketingCustomerOriginalData originalData = new MarketingCustomerOriginalData();
-        originalData.setApiCode(apiCode);
-        originalData.setRequestId(requestId);
-        originalData.setJsonData(JSONObject.toJSON(dto).toString());
-        originalData.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
-        originalData.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
-        originalData.setActualNum(dto.getList().size());
-        originalData.setReceiveDate(LocalDate.now().toString());
-        int i = marketingCustomerOriginalDataMapper.insertSelective(originalData);
-        if (i != 1) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULINGCOLLECTION_SERVICEERROR.getCode(), "jsonData:" + dto.toString(),
-                    "360催收定制上传数据入库失败(b_marketing_customer_original_data)！！！"));
-        }
-        pushRuleService.sendJsonParseMq(apiCode, originalData.getId(), null,
-                DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
+    private void insertOriginalData(String apiCode, String taskId, String batchNo,
+                                    Integer isDelete, List<CustomerInformationDTO> successList) {
 
+        List<MarketingSanLiuLingCollection> list = new ArrayList<>();
+
+        for (CustomerInformationDTO dto : successList){
+            MarketingSanLiuLingCollection marketingSanLiuLingCollection = new MarketingSanLiuLingCollection();
+            marketingSanLiuLingCollection.setApiCode(apiCode);
+            marketingSanLiuLingCollection.setTaskId(taskId);
+            marketingSanLiuLingCollection.setBatchNo(batchNo);
+            marketingSanLiuLingCollection.setApplicationId(dto.getApplicationId());
+            marketingSanLiuLingCollection.setPhone(dto.getPhone());
+            marketingSanLiuLingCollection.setSpeechParamSet(dto.getSpeechParamSet());
+            marketingSanLiuLingCollection.setCustomerName(dto.getCustomerName());
+            marketingSanLiuLingCollection.setCaseCode(dto.getCaseCode());
+            marketingSanLiuLingCollection.setProductType(dto.getProductType());
+            marketingSanLiuLingCollection.setPrologueRemark(dto.getPrologueRemark());
+            marketingSanLiuLingCollection.setPhoneLabel(dto.getPhoneLabel());
+            marketingSanLiuLingCollection.setCleanStatus(DataCleanStatusEnum.READY.getCode());
+            marketingSanLiuLingCollection.setReceiveDate(LocalDate.now().toString());
+            marketingSanLiuLingCollection.setIsDelete(isDelete);
+            marketingSanLiuLingCollection.setCreateTime(new Date());
+            marketingSanLiuLingCollection.setUpdateTime(new Date());
+            list.add(marketingSanLiuLingCollection);
+        }
+
+        int i = marketingSanLiuLingCollectionMapper.batchInsert(list);
+        if (i != 1) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULINGCOLLECTION_SERVICEERROR.getCode(), "jsonData:" + list,
+                    "360催收定制上传数据入库失败(b_sanliuling_collection_details)！！！"));
+        }
     }
 
 
