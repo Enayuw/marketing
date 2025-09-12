@@ -32,6 +32,9 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
 
     @AddDataAuth
+    List<MarketingSyncReportVO> selectExportDataList(Map<String, Object> params);
+
+    @AddDataAuth
     List<MarketingSyncReportNumVO> getReportListTotaltiflash_(Map<String, Object> params);
 
     int modifyReportById(MarketingSyncReport record);

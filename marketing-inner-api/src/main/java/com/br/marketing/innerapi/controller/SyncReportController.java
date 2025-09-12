@@ -71,9 +71,7 @@ public class SyncReportController {
 
     @GetMapping("/exportData")
     @ApiOperation(value = "导出客户上传数据记录", notes = "导出客户上传数据记录", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
+    @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")

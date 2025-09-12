@@ -141,6 +141,57 @@
     order by bmsr.applet_date desc,bmsr.create_time desc,bmsr.id desc
   </select>
 
+
+  <select id="selectExportDataList" resultType="com.br.marketing.vo.MarketingSyncReportVO">
+    select
+      bmsr.id
+    , bmsr.cid
+    , bmsr.api_code
+    , bmsr.short_name as shortName
+    , bmsr.applet_date as appletDate
+    , bmsr.user_type as userType
+    , bmsr.normal_num as normalNum
+    , bmsr.duplicate_removal_num as duplicateRemovalNum
+    , DATE_FORMAT(bmsr.applet_begin_time,'%Y-%m-%d %H:%i:%s') as appletBeginTime
+    , DATE_FORMAT(bmsr.applet_end_time,'%Y-%m-%d %H:%i:%s') as appletEndTime
+    , bmsr.remark
+    , DATE_FORMAT(bmsr.create_time,'%Y-%m-%d %H:%i:%s') as createTime
+    , DATE_FORMAT(bmsr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+    , bmsr.label_message as labelMessage
+    , COALESCE(bmvd.valid_start_date, '') as validStartDate
+    , COALESCE(bmvd.valid_end_date, '') as validEndDate
+    from b_marketing_sync_report bmsr
+      LEFT JOIN b_marketing_data_valid_config bmvd
+      ON bmsr.api_code = bmvd.api_code
+      AND bmsr.user_type = bmvd.user_type
+      AND bmsr.applet_date = bmvd.applet_date
+    <where>
+      <if test="appletTimeStart !=null and appletTimeStart!=''">
+        <![CDATA[  and bmsr.applet_date >=#{appletTimeStart} ]]>
+      </if>
+      <if test="appletTimeEnd !=null and appletTimeEnd!=''">
+        <![CDATA[  and bmsr.applet_date <#{appletTimeEnd} ]]>
+      </if>
+      <if test="apiCodeList != null and apiCodeList.size()>0">
+        and bmsr.api_code in
+        <foreach collection="apiCodeList" item="item" open="(" separator="," close=")">
+          #{item}
+        </foreach>
+      </if>
+      <if test="userTypeList != null and userTypeList.size()>0">
+        and bmsr.user_type in
+        <foreach collection="userTypeList" item="item" open="(" separator="," close=")">
+          #{item}
+        </foreach>
+      </if>
+      <if test="cidOrName != null and cidOrName.trim() neq ''">
+        and (bmsr.cid like concat("%", #{cidOrName},"%")
+        or bmsr.short_name like concat("%", #{cidOrName},"%"))
+      </if>
+    </where>
+    order by bmsr.applet_date desc,bmsr.create_time desc,bmsr.id desc
+  </select>
+
   <select id="getReportListTotaltiflash_" resultType="com.br.marketing.vo.MarketingSyncReportNumVO">
     select SUM(normal_num) as normalNumTotal,SUM(duplicate_removal_num) as duplicateRemovalNumTotal,
            api_code
@@ -377,23 +428,31 @@
   </select>
 
   <select id="selectByIdList" resultType="com.br.marketing.vo.MarketingSyncReportVO">
-    select id, cid
-         , api_code
-         , short_name as shortName
-         , applet_date as appletDate
-         , user_type as userType
-         , normal_num as normalNum
-         , duplicate_removal_num as duplicateRemovalNum
-         , DATE_FORMAT(bmsr.applet_begin_time,'%Y-%m-%d %H:%i:%s') as appletBeginTime
-         , DATE_FORMAT(bmsr.applet_end_time,'%Y-%m-%d %H:%i:%s') as appletEndTime
-         , remark
-         , DATE_FORMAT(bmsr.create_time,'%Y-%m-%d %H:%i:%s') as createTime
-         , DATE_FORMAT(bmsr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
-         , label_message as labelMessage
-    from b_marketing_sync_report bmsr
-    where id  in
-      <foreach collection="idList" item="idItem" open="(" separator="," close=")">
-        #{idItem}
-      </foreach>
+    select
+      bmsr.id
+      , bmsr.cid
+      , bmsr.api_code
+      , bmsr.short_name as shortName
+      , bmsr.applet_date as appletDate
+      , bmsr.user_type as userType
+      , bmsr.normal_num as normalNum
+      , bmsr.duplicate_removal_num as duplicateRemovalNum
+      , DATE_FORMAT(bmsr.applet_begin_time,'%Y-%m-%d %H:%i:%s') as appletBeginTime
+      , DATE_FORMAT(bmsr.applet_end_time,'%Y-%m-%d %H:%i:%s') as appletEndTime
+      , bmsr.remark
+      , DATE_FORMAT(bmsr.create_time,'%Y-%m-%d %H:%i:%s') as createTime
+      , DATE_FORMAT(bmsr.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+      , bmsr.label_message as labelMessage
+      , COALESCE(bmvd.valid_start_date, '') as validStartDate
+      , COALESCE(bmvd.valid_end_date, '') as validEndDate
+      from b_marketing_sync_report bmsr
+      LEFT JOIN b_marketing_data_valid_config bmvd
+      ON bmsr.api_code = bmvd.api_code
+      AND bmsr.user_type = bmvd.user_type
+      AND bmsr.applet_date = bmvd.applet_date
+      where bmsr.id  in
+        <foreach collection="idList" item="idItem" open="(" separator="," close=")">
+          #{idItem}
+        </foreach>
   </select>
 </mapper>

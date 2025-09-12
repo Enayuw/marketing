@@ -998,13 +998,15 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 params.put("apiCodeList", apiCodeList);
                 params.put("userTypeList", userTypeList);
                 Integer pageNum = 1;
+                //TODO 0913 pageSize是否需要speed配置
                 Integer pageSize = 1000;
-                boolean stillFlag = true;
-                while (stillFlag) {
-                    PageHelper.startPage(pageNum, pageSize);
-                    List<MarketingSyncReportVO> list = syncReportMapper.selectList(params);
+                while (true) {
+                    PageHelper.startPage(pageNum, pageSize,false);
+                    List<MarketingSyncReportVO> list = syncReportMapper.selectExportDataList(params);
                     exportAppendListData(list,simpleDateFormat,writer);
-                    stillFlag = !list.isEmpty();
+                    if (CollectionUtils.isEmpty(list) || list.size() < pageSize) {
+                        break;
+                    }
                     pageNum++;
                     writer.flush();
                     out.flush();
@@ -1026,16 +1028,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     private void exportAppendListData(List<MarketingSyncReportVO> list,SimpleDateFormat simpleDateFormat, OutputStreamWriter writer) throws IOException {
         for (MarketingSyncReportVO marketingSyncReportVO : list) {
-            String apiCode = marketingSyncReportVO.getApiCode();
-            String userType = marketingSyncReportVO.getUserType();
-            String appletDate = marketingSyncReportVO.getAppletDate();
-            MarketingDataValidConfig validDate = changeMapper.getValidDate(apiCode, userType, appletDate);
-            if (ObjectUtil.isNotEmpty(validDate)) {
-                marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
-                marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
-            } else {
-                log.warn("该apiCode={} , userType={} , appletDate={}维度不存在有效期起止时间", apiCode, userType, appletDate);
-            }
             writer.append(getNullSafeString(marketingSyncReportVO.getAppletDate())).append(",")
                     .append(getNullSafeString(marketingSyncReportVO.getCid())).append(",")
                     .append(getNullSafeString(marketingSyncReportVO.getApiCode())).append(",")
@@ -1051,7 +1043,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         }
 
     }
-
+    //// TODO 修改
+    //public static String safeToString(Object obj) {
+    //    return Optional.ofNullable(obj).map(Object::toString).orElse("");
+    //}
     private String getNullSafeString(Object value) {
         return value != null ? value.toString() : "";
     }
