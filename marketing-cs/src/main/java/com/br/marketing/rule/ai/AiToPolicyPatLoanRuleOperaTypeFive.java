@@ -137,32 +137,32 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
                     .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andCustNumEqualTo(custNum);
             int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
             batchNumber = yyyyMMdd + "-" + apiCode + "-" + userType + "-" + pushCount;
+
+            AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
+            aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
+            aiToPolicyRecord.setBatchNumber(batchNumber);
+            aiToPolicyRecord.setApiCode(apiCode);
+            aiToPolicyRecord.setUserType(userType);
+            aiToPolicyRecord.setCustNum(custNum);
+            aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode());
+            aiToPolicyRecord.setCreateDate(createDate);
+            try {
+                aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
+                syncUser.setReserveField2(batchNumber);
+                return true;
+            } catch (DuplicateKeyException e) {
+                log.warn("AI自动化推决策_操作类型5,数据重复，fingerprint:{}", syncUser.getFingerprint());
+                return false;
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,写去重表db异常："), e);
+                return true;
+            }
         } catch (Exception e) {
             redisChgService.unlock(key, lockValue);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,redis加锁异常,消费端自动重试："), e);
             throw new RuntimeException(e);
         } finally {
             redisChgService.unlock(key, lockValue);
-        }
-
-        AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
-        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
-        aiToPolicyRecord.setBatchNumber(batchNumber);
-        aiToPolicyRecord.setApiCode(apiCode);
-        aiToPolicyRecord.setUserType(userType);
-        aiToPolicyRecord.setCustNum(custNum);
-        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode());
-        aiToPolicyRecord.setCreateDate(createDate);
-        try {
-            aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
-            syncUser.setReserveField2(batchNumber);
-            return true;
-        } catch (DuplicateKeyException e) {
-            log.warn("AI自动化推决策_操作类型5,数据重复，fingerprint:{}", syncUser.getFingerprint());
-            return false;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,写去重表db异常："), e);
-            return true;
         }
     }
 
