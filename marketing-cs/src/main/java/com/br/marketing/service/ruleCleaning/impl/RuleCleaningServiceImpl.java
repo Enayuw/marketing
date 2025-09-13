@@ -1907,7 +1907,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
-        List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(","));
+        List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
         for (int i = 0; i < fileHeader.size(); i++) {
             FieldSampleDTO dto = new FieldSampleDTO();
             // 设置字段名称
