@@ -19,14 +19,13 @@
     <select id="selectDistinctApplicationIdsWithPaging" resultType="java.lang.String">
         SELECT application_id
         FROM (
-            SELECT DISTINCT application_id
+            SELECT application_id
             FROM b_sanliuling_collection_details
             WHERE api_code = #{apiCode}
               AND receive_date = #{receiveDate}
               AND clean_status = #{cleanStatus}
               AND is_delete = 0
-              AND application_id IS NOT NULL
-              AND application_id != ''
+            GROUP BY application_id
             ORDER BY application_id
         ) t
         LIMIT #{offset}, #{pageSize}
@@ -40,8 +39,6 @@
           AND receive_date = #{receiveDate}
           AND clean_status = #{cleanStatus}
           AND is_delete = 0
-          AND application_id IS NOT NULL
-          AND application_id != ''
     </select>
 
     <!-- 根据applicationId查询所有相关数据 -->
@@ -66,6 +63,17 @@
           AND application_id = #{applicationId}
           AND clean_status = #{oldCleanStatus}
           AND is_delete = 0
+    </update>
+
+    <!-- 根据ID列表批量更新cleanStatus状态 -->
+    <update id="updateCleanStatusByIds">
+        UPDATE b_sanliuling_collection_details
+        SET clean_status = #{cleanStatus},
+            update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </update>
 
 </mapper>

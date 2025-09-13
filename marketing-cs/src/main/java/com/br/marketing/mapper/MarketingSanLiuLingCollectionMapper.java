@@ -44,4 +44,10 @@ public interface MarketingSanLiuLingCollectionMapper extends MarketingSanLiuLing
                                          @Param("oldCleanStatus") Integer oldCleanStatus,
                                          @Param("newCleanStatus") Integer newCleanStatus);
 
+    /**
+     * 根据ID列表批量更新cleanStatus状态
+     */
+    int updateCleanStatusByIds(@Param("ids") List<Long> ids,
+                               @Param("cleanStatus") Integer cleanStatus);
+
 }

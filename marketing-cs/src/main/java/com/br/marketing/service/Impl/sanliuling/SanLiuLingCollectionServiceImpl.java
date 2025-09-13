@@ -1,10 +1,12 @@
 package com.br.marketing.service.Impl.sanliuling;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.dto.sanliuling.request.ContactListDTO;
 import com.br.marketing.entity.MarketingSanLiuLingCollection;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
@@ -18,11 +20,10 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName SanLiuLingCollectionServiceImpl
@@ -32,14 +33,16 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 1. 分页查询applicationId：避免千万级数据一次性加载到内存
  * 2. 线程池并发处理：每个applicationId分组独立处理，提高效率
  * 3. 数据顺序保证：通过ORDER BY application_id确保分页查询的数据顺序一致性
+ * 4. 批量状态更新：先查询数据获取ID，然后通过ID批量更新状态，减少数据库交互次数
  * 
  * 状态管理说明：
  * 1. cleanStatus状态流转：0(待清洗) -> 1(清洗中) -> 2(清洗完成)
- * 2. 状态更新时机：
- *    - 捞取数据前：0 -> 1 (防止重复处理)
- *    - 推送完成后：1 -> 2 (标记完成)
- *    - 异常发生时：1 -> 0 (回滚待重新处理)
+ * 2. 状态更新优化：
+ *    - 查询阶段：一次查询获取所有数据和ID
+ *    - 状态更新：通过ID列表批量更新，避免多次applicationId条件查询
+ *    - 异常回滚：基于已获取的ID列表进行回滚
  * 3. 并发安全：通过数据库行锁和状态检查确保同一applicationId不会被重复处理
+ * 4. 数据量级：每个applicationId数据量不超过10条，适合批量处理
  * 
  * @Author kongbx
  * @Date 2025/9/12 16:53
@@ -113,65 +116,70 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
      * 处理单个applicationId的数据
      */
     private void processApplicationIdData(String apiCode, String receiveDate, String applicationId) {
+        List<Long> dataIds = new ArrayList<>();
         try {
-            // 1. 先将状态更新为清洗中(1)，防止重复处理
-            int updateCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByApplicationId(
-                    apiCode, receiveDate, applicationId, 
-                    DataCleanStatusEnum.READY.getCode(), 
+            // 1. 先查询该applicationId下的所有待清洗数据
+            List<MarketingSanLiuLingCollection> collectionList = marketingSanLiuLingCollectionMapper.selectByApplicationId(
+                    apiCode, receiveDate, DataCleanStatusEnum.READY.getCode(), applicationId);
+            
+            if (CollectionUtils.isEmpty(collectionList)) {
+                log.warn(TITLE + "applicationId: {} 下无待清洗数据，跳过处理", applicationId);
+                return;
+            }
+            
+            // 2. 提取所有数据的ID，用于后续状态更新
+            dataIds = collectionList.stream()
+                    .map(MarketingSanLiuLingCollection::getId)
+                    .collect(Collectors.toList());
+            
+            // 3. 批量将状态更新为清洗中(1)，防止重复处理
+            int updateCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
                     DataCleanStatusEnum.RUNNING.getCode());
             
             if (updateCount == 0) {
                 log.warn(TITLE + "applicationId: {} 状态更新失败，可能已被其他线程处理", applicationId);
                 return;
             }
+
+            // 拆分为br前缀的列表
+            List<MarketingSanLiuLingCollection> brList = collectionList.stream()
+                    .filter(collection -> collection.getPhoneLabel() != null &&
+                            collection.getPhoneLabel().startsWith("br"))
+                    .collect(Collectors.toList());
+
+            // 拆分为lxr前缀的列表
+            List<MarketingSanLiuLingCollection> lxrList = collectionList.stream()
+                    .filter(collection -> collection.getPhoneLabel() != null &&
+                            collection.getPhoneLabel().startsWith("lxr"))
+                    .collect(Collectors.toList());
+
+            // 构建上传数据 - 按applicationId合并数据
+            String taskId = UUID.randomUUID().toString();
             
-            // 2. 查询该applicationId下的所有数据（状态已更新为清洗中）
-            List<MarketingSanLiuLingCollection> collectionList = marketingSanLiuLingCollectionMapper.selectByApplicationId(
-                    apiCode, receiveDate, DataCleanStatusEnum.RUNNING.getCode(), applicationId);
-            
-            if (CollectionUtils.isEmpty(collectionList)) {
-                log.warn(TITLE + "applicationId: {} 下无数据，跳过处理", applicationId);
-                // 如果没有数据，将状态回滚为待清洗
-                marketingSanLiuLingCollectionMapper.updateCleanStatusByApplicationId(
-                        apiCode, receiveDate, applicationId,
-                        DataCleanStatusEnum.RUNNING.getCode(),
-                        DataCleanStatusEnum.READY.getCode());
-                return;
-            }
-
-            log.warn(TITLE + "处理applicationId: {}, 数据量: {}", applicationId, collectionList.size());
-
-            // 构建上传数据
-            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
-            String taskId = null;
-            String batchNo = null;
-
-            for (MarketingSanLiuLingCollection collection : collectionList) {
-                if (taskId == null) {
+            // 获取taskId（优先使用数据库中的taskId）
+            for (MarketingSanLiuLingCollection collection : brList) {
+                if (!StringUtils.isEmpty(collection.getTaskId())) {
                     taskId = collection.getTaskId();
-                    batchNo = collection.getBatchNo();
-                }
-
-                MarketingPreUserDetailDTO detailDTO = buildMarketingPreUserDetailDTO(collection);
-                if (detailDTO != null) {
-                    syncUsers.add(detailDTO);
+                    break;
                 }
             }
-
-            if (CollectionUtils.isEmpty(syncUsers)) {
-                log.warn(TITLE + "applicationId: {} 下无有效数据，跳过上传", applicationId);
-                // 无有效数据时，将状态回滚为待清洗
-                marketingSanLiuLingCollectionMapper.updateCleanStatusByApplicationId(
-                        apiCode, receiveDate, applicationId,
-                        DataCleanStatusEnum.RUNNING.getCode(),
-                        DataCleanStatusEnum.READY.getCode());
-                return;
+            
+            // 按applicationId合并数据：一个applicationId生成一条记录
+            MarketingPreUserDetailDTO mergedDetailDTO = buildMergedMarketingPreUserDetailDTO(brList,lxrList);
+            
+            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+            if (mergedDetailDTO != null) {
+                syncUsers.add(mergedDetailDTO);
             }
+
+            // 使用LocalDate获取当前日期
+            LocalDate currentDate = LocalDate.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
             // 构建上传对象
             MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
             marketingPreUserDTO.setTaskId(taskId);
-            marketingPreUserDTO.setRequestId(batchNo);
+            marketingPreUserDTO.setRequestId(apiCode.concat("_").concat(taskId).concat("_").concat(currentDate.format(formatter)));
             marketingPreUserDTO.setDataItems(syncUsers);
 
             UploadDataDTO uploadDataDTO = new UploadDataDTO();
@@ -183,9 +191,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
             pushInfoService.pushUploadByRetry(uploadDataDTO, null);
             
             // 4. 推送成功后，将状态更新为清洗完成(2)
-            int completedCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByApplicationId(
-                    apiCode, receiveDate, applicationId,
-                    DataCleanStatusEnum.RUNNING.getCode(),
+            int completedCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
                     DataCleanStatusEnum.COMPLETE.getCode());
             
             if (completedCount > 0) {
@@ -198,55 +204,118 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
             log.error(TITLE + "处理applicationId: {} 数据时发生异常", applicationId, e);
             
             // 发生异常时，尝试将状态回滚为待清洗，便于重新处理
-            try {
-                marketingSanLiuLingCollectionMapper.updateCleanStatusByApplicationId(
-                        apiCode, receiveDate, applicationId,
-                        DataCleanStatusEnum.RUNNING.getCode(),
-                        DataCleanStatusEnum.READY.getCode());
-                log.warn(TITLE + "异常回滚：applicationId: {} 状态已回滚为待清洗", applicationId);
-            } catch (Exception rollbackException) {
-                log.error(TITLE + "异常回滚失败，applicationId: {}", applicationId, rollbackException);
+            if (!CollectionUtils.isEmpty(dataIds)) {
+                try {
+                    marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
+                            DataCleanStatusEnum.READY.getCode());
+                    log.warn(TITLE + "异常回滚：applicationId: {} 状态已回滚为待清洗", applicationId);
+                } catch (Exception rollbackException) {
+                    log.error(TITLE + "异常回滚失败，applicationId: {}", applicationId, rollbackException);
+                }
             }
         }
     }
 
     /**
-     * 构建MarketingPreUserDetailDTO对象
+     * 合并同一applicationId的多条记录为一条上传记录
      */
-    private MarketingPreUserDetailDTO buildMarketingPreUserDetailDTO(MarketingSanLiuLingCollection collection) {
+    private MarketingPreUserDetailDTO buildMergedMarketingPreUserDetailDTO(List<MarketingSanLiuLingCollection> brList,
+                                                                           List<MarketingSanLiuLingCollection> lxrList) {
         try {
+            // 联系人列表
+            List<ContactListDTO> contactList = getContactListDTOS(lxrList);
+
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             
-            // 设置基本字段
-            detailDTO.setCell(collection.getPhone());
-            detailDTO.setName(collection.getCustomerName());
-            detailDTO.setCustNum(collection.getApplicationId());
-            
-            // 构建业务保留字段
-            Map<String, Object> reserveField1 = new HashMap<>();
-            reserveField1.put("caseCode", collection.getCaseCode());
-            reserveField1.put("productType", collection.getProductType());
-            reserveField1.put("prologueRemark", collection.getPrologueRemark());
-            reserveField1.put("phoneLabel", collection.getPhoneLabel());
-            
-            if (!StringUtils.isEmpty(collection.getSpeechParamSet())) {
-                reserveField1.put("speechParamSet", collection.getSpeechParamSet());
+            // 主要信息（从br1记录中获取）
+            String phone = "";
+            String customerName = "";
+            // 解析语音参数获取详细信息
+            String name = "";
+            String sex = "";
+            String money = "";
+            String overdue_date = "";
+            String overdue_days = "";
+
+            // 遍历所有记录，分别处理本人和联系人信息
+            for (MarketingSanLiuLingCollection collection : brList) {
+
+                // todo 需要解密
+                phone = collection.getPhone();
+                customerName = collection.getCustomerName();
+
+                // 设置基本字段
+                detailDTO.setCell(phone);
+                detailDTO.setName(customerName);
+                detailDTO.setCustNum(collection.getApplicationId());
+                detailDTO.setOperateType("4");
+
+                // 解析speechParamSet获取更多信息
+                if (!StringUtils.isEmpty(collection.getSpeechParamSet())) {
+                    JSONObject speechParams = JSONObject.parseObject(collection.getSpeechParamSet());
+                    name = speechParams.getString("name");
+                    sex = speechParams.getString("sex");
+                    money = speechParams.getString("money");
+                    overdue_date = speechParams.getString("overdue_date");
+                    overdue_days = speechParams.getString("overdue_days");
+                }
+
+                // 构建业务保留字段reserveField1
+                Map<String, Object> reserveField1 = new HashMap<>();
+                // 基础信息
+                reserveField1.put("userType", "催收");
+                reserveField1.put("source", "数据来源");
+                reserveField1.put("type", "转化节点");
+                reserveField1.put("gender", sex);
+                // 案件信息
+                reserveField1.put("caseCode", collection.getCaseCode());
+                reserveField1.put("productType", collection.getProductType());
+                reserveField1.put("overdue_date", overdue_date);
+                reserveField1.put("overdue_days", overdue_days);
+                reserveField1.put("money", money);
+                reserveField1.put("prologueRemark", collection.getPrologueRemark());
+
+                // 批次信息
+                reserveField1.put("batchNumber", collection.getBatchNo());
+                String strategyCode = collection.getBatchNo();
+                if (!StringUtils.isEmpty(strategyCode) && strategyCode.length() > 12) {
+                    strategyCode = strategyCode.substring(0, 12);
+                }
+                reserveField1.put("strategyCode", strategyCode);
+                reserveField1.put("applicationId", collection.getApplicationId());
+
+                // 联系人信息
+                if (!contactList.isEmpty()) {
+                    reserveField1.put("contactList", contactList);
+                }
+
+                // 用户姓名和手机号（原始值，用于模板）
+                reserveField1.put("customerName", collection.getCustomerName());
+                reserveField1.put("template_no", collection.getPhone());
+
+                detailDTO.setReserveField1(JSON.toJSONString(reserveField1));
             }
-            
-            detailDTO.setReserveField1(JSON.toJSONString(reserveField1));
-            
-            // 生成数据指纹
-            try {
-                detailDTO.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
-            } catch (Exception e) {
-                log.error(TITLE + "生成数据指纹失败，applicationId: {}", collection.getApplicationId(), e);
-            }
-            
+
             return detailDTO;
         } catch (Exception e) {
-            log.error(TITLE + "构建MarketingPreUserDetailDTO失败，applicationId: {}", collection.getApplicationId(), e);
+            log.error(TITLE + "构建合并MarketingPreUserDetailDTO失败，applicationId: {}",
+                    brList.get(0).getApplicationId(), e);
             return null;
         }
     }
+
+    private static List<ContactListDTO> getContactListDTOS(List<MarketingSanLiuLingCollection> lxrList) {
+        List<ContactListDTO> contactList = new ArrayList<>();
+        for (MarketingSanLiuLingCollection marketingSanLiuLingCollection : lxrList){
+            ContactListDTO contact = new ContactListDTO();
+            contact.setContactCustNum(marketingSanLiuLingCollection.getApplicationId());
+            contact.setContactName(marketingSanLiuLingCollection.getCustomerName());
+            contact.setContactCell(marketingSanLiuLingCollection.getPhone());
+            contact.setContactRelationship(marketingSanLiuLingCollection.getPhoneLabel());
+            contactList.add(contact);
+        }
+        return contactList;
+    }
+
 
 }
