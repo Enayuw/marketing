@@ -1,7 +1,5 @@
-import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.innerapi.MarketingInnerApiApplication;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -16,13 +14,4 @@ public class TestDemo {
 
     @Resource
     private RocketMqSwitch rocketMqSwitch;
-
-    @Test
-    public void test01() {
-        Long id = 667774L;
-        rocketMqSwitch.syncSend(
-                MarketingXieChengConstants.TOPIC,
-                MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-                id.toString());
-    }
 }

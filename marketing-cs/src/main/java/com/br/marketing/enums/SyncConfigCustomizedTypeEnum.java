@@ -17,7 +17,10 @@ public enum SyncConfigCustomizedTypeEnum {
     /**
      * <a href="https://c.100credit.cn/pages/viewpage.action?pageId=178649474">D20241015数禾促复借每日自动化匹配数据-3710043</a>
      */
-    SHUHE_AUTO_MATCH_DATA(1),;
+    SHUHE_AUTO_MATCH_DATA(1),
+
+    //同程cpa推送文件
+    TC_CPA_PUSH_FILE(2);
 
     private final Integer code;
 

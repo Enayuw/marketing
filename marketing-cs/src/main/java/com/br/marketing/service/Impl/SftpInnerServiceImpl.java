@@ -16,6 +16,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -103,6 +104,35 @@ public class SftpInnerServiceImpl {
             }
         } catch (Exception e) {
             log.error(String.format("推送转化文件到内部sftp错误 文件路径：%d,错误：%s", fileAllPath, e.getMessage()), e);
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        } finally {
+            try {
+                sftpClient.disconnect();
+            } catch (Exception e) {
+                try {
+                    sftpClient.disconnect();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            }
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    public Result pushInnerSftp(String innerPath, String uploadPath, List<String> fileNames) {
+        SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
+        try {
+            sftpClient.connect();
+            for (String fileName : fileNames) {
+                String fileAllPath = innerPath.concat(fileName);
+                boolean isPush = sftpClient.uploadFile(uploadPath, fileName, fileAllPath);
+                if (!isPush) {
+                    log.error(String.format("文件传输有问题，文件全路径：%s", fileAllPath));
+                    return new Result().setCode(ResultCode.FAIL.getValue());
+                }
+            }
+        } catch (Exception e) {
+            log.error(String.format("推送转化文件到内部sftp错误 文件路径：%d,错误：%s", innerPath, e.getMessage()), e);
             return new Result().setCode(ResultCode.FAIL.getValue());
         } finally {
             try {

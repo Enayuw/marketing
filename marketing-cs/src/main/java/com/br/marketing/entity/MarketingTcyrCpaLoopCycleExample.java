@@ -2,7 +2,6 @@ package com.br.marketing.entity;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 public class MarketingTcyrCpaLoopCycleExample {
@@ -104,32 +103,6 @@ public class MarketingTcyrCpaLoopCycleExample {
                 throw new RuntimeException("Between values for " + property + " cannot be null");
             }
             criteria.add(new Criterion(condition, value1, value2));
-        }
-
-        protected void addCriterionForJDBCDate(String condition, Date value, String property) {
-            if (value == null) {
-                throw new RuntimeException("Value for " + property + " cannot be null");
-            }
-            addCriterion(condition, new java.sql.Date(value.getTime()), property);
-        }
-
-        protected void addCriterionForJDBCDate(String condition, List<Date> values, String property) {
-            if (values == null || values.size() == 0) {
-                throw new RuntimeException("Value list for " + property + " cannot be null or empty");
-            }
-            List<java.sql.Date> dateList = new ArrayList<java.sql.Date>();
-            Iterator<Date> iter = values.iterator();
-            while (iter.hasNext()) {
-                dateList.add(new java.sql.Date(iter.next().getTime()));
-            }
-            addCriterion(condition, dateList, property);
-        }
-
-        protected void addCriterionForJDBCDate(String condition, Date value1, Date value2, String property) {
-            if (value1 == null || value2 == null) {
-                throw new RuntimeException("Between values for " + property + " cannot be null");
-            }
-            addCriterion(condition, new java.sql.Date(value1.getTime()), new java.sql.Date(value2.getTime()), property);
         }
 
         public Criteria andIdIsNull() {
@@ -262,6 +235,66 @@ public class MarketingTcyrCpaLoopCycleExample {
             return (Criteria) this;
         }
 
+        public Criteria andPackageIdIsNull() {
+            addCriterion("package_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdIsNotNull() {
+            addCriterion("package_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdEqualTo(Long value) {
+            addCriterion("package_id =", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotEqualTo(Long value) {
+            addCriterion("package_id <>", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdGreaterThan(Long value) {
+            addCriterion("package_id >", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("package_id >=", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdLessThan(Long value) {
+            addCriterion("package_id <", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdLessThanOrEqualTo(Long value) {
+            addCriterion("package_id <=", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdIn(List<Long> values) {
+            addCriterion("package_id in", values, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotIn(List<Long> values) {
+            addCriterion("package_id not in", values, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdBetween(Long value1, Long value2) {
+            addCriterion("package_id between", value1, value2, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotBetween(Long value1, Long value2) {
+            addCriterion("package_id not between", value1, value2, "packageId");
+            return (Criteria) this;
+        }
+
         public Criteria andDataSourceTypeIsNull() {
             addCriterion("data_source_type is null");
             return (Criteria) this;
@@ -329,6 +362,66 @@ public class MarketingTcyrCpaLoopCycleExample {
 
         public Criteria andDataSourceTypeNotBetween(String value1, String value2) {
             addCriterion("data_source_type not between", value1, value2, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdIsNull() {
+            addCriterion("data_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdIsNotNull() {
+            addCriterion("data_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdEqualTo(Long value) {
+            addCriterion("data_id =", value, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdNotEqualTo(Long value) {
+            addCriterion("data_id <>", value, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdGreaterThan(Long value) {
+            addCriterion("data_id >", value, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("data_id >=", value, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdLessThan(Long value) {
+            addCriterion("data_id <", value, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdLessThanOrEqualTo(Long value) {
+            addCriterion("data_id <=", value, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdIn(List<Long> values) {
+            addCriterion("data_id in", values, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdNotIn(List<Long> values) {
+            addCriterion("data_id not in", values, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdBetween(Long value1, Long value2) {
+            addCriterion("data_id between", value1, value2, "dataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataIdNotBetween(Long value1, Long value2) {
+            addCriterion("data_id not between", value1, value2, "dataId");
             return (Criteria) this;
         }
 
@@ -483,112 +576,112 @@ public class MarketingTcyrCpaLoopCycleExample {
         }
 
         public Criteria andReleaseTimeEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time =", value, "releaseTime");
+            addCriterion("release_time =", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeNotEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time <>", value, "releaseTime");
+            addCriterion("release_time <>", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeGreaterThan(Date value) {
-            addCriterionForJDBCDate("release_time >", value, "releaseTime");
+            addCriterion("release_time >", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time >=", value, "releaseTime");
+            addCriterion("release_time >=", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeLessThan(Date value) {
-            addCriterionForJDBCDate("release_time <", value, "releaseTime");
+            addCriterion("release_time <", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("release_time <=", value, "releaseTime");
+            addCriterion("release_time <=", value, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeIn(List<Date> values) {
-            addCriterionForJDBCDate("release_time in", values, "releaseTime");
+            addCriterion("release_time in", values, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeNotIn(List<Date> values) {
-            addCriterionForJDBCDate("release_time not in", values, "releaseTime");
+            addCriterion("release_time not in", values, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("release_time between", value1, value2, "releaseTime");
+            addCriterion("release_time between", value1, value2, "releaseTime");
             return (Criteria) this;
         }
 
         public Criteria andReleaseTimeNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("release_time not between", value1, value2, "releaseTime");
+            addCriterion("release_time not between", value1, value2, "releaseTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateIsNull() {
-            addCriterion("receive_date is null");
+        public Criteria andReceiveTimeIsNull() {
+            addCriterion("receive_time is null");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateIsNotNull() {
-            addCriterion("receive_date is not null");
+        public Criteria andReceiveTimeIsNotNull() {
+            addCriterion("receive_time is not null");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateEqualTo(Date value) {
-            addCriterionForJDBCDate("receive_date =", value, "receiveDate");
+        public Criteria andReceiveTimeEqualTo(Date value) {
+            addCriterion("receive_time =", value, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateNotEqualTo(Date value) {
-            addCriterionForJDBCDate("receive_date <>", value, "receiveDate");
+        public Criteria andReceiveTimeNotEqualTo(Date value) {
+            addCriterion("receive_time <>", value, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateGreaterThan(Date value) {
-            addCriterionForJDBCDate("receive_date >", value, "receiveDate");
+        public Criteria andReceiveTimeGreaterThan(Date value) {
+            addCriterion("receive_time >", value, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("receive_date >=", value, "receiveDate");
+        public Criteria andReceiveTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("receive_time >=", value, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateLessThan(Date value) {
-            addCriterionForJDBCDate("receive_date <", value, "receiveDate");
+        public Criteria andReceiveTimeLessThan(Date value) {
+            addCriterion("receive_time <", value, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCDate("receive_date <=", value, "receiveDate");
+        public Criteria andReceiveTimeLessThanOrEqualTo(Date value) {
+            addCriterion("receive_time <=", value, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateIn(List<Date> values) {
-            addCriterionForJDBCDate("receive_date in", values, "receiveDate");
+        public Criteria andReceiveTimeIn(List<Date> values) {
+            addCriterion("receive_time in", values, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateNotIn(List<Date> values) {
-            addCriterionForJDBCDate("receive_date not in", values, "receiveDate");
+        public Criteria andReceiveTimeNotIn(List<Date> values) {
+            addCriterion("receive_time not in", values, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("receive_date between", value1, value2, "receiveDate");
+        public Criteria andReceiveTimeBetween(Date value1, Date value2) {
+            addCriterion("receive_time between", value1, value2, "receiveTime");
             return (Criteria) this;
         }
 
-        public Criteria andReceiveDateNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCDate("receive_date not between", value1, value2, "receiveDate");
+        public Criteria andReceiveTimeNotBetween(Date value1, Date value2) {
+            addCriterion("receive_time not between", value1, value2, "receiveTime");
             return (Criteria) this;
         }
 
@@ -899,6 +992,76 @@ public class MarketingTcyrCpaLoopCycleExample {
 
         public Criteria andExtendNotBetween(String value1, String value2) {
             addCriterion("extend not between", value1, value2, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIsNull() {
+            addCriterion("request_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIsNotNull() {
+            addCriterion("request_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdEqualTo(String value) {
+            addCriterion("request_id =", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotEqualTo(String value) {
+            addCriterion("request_id <>", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThan(String value) {
+            addCriterion("request_id >", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThanOrEqualTo(String value) {
+            addCriterion("request_id >=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThan(String value) {
+            addCriterion("request_id <", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThanOrEqualTo(String value) {
+            addCriterion("request_id <=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLike(String value) {
+            addCriterion("request_id like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotLike(String value) {
+            addCriterion("request_id not like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIn(List<String> values) {
+            addCriterion("request_id in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotIn(List<String> values) {
+            addCriterion("request_id not in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdBetween(String value1, String value2) {
+            addCriterion("request_id between", value1, value2, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotBetween(String value1, String value2) {
+            addCriterion("request_id not between", value1, value2, "requestId");
             return (Criteria) this;
         }
     }
