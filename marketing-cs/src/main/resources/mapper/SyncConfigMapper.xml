@@ -6,6 +6,7 @@
 		from b_sync_config
 		where status = 1
 		  and type = #{type}
+		order by create_time desc;
 	</select>
 	<select id="queryConfigByTypeAndTargetType" resultType="com.br.marketing.entity.SyncConfig">
 		select * from b_sync_config where status=1 and type=#{type}
@@ -15,6 +16,7 @@
 				'${targetType}'
 			</foreach>
 		</if>
+		order by create_time desc;
 	</select>
 	<select id="queryConfigByConditaion" resultType="com.br.marketing.entity.SyncConfig"
 			parameterType="com.br.marketing.entity.SyncConfig">

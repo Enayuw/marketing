@@ -129,9 +129,8 @@ public class SyncServiceImpl implements SyncService {
                         dateSet.add(DateHelper.getDateAddYyMmDd(0));
                     }
                 } else {
-                    // 默认逻辑：当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
-                    dateSet.add(DateHelper.getDateByMinute(-60));
-                    dateSet.add(DateHelper.getDateAddYyMmDd(0));
+                    log.warn("未配置执行时间,loanSyncConfigID：{}",loanSyncConfig.getId());
+                   continue;
                 }
             } else {
                 // 非同步文件类型，使用原有逻辑
