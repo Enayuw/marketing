@@ -3383,5 +3383,11 @@ public class MarketingCommonConfig {
      * #携程促活使用rabbitmq开关
      */
     private Boolean xieChengActivateRabbitMqSwitch;
+
+
+    /**
+     * 上传记录导出每页查询条数
+     */
+    private Integer syncReportExportPageSize;
 }
 

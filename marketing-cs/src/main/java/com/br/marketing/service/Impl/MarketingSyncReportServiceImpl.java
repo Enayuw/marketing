@@ -999,7 +999,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 params.put("userTypeList", userTypeList);
                 Integer pageNum = 1;
                 //TODO 0913 pageSize是否需要speed配置
-                Integer pageSize = 1000;
+                Integer pageSize = marketingCommonConfig.getSyncReportExportPageSize()==null?10000:marketingCommonConfig.getSyncReportExportPageSize();
                 while (true) {
                     PageHelper.startPage(pageNum, pageSize,false);
                     List<MarketingSyncReportVO> list = syncReportMapper.selectExportDataList(params);
@@ -1011,6 +1011,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                     writer.flush();
                     out.flush();
                 }
+                writer.flush();
+                out.flush();
             } else {
                 List<Long> selectIdList = new ArrayList<>();
                 String[] split = selectExportIds.split(",");
@@ -1028,26 +1030,23 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     private void exportAppendListData(List<MarketingSyncReportVO> list,SimpleDateFormat simpleDateFormat, OutputStreamWriter writer) throws IOException {
         for (MarketingSyncReportVO marketingSyncReportVO : list) {
-            writer.append(getNullSafeString(marketingSyncReportVO.getAppletDate())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getCid())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getApiCode())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getShortName())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getUserType())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getNormalNum())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getDuplicateRemovalNum())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getCreateTime())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getAppletBeginTime())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getAppletEndTime())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getValidStartDate())).append(",")
-                    .append(getNullSafeString(marketingSyncReportVO.getValidEndDate())).append("\r\n");
+            writer.append(safeToString(marketingSyncReportVO.getAppletDate())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getCid())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getApiCode())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getShortName())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getUserType())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getNormalNum())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getDuplicateRemovalNum())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getCreateTime())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getAppletBeginTime())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getAppletEndTime())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getValidStartDate())).append(",")
+                    .append(safeToString(marketingSyncReportVO.getValidEndDate())).append("\r\n");
         }
 
     }
-    //// TODO 修改
-    //public static String safeToString(Object obj) {
-    //    return Optional.ofNullable(obj).map(Object::toString).orElse("");
-    //}
-    private String getNullSafeString(Object value) {
+
+    private String safeToString(Object value) {
         return value != null ? value.toString() : "";
     }
 
