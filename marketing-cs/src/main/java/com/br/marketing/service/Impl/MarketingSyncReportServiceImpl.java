@@ -969,7 +969,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     private void fillExportData(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes,
                                 Integer selectType, String selectExportIds, OutputStreamWriter writer, ServletOutputStream out)  throws IOException{
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
             if (selectType == 1) {
                 if (StringUtils.isNotEmpty(appletTimeEnd)) {
                     appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
@@ -1003,16 +1002,17 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 while (true) {
                     PageHelper.startPage(pageNum, pageSize,false);
                     List<MarketingSyncReportVO> list = syncReportMapper.selectExportDataList(params);
-                    exportAppendListData(list,simpleDateFormat,writer);
+                    Integer endLineStatus = list.size() < pageSize?1:0;
+                    exportAppendListData(list,writer,endLineStatus);
                     if (CollectionUtils.isEmpty(list) || list.size() < pageSize) {
+                        writer.flush();
+                        out.flush();
                         break;
                     }
                     pageNum++;
                     writer.flush();
                     out.flush();
                 }
-                writer.flush();
-                out.flush();
             } else {
                 List<Long> selectIdList = new ArrayList<>();
                 String[] split = selectExportIds.split(",");
@@ -1021,15 +1021,16 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 }
                 if (!CollectionUtils.isEmpty(selectIdList)) {
                     List<MarketingSyncReportVO> list = syncReportMapper.selectByIdList(selectIdList);
-                    exportAppendListData(list,simpleDateFormat,writer);
+                    exportAppendListData(list,writer,1);
                 }
                 writer.flush();
                 out.flush();
             }
     }
 
-    private void exportAppendListData(List<MarketingSyncReportVO> list,SimpleDateFormat simpleDateFormat, OutputStreamWriter writer) throws IOException {
-        for (MarketingSyncReportVO marketingSyncReportVO : list) {
+    private void exportAppendListData(List<MarketingSyncReportVO> list, OutputStreamWriter writer,Integer endLineStatus) throws IOException {
+        for (int i = 0; i < list.size(); i++) {
+            MarketingSyncReportVO marketingSyncReportVO = list.get(i);
             writer.append(safeToString(marketingSyncReportVO.getAppletDate())).append(",")
                     .append(safeToString(marketingSyncReportVO.getCid())).append(",")
                     .append(safeToString(marketingSyncReportVO.getApiCode())).append(",")
@@ -1041,9 +1042,15 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                     .append(safeToString(marketingSyncReportVO.getAppletBeginTime())).append(",")
                     .append(safeToString(marketingSyncReportVO.getAppletEndTime())).append(",")
                     .append(safeToString(marketingSyncReportVO.getValidStartDate())).append(",")
-                    .append(safeToString(marketingSyncReportVO.getValidEndDate())).append("\r\n");
+                    .append(safeToString(marketingSyncReportVO.getValidEndDate()));
+            if (i == list.size() - 1) {
+                if (endLineStatus == 0) {
+                     writer.append("\r\n");
+                }
+            }else{
+                writer.append("\r\n");
+            }
         }
-
     }
 
     private String safeToString(Object value) {
