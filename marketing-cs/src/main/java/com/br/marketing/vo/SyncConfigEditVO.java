@@ -116,7 +116,7 @@ public class SyncConfigEditVO {
      * 定时执行时间
      * {"day":"0","time":"12:00"}   day枚举：0:T-1  1:T
      */
-    @ApiModelProperty(value = "公司文件服务器类型")
+    @ApiModelProperty(value = "定时执行时间")
     private String executeTime;
 
 }

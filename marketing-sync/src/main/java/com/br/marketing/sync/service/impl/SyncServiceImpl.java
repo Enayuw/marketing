@@ -380,7 +380,7 @@ public class SyncServiceImpl implements SyncService {
             String baseTargetPath = originalTargetPath.endsWith("/") ? originalTargetPath : originalTargetPath + "/";
             
             // 如果当前文件路径就是原始源路径，直接返回原始目标路径
-            if (currentFilePath.equals(originalSrcPath) || currentFilePath.equals(baseSrcPath.substring(0, baseSrcPath.length() - 1))) {
+            if (currentFilePath.equals(originalSrcPath)) {
                 return originalTargetPath;
             }
             
@@ -590,11 +590,6 @@ public class SyncServiceImpl implements SyncService {
             for(FTPFile file : ftpFiles){
                 String fileName = file.getName();
                 
-                // 跳过. 和 .. 目录
-                if (".".equals(fileName) || "..".equals(fileName)) {
-                    continue;
-                }
-                
                 String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
                 
                 if (file.isDirectory()) {
@@ -665,11 +660,6 @@ public class SyncServiceImpl implements SyncService {
             for(Map.Entry<String, SftpATTRS> entry : map.entrySet()){
                 String fileName = entry.getKey();
                 SftpATTRS attrs = entry.getValue();
-                
-                // 跳过. 和 .. 目录
-                if (".".equals(fileName) || "..".equals(fileName)) {
-                    continue;
-                }
                 
                 String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
                 
