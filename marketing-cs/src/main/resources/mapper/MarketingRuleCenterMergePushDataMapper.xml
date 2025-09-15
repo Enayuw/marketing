@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingRuleCenterMergePushDataMapper" >
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingRuleCenterMergePushData" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+        <result column="m_id" property="mId" jdbcType="BIGINT" />
+        <result column="cus_num" property="cusNum" jdbcType="VARCHAR" />
+        <result column="cell" property="cell" jdbcType="VARCHAR" />
+        <result column="id_card" property="idCard" jdbcType="VARCHAR" />
+        <result column="user_type" property="userType" jdbcType="VARCHAR" />
+        <result column="name" property="name" jdbcType="VARCHAR" />
+        <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
+        <result column="extend" property="extend" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="selectByTaskId" resultMap="BaseResultMap">
+        select *
+        from b_marketing_rule_center_merge_push_data
+        where
+            m_id = ${taskId}
+        <if test="minId != null and minId >0">
+            <![CDATA[ and id>#{minId} ]]>
+        </if>
+        order by id asc
+        limit ${pageSize}
+    </select>
+
+</mapper>

@@ -2,13 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.ScoreDorisLog;
 import com.br.marketing.entity.ScoreDorisLogExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface ScoreDorisLogMapperBase {
-
-    int countByExample(ScoreDorisLogExample example);
+    long countByExample(ScoreDorisLogExample example);
 
     int deleteByExample(ScoreDorisLogExample example);
 

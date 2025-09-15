@@ -79,9 +79,11 @@ import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceIm
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -273,6 +275,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
+    @Resource
+    private RuleCenterLabelService ruleCenterLabelService;
+
+    @Autowired
+    private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -579,6 +587,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMain.setTagContent(dto.getmTagCondition());
+        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            customerInfoPushMain.setPushTarget(2);
+            customerInfoPushMain.setExtend(dto.getScoreMergeField());
+        }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
         String batchName;
@@ -616,6 +628,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         PushViewVO pushViewVO = new PushViewVO();
         if (isXieChengData(dto)) {
             total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
+        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            //合并跑分计算
+            long start = System.currentTimeMillis();
+            // 组装查询sql
+            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
+            // 执行查询获取统计数量
+            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
+            total = (count != null ? count : 0);
         } else {
             Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
             if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
@@ -736,6 +757,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isEmpty(federatedQuerySql)) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
         }
+        tagDataDetailMapper.queryPreviewTotalbI_("refresh catalog es");
         int total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
     }

@@ -486,6 +486,9 @@ public class ScoreDorisLogExample {
         }
     }
 
+    /**
+     */
+
     public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
