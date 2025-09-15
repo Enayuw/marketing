@@ -79,7 +79,7 @@ public class CustomerTagsValue {
             int status = 2; // 默认其他=2
             if (enumItem == PushJc3keyTypeEnum.AES_COMMON) {
                 status = 0;
-            } else if (enumItem == PushJc3keyTypeEnum.AES_NMD) {
+            } else if (enumItem == PushJc3keyTypeEnum.AES_NMD || enumItem == PushJc3keyTypeEnum.AES_SLL_COLLECTION) {
                 status = 1;
             }
 
