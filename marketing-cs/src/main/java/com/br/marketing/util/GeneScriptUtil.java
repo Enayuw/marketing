@@ -7,7 +7,6 @@ import com.br.marketing.common.bean.CrossIndexBean;
 import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.bean.SingleIndexBean;
 import com.br.marketing.common.utils.StringUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.expression.ExpressionParser;
@@ -537,40 +536,94 @@ public class GeneScriptUtil {
                 }
             }
         } else {
-            Map<String, SingleIndexBean> map = new HashMap<>();
+            Map<String, List<SingleIndexBean>> map = new HashMap<>();
+            // 先收集所有相同key的条件
             for (Object datum : data) {
                 String singleKey = ((JSONObject)datum).getString("key");
-                SingleIndexBean singleIndexBean = new SingleIndexBean();
-                JSONObject singleIndex = JSON.parseObject(datum.toString());
-                List<String> values = Arrays.asList(singleIndex.getString("value").split(","));
-                if (values.size() < 2) {
-                    singleIndexBean.setLeftValue("");
-                    singleIndexBean.setRightValue("");
+                SingleIndexBean singleIndexBean = createSingleIndexBean(datum);
+                
+                if (!map.containsKey(singleKey)){
+                    List<SingleIndexBean> list = new ArrayList<>();
+                    list.add(singleIndexBean);
+                    map.put(singleKey, list);
                 } else {
-                    singleIndexBean.setLeftValue(values.get(0));
-                    singleIndexBean.setRightValue(values.get(1));
+                    map.get(singleKey).add(singleIndexBean);
                 }
-                map.put(singleKey, singleIndexBean);
+            }
+            
+            // 对每个key的条件列表进行排序和合并
+            for (Map.Entry<String, List<SingleIndexBean>> entry : map.entrySet()) {
+                List<SingleIndexBean> singleIndexBeans = entry.getValue();
+                // 按左值排序（处理空值情况）
+                singleIndexBeans.sort(Comparator.comparing((SingleIndexBean bean) -> {
+                    if (StringUtils.isEmpty(bean.getLeftValue())) {
+                        return Double.NEGATIVE_INFINITY;
+                    }
+                    try {
+                        return Double.parseDouble(bean.getLeftValue());
+                    } catch (NumberFormatException e) {
+                        return Double.NEGATIVE_INFINITY;
+                    }
+                }));
+                
+                // 合并相邻的区间
+                for (int i = singleIndexBeans.size() - 1; i > 0; i--) {
+                    SingleIndexBean current = singleIndexBeans.get(i);
+                    SingleIndexBean previous = singleIndexBeans.get(i - 1);
+                    
+                    // 检查是否可以合并：前一个的右值等于当前的左值
+                    if (!StringUtils.isEmpty(previous.getRightValue()) && 
+                        !StringUtils.isEmpty(current.getLeftValue()) &&
+                        previous.getRightValue().equals(current.getLeftValue())) {
+                        // 合并区间：扩展前一个的右值，移除当前项
+                        previous.setRightValue(current.getRightValue());
+                        singleIndexBeans.remove(i);
+                    }
+                }
             }
 
-            JSONArray array = getJsonArray(map);
+            JSONArray array = getJsonArrayFromListMap(map);
             condition.put("data", array);
         }
 
     }
 
-    private static JSONArray getJsonArray(Map<String, SingleIndexBean> map) {
-        JSONArray array = new JSONArray();
-        for (Map.Entry<String, SingleIndexBean> entry : map.entrySet()) {
-            String leftValue = entry.getValue().getLeftValue();
-            String rightValue = entry.getValue().getRightValue();
-            JSONObject singleIndexJson = new JSONObject();
-            singleIndexJson.put("type", "operation");
-            singleIndexJson.put("key", entry.getKey());
-            singleIndexJson.put("operation", "between_right");
-            singleIndexJson.put("value", leftValue + "," + rightValue);
-            array.add(singleIndexJson);
+    private static SingleIndexBean createSingleIndexBean(Object datum) {
+        SingleIndexBean singleIndexBean = new SingleIndexBean();
+        JSONObject singleIndex = JSON.parseObject(datum.toString());
+        List<String> values = Arrays.asList(singleIndex.getString("value").split(","));
+        if (values.size() < 2) {
+            singleIndexBean.setLeftValue("");
+            singleIndexBean.setRightValue("");
+        } else {
+            singleIndexBean.setLeftValue(values.get(0));
+            singleIndexBean.setRightValue(values.get(1));
+        }
+        return singleIndexBean;
+    }
 
+
+    private static JSONArray getJsonArrayFromListMap(Map<String, List<SingleIndexBean>> map) {
+        JSONArray array = new JSONArray();
+        for (Map.Entry<String, List<SingleIndexBean>> entry : map.entrySet()) {
+            String key = entry.getKey();
+            List<SingleIndexBean> singleIndexBeans = entry.getValue();
+            
+            for (SingleIndexBean singleIndexBean : singleIndexBeans) {
+                String leftValue = singleIndexBean.getLeftValue();
+                String rightValue = singleIndexBean.getRightValue();
+                JSONObject singleIndexJson = new JSONObject();
+                singleIndexJson.put("type", "operation");
+                singleIndexJson.put("key", key);
+                if (StringUtils.isEmpty(leftValue) && StringUtils.isEmpty(rightValue)) {
+                    singleIndexJson.put("operation", "=");
+                    singleIndexJson.put("value", "");
+                } else {
+                    singleIndexJson.put("operation", "between_right");
+                    singleIndexJson.put("value", leftValue + "," + rightValue);
+                }
+                array.add(singleIndexJson);
+            }
         }
         return array;
     }
