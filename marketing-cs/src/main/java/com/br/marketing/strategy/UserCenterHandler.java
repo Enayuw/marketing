@@ -114,7 +114,7 @@ public class UserCenterHandler {
             if (opeHighApiTypes.contains(apiType)) {
                 buildMerchant(apiCode, apiType, marketingCustomer);
             } else {
-                queryApiType(apiCode, apiType, opeHighApiTypes);
+                queryApiType(apiCode, apiType, opeHighApiTypes, marketingCustomer);
             }
             redisChgService.unlock(key, lockValue);
             log.warn(TITLE + "handleDataUserCenter释放锁成功, {}", apiCode);
@@ -138,20 +138,20 @@ public class UserCenterHandler {
      * @param apiCode
      * @param apiType
      * @param opeHighApiTypes
+     * @param marketingCustomer
      */
-    private void queryApiType(String apiCode, String apiType, List<String> opeHighApiTypes) {
-        MarketingCustomer marketingCustomer = new MarketingCustomer();
+    private void queryApiType(String apiCode, String apiType, List<String> opeHighApiTypes, MarketingCustomer marketingCustomer) {
         MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
         marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode);
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
         if (marketingCustomers.isEmpty()) {
-            marketingCustomer = buildCustomer(apiCode, apiType);
+            buildCustomer(apiCode, apiType, marketingCustomer);
             marketingCustomer.setCreateTime(new Date());
             marketingCustomerMapper.insertSelective(marketingCustomer);
         } else {
             apiType = marketingCustomers.get(0).getApiType();
             if (!opeHighApiTypes.contains(apiType)) {
-                marketingCustomer = buildCustomer(apiCode, apiType);
+                buildCustomer(apiCode, apiType, marketingCustomer);
                 marketingCustomer.setUpdateTime(new Date());
                 marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
             }
@@ -209,9 +209,9 @@ public class UserCenterHandler {
      *
      * @param apiCode
      * @param apiType
+     * @param marketingCustomer
      */
-    private MarketingCustomer buildCustomer(String apiCode, String apiType) {
-        MarketingCustomer marketingCustomer = new MarketingCustomer();
+    private void buildCustomer(String apiCode, String apiType, MarketingCustomer marketingCustomer) {
         String customerMsg = RpcClientProxy.getCustomerMsg(apiCode);
         String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         if (StringUtils.isNotEmpty(customerMsg) && StringUtils.isNotEmpty(companyMsg)) {
@@ -227,7 +227,6 @@ public class UserCenterHandler {
             marketingCustomer.setApiCode(apiCode);
             marketingCustomer.setApiType(apiType);
         }
-        return marketingCustomer;
     }
 
     private void buildMarketingCustomer(String apiCode, MarketingCustomer marketingCustomer) {
