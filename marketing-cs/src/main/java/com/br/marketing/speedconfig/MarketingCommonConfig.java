@@ -3383,5 +3383,10 @@ public class MarketingCommonConfig {
      * #携程促活使用rabbitmq开关
      */
     private Boolean xieChengActivateRabbitMqSwitch;
+
+    /**
+     * 高优先级运营的客户类型集合
+     */
+    private List<String> opeHighApiTypes;
 }
 

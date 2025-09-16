@@ -58,6 +58,7 @@ public class UserCenterHandler {
         String apiCode = jsonObject.getString("apiCode");
         String apiType = jsonObject.getString("apiType");
         List<String> opeApiTypes = marketingCommonConfig.getOpeApiTypes();
+        List<String> opeHighApiTypes = marketingCommonConfig.getOpeHighApiTypes();
         if (!opeApiTypes.contains(apiType)) {
             result.setCode(ResultCode.FAIL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知apiType：" + apiType));
@@ -109,10 +110,10 @@ public class UserCenterHandler {
             }
             log.warn(TITLE + "handleDataUserCenter获取锁成功, {}", apiCode);
             // 智能运营 入库优先级高于 智能客服
-            if (apiType.contains("智能运营")) {
+            if (opeHighApiTypes.contains(apiType)) {
                 buildMerchant(apiCode, apiType, marketingCustomer);
             } else {
-                queryApiType(apiCode, apiType);
+                queryApiType(apiCode, apiType, opeHighApiTypes);
             }
             redisChgService.unlock(key, lockValue);
             log.warn(TITLE + "handleDataUserCenter释放锁成功, {}", apiCode);
@@ -135,8 +136,9 @@ public class UserCenterHandler {
      *
      * @param apiCode
      * @param apiType
+     * @param opeHighApiTypes
      */
-    private void queryApiType(String apiCode, String apiType) {
+    private void queryApiType(String apiCode, String apiType, List<String> opeHighApiTypes) {
         MarketingCustomer marketingCustomer = new MarketingCustomer();
         MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
         marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode);
@@ -147,7 +149,7 @@ public class UserCenterHandler {
             marketingCustomerMapper.insertSelective(marketingCustomer);
         } else {
             apiType = marketingCustomers.get(0).getApiType();
-            if (!apiType.contains("智能运营")) {
+            if (!opeHighApiTypes.contains(apiType)) {
                 marketingCustomer = buildCustomer(apiCode, apiType);
                 marketingCustomer.setUpdateTime(new Date());
                 marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
