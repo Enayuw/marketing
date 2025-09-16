@@ -132,21 +132,22 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
 
         try {
             redisChgService.lock(key, lockValue);
-            AiToPolicyRecordExample example = new AiToPolicyRecordExample();
-            example.createCriteria().andCreateDateEqualTo(createDate)
-                    .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andCustNumEqualTo(custNum);
-            int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
-            batchNumber = yyyyMMdd + "-" + apiCode + "-" + userType + "-" + pushCount;
-
-            AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
-            aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
-            aiToPolicyRecord.setBatchNumber(batchNumber);
-            aiToPolicyRecord.setApiCode(apiCode);
-            aiToPolicyRecord.setUserType(userType);
-            aiToPolicyRecord.setCustNum(custNum);
-            aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode());
-            aiToPolicyRecord.setCreateDate(createDate);
             try {
+                AiToPolicyRecordExample example = new AiToPolicyRecordExample();
+                example.createCriteria().andCreateDateEqualTo(createDate)
+                        .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andCustNumEqualTo(custNum);
+                int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
+                batchNumber = yyyyMMdd + "-" + apiCode + "-" + userType + "-" + pushCount;
+
+                AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
+                aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
+                aiToPolicyRecord.setBatchNumber(batchNumber);
+                aiToPolicyRecord.setApiCode(apiCode);
+                aiToPolicyRecord.setUserType(userType);
+                aiToPolicyRecord.setCustNum(custNum);
+                aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode());
+                aiToPolicyRecord.setCreateDate(createDate);
+
                 aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
                 syncUser.setReserveField2(batchNumber);
                 return true;
@@ -159,8 +160,9 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
             }
         } catch (Exception e) {
             redisChgService.unlock(key, lockValue);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,redis加锁异常,消费端自动重试："), e);
-            throw new RuntimeException(e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(),
+                    "AI自动化推决策_操作类型5,redis加锁异常,需要手动处理,apiCode：" + syncUser.getApiCode() + ",明细表id：" + syncUser.getId() + "。"), e);
+            return false;
         } finally {
             redisChgService.unlock(key, lockValue);
         }
