@@ -2,18 +2,25 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.MarketingDictMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.base.Splitter;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.util.StringUtil;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Date;
@@ -34,11 +41,14 @@ public class UserCenterHandler {
 
     private static final String TITLE = "【用户中心获取用户信息】";
     @Resource
-    MarketingCustomerMapper marketingCustomerMapper;
+    private MarketingCustomerMapper marketingCustomerMapper;
     @Resource
-    RedisChgService redisChgService;
+    private RedisChgService redisChgService;
     @Resource
-    MarketingCommonConfig marketingCommonConfig;
+    private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private MarketingDictMapper marketingDictMapper;
+
 
     public Result<Boolean> handleDataUserCenter(String mes) {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
@@ -46,11 +56,40 @@ public class UserCenterHandler {
         String keyPrefix = RedisKeyConstant.DELIVERY_USER_INFORMATION;
         JSONObject jsonObject = JSON.parseObject(mes);
         String apiCode = jsonObject.getString("apiCode");
-        String operateType = jsonObject.getString("operateType");
         String apiType = jsonObject.getString("apiType");
         List<String> opeApiTypes = marketingCommonConfig.getOpeApiTypes();
-        if(!opeApiTypes.contains(apiType)){
+        if (!opeApiTypes.contains(apiType)) {
+            result.setCode(ResultCode.FAIL.getValue());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知apiType：" + apiType));
             return result;
+        }
+        String iu = jsonObject.getString("iu");
+        if (StringUtil.isBlank(iu)) {
+            result.setCode(ResultCode.FAIL.getValue());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送iu字段缺失"));
+            return result;
+        }
+        List<String> ius = Splitter.on("-").splitToList(iu);
+        if (ius.size() < 3) {
+            result.setCode(ResultCode.FAIL.getValue());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送部门格式错误"));
+            return result;
+        }
+        String firstDept = ius.get(1);
+        String secondDept = ius.get(2);
+        if (!checkDept(firstDept, "firstLevelDepart")) {
+            result.setCode(ResultCode.FAIL.getValue());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知一级部门"));
+            return result;
+        } else {
+            marketingCustomer.setFirstDepartment(firstDept);
+        }
+        if (!checkDept(secondDept, "secondLevelDepart")) {
+            result.setCode(ResultCode.FAIL.getValue());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知二级部门"));
+            return result;
+        } else {
+            marketingCustomer.setSecondDepartment(secondDept);
         }
 
         String key = keyPrefix.concat(String.format(":%s", apiCode));
@@ -59,20 +98,20 @@ public class UserCenterHandler {
         int num = 0;
         try {
             boolean acquire = redisChgService.lock(key, lockValue, 10000L);
-            while(!acquire){
-                if(num == 3){
-                    log.error(TITLE + "handleDataUserCenter获取锁失败, apiCode:{}, apiType:{}", apiCode,apiType);
+            while (!acquire) {
+                if (num == 3) {
+                    log.error(TITLE + "handleDataUserCenter获取锁失败, apiCode:{}, apiType:{}", apiCode, apiType);
                     return result;
                 }
                 Thread.sleep(5000L);
                 acquire = redisChgService.lock(key, lockValue, 10000L);
-                num ++;
+                num++;
             }
             log.warn(TITLE + "handleDataUserCenter获取锁成功, {}", apiCode);
             // 智能运营 入库优先级高于 智能客服
-            if ("智能运营".equals(apiType)) {
-                buildMerchant(apiCode,marketingCustomer);
-            }else {
+            if (apiType.contains("智能运营")) {
+                buildMerchant(apiCode, apiType, marketingCustomer);
+            } else {
                 queryApiType(apiCode, apiType);
             }
             redisChgService.unlock(key, lockValue);
@@ -83,6 +122,12 @@ public class UserCenterHandler {
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
+    }
+
+    private boolean checkDept(String firstDept, String dicType) {
+        List<MarketingDict> firstLevelDepartDictList = marketingDictMapper.getDictInfo(dicType);
+        List<String> departs = firstLevelDepartDictList.stream().map(MarketingDict::getDictValue).collect(Collectors.toList());
+        return departs.contains(firstDept);
     }
 
     /**
@@ -102,7 +147,7 @@ public class UserCenterHandler {
             marketingCustomerMapper.insertSelective(marketingCustomer);
         } else {
             apiType = marketingCustomers.get(0).getApiType();
-            if(!"智能运营".equals(apiType)){
+            if (!apiType.contains("智能运营")) {
                 marketingCustomer = buildCustomer(apiCode, apiType);
                 marketingCustomer.setUpdateTime(new Date());
                 marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
@@ -112,10 +157,12 @@ public class UserCenterHandler {
 
     /**
      * 构建智能运营数据
+     *
      * @param apiCode
+     * @param apiType
      * @param marketingCustomer
      */
-    private void buildMerchant(String apiCode, MarketingCustomer marketingCustomer) {
+    private void buildMerchant(String apiCode, String apiType, MarketingCustomer marketingCustomer) {
         MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         if (StringUtils.isNotEmpty(companyMsg) && merchantParam != null) {
@@ -147,8 +194,8 @@ public class UserCenterHandler {
             marketingCustomer.setFileEncryptionKey(merchantParam.getFileEncryptionKey());
             marketingCustomer.setIsOutputDataProduct(merchantParam.getIsOutputDataProduct());
             marketingCustomer.setMessage(merchantParam.getRemarks());
-            marketingCustomer.setApiType("智能运营");
-            buildMarketingCustomer(apiCode,marketingCustomer);
+            marketingCustomer.setApiType(apiType);
+            buildMarketingCustomer(apiCode, marketingCustomer);
         } else {
             log.warn("商户信息查询失败:merchantParam：{}-----，companyMsg：{}------ ", merchantParam, companyMsg);
         }
