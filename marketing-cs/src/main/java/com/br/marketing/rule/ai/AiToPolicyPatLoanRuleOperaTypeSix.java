@@ -113,7 +113,7 @@ public class AiToPolicyPatLoanRuleOperaTypeSix implements AssembleData<PushMarke
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
-            if (StringUtils.isNotBlank(operateType) && "5".equals(operateType)) {
+            if (StringUtils.isNotBlank(operateType) && "6".equals(operateType)) {
                 return insertRecord(syncUser);
             }
         }
