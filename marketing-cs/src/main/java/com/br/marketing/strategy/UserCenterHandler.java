@@ -71,7 +71,7 @@ public class UserCenterHandler {
             return result;
         }
         List<String> ius = Splitter.on("#").splitToList(iu);
-        if (ius.size() < 3) {
+        if (ius.size() < 2) {
             result.setCode(ResultCode.FAIL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送部门格式错误"));
             return result;
