@@ -2872,7 +2872,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
 
             if (CustomerTagsValue.PushJc3keyTypeEnum.AES_COMMON.getValue().equals(encryptionType)
-                    || CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue().equals(encryptionType)) {
+                    || CustomerTagsValue.PushJc3keyTypeEnum.AES_NMD.getValue().equals(encryptionType)
+                    || CustomerTagsValue.PushJc3keyTypeEnum.AES_SLL_COLLECTION.getValue().equals(encryptionType)) {
                 String decode = BrCipherMaker.getInstance().decode(content);
                 return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
             }
