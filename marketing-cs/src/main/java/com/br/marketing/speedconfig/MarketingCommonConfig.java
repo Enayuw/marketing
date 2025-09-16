@@ -3348,6 +3348,10 @@ public class MarketingCommonConfig {
     private List<String> smsCallBackDataPushMqApiCodes;
 
     /**
+     * 合并数据推决策配置
+     */
+    private Map<String,String> pushPolicyConfig;
+    /**
      * 360客制化传输数据配置
      * {"uploadApiCode":"3710196","cipherMode":"CBC","paddingScheme":"PKCS5Padding","dynamicKeys":"fC8tzaLDItGjIjOr"}
      */
