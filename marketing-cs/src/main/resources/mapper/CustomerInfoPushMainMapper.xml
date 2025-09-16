@@ -40,10 +40,12 @@
         m_percentage as mPercentage,
         DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime,
         m_status as mStatus,
-        batch_name as  batchName
+        batch_name as  batchName,
+        push_target as pushTarget,
+        extend
         from b_customer_info_push_main
         where is_del=1
-          and m_status !=-1 and push_target = 0
+          and m_status !=-1 and push_target != 1
         <if test="mApiCode !=null and mApiCode !=''">
             and m_api_code = #{mApiCode}
         </if>

@@ -3,10 +3,12 @@ package com.br.marketing.mq.consumer.rocketmq.tccpa;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rocketmq.MarketingTcCpaConstants;
 import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.tccpa.TcyrLoopCycleDataService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -28,14 +30,20 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
         consumerGroup = MarketingTcCpaConstants.GROUP_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
         selectorExpression = MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE,
-        consumeThreadMax = 20)
+        consumeThreadMax = 20,
+        enableMsgTrace = true)
 public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
+
+    private final static String TITLE = "【同程易融CPA-colliding周期剔除任务】";
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Resource
     private TcyrLoopCycleDataService tcyrLoopCycleDataService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     protected String consumerName() {
@@ -44,10 +52,20 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
 
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
+        long start = System.currentTimeMillis();
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
-                new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
-        consumerService.consumerRun(messageExt, tcyrLoopCycleDataService::process, tcCpaSuccessMqDTO);
+                    new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
+        Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
+        log.warn("TITLE:{}-process执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+                TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
+                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
+                result.getCode(), result.getData());
+        consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
+        log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}",
+                TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
+                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
+        );
     }
 
     @Override

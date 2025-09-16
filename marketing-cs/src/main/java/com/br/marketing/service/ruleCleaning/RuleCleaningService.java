@@ -38,13 +38,6 @@ public interface RuleCleaningService {
     MarketingDataCleanGeneralConfig getRuleDetailById(Long ruleId);
 
     /**
-     * 保存或更新规则
-     * @param config 规则配置信息
-     * @return 操作结果
-     */
-    boolean saveOrUpdateRule(MarketingDataCleanGeneralConfig config);
-
-    /**
      * 删除不用的清洗规则
      * @param config 规则配置信息
      * @param cleanFields 要删除的清洗字段列表
@@ -82,13 +75,6 @@ public interface RuleCleaningService {
     String getpreviewField(@Validated String apiCode, @Validated Integer dataType, @Validated Integer acceptType);
 
     /**
-     * 保存字段清洗配置
-     * @param configDTO 字段清洗配置DTO
-     * @return 操作结果
-     */
-    boolean saveFieldCleaningConfig(@Validated FieldCleaningConfigDTO configDTO);
-
-    /**
      * 预览字段清洗结果
      * @param fieldSample  字段样例数据
      * @param cleaningRule 清洗规则（JSON格式）
@@ -104,12 +90,6 @@ public interface RuleCleaningService {
 
     Object executeCleaningRule(JSONObject nodeParse, MarketingDataCleanGeneralRuleConfig cleaningRule);
 
-    /**
-     * 保存规则及其清洗配置
-     * @param configDTO 包含规则和清洗配置的DTO
-     * @return 操作结果
-     */
-    boolean saveRuleWithConfigs(RuleCleaningConfigDTO configDTO);
 
     List<String> getLastMonthDataDates(String apiCode,Integer acceptType,String sftpPath);
 
