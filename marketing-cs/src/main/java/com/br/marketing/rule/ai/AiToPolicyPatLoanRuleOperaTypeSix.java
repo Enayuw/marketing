@@ -104,7 +104,7 @@ public class AiToPolicyPatLoanRuleOperaTypeSix implements AssembleData<PushMarke
         buildJson(jsonObject, syncUser, jc3keyType);
         pushData.setVariables(jsonObject);
 
-        log.warn("AI自动化推决策_操作类型5,apiCode:{}", apiCode);
+        log.warn("AI自动化推决策_操作类型6,apiCode:{}", apiCode);
         return pushData;
     }
 
@@ -156,16 +156,16 @@ public class AiToPolicyPatLoanRuleOperaTypeSix implements AssembleData<PushMarke
                 syncUser.setReserveField2(batchNumber);
                 return true;
             } catch (DuplicateKeyException e) {
-                log.warn("AI自动化推决策_操作类型5,数据重复，fingerprint:{}", syncUser.getFingerprint());
+                log.warn("AI自动化推决策_操作类型6,数据重复，fingerprint:{}", syncUser.getFingerprint());
                 return false;
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,写去重表db异常："), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型6,写去重表db异常："), e);
                 return true;
             }
         } catch (Exception e) {
             redisChgService.unlock(key, lockValue);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(),
-                    "AI自动化推决策_操作类型5,redis加锁异常,需要手动处理,apiCode：" + syncUser.getApiCode() + ",明细表id：" + syncUser.getId() + "。"), e);
+                    "AI自动化推决策_操作类型6,redis加锁异常,需要手动处理,apiCode：" + syncUser.getApiCode() + ",明细表id：" + syncUser.getId() + "。"), e);
             return false;
         } finally {
             redisChgService.unlock(key, lockValue);
