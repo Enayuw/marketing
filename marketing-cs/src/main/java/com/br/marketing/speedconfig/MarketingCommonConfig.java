@@ -3387,5 +3387,11 @@ public class MarketingCommonConfig {
      * #携程促活使用rabbitmq开关
      */
     private Boolean xieChengActivateRabbitMqSwitch;
+
+
+    /**
+     * tcCpaCollidingMqDeatilStatus 1:执行业务代码 0:不执行业务代码
+     */
+    private Integer cpaCollidingMqDetailStatus;
 }
 
