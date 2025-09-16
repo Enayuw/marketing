@@ -34,7 +34,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMarketingUserDetailByRuleDTO> {
+public class AiToPolicyPatLoanRuleOperaTypeSix implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -126,19 +126,20 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
         Integer createDate = Integer.valueOf(yyyyMMdd);
         String apiCode = syncUser.getApiCode();
         String userType = syncUser.getUserType();
-        String custNum = syncUser.getCustNum();
+        String cell = syncUser.getCell();
         String key = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(String.format("%s:%s:%s:%s:%s", yyyyMMdd, apiCode, userType,
-                CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode(), custNum));
+                CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode(), cell));
         String batchNumber;
 
         try {
             redisChgService.lock(key, lockValue);
             try {
+                // custNum临时存为cell的log加密
                 AiToPolicyRecordExample example = new AiToPolicyRecordExample();
                 example.createCriteria().andCreateDateEqualTo(createDate)
                         .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
-                        .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode())
-                        .andCustNumEqualTo(custNum);
+                        .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode())
+                        .andCustNumEqualTo(cell);
                 int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
                 batchNumber = yyyyMMdd + "-" + apiCode + "-" + userType + "-" + pushCount;
 
@@ -147,8 +148,8 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
                 aiToPolicyRecord.setBatchNumber(batchNumber);
                 aiToPolicyRecord.setApiCode(apiCode);
                 aiToPolicyRecord.setUserType(userType);
-                aiToPolicyRecord.setCustNum(custNum);
-                aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode());
+                aiToPolicyRecord.setCustNum(cell);
+                aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode());
                 aiToPolicyRecord.setCreateDate(createDate);
 
                 aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
@@ -173,7 +174,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
 
     @Override
     public String label() {
-        return CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
+        return CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode();
     }
 
     @Override
