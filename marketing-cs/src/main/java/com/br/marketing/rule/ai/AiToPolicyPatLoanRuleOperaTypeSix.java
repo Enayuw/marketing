@@ -141,7 +141,7 @@ public class AiToPolicyPatLoanRuleOperaTypeSix implements AssembleData<PushMarke
                         .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode())
                         .andCustNumEqualTo(cell);
                 int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
-                batchNumber = yyyyMMdd + "-" + apiCode + "-" + userType + "-" + pushCount;
+                batchNumber = yyyyMMdd + "-" + apiCode + "-6" + "-" + userType + "-" + pushCount;
 
                 AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
                 aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
