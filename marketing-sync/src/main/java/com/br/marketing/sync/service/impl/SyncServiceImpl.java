@@ -24,6 +24,7 @@ import com.br.marketing.sync.service.SyncService;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -334,32 +335,22 @@ public class SyncServiceImpl implements SyncService {
                     
                     String filePath = parts[0];
                     String fileName = parts[1];
-                    
-                    // 临时修改配置路径
-                    String originalSrcPath = loanSyncConfig.getSrcPath();
-                    String originalTargetPath = loanSyncConfig.getTargetPath();
-                    
+
+                    SyncConfig syncConfig = new SyncConfig();
+                    BeanUtils.copyProperties(loanSyncConfig, syncConfig);
                     // 计算目标路径，保持与源路径相同的目录结构
-                    String targetPath = calculateTargetPath(originalSrcPath, originalTargetPath, filePath);
-                    
-                    loanSyncConfig.setSrcPath(filePath);
-                    loanSyncConfig.setTargetPath(targetPath);
-                    
+                    String targetPath = calculateTargetPath(loanSyncConfig.getSrcPath(), loanSyncConfig.getTargetPath(), filePath);
+
+                    syncConfig.setSrcPath(filePath);
+                    syncConfig.setTargetPath(targetPath);
                     log.warn("no_suffix类型-开始同步文件: {} 从路径: {} 到路径: {}", fileName, filePath, targetPath);
                     
                     // no_suffix类型不需要checkFinishSuccess检查，直接同步所有文件
-                    if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
-                        // 恢复原始路径
-                        loanSyncConfig.setSrcPath(originalSrcPath);
-                        loanSyncConfig.setTargetPath(originalTargetPath);
+                    if (diskBoll && bean.downloadFileToLocalDisk(syncConfig, srcClient, fileName)) {
                         continue;
                     }
-                    bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
+                    bean.copyFile(syncConfig, fileName, srcClient, targetClient);
                     log.warn("no_suffix类型-文件同步完成: {}", fileName);
-                    
-                    // 恢复原始路径
-                    loanSyncConfig.setSrcPath(originalSrcPath);
-                    loanSyncConfig.setTargetPath(originalTargetPath);
                 }
             }
         }
@@ -588,7 +579,12 @@ public class SyncServiceImpl implements SyncService {
             
             for(FTPFile file : ftpFiles){
                 String fileName = file.getName();
-                
+
+                // 跳过. 和 .. 目录
+                if (".".equals(fileName) || "..".equals(fileName)) {
+                    continue;
+                }
+
                 String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
                 
                 if (file.isDirectory()) {
@@ -604,13 +600,7 @@ public class SyncServiceImpl implements SyncService {
                         log.warn("历史文件，不处理{},{}", fileName, createFileTime);
                         continue;
                     }
-                    
-                    // 临时修改srcPath来检查同步日志（这样可以区分不同路径下的同名文件）
-                    String originalSrcPath = loanSyncConfig.getSrcPath();
-                    loanSyncConfig.setSrcPath(currentPath);
                     validateIsSyncWithPath(createFileTime, fileName, apiCode, resultMap, loanSyncConfig, currentPath);
-                    // 恢复原始路径
-                    loanSyncConfig.setSrcPath(originalSrcPath);
                 }
             }
         } catch (Exception e) {
@@ -659,7 +649,12 @@ public class SyncServiceImpl implements SyncService {
             for(Map.Entry<String, SftpATTRS> entry : map.entrySet()){
                 String fileName = entry.getKey();
                 SftpATTRS attrs = entry.getValue();
-                
+
+                // 跳过. 和 .. 目录
+                if (".".equals(fileName) || "..".equals(fileName)) {
+                    continue;
+                }
+
                 String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
                 
                 if (attrs.isDir()) {
@@ -673,13 +668,7 @@ public class SyncServiceImpl implements SyncService {
                         log.warn("历史文件，不处理{},{}", fileName, createFileTime);
                         continue;
                     }
-                    
-                    // 临时修改srcPath来检查同步日志（这样可以区分不同路径下的同名文件）
-                    String originalSrcPath = loanSyncConfig.getSrcPath();
-                    loanSyncConfig.setSrcPath(currentPath);
                     validateIsSyncWithPath(createFileTime, fileName, apiCode, resultMap, loanSyncConfig, currentPath);
-                    // 恢复原始路径
-                    loanSyncConfig.setSrcPath(originalSrcPath);
                 }
             }
         } catch (Exception e) {
@@ -705,7 +694,7 @@ public class SyncServiceImpl implements SyncService {
         Map<String,String> params=new HashMap<>();
         params.put("apiCode",apiCode);
         params.put("fileName",fileName);
-        params.put("srcPath",syncConfig.getSrcSftpHost().concat(":").concat(syncConfig.getSrcPath()));
+        params.put("srcPath",syncConfig.getSrcSftpHost().concat(":").concat(currentPath));
         List<SyncLog> syncLogs=  loanSyncLogMapper.querySyncLog(params);
         if(syncLogs==null||syncLogs.size()<=0){
             String suffixStr = syncConfig.getSuffix();
