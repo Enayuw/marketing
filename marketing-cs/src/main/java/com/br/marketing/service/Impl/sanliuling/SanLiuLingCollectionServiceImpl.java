@@ -98,8 +98,6 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
 
         // 2. 分页查询并处理applicationId，支持千万级数据量
         long offset = 0;
-        int processedCount = 0;
-        
         while (offset < totalCount) {
             // 分页查询applicationId列表，通过ORDER BY确保数据顺序一致性
             List<String> applicationIds = marketingSanLiuLingCollectionMapper.selectDistinctApplicationIdsWithPaging(
@@ -114,122 +112,122 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                     applicationIds.size(), offset, APPLICATION_ID_PAGE_SIZE);
 
             // 3. 按applicationId分组处理数据
-            for (String applicationId : applicationIds) {
-                pushPool.submit(() -> processApplicationIdData(apiCode, receiveDate, applicationId, dynamicKeys));
-                processedCount++;
-            }
+            pushPool.submit(() -> processApplicationIdData(apiCode, receiveDate, applicationIds, dynamicKeys));
             
             // 更新偏移量
             offset += APPLICATION_ID_PAGE_SIZE;
         }
-        
-        log.warn(TITLE + "总共提交{}个applicationId处理任务", processedCount);
     }
 
     /**
      * 处理单个applicationId的数据
      */
-    private void processApplicationIdData(String apiCode, String receiveDate, String applicationId, String dynamicKeys) {
-        List<Long> dataIds = new ArrayList<>();
-        try {
-            // 1. 先查询该applicationId下的所有待清洗数据
-            List<MarketingSanLiuLingCollection> collectionList = marketingSanLiuLingCollectionMapper.selectByApplicationId(
-                    apiCode, receiveDate, DataCleanStatusEnum.READY.getCode(), applicationId);
-            
-            if (CollectionUtils.isEmpty(collectionList)) {
-                log.warn(TITLE + "applicationId: {} 下无待清洗数据，跳过处理", applicationId);
-                return;
-            }
-            
-            // 2. 提取所有数据的ID，用于后续状态更新
-            dataIds = collectionList.stream()
-                    .map(MarketingSanLiuLingCollection::getId)
-                    .collect(Collectors.toList());
-            
-            // 3. 批量将状态更新为清洗中(1)，防止重复处理
-            int updateCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
-                    DataCleanStatusEnum.RUNNING.getCode());
-            
-            if (updateCount == 0) {
-                log.warn(TITLE + "applicationId: {} 状态更新失败，可能已被其他线程处理", applicationId);
-                return;
-            }
+    private void processApplicationIdData(String apiCode, String receiveDate, List<String> applicationIds, String dynamicKeys) {
 
-            // 拆分为br前缀的列表
-            List<MarketingSanLiuLingCollection> brList = collectionList.stream()
-                    .filter(collection -> collection.getPhoneLabel() != null &&
-                            collection.getPhoneLabel().trim().equals("br1"))
-                    .collect(Collectors.toList());
+        for (String applicationId : applicationIds){
+            List<Long> dataIds = new ArrayList<>();
+            try {
+                // 1. 先查询该applicationId下的所有待清洗数据
+                List<MarketingSanLiuLingCollection> collectionList = marketingSanLiuLingCollectionMapper.selectByApplicationId(
+                        apiCode, receiveDate, DataCleanStatusEnum.READY.getCode(), applicationId);
 
-            if(brList.isEmpty()){
-                log.warn(TITLE + "applicationId: {} 不存在br1的数据", applicationId);
-                return;
-            }
-
-            // 拆分为lxr前缀的列表
-            List<MarketingSanLiuLingCollection> lxrList = collectionList.stream()
-                    .filter(collection -> collection.getPhoneLabel() != null &&
-                            collection.getPhoneLabel().startsWith("lxr"))
-                    .collect(Collectors.toList());
-
-            // 构建上传数据 - 按applicationId合并数据
-            String taskId = UUID.randomUUID().toString();
-            
-            // 获取taskId（优先使用数据库中的taskId）
-            for (MarketingSanLiuLingCollection collection : brList) {
-                if (!StringUtils.isEmpty(collection.getTaskId())) {
-                    taskId = collection.getTaskId();
-                    break;
+                if (CollectionUtils.isEmpty(collectionList)) {
+                    log.warn(TITLE + "applicationId: {} 下无待清洗数据，跳过处理", applicationId);
+                    return;
                 }
-            }
-            
-            // 按applicationId合并数据：一个applicationId生成一条记录
-            MarketingPreUserDetailDTO mergedDetailDTO = buildMergedMarketingPreUserDetailDTO(brList,lxrList,dynamicKeys);
-            
-            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
-            if (mergedDetailDTO != null) {
-                syncUsers.add(mergedDetailDTO);
-            }
 
-            // 使用LocalDate获取当前日期
-            LocalDate currentDate = LocalDate.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+                // 2. 提取所有数据的ID，用于后续状态更新
+                dataIds = collectionList.stream()
+                        .map(MarketingSanLiuLingCollection::getId)
+                        .collect(Collectors.toList());
 
-            // 构建上传对象
-            MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-            marketingPreUserDTO.setTaskId(taskId);
-            marketingPreUserDTO.setRequestId(apiCode.concat("_").concat(taskId).concat("_").concat(currentDate.format(formatter)));
-            marketingPreUserDTO.setDataItems(syncUsers);
+                // 3. 批量将状态更新为清洗中(1)，防止重复处理
+                int updateCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
+                        DataCleanStatusEnum.RUNNING.getCode());
 
-            UploadDataDTO uploadDataDTO = new UploadDataDTO();
-            uploadDataDTO.setApiCode(apiCode);
-            uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+                if (updateCount == 0) {
+                    log.warn(TITLE + "applicationId: {} 状态更新失败，可能已被其他线程处理", applicationId);
+                    return;
+                }
 
-            // 3. 执行推送
-            log.warn(TITLE + "开始推送applicationId: {} 的数据，数据量: {}", applicationId, syncUsers.size());
-            pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-            
-            // 4. 推送成功后，将状态更新为清洗完成(2)
-            int completedCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
-                    DataCleanStatusEnum.COMPLETE.getCode());
-            
-            if (completedCount > 0) {
-                log.warn(TITLE + "完成推送applicationId: {} 的数据，已更新{}条记录状态为完成", applicationId, completedCount);
-            } else {
-                log.error(TITLE + "推送完成但状态更新失败，applicationId: {}", applicationId);
-            }
+                // 拆分为br前缀的列表
+                List<MarketingSanLiuLingCollection> brList = collectionList.stream()
+                        .filter(collection -> collection.getPhoneLabel() != null &&
+                                collection.getPhoneLabel().trim().equals("br1"))
+                        .collect(Collectors.toList());
 
-        } catch (Exception e) {
-            log.error(TITLE + "处理applicationId: {} 数据时发生异常", applicationId, e);
-            
-            // 发生异常时，尝试将状态回滚为待清洗，便于重新处理
-            if (!CollectionUtils.isEmpty(dataIds)) {
-                try {
-                    marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
-                            DataCleanStatusEnum.READY.getCode());
-                    log.warn(TITLE + "异常回滚：applicationId: {} 状态已回滚为待清洗", applicationId);
-                } catch (Exception rollbackException) {
-                    log.error(TITLE + "异常回滚失败，applicationId: {}", applicationId, rollbackException);
+                if(brList.isEmpty()){
+                    log.warn(TITLE + "applicationId: {} 不存在br1的数据", applicationId);
+                    return;
+                }
+
+                // 拆分为lxr前缀的列表
+                List<MarketingSanLiuLingCollection> lxrList = collectionList.stream()
+                        .filter(collection -> collection.getPhoneLabel() != null &&
+                                collection.getPhoneLabel().startsWith("lxr"))
+                        .collect(Collectors.toList());
+
+                // 构建上传数据 - 按applicationId合并数据
+                String taskId = UUID.randomUUID().toString();
+
+                // 获取taskId（优先使用数据库中的taskId）
+                for (MarketingSanLiuLingCollection collection : brList) {
+                    if (!StringUtils.isEmpty(collection.getTaskId())) {
+                        taskId = collection.getTaskId();
+                        break;
+                    }
+                }
+
+                // 按applicationId合并数据：一个applicationId生成一条记录
+                MarketingPreUserDetailDTO mergedDetailDTO = buildMergedMarketingPreUserDetailDTO(brList,lxrList,dynamicKeys);
+
+                List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+                if (mergedDetailDTO != null) {
+                    syncUsers.add(mergedDetailDTO);
+                }
+
+                // 构建上传对象
+                MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+                marketingPreUserDTO.setTaskId(taskId);
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(apiCode).append("_")
+                        .append(taskId).append("_")
+                        .append(System.currentTimeMillis()).append("_")
+                        .append(UUID.randomUUID());
+                marketingPreUserDTO.setRequestId(sb.toString());
+                marketingPreUserDTO.setDataItems(syncUsers);
+
+                UploadDataDTO uploadDataDTO = new UploadDataDTO();
+                uploadDataDTO.setApiCode(apiCode);
+                uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+
+                // 3. 执行推送
+                log.warn(TITLE + "开始推送applicationId: {} 的数据，数据量: {}", applicationId, syncUsers.size());
+                pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+
+                // 4. 推送成功后，将状态更新为清洗完成(2)
+                int completedCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
+                        DataCleanStatusEnum.COMPLETE.getCode());
+
+                if (completedCount > 0) {
+                    log.warn(TITLE + "完成推送applicationId: {} 的数据，已更新{}条记录状态为完成", applicationId, completedCount);
+                } else {
+                    log.error(TITLE + "推送完成但状态更新失败，applicationId: {}", applicationId);
+                }
+
+            } catch (Exception e) {
+                log.error(TITLE + "处理applicationId: {} 数据时发生异常", applicationId, e);
+
+                // 发生异常时，尝试将状态回滚为待清洗，便于重新处理
+                if (!CollectionUtils.isEmpty(dataIds)) {
+                    try {
+                        marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
+                                DataCleanStatusEnum.READY.getCode());
+                        log.warn(TITLE + "异常回滚：applicationId: {} 状态已回滚为待清洗", applicationId);
+                    } catch (Exception rollbackException) {
+                        log.error(TITLE + "异常回滚失败，applicationId: {}", applicationId, rollbackException);
+                    }
                 }
             }
         }
@@ -283,8 +281,6 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                 Map<String, Object> reserveField1 = new HashMap<>();
                 // 基础信息
                 reserveField1.put("userType", "催收");
-                reserveField1.put("source", "数据来源");
-                reserveField1.put("type", "转化节点");
                 reserveField1.put("gender", sex);
                 // 案件信息
                 reserveField1.put("caseCode", collection.getCaseCode());
@@ -298,8 +294,9 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                 reserveField1.put("batchNumber", collection.getBatchNo());
                 String strategyCode = collection.getBatchNo();
                 if (!StringUtils.isEmpty(strategyCode) && strategyCode.length() > 12) {
-                    strategyCode = strategyCode.substring(0, 12);
+                    strategyCode = strategyCode.substring(Math.max(0, strategyCode.length() - 12));
                 }
+
                 reserveField1.put("strategyCode", strategyCode);
                 reserveField1.put("applicationId", collection.getApplicationId());
 
