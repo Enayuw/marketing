@@ -32,15 +32,6 @@ public class AesSllCollectionStrategy implements IUploadCheckService {
             String plainText = AesSllUtil.decrypt(user.getName(), customerTagsVO.getDynamicKeys());
             isValid(user, plainText, "name", isCheck);
         }
-        //String reserveField1 = user.getReserveField1();
-        //if(StringUtils.isNotBlank(reserveField1)){
-        //    JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-        //    String plainText = AesSllUtil.decrypt(jsonObject.getString("template_no"), customerTagsVO.getDynamicKeys());
-        //    if (StringUtils.isNotBlank(plainText)) {
-        //        isValid(user, plainText, "cell", isCheck);
-        //    }
-        //}
-
     }
 
 }

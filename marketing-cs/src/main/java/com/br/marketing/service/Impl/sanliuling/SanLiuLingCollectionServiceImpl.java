@@ -133,7 +133,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
 
                 if (CollectionUtils.isEmpty(collectionList)) {
                     log.warn(TITLE + "applicationId: {} 下无待清洗数据，跳过处理", applicationId);
-                    return;
+                    continue;
                 }
 
                 // 2. 提取所有数据的ID，用于后续状态更新
@@ -147,7 +147,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
 
                 if (updateCount == 0) {
                     log.warn(TITLE + "applicationId: {} 状态更新失败，可能已被其他线程处理", applicationId);
-                    return;
+                    continue;
                 }
 
                 // 拆分为br前缀的列表
@@ -158,7 +158,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
 
                 if(brList.isEmpty()){
                     log.warn(TITLE + "applicationId: {} 不存在br1的数据", applicationId);
-                    return;
+                    continue;
                 }
 
                 // 拆分为lxr前缀的列表
