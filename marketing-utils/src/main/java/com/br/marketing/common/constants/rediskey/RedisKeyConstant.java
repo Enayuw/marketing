@@ -417,4 +417,9 @@ public class RedisKeyConstant {
      * list中放置字符串"1"~"100"，取号：rpoplpush(key) 与 ivr 阈值比较
      */
     public static final String XIECHENG_REPORT_MOCK_RATE_TURNTABLE = prefix.concat("xieChengReport:mockRate:turntable");
+
+    /**
+     * ai客户数据推送决策根据yyyyMMdd-apiCode:userType:custNum计数
+     */
+    public static final String AI_TOPOLICY_PUSH_COUNTER = prefix.concat("ai:toPolicy:push:counter:");
 }

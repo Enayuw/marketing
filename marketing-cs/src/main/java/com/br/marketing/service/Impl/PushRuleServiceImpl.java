@@ -79,9 +79,11 @@ import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceIm
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -142,6 +144,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
     public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
+    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
     public static final String TO_POLICY_GENERAL = CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode();
 
     private static HashMap<String, String> errorCodeHm;
@@ -273,6 +276,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
+    @Resource
+    private RuleCenterLabelService ruleCenterLabelService;
+
+    @Autowired
+    private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -579,6 +588,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMain.setTagContent(dto.getmTagCondition());
+        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            customerInfoPushMain.setPushTarget(2);
+            customerInfoPushMain.setExtend(dto.getScoreMergeField());
+        }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
         String batchName;
@@ -616,6 +629,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         PushViewVO pushViewVO = new PushViewVO();
         if (isXieChengData(dto)) {
             total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
+        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            //合并跑分计算
+            long start = System.currentTimeMillis();
+            // 组装查询sql
+            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
+            // 执行查询获取统计数量
+            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
+            total = (count != null ? count : 0);
         } else {
             Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
             if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
@@ -736,6 +758,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isEmpty(federatedQuerySql)) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
         }
+        tagDataDetailMapper.queryPreviewTotalbI_("refresh catalog es");
         int total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
     }
@@ -2484,6 +2507,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region 写入上传明细MQ
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jsonData);
+            // 非ai客户
             if(Objects.equals(intoAiQueue,false)){
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
@@ -2607,28 +2631,31 @@ public class PushRuleServiceImpl implements PushRuleService {
             return false;
         }
 
+        boolean isBatch = judgeIsBatch(jsonData);
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         // 没配置成init和ai客户
         boolean hasOperateType3 = containsOperateType(jsonData, "3");
         boolean hasOperateType4 = containsOperateType(jsonData, "4");
+        boolean hasOperateType5 = containsOperateType(jsonData, "5");
 
-        // jsonData中没有3也没有4
-        if (!hasOperateType3 && !hasOperateType4) {
+        // jsonData中没有345
+        if (!hasOperateType3 && !hasOperateType4 && !hasOperateType5) {
             return false;
         }
 
-        // jsonData包含3或者4，查db
+        // jsonData包含3或者4或者5，查db
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
 
         boolean hasType3Rule = customerRules.contains(TO_POLICY_GENERAL) && hasOperateType3;
         boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
+        boolean hasType5Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE) && hasOperateType5;
 
-        if (hasType3Rule && hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+        if (hasType3Rule && hasType4Rule && hasType5Rule) {
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
@@ -2645,21 +2672,42 @@ public class PushRuleServiceImpl implements PushRuleService {
             ruleAdded = true;
         }
 
+        // 缓存中没有5
+        if (!hasType5Rule && hasOperateType5
+                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)) {
+            ruleAdded = true;
+        }
+
         // 缓存和数据中都有
-        if (hasType3Rule || hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+        if (hasType3Rule || hasType4Rule || hasType5Rule) {
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         // 发消息到通用入明细队列
         return false;
+    }
+
+    private boolean judgeIsBatch(String jsonData) {
+        JSONArray dataArray;
+        try {
+            dataArray = JSON.parseObject(jsonData).getJSONArray(Constants.JSON_DATA_KEYARR);
+        } catch (Exception e) {
+            log.warn("客户上传数据格式错误！jsonData:{}，errMsg:{}", jsonData, e.getMessage(), e);
+            return false;
+        }
+        if (CollectionUtils.isEmpty(dataArray)) {
+            return false;
+        }
+
+        return dataArray.size() > 1;
     }
 
     /**
@@ -2716,8 +2764,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         return true;
     }
 
-    private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
+    private void getRoutingKeyAndSendToAiMq(String syncInfoId, boolean isBatch) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
+            if (isBatch) {
+                rocketMqSwitch.syncSend(AiRocketMQConstants.TOPIC_MARKETING_AI_PREUSER_RECEIVE_BATCH,
+                        AiRocketMQConstants.TAG_MARKETING_AI_PREUSER_RECEIVE_BATCH, syncInfoId);
+                return;
+            }
+
             AiPreUserReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiPreUserReceiveEnum.class,
                     RedisKeyConstant.AI_PREUSER_RECEIVE_MQ_BALANCER);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), syncInfoId);
@@ -3230,8 +3284,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.INITDATA_MUST_ERROR.getMessage()));
         }
 
+        boolean isBatch = dto.getDataItems().size() > 1;
         // 发消息到推送下游队列
-        sendToUniversalQueue(infoId, status, apiCode);
+        sendToUniversalQueue(infoId, status, apiCode, isBatch);
 
         List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
         if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)) {
@@ -3284,7 +3339,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode) {
+    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode, boolean isBatch) {
         if (!status) {
             return;
         }
@@ -3307,21 +3362,29 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
         if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
-            sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact, isBatch);
             return;
         }
 
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
-            sendToAIUniversalQueue(mqFact);
+        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)
+                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
+                || customerRules.contains(TO_POLICY_GENERAL)) {
+            sendToAIUniversalQueue(mqFact, isBatch);
         }
     }
 
-    private void sendToAIUniversalQueue(MqFact mqFact){
+    private void sendToAIUniversalQueue(MqFact mqFact, boolean isBatch) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
+            String message = JSON.toJSONString(mqFact);
+            if (isBatch) {
+                rocketMqSwitch.syncSend(AiRocketMQConstants.TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH,
+                        AiRocketMQConstants.TAG_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH, message);
+                return;
+            }
+
             AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
                     RedisKeyConstant.AI_UNIVERSAL_RECEIVE_MQ_BALANCER);
-            String message = JSON.toJSONString(mqFact);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), message);
             return;
         }
@@ -3460,6 +3523,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region 写入上传明细MQ
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
+            // 非ai客户
             if(Objects.equals(intoAiQueue,false)){
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC

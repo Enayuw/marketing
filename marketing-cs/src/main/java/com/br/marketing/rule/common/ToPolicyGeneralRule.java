@@ -2,10 +2,15 @@ package com.br.marketing.rule.common;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
@@ -14,9 +19,12 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -29,6 +37,9 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Autowired
+    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -103,10 +114,32 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
             if (StringUtils.isNotBlank(operateType) && "3".equals(operateType)) {
-                return true;
+                return insertRecord(syncUser);
             }
         }
         return false;
+    }
+
+    private boolean insertRecord(MarketingSyncUser syncUser) {
+        AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
+        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
+        aiToPolicyRecord.setUserType(syncUser.getUserType());
+        aiToPolicyRecord.setCustNum(syncUser.getCustNum());
+        aiToPolicyRecord.setApiCode(syncUser.getApiCode());
+        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode());
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        aiToPolicyRecord.setCreateDate(Integer.valueOf(yyyyMMdd));
+        try {
+            aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
+            return true;
+        } catch (DuplicateKeyException e) {
+            log.warn("AI自动化推决策_操作类型3,数据重复，fingerprint:{}", syncUser.getFingerprint());
+            return false;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型3,写去重表db异常："), e);
+            return true;
+        }
+
     }
 
     @Override
