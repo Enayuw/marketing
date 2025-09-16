@@ -89,6 +89,98 @@ public class JsonParseUtils {
     }
 
     /**
+     * 递归查找匹配的值并返回（支持处理字符串形式的JSON嵌套结构）
+     *
+     * @param obj         当前JSON对象或数组
+     * @param targetKey   目标键名
+     * @param parentPath  父节点路径
+     * @return 找到的第一个匹配值，未找到则返回null
+     */
+    public static Object findFirstValueByKey(Object obj, String targetKey, String parentPath) {
+        return findFirstValueByKeyWithPath(obj, targetKey, parentPath, "");
+    }
+
+    /**
+     * 递归查找匹配的值并返回（支持处理字符串形式的JSON嵌套结构）
+     *
+     * @param obj         当前JSON对象或数组
+     * @param targetKey   目标键名
+     * @param parentPath  期望的父节点路径
+     * @param currentPath 当前构建的路径
+     * @return 找到的第一个匹配值，未找到则返回null
+     */
+    private static Object findFirstValueByKeyWithPath(Object obj, String targetKey, String parentPath, String currentPath) {
+        String expectedPath = processNodePaths(parentPath);
+        currentPath = processNodePaths(currentPath);
+
+        if (obj instanceof JSONObject) {
+            JSONObject jsonObj = (JSONObject) obj;
+
+            // 检查当前对象是否包含目标key
+            if (jsonObj.containsKey(targetKey)) {
+                // 比较当前路径是否与期望路径匹配
+                if (currentPath.equals(expectedPath)) {
+                    return jsonObj.get(targetKey);
+                }
+            }
+
+            // 递归检查所有值
+            for (String key : jsonObj.keySet()) {
+                Object value = jsonObj.get(key);
+                // 构建新的路径
+                String newPath = StringUtils.isBlank(currentPath) ? key : currentPath + "." + key;
+
+                // 处理嵌套的JSON字符串
+                if (value instanceof String) {
+                    String strValue = (String) value;
+                    if (isJsonObject(strValue)) {
+                        try {
+                            JSONObject nestedJson = JSONObject.parseObject(strValue);
+                            Object result = findFirstValueByKeyWithPath(nestedJson, targetKey, expectedPath, newPath);
+                            if (result != null) {
+                                return result;
+                            }
+                        } catch (Exception e) {
+                            // 解析失败，忽略异常，继续处理
+                            log.error("JSON字符串解析失败: {}", strValue, e);
+                        }
+                    }
+                } else if (value instanceof JSONObject) {
+                    Object result = findFirstValueByKeyWithPath(value, targetKey, expectedPath, newPath);
+                    if (result != null) {
+                        return result;
+                    }
+                } else if (value instanceof JSONArray) {
+                    // 对于数组，我们保持当前路径不变，因为数组元素不会改变路径
+                    for (int i = 0; i < ((JSONArray) value).size(); i++) {
+                        Object item = ((JSONArray) value).get(i);
+                        if (item instanceof JSONObject) {
+                            Object result = findFirstValueByKeyWithPath(item, targetKey, expectedPath, newPath);
+                            if (result != null) {
+                                return result;
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (obj instanceof JSONArray) {
+            JSONArray jsonArray = (JSONArray) obj;
+            // 对于数组，我们遍历每个元素，但保持当前路径不变
+            for (int i = 0; i < jsonArray.size(); i++) {
+                Object item = jsonArray.get(i);
+                if (item instanceof JSONObject) {
+                    Object result = findFirstValueByKeyWithPath(item, targetKey, expectedPath, currentPath);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * 判断字符串是否为JSON对象
      *
      * @param str 待检查的字符串
@@ -271,5 +363,35 @@ public class JsonParseUtils {
 
         return false;
     }
+
+    /**
+     * 检查JSON对象或数组是否包含指定名称的数组
+     *
+     * @param obj JSON对象或数组
+     * @param arrayName 要查找的数组名称
+     * @return 是否包含指定数组
+     */
+    private static String processNodePaths(String arrayName) {
+        // 处理特殊的父节点路径
+        String expectedPath = StringUtils.isNotBlank(arrayName) ? arrayName : "";
+        if (expectedPath.contains("dataItems.item.")) {
+            expectedPath = expectedPath.replace("dataItems.item.", "");
+        }
+        if (expectedPath.contains("dataItems")) {
+            expectedPath = expectedPath.replace("dataItems", "");
+        }
+        if (expectedPath.contains("item.")) {
+            expectedPath = expectedPath.replace("item.", "");
+        }
+        if (expectedPath.contains("item")) {
+            expectedPath = expectedPath.replace("item", "");
+        }
+        // 去除开头和结尾的点
+        expectedPath = expectedPath.replaceAll("^\\.|\\.$", "");
+
+        return expectedPath;
+    }
+
+
 
 }

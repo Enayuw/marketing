@@ -4,7 +4,7 @@
 
     <select id="getRuleConfigList" resultType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig">
 
-        select rule.clean_fields, rule.mapping_field, rule.is_mapping, rule.mapping_rule
+        select rule.clean_fields, rule.mapping_field, rule.is_mapping, rule.mapping_rule, rule.level, rule.parent_path
         from b_marketing_data_clean_general_rule_config rule
         inner join b_marketing_data_clean_general_config config on config.id = rule.clean_config_id
         where config.api_code = #{apiCode}

@@ -314,4 +314,34 @@ public class PushRuleFilterController {
     }
 
 
+    /**
+     * 获取跑分合并标识
+     *
+     * @param batchNumbers
+     * @return
+     */
+    @ApiOperation(value = "获取跑分合并标识", notes = "获取跑分合并标识", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @GetMapping("/getScoreMergeMark")
+    public ApiResult getScoreMergeMark(@RequestParam String batchNumbers,@RequestParam String apiCode) {
+        return new ApiResult<Boolean>().fromResult(ruleCenterLabelService.getScoreMergeMark(batchNumbers,apiCode), CODE_1);
+    }
+
+
+    /**
+     * 获取跑分合并量级
+     *
+     * @param batchNumbers
+     * @return
+     */
+    @ApiOperation(value = "获取跑分合并量级", notes = "获取跑分合并量级", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @GetMapping("/getScoreMergeNum")
+    public ApiResult getScoreMergeNum(@RequestParam String batchNumbers,@RequestParam String apiCode) {
+        return new ApiResult<Map<String,Integer>>().fromResult(ruleCenterLabelService.getScoreMergeNum(batchNumbers,apiCode), CODE_1);
+    }
+
+
 }

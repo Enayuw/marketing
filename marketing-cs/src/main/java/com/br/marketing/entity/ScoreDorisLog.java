@@ -1,11 +1,16 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
-public class ScoreDorisLog {
-    /**
-     * 
-     */
+/**
+ * b_score_doris_log
+ * @author :zhen.Li1
+ */
+@Data
+public class ScoreDorisLog implements Serializable {
+
     private Long id;
 
     /**
@@ -33,51 +38,5 @@ public class ScoreDorisLog {
      */
     private Date updateTime;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getBatchNumber() {
-        return batchNumber;
-    }
-
-    public void setBatchNumber(String batchNumber) {
-        this.batchNumber = batchNumber == null ? null : batchNumber.trim();
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
+    private static final long serialVersionUID = 1L;
 }
