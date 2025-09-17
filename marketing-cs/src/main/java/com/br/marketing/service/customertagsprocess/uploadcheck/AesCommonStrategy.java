@@ -27,7 +27,7 @@ public class AesCommonStrategy implements IUploadCheckService {
                 isValid(user, plainText, "cell", isCheck);
             } else {
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
-                user.setFailType(MonitorTypeEnum.FAIL_TYPE_5.getType());
+                user.setFailType(MonitorTypeEnum.FAIL_TYPE_4.getType());
             }
         }
 
