@@ -759,7 +759,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isEmpty(federatedQuerySql)) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
         }
-        tagDataDetailMapper.queryPreviewTotalbI_("refresh catalog es");
         try {
             tagDataDetailMapper.refreshbI_("refresh catalog es");
         }catch (Exception e){
