@@ -8,6 +8,7 @@
     <result column="cus_num" property="cusNum" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
     <result column="section" property="section" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
   </resultMap>
@@ -70,7 +71,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, m_id, cus_num, cell, batch_number, `section`, extend
+    id, api_code, m_id, cus_num, cell, batch_number, `status`, `section`, extend
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingRuleCenterHaloCallbackDataExample" >
     select
@@ -107,11 +108,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_rule_center_halo_callback_data (api_code, m_id, cus_num,
-    cell, batch_number, `section`,
-    extend)
+    cell, batch_number, `status`,
+    `section`, extend)
     values (#{apiCode,jdbcType=VARCHAR}, #{mId,jdbcType=BIGINT}, #{cusNum,jdbcType=VARCHAR},
-    #{cell,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{section,jdbcType=INTEGER},
-    #{extend,jdbcType=VARCHAR})
+    #{cell,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER},
+    #{section,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingRuleCenterHaloCallbackData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -133,6 +134,9 @@
       </if>
       <if test="batchNumber != null" >
         batch_number,
+      </if>
+      <if test="status != null" >
+        `status`,
       </if>
       <if test="section != null" >
         `section`,
@@ -156,6 +160,9 @@
       </if>
       <if test="batchNumber != null" >
         #{batchNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
       </if>
       <if test="section != null" >
         #{section,jdbcType=INTEGER},
@@ -192,6 +199,9 @@
       <if test="record.batchNumber != null" >
         batch_number = #{record.batchNumber,jdbcType=VARCHAR},
       </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
       <if test="record.section != null" >
         `section` = #{record.section,jdbcType=INTEGER},
       </if>
@@ -211,6 +221,7 @@
     cus_num = #{record.cusNum,jdbcType=VARCHAR},
     cell = #{record.cell,jdbcType=VARCHAR},
     batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
     `section` = #{record.section,jdbcType=INTEGER},
     extend = #{record.extend,jdbcType=VARCHAR}
     <if test="_parameter != null" >
@@ -235,6 +246,9 @@
       <if test="batchNumber != null" >
         batch_number = #{batchNumber,jdbcType=VARCHAR},
       </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
       <if test="section != null" >
         `section` = #{section,jdbcType=INTEGER},
       </if>
@@ -251,6 +265,7 @@
         cus_num = #{cusNum,jdbcType=VARCHAR},
         cell = #{cell,jdbcType=VARCHAR},
         batch_number = #{batchNumber,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=INTEGER},
         `section` = #{section,jdbcType=INTEGER},
         extend = #{extend,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}

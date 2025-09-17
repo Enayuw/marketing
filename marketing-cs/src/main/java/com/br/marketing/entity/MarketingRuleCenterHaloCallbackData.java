@@ -32,6 +32,11 @@ public class MarketingRuleCenterHaloCallbackData {
     private String batchNumber;
 
     /**
+     * 回调状态:0未回调, 1回调成功, 2回调失败
+     */
+    private Integer status;
+
+    /**
      * 分值
      */
     private Integer section;
@@ -87,6 +92,14 @@ public class MarketingRuleCenterHaloCallbackData {
 
     public void setBatchNumber(String batchNumber) {
         this.batchNumber = batchNumber == null ? null : batchNumber.trim();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public Integer getSection() {

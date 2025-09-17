@@ -9,6 +9,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CustomerInfoPushMain;
+import com.br.marketing.entity.MarketingRuleCenterHaloCallbackDataExample;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.FlagDataMapper;
@@ -70,7 +71,15 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
     @Override
     protected Integer getSuccessStatus(CustomerInfoPushMain customerInfoPushMain) {
-        return 0;
+        MarketingRuleCenterHaloCallbackDataExample example = new MarketingRuleCenterHaloCallbackDataExample();
+        example.createCriteria().andMIdEqualTo(customerInfoPushMain.getId()).andStatusEqualTo(2);
+        Integer count = marketingRuleCenterHaloCallbackDataMapper.countByExample(example);
+        if (count > 0) {
+            return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
+        } else {
+            return PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue();
+        }
+
     }
 
     protected Result<Boolean> validateData(RuleCenterPushContext context) {
@@ -83,43 +92,49 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
         CustomerInfoPushMain customerInfoPushMain = context.getCustomerInfoPushMain();
-        logger.warn("{}开始执行预处理，任务ID: {}", TITLE, customerInfoPushMain.getId());
-        //根据taskId比较doris和tidb的量级，如果doris中存在数据且和tidb相等，同步完成，不再执行同步
-        String countSql = "select count(1) from ".concat(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA)
-                .concat(" where m_id=").concat(String.valueOf(customerInfoPushMain.getId()));
-        Long dorisCount = flagDataMapper.queryCountBySqlbI_(countSql);
-        if (dorisCount > 0) {
-            if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
-                    .equals(customerInfoPushMain.getmStatus())) {
-                Long tiDbCount = flagDataMapper.queryCountBySql(countSql);
-                if (dorisCount.equals(tiDbCount)) {
-                    logger.warn("tidb同步完成");
-                    // 回调重试
-
-                    return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
-                } else {
-                    updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+        try {
+            logger.warn("{}开始执行预处理，任务ID: {}", TITLE, customerInfoPushMain.getId());
+            //根据taskId比较doris和tidb的量级，如果doris中存在数据且和tidb相等，同步完成，不再执行同步
+            String countSql = "select count(1) from ".concat(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA)
+                    .concat(" where m_id=").concat(String.valueOf(customerInfoPushMain.getId()));
+            Long dorisCount = flagDataMapper.queryCountBySqlbI_(countSql);
+            if (dorisCount > 0) {
+                if (PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
+                        .equals(customerInfoPushMain.getmStatus())) {
+                    Long tiDbCount = flagDataMapper.queryCountBySql(countSql);
+                    if (dorisCount.equals(tiDbCount)) {
+                        logger.warn("tidb同步完成");
+                        // 回调重试
+                        callback(context.getPushThreadPool(), customerInfoPushMain.getId(), 2);
+                        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+                    } else {
+                        updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+                        return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+                    }
                 }
             }
+
+            JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
+            String apiCode = customerInfoPushMain.getmApiCode();
+            List<String> apiCodeList = Arrays.asList(haloAIRuleCenterCallbackConfig.getString("apiCodes").split(","));
+            if (!apiCodeList.contains(apiCode)) {
+                logger.warn("该apiCode未获得授权，请联系开发人员！apiCode:{}", apiCode);
+                return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+            }
+            String[] batchNumberList = customerInfoPushMain.getmCusBatchNumberList().split(",");
+            String batchNumber = batchNumberList[0];
+
+            //筛选数据入b_marketing_score_${batchNumber}表
+            insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), batchNumber);
+            //同步TiDB
+            syncDataToTiDB(customerInfoPushMain.getId());
+
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+        } catch (Exception e) {
+            logger.error("{}前置处理异常", TITLE, e);
+            updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
-
-        JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
-        String apiCode = customerInfoPushMain.getmApiCode();
-        List<String> apiCodeList = Arrays.asList(haloAIRuleCenterCallbackConfig.getString("apiCodes").split(","));
-        if (!apiCodeList.contains(apiCode)) {
-            logger.warn("该apiCode未获得授权，请联系开发人员！apiCode:{}", apiCode);
-            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
-        }
-        String[] batchNumberList = customerInfoPushMain.getmCusBatchNumberList().split(",");
-        String batchNumber = batchNumberList[0];
-
-        //筛选数据入b_marketing_score_${batchNumber}表
-        insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), batchNumber);
-        //同步TiDB
-        syncDataToTiDB(customerInfoPushMain.getId());
-
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
 
@@ -141,35 +156,37 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
         @Override
         public List<Future<Result<Integer>>> call() {
-
-            List<Future<Result<Integer>>> resultList = new ArrayList<>();
             Long taskId = customerInfoPushMain.getId();
-            JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
-            int pageSize = haloAIRuleCenterCallbackConfig.getInteger("pageSize");
-            long minId = 0L;
-            int threadBatchSize = haloAIRuleCenterCallbackConfig.getInteger("threadBatchSize");
-
-            while (true) {
-                List<Map<String, Object>> results
-                        = marketingRuleCenterHaloCallbackDataMapper.selectByTaskIdAndBatchNumber(taskId, minId, pageSize, 0);
-
-                if (results.isEmpty()) {
-                    logger.warn("当前任务数据已全部处理完成，taskId:{}", taskId);
-                    break;
-                }
-                minId = ((Number) results.get(results.size() - 1).get("id")).longValue();
-
-                for (List<Map<String, Object>> batchToProcess : Lists.partition(results, threadBatchSize)) {
-                    List<Long> ids = batchToProcess.stream().map(record -> ((Number) record.get("id")).longValue()).collect(Collectors.toList());
-                    // 从每个Map中移除id字段
-                    batchToProcess.forEach(record -> record.remove("id"));
-                    ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
-                    reqHaluoApiDTO.setData(JSONObject.toJSONString(batchToProcess));
-                    resultList.add(pushCallbackPool.submit(new CallbackTask(reqHaluoApiDTO, ids)));
-                }
-            }
-            return resultList;
+            return callback(pushCallbackPool, taskId, 0);
         }
+    }
+
+    private List<Future<Result<Integer>>> callback(ThreadPoolExecutor pushCallbackPool, Long taskId, Integer status) {
+        List<Future<Result<Integer>>> resultList = new ArrayList<>();
+        JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
+        int pageSize = haloAIRuleCenterCallbackConfig.getInteger("pageSize");
+        long minId = 0L;
+        int threadBatchSize = haloAIRuleCenterCallbackConfig.getInteger("threadBatchSize");
+        while (true) {
+            List<Map<String, Object>> results
+                    = marketingRuleCenterHaloCallbackDataMapper.selectByTaskIdAndBatchNumber(taskId, minId, pageSize, status);
+
+            if (results.isEmpty()) {
+                logger.warn("当前任务数据已全部处理完成，taskId:{}", taskId);
+                break;
+            }
+            minId = ((Number) results.get(results.size() - 1).get("id")).longValue();
+
+            for (List<Map<String, Object>> batchToProcess : Lists.partition(results, threadBatchSize)) {
+                List<Long> ids = batchToProcess.stream().map(record -> ((Number) record.get("id")).longValue()).collect(Collectors.toList());
+                // 从每个Map中移除id字段
+                batchToProcess.forEach(record -> record.remove("id"));
+                ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
+                reqHaluoApiDTO.setData(JSONObject.toJSONString(batchToProcess));
+                resultList.add(pushCallbackPool.submit(new CallbackTask(reqHaluoApiDTO, ids)));
+            }
+        }
+        return resultList;
     }
 
     private class CallbackTask implements Callable<Result<Integer>> {
