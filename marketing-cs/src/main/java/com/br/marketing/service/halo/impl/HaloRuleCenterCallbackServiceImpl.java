@@ -83,6 +83,7 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMain.setLabelName(dto.getLabelName());
         customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.HALO_CALLBACK.getCode());
+        customerInfoPushMain.setFilterType(3);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
         String batchName;
