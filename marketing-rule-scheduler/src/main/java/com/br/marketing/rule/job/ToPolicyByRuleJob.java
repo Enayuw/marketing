@@ -52,7 +52,7 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
                 if(pushTaskData.getFilterType().equals(0) || pushTaskData.getFilterType().equals(2)) {
                     booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
                 } else if (pushTaskData.getFilterType().equals(3)) {
-                    booleanResult = haloCallBackService.callBack(pushTaskData.getId());
+                    booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
                 } else{
                     //携程撞库数据推决策
                     booleanResult = xieChengCollidingService.collidingDataPushPolicy(pushTaskData.getId());

@@ -88,8 +88,8 @@ public class HaloCallBackServiceImpl implements HaloCallBackService {
             logger.warn("该apiCode未获得授权，请联系开发人员！apiCode:{}", apiCode);
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
-        String[] batchNUmberList = customerInfoPushMain.getmCusBatchNumberList().split(",");
-        for (String batchNumber : batchNUmberList) {
+        String[] batchNumberList = customerInfoPushMain.getmCusBatchNumberList().split(",");
+        for (String batchNumber : batchNumberList) {
             //筛选数据入b_marketing_score_${batchNumber}表
             insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), batchNumber);
             //同步TiDB
@@ -279,18 +279,21 @@ public class HaloCallBackServiceImpl implements HaloCallBackService {
         String sectionField = haloSectionFieldConfig.getString("sectionField");
         JSONArray rangeArray = haloSectionFieldConfig.getJSONArray("sectionRange");
         StringBuilder insertSql = new StringBuilder("INSERT INTO ").append(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA).append("(");
-        insertSql.append(apiCode).append(" as api_code,").append(id).append(" as m_id,");
+        String whereSql = "";
         insertSql.append(String.join(",", baseColumnList));
         insertSql.append(")");
         insertSql.append("SELECT ");
+        insertSql.append(apiCode).append(" as api_code,").append(id).append(" as m_id,");
+        baseColumnList.remove("api_code");
+        baseColumnList.remove("m_id");
         baseColumnList.remove("section");
         baseColumnList.remove("extend");
         insertSql.append(String.join(",", baseColumnList));
         insertSql.append(",");
-        insertSql.append(generateCaseWhenSql(batchNumber, sectionField, rangeArray));
+        insertSql.append(generateCaseWhenSql(sectionField, rangeArray, whereSql));
         insertSql.append(",");
         columnList.removeAll(baseColumnList);
-        StringBuilder extend = new StringBuilder();
+        StringBuilder extend = new StringBuilder("JSON_OBJECT(");
         List<String> extendFields = new ArrayList<>();
         for (String column : columnList) {
             extendFields.add("'" + column + "'");
@@ -302,13 +305,19 @@ public class HaloCallBackServiceImpl implements HaloCallBackService {
         }
         extend.append(") as extend");
         insertSql.append(extend);
+        insertSql.append(" FROM b_score_");
+        insertSql.append(batchNumber);
+        if (StringUtils.isNotBlank(whereSql)) {
+            insertSql.append(" WHERE ");
+            insertSql.append(whereSql);
+        }
 
         flagDataMapper.insertbI_(insertSql.toString());
     }
 
-    private String generateCaseWhenSql(String batchNumber, String sectionField, JSONArray rangeArray) {
+    private String generateCaseWhenSql(String sectionField, JSONArray rangeArray, String firstCondition) {
         StringBuilder sql = new StringBuilder("CASE ");
-        String firstCondition = "";
+
         for (int i = 0; i < rangeArray.size(); i++) {
             JSONObject range = rangeArray.getJSONObject(i);
             String rangeStr = (String) range.get("range");
@@ -322,10 +331,6 @@ public class HaloCallBackServiceImpl implements HaloCallBackService {
         }
 
         sql.append("ELSE NULL END AS section");
-        sql.append(" FROM b_score_");
-        sql.append(batchNumber);
-        sql.append(" WHERE ");
-        sql.append(firstCondition);
         return sql.toString();
     }
 
