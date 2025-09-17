@@ -760,6 +760,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
         }
         tagDataDetailMapper.queryPreviewTotalbI_("refresh catalog es");
+        try {
+            tagDataDetailMapper.refreshbI_("refresh catalog es");
+        }catch (Exception e){
+            log.error("refresh catalog es异常");
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("refresh catalog es异常");
+        }
         int total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
     }
