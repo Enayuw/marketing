@@ -79,6 +79,7 @@ public class SyncReportController {
             , @ApiImplicitParam(name = "selectType", value = "选择类型(例：1全选,0:指定筛选)", paramType = "query", dataType = "integer",defaultValue = "1")
             , @ApiImplicitParam(name = "selectExportIds", value = "选中要导出的id数据,逗号分隔(例：1,2,3,4)", paramType = "query", dataType = "string")
     })
+    @AddDataAuthBusiness
     public void exportData(@RequestParam(required = false) String cidOrName
             , @RequestParam(required = false) String appletTimeStart
             , @RequestParam(required = false) String appletTimeEnd
