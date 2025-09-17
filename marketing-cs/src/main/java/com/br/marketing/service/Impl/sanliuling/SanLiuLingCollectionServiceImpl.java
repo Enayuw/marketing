@@ -211,18 +211,11 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                 uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
 
                 // 3. 执行推送
-                log.warn(TITLE + "开始推送applicationId: {} 的数据，数据量: {}", applicationId, syncUsers.size());
                 pushInfoService.pushUploadByRetry(uploadDataDTO, null);
 
                 // 4. 推送成功后，将状态更新为清洗完成(2)
-                int completedCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
+                marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
                         DataCleanStatusEnum.COMPLETE.getCode());
-
-                if (completedCount > 0) {
-                    log.warn(TITLE + "完成推送applicationId: {} 的数据，已更新{}条记录状态为完成", applicationId, completedCount);
-                } else {
-                    log.error(TITLE + "推送完成但状态更新失败，applicationId: {}", applicationId);
-                }
 
             } catch (Exception e) {
                 log.error(TITLE + "处理applicationId: {} 数据时发生异常", applicationId, e);
