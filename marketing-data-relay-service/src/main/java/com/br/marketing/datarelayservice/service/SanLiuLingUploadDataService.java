@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName SanLiuLingUploadDataService
@@ -91,7 +92,7 @@ public class SanLiuLingUploadDataService {
             String batchNo = dto.getBatchNo();
             List<CustomerInformationDTO> list = dto.getList();
             //存储错误的客户id
-            List<String> failIdList = new ArrayList<>();
+            List<CustomerInformationDTO> failIdList = new ArrayList<>();
             //校验成功数据
             List<CustomerInformationDTO> successList = new ArrayList<>();
             // 校验客户列表中每个客户的必填参数
@@ -99,7 +100,7 @@ public class SanLiuLingUploadDataService {
                 String customerErrors = validateCustomerInformation(list.get(i), i);
                 if (!customerErrors.isEmpty()) {
                     log.warn("【360催收数据上传】参数校验失败, customerErrors: {}", customerErrors);
-                    failIdList.add(list.get(i).getApplicationId());
+                    failIdList.add(list.get(i));
                 } else {
                     successList.add(list.get(i));
                 }
@@ -107,8 +108,11 @@ public class SanLiuLingUploadDataService {
             //处理失败数据
             if (!failIdList.isEmpty()) {
                 log.warn("【360催收数据上传】参数校验失败: {}, jsonData: {}", failIdList, jsonData);
-                insertOriginalData(apiCode, taskId, batchNo, 1, successList);
-                sanLiuLingResponseDTO = sanLiuLingResponseDTO.failed(SanLiuLingResponseDTO.ResultEnum.FAILED_PARAM_ERROR, failIdList.toString());
+                insertOriginalData(apiCode, taskId, batchNo, 1, failIdList);
+                List<String> idList = failIdList.stream()
+                        .map(CustomerInformationDTO::getApplicationId)
+                        .collect(Collectors.toList());
+                sanLiuLingResponseDTO = sanLiuLingResponseDTO.failed(SanLiuLingResponseDTO.ResultEnum.FAILED_PARAM_ERROR, idList.toString());
             }
             //处理成功数据
             if (!successList.isEmpty()) {
