@@ -7,6 +7,8 @@
     <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
     <result column="mapping_field" jdbcType="VARCHAR" property="mappingField" />
     <result column="clean_fields" jdbcType="VARCHAR" property="cleanFields" />
+    <result column="level" jdbcType="INTEGER" property="level" />
+    <result column="parent_path" jdbcType="VARCHAR" property="parentPath" />
     <result column="is_mapping" jdbcType="BOOLEAN" property="isMapping" />
     <result column="is_derived" jdbcType="INTEGER" property="isDerived" />
     <result column="mapping_rule" jdbcType="VARCHAR" property="mappingRule" />
@@ -15,6 +17,7 @@
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
+  
   <sql id="Example_Where_Clause">
     <where>
       <foreach collection="oredCriteria" item="criteria" separator="or">
@@ -44,6 +47,7 @@
       </foreach>
     </where>
   </sql>
+  
   <sql id="Update_By_Example_Where_Clause">
     <where>
       <foreach collection="example.oredCriteria" item="criteria" separator="or">
@@ -73,10 +77,12 @@
       </foreach>
     </where>
   </sql>
+  
   <sql id="Base_Column_List">
-    id, clean_config_id, api_code, mapping_field, clean_fields, is_mapping, is_derived, 
-    mapping_rule, result_preview, is_del, create_time, update_time
+    id, clean_config_id, api_code, mapping_field, clean_fields, level, parent_path, is_mapping, 
+    is_derived, mapping_rule, result_preview, is_del, create_time, update_time
   </sql>
+  
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfigExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
@@ -91,32 +97,37 @@
       order by ${orderByClause}
     </if>
   </select>
+  
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
     from b_marketing_data_clean_general_rule_config
     where id = #{id,jdbcType=BIGINT}
   </select>
+  
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     delete from b_marketing_data_clean_general_rule_config
     where id = #{id,jdbcType=BIGINT}
   </delete>
+  
   <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfigExample">
     delete from b_marketing_data_clean_general_rule_config
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
+  
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_rule_config (clean_config_id, api_code, mapping_field, 
-      clean_fields, is_mapping, is_derived, 
-      mapping_rule, result_preview, is_del, 
-      create_time, update_time)
+      clean_fields, level, parent_path, is_mapping, 
+      is_derived, mapping_rule, result_preview, 
+      is_del, create_time, update_time)
     values (#{cleanConfigId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{mappingField,jdbcType=VARCHAR}, 
-      #{cleanFields,jdbcType=VARCHAR}, #{isMapping,jdbcType=BOOLEAN}, #{isDerived,jdbcType=INTEGER}, 
-      #{mappingRule,jdbcType=VARCHAR}, #{resultPreview,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{cleanFields,jdbcType=VARCHAR}, #{level,jdbcType=INTEGER}, #{parentPath,jdbcType=VARCHAR}, #{isMapping,jdbcType=BOOLEAN}, 
+      #{isDerived,jdbcType=INTEGER}, #{mappingRule,jdbcType=VARCHAR}, #{resultPreview,jdbcType=VARCHAR},
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
+  
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig" useGeneratedKeys="true">
     insert into b_marketing_data_clean_general_rule_config
     <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -131,6 +142,12 @@
       </if>
       <if test="cleanFields != null">
         clean_fields,
+      </if>
+      <if test="level != null">
+        level,
+      </if>
+      <if test="parentPath != null">
+        parent_path,
       </if>
       <if test="isMapping != null">
         is_mapping,
@@ -167,6 +184,12 @@
       <if test="cleanFields != null">
         #{cleanFields,jdbcType=VARCHAR},
       </if>
+      <if test="level != null">
+        #{level,jdbcType=INTEGER},
+      </if>
+      <if test="parentPath != null">
+        #{parentPath,jdbcType=VARCHAR},
+      </if>
       <if test="isMapping != null">
         #{isMapping,jdbcType=BOOLEAN},
       </if>
@@ -190,12 +213,14 @@
       </if>
     </trim>
   </insert>
+  
   <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfigExample" resultType="java.lang.Long">
     select count(*) from b_marketing_data_clean_general_rule_config
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
+  
   <update id="updateByExampleSelective" parameterType="map">
     update b_marketing_data_clean_general_rule_config
     <set>
@@ -213,6 +238,12 @@
       </if>
       <if test="record.cleanFields != null">
         clean_fields = #{record.cleanFields,jdbcType=VARCHAR},
+      </if>
+      <if test="record.level != null">
+        level = #{record.level,jdbcType=INTEGER},
+      </if>
+      <if test="record.parentPath != null">
+        parent_path = #{record.parentPath,jdbcType=VARCHAR},
       </if>
       <if test="record.isMapping != null">
         is_mapping = #{record.isMapping,jdbcType=BOOLEAN},
@@ -240,6 +271,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
+  
   <update id="updateByExample" parameterType="map">
     update b_marketing_data_clean_general_rule_config
     set id = #{record.id,jdbcType=BIGINT},
@@ -247,6 +279,8 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       mapping_field = #{record.mappingField,jdbcType=VARCHAR},
       clean_fields = #{record.cleanFields,jdbcType=VARCHAR},
+      level = #{record.level,jdbcType=INTEGER},
+      parent_path = #{record.parentPath,jdbcType=VARCHAR},
       is_mapping = #{record.isMapping,jdbcType=BOOLEAN},
       is_derived = #{record.isDerived,jdbcType=INTEGER},
       mapping_rule = #{record.mappingRule,jdbcType=VARCHAR},
@@ -258,6 +292,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
+  
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig">
     update b_marketing_data_clean_general_rule_config
     <set>
@@ -272,6 +307,12 @@
       </if>
       <if test="cleanFields != null">
         clean_fields = #{cleanFields,jdbcType=VARCHAR},
+      </if>
+      <if test="level != null">
+        level = #{level,jdbcType=INTEGER},
+      </if>
+      <if test="parentPath != null">
+        parent_path = #{parentPath,jdbcType=VARCHAR},
       </if>
       <if test="isMapping != null">
         is_mapping = #{isMapping,jdbcType=BOOLEAN},
@@ -297,12 +338,15 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
+  
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig">
     update b_marketing_data_clean_general_rule_config
     set clean_config_id = #{cleanConfigId,jdbcType=BIGINT},
       api_code = #{apiCode,jdbcType=VARCHAR},
       mapping_field = #{mappingField,jdbcType=VARCHAR},
       clean_fields = #{cleanFields,jdbcType=VARCHAR},
+      level = #{level,jdbcType=INTEGER},
+      parent_path = #{parentPath,jdbcType=VARCHAR},
       is_mapping = #{isMapping,jdbcType=BOOLEAN},
       is_derived = #{isDerived,jdbcType=INTEGER},
       mapping_rule = #{mappingRule,jdbcType=VARCHAR},

@@ -36,6 +36,16 @@ public class AiRocketMQConstants {
     public static final String TAG_MARKETING_AI_PREUSER_RECEIVE_3 = "marketing.ai.preuser.receive.3";
 
 
+    /**
+     * AI上传数据队列-批量
+     */
+    public static final String TOPIC_MARKETING_AI_PREUSER_RECEIVE_BATCH = "marketingAiPreUserReceiveBatch";
+
+    public static final String GROUP_MARKETING_AI_PREUSER_RECEIVE_BATCH = "Marketing_Ai_PreUser_Receive_Batch";
+
+    public static final String TAG_MARKETING_AI_PREUSER_RECEIVE_BATCH = "marketing.ai.preuser.receive.batch";
+
+
 
     /**
      * AI推送下游通用队列1
@@ -65,5 +75,15 @@ public class AiRocketMQConstants {
     public static final String GROUP_MARKETING_AI_UNIVERSAL_RECEIVE_3 = "Marketing_Ai_Universal_Receive_3";
 
     public static final String TAG_MARKETING_AI_UNIVERSAL_RECEIVE_3 = "marketing.ai.universal.receive.3";
+
+
+    /**
+     * AI推送下游通用队列-批量
+     */
+    public static final String TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH = "marketingAiUniversalReceiveBatch";
+
+    public static final String GROUP_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH = "Marketing_Ai_Universal_Receive_Batch";
+
+    public static final String TAG_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH = "marketing.ai.universal.receive.batch";
 
 }

@@ -45,7 +45,7 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
             if(ResultCode.SUCCESS.getValue().equals(canPushTask.getCode())){
                 log.warn("推送决策业务开始" + "start");
                 long start = System.currentTimeMillis();
-                if(pushTaskData.getFilterType().equals(0)) {
+                if(pushTaskData.getFilterType().equals(0) || pushTaskData.getFilterType().equals(2)) {
                     booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
                 }else{
                     //携程撞库数据推决策
