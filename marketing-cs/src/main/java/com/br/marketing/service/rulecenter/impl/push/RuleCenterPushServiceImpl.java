@@ -114,7 +114,7 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
         context.setSinglePartition(isSigle);
         context.setMarkWithEsFlag(markWithEsFlag);
         context.setLabelObject(lableObject);
-        context.setPartitionCount(parNum);
+        context.setPartitionCount((Objects.equals(customerInfoPushMain.getPushTarget(), RuleCenterPushTargetEnum.MERGE_PUSH_POLICY.getCode())) ? 1 : parNum);
         context.setEsThreadPool(actionEs);
         context.setPushThreadPool(pushJc);
         RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(customerInfoPushMain.getPushTarget());

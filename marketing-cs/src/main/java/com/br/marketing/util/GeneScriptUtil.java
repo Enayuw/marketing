@@ -85,7 +85,7 @@ public class GeneScriptUtil {
 
     private static Map<String, String> opetatorMap;
 
-    static{
+    static {
         logicMap = ImmutableMap.of(
                 LOGIC_AND, LOGIC_OPERATOR_AND,
                 LOGIC_OR, LOGIC_OPERATOR_OR);
@@ -102,9 +102,9 @@ public class GeneScriptUtil {
     }
 
     /**
-     * @description 生成es打标脚本
      * @param scoreLables
      * @return java.lang.String
+     * @description 生成es打标脚本
      * @author hedongshuo
      * @date 2024/10/26 18:32
      **/
@@ -133,6 +133,7 @@ public class GeneScriptUtil {
 
     /**
      * 将条件json转为list
+     *
      * @param scoreLables
      * @return
      */
@@ -239,7 +240,7 @@ public class GeneScriptUtil {
             conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
             process(conditionBuilder, data, markWithEsFlag);
             conditionBuilder.append(PARENTHESIS_FRAG_RIGHT);
-        //底层解析
+            //底层解析
         } else if ("operation".equals(type)) {
             conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
             String key = data.getString("key");
@@ -282,10 +283,10 @@ public class GeneScriptUtil {
     }
 
     /**
-     * @description 返回数据打标
      * @param scoreLables
      * @param scoreMap
      * @return com.alibaba.fastjson.JSONObject
+     * @description 返回数据打标
      * @author hedongshuo
      * @date 2024/10/29 13:38
      **/
@@ -320,10 +321,10 @@ public class GeneScriptUtil {
     }
 
     /**
-     * @description 传入分值scoreMap，解析condition，是否满足条件
      * @param condition
      * @param scoreMap
      * @return java.lang.Boolean
+     * @description 传入分值scoreMap，解析condition，是否满足条件
      * @author hedongshuo
      * @date 2024/10/29 13:43
      **/
@@ -350,7 +351,7 @@ public class GeneScriptUtil {
             } else {
                 return false;
             }
-        //底层解析
+            //底层解析
         } else {
             return valueOperate(condition, scoreMap);
         }
@@ -473,7 +474,7 @@ public class GeneScriptUtil {
                 listByX.sort(Comparator.comparingDouble((CrossIndexBean bean) -> compareValue(bean, true)));
                 for (int i = listByX.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByX.get(i);
-                    CrossIndexBean former = listByX.get(i-1);
+                    CrossIndexBean former = listByX.get(i - 1);
                     if (later.getYLeftValue().equals(former.getYRightValue())) {
                         former.setYRightValue(later.getYRightValue());
                         listByX.remove(i);
@@ -492,7 +493,7 @@ public class GeneScriptUtil {
                 listByY.sort(Comparator.comparingDouble((CrossIndexBean bean) -> compareValue(bean, false)));
                 for (int i = listByY.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByY.get(i);
-                    CrossIndexBean former = listByY.get(i-1);
+                    CrossIndexBean former = listByY.get(i - 1);
                     if (later.getXLeftValue().equals(former.getXRightValue())) {
                         former.setXRightValue(later.getXRightValue());
                         listByY.remove(i);
@@ -535,44 +536,96 @@ public class GeneScriptUtil {
                 }
             }
         } else {
-            String singleKey = sample.getString("key");
-            List<SingleIndexBean> list = new ArrayList<>();
-            for (int i = 0; i < data.size(); i++) {
-                SingleIndexBean singleIndexBean = new SingleIndexBean();
-                list.add(singleIndexBean);
-                JSONObject singleIndex = JSON.parseObject(data.get(i).toString());
-                List<String> values = Arrays.asList(singleIndex.getString("value").split(","));
-                if (values.size() < 2) {
-                    singleIndexBean.setLeftValue("");
-                    singleIndexBean.setRightValue("");
+            Map<String, List<SingleIndexBean>> map = new HashMap<>();
+            // 先收集所有相同key的条件
+            for (Object datum : data) {
+                String singleKey = ((JSONObject)datum).getString("key");
+                SingleIndexBean singleIndexBean = createSingleIndexBean(datum);
+                
+                if (!map.containsKey(singleKey)){
+                    List<SingleIndexBean> list = new ArrayList<>();
+                    list.add(singleIndexBean);
+                    map.put(singleKey, list);
                 } else {
-                    singleIndexBean.setLeftValue(values.get(0));
-                    singleIndexBean.setRightValue(values.get(1));
+                    map.get(singleKey).add(singleIndexBean);
                 }
             }
-            //排序
-            list.sort(Comparator.comparingDouble((SingleIndexBean bean) -> compareValue(bean, null)));
-            for (int i = list.size() - 1; i > 0; i--) {
-                SingleIndexBean later = list.get(i);
-                SingleIndexBean former = list.get(i - 1);
-                if (later.getLeftValue().equals(former.getRightValue())) {
-                    former.setRightValue(later.getRightValue());
-                    list.remove(i);
+            
+            // 对每个key的条件列表进行排序和合并
+            for (Map.Entry<String, List<SingleIndexBean>> entry : map.entrySet()) {
+                List<SingleIndexBean> singleIndexBeans = entry.getValue();
+                // 按左值排序（处理空值情况）
+                singleIndexBeans.sort(Comparator.comparing((SingleIndexBean bean) -> {
+                    if (StringUtils.isEmpty(bean.getLeftValue())) {
+                        return Double.NEGATIVE_INFINITY;
+                    }
+                    try {
+                        return Double.parseDouble(bean.getLeftValue());
+                    } catch (NumberFormatException e) {
+                        return Double.NEGATIVE_INFINITY;
+                    }
+                }));
+                
+                // 合并相邻的区间
+                for (int i = singleIndexBeans.size() - 1; i > 0; i--) {
+                    SingleIndexBean current = singleIndexBeans.get(i);
+                    SingleIndexBean previous = singleIndexBeans.get(i - 1);
+                    
+                    // 检查是否可以合并：前一个的右值等于当前的左值
+                    if (!StringUtils.isEmpty(previous.getRightValue()) && 
+                        !StringUtils.isEmpty(current.getLeftValue()) &&
+                        previous.getRightValue().equals(current.getLeftValue())) {
+                        // 合并区间：扩展前一个的右值，移除当前项
+                        previous.setRightValue(current.getRightValue());
+                        singleIndexBeans.remove(i);
+                    }
                 }
             }
-            //合并完，反显为Json
-            JSONArray array = new JSONArray();
+
+            JSONArray array = getJsonArrayFromListMap(map);
             condition.put("data", array);
-            for (int i = 0; i < list.size(); i++) {
-                SingleIndexBean singleIndexBean = list.get(i);
+        }
+
+    }
+
+    private static SingleIndexBean createSingleIndexBean(Object datum) {
+        SingleIndexBean singleIndexBean = new SingleIndexBean();
+        JSONObject singleIndex = JSON.parseObject(datum.toString());
+        List<String> values = Arrays.asList(singleIndex.getString("value").split(","));
+        if (values.size() < 2) {
+            singleIndexBean.setLeftValue("");
+            singleIndexBean.setRightValue("");
+        } else {
+            singleIndexBean.setLeftValue(values.get(0));
+            singleIndexBean.setRightValue(values.get(1));
+        }
+        return singleIndexBean;
+    }
+
+
+    private static JSONArray getJsonArrayFromListMap(Map<String, List<SingleIndexBean>> map) {
+        JSONArray array = new JSONArray();
+        for (Map.Entry<String, List<SingleIndexBean>> entry : map.entrySet()) {
+            String key = entry.getKey();
+            List<SingleIndexBean> singleIndexBeans = entry.getValue();
+            
+            for (SingleIndexBean singleIndexBean : singleIndexBeans) {
+                String leftValue = singleIndexBean.getLeftValue();
+                String rightValue = singleIndexBean.getRightValue();
                 JSONObject singleIndexJson = new JSONObject();
-                array.set(i, singleIndexJson);
                 singleIndexJson.put("type", "operation");
-                singleIndexJson.put("key", singleKey);
-                singleIndexJson.put("operation", "between_right");
-                singleIndexJson.put("value", singleIndexBean.getLeftValue() + "," + singleIndexBean.getRightValue());
+                singleIndexJson.put("key", key);
+                if (StringUtils.isEmpty(leftValue) && StringUtils.isEmpty(rightValue)) {
+                    singleIndexJson.put("operation", "=");
+                    singleIndexJson.put("value", "");
+                } else {
+                    singleIndexJson.put("operation", "between_right");
+                    singleIndexJson.put("value", leftValue + "," + rightValue);
+                }
+                array.add(singleIndexJson);
             }
         }
+        return array;
     }
 
     private static double compareValue(Object bean, Boolean isX) {
