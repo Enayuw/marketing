@@ -22,7 +22,7 @@ public class AiPreUserReceiveConsumer {
     @RocketMQMessageListener(topic = TOPIC_MARKETING_AI_PREUSER_RECEIVE_1,
             consumerGroup = GROUP_MARKETING_AI_PREUSER_RECEIVE_1,
             selectorExpression = TAG_MARKETING_AI_PREUSER_RECEIVE_1,
-            consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
+            awaitTerminationMillisWhenShutdown = 10000)
     public class AiPreUserReceiveConsumer1 extends AbstractAiPreUserReceiveConsumer {
         @Override
         protected String consumerName() {

@@ -50,6 +50,14 @@ public class MarketingApiApplication {
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
         log.warn("marketing-api开始启动！");
+
+        //加入下面配置开启日志功能
+        System.setProperty("rocketmq.client.logUseSlf4j", "true");
+        //配置客户端日志级别
+        System.setProperty("rocketmq.log.level", "WARN");
+        //修改日志输入目录  配置  服务YAML配置的APP_HOME环境变量,例如： /opt/SpringCloud
+        System.setProperty("rocketmq.log.root", System.getenv("APP_HOME") + "/logs/" + System.getenv("APPNAME") + "/" + System.getenv("POD_NAME"));
+
         ConfigurableApplicationContext context = SpringApplication.run(MarketingApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
