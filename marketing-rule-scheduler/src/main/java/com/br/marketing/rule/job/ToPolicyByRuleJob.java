@@ -3,6 +3,7 @@ package com.br.marketing.rule.job;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CustomerInfoPushMain;
+import com.br.marketing.rule.service.HaloCallBackService;
 import com.br.marketing.rule.service.XieChengCollidingService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.rulecenter.IRuleCenterPushService;
@@ -30,6 +31,9 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
     @Resource
     IRuleCenterPushService iRuleCenterPushService;
 
+    @Resource
+    HaloCallBackService haloCallBackService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Boolean actionMark = Boolean.TRUE;
@@ -47,7 +51,9 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
                 long start = System.currentTimeMillis();
                 if(pushTaskData.getFilterType().equals(0) || pushTaskData.getFilterType().equals(2)) {
                     booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
-                }else{
+                } else if (pushTaskData.getFilterType().equals(3)) {
+                    booleanResult = haloCallBackService.callBack(pushTaskData.getId());
+                } else{
                     //携程撞库数据推决策
                     booleanResult = xieChengCollidingService.collidingDataPushPolicy(pushTaskData.getId());
                 }

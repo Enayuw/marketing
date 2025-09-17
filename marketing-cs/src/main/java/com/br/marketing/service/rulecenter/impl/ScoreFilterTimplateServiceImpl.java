@@ -16,10 +16,12 @@ import com.br.marketing.mapper.ScoreSearchConditionMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.enums.RuleCenterDataSourceEnum;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -42,6 +44,8 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
 
     @Resource
     ScoreXieChengServiceImpl scoreXieChengService;
+    @Autowired
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public String getSource(List<String> sources) {
@@ -91,6 +95,13 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
                     XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
                     main.setFilterType(1);
                     main.setExtend(scoreXieChengService.cycleDataQuery(jsonObject, batchList, collidingFilterDTO));
+                }
+                //判断是否是哈啰硅基人回调业务
+                JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
+                List<String> apiCodes = Arrays.asList(haloAIRuleCenterCallbackConfig.getString("apiCodes").split(","));
+                if (!apiCodes.isEmpty() && apiCodes.contains(main.getmApiCode())) {
+                    main.setFilterType(3);
+                    main.setPushTarget(RuleCenterPushTargetEnum.HALO_CALLBACK.getCode());
                 }
                 customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
                 return new Result().success();
