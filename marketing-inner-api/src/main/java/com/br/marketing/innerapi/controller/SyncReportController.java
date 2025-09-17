@@ -84,7 +84,7 @@ public class SyncReportController {
             , @RequestParam(required = false) String appletTimeEnd
             , @RequestParam(required = false) String apiCodes
             , @RequestParam(required = false) String userTypes
-            , @RequestParam(required = false) Integer selectType
+            , @RequestParam(defaultValue = "1") Integer selectType
             , @RequestParam(required = false) String selectExportIds
             , HttpServletResponse response) {
         try {

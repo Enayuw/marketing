@@ -997,12 +997,11 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 params.put("apiCodeList", apiCodeList);
                 params.put("userTypeList", userTypeList);
                 Integer pageNum = 1;
-                //TODO 0913 pageSize是否需要speed配置
                 Integer pageSize = marketingCommonConfig.getSyncReportExportPageSize()==null?10000:marketingCommonConfig.getSyncReportExportPageSize();
                 while (true) {
                     PageHelper.startPage(pageNum, pageSize,false);
                     List<MarketingSyncReportVO> list = syncReportMapper.selectExportDataList(params);
-                    Integer endLineStatus = list.size() < pageSize?1:0;
+                    Integer endLineStatus = list.size() < pageSize ? 1 : 0;
                     exportAppendListData(list,writer,endLineStatus);
                     if (CollectionUtils.isEmpty(list) || list.size() < pageSize) {
                         writer.flush();
@@ -1015,13 +1014,15 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 }
             } else {
                 List<Long> selectIdList = new ArrayList<>();
-                String[] split = selectExportIds.split(",");
-                for (String item : split) {
-                    selectIdList.add(Long.parseLong(item));
-                }
-                if (!CollectionUtils.isEmpty(selectIdList)) {
-                    List<MarketingSyncReportVO> list = syncReportMapper.selectByIdList(selectIdList);
-                    exportAppendListData(list,writer,1);
+                if(StringUtils.isNotEmpty(selectExportIds)){
+                    String[] split = selectExportIds.split(",");
+                    for (String item : split) {
+                        selectIdList.add(Long.parseLong(item));
+                    }
+                    if (!CollectionUtils.isEmpty(selectIdList)) {
+                        List<MarketingSyncReportVO> list = syncReportMapper.selectByIdList(selectIdList);
+                        exportAppendListData(list,writer,1);
+                    }
                 }
                 writer.flush();
                 out.flush();
