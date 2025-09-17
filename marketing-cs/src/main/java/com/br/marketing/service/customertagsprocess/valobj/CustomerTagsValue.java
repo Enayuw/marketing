@@ -34,8 +34,7 @@ public class CustomerTagsValue {
         SHA256_ALL(2,"3Ksha256","checkCellServiceImpl"),
         PLAINTEXT(3,"log加密","checkCellServiceImpl"),
         AES_COMMON(4,"AES通用","aesCommonStrategy"),
-        AES_NMD(5,"AES你我贷定制版","aesNmdStrategy"),
-        AES_SLL_COLLECTION(6,"AES360催收定制版","aesSllCollectionStrategy");
+        AES_NMD(5,"AES你我贷定制版","aesNmdStrategy");
 
         private Integer value;
         private String desc;
@@ -79,7 +78,7 @@ public class CustomerTagsValue {
             int status = 2; // 默认其他=2
             if (enumItem == PushJc3keyTypeEnum.AES_COMMON) {
                 status = 0;
-            } else if (enumItem == PushJc3keyTypeEnum.AES_NMD || enumItem == PushJc3keyTypeEnum.AES_SLL_COLLECTION) {
+            } else if (enumItem == PushJc3keyTypeEnum.AES_NMD) {
                 status = 1;
             }
 

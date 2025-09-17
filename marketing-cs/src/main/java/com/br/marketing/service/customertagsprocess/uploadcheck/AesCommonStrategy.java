@@ -19,6 +19,7 @@ public class AesCommonStrategy implements IUploadCheckService {
         aesGeneralDTO.setPaddingScheme(customerTagsVO.getPaddingScheme());
         aesGeneralDTO.setCharset(customerTagsVO.getCharset());
         aesGeneralDTO.setDynamicKeys(customerTagsVO.getDynamicKeys());
+        aesGeneralDTO.setIv(customerTagsVO.getIv());
         if (StringUtils.isNotBlank(user.getCell())) {
             aesGeneralDTO.setText(user.getCell());
             String plainText = AesUtil.decrypt(aesGeneralDTO);

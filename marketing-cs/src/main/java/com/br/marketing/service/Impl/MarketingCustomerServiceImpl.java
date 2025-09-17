@@ -124,6 +124,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 customerListVo.setCipherMode(marketingCustomerConfig == null ? null: marketingCustomerConfig.getCipherMode());
                 customerListVo.setPaddingScheme(marketingCustomerConfig == null ? null: marketingCustomerConfig.getPaddingScheme());
                 customerListVo.setCharset(marketingCustomerConfig == null ? null: marketingCustomerConfig.getCharset());
+                customerListVo.setIv(marketingCustomerConfig == null ? null: marketingCustomerConfig.getIv());
                 customerListVo.setDynamicKeys(marketingCustomerConfig == null ? null: marketingCustomerConfig.getDynamicKeys());
                 customerListVos.add(customerListVo);
             }
@@ -178,6 +179,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomerConfig.setCipherMode(vo.getCipherMode());
             marketingCustomerConfig.setPaddingScheme(vo.getPaddingScheme());
             marketingCustomerConfig.setCharset(vo.getCharset());
+            marketingCustomerConfig.setIv(vo.getIv());
             marketingCustomerConfig.setDynamicKeys(vo.getDynamicKeys());
             marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
 
@@ -207,6 +209,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 marketingCustomerConfig.setCipherMode(vo.getCipherMode());
                 marketingCustomerConfig.setPaddingScheme(vo.getPaddingScheme());
                 marketingCustomerConfig.setCharset(vo.getCharset());
+                marketingCustomerConfig.setIv(vo.getIv());
                 marketingCustomerConfig.setDynamicKeys(vo.getDynamicKeys());
                 marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
             } else {
@@ -219,6 +222,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 updateEntity.setCipherMode(vo.getCipherMode());
                 updateEntity.setPaddingScheme(vo.getPaddingScheme());
                 updateEntity.setCharset(vo.getCharset());
+                updateEntity.setIv(vo.getIv());
                 updateEntity.setDynamicKeys(vo.getDynamicKeys());
                 marketingCustomerConfigMapper.updateByPrimaryKeySelective(updateEntity);
                 //更新3k加密类型

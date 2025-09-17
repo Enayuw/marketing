@@ -273,6 +273,11 @@ public class CustomerListVo {
     private String charset;
 
     /**
+     * 初始化向量
+     */
+    private String iv;
+
+    /**
      * AES通用-密钥
      */
     private String dynamicKeys;

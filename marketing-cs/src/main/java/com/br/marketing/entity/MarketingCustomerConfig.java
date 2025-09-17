@@ -33,6 +33,11 @@ public class MarketingCustomerConfig implements Serializable {
     private String charset;
 
     /**
+     * 初始化向量
+     */
+    private String iv;
+
+    /**
      * 密钥
      */
     private String dynamicKeys;
@@ -77,7 +82,7 @@ public class MarketingCustomerConfig implements Serializable {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public Integer getThreeKEncryptType() {
@@ -112,6 +117,14 @@ public class MarketingCustomerConfig implements Serializable {
         this.charset = charset == null ? null : charset.trim();
     }
 
+    public String getIv() {
+        return iv;
+    }
+
+    public void setIv(String iv) {
+        this.iv = iv == null ? null : iv.trim();
+    }
+
     public String getDynamicKeys() {
         return dynamicKeys;
     }
@@ -141,7 +154,7 @@ public class MarketingCustomerConfig implements Serializable {
     }
 
     public void setScoreSeparator(String scoreSeparator) {
-        this.scoreSeparator = scoreSeparator;
+        this.scoreSeparator = scoreSeparator == null ? null : scoreSeparator.trim();
     }
 
     public Date getCreateTime() {

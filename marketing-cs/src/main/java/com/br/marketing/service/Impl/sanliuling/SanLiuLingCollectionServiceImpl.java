@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.dto.AesGeneralDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.sanliuling.request.ContactListDTO;
@@ -16,7 +17,7 @@ import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.mapper.MarketingSanLiuLingCollectionMapper;
 import com.br.marketing.service.PushInfoService;
-import com.br.marketing.util.aes.AesSllUtil;
+import com.br.marketing.util.aes.AesUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -93,8 +93,13 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
         configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingCustomerConfig> configs = marketingCustomerConfigMapper.selectByExample(configExample);
         MarketingCustomerConfig marketingCustomerConfig = configs.get(0);
-        // AES密钥
-        String dynamicKeys = marketingCustomerConfig.getDynamicKeys();
+        // AES解密参数
+        AesGeneralDTO aesGeneralDTO = new AesGeneralDTO();
+        aesGeneralDTO.setCipherMode(marketingCustomerConfig.getCipherMode());
+        aesGeneralDTO.setPaddingScheme(marketingCustomerConfig.getPaddingScheme());
+        aesGeneralDTO.setCharset(marketingCustomerConfig.getCharset());
+        aesGeneralDTO.setIv(marketingCustomerConfig.getIv());
+        aesGeneralDTO.setDynamicKeys(marketingCustomerConfig.getDynamicKeys());
 
         // 2. 分页查询并处理applicationId，支持千万级数据量
         long offset = 0;
@@ -112,7 +117,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                     applicationIds.size(), offset, APPLICATION_ID_PAGE_SIZE);
 
             // 3. 按applicationId分组处理数据
-            pushPool.submit(() -> processApplicationIdData(apiCode, receiveDate, applicationIds, dynamicKeys));
+            pushPool.submit(() -> processApplicationIdData(apiCode, receiveDate, applicationIds, aesGeneralDTO));
             
             // 更新偏移量
             offset += APPLICATION_ID_PAGE_SIZE;
@@ -122,7 +127,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
     /**
      * 处理单个applicationId的数据
      */
-    private void processApplicationIdData(String apiCode, String receiveDate, List<String> applicationIds, String dynamicKeys) {
+    private void processApplicationIdData(String apiCode, String receiveDate, List<String> applicationIds, AesGeneralDTO aesGeneralDTO) {
 
         for (String applicationId : applicationIds){
             List<Long> dataIds = new ArrayList<>();
@@ -179,7 +184,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                 }
 
                 // 按applicationId合并数据：一个applicationId生成一条记录
-                MarketingPreUserDetailDTO mergedDetailDTO = buildMergedMarketingPreUserDetailDTO(brList,lxrList,dynamicKeys);
+                MarketingPreUserDetailDTO mergedDetailDTO = buildMergedMarketingPreUserDetailDTO(brList,lxrList,aesGeneralDTO);
 
                 List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
                 if (mergedDetailDTO != null) {
@@ -238,10 +243,10 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
      */
     private MarketingPreUserDetailDTO buildMergedMarketingPreUserDetailDTO(List<MarketingSanLiuLingCollection> brList,
                                                                            List<MarketingSanLiuLingCollection> lxrList,
-                                                                           String dynamicKeys) {
+                                                                           AesGeneralDTO aesGeneralDTO ) {
         try {
             // 联系人列表
-            List<ContactListDTO> contactList = getContactListDTOS(lxrList,dynamicKeys);
+            List<ContactListDTO> contactList = getContactListDTOS(lxrList,aesGeneralDTO);
 
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             
@@ -321,13 +326,18 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
     }
 
     private static List<ContactListDTO> getContactListDTOS(List<MarketingSanLiuLingCollection> lxrList,
-                                                           String dynamicKeys) {
+                                                           AesGeneralDTO aesGeneralDTO) {
         List<ContactListDTO> contactList = new ArrayList<>();
         for (MarketingSanLiuLingCollection marketingSanLiuLingCollection : lxrList){
             ContactListDTO contact = new ContactListDTO();
             JSONObject jsonObject = JSONObject.parseObject(marketingSanLiuLingCollection.getSpeechParamSet());
-            String name = AesSllUtil.decrypt(jsonObject.getString("name"), dynamicKeys);
-            String phone = AesSllUtil.decrypt(marketingSanLiuLingCollection.getPhone(), dynamicKeys);
+
+            aesGeneralDTO.setText(jsonObject.getString("name"));
+            String name = AesUtil.decrypt(aesGeneralDTO);
+
+            aesGeneralDTO.setText(marketingSanLiuLingCollection.getPhone());
+            String phone = AesUtil.decrypt(aesGeneralDTO);
+
             contact.setContactCustNum(marketingSanLiuLingCollection.getApplicationId());
             contact.setContactName(name);
             contact.setContactCell(phone);
