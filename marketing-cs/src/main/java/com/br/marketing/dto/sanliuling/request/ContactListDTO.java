@@ -23,6 +23,10 @@ public class ContactListDTO {
     @JsonProperty("contactCell")
     private String contactCell;
 
+    @ApiModelProperty("联系人电话原始值")
+    @JsonProperty("originalCell")
+    private String originalCell;
+
     @ApiModelProperty("联系人关系")
     @JsonProperty("contactRelationship")
     private String contactRelationship;

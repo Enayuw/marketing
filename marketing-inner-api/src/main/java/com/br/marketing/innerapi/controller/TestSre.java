@@ -68,6 +68,11 @@ public class TestSre {
     @Autowired
     private PushRuleService pushRuleService;
 
+    @GetMapping("/testToPreUserText")
+    public void testToPreUserText(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData")String jsonData){
+        pushRuleService.insertMarketingPreUserText(apiCode,jsonData);
+    }
+
     @GetMapping("/testToPreUserSync")
     public void testToPreUserSync(Long id){
         pushRuleService.insertMarketingPreUserSync(id);

@@ -25,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -173,7 +174,9 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                         .collect(Collectors.toList());
 
                 // 构建上传数据 - 按applicationId合并数据
-                String taskId = UUID.randomUUID().toString();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                String currentDate = sdf.format(new Date());
+                String taskId = apiCode+"_"+currentDate;
 
                 // 获取taskId（优先使用数据库中的taskId）
                 for (MarketingSanLiuLingCollection collection : brList) {
@@ -330,6 +333,8 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
         List<ContactListDTO> contactList = new ArrayList<>();
         for (MarketingSanLiuLingCollection marketingSanLiuLingCollection : lxrList){
             ContactListDTO contact = new ContactListDTO();
+            contact.setOriginalCell(marketingSanLiuLingCollection.getPhone());
+
             JSONObject jsonObject = JSONObject.parseObject(marketingSanLiuLingCollection.getSpeechParamSet());
 
             aesGeneralDTO.setText(jsonObject.getString("name"));
