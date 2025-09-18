@@ -192,7 +192,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         }
     }
 
-    private List<Future<Result<Integer>>> callback(ThreadPoolExecutor pushCallbackPool, CustomerInfoPushMain customerInfoPushMain, Integer status) {
+    List<Future<Result<Integer>>> callback(ThreadPoolExecutor pushCallbackPool, CustomerInfoPushMain customerInfoPushMain, Integer status) {
         List<Future<Result<Integer>>> resultList = new ArrayList<>();
         JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
         int pageSize = haloAIRuleCenterCallbackConfig.getInteger("pageSize");
@@ -248,6 +248,11 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             Result<String> flag = new Result<>();
             try {
                 flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+                if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(flag.getCode())
+                        || ResultCode.TIME_OUT.getValue().equals(flag.getCode())) {
+                    flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());;
+                }
+
                 if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
                     marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
                     result.setCode(ResultCode.SUCCESS.getValue());
@@ -259,7 +264,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             } catch (Exception e) {
                 marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
                 String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
-                logger.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
+                logger.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(flag.getMessage());
                 insertErrorMark(pushMarketingUserDTO, taskId, ids, size);
             }
@@ -273,7 +278,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         errorMark.setmId(mainId);
         errorMark.setApiCode(pushMarketingUserDTO.getApiCode());
         errorMark.setPushSize(size);
-        errorMark.setAccessNumber(ids.stream()
+        errorMark.setEsCondition(ids.stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining(",")));
         errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));

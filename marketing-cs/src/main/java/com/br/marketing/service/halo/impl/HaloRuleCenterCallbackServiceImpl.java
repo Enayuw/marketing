@@ -209,7 +209,7 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
 
         ErrorMark errorMark1 = new ErrorMark();
         errorMark1.setId(errorMark.getId());
-        List<Long> ids = Arrays.stream(errorMark.getAccessNumber().split(","))
+        List<Long> ids = Arrays.stream(errorMark.getEsCondition().split(","))
                 .map(String::trim)
                 .map(Long::valueOf)
                 .collect(Collectors.toList());
