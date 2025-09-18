@@ -5,15 +5,21 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.halo.HaluoAiApiServiceClient;
 import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CustomerInfoPushMain;
+import com.br.marketing.entity.ErrorMark;
 import com.br.marketing.entity.MarketingRuleCenterHaloCallbackDataExample;
+import com.br.marketing.enums.ErrorMarkTypeEnum;
+import com.br.marketing.enums.FilterTypeEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
+import com.br.marketing.enums.RetryStatusEnum;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.MarketingRuleCenterHaloCallbackDataMapper;
+import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
@@ -24,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -49,6 +56,9 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
     @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
+
+    @Resource
+    private HaloRuleCenterCallbackService haloRuleCenterCallbackService;
 
     @Resource
     private MarketingRuleCenterHaloCallbackDataMapper marketingRuleCenterHaloCallbackDataMapper;
@@ -105,36 +115,51 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                     if (dorisCount.equals(tiDbCount)) {
                         logger.warn("tidb同步完成");
                         // 回调重试
-                        callback(context.getPushThreadPool(), customerInfoPushMain.getId(), 2);
-                        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+                        haloRuleCenterCallbackService.makeUpCallbackData(customerInfoPushMain);
+                        MarketingRuleCenterHaloCallbackDataExample example = new MarketingRuleCenterHaloCallbackDataExample();
+                        example.createCriteria().andMIdEqualTo(customerInfoPushMain.getId()).andStatusEqualTo(2);
+                        int i = marketingRuleCenterHaloCallbackDataMapper.countByExample(example);
+                        if (i == 0) {
+                            Integer status = haloRuleCenterCallbackService.queryExistError(customerInfoPushMain.getId(),
+                                    FilterTypeEnum.HALO_CALLBACK.getValue());
+                            CustomerInfoPushMain main = new CustomerInfoPushMain();
+                            main.setId(customerInfoPushMain.getId());
+                            main.setmStatus(status);
+                            customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+                            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+                        }
                     } else {
                         updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
                         return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
                     }
+                } else {
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
                 }
+            } else {
+                JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
+                String apiCode = customerInfoPushMain.getmApiCode();
+                List<String> apiCodeList = Arrays.asList(haloAIRuleCenterCallbackConfig.getString("apiCodes").split(","));
+                if (!apiCodeList.contains(apiCode)) {
+                    logger.warn("该apiCode未获得授权，请联系开发人员！apiCode:{}", apiCode);
+                    return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+                }
+                String[] batchNumberList = customerInfoPushMain.getmCusBatchNumberList().split(",");
+                String batchNumber = batchNumberList[0];
+
+                //筛选数据入b_marketing_score_${batchNumber}表
+                insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), batchNumber);
+                //同步TiDB
+                syncDataToTiDB(customerInfoPushMain.getId());
+
+                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
             }
 
-            JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
-            String apiCode = customerInfoPushMain.getmApiCode();
-            List<String> apiCodeList = Arrays.asList(haloAIRuleCenterCallbackConfig.getString("apiCodes").split(","));
-            if (!apiCodeList.contains(apiCode)) {
-                logger.warn("该apiCode未获得授权，请联系开发人员！apiCode:{}", apiCode);
-                return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
-            }
-            String[] batchNumberList = customerInfoPushMain.getmCusBatchNumberList().split(",");
-            String batchNumber = batchNumberList[0];
-
-            //筛选数据入b_marketing_score_${batchNumber}表
-            insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), batchNumber);
-            //同步TiDB
-            syncDataToTiDB(customerInfoPushMain.getId());
-
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
         } catch (Exception e) {
             logger.error("{}前置处理异常", TITLE, e);
             updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
+        return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
     }
 
 
@@ -156,20 +181,21 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
         @Override
         public List<Future<Result<Integer>>> call() {
-            Long taskId = customerInfoPushMain.getId();
-            return callback(pushCallbackPool, taskId, 0);
+            return callback(pushCallbackPool, customerInfoPushMain, 0);
         }
     }
 
-    private List<Future<Result<Integer>>> callback(ThreadPoolExecutor pushCallbackPool, Long taskId, Integer status) {
+    private List<Future<Result<Integer>>> callback(ThreadPoolExecutor pushCallbackPool, CustomerInfoPushMain customerInfoPushMain, Integer status) {
         List<Future<Result<Integer>>> resultList = new ArrayList<>();
         JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
         int pageSize = haloAIRuleCenterCallbackConfig.getInteger("pageSize");
         long minId = 0L;
         int threadBatchSize = haloAIRuleCenterCallbackConfig.getInteger("threadBatchSize");
+        String apiCode = customerInfoPushMain.getmApiCode();
+        Long taskId = customerInfoPushMain.getId();
         while (true) {
             List<Map<String, Object>> results
-                    = marketingRuleCenterHaloCallbackDataMapper.selectByTaskIdAndBatchNumber(taskId, minId, pageSize, status);
+                    = marketingRuleCenterHaloCallbackDataMapper.selectByTaskIdAndBatchNumber(apiCode, taskId, minId, pageSize, status);
 
             if (results.isEmpty()) {
                 logger.warn("当前任务数据已全部处理完成，taskId:{}", taskId);
@@ -183,7 +209,13 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 batchToProcess.forEach(record -> record.remove("id"));
                 ReqHaluoApiDTO reqHaluoApiDTO = new ReqHaluoApiDTO();
                 reqHaluoApiDTO.setData(JSONObject.toJSONString(batchToProcess));
-                resultList.add(pushCallbackPool.submit(new CallbackTask(reqHaluoApiDTO, ids)));
+
+                PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
+                pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
+                pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
+                pushMarketingUserDTO.setJsonData(reqHaluoApiDTO);
+
+                resultList.add(pushCallbackPool.submit(new CallbackTask(pushMarketingUserDTO, taskId, batchToProcess.size(),ids)));
             }
         }
         return resultList;
@@ -191,11 +223,15 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
     private class CallbackTask implements Callable<Result<Integer>> {
 
-        ReqHaluoApiDTO reqHaluoApiDTO;
+        PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO;
+        Long taskId;
+        Integer size;
         List<Long> ids;
 
-        public CallbackTask(ReqHaluoApiDTO reqHaluoApiDTO, List<Long> ids) {
-            this.reqHaluoApiDTO = reqHaluoApiDTO;
+        public CallbackTask(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long taskId, Integer size,List<Long> ids) {
+            this.pushMarketingUserDTO = pushMarketingUserDTO;
+            this.taskId = taskId;
+            this.size = size;
             this.ids = ids;
         }
 
@@ -204,13 +240,14 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             Result<Integer> result = new Result<>();
             Result<String> flag = new Result<>();
             try {
-                flag = haluoAiApiServiceClient.postHaluoCallbackApi(reqHaluoApiDTO);
+                flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
                 if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
                     marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
                     result.setCode(ResultCode.SUCCESS.getValue());
                 } else {
                     marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
                     result.setCode(ResultCode.FAIL.getValue());
+                    insertErrorMark(pushMarketingUserDTO, taskId, size);
                 }
             } catch (Exception e) {
                 marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
@@ -220,6 +257,20 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             }
             return result;
         }
+    }
+
+    // 插入错误标记
+    private void insertErrorMark(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long mainId, int size) {
+        ErrorMark errorMark = new ErrorMark();
+        errorMark.setmId(mainId);
+        errorMark.setPushSize(size);
+        errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));
+        errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
+        errorMark.setType(ErrorMarkTypeEnum.HALO_CALLBACK_ERROR.getValue());
+        errorMark.setAppletDate(LocalDate.now().toString());
+        errorMark.setCreateTime(new Date());
+        errorMark.setUpdateTime(new Date());
+        errorMarkMapper.insertSelective(errorMark);
     }
 
     private void updatePushMainStatus(Long id, Integer mStatus) {

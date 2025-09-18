@@ -1,29 +1,48 @@
 package com.br.marketing.service.halo.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.halo.HaluoAiApiServiceClient;
+import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.entity.CustomerInfoPushBatch;
-import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.entity.*;
+import com.br.marketing.enums.ErrorMarkTypeEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
+import com.br.marketing.enums.RetryStatusEnum;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
+import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
+import com.br.marketing.service.rulecenter.IRuleCenterPushStrategy;
+import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.SpringContextUtil;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -35,14 +54,55 @@ import java.util.stream.Collectors;
 @Transactional(rollbackFor = Exception.class)
 public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallbackService {
 
+    private static final Logger logger = LoggerFactory.getLogger(HaloRuleCenterCallbackServiceImpl.class);
+
     @Resource
     StraHisFileMapper straHisFileMapper;
+
+    @Resource
+    ErrorMarkMapper errorMarkMapper;
 
     @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
 
     @Resource
     CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
+
+    @Autowired
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private HaluoAiApiServiceClient haluoAiApiServiceClient;
+
+    @Override
+    public Result<Boolean> callBack(Long id) {
+        CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
+
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
+                && marketingCommonConfig.getScoreByEsThreadNum() > 0
+                ? marketingCommonConfig.getScoreByEsThreadNum()
+                : 10;
+        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum() != null
+                && marketingCommonConfig.getScoreToJcThreadNum() > 0
+                ? marketingCommonConfig.getScoreToJcThreadNum()
+                : 2;
+
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
+
+        RuleCenterPushContext context = new RuleCenterPushContext();
+        context.setCustomerInfoPushMain(customerInfoPushMain);
+        context.setPartitionCount(1);
+        context.setEsThreadPool(actionEs);
+        context.setPushThreadPool(pushJc);
+        RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(customerInfoPushMain.getPushTarget());
+        if (pushTargetEnum == null) {
+            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("规则中心数据处理-未匹配到到推送实现");
+        }
+        //执行推送策略
+        IRuleCenterPushStrategy pushStrategy = SpringContextUtil.getBean(pushTargetEnum.getPushAchieve(), IRuleCenterPushStrategy.class);
+        return pushStrategy.executePush(context);
+    }
 
     @Override
     public Result saveHaloCallbackTask(PushCustomerDTO dto) {
@@ -82,7 +142,7 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMain.setLabelName(dto.getLabelName());
-        customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.HALO_CALLBACK.getCode());
+        customerInfoPushMain.setPushTarget(dto.getPushTarget());
         customerInfoPushMain.setFilterType(3);
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
@@ -113,5 +173,87 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
+    }
+
+    @Override
+    public Result getHaloApiCodes() {
+        List<String> apiCodeList = Arrays.asList(marketingCommonConfig.getHaloAIRuleCenterCallbackConfig().get("apiCodes").toString().split(","));
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(apiCodeList);
+    }
+
+    @Override
+    public Integer queryExistError(Long id, Integer filterType) {
+        List<Integer> retryTotalAttemptsList = errorMarkMapper.queryRetryTotalAttempts(id,
+                RetryStatusEnum.AWAIT_COMPLETE.getValue(),
+                filterType);
+
+        if(!CollectionUtils.isEmpty(retryTotalAttemptsList)){
+            // 判断是否都已补推3次
+            boolean allGreaterOrEqualThree = retryTotalAttemptsList.stream()
+                    .allMatch(retryAttempts -> retryAttempts >= 3);
+            if(allGreaterOrEqualThree){
+                logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
+                        , "规则中心哈啰回调，重试3次失败 mid:" + id));
+                return PushRuleStatusEnum.PUSH_FAIL.getValue();
+            }else {
+                return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
+            }
+        }else{
+            return PushRuleStatusEnum.TO_BE_CONFIRMED.getValue();
+        }
+    }
+
+    @Override
+    public void makeUpCallbackData(CustomerInfoPushMain customerInfoPushMain) {
+
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 50);
+
+        Long minId = null;
+        boolean isContinue = Boolean.TRUE;
+        while (isContinue){
+            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+            errorMarkExample.setOrderByClause(" id limit 2000");
+
+            ErrorMarkExample.Criteria criteria = errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                    .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                    .andTypeEqualTo(ErrorMarkTypeEnum.POLICY_ERROR.getValue())
+                    .andRetryTotalAttemptsLessThan(3);
+
+            if (minId != null) {
+                criteria.andIdGreaterThan(minId);
+            }
+            List<ErrorMark> callbackErrorList = errorMarkMapper.selectByExample(errorMarkExample);
+            if (CollectionUtil.isEmpty(callbackErrorList)) {
+                isContinue = Boolean.FALSE;
+                continue;
+            }
+            minId = callbackErrorList.get(callbackErrorList.size() - 1).getId();
+
+            for (ErrorMark errorMark : callbackErrorList) {
+                threadPool.submit(() -> rePushCallbackData(errorMark));
+            }
+        }
+    }
+
+    private Result<String> rePushCallbackData(ErrorMark errorMark){
+        PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
+        }.getType());
+
+        Result<String> result = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+
+        ErrorMark errorMark1 = new ErrorMark();
+        errorMark1.setId(errorMark.getId());
+        if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
+                || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+            int retryAttempts = errorMark.getRetryTotalAttempts();
+            errorMark1.setRetryTotalAttempts(retryAttempts + 1);
+            errorMark1.setUpdateTime(new Date());
+            errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+        } else if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
+            errorMark1.setUpdateTime(new Date());
+            errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+        }
+        return result;
     }
 }

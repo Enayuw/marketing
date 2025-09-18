@@ -11,7 +11,7 @@ import java.util.Map;
 public interface MarketingRuleCenterHaloCallbackDataMapper extends MarketingRuleCenterHaloCallbackDataMapperBase {
 
     @MapKey("id")
-    List<Map<String, Object>> selectByTaskIdAndBatchNumber(@Param("taskId") Long taskId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize, @Param("status") Integer status);
+    List<Map<String, Object>> selectByTaskIdAndBatchNumber(@Param("apiCode") String apiCode, @Param("taskId") Long taskId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize, @Param("status") Integer status);
 
     void updateStatus(@Param("ids") List<Long> ids, @Param("status") Integer status);
 

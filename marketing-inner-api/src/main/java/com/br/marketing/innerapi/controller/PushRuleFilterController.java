@@ -352,11 +352,21 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "保存分组任务")
+    @ApiOperation(value = "生成哈啰硅基人回调任务")
     @PostMapping("/saveHaloCallbackTask")
     public ApiResult saveHaloCallbackTask(@RequestBody PushCustomerDTO dto){
         dto.setUserDetail(ThreadContextInfo.getUser());
         return new ApiResult().fromResult(haloRuleCenterCallbackService.saveHaloCallbackTask(dto),CODE_1);
+    }
+
+    /**
+     * 获取哈啰授权apiCodes
+     * @return apiCodes
+     */
+    @ApiOperation(value = "获取哈啰授权apiCodes")
+    @GetMapping("/getHaloApiCodes")
+    public ApiResult getHaloApiCodes(){
+        return new ApiResult().fromResult(haloRuleCenterCallbackService.getHaloApiCodes(),CODE_1);
     }
 
 }

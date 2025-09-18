@@ -25,6 +25,7 @@
         from b_marketing_rule_center_halo_callback_data
         where
         m_id = ${taskId}
+        and api_code = ${apiCode}
         and status = ${status}
         <if test="minId != null and minId >0">
             <![CDATA[ and id>#{minId} ]]>
