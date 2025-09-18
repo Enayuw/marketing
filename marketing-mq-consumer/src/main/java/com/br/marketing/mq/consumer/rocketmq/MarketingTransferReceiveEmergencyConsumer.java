@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingTransferEmergencyConstants.TOPIC,
         consumerGroup = MarketingTransferEmergencyConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY,
         selectorExpression = MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY,
-        consumeThreadNumber = 1, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 3000)
+        consumeThreadNumber = 1, consumeThreadMax = 15, awaitTerminationMillisWhenShutdown = 15000)
 public class MarketingTransferReceiveEmergencyConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
