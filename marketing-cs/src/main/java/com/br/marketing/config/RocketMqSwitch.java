@@ -89,7 +89,11 @@ public class RocketMqSwitch {
     public boolean shouldRouteToRocketMq(RocketMqSwitchEntity entity, String tag) {
         Integer featureWeight = getGroupValue(entity, tag, FEATURE_WEIGHT, null, Integer.class);
         if (featureWeight == null || featureWeight <= 0) {
-            return true;
+            if (entity.getFeatureWeight() == null || entity.getFeatureWeight() <= 0) {
+                return true;
+            } else {
+                featureWeight = entity.getFeatureWeight();
+            }
         }
         int weight = RANDOM.nextInt(100) + 1;
         return weight <= featureWeight;
