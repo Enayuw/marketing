@@ -20,6 +20,7 @@ import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
@@ -74,6 +75,12 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Autowired
     SoleStrategyService soleStrategyService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private MarketingCustomerMapper customerMapper;
+
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts,
                                          String cte, String uts, String ute, Integer execType) {
@@ -90,8 +97,25 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Override
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
         try {
-            ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
-            service.saveTransaction(scoreRuleVO, userDetail);
+            String apiCode = scoreRuleVO.getApiCode();
+            JSONObject allowScoreTaskConfig = marketingCommonConfig.getAllowScoreTaskConfig();
+            List<String> allowScoreTaskApiType = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
+            List<String> allowScoreTaskApiCode = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
+            String errorMsg = "很遗憾小主，该apiCode禁止跑分！";
+            if (!CollectionUtils.isEmpty(allowScoreTaskApiType)) {
+                MarketingCustomerExample example = new MarketingCustomerExample();
+                example.createCriteria().andApiCodeEqualTo(apiCode);
+                List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
+                MarketingCustomer customer = select.get(0);
+                if (allowScoreTaskApiType.contains(customer.getApiType()) || allowScoreTaskApiCode.contains(customer.getApiCode())) {
+                    ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
+                    service.saveTransaction(scoreRuleVO, userDetail);
+                } else {
+                    throw new BusinessException(errorMsg);
+                }
+            } else {
+                throw new BusinessException(errorMsg);
+            }
         } catch (Exception e) {
             String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String key = "marketing:inner:".concat(yyyyMMdd6);

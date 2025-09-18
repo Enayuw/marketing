@@ -2398,7 +2398,7 @@ public class MarketingCommonConfig {
     /**
      * 你我贷转化规则过滤配置
      */
-    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();
 
     /**
 
@@ -3392,5 +3392,10 @@ public class MarketingCommonConfig {
      * 高优先级运营的客户类型集合
      */
     private List<String> opeHighApiTypes;
+
+    /**
+     * 允许跑分ApiType配置
+     */
+    private JSONObject allowScoreTaskConfig;
 }
 
