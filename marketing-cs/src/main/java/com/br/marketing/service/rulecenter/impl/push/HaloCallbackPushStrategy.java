@@ -271,6 +271,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
     private void insertErrorMark(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long mainId, int size) {
         ErrorMark errorMark = new ErrorMark();
         errorMark.setmId(mainId);
+        errorMark.setApiCode(pushMarketingUserDTO.getApiCode());
         errorMark.setPushSize(size);
         errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));
         errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
