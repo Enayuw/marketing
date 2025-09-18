@@ -154,8 +154,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
             }
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // 检查是否为超时异常
             if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
                 logger.error(TITLE + "前置处理超时异常，taskId: {}", customerInfoPushMain.getId(), e);
@@ -223,7 +222,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
                 pushMarketingUserDTO.setJsonData(reqHaluoApiDTO);
 
-                resultList.add(pushCallbackPool.submit(new CallbackTask(pushMarketingUserDTO, taskId, batchToProcess.size(),ids)));
+                resultList.add(pushCallbackPool.submit(new CallbackTask(pushMarketingUserDTO, taskId, batchToProcess.size(), ids)));
             }
         }
         return resultList;
@@ -236,7 +235,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         Integer size;
         List<Long> ids;
 
-        public CallbackTask(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long taskId, Integer size,List<Long> ids) {
+        public CallbackTask(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long taskId, Integer size, List<Long> ids) {
             this.pushMarketingUserDTO = pushMarketingUserDTO;
             this.taskId = taskId;
             this.size = size;
@@ -255,24 +254,28 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 } else {
                     marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
                     result.setCode(ResultCode.FAIL.getValue());
-                    insertErrorMark(pushMarketingUserDTO, taskId, size);
+                    insertErrorMark(pushMarketingUserDTO, taskId, ids, size);
                 }
             } catch (Exception e) {
                 marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
                 String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
                 logger.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(flag.getMessage());
+                insertErrorMark(pushMarketingUserDTO, taskId, ids, size);
             }
             return result;
         }
     }
 
     // 插入错误标记
-    private void insertErrorMark(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long mainId, int size) {
+    private void insertErrorMark(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long mainId, List<Long> ids, int size) {
         ErrorMark errorMark = new ErrorMark();
         errorMark.setmId(mainId);
         errorMark.setApiCode(pushMarketingUserDTO.getApiCode());
         errorMark.setPushSize(size);
+        errorMark.setAccessNumber(ids.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(",")));
         errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));
         errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
         errorMark.setType(ErrorMarkTypeEnum.HALO_CALLBACK_ERROR.getValue());

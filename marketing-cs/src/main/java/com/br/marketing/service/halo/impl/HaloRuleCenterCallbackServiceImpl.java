@@ -16,16 +16,9 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.ErrorMarkTypeEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.RetryStatusEnum;
-import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
-import com.br.marketing.mapper.CustomerInfoPushMainMapper;
-import com.br.marketing.mapper.ErrorMarkMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
-import com.br.marketing.service.rulecenter.IRuleCenterPushStrategy;
-import com.br.marketing.service.rulecenter.RuleCenterPushContext;
-import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.SpringContextUtil;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -73,6 +66,9 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
 
     @Resource
     private HaluoAiApiServiceClient haluoAiApiServiceClient;
+
+    @Resource
+    private MarketingRuleCenterHaloCallbackDataMapper marketingRuleCenterHaloCallbackDataMapper;
 
     @Override
     public Result saveHaloCallbackTask(PushCustomerDTO dto) {
@@ -157,18 +153,18 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
                 RetryStatusEnum.AWAIT_COMPLETE.getValue(),
                 filterType);
 
-        if(!CollectionUtils.isEmpty(retryTotalAttemptsList)){
+        if (!CollectionUtils.isEmpty(retryTotalAttemptsList)) {
             // 判断是否都已补推3次
             boolean allGreaterOrEqualThree = retryTotalAttemptsList.stream()
                     .allMatch(retryAttempts -> retryAttempts >= 3);
-            if(allGreaterOrEqualThree){
+            if (allGreaterOrEqualThree) {
                 logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
                         , "规则中心哈啰回调，重试3次失败 mid:" + id));
                 return PushRuleStatusEnum.PUSH_FAIL.getValue();
-            }else {
+            } else {
                 return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
             }
-        }else{
+        } else {
             return PushRuleStatusEnum.TO_BE_CONFIRMED.getValue();
         }
     }
@@ -180,13 +176,13 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
 
         Long minId = null;
         boolean isContinue = Boolean.TRUE;
-        while (isContinue){
+        while (isContinue) {
             ErrorMarkExample errorMarkExample = new ErrorMarkExample();
             errorMarkExample.setOrderByClause(" id limit 2000");
 
             ErrorMarkExample.Criteria criteria = errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
                     .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
-                    .andTypeEqualTo(ErrorMarkTypeEnum.POLICY_ERROR.getValue())
+                    .andTypeEqualTo(ErrorMarkTypeEnum.HALO_CALLBACK_ERROR.getValue())
                     .andRetryTotalAttemptsLessThan(3);
 
             if (minId != null) {
@@ -205,7 +201,7 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
         }
     }
 
-    private Result<String> rePushCallbackData(ErrorMark errorMark){
+    private Result<String> rePushCallbackData(ErrorMark errorMark) {
         PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
         }.getType());
 
@@ -213,16 +209,22 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
 
         ErrorMark errorMark1 = new ErrorMark();
         errorMark1.setId(errorMark.getId());
+        List<Long> ids = Arrays.stream(errorMark.getAccessNumber().split(","))
+                .map(String::trim)
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
         if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
                 || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
             int retryAttempts = errorMark.getRetryTotalAttempts();
             errorMark1.setRetryTotalAttempts(retryAttempts + 1);
             errorMark1.setUpdateTime(new Date());
             errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+            marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
         } else if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
             errorMark1.setUpdateTime(new Date());
             errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+            marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
         }
         return result;
     }
