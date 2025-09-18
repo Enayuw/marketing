@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface HaloRuleCenterCallbackService {
 
-    Result<Boolean> callBack(Long id);
-
     Result saveHaloCallbackTask(PushCustomerDTO dto);
 
     Result getHaloApiCodes();

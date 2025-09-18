@@ -154,10 +154,18 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
             }
 
-        } catch (Exception e) {
-            logger.error("{}前置处理异常", TITLE, e);
-            updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+        }
+        catch (Exception e) {
+            // 检查是否为超时异常
+            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
+                logger.error(TITLE + "前置处理超时异常，taskId: {}", customerInfoPushMain.getId(), e);
+                updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE).setMessage("前置处理操作超时");
+            } else {
+                logger.error(TITLE + "前置处理异常，taskId: {}", customerInfoPushMain.getId(), e);
+                updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.PUSH_FAIL.getValue());
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE).setMessage("前置处理操作失败: " + e.getMessage());
+            }
         }
         return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
     }
@@ -283,7 +291,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
     /**
      * 同步数据到TiDB表
      */
-    private void syncDataToTiDB(Long id) {
+    private void syncDataToTiDB(Long id) throws Exception {
         try {
             long start = System.currentTimeMillis();
 
@@ -316,59 +324,77 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             logger.warn(TITLE + "同步数据到Tidb明细表,耗时={}ms", System.currentTimeMillis() - start);
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            // 检查是否为超时异常
+            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
+                logger.error(TITLE + "同步数据到TiDB超时异常，taskId: {}", id, e);
+                throw new RuntimeException("同步数据到TiDB操作超时", e);
+            } else {
+                logger.error(TITLE + "同步数据到TiDB异常，taskId: {}", id, e);
+                throw new RuntimeException("同步数据到TiDB操作失败: " + e.getMessage(), e);
+            }
         }
     }
 
     /**
      * 筛选数据入Doris的b_marketing_rule_center_halo_callback_data表
      */
-    private void insertMarketingScoreTable(String apiCode, Long id, String batchNumber) {
-        List<String> baseColumnList = flagDataMapper.queryColumnNamebI_(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA);
-        List<String> columnList = flagDataMapper.queryColumnNamebI_(B_SCORE_PREFIX + batchNumber);
-        JSONObject haloSectionFieldConfig = marketingCommonConfig.getHaloSectionFieldConfig();
-        String sectionField = haloSectionFieldConfig.getString("sectionField");
-        JSONArray rangeArray = haloSectionFieldConfig.getJSONArray("sectionRange");
-        StringBuilder insertSql = new StringBuilder("INSERT INTO ").append(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA).append("(");
-        insertSql.append(String.join(",", baseColumnList));
-        insertSql.append(")");
-        insertSql.append("SELECT ");
-        insertSql.append(apiCode).append(" as api_code,").append(id).append(" as m_id,");
-        baseColumnList.remove("api_code");
-        baseColumnList.remove("m_id");
-        baseColumnList.remove("section");
-        baseColumnList.remove("extend");
-        baseColumnList.remove("status");
-        insertSql.append(String.join(",", baseColumnList));
-        insertSql.append(",");
-        insertSql.append("0 as status,");
+    protected void insertMarketingScoreTable(String apiCode, Long id, String batchNumber) throws Exception {
+        try {
+            List<String> baseColumnList = flagDataMapper.queryColumnNamebI_(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA);
+            List<String> columnList = flagDataMapper.queryColumnNamebI_(B_SCORE_PREFIX + batchNumber);
+            JSONObject haloSectionFieldConfig = marketingCommonConfig.getHaloSectionFieldConfig();
+            String sectionField = haloSectionFieldConfig.getString("sectionField");
+            JSONArray rangeArray = haloSectionFieldConfig.getJSONArray("sectionRange");
+            StringBuilder insertSql = new StringBuilder("INSERT INTO ").append(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA).append("(");
+            insertSql.append(String.join(",", baseColumnList));
+            insertSql.append(")");
+            insertSql.append("SELECT ");
+            insertSql.append(apiCode).append(" as api_code,").append(id).append(" as m_id,");
+            baseColumnList.remove("api_code");
+            baseColumnList.remove("m_id");
+            baseColumnList.remove("section");
+            baseColumnList.remove("extend");
+            baseColumnList.remove("status");
+            insertSql.append(String.join(",", baseColumnList));
+            insertSql.append(",");
+            insertSql.append("0 as status,");
 
-        // 生成CASE WHEN SQL和WHERE条件
-        SectionSqlResult sectionResult = generateCaseWhenSql(sectionField, rangeArray);
-        insertSql.append(sectionResult.getSectionSql());
-        insertSql.append(",");
+            // 生成CASE WHEN SQL和WHERE条件
+            SectionSqlResult sectionResult = generateCaseWhenSql(sectionField, rangeArray);
+            insertSql.append(sectionResult.getSectionSql());
+            insertSql.append(",");
 
-        columnList.removeAll(baseColumnList);
-        StringBuilder extend = new StringBuilder("JSON_OBJECT(");
-        List<String> extendFields = new ArrayList<>();
-        for (String column : columnList) {
-            extendFields.add("'" + column + "'");
-            extendFields.add(column);
-        }
-        // 构建extend JSON对象
-        if (!extendFields.isEmpty()) {
-            extend.append(String.join(",", extendFields));
-        }
-        extend.append(") as extend");
-        insertSql.append(extend);
-        insertSql.append(" FROM b_score_");
-        insertSql.append(batchNumber);
-        if (StringUtils.isNotBlank(sectionResult.getWhereSql())) {
-            insertSql.append(" WHERE ");
-            insertSql.append(sectionResult.getWhereSql());
-        }
+            columnList.removeAll(baseColumnList);
+            StringBuilder extend = new StringBuilder("JSON_OBJECT(");
+            List<String> extendFields = new ArrayList<>();
+            for (String column : columnList) {
+                extendFields.add("'" + column + "'");
+                extendFields.add(column);
+            }
+            // 构建extend JSON对象
+            if (!extendFields.isEmpty()) {
+                extend.append(String.join(",", extendFields));
+            }
+            extend.append(") as extend");
+            insertSql.append(extend);
+            insertSql.append(" FROM b_score_");
+            insertSql.append(batchNumber);
+            if (StringUtils.isNotBlank(sectionResult.getWhereSql())) {
+                insertSql.append(" WHERE ");
+                insertSql.append(sectionResult.getWhereSql());
+            }
 
-        flagDataMapper.insertbI_(insertSql.toString());
+            flagDataMapper.insertbI_(insertSql.toString());
+        } catch (Exception e) {
+            // 检查是否为超时异常
+            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
+                logger.error(TITLE + "插入营销评分表超时异常，apiCode: {}, taskId: {}, batchNumber: {}", apiCode, id, batchNumber, e);
+                throw new RuntimeException("插入营销评分表操作超时", e);
+            } else {
+                logger.error(TITLE + "插入营销评分表异常，apiCode: {}, taskId: {}, batchNumber: {}", apiCode, id, batchNumber, e);
+                throw new RuntimeException("插入营销评分表操作失败: " + e.getMessage(), e);
+            }
+        }
     }
 
     /**

@@ -75,36 +75,6 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
     private HaluoAiApiServiceClient haluoAiApiServiceClient;
 
     @Override
-    public Result<Boolean> callBack(Long id) {
-        CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
-
-        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
-                && marketingCommonConfig.getScoreByEsThreadNum() > 0
-                ? marketingCommonConfig.getScoreByEsThreadNum()
-                : 10;
-        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum() != null
-                && marketingCommonConfig.getScoreToJcThreadNum() > 0
-                ? marketingCommonConfig.getScoreToJcThreadNum()
-                : 2;
-
-        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
-        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
-
-        RuleCenterPushContext context = new RuleCenterPushContext();
-        context.setCustomerInfoPushMain(customerInfoPushMain);
-        context.setPartitionCount(1);
-        context.setEsThreadPool(actionEs);
-        context.setPushThreadPool(pushJc);
-        RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(customerInfoPushMain.getPushTarget());
-        if (pushTargetEnum == null) {
-            return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("规则中心数据处理-未匹配到到推送实现");
-        }
-        //执行推送策略
-        IRuleCenterPushStrategy pushStrategy = SpringContextUtil.getBean(pushTargetEnum.getPushAchieve(), IRuleCenterPushStrategy.class);
-        return pushStrategy.executePush(context);
-    }
-
-    @Override
     public Result saveHaloCallbackTask(PushCustomerDTO dto) {
         if (dto.getBatchNumberList().size() > 50) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次最多选择50个");

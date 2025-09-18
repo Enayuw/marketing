@@ -5,7 +5,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.rule.service.XieChengCollidingService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
+import com.br.marketing.service.rulecenter.IRuleCenterHaloCallbackService;
 import com.br.marketing.service.rulecenter.IRuleCenterPushService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -32,7 +32,7 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
     IRuleCenterPushService iRuleCenterPushService;
 
     @Resource
-    HaloRuleCenterCallbackService haloRuleCenterCallbackService;
+    IRuleCenterHaloCallbackService iRuleCenterHaloCallbackService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -52,7 +52,7 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
                 if(pushTaskData.getFilterType().equals(0) || pushTaskData.getFilterType().equals(2)) {
                     booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
                 } else if (pushTaskData.getFilterType().equals(3)) {
-                    booleanResult = haloRuleCenterCallbackService.callBack(pushTaskData.getId());
+                    booleanResult = iRuleCenterHaloCallbackService.callBack(pushTaskData.getId());
                 } else{
                     //携程撞库数据推决策
                     booleanResult = xieChengCollidingService.collidingDataPushPolicy(pushTaskData.getId());
