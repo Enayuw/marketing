@@ -324,6 +324,20 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
     private static List<ContactListDTO> getContactListDTOS(List<MarketingSanLiuLingCollection> lxrList,
                                                            AesGeneralDTO aesGeneralDTO) {
         List<ContactListDTO> contactList = new ArrayList<>();
+
+        if(lxrList.isEmpty()){
+            return contactList;
+        }
+
+        // 按phoneLabel排序：lxr1、lxr2、lxr3...
+        lxrList.sort(Comparator.comparing(
+                item -> Optional.ofNullable(item.getPhoneLabel())
+                        .map(label -> label.replaceAll("\\D", ""))  // 提取数字
+                        .filter(num -> !num.isEmpty())
+                        .map(Integer::parseInt)
+                        .orElse(Integer.MAX_VALUE)  // 无数字的排到最后
+        ));
+
         for (MarketingSanLiuLingCollection marketingSanLiuLingCollection : lxrList){
             ContactListDTO contact = new ContactListDTO();
             contact.setOriginalCell(marketingSanLiuLingCollection.getPhone());
