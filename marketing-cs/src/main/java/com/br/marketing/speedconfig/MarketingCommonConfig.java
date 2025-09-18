@@ -3398,5 +3398,19 @@ public class MarketingCommonConfig {
      * 上传记录导出每页查询条数
      */
     private Integer syncReportExportPageSize;
+
+    /**
+     * 规则中心执行查询es模板
+     * {“apiCode”:{"pushTarget":"must/filter"}}
+     * {"7410770":{"1":"filter","2":"must"}}
+     */
+    private Map<String,JSONObject> ruleCenterPushType;
+
+
+    /**
+     * 规则中心筛选预览量级
+     * ["7410770"]
+     */
+    private List<String> ruleCenterPushView;
 }
 
