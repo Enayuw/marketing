@@ -958,8 +958,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             out.write(0xBF);
             writer.append("上传日期").append(",").append("客户编号").append(",").append("APIcode").append(",")
                     .append("客户名称").append(",").append("场景").append(",").append("数据正常入库条数").append(",")
-                    .append("去重后数量").append(",").append("创建时间").append(",").append("上传开始时间").append(",")
-                    .append("上传结束时间").append(",").append("数据生效日期").append(",").append("数据失效日期").append("\r\n");
+                    .append("去重后数据量").append(",").append("创建时间").append(",").append("上传开始时间").append(",")
+                    .append("上传结束时间").append(",").append("数据生效时间").append(",").append("数据失效时间").append("\r\n");
 
             fillExportData(cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,selectType,selectExportIds,writer,out);
         } catch (IOException e) {
