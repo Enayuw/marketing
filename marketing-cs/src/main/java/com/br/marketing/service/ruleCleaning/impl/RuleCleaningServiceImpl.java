@@ -715,6 +715,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         Boolean isMapping = cleaningRule.getIsMapping();
         String cleanFields = cleaningRule.getCleanFields();
         String parentPath = cleaningRule.getParentPath();
+        Integer level = cleaningRule.getLevel();
         Integer isDel = cleaningRule.getIsDel();
         
         if ("9".equals(isDel)) {
@@ -725,7 +726,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("清洗字段不能为空");
         }
         
-        Object fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields, parentPath);
+        Object fieldValue = null;
+        if (ObjectUtil.isNotEmpty(parentPath) || ObjectUtil.isNotEmpty(level)) {
+            fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields, parentPath);
+            log.warn("取值操作逻辑（新）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
+        } else {
+            fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields);
+            log.warn("取值操作逻辑（老）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
+        }
         if (fieldValue == null) {
             log.warn("未找到字段值: cleanFields={}", cleanFields);
             return "";
@@ -858,8 +866,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (ObjectUtil.isNotEmpty(nodeParse)) {
                 String fieldName = String.valueOf(ruleMap.get("fieldName"));
                 String parentPath = String.valueOf(ruleMap.get("parentPath"));
-                value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
-                log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, value);
+                String level = String.valueOf(ruleMap.get("level"));
+                boolean a = !"null".equals(parentPath) && ObjectUtil.isNotEmpty(parentPath);
+                boolean b = !"null".equals(level) && ObjectUtil.isNotEmpty(level);
+                if (a || b) {
+                    value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
+                    log.warn("计算操作逻辑（新）从nodeParse获取字段 {} 的值: {}", fieldName, value);
+                } else {
+                    value = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                    log.warn("计算操作逻辑（老）从nodeParse获取字段 {} 的值: {}", fieldName, value);
+                }
             } else {
                 value = ruleMap.get("fieldValue");
                 log.warn("使用预览值常量值: {}", value);
@@ -2317,8 +2333,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 if (nodeParse != null) {
                     // 从nodeParse中获取字段值
                     String parentPath = String.valueOf(fieldConfig.get("parentPath"));
-                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
-                    log.warn("从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                    String level = String.valueOf(fieldConfig.get("level"));
+                    boolean a = !"null".equals(parentPath) && ObjectUtil.isNotEmpty(parentPath);
+                    boolean b = !"null".equals(level) && ObjectUtil.isNotEmpty(level);
+                    if (a || b) {
+                        log.warn("拼接操作逻辑（新）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                        fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
+                    } else {
+                        fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                        log.warn("拼接操作逻辑（老）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                    }
                 } else {
                     // 使用规则中的预设值
                     fieldValue = fieldConfig.get("fieldValue");
