@@ -29,7 +29,7 @@
             GROUP BY application_id
             ORDER BY application_id
         ) t
-        LIMIT #{offset}, #{pageSize}
+        LIMIT 0, 1000
     </select>
 
     <!-- 查询不重复applicationId的总数量 -->

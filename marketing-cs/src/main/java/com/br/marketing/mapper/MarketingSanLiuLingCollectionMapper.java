@@ -23,9 +23,7 @@ public interface MarketingSanLiuLingCollectionMapper extends MarketingSanLiuLing
      */
     List<String> selectDistinctApplicationIdsWithPaging(@Param("apiCode") String apiCode,
                                                         @Param("receiveDate") String receiveDate,
-                                                        @Param("cleanStatus") Integer cleanStatus,
-                                                        @Param("offset") Long offset,
-                                                        @Param("pageSize") Integer pageSize);
+                                                        @Param("cleanStatus") Integer cleanStatus);
 
     /**
      * 根据applicationId查询所有相关数据
