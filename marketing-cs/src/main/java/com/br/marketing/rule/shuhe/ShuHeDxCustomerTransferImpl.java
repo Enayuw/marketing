@@ -139,7 +139,8 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                              */
                         case "重申":
                             String usrCompAplAiClSpUse = reserveFieldObject.getString("usr_comp_apl_ai_cl_sp_use");
-                            if (StringUtils.hasText(usrCompAplAiClSpUse)) {
+                            String usrCompAplExcludeApiTmValue = reserveFieldObject.getString("usr_comp_apl_exclude_api_tm_value");
+                            if (StringUtils.hasText(usrCompAplAiClSpUse) || StringUtils.hasText(usrCompAplExcludeApiTmValue)) {
                                 return true;
                             }
                             break;
