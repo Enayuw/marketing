@@ -269,6 +269,12 @@ public class MarketingCustomerListVO {
     private String charset;
 
     /**
+     * 初始化向量
+     */
+    @ApiModelProperty(value = "初始化向量")
+    private String iv;
+
+    /**
      * AES通用-密钥
      */
     @ApiModelProperty(value = "密钥")

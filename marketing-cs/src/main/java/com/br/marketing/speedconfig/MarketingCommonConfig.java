@@ -3389,6 +3389,17 @@ public class MarketingCommonConfig {
     private Boolean xieChengActivateRabbitMqSwitch;
 
     /**
+     * 催收360上传数据清洗时间 HH:ss
+     */
+    private String sanLiuLingCollectionTime;
+
+
+    /**
+     * 上传记录导出每页查询条数
+     */
+    private Integer syncReportExportPageSize;
+
+    /**
      * 规则中心执行查询es模板
      * {“apiCode”:{"pushTarget":"must/filter"}}
      * {"7410770":{"1":"filter","2":"must"}}

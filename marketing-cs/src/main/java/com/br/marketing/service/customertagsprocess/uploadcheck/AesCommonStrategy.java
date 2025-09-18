@@ -19,6 +19,7 @@ public class AesCommonStrategy implements IUploadCheckService {
         aesGeneralDTO.setPaddingScheme(customerTagsVO.getPaddingScheme());
         aesGeneralDTO.setCharset(customerTagsVO.getCharset());
         aesGeneralDTO.setDynamicKeys(customerTagsVO.getDynamicKeys());
+        aesGeneralDTO.setIv(customerTagsVO.getIv());
         if (StringUtils.isNotBlank(user.getCell())) {
             aesGeneralDTO.setText(user.getCell());
             String plainText = AesUtil.decrypt(aesGeneralDTO);
@@ -26,7 +27,7 @@ public class AesCommonStrategy implements IUploadCheckService {
                 isValid(user, plainText, "cell", isCheck);
             } else {
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
-                user.setFailType(MonitorTypeEnum.FAIL_TYPE_5.getType());
+                user.setFailType(MonitorTypeEnum.FAIL_TYPE_4.getType());
             }
         }
 
