@@ -5,7 +5,8 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="local_id" property="localId" jdbcType="BIGINT" />
-    <result column="call_record_id" property="callRecordId" jdbcType="BIGINT" />
+    <result column="origin_id" property="originId" jdbcType="BIGINT" />
+    <result column="idempotent_key" property="idempotentKey" jdbcType="VARCHAR" />
     <result column="type" property="type" jdbcType="VARCHAR" />
     <result column="action_type" property="actionType" jdbcType="VARCHAR" />
     <result column="click_id" property="clickId" jdbcType="VARCHAR" />
@@ -78,9 +79,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, call_record_id, `type`, action_type, click_id, click_tel,
-    push_status, `status`, data_message, extend, create_date, create_time, update_time,
-    sha256_tel
+    id, api_code, local_id, origin_id, idempotent_key, `type`, action_type, click_id,
+    click_tel, push_status, `status`, data_message, extend, create_date, create_time,
+    update_time, sha256_tel
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengDataExample" >
     select
@@ -116,18 +117,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_data (api_code, local_id, call_record_id,
-    `type`, action_type, click_id,
-    click_tel, push_status, `status`,
-    data_message, extend, create_date,
-    create_time, update_time, sha256_tel
-    )
-    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{callRecordId,jdbcType=BIGINT},
-    #{type,jdbcType=VARCHAR}, #{actionType,jdbcType=VARCHAR}, #{clickId,jdbcType=VARCHAR},
-    #{clickTel,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
-    #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{sha256Tel,jdbcType=VARCHAR}
-    )
+    insert into b_xiecheng_data (api_code, local_id, origin_id,
+    idempotent_key, `type`, action_type,
+    click_id, click_tel, push_status,
+    `status`, data_message, extend,
+    create_date, create_time, update_time,
+    sha256_tel)
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{originId,jdbcType=BIGINT},
+    #{idempotentKey,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{actionType,jdbcType=VARCHAR},
+    #{clickId,jdbcType=VARCHAR}, #{clickTel,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER},
+    #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR},
+    #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{sha256Tel,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -141,8 +142,11 @@
       <if test="localId != null" >
         local_id,
       </if>
-      <if test="callRecordId != null" >
-        call_record_id,
+      <if test="originId != null" >
+        origin_id,
+      </if>
+      <if test="idempotentKey != null" >
+        idempotent_key,
       </if>
       <if test="type != null" >
         `type`,
@@ -188,8 +192,11 @@
       <if test="localId != null" >
         #{localId,jdbcType=BIGINT},
       </if>
-      <if test="callRecordId != null" >
-        #{callRecordId,jdbcType=BIGINT},
+      <if test="originId != null" >
+        #{originId,jdbcType=BIGINT},
+      </if>
+      <if test="idempotentKey != null" >
+        #{idempotentKey,jdbcType=VARCHAR},
       </if>
       <if test="type != null" >
         #{type,jdbcType=VARCHAR},
@@ -247,8 +254,11 @@
       <if test="record.localId != null" >
         local_id = #{record.localId,jdbcType=BIGINT},
       </if>
-      <if test="record.callRecordId != null" >
-        call_record_id = #{record.callRecordId,jdbcType=BIGINT},
+      <if test="record.originId != null" >
+        origin_id = #{record.originId,jdbcType=BIGINT},
+      </if>
+      <if test="record.idempotentKey != null" >
+        idempotent_key = #{record.idempotentKey,jdbcType=VARCHAR},
       </if>
       <if test="record.type != null" >
         `type` = #{record.type,jdbcType=VARCHAR},
@@ -296,7 +306,8 @@
     set id = #{record.id,jdbcType=BIGINT},
     api_code = #{record.apiCode,jdbcType=VARCHAR},
     local_id = #{record.localId,jdbcType=BIGINT},
-    call_record_id = #{record.callRecordId,jdbcType=BIGINT},
+    origin_id = #{record.originId,jdbcType=BIGINT},
+    idempotent_key = #{record.idempotentKey,jdbcType=VARCHAR},
     `type` = #{record.type,jdbcType=VARCHAR},
     action_type = #{record.actionType,jdbcType=VARCHAR},
     click_id = #{record.clickId,jdbcType=VARCHAR},
@@ -322,8 +333,11 @@
       <if test="localId != null" >
         local_id = #{localId,jdbcType=BIGINT},
       </if>
-      <if test="callRecordId != null" >
-        call_record_id = #{callRecordId,jdbcType=BIGINT},
+      <if test="originId != null" >
+        origin_id = #{originId,jdbcType=BIGINT},
+      </if>
+      <if test="idempotentKey != null" >
+        idempotent_key = #{idempotentKey,jdbcType=VARCHAR},
       </if>
       <if test="type != null" >
         `type` = #{type,jdbcType=VARCHAR},
@@ -368,7 +382,8 @@
     update b_xiecheng_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
         local_id = #{localId,jdbcType=BIGINT},
-        call_record_id = #{callRecordId,jdbcType=BIGINT},
+        origin_id = #{originId,jdbcType=BIGINT},
+        idempotent_key = #{idempotentKey,jdbcType=VARCHAR},
         `type` = #{type,jdbcType=VARCHAR},
         action_type = #{actionType,jdbcType=VARCHAR},
         click_id = #{clickId,jdbcType=VARCHAR},

@@ -154,7 +154,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         XieChengData xieChengData = new XieChengData();
         xieChengData.setApiCode(callRecord.getApiCode());
         xieChengData.setLocalId(callRecord.getId());
-        xieChengData.setCallRecordId(callRecord.getId());
+        xieChengData.setOriginId(callRecord.getId());
         xieChengData.setType("1");
         String actionType = judgeActionType(callRecord);
         xieChengData.setActionType(actionType != null ? actionType.toUpperCase() : "IVR");
