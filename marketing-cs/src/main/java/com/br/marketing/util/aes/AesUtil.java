@@ -1,9 +1,11 @@
 package com.br.marketing.util.aes;
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.AesGeneralDTO;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -31,13 +33,21 @@ public class AesUtil {
             String paddingScheme = dto.getPaddingScheme();
             Charset charset = getCharset(dto.getCharset());
             String dynamicKeys = dto.getDynamicKeys();
+            String iv = dto.getIv();
 
             checkKeyLength(dynamicKeys);
 
             String transformation = KEY_ALGORITHM + "/" + cipherMode + "/" + paddingScheme;
             SecretKeySpec skey = new SecretKeySpec(dynamicKeys.getBytes(charset), KEY_ALGORITHM);
             Cipher cipher = Cipher.getInstance(transformation);
-            cipher.init(Cipher.ENCRYPT_MODE, skey);
+
+            if(StringUtils.isEmpty(iv)){
+                cipher.init(Cipher.ENCRYPT_MODE, skey);
+            }else {
+                IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());
+                cipher.init(Cipher.ENCRYPT_MODE, skey, ivParameterSpec);
+            }
+
             byte[] crypted = cipher.doFinal(text.getBytes(charset));
             return Base64.encodeBase64String(crypted);
         } catch (Exception e) {
@@ -58,13 +68,21 @@ public class AesUtil {
             String paddingScheme = dto.getPaddingScheme();
             Charset charset = getCharset(dto.getCharset());
             String dynamicKeys = dto.getDynamicKeys();
+            String iv = dto.getIv();
 
             checkKeyLength(dynamicKeys);
 
             String transformation = KEY_ALGORITHM + "/" + cipherMode + "/" + paddingScheme;
             SecretKeySpec skey = new SecretKeySpec(dynamicKeys.getBytes(charset), KEY_ALGORITHM);
             Cipher cipher = Cipher.getInstance(transformation);
-            cipher.init(Cipher.DECRYPT_MODE, skey);
+
+            if(StringUtils.isEmpty(iv)){
+                cipher.init(Cipher.DECRYPT_MODE, skey);
+            }else {
+                IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());
+                cipher.init(Cipher.DECRYPT_MODE, skey, ivParameterSpec);
+            }
+
             byte[] decoded = Base64.decodeBase64(text);
             byte[] output = cipher.doFinal(decoded);
             return new String(output, charset);
@@ -92,4 +110,28 @@ public class AesUtil {
         }
         return Charset.forName(charset);
     }
+
+    public static void main(String[] args) {
+        AesGeneralDTO aesGeneralDTO = new AesGeneralDTO();
+        aesGeneralDTO.setText("15510119441");
+        aesGeneralDTO.setCipherMode("CBC");
+        aesGeneralDTO.setPaddingScheme("PKCS5Padding");
+        aesGeneralDTO.setCharset("UTF-8");
+        aesGeneralDTO.setIv("0102030405060708");
+        aesGeneralDTO.setDynamicKeys("fC8tzaLDItGjIjOr");
+
+        String encrypt = encrypt(aesGeneralDTO);
+        System.out.println(encrypt);
+
+        AesGeneralDTO aesGeneralDTO1 = new AesGeneralDTO();
+        aesGeneralDTO1.setText(encrypt);
+        aesGeneralDTO1.setCipherMode("CBC");
+        aesGeneralDTO1.setPaddingScheme("PKCS5Padding");
+        aesGeneralDTO1.setCharset("UTF-8");
+        aesGeneralDTO1.setIv("0102030405060708");
+        aesGeneralDTO1.setDynamicKeys("fC8tzaLDItGjIjOr");
+        String decrypt = decrypt(aesGeneralDTO1);
+        System.out.println(decrypt);
+    }
+
 }

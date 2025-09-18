@@ -12,7 +12,7 @@ public class MarketingCustomerConfigExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingCustomerConfigExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingCustomerConfigExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -502,6 +502,76 @@ public class MarketingCustomerConfigExample {
 
         public Criteria andCharsetNotBetween(String value1, String value2) {
             addCriterion("charset not between", value1, value2, "charset");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvIsNull() {
+            addCriterion("iv is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvIsNotNull() {
+            addCriterion("iv is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvEqualTo(String value) {
+            addCriterion("iv =", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvNotEqualTo(String value) {
+            addCriterion("iv <>", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvGreaterThan(String value) {
+            addCriterion("iv >", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvGreaterThanOrEqualTo(String value) {
+            addCriterion("iv >=", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvLessThan(String value) {
+            addCriterion("iv <", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvLessThanOrEqualTo(String value) {
+            addCriterion("iv <=", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvLike(String value) {
+            addCriterion("iv like", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvNotLike(String value) {
+            addCriterion("iv not like", value, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvIn(List<String> values) {
+            addCriterion("iv in", values, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvNotIn(List<String> values) {
+            addCriterion("iv not in", values, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvBetween(String value1, String value2) {
+            addCriterion("iv between", value1, value2, "iv");
+            return (Criteria) this;
+        }
+
+        public Criteria andIvNotBetween(String value1, String value2) {
+            addCriterion("iv not between", value1, value2, "iv");
             return (Criteria) this;
         }
 

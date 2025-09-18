@@ -3388,6 +3388,11 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengActivateRabbitMqSwitch;
 
+    /**
+     * 催收360上传数据清洗时间 HH:ss
+     */
+    private String sanLiuLingCollectionTime;
+
 
     /**
      * 上传记录导出每页查询条数
