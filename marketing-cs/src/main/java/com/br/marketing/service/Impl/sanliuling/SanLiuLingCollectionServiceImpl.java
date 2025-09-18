@@ -145,7 +145,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
             try {
                 // 1. 先查询该applicationId下的所有待清洗数据
                 List<MarketingSanLiuLingCollection> collectionList = marketingSanLiuLingCollectionMapper.selectByApplicationId(
-                        apiCode, receiveDate, DataCleanStatusEnum.READY.getCode(), applicationId);
+                        apiCode, receiveDate, DataCleanStatusEnum.RUNNING.getCode(), applicationId);
 
                 if (CollectionUtils.isEmpty(collectionList)) {
                     log.warn(TITLE + "applicationId: {} 下无待清洗数据，跳过处理", applicationId);

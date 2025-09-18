@@ -24,6 +24,7 @@
             WHERE api_code = #{apiCode}
               AND receive_date = #{receiveDate}
               AND clean_status = #{cleanStatus}
+              AND phone_label = 'br1'
               AND is_delete = 0
             GROUP BY application_id
             ORDER BY application_id
