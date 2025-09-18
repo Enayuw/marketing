@@ -67,11 +67,6 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
     MarketingCustomerConfigMapper marketingCustomerConfigMapper;
     
     private final static String TITLE = "【360-催收业务】";
-    
-    /**
-     * 分页查询applicationId的页面大小，避免内存溢出
-     */
-    private final static int APPLICATION_ID_PAGE_SIZE = 1000;
 
     @Override
     public void cleanData(String apiCode) {
@@ -79,7 +74,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
         String receiveDate = LocalDate.now().toString();
         Integer cleanStatus = DataCleanStatusEnum.READY.getCode();
 
-        // 1. 先查询总数量，避免一次性加载所有applicationId到内存
+        // 1. 先查询总数量，用于日志显示
         Long totalCount = marketingSanLiuLingCollectionMapper.countDistinctApplicationIds(
                 apiCode, receiveDate, cleanStatus);
         
@@ -88,54 +83,62 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
             return;
         }
         
-        log.warn(TITLE + "共查询到{}个不重复的applicationId，apiCode：{}", totalCount, apiCode);
+        log.warn(TITLE + "共查询到{}个不重复的applicationId，开始分页处理，apiCode：{}", totalCount, apiCode);
 
         MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
         configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingCustomerConfig> configs = marketingCustomerConfigMapper.selectByExample(configExample);
         MarketingCustomerConfig marketingCustomerConfig = configs.get(0);
-        // AES解密参数
-        AesGeneralDTO aesGeneralDTO = new AesGeneralDTO();
-        aesGeneralDTO.setCipherMode(marketingCustomerConfig.getCipherMode());
-        aesGeneralDTO.setPaddingScheme(marketingCustomerConfig.getPaddingScheme());
-        aesGeneralDTO.setCharset(marketingCustomerConfig.getCharset());
-        aesGeneralDTO.setIv(marketingCustomerConfig.getIv());
-        aesGeneralDTO.setDynamicKeys(marketingCustomerConfig.getDynamicKeys());
-
-        // 2. 分页查询并处理applicationId，支持千万级数据量
-        long offset = 0;
-        while (offset < totalCount) {
-            // 分页查询applicationId列表，通过ORDER BY确保数据顺序一致性
+        
+        // 2. 动态分页查询并处理applicationId，以查询结果为空作为结束条件
+        int batchNumber = 1;
+        while (true) {
+            // 分页查询applicationId列表，始终从offset=0开始查询待清洗数据
             List<String> applicationIds = marketingSanLiuLingCollectionMapper.selectDistinctApplicationIdsWithPaging(
-                    apiCode, receiveDate, cleanStatus, offset, APPLICATION_ID_PAGE_SIZE);
+                    apiCode, receiveDate, cleanStatus);
             
             if (CollectionUtils.isEmpty(applicationIds)) {
-                log.warn(TITLE + "分页查询applicationId为空，offset：{}, pageSize：{}", offset, APPLICATION_ID_PAGE_SIZE);
+                log.warn(TITLE + "第{}批分页查询applicationId为空，所有数据处理完成", batchNumber);
                 break;
             }
             
-            log.warn(TITLE + "分页查询到{}个applicationId，offset：{}, pageSize：{}", 
-                    applicationIds.size(), offset, APPLICATION_ID_PAGE_SIZE);
+            log.warn(TITLE + "第{}批分页查询到{}个applicationId", batchNumber, applicationIds.size());
 
-            // 3. 按applicationId分组处理数据
-            pushPool.submit(() -> processApplicationIdData(apiCode, receiveDate, applicationIds, aesGeneralDTO));
+            // 在主线程中批量将这批applicationIds的状态更新为"清洗中"
+            int updateCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByApplicationIds(
+                    applicationIds, apiCode, receiveDate, DataCleanStatusEnum.RUNNING.getCode());
+
+            if (updateCount > 0) {
+                log.warn(TITLE + "第{}批成功将{}个applicationId状态更新为清洗中", batchNumber, updateCount);
+                // 异步处理数据，处理完成后在线程内更新为"清洗完成"
+                pushPool.submit(() -> processApplicationIdData(apiCode, receiveDate, applicationIds, marketingCustomerConfig));
+            } else {
+                log.warn(TITLE + "第{}批批量更新状态失败，跳过这批applicationIds: {}", batchNumber, applicationIds);
+            }
             
-            // 更新偏移量
-            offset += APPLICATION_ID_PAGE_SIZE;
+            batchNumber++;
         }
     }
 
     /**
      * 处理单个applicationId的数据
      */
-    private void processApplicationIdData(String apiCode, String receiveDate, List<String> applicationIds, AesGeneralDTO aesGeneralDTO) {
+    private void processApplicationIdData(String apiCode, String receiveDate, List<String> applicationIds, MarketingCustomerConfig marketingCustomerConfig) {
 
         for (String applicationId : applicationIds){
+            // AES解密参数
+            AesGeneralDTO aesGeneralDTO = new AesGeneralDTO();
+            aesGeneralDTO.setCipherMode(marketingCustomerConfig.getCipherMode());
+            aesGeneralDTO.setPaddingScheme(marketingCustomerConfig.getPaddingScheme());
+            aesGeneralDTO.setCharset(marketingCustomerConfig.getCharset());
+            aesGeneralDTO.setIv(marketingCustomerConfig.getIv());
+            aesGeneralDTO.setDynamicKeys(marketingCustomerConfig.getDynamicKeys());
+
             List<Long> dataIds = new ArrayList<>();
             try {
                 // 1. 先查询该applicationId下的所有待清洗数据
                 List<MarketingSanLiuLingCollection> collectionList = marketingSanLiuLingCollectionMapper.selectByApplicationId(
-                        apiCode, receiveDate, DataCleanStatusEnum.READY.getCode(), applicationId);
+                        apiCode, receiveDate, DataCleanStatusEnum.RUNNING.getCode(), applicationId);
 
                 if (CollectionUtils.isEmpty(collectionList)) {
                     log.warn(TITLE + "applicationId: {} 下无待清洗数据，跳过处理", applicationId);
@@ -147,14 +150,7 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                         .map(MarketingSanLiuLingCollection::getId)
                         .collect(Collectors.toList());
 
-                // 3. 批量将状态更新为清洗中(1)，防止重复处理
-                int updateCount = marketingSanLiuLingCollectionMapper.updateCleanStatusByIds(dataIds,
-                        DataCleanStatusEnum.RUNNING.getCode());
-
-                if (updateCount == 0) {
-                    log.warn(TITLE + "applicationId: {} 状态更新失败，可能已被其他线程处理", applicationId);
-                    continue;
-                }
+                // 3. 数据已在主线程中更新为"清洗中"状态，直接处理即可
 
                 // 拆分为br前缀的列表
                 List<MarketingSanLiuLingCollection> brList = collectionList.stream()
@@ -250,7 +246,6 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
             String phone = "";
             String customerName = "";
             // 解析语音参数获取详细信息
-            String name = "";
             String sex = "";
             String money = "";
             String overdue_date = "";
@@ -271,7 +266,6 @@ public class SanLiuLingCollectionServiceImpl implements SanLiuLingCollectionServ
                 // 解析speechParamSet获取更多信息
                 if (!StringUtils.isEmpty(collection.getSpeechParamSet())) {
                     JSONObject speechParams = JSONObject.parseObject(collection.getSpeechParamSet());
-                    name = speechParams.getString("name");
                     sex = speechParams.getString("sex");
                     money = speechParams.getString("money");
                     overdue_date = speechParams.getString("overdue_date");

@@ -23,9 +23,7 @@ public interface MarketingSanLiuLingCollectionMapper extends MarketingSanLiuLing
      */
     List<String> selectDistinctApplicationIdsWithPaging(@Param("apiCode") String apiCode,
                                                         @Param("receiveDate") String receiveDate,
-                                                        @Param("cleanStatus") Integer cleanStatus,
-                                                        @Param("offset") Long offset,
-                                                        @Param("pageSize") Integer pageSize);
+                                                        @Param("cleanStatus") Integer cleanStatus);
 
     /**
      * 根据applicationId查询所有相关数据
@@ -36,18 +34,17 @@ public interface MarketingSanLiuLingCollectionMapper extends MarketingSanLiuLing
                                                               @Param("applicationId") String applicationId);
 
     /**
-     * 根据applicationId批量更新cleanStatus状态
-     */
-    int updateCleanStatusByApplicationId(@Param("apiCode") String apiCode,
-                                         @Param("receiveDate") String receiveDate,
-                                         @Param("applicationId") String applicationId,
-                                         @Param("oldCleanStatus") Integer oldCleanStatus,
-                                         @Param("newCleanStatus") Integer newCleanStatus);
-
-    /**
      * 根据ID列表批量更新cleanStatus状态
      */
     int updateCleanStatusByIds(@Param("ids") List<Long> ids,
                                @Param("cleanStatus") Integer cleanStatus);
+
+    /**
+     * 根据applicationId列表批量更新cleanStatus状态
+     */
+    int updateCleanStatusByApplicationIds(@Param("applicationIds") List<String> applicationIds,
+                                         @Param("apiCode") String apiCode,
+                                         @Param("receiveDate") String receiveDate,
+                                         @Param("cleanStatus") Integer cleanStatus);
 
 }
