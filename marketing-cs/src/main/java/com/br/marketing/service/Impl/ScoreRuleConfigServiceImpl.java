@@ -78,9 +78,6 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    @Resource
-    private MarketingCustomerMapper customerMapper;
-
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts,
                                          String cte, String uts, String ute, Integer execType) {
