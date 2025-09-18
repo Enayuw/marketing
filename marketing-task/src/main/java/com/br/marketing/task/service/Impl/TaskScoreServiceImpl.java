@@ -11,10 +11,15 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.TaskTypeEnum;
-import com.br.marketing.common.utils.*;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
@@ -160,6 +165,9 @@ public class TaskScoreServiceImpl {
     @Resource
     MarketingRetryRedisMapper marketingRetryRedisMapper;
 
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+
     private static final String TITLE = "【跑分监控】";
 
     /**
@@ -291,7 +299,9 @@ public class TaskScoreServiceImpl {
                     updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
                     updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
+//                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
+                    rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE
+                            , task.getFileId().toString(), MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE);
                 } else {
                     MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();
                     marketingRetryEsExample.createCriteria()
@@ -305,7 +315,9 @@ public class TaskScoreServiceImpl {
                         updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
                         updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                         straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-                        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
+//                        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
+                        rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.MARKETING_PUSHTASK_FILE_INITMERGE
+                                , task.getFileId().toString(), MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE);
                     }else {
                         // 存在异常数据，更新跑分记录状态为 异常待重试
                         updateFile.setStatus(ScoreStatusEnum.WAIT_RETRY.getValue());
