@@ -11,7 +11,6 @@ import com.br.marketing.dto.*;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.ReportScoreRuleService;
@@ -51,8 +50,7 @@ public class PushRuleFilterController {
      * CODE_1
      */
     private static final Integer CODE_1 = Integer.valueOf(1);
-    @Autowired
-    RabbitMqProducter producter;
+
 
     @Autowired
     PushRuleService pushRuleService;
@@ -243,19 +241,6 @@ public class PushRuleFilterController {
         return pushRuleService.consumerPushCustomer(id);
     }
 
-    /**
-     * 测试MQ
-     *
-     * @return
-     */
-    @ApiOperation(value = "测试rabbit")
-    @PostMapping("/testRabbitProduct")
-    public String testRabbitProduct() {
-        producter.send("hehe", "还有谁");
-//        producter.send("hehe",12L);
-//        producter.send("hehe",String.valueOf(12L));
-        return "true";
-    }
 
     /**
      * 测试通用日志
@@ -311,36 +296,6 @@ public class PushRuleFilterController {
     public ApiResult saveLabelTask(@RequestBody PushCustomerDTO dto) {
         dto.setUserDetail(ThreadContextInfo.getUser());
         return new ApiResult().fromResult(ruleCenterLabelService.saveLabelTask(dto), CODE_1);
-    }
-
-
-    /**
-     * 获取跑分合并标识
-     *
-     * @param batchNumbers
-     * @return
-     */
-    @ApiOperation(value = "获取跑分合并标识", notes = "获取跑分合并标识", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
-    @GetMapping("/getScoreMergeMark")
-    public ApiResult getScoreMergeMark(@RequestParam String batchNumbers,@RequestParam String apiCode) {
-        return new ApiResult<Boolean>().fromResult(ruleCenterLabelService.getScoreMergeMark(batchNumbers,apiCode), CODE_1);
-    }
-
-
-    /**
-     * 获取跑分合并量级
-     *
-     * @param batchNumbers
-     * @return
-     */
-    @ApiOperation(value = "获取跑分合并量级", notes = "获取跑分合并量级", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
-    @GetMapping("/getScoreMergeNum")
-    public ApiResult getScoreMergeNum(@RequestParam String batchNumbers,@RequestParam String apiCode) {
-        return new ApiResult<Map<String,Integer>>().fromResult(ruleCenterLabelService.getScoreMergeNum(batchNumbers,apiCode), CODE_1);
     }
 
 

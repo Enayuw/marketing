@@ -28,7 +28,6 @@ import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -90,13 +89,7 @@ public class TaskScoreServiceImpl {
     private String appName;
 
     @Resource
-    MarketingTaskMapper marketingTaskMapper;
-    @Resource
     MarketingSepService marketingSepService;
-    @Resource
-    MarketingUserMapper marketingUserMapper;
-    @Resource
-    LoanFileMapper loanFileMapper;
     @Resource
     TaskStatusMapper taskStatusMapper;
     @Resource
@@ -112,17 +105,11 @@ public class TaskScoreServiceImpl {
     @Resource
     ScoreRuleConfigService scoreRuleConfigService;
 
-    @Resource
-    TaskStatusDistributeMapper taskStatusDistributeMapper;
-
     @Autowired
     StraHisFileMapper straHisFileMapper;
 
     @Autowired
     IProductResultSimpleService iProductResultSimpleService;
-
-    @Resource
-    FastFileRelationMapper fastFileRelationMapper;
 
     private final static String RedisEsOpen = "es:open";
     @Autowired
@@ -139,17 +126,11 @@ public class TaskScoreServiceImpl {
     @Resource
     MarketingCustomerMapper marketingCustomerMapper;
 
-    @Resource
-    MarketingSyncUserMapper marketingSyncUserMapper;
-
     @Autowired
     IDynamicSqlService iDynamicSqlService;
 
     @Autowired
     MarketingTaskService marketingTaskService;
-
-    @Autowired
-    RabbitMqProducter producter;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -159,9 +140,6 @@ public class TaskScoreServiceImpl {
 
     @Resource
     private MarketingRetryEsMapper marketingRetryEsMapper;
-
-    @Autowired
-    MarketingTaskOptService marketingTaskOptService;
     @Resource
     MarketingRetryRedisMapper marketingRetryRedisMapper;
 

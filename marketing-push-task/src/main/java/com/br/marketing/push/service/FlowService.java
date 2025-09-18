@@ -7,11 +7,8 @@ import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.push.PushApplication;
 import com.br.marketing.push.service.impl.MergeServiceImpl;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.sftp.PushService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,14 +45,6 @@ import java.util.List;
 @Slf4j
 public class FlowService {
 
-    @Resource(name = "rabbitTemplate")
-    private RabbitTemplate rabbitTemplate;
-
-    @Autowired
-    RabbitMqProducter producter;
-
-    @Autowired
-    ICompatibleService iCompatibleService;
     @Autowired
     PushService pushService;
 

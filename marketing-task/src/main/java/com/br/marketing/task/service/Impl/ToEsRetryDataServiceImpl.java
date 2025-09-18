@@ -19,7 +19,6 @@ import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ToEsRetryDataService;
@@ -57,8 +56,6 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
     private MarketingTaskMapper marketingTaskMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Autowired
-    RabbitMqProducter producter;
     @Resource
     private RocketMqSwitch rocketMqSwitch;
 
