@@ -67,7 +67,6 @@ public class MarketingTransferReceiveEmergencyConsumer extends BaseMqMessageList
 
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
-        defaultMQPushConsumer.setPullBatchSize(1);
         defaultMQPushConsumer.setPopBatchNums(1);
     }
 }

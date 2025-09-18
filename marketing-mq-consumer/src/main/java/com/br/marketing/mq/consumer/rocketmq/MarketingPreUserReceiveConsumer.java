@@ -68,7 +68,6 @@ public class MarketingPreUserReceiveConsumer extends BaseMqMessageListener imple
 
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
-        defaultMQPushConsumer.setPullBatchSize(1);
         defaultMQPushConsumer.setPopBatchNums(1);
     }
 }
