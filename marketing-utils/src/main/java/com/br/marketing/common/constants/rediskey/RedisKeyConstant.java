@@ -422,4 +422,9 @@ public class RedisKeyConstant {
      * ai客户数据推送决策根据yyyyMMdd-apiCode:userType:custNum计数
      */
     public static final String AI_TOPOLICY_PUSH_COUNTER = prefix.concat("ai:toPolicy:push:counter:");
+
+    /**
+     * sftp上传文件任务锁
+     */
+    public static final String FILE_UPLOAD_TASK_LOCK = prefix.concat("fileUpload:task:lock");
 }
