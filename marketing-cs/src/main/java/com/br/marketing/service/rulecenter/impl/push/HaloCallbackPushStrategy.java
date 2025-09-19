@@ -351,7 +351,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         try {
             List<String> baseColumnList = flagDataMapper.queryColumnNamebI_(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA);
             List<String> columnList = flagDataMapper.queryColumnNamebI_(B_SCORE_PREFIX + batchNumber);
-            JSONObject haloSectionFieldConfig = marketingCommonConfig.getHaloSectionFieldConfig();
+            JSONObject haloSectionFieldConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
             String sectionField = haloSectionFieldConfig.getString("sectionField");
             JSONArray rangeArray = haloSectionFieldConfig.getJSONArray("sectionRange");
             StringBuilder insertSql = new StringBuilder("INSERT INTO ").append(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA).append("(");

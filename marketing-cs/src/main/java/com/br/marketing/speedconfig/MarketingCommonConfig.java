@@ -3384,11 +3384,6 @@ public class MarketingCommonConfig {
     private JSONObject haloAIRuleCenterCallbackConfig;
 
     /**
-     * 哈啰硅基人区间配置
-     */
-    private JSONObject haloSectionFieldConfig;
-
-    /**
      * 携程cpa 撞库日志写入rabbit-rocket 切换开关
      */
     private Boolean xieChengCallingCpaLogSwitch;
