@@ -1,5 +1,6 @@
 package com.br.marketing.service.rulecenter.impl.push;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
@@ -22,6 +23,7 @@ import com.br.marketing.mapper.MarketingRuleCenterHaloCallbackDataMapper;
 import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.google.common.collect.Lists;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -146,8 +148,8 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 String[] batchNumberList = customerInfoPushMain.getmCusBatchNumberList().split(",");
                 String batchNumber = batchNumberList[0];
 
-                //筛选数据入b_marketing_score_${batchNumber}表
-                insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), batchNumber);
+                //筛选数据入b_marketing_rule_center_halo_callback_data表
+                insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), customerInfoPushMain.getmRuleCondition(), batchNumber);
                 //同步TiDB
                 syncDataToTiDB(customerInfoPushMain.getId());
 
@@ -250,7 +252,8 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
                 if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(flag.getCode())
                         || ResultCode.TIME_OUT.getValue().equals(flag.getCode())) {
-                    flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());;
+                    flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+                    ;
                 }
 
                 if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
@@ -347,7 +350,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
     /**
      * 筛选数据入Doris的b_marketing_rule_center_halo_callback_data表
      */
-    protected void insertMarketingScoreTable(String apiCode, Long id, String batchNumber) throws Exception {
+    protected void insertMarketingScoreTable(String apiCode, Long id, String ruleCondition, String batchNumber) throws Exception {
         try {
             List<String> baseColumnList = flagDataMapper.queryColumnNamebI_(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA);
             List<String> columnList = flagDataMapper.queryColumnNamebI_(B_SCORE_PREFIX + batchNumber);
@@ -369,8 +372,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             insertSql.append("0 as status,");
 
             // 生成CASE WHEN SQL和WHERE条件
-            SectionSqlResult sectionResult = generateCaseWhenSql(sectionField, rangeArray);
-            insertSql.append(sectionResult.getSectionSql());
+            insertSql.append(generateCaseWhenSql(sectionField, rangeArray));
             insertSql.append(",");
 
             columnList.removeAll(baseColumnList);
@@ -388,11 +390,14 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             insertSql.append(extend);
             insertSql.append(" FROM b_score_");
             insertSql.append(batchNumber);
-            if (StringUtils.isNotBlank(sectionResult.getWhereSql())) {
-                insertSql.append(" WHERE ");
-                insertSql.append(sectionResult.getWhereSql());
-            }
 
+            //解析scoreCondition
+            JSONObject ruleConditionObject = JSON.parseObject(ruleCondition);
+            String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(ruleConditionObject, "");
+            insertSql.append(" WHERE ");
+            insertSql.append(sqlCondition);
+
+            logger.warn("开始执行哈啰硅基人查询sql: {}", insertSql);
             flagDataMapper.insertbI_(insertSql.toString());
         } catch (Exception e) {
             // 检查是否为超时异常
@@ -407,36 +412,14 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
     }
 
     /**
-     * 内部类用于返回section SQL和where条件
-     */
-    private static class SectionSqlResult {
-        private final String sectionSql;
-        private final String whereSql;
-
-        public SectionSqlResult(String sectionSql, String whereSql) {
-            this.sectionSql = sectionSql;
-            this.whereSql = whereSql;
-        }
-
-        public String getSectionSql() {
-            return sectionSql;
-        }
-
-        public String getWhereSql() {
-            return whereSql;
-        }
-    }
-
-    /**
      * 构建case-when语句
      *
      * @param sectionField 区间字段
      * @param rangeArray   区间
      * @return case-when语句
      */
-    private SectionSqlResult generateCaseWhenSql(String sectionField, JSONArray rangeArray) {
+    private String generateCaseWhenSql(String sectionField, JSONArray rangeArray) {
         StringBuilder sql = new StringBuilder("CASE ");
-        String whereSql = "";
 
         for (int i = 0; i < rangeArray.size(); i++) {
             JSONObject range = rangeArray.getJSONObject(i);
@@ -444,15 +427,11 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             Object value = range.get("value");
 
             String condition = parseRangeCondition(sectionField, rangeStr);
-            if (i == 0) {
-                // 提取第一个条件作为WHERE条件，去掉AND后面的部分
-                whereSql = condition.replaceFirst("\\s+AND\\s+.*", "");
-            }
             sql.append("WHEN ").append(condition).append(" THEN ").append(value).append(" ");
         }
 
         sql.append("ELSE NULL END AS section");
-        return new SectionSqlResult(sql.toString(), whereSql);
+        return sql.toString();
     }
 
 
