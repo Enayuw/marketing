@@ -68,6 +68,6 @@ public class CheckQueueConsumer extends BaseMqMessageListener implements RocketM
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
         defaultMQPushConsumer.setPopBatchNums(1);
-        defaultMQPushConsumer.setConsumeTimeout(120L);
+        defaultMQPushConsumer.setConsumeTimeout(1800L);
     }
 }
