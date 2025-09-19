@@ -294,7 +294,7 @@ public class TaskScoreServiceImpl {
                         updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                         straHisFileMapper.updateByPrimaryKeySelective(updateFile);
 //                        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
-                        rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.MARKETING_PUSHTASK_FILE_INITMERGE
+                        rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE
                                 , task.getFileId().toString(), MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE);
                     }else {
                         // 存在异常数据，更新跑分记录状态为 异常待重试
