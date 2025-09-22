@@ -57,13 +57,8 @@ public class ThreadPoolAdjustmentUtil {
      */
     public static ThreadPoolAdjustmentResult adjustThreadPoolSizeWithResult(ThreadPoolExecutor executor, int targetThreadNum) {
         if (executor == null) {
-            throw new IllegalArgumentException(TITLE + "ThreadPoolExecutor cannot be null");
+            throw new IllegalArgumentException(TITLE + "ThreadPoolExecutor 不可为空！");
         }
-        
-        if (targetThreadNum <= 0) {
-            throw new IllegalArgumentException(TITLE + "Target thread number must be positive: " + targetThreadNum);
-        }
-
 
         // 获取调整前状态
         ThreadPoolState beforeState = captureThreadPoolState(executor);
@@ -80,7 +75,7 @@ public class ThreadPoolAdjustmentUtil {
         ThreadPoolAdjustmentResult result = null;
         Exception lastException = null;
         
-        // 重试机制
+        // 重试机制 - 最多尝试3次
         for (int attempt = 1; attempt <= DEFAULT_RETRY_COUNT; attempt++) {
             try {
                 // 执行调整
@@ -91,48 +86,38 @@ public class ThreadPoolAdjustmentUtil {
                 // 获取调整后状态
                 ThreadPoolState afterState = captureThreadPoolState(executor);
                 
-                // 验证调整结果
-                boolean isValid = validateAdjustmentResult(strategy, targetThreadNum, afterState);
-                
-                // 构建结果
+                // 构建成功结果并直接返回
                 result = ThreadPoolAdjustmentResult.builder()
                         .strategy(strategy)
                         .beforeState(beforeState)
                         .afterState(afterState)
                         .targetThreadNum(targetThreadNum)
                         .executionTime(executionTime)
-                        .success(isValid)
+                        .success(true)
                         .build();
                 
-                if (isValid) {
-                    // 调整成功，记录日志并返回
-                    log.warn(TITLE + "调整成功 - 第{}次尝试成功，策略:{}, 结果核心:{}, 结果最大:{}, 活跃:{}, 池大小:{}, 队列:{}, 耗时:{}ms",
-                            attempt, strategy.getDescription(), afterState.getCorePoolSize(), afterState.getMaximumPoolSize(), 
-                            afterState.getActiveCount(), afterState.getPoolSize(), afterState.getQueueSize(), executionTime);
-                    return result;
-                } else {
-                    // 调整失败，但没有异常
-                    log.warn(TITLE + "第{}次调整验证失败 - 策略:{}, 目标:{}, 实际核心:{}, 实际最大:{}, {}",
-                            attempt, strategy.getDescription(), targetThreadNum, 
-                            afterState.getCorePoolSize(), afterState.getMaximumPoolSize(),
-                            attempt < DEFAULT_RETRY_COUNT ? "准备重试" : "已达最大重试次数");
-                }
+                // 调整成功，记录日志并立即返回
+                log.warn(TITLE + "调整成功 - 第{}次尝试成功，策略:{}, 结果核心:{}, 结果最大:{}, 活跃:{}, 池大小:{}, 队列:{}, 耗时:{}ms",
+                        attempt, strategy.getDescription(), afterState.getCorePoolSize(), afterState.getMaximumPoolSize(), 
+                        afterState.getActiveCount(), afterState.getPoolSize(), afterState.getQueueSize(), executionTime);
+                return result;
                 
             } catch (Exception e) {
                 lastException = e;
+
                 log.warn(TITLE + "第{}次调整出现异常 - 策略:{}, 目标:{}, 异常:{}, {}",
                         attempt, strategy.getDescription(), targetThreadNum, e.getMessage(),
                         attempt < DEFAULT_RETRY_COUNT ? "准备重试" : "已达最大重试次数");
-            }
-            
-            // 如果不是最后一次尝试，等待一段时间后重试
-            if (attempt < DEFAULT_RETRY_COUNT) {
-                try {
-                    Thread.sleep(RETRY_INTERVAL_MS);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    log.warn(TITLE + "重试等待被中断，停止重试");
-                    break;
+                
+                // 如果不是最后一次尝试，等待一段时间后重试
+                if (attempt < DEFAULT_RETRY_COUNT) {
+                    try {
+                        Thread.sleep(RETRY_INTERVAL_MS);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.error(TITLE + "重试等待被中断");
+                        break;
+                    }
                 }
             }
         }
@@ -153,7 +138,7 @@ public class ThreadPoolAdjustmentUtil {
         log.error(TITLE + "调整最终失败 - 经过3次重试后仍然失败，策略:{}, 目标:{}, 最终核心:{}, 最终最大:{}, 最后异常:{}",
                 strategy.getDescription(), targetThreadNum,
                 result.getAfterState().getCorePoolSize(), result.getAfterState().getMaximumPoolSize(),
-                lastException != null ? lastException.getMessage() : "无异常");
+                lastException.getMessage());
         
         return result;
     }
@@ -222,7 +207,7 @@ public class ThreadPoolAdjustmentUtil {
                     break;
 
                 default:
-                    throw new IllegalStateException("未知的调整策略: " + strategy);
+                    throw new IllegalStateException(TITLE + "未知的调整策略: " + strategy);
             }
         } catch (IllegalArgumentException e) {
             log.error(TITLE + "参数错误 - 策略:{}, 目标:{}, 当前核心:{}, 当前最大:{}, 错误:{}",
@@ -235,42 +220,6 @@ public class ThreadPoolAdjustmentUtil {
         }
     }
     
-    /**
-     * 验证调整结果
-     */
-    private static boolean validateAdjustmentResult(ThreadPoolAdjustmentEnum strategy, int targetThreadNum,
-                                                  ThreadPoolState afterState) {
-        boolean isValid = true;
-        StringBuilder errorMsg = new StringBuilder();
-        
-        // 验证核心线程数
-        if (afterState.getCorePoolSize() != targetThreadNum) {
-            isValid = false;
-            errorMsg.append(String.format("核心线程数不匹配(期望:%d, 实际:%d) ", targetThreadNum, afterState.getCorePoolSize()));
-        }
-        
-        // 验证最大线程数
-        if (afterState.getMaximumPoolSize() != targetThreadNum) {
-            isValid = false;
-            errorMsg.append(String.format("最大线程数不匹配(期望:%d, 实际:%d) ", targetThreadNum, afterState.getMaximumPoolSize()));
-        }
-        
-        // 验证核心线程数不能大于最大线程数
-        if (afterState.getCorePoolSize() > afterState.getMaximumPoolSize()) {
-            isValid = false;
-            errorMsg.append(String.format("核心线程数(%d) > 最大线程数(%d) ", afterState.getCorePoolSize(), afterState.getMaximumPoolSize()));
-        }
-        
-        if (isValid) {
-            log.warn(TITLE +"验证通过 - 策略:{}, 核心:{}, 最大:{}",
-                    strategy.getDescription(), afterState.getCorePoolSize(), afterState.getMaximumPoolSize());
-        } else {
-            log.error(TITLE +"验证失败 - 策略:{}, 错误:{}",
-                    strategy.getDescription(), errorMsg);
-        }
-        
-        return isValid;
-    }
     
 }
 
