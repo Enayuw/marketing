@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface XieChengReportHandlerConfigMapper extends XieChengReportHandlerConfigMapperBase{
 
+    List<String> selectHandlerNameByBizForm(@Param("bizForm") String bizForm);
+
 }

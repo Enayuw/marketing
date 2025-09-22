@@ -4,15 +4,26 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.XieChengReportContext;
+import com.br.marketing.entity.XieChengReportHandlerConfig;
 import com.br.marketing.enums.HandlerStageEnum;
 import com.br.marketing.enums.XieChengBizMarkEnum;
+import com.br.marketing.mapper.XieChengReportHandlerConfigMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.thread.TaggedFuture;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.base.Splitter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.*;
@@ -22,11 +33,11 @@ import java.util.stream.Collectors;
  * 携程上报责任链构建器
  */
 @Component
-public class XieChengReportHandlerChain implements ApplicationContextAware {
+@Slf4j
+public class XieChengReportHandlerChain {
 
-    private List<AbstractXieChengReportHandler> cpaHandlers;
-
-    private List<AbstractXieChengReportHandler> cpsHandlers;
+    @Autowired
+    private List<AbstractXieChengReportHandler> xieChengReportHandlers;
 
     @Resource
     @Qualifier("xieChengReportThreadPool")
@@ -35,28 +46,39 @@ public class XieChengReportHandlerChain implements ApplicationContextAware {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        Map<String, AbstractXieChengReportHandler> handlerMap = applicationContext.getBeansOfType(AbstractXieChengReportHandler.class);
-        List<AbstractXieChengReportHandler> handlers = handlerMap.values()
-                .stream()
+    @Resource
+    private XieChengReportHandlerConfigMapper xieChengReportHandlerConfigMapper;
+
+    private LoadingCache<String, List<AbstractXieChengReportHandler>> xieChengReportHandlerCache = null;
+
+    @PostConstruct
+    private void init() {
+        xieChengReportHandlerCache = Caffeine.newBuilder()
+                .maximumSize(100)
+                .expireAfterWrite(1, TimeUnit.HOURS)
+                .build(key -> fetchXieChengReportHandlerChain(key));
+    }
+
+    private List<AbstractXieChengReportHandler> fetchXieChengReportHandlerChain(String bizForm) {
+        List<String> handlerNameList = xieChengReportHandlerConfigMapper.selectHandlerNameByBizForm(bizForm);
+        if (CollectionUtils.isEmpty(handlerNameList)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程上报：bizForm = " + bizForm + "，未查询到handlerNameList！"));
+            return null;
+        }
+        List<String> handlerNames = Splitter.on(",").splitToList(handlerNameList.get(0));
+        List<AbstractXieChengReportHandler> bizFormHandlers = xieChengReportHandlers.stream()
+                .filter(handler -> handlerNames.contains(handler.getName()))
                 .collect(Collectors.toList());
-        cpaHandlers = handlers.stream()
-                .filter(handler -> !XieChengBizMarkEnum.CPS.name().equals(handler.getBizMark())).collect(Collectors.toList());
-        cpsHandlers = handlers.stream()
-                .filter(handler -> !XieChengBizMarkEnum.CPA.name().equals(handler.getBizMark())).collect(Collectors.toList());
+        return bizFormHandlers;
     }
 
     public void handle(XieChengReportContext context) {
         threadPool.setCorePoolSize(marketingCommonConfig.getXcMqReportHandlerThreadNum());
         threadPool.setMaximumPoolSize(marketingCommonConfig.getXcMqReportHandlerThreadNum());
-        //1.判断cpa还是cps
-        List<AbstractXieChengReportHandler> handlers;
-        if ("1".equals(context.getPushConfig().getConditionKey())) {
-            handlers = cpaHandlers;
-        } else {
-            handlers = cpsHandlers;
-        }
+        //1.根据context中的type和conditionKey获取对应的handlerChain
+        String bizForm = context.getType() + "-" + context.getPushConfig().getConditionKey();
+        List<AbstractXieChengReportHandler> handlers = xieChengReportHandlerCache.get(bizForm);
         //2.先执行pre阶段的handler(去重)，目前只有一个handler，不需要排序，后续若有多个，可在handler中添加order来排序
         List<AbstractXieChengReportHandler> preHandlers = handlers.stream()
                 .filter(handler -> HandlerStageEnum.PRE.name().equals(handler.getStage())).collect(Collectors.toList());

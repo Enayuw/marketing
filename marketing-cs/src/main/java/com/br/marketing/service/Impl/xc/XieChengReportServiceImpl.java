@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.chain.xiecheng.XieChengReportHandlerChain;
@@ -12,13 +11,13 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.SmsCallbackAtOnce;
 import com.br.marketing.entity.SmsCallbackAtOnceExample;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.enums.SmsCallBackTypeEnum;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
-import com.br.marketing.mapper.SmsCallbackMapper;
-import com.br.marketing.entity.SmsCallbackExample;
 import com.br.marketing.retry.DatabaseOperationService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.VariableAllocationService;
@@ -27,7 +26,6 @@ import com.br.marketing.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -67,6 +65,10 @@ public class XieChengReportServiceImpl implements XieChengReportService {
     @Resource
     private SmsCallbackAtOnceMapper smsCallbackAtOnceMapper;
 
+    private static final String ACTIONTYPE_IVR = "IVR";
+
+    private static final String ACTIONTYPE_SMS = "SMS";
+
     @Override
     public Result pushXieChengData(Long sourceId) {
         long start = System.currentTimeMillis();
@@ -102,7 +104,10 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             context.setPushConfig(XieChengReportContext.PushConfig.fromJson(condition));
             context.getAdReqDTO().setConditionKey(context.getPushConfig().getConditionKey());
             //5.获取Redis锁
-            lockKey = RedisKeyConstant.pushXieChengLock + ":" + context.getPushConfig().getConditionKey() + context.getSha256Tel();
+            lockKey = RedisKeyConstant.pushXieChengLock
+                    + ":" + context.getType()
+                    + ":" + context.getPushConfig().getConditionKey()
+                    + ":" + context.getSha256Tel();
             lockValue = UUID.randomUUID().toString();
             redisChgService.lock(lockKey, lockValue);
             //6.执行责任链
@@ -157,7 +162,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         xieChengData.setOriginId(callRecord.getId());
         xieChengData.setType("1");
         String actionType = judgeActionType(callRecord);
-        xieChengData.setActionType(actionType != null ? actionType.toUpperCase() : "IVR");
+        xieChengData.setActionType(actionType != null ? actionType.toUpperCase() : ACTIONTYPE_IVR);
         xieChengData.setPushStatus(1);
         xieChengData.setStatus(1);
         xieChengData.setExtend(callRecord.getUserProperties());
@@ -200,11 +205,11 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         try {
             String apiCode = callRecord.getApiCode();
             boolean isMock = callRecord.getLineName() != null && callRecord.getLineName().contains("挡板");
-            JSONObject real = variableAllocationService.getAllocationValue(apiCode,"realReportLineRate");;
-            JSONObject mock =  variableAllocationService.getAllocationValue(apiCode,"mockReportLineRate");;
+            JSONObject real = variableAllocationService.getAllocationValue(apiCode,"realReportLineRate");
+            JSONObject mock =  variableAllocationService.getAllocationValue(apiCode,"mockReportLineRate");
 
             if (real == null || mock == null) {
-                return "IVR";
+                return ACTIONTYPE_IVR;
             }
 
             // 非挡板
@@ -228,9 +233,9 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             }
 
             // 挡板非短信
-            Integer ivrPercent = mock.getInteger("ivr");
+            Integer ivrPercent = mock.getInteger(ACTIONTYPE_IVR);
             String random = redisChgService.rpoplpush(RedisKeyConstant.XIECHENG_REPORT_MOCK_RATE_TURNTABLE);
-            return Integer.parseInt(random) <= ivrPercent ? "IVR" : "SMS";
+            return Integer.parseInt(random) <= ivrPercent ? ACTIONTYPE_IVR : ACTIONTYPE_SMS;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "携程上报，查询acitonType异常！"), e);
@@ -238,10 +243,25 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         }
     }
 
+    /**
+     * 纯短信，actionType取值
+     * @param smsCallbackAtOnce
+     * @return
+     */
+    private String judgeActionType(SmsCallbackAtOnce smsCallbackAtOnce) {
+        JSONObject real = variableAllocationService
+                .getAllocationValue(smsCallbackAtOnce.getApiCode(),"realReportLineRate");
+        if (real.containsKey("checkAll")) {
+            return real.getString("checkAll");
+        }
+        return real.getString("onlySms");
+    }
+
     private boolean isSms(String caseNum, String apiCode) {
         try {
         SmsCallbackAtOnceExample example = new SmsCallbackAtOnceExample();
         example.createCriteria().andApiCodeEqualTo(apiCode)
+                .andCallBackTypeEqualTo(SmsCallBackTypeEnum.ONHOOK.getValue())
                 .andCreateDateEqualTo(LocalDate.now().toString())
                 .andCaseNumEqualTo(caseNum);
             return smsCallbackAtOnceMapper.countByExample(example) > 0;

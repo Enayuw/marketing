@@ -266,26 +266,43 @@ public class XieChengService {
         JSONObject deviceInfo = new JSONObject();
         deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
 
-        // 3. 处理扩展源
-        String source = config.getString("source");
-        String mktProductNo = config.getString("mktProductNo");
-        try {
-            JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
-            String extendSource = extend.getString("source");
+        JSONObject mktProductNoConfig = config.getJSONObject("mktProductNoConfig");
+        boolean mktProductNoConfigExist = StringUtils.isNotEmpty(mktProductNoConfig);
+        JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
+
+        // 3. 获取source
+        String source;
+        String extendSource = extend.getString("source");
+        if (mktProductNoConfigExist) {
+            if (mktProductNoConfig.keySet().contains(extendSource)) {
+                source = extendSource;
+            } else {
+                source = config.getString("source");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                        "携程广告上报接口，id=" + xieChengData.getId() +
+                                "的xieChengData的extend中source未配置，已由" + extendSource + "调整为" + source));
+            }
+        } else {
             if (StringUtils.isNotEmpty(extendSource)) {
                 source = extendSource;
             } else {
+                source = config.getString("source");
                 log.warn("携程广告上报接口，id:{}的xieChengData的extend中source字段为空，置为默认值:{}", xieChengData.getId() , source);
             }
+        }
+
+        // 4. 获取mktProductNo
+        String mktProductNo;
+        if (mktProductNoConfigExist) {
+            mktProductNo = mktProductNoConfig.getString(source);
+        } else {
             String extendMktProductNo = extend.getString("mktProductNo");
             if (StringUtils.isNotEmpty(extendMktProductNo)) {
                 mktProductNo = extendMktProductNo;
             } else {
+                mktProductNo = config.getString("mktProductNo");
                 log.warn("携程广告上报接口，id:{}的xieChengData的extend中mktProductNo字段为空，置为默认值:{}", xieChengData.getId() , mktProductNo);
             }
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程广告上报接口，source或mktProductNo解析异常" + xieChengData.getSha256Tel()));
         }
 
         // 4. 构建请求对象
