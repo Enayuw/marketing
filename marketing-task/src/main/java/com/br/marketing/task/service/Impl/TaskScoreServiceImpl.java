@@ -297,7 +297,6 @@ public class TaskScoreServiceImpl {
                     MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();
                     marketingRetryEsExample.createCriteria()
                             .andApiCodeEqualTo(apiCode)
-                            .andAppletDateEqualTo(String.valueOf(LocalDate.now()))
                             .andRetryStatusEqualTo(0)
                             .andFileIdEqualTo(task.getFileId());
                     int i = marketingRetryEsMapper.countByExample(marketingRetryEsExample);
