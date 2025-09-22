@@ -85,6 +85,11 @@ public class RedisKeyConstant {
     public static final String pushXieChengLock = prefix.concat("xieCheng:pushXieCheng");
 
     /**
+     * 携程短信数据推送缓存锁  key
+     */
+    public static final String pushXieChengSmsLock = prefix.concat("xieCheng:pushXieChengSms");
+
+    /**
      * 同程集团迁移可营销名单推客户缓存锁  key
      */
     public static final String PUSH_TONG_CHENG_LOCK = prefix.concat("tongcheng:pushTongChengLock");
