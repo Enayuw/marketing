@@ -360,13 +360,12 @@ public class PushRuleFilterController {
     }
 
     /**
-     * 获取哈啰授权apiCodes
-     * @return apiCodes
+     * 校验apiCode是否可推送客户系统
      */
-    @ApiOperation(value = "获取哈啰授权apiCodes")
-    @GetMapping("/getHaloApiCodes")
-    public ApiResult getHaloApiCodes(){
-        return new ApiResult().fromResult(haloRuleCenterCallbackService.getHaloApiCodes(),CODE_1);
+    @ApiOperation(value = "校验apiCode是否可推送客户系统")
+    @PostMapping("/canPushCallback")
+    public ApiResult canPushCallback(@RequestParam("apiCode") String apiCode){
+        return new ApiResult().fromResult(haloRuleCenterCallbackService.canPushCallback(apiCode),CODE_1);
     }
 
 }

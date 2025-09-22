@@ -10,7 +10,7 @@ public interface HaloRuleCenterCallbackService {
 
     Result saveHaloCallbackTask(PushCustomerDTO dto);
 
-    Result getHaloApiCodes();
+    Result canPushCallback(String apiCode);
 
     Integer queryExistError(Long id, Integer filterType);
 
