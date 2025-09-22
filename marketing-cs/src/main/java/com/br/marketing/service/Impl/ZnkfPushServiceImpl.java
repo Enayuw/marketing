@@ -20,22 +20,9 @@ import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
-import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.RoboAIBlackPhoneMark;
-import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
-import com.br.marketing.entity.SmsCallback;
-import com.br.marketing.entity.SmsCallbackAtOnce;
-import com.br.marketing.entity.SmsCallbackAtOnceExample;
-import com.br.marketing.entity.SmsCallbackExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.XieChengConsumer;
-import com.br.marketing.mapper.CallRecordMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
-import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
-import com.br.marketing.mapper.SmsCallbackMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.MrpMqFact;
@@ -45,18 +32,6 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAdjusters;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +40,17 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -160,34 +146,40 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 }
             // 携程定制逻辑
             if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
-                if (isMockData(callRecord) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(apiCode)) {
-                    sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
-                            MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
-                            callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable task = () -> sendRocketMq(callRecord, apiCode);
+                scheduler.schedule(task, 5, TimeUnit.MINUTES);
+            }
+            List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
+            if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())) {
+                MrpMqFact mrpMqFact = new MrpMqFact();
+                mrpMqFact.setSourceId(callRecord.getId());
+                mrpMqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                mrpMqFact.setApiCode(callRecord.getApiCode());
+                if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
+                    String message = JSON.toJSONString(mrpMqFact);
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                            , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
                 } else {
-                    // 使用负载均衡消费者逻辑
-                    handleWithConsumerRotation(callRecord);
+                    producter.sendToUniversalTransferQueue(mrpMqFact);
                 }
             }
-                List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
-                if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
-                    MrpMqFact mrpMqFact = new MrpMqFact();
-                    mrpMqFact.setSourceId(callRecord.getId());
-                    mrpMqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
-                    mrpMqFact.setApiCode(callRecord.getApiCode());
-                    if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
-                        String message = JSON.toJSONString(mrpMqFact);
-                        rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
-                                , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
-                    }else{
-                        producter.sendToUniversalTransferQueue(mrpMqFact);
-                    }
-                }
         } catch (Exception ex) {
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId(), ex);
             return "客服拨打记录落库失败(insert b_call_record fail)!";
         }
         return "success";
+    }
+
+    private void sendRocketMq(CallRecord callRecord, String apiCode) {
+        if (isMockData(callRecord) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(apiCode)) {
+            sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT,
+                    MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
+                    callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());
+        } else {
+            // 使用负载均衡消费者逻辑
+            handleWithConsumerRotation(callRecord);
+        }
     }
 
     // 3. 提取的方法
@@ -409,6 +401,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             smsCallbackAtOnce.setCreateTime(new Date());
             BeanUtils.copyProperties(dto, smsCallbackAtOnce);
             smsCallbackAtOnceMapper.insertSelective(smsCallbackAtOnce);
+
+            if (Objects.equals(5, dto.getCallBackType()) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(dto.getApiCode())) {
+                MqFact mqFact = new MqFact();
+                mqFact.setSourceId(smsCallbackAtOnce.getId());
+                mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK_AT_ONCE.getCode());
+                String message = JSON.toJSONString(mqFact);
+                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_SMS_REPORT,
+                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_SMS_REPORT, message);
+            }
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                             "外呼短信即回调入库失败，流水号:" + dto.getThirdCallNo() + "。" + ex.getMessage()), ex);
