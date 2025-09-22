@@ -232,4 +232,6 @@ public interface PushRuleService {
     void processSensitiveInfo(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType);
 
     void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType);
+
+    void sendJsonParseMq(String apiCode, Long id, Integer dataSourceType, Integer dataType, Integer acceptType);
 }

@@ -3,21 +3,16 @@ package com.br.marketing.innerapi.controller;
 import com.alibaba.fastjson.JSON;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
-import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.BrCipherJsonUtils;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.MerchantParam;
-import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.entity.RequestLog;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
@@ -25,13 +20,14 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.br.marketing.strategy.InterfaceHandlerService;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.rocketmq.client.producer.SendResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -68,6 +64,19 @@ public class TestSre {
 
     @Autowired
     RabbitMqProducter producter;
+
+    @Autowired
+    private PushRuleService pushRuleService;
+
+    @GetMapping("/testToPreUserText")
+    public void testToPreUserText(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData")String jsonData){
+        pushRuleService.insertMarketingPreUserText(apiCode,jsonData);
+    }
+
+    @GetMapping("/testToPreUserSync")
+    public void testToPreUserSync(Long id){
+        pushRuleService.insertMarketingPreUserSync(id);
+    }
 
     @GetMapping("/testToPolicy")
     public void testToPolicy(String msg){

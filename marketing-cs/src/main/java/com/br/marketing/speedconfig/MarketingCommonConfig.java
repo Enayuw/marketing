@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
 @Data
 public class MarketingCommonConfig {
-
     /**
      * 推送客服
      */
@@ -3013,6 +3012,12 @@ public class MarketingCommonConfig {
     private JSONObject tcyrCpaCollidingDealShardConfig;
 
     /**
+     * 同程易融CPA-collidingDeal job参数
+     * {"jobSwitch":true,"pageSize":1000,"dbPartSize":50}
+     */
+    private JSONObject tcyrCpaCollidingConsumerConfig;
+
+    /**
      * 同程易融-quickDeal-shard job参数
      * {
      * "jobSwitch":true,"threadPool":100,"pageSize":1000,"dbPartSize":1000,
@@ -3249,11 +3254,6 @@ public class MarketingCommonConfig {
     private Boolean xcMqReportHandlerSwitch;
 
     /**
-     * 轮询线程轮询频率
-     */
-    private Integer mockPollingInterval;
-
-    /**
      * 上传文件清洗线程数
      */
     private Integer uploadFileCleanThreadNum;
@@ -3353,6 +3353,17 @@ public class MarketingCommonConfig {
     private Boolean mockPerformanceSwitch;
 
     /**
+     * 合并数据推决策配置
+     */
+    private Map<String,String> pushPolicyConfig;
+    /**
+     * 360客制化传输数据配置
+     * {"uploadApiCode":"3710196","cipherMode":"CBC","paddingScheme":"PKCS5Padding","dynamicKeys":"fC8tzaLDItGjIjOr"}
+     */
+    private JSONObject sanLiuLingCustomizeDataConfig;
+
+
+    /**
      * 同程易融cpa推送文件配置
      */
     private JSONObject tcyrCpaPushFileConfig;
@@ -3371,5 +3382,40 @@ public class MarketingCommonConfig {
      * 哈啰硅基人回调配置
      */
     private JSONObject haloAiCallbackConfig;
+
+    /**
+     * 携程cpa 撞库日志写入rabbit-rocket 切换开关
+     */
+    private Boolean xieChengCallingCpaLogSwitch;
+
+    /**
+     * #携程促活使用rabbitmq开关
+     */
+    private Boolean xieChengActivateRabbitMqSwitch;
+
+    /**
+     * 催收360上传数据清洗时间 HH:ss
+     */
+    private String sanLiuLingCollectionTime;
+
+
+    /**
+     * 上传记录导出每页查询条数
+     */
+    private Integer syncReportExportPageSize;
+
+    /**
+     * 规则中心执行查询es模板
+     * {“apiCode”:{"pushTarget":"must/filter"}}
+     * {"7410770":{"1":"filter","2":"must"}}
+     */
+    private Map<String,JSONObject> ruleCenterPushType;
+
+
+    /**
+     * 规则中心筛选预览量级
+     * ["7410770"]
+     */
+    private List<String> ruleCenterPushView;
 }
 

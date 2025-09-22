@@ -79,9 +79,12 @@ import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceIm
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
+import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -142,6 +145,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
     public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
+    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
+    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode();
     public static final String TO_POLICY_GENERAL = CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode();
 
     private static HashMap<String, String> errorCodeHm;
@@ -273,6 +278,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
+    @Resource
+    private RuleCenterLabelService ruleCenterLabelService;
+
+    @Autowired
+    private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -447,6 +458,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     TagHandleService tagHandleService;
 
+    @Resource
+    IEsActionService iEsActionService;
+
 
     @Override
     public Result<CustomerInfoPushMain> getPushTask() {
@@ -579,6 +593,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMain.setTagContent(dto.getmTagCondition());
+        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            customerInfoPushMain.setPushTarget(2);
+            customerInfoPushMain.setExtend(dto.getScoreMergeField());
+        }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
         String batchName;
@@ -616,6 +634,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         PushViewVO pushViewVO = new PushViewVO();
         if (isXieChengData(dto)) {
             total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
+        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            //合并跑分计算
+            long start = System.currentTimeMillis();
+            // 组装查询sql
+            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
+            // 执行查询获取统计数量
+            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
+            total = (count != null ? count : 0);
         } else {
             Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
             if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
@@ -656,7 +683,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             String mTagCondition = dto.getmTagCondition();
             if (mTagCondition == null) {
-                total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                total = iEsActionService.getTotal(queryBaseBean);
             } else {
                 // 解析标签规则
                 JSONObject jsonObject = JSON.parseObject(mTagCondition);
@@ -735,6 +762,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         String federatedQuerySql = buildFederatedQuerySql(indexNames, queryDsl, tagCode, type);
         if (StringUtils.isEmpty(federatedQuerySql)) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
+        }
+        try {
+            tagDataDetailMapper.refreshbI_("refresh catalog es");
+        }catch (Exception e){
+            log.error("refresh catalog es异常");
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("refresh catalog es异常");
         }
         int total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
@@ -1814,7 +1847,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isEmpty(querySql)) {
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
             }
-            log.warn("标签查询sql："+querySql);
+            log.warn("标签查询sql：" + querySql);
             Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
         } catch (Exception e) {
@@ -1969,7 +2002,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
                         }
 
-                        if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
+                        if (customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()) {
                             // 解析标签规则
                             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
                             String tagCode = jsonObject.getString("tagCode");
@@ -2484,6 +2517,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region 写入上传明细MQ
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jsonData);
+            // 非ai客户
             if(Objects.equals(intoAiQueue,false)){
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
@@ -2501,7 +2535,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 批量添加唯一ID
      *
-     * @param list 数据列表
+     * @param list        数据列表
      * @param setConsumer 赋值函数
      * @param getFunction 获取ID函数，如果获取ID为空，则添加ID,可为 null
      */
@@ -2561,6 +2595,40 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
+     * 发送定制json解析MQ
+     *
+     * @param apiCode
+     * @param id
+     */
+    public void sendJsonParseMq(String apiCode, Long id, Integer dataSourceType,
+                                Integer dataType, Integer acceptType) {
+        //发送Json解析消息,定制清洗不在发送MQ
+        if (dataSourceType != null && 1 == dataSourceType) {
+            return;
+        }
+        try {
+            //使用caffeineCache存储 mq发送标识
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode).concat(":").concat(dataType.toString())
+                    .concat(":").concat(acceptType.toString());
+            boolean exists = caffeineCache.hasIdentifier(cacheKey);
+            if (exists) {
+                return;
+            }
+            MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+            mqDataJsonParse.setDataId(id);
+            mqDataJsonParse.setDataType(dataType);
+            mqDataJsonParse.setAcceptType(acceptType);
+            rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
+                    JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
+            //存储标识
+            caffeineCache.storeIdentifier(cacheKey, Boolean.TRUE.toString());
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(), "上传数据清洗-发送JSON结构解析消息异常"), e);
+        }
+
+    }
+
+    /**
      * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
      * @param apiCode    API代码
@@ -2573,28 +2641,33 @@ public class PushRuleServiceImpl implements PushRuleService {
             return false;
         }
 
+        boolean isBatch = judgeIsBatch(jsonData);
         if (marketingCommonConfig.getAiApiCodeList().contains(apiCode)) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         // 没配置成init和ai客户
         boolean hasOperateType3 = containsOperateType(jsonData, "3");
         boolean hasOperateType4 = containsOperateType(jsonData, "4");
+        boolean hasOperateType5 = containsOperateType(jsonData, "5");
+        boolean hasOperateType6 = containsOperateType(jsonData, "6");
 
-        // jsonData中没有3也没有4
-        if (!hasOperateType3 && !hasOperateType4) {
+        // jsonData中没有3456
+        if (!hasOperateType3 && !hasOperateType4 && !hasOperateType5 && !hasOperateType6) {
             return false;
         }
 
-        // jsonData包含3或者4，查db
+        // jsonData包含3或者4或者5或者6，查db
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
 
         boolean hasType3Rule = customerRules.contains(TO_POLICY_GENERAL) && hasOperateType3;
         boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
+        boolean hasType5Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE) && hasOperateType5;
+        boolean hasType6Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX) && hasOperateType6;
 
-        if (hasType3Rule && hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+        if (hasType3Rule && hasType4Rule && hasType5Rule && hasType6Rule) {
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
@@ -2611,21 +2684,48 @@ public class PushRuleServiceImpl implements PushRuleService {
             ruleAdded = true;
         }
 
+        // 缓存中没有5
+        if (!hasType5Rule && hasOperateType5
+                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)) {
+            ruleAdded = true;
+        }
+
+        // 缓存中没有6
+        if (!hasType6Rule && hasOperateType6
+                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX)) {
+            ruleAdded = true;
+        }
+
         // 缓存和数据中都有
-        if (hasType3Rule || hasType4Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+        if (hasType3Rule || hasType4Rule || hasType5Rule || hasType6Rule) {
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         if (ruleAdded) {
             // 刷新缓存
             DataLoadingHandlerService.invalidateAll();
-            getRoutingKeyAndSendToAiMq(syncInfoId);
+            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
             return true;
         }
 
         // 发消息到通用入明细队列
         return false;
+    }
+
+    private boolean judgeIsBatch(String jsonData) {
+        JSONArray dataArray;
+        try {
+            dataArray = JSON.parseObject(jsonData).getJSONArray(Constants.JSON_DATA_KEYARR);
+        } catch (Exception e) {
+            log.warn("客户上传数据格式错误！jsonData:{}，errMsg:{}", jsonData, e.getMessage(), e);
+            return false;
+        }
+        if (CollectionUtils.isEmpty(dataArray)) {
+            return false;
+        }
+
+        return dataArray.size() > 1;
     }
 
     /**
@@ -2682,8 +2782,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         return true;
     }
 
-    private void getRoutingKeyAndSendToAiMq(String syncInfoId) {
+    private void getRoutingKeyAndSendToAiMq(String syncInfoId, boolean isBatch) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
+            if (isBatch) {
+                rocketMqSwitch.syncSend(AiRocketMQConstants.TOPIC_MARKETING_AI_PREUSER_RECEIVE_BATCH,
+                        AiRocketMQConstants.TAG_MARKETING_AI_PREUSER_RECEIVE_BATCH, syncInfoId);
+                return;
+            }
+
             AiPreUserReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiPreUserReceiveEnum.class,
                     RedisKeyConstant.AI_PREUSER_RECEIVE_MQ_BALANCER);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), syncInfoId);
@@ -2716,10 +2822,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType) {
-        log.warn("进入自动化推决策规则ToPolicyCommonRule："+JSONObject.toJSONString(syncUser));
+        log.warn("进入自动化推决策规则ToPolicyCommonRule：" + JSONObject.toJSONString(syncUser));
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(!isOpenNewEncrypt){
-            if(jc3keyType == null){
+        if (!isOpenNewEncrypt) {
+            if (jc3keyType == null) {
                 jc3keyType = CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue();
             }
             pushData.setPhone(getOld3keyValue(syncUser.getCell(), "cell", jc3keyType));
@@ -2778,7 +2884,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(isOpenNewEncrypt){
+        if (isOpenNewEncrypt) {
             if (CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue().equals(encryptionType)) {
                 return StringUtils.isNotBlank(content) ? BrCipherMaker.getInstance().decode(content) : content;
             }
@@ -2823,6 +2929,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return null;
     }
+
     /**
      * 根据配置表发送到对应MQ
      * 配置表：b_marketing_customer_routingKey_mapping
@@ -3196,8 +3303,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.INITDATA_MUST_ERROR.getMessage()));
         }
 
+        boolean isBatch = dto.getDataItems().size() > 1;
         // 发消息到推送下游队列
-        sendToUniversalQueue(infoId, status, apiCode);
+        sendToUniversalQueue(infoId, status, apiCode, isBatch);
 
         List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
         if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)) {
@@ -3250,7 +3358,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode) {
+    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode, boolean isBatch) {
         if (!status) {
             return;
         }
@@ -3273,21 +3381,30 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         List<String> aiApiCodeList = marketingCommonConfig.getAiApiCodeList();
         if (!CollectionUtils.isEmpty(aiApiCodeList) && aiApiCodeList.contains(apiCode)) {
-            sendToAIUniversalQueue(mqFact);
+            sendToAIUniversalQueue(mqFact, isBatch);
             return;
         }
 
         Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) || customerRules.contains(TO_POLICY_GENERAL)) {
-            sendToAIUniversalQueue(mqFact);
+        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX)
+                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)
+                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
+                || customerRules.contains(TO_POLICY_GENERAL)) {
+            sendToAIUniversalQueue(mqFact, isBatch);
         }
     }
 
-    private void sendToAIUniversalQueue(MqFact mqFact){
+    private void sendToAIUniversalQueue(MqFact mqFact, boolean isBatch) {
         if (marketingCommonConfig.getAiUseRocketMq()) {
+            String message = JSON.toJSONString(mqFact);
+            if (isBatch) {
+                rocketMqSwitch.syncSend(AiRocketMQConstants.TOPIC_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH,
+                        AiRocketMQConstants.TAG_MARKETING_AI_UNIVERSAL_RECEIVE_BATCH, message);
+                return;
+            }
+
             AiUniversalReceiveEnum queueByPop = queueBalancer.getQueueByPop(AiUniversalReceiveEnum.class,
                     RedisKeyConstant.AI_UNIVERSAL_RECEIVE_MQ_BALANCER);
-            String message = JSON.toJSONString(mqFact);
             rocketMqSwitch.syncSend(queueByPop.getTopic(), queueByPop.getTag(), message);
             return;
         }
@@ -3426,6 +3543,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region 写入上传明细MQ
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
+            // 非ai客户
             if(Objects.equals(intoAiQueue,false)){
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC

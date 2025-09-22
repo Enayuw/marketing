@@ -167,10 +167,10 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Override
     public void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
         try {
-            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
-                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC
-                        , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
-            }else{
+            if(marketingCommonConfig.getXieChengCallingCpaLogSwitch()){
+                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE
+                        , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
+            } else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
             }
         } catch (Exception e) {

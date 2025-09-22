@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +67,32 @@ public class SyncReportController {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+    }
+
+    @GetMapping("/exportData")
+    @ApiOperation(value = "导出客户上传数据记录", notes = "导出客户上传数据记录", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "selectType", value = "选择类型(例：1全选,0:指定筛选)", paramType = "query", dataType = "integer",defaultValue = "1")
+            , @ApiImplicitParam(name = "selectExportIds", value = "选中要导出的id数据,逗号分隔(例：1,2,3,4)", paramType = "query", dataType = "string")
+    })
+    @AddDataAuthBusiness
+    public void exportData(@RequestParam(required = false) String cidOrName
+            , @RequestParam(required = false) String appletTimeStart
+            , @RequestParam(required = false) String appletTimeEnd
+            , @RequestParam(required = false) String apiCodes
+            , @RequestParam(required = false) String userTypes
+            , @RequestParam(defaultValue = "1") Integer selectType
+            , @RequestParam(required = false) String selectExportIds
+            , HttpServletResponse response) {
+        try {
+            marketingSyncReportService.exportData(cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,selectType,selectExportIds,response);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SYNC_REPORT_EXPORT_SERVICEERROR.getCode(), e.getMessage()), e);
+        }
     }
 
     @PostMapping("/getReportListTotal")

@@ -2,22 +2,29 @@ package com.br.marketing.rule.ai;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 
@@ -31,6 +38,9 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
     @Autowired
     PushRuleService pushRuleService;
 
+    @Autowired
+    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
+
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CustomerTagsVO customerTagsVO = context.getCustomerTagsVO();
@@ -39,12 +49,12 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
         pushData.setInitId(syncUser.getId());
         pushData.setCaseNumber(syncUser.getCustNum());
         Integer jc3keyType = customerTagsVO.getPushJc3keyType();
-        pushRuleService.judgeEncryptType(pushData,syncUser,jc3keyType);
+        pushRuleService.judgeEncryptType(pushData, syncUser, jc3keyType);
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
-        customizFieldMapping(context,jsonObject);
+        customizFieldMapping(context, jsonObject);
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
             String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
@@ -99,10 +109,31 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
             if (StringUtils.isNotBlank(operateType) && "4".equals(operateType)) {
-                return true;
+                return insertRecord(syncUser);
             }
         }
         return false;
+    }
+
+    private boolean insertRecord(MarketingSyncUser syncUser) {
+        AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
+        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
+        aiToPolicyRecord.setUserType(syncUser.getUserType());
+        aiToPolicyRecord.setCustNum(syncUser.getCustNum());
+        aiToPolicyRecord.setApiCode(syncUser.getApiCode());
+        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode());
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        aiToPolicyRecord.setCreateDate(Integer.valueOf(yyyyMMdd));
+        try {
+            aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
+            return true;
+        } catch (DuplicateKeyException e) {
+            log.warn("AI自动化推决策_操作类型4,数据重复，fingerprint:{}", syncUser.getFingerprint());
+            return false;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型4,写去重表db异常："), e);
+            return true;
+        }
     }
 
     @Override
@@ -137,9 +168,8 @@ public class AiToPolicyPatLoanRuleOperaTypeFour implements AssembleData<PushMark
 
     /**
      * 构建营销同步用户的JSON对象
-     *
      * @param jsonObject 目标JSON对象
-     * @param syncUser 营销同步用户数据
+     * @param syncUser   营销同步用户数据
      * @param jc3keyType 加密类型(null表示未配置)
      * @return 构建好的JSON对象
      */
