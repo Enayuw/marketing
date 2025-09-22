@@ -97,7 +97,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             String apiCode = scoreRuleVO.getApiCode();
             JSONObject allowScoreTaskConfig = marketingCommonConfig.getAllowScoreTaskConfig();
             List<String> allowScoreTaskApiType = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
-            List<String> allowScoreTaskApiCode = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
+            List<String> allowScoreTaskApiCode = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiCode").toJavaList(String.class);
             String errorMsg = "很遗憾小主，该apiCode禁止跑分！";
             if (!CollectionUtils.isEmpty(allowScoreTaskApiType)) {
                 MarketingCustomerExample example = new MarketingCustomerExample();
