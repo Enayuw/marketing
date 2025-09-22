@@ -5,7 +5,6 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.rule.service.XieChengCollidingService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.rulecenter.IRuleCenterHaloCallbackService;
 import com.br.marketing.service.rulecenter.IRuleCenterPushService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -31,9 +30,6 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
     @Resource
     IRuleCenterPushService iRuleCenterPushService;
 
-    @Resource
-    IRuleCenterHaloCallbackService iRuleCenterHaloCallbackService;
-
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Boolean actionMark = Boolean.TRUE;
@@ -49,13 +45,11 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
             if(ResultCode.SUCCESS.getValue().equals(canPushTask.getCode())){
                 log.warn("推送决策业务开始" + "start");
                 long start = System.currentTimeMillis();
-                if(pushTaskData.getFilterType().equals(0) || pushTaskData.getFilterType().equals(2)) {
-                    booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
-                } else if (pushTaskData.getFilterType().equals(3)) {
-                    booleanResult = iRuleCenterHaloCallbackService.callBack(pushTaskData.getId());
-                } else{
+                if (pushTaskData.getFilterType().equals(1)){
                     //携程撞库数据推决策
                     booleanResult = xieChengCollidingService.collidingDataPushPolicy(pushTaskData.getId());
+                }else {
+                    booleanResult = iRuleCenterPushService.pushData(pushTaskData.getId());
                 }
                 long end = System.currentTimeMillis();
                 log.warn("推送决策业务结束" + "end, 耗时{}ms", end-start);

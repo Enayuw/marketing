@@ -12,9 +12,5 @@ public interface HaloRuleCenterCallbackService {
 
     Result canPushCallback(String apiCode);
 
-    Integer queryExistError(Long id, Integer filterType);
-
-    void makeUpCallbackData(CustomerInfoPushMain customerInfoPushMain, String switchType);
-
     boolean mockSwitch(String apiCode, String filterType, String errorType);
 }

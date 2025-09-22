@@ -96,13 +96,6 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
                     main.setFilterType(1);
                     main.setExtend(scoreXieChengService.cycleDataQuery(jsonObject, batchList, collidingFilterDTO));
                 }
-                //判断是否是哈啰硅基人回调业务
-                JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
-                List<String> apiCodes = Arrays.asList(haloAIRuleCenterCallbackConfig.getString("apiCodes").split(","));
-                if (!apiCodes.isEmpty() && apiCodes.contains(main.getmApiCode())) {
-                    main.setFilterType(3);
-                    main.setPushTarget(RuleCenterPushTargetEnum.HALO_CALLBACK.getCode());
-                }
                 customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
                 return new Result().success();
             } else {

@@ -3,6 +3,7 @@ package com.br.marketing.service.rulecenter.impl.push;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.halo.HaluoAiApiServiceClient;
 import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
@@ -11,7 +12,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.entity.ErrorMark;
 import com.br.marketing.entity.MarketingRuleCenterHaloCallbackDataExample;
 import com.br.marketing.enums.*;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -68,6 +67,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
     private static final String TITLE = "【哈啰硅基人业务回调】";
 
     private static final String B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA = "b_marketing_rule_center_halo_callback_data";
+
     private static final String B_SCORE_PREFIX = "b_score_";
 
     @Override
@@ -84,11 +84,10 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         example.createCriteria().andMIdEqualTo(customerInfoPushMain.getId()).andStatusEqualTo(2);
         Integer count = marketingRuleCenterHaloCallbackDataMapper.countByExample(example);
         if (count > 0) {
-            return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
+            return PushRuleStatusEnum.PUSH_FAIL.getValue();
         } else {
             return PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue();
         }
-
     }
 
     protected Result<Boolean> validateData(RuleCenterPushContext context) {
@@ -113,26 +112,11 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                     Long tiDbCount = flagDataMapper.queryCountBySql(countSql);
                     if (dorisCount.equals(tiDbCount)) {
                         logger.warn("tidb同步完成");
-                        // 回调重试
-                        haloRuleCenterCallbackService.makeUpCallbackData(customerInfoPushMain,MockSwitchEnum.HALO.getValue());
-                        MarketingRuleCenterHaloCallbackDataExample example = new MarketingRuleCenterHaloCallbackDataExample();
-                        example.createCriteria().andMIdEqualTo(customerInfoPushMain.getId()).andStatusEqualTo(2);
-                        int i = marketingRuleCenterHaloCallbackDataMapper.countByExample(example);
-                        if (i == 0) {
-                            Integer status = haloRuleCenterCallbackService.queryExistError(customerInfoPushMain.getId(),
-                                    FilterTypeEnum.HALO_CALLBACK.getValue());
-                            CustomerInfoPushMain main = new CustomerInfoPushMain();
-                            main.setId(customerInfoPushMain.getId());
-                            main.setmStatus(status);
-                            customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
-                            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
-                        }
+                        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
                     } else {
                         updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
                         return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
                     }
-                } else {
-                    return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
                 }
             } else {
                 JSONObject haloAIRuleCenterCallbackConfig = marketingCommonConfig.getHaloAIRuleCenterCallbackConfig();
@@ -253,10 +237,6 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                     result.setCode(ResultCode.TIME_OUT.getValue());
                 } else {
                     flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
-                    if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(flag.getCode())
-                            || ResultCode.TIME_OUT.getValue().equals(flag.getCode())) {
-                        flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
-                    }
 
                     if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
                         marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
@@ -264,7 +244,6 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                     } else {
                         marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
                         result.setCode(ResultCode.FAIL.getValue());
-                        insertErrorMark(pushMarketingUserDTO, taskId, ids, size);
                     }
                 }
             } catch (Exception e) {
@@ -272,28 +251,9 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
                 logger.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(flag.getMessage());
-                insertErrorMark(pushMarketingUserDTO, taskId, ids, size);
             }
             return result;
         }
-    }
-
-    // 插入错误标记
-    private void insertErrorMark(PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO, Long mainId, List<Long> ids, int size) {
-        ErrorMark errorMark = new ErrorMark();
-        errorMark.setmId(mainId);
-        errorMark.setApiCode(pushMarketingUserDTO.getApiCode());
-        errorMark.setPushSize(size);
-        errorMark.setEsCondition(ids.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(",")));
-        errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));
-        errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
-        errorMark.setType(ErrorMarkTypeEnum.HALO_CALLBACK_ERROR.getValue());
-        errorMark.setAppletDate(LocalDate.now().toString());
-        errorMark.setCreateTime(new Date());
-        errorMark.setUpdateTime(new Date());
-        errorMarkMapper.insertSelective(errorMark);
     }
 
     private void updatePushMainStatus(Long id, Integer mStatus) {

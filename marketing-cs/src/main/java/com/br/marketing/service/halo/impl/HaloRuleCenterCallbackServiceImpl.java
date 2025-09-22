@@ -15,7 +15,6 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ErrorMarkTypeEnum;
-import com.br.marketing.enums.MockSwitchEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.RetryStatusEnum;
 import com.br.marketing.mapper.*;
@@ -38,7 +37,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -147,69 +145,8 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
     @Override
     public Result canPushCallback(String apiCode) {
         List<String> apiCodeList = Arrays.asList(marketingCommonConfig.getHaloAIRuleCenterCallbackConfig().get("apiCodes").toString().split(","));
-        boolean flag = apiCodeList.contains(apiCode);
-        if (flag) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
-        } else {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        }
-    }
-
-    @Override
-    public Integer queryExistError(Long id, Integer filterType) {
-        List<Integer> retryTotalAttemptsList = errorMarkMapper.queryRetryTotalAttempts(id,
-                RetryStatusEnum.AWAIT_COMPLETE.getValue(),
-                filterType);
-
-        if (!CollectionUtils.isEmpty(retryTotalAttemptsList)) {
-            // 判断是否都已补推3次
-            boolean allGreaterOrEqualThree = retryTotalAttemptsList.stream()
-                    .allMatch(retryAttempts -> retryAttempts >= 3);
-            if (allGreaterOrEqualThree) {
-                logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                        , "规则中心哈啰回调，重试3次失败 mid:" + id));
-                return PushRuleStatusEnum.PUSH_FAIL.getValue();
-            } else {
-                return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
-            }
-        } else {
-            return PushRuleStatusEnum.TO_BE_CONFIRMED.getValue();
-        }
-    }
-
-    @Override
-    public void makeUpCallbackData(CustomerInfoPushMain customerInfoPushMain, String switchType) {
-
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 50);
-
-        // 模拟推决策异常
-        boolean b = mockSwitch(customerInfoPushMain.getmApiCode(), switchType, MockSwitchEnum.CALLBACKRETRY.getValue());
-
-        Long minId = null;
-        boolean isContinue = Boolean.TRUE;
-        while (isContinue) {
-            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-            errorMarkExample.setOrderByClause(" id limit 2000");
-
-            ErrorMarkExample.Criteria criteria = errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                    .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
-                    .andTypeEqualTo(ErrorMarkTypeEnum.HALO_CALLBACK_ERROR.getValue())
-                    .andRetryTotalAttemptsLessThan(3);
-
-            if (minId != null) {
-                criteria.andIdGreaterThan(minId);
-            }
-            List<ErrorMark> callbackErrorList = errorMarkMapper.selectByExample(errorMarkExample);
-            if (CollectionUtil.isEmpty(callbackErrorList)) {
-                isContinue = Boolean.FALSE;
-                continue;
-            }
-            minId = callbackErrorList.get(callbackErrorList.size() - 1).getId();
-
-            for (ErrorMark errorMark : callbackErrorList) {
-                threadPool.submit(() -> rePushCallbackData(errorMark, b));
-            }
-        }
+        Boolean flag = apiCodeList.contains(apiCode);
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(flag);
     }
 
     /**
@@ -231,46 +168,4 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
         return o;
     }
 
-    private Result<Integer> rePushCallbackData(ErrorMark errorMark, boolean b) {
-        PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
-        }.getType());
-        Result<Integer> result = new Result<>();
-        Result<String> flag = new Result<>();
-
-        if (b) {
-            result.setCode(ResultCode.TIME_OUT.getValue());
-        }else {
-            flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
-            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(flag.getCode())
-                    || ResultCode.TIME_OUT.getValue().equals(flag.getCode())) {
-                flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
-            }
-            if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
-                result.setCode(ResultCode.SUCCESS.getValue());
-            } else {
-                result.setCode(ResultCode.FAIL.getValue());
-            }
-        }
-
-        ErrorMark errorMark1 = new ErrorMark();
-        errorMark1.setId(errorMark.getId());
-        List<Long> ids = Arrays.stream(errorMark.getEsCondition().split(","))
-                .map(String::trim)
-                .map(Long::valueOf)
-                .collect(Collectors.toList());
-        if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
-                || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-            int retryAttempts = errorMark.getRetryTotalAttempts();
-            errorMark1.setRetryTotalAttempts(retryAttempts + 1);
-            errorMark1.setUpdateTime(new Date());
-            errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
-            marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
-        } else if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
-            errorMark1.setUpdateTime(new Date());
-            errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
-            marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
-        }
-        return result;
-    }
 }
