@@ -13,10 +13,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.ErrorMark;
 import com.br.marketing.entity.MarketingRuleCenterHaloCallbackDataExample;
-import com.br.marketing.enums.ErrorMarkTypeEnum;
-import com.br.marketing.enums.FilterTypeEnum;
-import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.enums.RetryStatusEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.MarketingRuleCenterHaloCallbackDataMapper;
@@ -117,7 +114,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                     if (dorisCount.equals(tiDbCount)) {
                         logger.warn("tidb同步完成");
                         // 回调重试
-                        haloRuleCenterCallbackService.makeUpCallbackData(customerInfoPushMain);
+                        haloRuleCenterCallbackService.makeUpCallbackData(customerInfoPushMain,MockSwitchEnum.HALO.getValue());
                         MarketingRuleCenterHaloCallbackDataExample example = new MarketingRuleCenterHaloCallbackDataExample();
                         example.createCriteria().andMIdEqualTo(customerInfoPushMain.getId()).andStatusEqualTo(2);
                         int i = marketingRuleCenterHaloCallbackDataMapper.countByExample(example);
@@ -149,7 +146,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                 String batchNumber = batchNumberList[0];
 
                 //筛选数据入b_marketing_rule_center_halo_callback_data表
-                insertMarketingScoreTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), customerInfoPushMain.getmRuleCondition(), batchNumber);
+                insertMarketingHaloCallbackTable(customerInfoPushMain.getmApiCode(), customerInfoPushMain.getId(), customerInfoPushMain.getmRuleCondition(), batchNumber);
                 //同步TiDB
                 syncDataToTiDB(customerInfoPushMain.getId());
 
@@ -249,20 +246,26 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             Result<Integer> result = new Result<>();
             Result<String> flag = new Result<>();
             try {
-                flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
-                if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(flag.getCode())
-                        || ResultCode.TIME_OUT.getValue().equals(flag.getCode())) {
-                    flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
-                    ;
-                }
-
-                if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
-                    marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
-                    result.setCode(ResultCode.SUCCESS.getValue());
+                // 模拟推决策异常
+                boolean b = haloRuleCenterCallbackService.mockSwitch(pushMarketingUserDTO.getApiCode(),
+                        MockSwitchEnum.HALO.getValue(), MockSwitchEnum.CALLBACKRETRY.getValue());
+                if (b) {
+                    result.setCode(ResultCode.TIME_OUT.getValue());
                 } else {
-                    marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
-                    result.setCode(ResultCode.FAIL.getValue());
-                    insertErrorMark(pushMarketingUserDTO, taskId, ids, size);
+                    flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+                    if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(flag.getCode())
+                            || ResultCode.TIME_OUT.getValue().equals(flag.getCode())) {
+                        flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+                    }
+
+                    if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
+                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
+                        result.setCode(ResultCode.SUCCESS.getValue());
+                    } else {
+                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
+                        result.setCode(ResultCode.FAIL.getValue());
+                        insertErrorMark(pushMarketingUserDTO, taskId, ids, size);
+                    }
                 }
             } catch (Exception e) {
                 marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
@@ -303,7 +306,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
     /**
      * 同步数据到TiDB表
      */
-    private void syncDataToTiDB(Long id) throws Exception {
+    private void syncDataToTiDB(Long id) {
         try {
             long start = System.currentTimeMillis();
 
@@ -350,7 +353,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
     /**
      * 筛选数据入Doris的b_marketing_rule_center_halo_callback_data表
      */
-    protected void insertMarketingScoreTable(String apiCode, Long id, String ruleCondition, String batchNumber) throws Exception {
+    protected void insertMarketingHaloCallbackTable(String apiCode, Long id, String ruleCondition, String batchNumber) throws Exception {
         try {
             List<String> baseColumnList = flagDataMapper.queryColumnNamebI_(B_MARKETING_RULE_CENTER_HALO_CALLBACK_DATA);
             List<String> columnList = flagDataMapper.queryColumnNamebI_(B_SCORE_PREFIX + batchNumber);
@@ -402,11 +405,11 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         } catch (Exception e) {
             // 检查是否为超时异常
             if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
-                logger.error(TITLE + "插入营销评分表超时异常，apiCode: {}, taskId: {}, batchNumber: {}", apiCode, id, batchNumber, e);
-                throw new RuntimeException("插入营销评分表操作超时", e);
+                logger.error(TITLE + "插入哈啰回调明细表超时异常，apiCode: {}, taskId: {}, batchNumber: {}", apiCode, id, batchNumber, e);
+                throw new RuntimeException("插入哈啰回调明细表操作超时", e);
             } else {
-                logger.error(TITLE + "插入营销评分表异常，apiCode: {}, taskId: {}, batchNumber: {}", apiCode, id, batchNumber, e);
-                throw new RuntimeException("插入营销评分表操作失败: " + e.getMessage(), e);
+                logger.error(TITLE + "插入哈啰回调明细表异常，apiCode: {}, taskId: {}, batchNumber: {}", apiCode, id, batchNumber, e);
+                throw new RuntimeException("插入哈啰回调明细表操作失败: " + e.getMessage(), e);
             }
         }
     }

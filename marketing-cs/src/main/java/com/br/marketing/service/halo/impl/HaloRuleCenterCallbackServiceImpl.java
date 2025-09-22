@@ -2,6 +2,7 @@ package com.br.marketing.service.halo.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.halo.HaluoAiApiServiceClient;
@@ -14,6 +15,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ErrorMarkTypeEnum;
+import com.br.marketing.enums.MockSwitchEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.RetryStatusEnum;
 import com.br.marketing.mapper.*;
@@ -34,6 +36,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -147,7 +150,7 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
         boolean flag = apiCodeList.contains(apiCode);
         if (flag) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
-        }else {
+        } else {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
     }
@@ -175,9 +178,12 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
     }
 
     @Override
-    public void makeUpCallbackData(CustomerInfoPushMain customerInfoPushMain) {
+    public void makeUpCallbackData(CustomerInfoPushMain customerInfoPushMain, String switchType) {
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 50);
+
+        // 模拟推决策异常
+        boolean b = mockSwitch(customerInfoPushMain.getmApiCode(), switchType, MockSwitchEnum.CALLBACKRETRY.getValue());
 
         Long minId = null;
         boolean isContinue = Boolean.TRUE;
@@ -201,16 +207,50 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
             minId = callbackErrorList.get(callbackErrorList.size() - 1).getId();
 
             for (ErrorMark errorMark : callbackErrorList) {
-                threadPool.submit(() -> rePushCallbackData(errorMark));
+                threadPool.submit(() -> rePushCallbackData(errorMark, b));
             }
         }
     }
 
-    private Result<String> rePushCallbackData(ErrorMark errorMark) {
+    /**
+     * 推送决策挡板开关
+     *
+     * @param apiCode
+     * @param switchType
+     * @param errorType
+     * @return
+     */
+    @Override
+    public boolean mockSwitch(String apiCode, String switchType, String errorType) {
+        boolean o = Boolean.FALSE;
+        HashMap<String, JSONObject> policyRetrySwitch = marketingCommonConfig.getPolicyRetrySwitch();
+        JSONObject jsonObject = policyRetrySwitch.get(apiCode);
+        if (jsonObject != null) {
+            o = jsonObject.getJSONObject(switchType).getBooleanValue(errorType);
+        }
+        return o;
+    }
+
+    private Result<Integer> rePushCallbackData(ErrorMark errorMark, boolean b) {
         PushMarketingUserDTO<ReqHaluoApiDTO> pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
         }.getType());
+        Result<Integer> result = new Result<>();
+        Result<String> flag = new Result<>();
 
-        Result<String> result = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+        if (b) {
+            result.setCode(ResultCode.TIME_OUT.getValue());
+        }else {
+            flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(flag.getCode())
+                    || ResultCode.TIME_OUT.getValue().equals(flag.getCode())) {
+                flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
+            }
+            if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
+                result.setCode(ResultCode.SUCCESS.getValue());
+            } else {
+                result.setCode(ResultCode.FAIL.getValue());
+            }
+        }
 
         ErrorMark errorMark1 = new ErrorMark();
         errorMark1.setId(errorMark.getId());
