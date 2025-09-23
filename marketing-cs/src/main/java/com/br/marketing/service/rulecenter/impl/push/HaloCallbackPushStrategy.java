@@ -231,9 +231,9 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             Result<String> flag = new Result<>();
             try {
                 // 模拟推决策异常
-                boolean b = haloRuleCenterCallbackService.mockSwitch(pushMarketingUserDTO.getApiCode(),
+                Result<String> mockResult = haloRuleCenterCallbackService.mockSwitch(pushMarketingUserDTO.getApiCode(),
                         MockSwitchEnum.HALO.getValue(), MockSwitchEnum.CALLBACKRETRY.getValue());
-                if (b) {
+                if (mockResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
                     result.setCode(ResultCode.TIME_OUT.getValue());
                 } else {
                     flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());

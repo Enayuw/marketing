@@ -2617,6 +2617,11 @@ public class MarketingCommonConfig {
     private HashMap<String, JSONObject> policyRetrySwitch;
 
     /**
+     * 哈啰硅基人挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, JSONObject> callbackSwitch;
+
+    /**
      * 萨摩耶黑名单推送配置
      * eg:{"mock":"1","poolCoreSize":"10","poolMaxSize":"20"}
      * mock 1 开启

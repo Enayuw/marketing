@@ -1,22 +1,12 @@
 package com.br.marketing.service.halo.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.halo.HaluoAiApiServiceClient;
-import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.ErrorMarkTypeEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.enums.RetryStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -27,16 +17,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -50,11 +36,10 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
 
     private static final Logger logger = LoggerFactory.getLogger(HaloRuleCenterCallbackServiceImpl.class);
 
-    @Resource
-    StraHisFileMapper straHisFileMapper;
+    private static final String TITLE = "规则中心哈啰回调";
 
     @Resource
-    ErrorMarkMapper errorMarkMapper;
+    StraHisFileMapper straHisFileMapper;
 
     @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
@@ -64,12 +49,6 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
 
     @Autowired
     private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
-    private HaluoAiApiServiceClient haluoAiApiServiceClient;
-
-    @Resource
-    private MarketingRuleCenterHaloCallbackDataMapper marketingRuleCenterHaloCallbackDataMapper;
 
     @Override
     public Result saveHaloCallbackTask(PushCustomerDTO dto) {
@@ -158,14 +137,38 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
      * @return
      */
     @Override
-    public boolean mockSwitch(String apiCode, String switchType, String errorType) {
+    public Result<String> mockSwitch(String apiCode, String switchType, String errorType) {
         boolean o = Boolean.FALSE;
-        HashMap<String, JSONObject> policyRetrySwitch = marketingCommonConfig.getPolicyRetrySwitch();
-        JSONObject jsonObject = policyRetrySwitch.get(apiCode);
-        if (jsonObject != null) {
-            o = jsonObject.getJSONObject(switchType).getBooleanValue(errorType);
+        HashMap<String, JSONObject> policyRetrySwitch = marketingCommonConfig.getCallbackSwitch();
+        JSONObject mock = policyRetrySwitch.get(apiCode);
+        if (mock.get("switch") == Boolean.TRUE) {
+            logger.warn("{}进入挡板",TITLE);
+            long start = System.currentTimeMillis();
+            Result<String> stringResult = callbackMessageMock(mock);
+            long end = System.currentTimeMillis();
+            logger.warn("{}结束挡板, result:{}, 耗时:{}", TITLE,stringResult, end - start);
+            return stringResult;
+        }else {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
-        return o;
+    }
+
+    /**
+     * 促完件挡板
+     * @return
+     */
+    private Result<String> callbackMessageMock(Map<String, Object> mock) {
+        Result<String> result = new Result<>();
+        Integer code = (Integer) mock.get("code");
+        if(ResultCode.SUCCESS.getValue().equals(code)){
+            result.setDate("");
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("");
+            return result;
+        }
+        result.setCode(ResultCode.FAIL.getValue());
+        result.setMessage("请求失败");
+        return result;
     }
 
 }

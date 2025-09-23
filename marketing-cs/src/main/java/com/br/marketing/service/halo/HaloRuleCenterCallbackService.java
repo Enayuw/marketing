@@ -12,5 +12,5 @@ public interface HaloRuleCenterCallbackService {
 
     Result canPushCallback(String apiCode);
 
-    boolean mockSwitch(String apiCode, String filterType, String errorType);
+    Result<String> mockSwitch(String apiCode, String filterType, String errorType);
 }
