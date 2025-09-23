@@ -22,12 +22,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ThreadPoolAdjustmentUtil {
 
     private static final String TITLE = "【智能线程池调整】";
-    
-    /** 默认重试次数 */
-    private static final int DEFAULT_RETRY_COUNT = 3;
-    
-    /** 重试间隔时间(毫秒) */
-    private static final long RETRY_INTERVAL_MS = 100;
 
     /**
      * 智能调整线程池大小（带重试机制，无返回值）
@@ -74,52 +68,34 @@ public class ThreadPoolAdjustmentUtil {
         
         ThreadPoolAdjustmentResult result = null;
         Exception lastException = null;
-        
-        // 重试机制 - 最多尝试3次
-        for (int attempt = 1; attempt <= DEFAULT_RETRY_COUNT; attempt++) {
-            try {
-                // 执行调整
-                long startTime = System.currentTimeMillis();
-                executeAdjustmentStrategy(executor, strategy, targetThreadNum, beforeState);
-                long executionTime = System.currentTimeMillis() - startTime;
-                
-                // 获取调整后状态
-                ThreadPoolState afterState = captureThreadPoolState(executor);
-                
-                // 构建成功结果并直接返回
-                result = ThreadPoolAdjustmentResult.builder()
-                        .strategy(strategy)
-                        .beforeState(beforeState)
-                        .afterState(afterState)
-                        .targetThreadNum(targetThreadNum)
-                        .executionTime(executionTime)
-                        .success(true)
-                        .build();
-                
-                // 调整成功，记录日志并立即返回
-                log.warn(TITLE + "调整成功 - 第{}次尝试成功，策略:{}, 结果核心:{}, 结果最大:{}, 活跃:{}, 池大小:{}, 队列:{}, 耗时:{}ms",
-                        attempt, strategy.getDescription(), afterState.getCorePoolSize(), afterState.getMaximumPoolSize(), 
-                        afterState.getActiveCount(), afterState.getPoolSize(), afterState.getQueueSize(), executionTime);
-                return result;
-                
-            } catch (Exception e) {
-                lastException = e;
+        try {
+            // 执行调整
+            long startTime = System.currentTimeMillis();
+            executeAdjustmentStrategy(executor, strategy, targetThreadNum, beforeState);
+            long executionTime = System.currentTimeMillis() - startTime;
 
-                log.warn(TITLE + "第{}次调整出现异常 - 策略:{}, 目标:{}, 异常:{}, {}",
-                        attempt, strategy.getDescription(), targetThreadNum, e.getMessage(),
-                        attempt < DEFAULT_RETRY_COUNT ? "准备重试" : "已达最大重试次数");
-                
-                // 如果不是最后一次尝试，等待一段时间后重试
-                if (attempt < DEFAULT_RETRY_COUNT) {
-                    try {
-                        Thread.sleep(RETRY_INTERVAL_MS);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.error(TITLE + "重试等待被中断");
-                        break;
-                    }
-                }
-            }
+            // 获取调整后状态
+            ThreadPoolState afterState = captureThreadPoolState(executor);
+
+            // 构建成功结果并直接返回
+            result = ThreadPoolAdjustmentResult.builder()
+                    .strategy(strategy)
+                    .beforeState(beforeState)
+                    .afterState(afterState)
+                    .targetThreadNum(targetThreadNum)
+                    .executionTime(executionTime)
+                    .success(true)
+                    .build();
+
+            // 调整成功，记录日志并立即返回
+            log.warn(TITLE + "调整成功 - 策略:{}, 结果核心:{}, 结果最大:{}, 活跃:{}, 池大小:{}, 队列:{}, 耗时:{}ms",
+                    strategy.getDescription(), afterState.getCorePoolSize(), afterState.getMaximumPoolSize(),
+                    afterState.getActiveCount(), afterState.getPoolSize(), afterState.getQueueSize(), executionTime);
+            return result;
+
+        } catch (Exception e) {
+            log.warn(TITLE + "调整出现异常 - 策略:{}, 目标:{}, 异常:{}",
+                    strategy.getDescription(), targetThreadNum, e.getMessage());
         }
         
         // 所有重试都失败了，返回最后一次的结果或构建失败结果
