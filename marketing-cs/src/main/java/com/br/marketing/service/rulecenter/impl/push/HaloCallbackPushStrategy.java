@@ -139,7 +139,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
         } catch (Exception e) {
             // 检查是否为超时异常
-            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
+            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时") || e.getMessage().contains("Communications link failure"))) {
                 logger.error(TITLE + "前置处理超时异常，taskId: {}", customerInfoPushMain.getId(), e);
                 updatePushMainStatus(customerInfoPushMain.getId(), PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE).setMessage("前置处理操作超时");
@@ -300,7 +300,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
 
         } catch (Exception e) {
             // 检查是否为超时异常
-            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
+            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时") || e.getMessage().contains("Communications link failure"))) {
                 logger.error(TITLE + "同步数据到TiDB超时异常，taskId: {}", id, e);
                 throw new RuntimeException("同步数据到TiDB操作超时", e);
             } else {
@@ -364,7 +364,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             flagDataMapper.insertbI_(insertSql.toString());
         } catch (Exception e) {
             // 检查是否为超时异常
-            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时"))) {
+            if (e.getMessage() != null && (e.getMessage().contains("timeout") || e.getMessage().contains("超时") || e.getMessage().contains("Communications link failure"))) {
                 logger.error(TITLE + "插入哈啰回调明细表超时异常，apiCode: {}, taskId: {}, batchNumber: {}", apiCode, id, batchNumber, e);
                 throw new RuntimeException("插入哈啰回调明细表操作超时", e);
             } else {
