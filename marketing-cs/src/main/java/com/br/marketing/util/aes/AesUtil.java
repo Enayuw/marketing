@@ -111,27 +111,5 @@ public class AesUtil {
         return Charset.forName(charset);
     }
 
-    public static void main(String[] args) {
-        AesGeneralDTO aesGeneralDTO = new AesGeneralDTO();
-        aesGeneralDTO.setText("15510119441");
-        aesGeneralDTO.setCipherMode("CBC");
-        aesGeneralDTO.setPaddingScheme("PKCS5Padding");
-        aesGeneralDTO.setCharset("UTF-8");
-        aesGeneralDTO.setIv("0102030405060708");
-        aesGeneralDTO.setDynamicKeys("fC8tzaLDItGjIjOr");
-
-        String encrypt = encrypt(aesGeneralDTO);
-        System.out.println(encrypt);
-
-        AesGeneralDTO aesGeneralDTO1 = new AesGeneralDTO();
-        aesGeneralDTO1.setText(encrypt);
-        aesGeneralDTO1.setCipherMode("CBC");
-        aesGeneralDTO1.setPaddingScheme("PKCS5Padding");
-        aesGeneralDTO1.setCharset("UTF-8");
-        aesGeneralDTO1.setIv("0102030405060708");
-        aesGeneralDTO1.setDynamicKeys("fC8tzaLDItGjIjOr");
-        String decrypt = decrypt(aesGeneralDTO1);
-        System.out.println(decrypt);
-    }
 
 }
