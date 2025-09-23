@@ -34,7 +34,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMarketingUserDetailByRuleDTO> {
+public class AiToPolicyPatLoanRuleOperaTypeSix implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -104,7 +104,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
         buildJson(jsonObject, syncUser, jc3keyType);
         pushData.setVariables(jsonObject);
 
-        log.warn("AI自动化推决策_操作类型5,apiCode:{}", apiCode);
+        log.warn("AI自动化推决策_操作类型6,apiCode:{}", apiCode);
         return pushData;
     }
 
@@ -113,7 +113,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
-            if (StringUtils.isNotBlank(operateType) && "5".equals(operateType)) {
+            if (StringUtils.isNotBlank(operateType) && "6".equals(operateType)) {
                 return insertRecord(syncUser);
             }
         }
@@ -126,45 +126,46 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
         Integer createDate = Integer.valueOf(yyyyMMdd);
         String apiCode = syncUser.getApiCode();
         String userType = syncUser.getUserType();
-        String custNum = syncUser.getCustNum();
+        String cell = syncUser.getCell();
         String key = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(String.format("%s:%s:%s:%s:%s", yyyyMMdd, apiCode, userType,
-                CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode(), custNum));
+                CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode(), cell));
         String batchNumber;
 
         try {
             redisChgService.lock(key, lockValue);
             try {
+                // custNum临时存为cell的log加密
                 AiToPolicyRecordExample example = new AiToPolicyRecordExample();
                 example.createCriteria().andCreateDateEqualTo(createDate)
                         .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
-                        .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode())
-                        .andCustNumEqualTo(custNum);
+                        .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode())
+                        .andCustNumEqualTo(cell);
                 int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
-                batchNumber = yyyyMMdd + "-" + apiCode + "-5" + "-" + userType + "-" + pushCount;
+                batchNumber = yyyyMMdd + "-" + apiCode + "-6" + "-" + userType + "-" + pushCount;
 
                 AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
                 aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
                 aiToPolicyRecord.setBatchNumber(batchNumber);
                 aiToPolicyRecord.setApiCode(apiCode);
                 aiToPolicyRecord.setUserType(userType);
-                aiToPolicyRecord.setCustNum(custNum);
-                aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode());
+                aiToPolicyRecord.setCustNum(cell);
+                aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode());
                 aiToPolicyRecord.setCreateDate(createDate);
 
                 aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
                 syncUser.setReserveField2(batchNumber);
                 return true;
             } catch (DuplicateKeyException e) {
-                log.warn("AI自动化推决策_操作类型5,数据重复，fingerprint:{}", syncUser.getFingerprint());
+                log.warn("AI自动化推决策_操作类型6,数据重复，fingerprint:{}", syncUser.getFingerprint());
                 return false;
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,写去重表db异常："), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型6,写去重表db异常："), e);
                 return true;
             }
         } catch (Exception e) {
             redisChgService.unlock(key, lockValue);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(),
-                    "AI自动化推决策_操作类型5,redis加锁异常,需要手动处理,apiCode：" + syncUser.getApiCode() + ",明细表id：" + syncUser.getId() + "。"), e);
+                    "AI自动化推决策_操作类型6,redis加锁异常,需要手动处理,apiCode：" + syncUser.getApiCode() + ",明细表id：" + syncUser.getId() + "。"), e);
             return false;
         } finally {
             redisChgService.unlock(key, lockValue);
@@ -173,7 +174,7 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
 
     @Override
     public String label() {
-        return CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
+        return CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode();
     }
 
     @Override
