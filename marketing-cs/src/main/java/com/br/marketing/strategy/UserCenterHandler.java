@@ -18,6 +18,7 @@ import com.br.marketing.mapper.MarketingDictMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -64,34 +65,37 @@ public class UserCenterHandler {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知apiType：" + apiType));
             return result;
         }
-        String iu = jsonObject.getString("iu");
-        if (StringUtil.isBlank(iu)) {
-            result.setCode(ResultCode.FAIL.getValue());
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送iu字段缺失"));
-            return result;
-        }
-        List<String> ius = Splitter.on("#").splitToList(iu);
-        if (ius.size() < 2) {
-            result.setCode(ResultCode.FAIL.getValue());
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送部门格式错误"));
-            return result;
-        }
-        String firstDept = ius.get(1);
-        if (!checkDept(firstDept, "firstLevelDepart")) {
-            result.setCode(ResultCode.FAIL.getValue());
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知一级部门"));
-            return result;
-        } else {
-            marketingCustomer.setFirstDepartment(firstDept);
-        }
-        if (!"泛IU".equals(firstDept)) {
-            String secondDept = ius.get(2);
-            if (!checkDept(secondDept, "secondLevelDepart")) {
+        List<String> nonIuList = Lists.newArrayList("保险运营", "财富运营");
+        if (!nonIuList.contains(apiType)) {
+            String iu = jsonObject.getString("iu");
+            if (StringUtil.isBlank(iu)) {
                 result.setCode(ResultCode.FAIL.getValue());
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知二级部门"));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送iu字段缺失"));
+                return result;
+            }
+            List<String> ius = Splitter.on("#").splitToList(iu);
+            if (ius.size() < 2) {
+                result.setCode(ResultCode.FAIL.getValue());
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送部门格式错误"));
+                return result;
+            }
+            String firstDept = ius.get(1);
+            if (!checkDept(firstDept, "firstLevelDepart")) {
+                result.setCode(ResultCode.FAIL.getValue());
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知一级部门"));
                 return result;
             } else {
-                marketingCustomer.setSecondDepartment(secondDept);
+                marketingCustomer.setFirstDepartment(firstDept);
+            }
+            if (!"泛IU".equals(firstDept)) {
+                String secondDept = ius.get(2);
+                if (!checkDept(secondDept, "secondLevelDepart")) {
+                    result.setCode(ResultCode.FAIL.getValue());
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知二级部门"));
+                    return result;
+                } else {
+                    marketingCustomer.setSecondDepartment(secondDept);
+                }
             }
         }
         String key = keyPrefix.concat(String.format(":%s", apiCode));
