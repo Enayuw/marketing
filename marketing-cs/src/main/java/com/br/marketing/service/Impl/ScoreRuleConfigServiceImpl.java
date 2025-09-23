@@ -95,16 +95,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
         try {
             String apiCode = scoreRuleVO.getApiCode();
+            boolean nonStrategy = scoreRuleVO.getTaskType() != null && scoreRuleVO.getTaskType() == 1;
             JSONObject allowScoreTaskConfig = marketingCommonConfig.getAllowScoreTaskConfig();
             List<String> allowScoreTaskApiType = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
             List<String> allowScoreTaskApiCode = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiCode").toJavaList(String.class);
             String errorMsg = "很遗憾小主，该apiCode禁止跑分！";
-            if (!CollectionUtils.isEmpty(allowScoreTaskApiType)) {
+            if (nonStrategy || !CollectionUtils.isEmpty(allowScoreTaskApiType)) {
                 MarketingCustomerExample example = new MarketingCustomerExample();
                 example.createCriteria().andApiCodeEqualTo(apiCode);
                 List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
                 MarketingCustomer customer = select.get(0);
-                if (allowScoreTaskApiType.contains(customer.getApiType()) || allowScoreTaskApiCode.contains(customer.getApiCode())) {
+                if (nonStrategy || allowScoreTaskApiType.contains(customer.getApiType()) || allowScoreTaskApiCode.contains(customer.getApiCode())) {
                     ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
                     service.saveTransaction(scoreRuleVO, userDetail);
                 } else {
@@ -377,8 +378,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             String apiCode = dto.getApiCode();
             boolean isFind = false;
             Set<VariableDicSelectVO> vdSet = apiCodeToVdSetMap.get(apiCode);
-            if(!CollectionUtils.isEmpty(vdSet)){
-                isFind= true;
+            if (!CollectionUtils.isEmpty(vdSet)) {
+                isFind = true;
             }
             // customerRuleExample
             CustomerRuleExample customerRuleExample = new CustomerRuleExample();
@@ -406,7 +407,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     private HashMap<String, Set<VariableDicSelectVO>> AssembleApiCodeToVdSetMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
         HashMap<String, Set<VariableDicSelectVO>> apiCodeToVdSetMap = new HashMap<>();
-        if(CollectionUtils.isEmpty(variableList)) {
+        if (CollectionUtils.isEmpty(variableList)) {
             return apiCodeToVdSetMap;
         }
 
@@ -417,7 +418,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             String apiCode = String.valueOf(item.get("apiCode"));
             Object vdSetObject = item.get("vdSet");
-            if(vdSetObject == null){
+            if (vdSetObject == null) {
                 log.warn("入参vdSet不正确");
                 throw new BusinessException("抱歉小主，变更失败");
             }
@@ -629,7 +630,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 //            Result<String> stringResult = soleStrategyService.analysisCondition(taskExtend.getDataCondition());
 //            if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
 //                ArrayList<String> strings = new ArrayList<>();
-//                strings.add(soleStrategyService.analysisSimpleConditionPlus(stringResult.getData(),date,date.concat(" ").concat(task.getStartTime()).concat(":00")));
+//                strings.add(soleStrategyService.analysisSimpleConditionPlus(stringResult.getData(),date,date.concat(" ").concat(task.getStartTime
+//                ()).concat(":00")));
 //                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(strings);
 //            }
 //            else{
