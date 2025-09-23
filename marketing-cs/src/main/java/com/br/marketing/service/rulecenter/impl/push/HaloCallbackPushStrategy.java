@@ -3,7 +3,6 @@ package com.br.marketing.service.rulecenter.impl.push;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.halo.HaluoAiApiServiceClient;
 import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
@@ -239,15 +238,15 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
                     flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
 
                     if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
-                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 1);
+                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.SUCCESS.getCode());
                         result.setCode(ResultCode.SUCCESS.getValue());
                     } else {
-                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
+                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.FAIL.getCode());
                         result.setCode(ResultCode.FAIL.getValue());
                     }
                 }
             } catch (Exception e) {
-                marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, 2);
+                marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.FAIL.getCode());
                 String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
                 logger.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_SERVICEERROR.getCode(), errMsg));
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(flag.getMessage());
@@ -332,7 +331,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             baseColumnList.remove("status");
             insertSql.append(String.join(",", baseColumnList));
             insertSql.append(",");
-            insertSql.append("0 as status,");
+            insertSql.append(HaloCallbackStatusEnum.PENDING.getCode()).append(" as status,");
 
             // 生成CASE WHEN SQL和WHERE条件
             insertSql.append(generateCaseWhenSql(sectionField, rangeArray));
