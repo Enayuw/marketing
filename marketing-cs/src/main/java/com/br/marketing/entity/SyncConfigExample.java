@@ -1814,6 +1814,76 @@ public class SyncConfigExample {
             addCriterion("customized_type not between", value1, value2, "customizedType");
             return (Criteria) this;
         }
+
+        public Criteria andExecuteTimeIsNull() {
+            addCriterion("execute_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeIsNotNull() {
+            addCriterion("execute_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeEqualTo(String value) {
+            addCriterion("execute_time =", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeNotEqualTo(String value) {
+            addCriterion("execute_time <>", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeGreaterThan(String value) {
+            addCriterion("execute_time >", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeGreaterThanOrEqualTo(String value) {
+            addCriterion("execute_time >=", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeLessThan(String value) {
+            addCriterion("execute_time <", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeLessThanOrEqualTo(String value) {
+            addCriterion("execute_time <=", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeLike(String value) {
+            addCriterion("execute_time like", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeNotLike(String value) {
+            addCriterion("execute_time not like", value, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeIn(List<String> values) {
+            addCriterion("execute_time in", values, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeNotIn(List<String> values) {
+            addCriterion("execute_time not in", values, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeBetween(String value1, String value2) {
+            addCriterion("execute_time between", value1, value2, "executeTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteTimeNotBetween(String value1, String value2) {
+            addCriterion("execute_time not between", value1, value2, "executeTime");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
