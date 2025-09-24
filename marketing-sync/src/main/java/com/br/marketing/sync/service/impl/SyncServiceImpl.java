@@ -18,6 +18,7 @@ import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.sync.SyncApplication;
 import com.br.marketing.sync.service.ShuHeCustomizedSyncService;
 import com.br.marketing.sync.service.SyncService;
@@ -66,6 +67,9 @@ public class SyncServiceImpl implements SyncService {
     @Resource
     private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
 
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
+
     private static final String TITLE = "【文件同步】";
 
     @Override
@@ -102,6 +106,10 @@ public class SyncServiceImpl implements SyncService {
 
                 Set<String> dateSet = new TreeSet<>();
                 Integer dataType = loanSyncConfig.getDataType();
+
+                if(!loanSyncConfig.getApiCode().equals("7492963")){
+                    continue;
+                }
 
                 if(Objects.equals(dataType, DataTypeEnum.SYNC_FILES.getValue())){
                     String executeTime = loanSyncConfig.getExecuteTime();
@@ -203,7 +211,7 @@ public class SyncServiceImpl implements SyncService {
      * @param loanSyncConfig 文件同步配置
      * @param stringListMap 文件名称和文件属性
      */
-    private void syncFile(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap,String date) {
+    private void syncFile(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap,String date) throws Exception {
         BaseFtpClient srcClient = getClient(loanSyncConfig, true);
         BaseFtpClient targetClient = getClient(loanSyncConfig, false);
         boolean diskBoll = Constants.LOAN_DISK.equals(loanSyncConfig.getTargetType());
@@ -249,7 +257,8 @@ public class SyncServiceImpl implements SyncService {
 
     }
 
-    private void defaultSync(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap, String date, boolean diskBoll, BaseFtpClient srcClient, BaseFtpClient targetClient) {
+    private void defaultSync(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap, String date, boolean diskBoll,
+                             BaseFtpClient srcClient, BaseFtpClient targetClient) throws Exception {
         String suffixStr = loanSyncConfig.getSuffix();
         List<String> successList = stringListMap.get("success");
         List<String> finishList = stringListMap.get("finish");
@@ -332,6 +341,14 @@ public class SyncServiceImpl implements SyncService {
         // 处理no_suffix类型：同步所有已过滤的文件
         if("no_suffix".equals(suffixStr)){
             log.info("--------------开始同步no_suffix类型（所有文件）---------------");
+
+            Map<String, Boolean> sftpMockAbnormal = marketingCommonConfig.getSftpMockAbnormal();
+            Boolean b = sftpMockAbnormal.get(loanSyncConfig.getApiCode());
+            if(b != null && b){
+                log.warn(TITLE+ "Mock异常: {}", JSONObject.toJSONString(sftpMockAbnormal));
+                throw new Exception();
+            }
+
             List<String> noSuffixList = stringListMap.get("no_suffix");
             if(noSuffixList!=null){
                 for(String pathAndFileName:noSuffixList){
