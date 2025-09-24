@@ -1,4 +1,4 @@
-package com.br.marketing.rule.ai.strategy;
+package com.br.marketing.rule.ai.policy;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -30,7 +30,7 @@ import java.util.HashMap;
  */
 @Component
 @Slf4j
-public class OperateTypeFourStrategy extends AbstractBaseAiToPolicy {
+public class OperateFourProcessor extends AbstractBaseAiToPolicy {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -54,30 +54,6 @@ public class OperateTypeFourStrategy extends AbstractBaseAiToPolicy {
         return ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
                 ? jsonObject.getString("batchNumber")
                 : (appletDate + "_" + apiCode + "_" + userType);
-    }
-
-    @Override
-    public boolean insertRecord(MarketingSyncUser syncUser) {
-        AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
-        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
-        aiToPolicyRecord.setUserType(syncUser.getUserType());
-        aiToPolicyRecord.setCustNum(syncUser.getCustNum());
-        aiToPolicyRecord.setApiCode(syncUser.getApiCode());
-        aiToPolicyRecord.setRuleLabel(getOperationType());
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        aiToPolicyRecord.setCreateDate(Integer.valueOf(yyyyMMdd));
-        
-        try {
-            aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
-            return true;
-        } catch (DuplicateKeyException e) {
-            log.warn("AI自动化推决策_操作类型4,数据重复，fingerprint:{}", syncUser.getFingerprint());
-            return false;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), 
-                    "AI自动化推决策_操作类型4,写去重表db异常："), e);
-            return true;
-        }
     }
 
     @Override

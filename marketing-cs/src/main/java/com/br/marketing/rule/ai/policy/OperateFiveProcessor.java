@@ -1,4 +1,4 @@
-package com.br.marketing.rule.ai.strategy;
+package com.br.marketing.rule.ai.policy;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 /**
- * 操作类型6策略实现
+ * 操作类型5策略实现
  * 继承AiToPolicyBase，实现AiToPolicyOperationStrategy
  * 重写batchNumber生成、insertRecord和字段映射逻辑
  * 
@@ -34,7 +34,7 @@ import java.util.UUID;
  */
 @Component
 @Slf4j
-public class OperateTypeSixStrategy extends AbstractBaseAiToPolicy {
+public class OperateFiveProcessor extends AbstractBaseAiToPolicy {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -47,12 +47,12 @@ public class OperateTypeSixStrategy extends AbstractBaseAiToPolicy {
 
     @Override
     public String getOperationType() {
-        return "6";
+        return "5";
     }
 
     @Override
     public String generateBatchNumber(MarketingSyncUser syncUser) {
-        // 操作类型6使用reserveField2存储batchNumber
+        // 操作类型5使用reserveField2存储batchNumber
         return syncUser.getReserveField2();
     }
 
@@ -63,65 +63,48 @@ public class OperateTypeSixStrategy extends AbstractBaseAiToPolicy {
         Integer createDate = Integer.valueOf(yyyyMMdd);
         String apiCode = syncUser.getApiCode();
         String userType = syncUser.getUserType();
-        String cell = syncUser.getCell();
+        String custNum = syncUser.getCustNum();
         String key = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(String.format("%s:%s:%s:%s:%s", yyyyMMdd, apiCode, userType,
-                CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode(), cell));
+                CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode(), custNum));
         String batchNumber;
 
         try {
             redisChgService.lock(key, lockValue);
             try {
-                // custNum临时存为cell的log加密
                 AiToPolicyRecordExample example = new AiToPolicyRecordExample();
                 example.createCriteria().andCreateDateEqualTo(createDate)
                         .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                         .andRuleLabelEqualTo(getOperationType())
-                        .andCustNumEqualTo(cell);
+                        .andCustNumEqualTo(custNum);
                 int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
-                batchNumber = yyyyMMdd + "-" + apiCode + "-6" + "-" + userType + "-" + pushCount;
+                batchNumber = yyyyMMdd + "-" + apiCode + "-5" + "-" + userType + "-" + pushCount;
 
                 AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
                 aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
                 aiToPolicyRecord.setBatchNumber(batchNumber);
                 aiToPolicyRecord.setApiCode(apiCode);
                 aiToPolicyRecord.setUserType(userType);
-                aiToPolicyRecord.setCustNum(cell);
-                aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode());
+                aiToPolicyRecord.setCustNum(custNum);
+                aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode());
                 aiToPolicyRecord.setCreateDate(createDate);
 
                 aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
                 syncUser.setReserveField2(batchNumber);
                 return true;
             } catch (DuplicateKeyException e) {
-                log.warn("AI自动化推决策_操作类型6,数据重复，fingerprint:{}", syncUser.getFingerprint());
+                log.warn("AI自动化推决策_操作类型5,数据重复，fingerprint:{}", syncUser.getFingerprint());
                 return false;
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型6,写去重表db异常："), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), "AI自动化推决策_操作类型5,写去重表db异常："), e);
                 return true;
             }
         } catch (Exception e) {
             redisChgService.unlock(key, lockValue);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(),
-                    "AI自动化推决策_操作类型6,redis加锁异常,需要手动处理,apiCode：" + syncUser.getApiCode() + ",明细表id：" + syncUser.getId() + "。"), e);
+                    "AI自动化推决策_操作类型5,redis加锁异常,需要手动处理,apiCode：" + syncUser.getApiCode() + ",明细表id：" + syncUser.getId() + "。"), e);
             return false;
         } finally {
             redisChgService.unlock(key, lockValue);
-        }
-    }
-
-    @Override
-    protected void executeFieldMapping(ProcessHandlerContext context, JSONObject jsonObject) {
-        HashMap<String, JSONObject> fieldKeyMapping = marketingCommonConfig.getFieldKeyMapping();
-        JSONObject mapping = fieldKeyMapping.get(context.getApiCode());
-        if (ObjectUtil.isNotEmpty(mapping)) {
-            for (String s : mapping.keySet()) {
-                String toKey = mapping.getString(s);
-                String oldV = jsonObject.getString(toKey);
-                String newV = jsonObject.getString(s);
-                if (org.apache.commons.lang3.StringUtils.isBlank(oldV) && org.apache.commons.lang3.StringUtils.isNotBlank(newV)) {
-                    jsonObject.put(toKey, newV);
-                }
-            }
         }
     }
 }

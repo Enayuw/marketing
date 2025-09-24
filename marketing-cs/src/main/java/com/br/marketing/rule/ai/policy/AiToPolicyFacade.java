@@ -1,4 +1,4 @@
-package com.br.marketing.rule.ai.strategy;
+package com.br.marketing.rule.ai.policy;
 
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -21,11 +21,10 @@ import org.springframework.stereotype.Service;
 public class AiToPolicyFacade implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Autowired
-    protected AiToPolicyStrategyFactory strategyFactory;
+    protected AiToPolicyProcessorFactory strategyFactory;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
-
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -43,6 +42,7 @@ public class AiToPolicyFacade implements AssembleData<PushMarketingUserDetailByR
             AbstractBaseAiToPolicy aiToPolicyBase = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
             return aiToPolicyBase.insertRecord(syncUser);
         }
+
         return false;
     }
 

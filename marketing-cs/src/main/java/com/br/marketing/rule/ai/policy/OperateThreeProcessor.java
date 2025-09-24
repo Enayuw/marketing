@@ -1,21 +1,14 @@
-package com.br.marketing.rule.ai.strategy;
+package com.br.marketing.rule.ai.policy;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -28,7 +21,7 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class OperateTypeThreeStrategy extends AbstractBaseAiToPolicy {
+public class OperateThreeProcessor extends AbstractBaseAiToPolicy {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -58,30 +51,6 @@ public class OperateTypeThreeStrategy extends AbstractBaseAiToPolicy {
             return ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
                     ? jsonObject.getString("batchNumber")
                     : (appletDate + "_" + apiCode);
-        }
-    }
-
-    @Override
-    public boolean insertRecord(MarketingSyncUser syncUser) {
-        AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
-        aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
-        aiToPolicyRecord.setUserType(syncUser.getUserType());
-        aiToPolicyRecord.setCustNum(syncUser.getCustNum());
-        aiToPolicyRecord.setApiCode(syncUser.getApiCode());
-        aiToPolicyRecord.setRuleLabel(getOperationType());
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        aiToPolicyRecord.setCreateDate(Integer.valueOf(yyyyMMdd));
-        
-        try {
-            aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
-            return true;
-        } catch (DuplicateKeyException e) {
-            log.warn("AI自动化推决策_操作类型3,数据重复，fingerprint:{}", syncUser.getFingerprint());
-            return false;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(), 
-                    "AI自动化推决策_操作类型3,写去重表db异常："), e);
-            return true;
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.br.marketing.rule.ai.strategy;
+package com.br.marketing.rule.ai.policy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +16,15 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-public class AiToPolicyStrategyFactory {
+public class AiToPolicyProcessorFactory {
     
-    private final Map<String, AiToPolicyOperationStrategy> strategyMap;
+    private final Map<String, AiToPolicyProcessor> strategyMap;
     
     @Autowired
-    public AiToPolicyStrategyFactory(List<AiToPolicyOperationStrategy> strategies) {
+    public AiToPolicyProcessorFactory(List<AiToPolicyProcessor> strategies) {
         this.strategyMap = strategies.stream()
                 .collect(Collectors.toMap(
-                    AiToPolicyOperationStrategy::getOperationType,
+                    AiToPolicyProcessor::getOperationType,
                     Function.identity(),
                     (existing, replacement) -> {
                         throw new IllegalStateException("重复的操作类型策略: " + existing.getOperationType());
@@ -49,8 +49,8 @@ public class AiToPolicyStrategyFactory {
     /**
      * 根据操作类型获取策略
      */
-    public AiToPolicyOperationStrategy getStrategy(String operationType) {
-        AiToPolicyOperationStrategy strategy = strategyMap.get(operationType);
+    public AiToPolicyProcessor getStrategy(String operationType) {
+        AiToPolicyProcessor strategy = strategyMap.get(operationType);
         if (strategy == null) {
             throw new IllegalArgumentException("不支持的操作类型: " + operationType);
         }
