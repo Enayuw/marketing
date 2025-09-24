@@ -15,6 +15,7 @@
         a.push_datasets as pushDatasets,
         a.auto_refresh as autoRefresh,
         a.reach_strategy as reachStrategy,
+        a.push_target as pushTarget,
         date_format(a.create_time,'%Y-%m-%d %T') as createTime,
         date_format(a.update_time,'%Y-%m-%d %T') as updateTime
         from b_marketing_push_decisions a

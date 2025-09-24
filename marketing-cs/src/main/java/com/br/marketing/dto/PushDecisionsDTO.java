@@ -46,4 +46,7 @@ public class PushDecisionsDTO {
     @ApiModelProperty(value = "是否自动刷新 0-否，1-是")
     private Integer autoRefresh;
 
+    @ApiModelProperty(value = "推送系统类型")
+    private Integer pushTarget;
+
 }
