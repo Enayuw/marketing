@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.XieChengReportHandlerConfigMapper" >
 
     <select id="selectHandlerNameByBizForm" resultType="java.lang.String">
-        select biz_form from b_xiecheng_report_handler_config
+        select handler_names from b_xiecheng_report_handler_config
         where is_delete = 0
         <if test="bizForm !=null and bizForm!=''">
             and biz_form = #{bizForm}

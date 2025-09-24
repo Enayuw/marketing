@@ -66,7 +66,7 @@ public class XieChengReportHandlerChain {
                     "携程上报：bizForm = " + bizForm + "，未查询到handlerNameList！"));
             return null;
         }
-        List<String> handlerNames = Splitter.on(",").splitToList(handlerNameList.get(0));
+        List<String> handlerNames = Splitter.on(",").splitToList(handlerNameList.get(0).trim());
         List<AbstractXieChengReportHandler> bizFormHandlers = xieChengReportHandlers.stream()
                 .filter(handler -> handlerNames.contains(handler.getName()))
                 .collect(Collectors.toList());

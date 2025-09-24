@@ -246,20 +246,6 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         }
     }
 
-    /**
-     * 纯短信，actionType取值
-     * @param smsCallbackAtOnce
-     * @return
-     */
-    private String judgeActionType(SmsCallbackAtOnce smsCallbackAtOnce) {
-        JSONObject real = variableAllocationService
-                .getAllocationValue(smsCallbackAtOnce.getApiCode(),"realReportLineRate");
-        if (real.containsKey("checkAll")) {
-            return real.getString("checkAll");
-        }
-        return real.getString("onlySms");
-    }
-
     private boolean isSms(String caseNum, String apiCode) {
         try {
         SmsCallbackAtOnceExample example = new SmsCallbackAtOnceExample();
