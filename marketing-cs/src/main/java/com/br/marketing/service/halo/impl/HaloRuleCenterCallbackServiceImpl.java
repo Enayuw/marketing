@@ -1,7 +1,5 @@
 package com.br.marketing.service.halo.impl;
 
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.halo.HaluoAiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.PushCustomerDTO;
@@ -131,48 +129,4 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
     }
-
-    /**
-     * 推送决策挡板开关
-     *
-     * @param apiCode
-     * @param switchType
-     * @param errorType
-     * @return
-     */
-    @Override
-    public Result<String> mockSwitch(String apiCode, String switchType, String errorType) {
-        boolean o = Boolean.FALSE;
-        HashMap<String, JSONObject> policyRetrySwitch = marketingCommonConfig.getCallbackSwitch();
-        JSONObject mock = policyRetrySwitch.get(apiCode);
-        if (mock.get("switch") == Boolean.TRUE) {
-            logger.warn("{}进入挡板",TITLE);
-            long start = System.currentTimeMillis();
-            Result<String> stringResult = callbackMessageMock(mock);
-            long end = System.currentTimeMillis();
-            logger.warn("{}结束挡板, result:{}, 耗时:{}", TITLE,stringResult, end - start);
-            return stringResult;
-        }else {
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
-        }
-    }
-
-    /**
-     * 促完件挡板
-     * @return
-     */
-    private Result<String> callbackMessageMock(Map<String, Object> mock) {
-        Result<String> result = new Result<>();
-        Integer code = (Integer) mock.get("code");
-        if(ResultCode.SUCCESS.getValue().equals(code)){
-            result.setDate("");
-            result.setCode(ResultCode.SUCCESS.getValue());
-            result.setMessage("");
-            return result;
-        }
-        result.setCode(ResultCode.FAIL.getValue());
-        result.setMessage("请求失败");
-        return result;
-    }
-
 }

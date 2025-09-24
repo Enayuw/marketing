@@ -230,21 +230,26 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
             Result<String> flag = new Result<>();
             try {
                 // 模拟推决策异常
-                Result<String> mockResult = haloRuleCenterCallbackService.mockSwitch(pushMarketingUserDTO.getApiCode(),
-                        MockSwitchEnum.HALO.getValue(), MockSwitchEnum.CALLBACKRETRY.getValue());
-                if (mockResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                    result.setCode(ResultCode.TIME_OUT.getValue());
+                HashMap<String, JSONObject> callbackSwitch = marketingCommonConfig.getCallbackSwitch();
+                JSONObject mock = callbackSwitch.get(pushMarketingUserDTO.getApiCode());
+                if (mock.get("switch") == Boolean.TRUE) {
+                    logger.warn("{}进入挡板", TITLE);
+                    long start = System.currentTimeMillis();
+                    flag = callbackMessageMock(mock);
+                    long end = System.currentTimeMillis();
+                    logger.warn("{}结束挡板, result:{}, 耗时:{}", TITLE, flag, end - start);
                 } else {
                     flag = haluoAiApiServiceClient.postHaluoCallbackApi(pushMarketingUserDTO.getJsonData());
-
-                    if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
-                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.SUCCESS.getCode());
-                        result.setCode(ResultCode.SUCCESS.getValue());
-                    } else {
-                        marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.FAIL.getCode());
-                        result.setCode(ResultCode.FAIL.getValue());
-                    }
                 }
+
+                if (ResultCode.SUCCESS.getValue().equals(flag.getCode())) {
+                    marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.SUCCESS.getCode());
+                    result.setCode(ResultCode.SUCCESS.getValue());
+                } else {
+                    marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.FAIL.getCode());
+                    result.setCode(ResultCode.FAIL.getValue());
+                }
+
             } catch (Exception e) {
                 marketingRuleCenterHaloCallbackDataMapper.updateStatus(ids, HaloCallbackStatusEnum.FAIL.getCode());
                 String errMsg = "哈啰硅基人业务异常: " + e.getMessage();
@@ -443,5 +448,24 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         }
 
         return condition.toString();
+    }
+
+    /**
+     * 回调挡板
+     *
+     * @return
+     */
+    private Result<String> callbackMessageMock(Map<String, Object> mock) {
+        Result<String> result = new Result<>();
+        Integer code = (Integer) mock.get("code");
+        if (ResultCode.SUCCESS.getValue().equals(code)) {
+            result.setDate("");
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("");
+            return result;
+        }
+        result.setCode(ResultCode.FAIL.getValue());
+        result.setMessage("请求失败");
+        return result;
     }
 }
