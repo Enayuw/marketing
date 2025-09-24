@@ -107,10 +107,6 @@ public class SyncServiceImpl implements SyncService {
                 Set<String> dateSet = new TreeSet<>();
                 Integer dataType = loanSyncConfig.getDataType();
 
-                if(!loanSyncConfig.getApiCode().equals("7492963")){
-                    continue;
-                }
-
                 if(Objects.equals(dataType, DataTypeEnum.SYNC_FILES.getValue())){
                     String executeTime = loanSyncConfig.getExecuteTime();
                     if(executeTime != null){
