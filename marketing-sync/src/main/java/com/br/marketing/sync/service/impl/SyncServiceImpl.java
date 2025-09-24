@@ -97,72 +97,79 @@ public class SyncServiceImpl implements SyncService {
 
     public void sync(List<SyncConfig> loanSyncConfigs){
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
-            log.warn("LoanSyncConfig:{}", JSONObject.toJSONString(loanSyncConfig));
+            try {
+                log.warn(TITLE + "开始处理配置 - apiCode:{}, id:{}", loanSyncConfig.getApiCode(), loanSyncConfig.getId());
 
-            Set<String> dateSet = new TreeSet<>();
-            Integer dataType = loanSyncConfig.getDataType();
+                Set<String> dateSet = new TreeSet<>();
+                Integer dataType = loanSyncConfig.getDataType();
 
-            if(Objects.equals(dataType, DataTypeEnum.SYNC_FILES.getValue())){
-                String executeTime = loanSyncConfig.getExecuteTime();
-                if(executeTime != null){
-                    JSONObject jsonObject = JSONObject.parseObject(executeTime);
-                    String day = jsonObject.getString("day");
-                    String time = jsonObject.getString("time");
+                if(Objects.equals(dataType, DataTypeEnum.SYNC_FILES.getValue())){
+                    String executeTime = loanSyncConfig.getExecuteTime();
+                    if(executeTime != null){
+                        JSONObject jsonObject = JSONObject.parseObject(executeTime);
+                        String day = jsonObject.getString("day");
+                        String time = jsonObject.getString("time");
 
-                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-                    String currentTime = sdf.format(new Date());
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                        String currentTime = sdf.format(new Date());
 
-                    // 判断当前时间是否大于executeTime执行时间，如果小于则跳过执行
-                    if(currentTime.compareTo(time) < 0){
-                        log.warn(TITLE+ "当前时间{}小于执行时间{}，跳过同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
-                        continue;
-                    }
-                    log.warn(TITLE+ "当前时间{}大于等于执行时间{}，继续执行同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
+                        // 判断当前时间是否大于executeTime执行时间，如果小于则跳过执行
+                        if(currentTime.compareTo(time) < 0){
+                            log.warn(TITLE + "当前时间{}小于执行时间{}，跳过同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
+                            continue;
+                        }
+                        log.warn(TITLE + "当前时间{}大于等于执行时间{}，继续执行同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
 
-                    // 根据day值决定要拉取的文件日期
-                    if(Objects.equals(day, ExecuteTimeEnum.YESTERDAY.getValue())){
-                        // day=0: T-1，拉取昨天的文件
-                        LocalDate yesterday = LocalDate.now().minusDays(1);
-                        String format = yesterday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-                        dateSet.add(format);
-                        log.warn(TITLE+ "day=0，拉取昨天的文件，日期：{}", format);
+                        // 根据day值决定要拉取的文件日期
+                        if(Objects.equals(day, ExecuteTimeEnum.YESTERDAY.getValue())){
+                            // day=0: T-1，拉取昨天的文件
+                            LocalDate yesterday = LocalDate.now().minusDays(1);
+                            String format = yesterday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                            dateSet.add(format);
+                            log.warn(TITLE + "day=0，拉取昨天的文件，日期：{}", format);
+                        } else {
+                            // 默认逻辑：当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
+                            dateSet.add(DateHelper.getDateByMinute(-60));
+                            dateSet.add(DateHelper.getDateAddYyMmDd(0));
+                        }
                     } else {
-                        // 默认逻辑：当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
-                        dateSet.add(DateHelper.getDateByMinute(-60));
-                        dateSet.add(DateHelper.getDateAddYyMmDd(0));
+                        log.warn(TITLE + "未配置执行时间,loanSyncConfigID：{}",loanSyncConfig.getId());
+                       continue;
                     }
                 } else {
-                    log.warn(TITLE+ "未配置执行时间,loanSyncConfigID：{}",loanSyncConfig.getId());
-                   continue;
+                    // 非同步文件类型，使用原有逻辑
+                    //当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
+                    dateSet.add(DateHelper.getDateByMinute(-60));
+                    dateSet.add(DateHelper.getDateAddYyMmDd(0));
                 }
-            } else {
-                // 非同步文件类型，使用原有逻辑
-                //当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
-                dateSet.add(DateHelper.getDateByMinute(-60));
-                dateSet.add(DateHelper.getDateAddYyMmDd(0));
-            }
+                String srcPath = loanSyncConfig.getSrcPath();
+                String targetPath = loanSyncConfig.getTargetPath();
+                for (String date : dateSet) {
+                    // 根据路径格式转换日期格式
+                    String formattedDate;
+                    if (srcPath.contains("yyyy-MM-dd")) {
+                        // 将yyyyMMdd格式转换为yyyy-MM-dd格式
+                        formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
+                        loanSyncConfig.setSrcPath(srcPath.replace("yyyy-MM-dd", formattedDate));
+                    } else {
+                        loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
+                    }
+                    if (targetPath.contains("yyyy-MM-dd")) {
+                        // 将yyyyMMdd格式转换为yyyy-MM-dd格式
+                        formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
+                        loanSyncConfig.setTargetPath(targetPath.replace("yyyy-MM-dd", formattedDate));
+                    } else {
+                        loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
+                    }
 
-            String srcPath = loanSyncConfig.getSrcPath();
-            String targetPath = loanSyncConfig.getTargetPath();
-            for (String date : dateSet) {
-                // 根据路径格式转换日期格式
-                String formattedDate;
-                if (srcPath.contains("yyyy-MM-dd")) {
-                    // 将yyyyMMdd格式转换为yyyy-MM-dd格式
-                    formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
-                    loanSyncConfig.setSrcPath(srcPath.replace("yyyy-MM-dd", formattedDate));
-                } else {
-                    loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
+                    Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
+                    syncFile(loanSyncConfig,stringListMap,date);
                 }
-                if (targetPath.contains("yyyy-MM-dd")) {
-                    // 将yyyyMMdd格式转换为yyyy-MM-dd格式
-                    formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
-                    loanSyncConfig.setTargetPath(targetPath.replace("yyyy-MM-dd", formattedDate));
-                } else {
-                    loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
-                }
-                Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
-                syncFile(loanSyncConfig,stringListMap,date);
+                log.warn(TITLE + "配置处理完成 - apiCode:{}, id:{}", loanSyncConfig.getApiCode(), loanSyncConfig.getId());
+            } catch (Exception configException) {
+                log.error(TITLE + "处理配置时出现异常 - apiCode:{}, id:{}, 错误:{}, 继续处理下一个配置",
+                        loanSyncConfig.getApiCode(), loanSyncConfig.getId(), configException.getMessage(), configException);
+                // 继续处理下一个配置
             }
         }
     }
