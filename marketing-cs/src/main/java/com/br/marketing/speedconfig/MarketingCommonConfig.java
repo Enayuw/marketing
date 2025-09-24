@@ -3427,5 +3427,11 @@ public class MarketingCommonConfig {
      * ["7410770"]
      */
     private List<String> ruleCenterPushView;
+
+    /**
+     * SFTP模拟异常挡板 {"7492963":true}
+     */
+    private Map<String, Boolean> sftpMockAbnormal;
+
 }
 
