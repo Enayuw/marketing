@@ -1,4 +1,4 @@
-package com.br.marketing.rule.ai.go;
+package com.br.marketing.rule.ai.strategy;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -11,7 +11,6 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
-import com.br.marketing.rule.ai.strategy.AiToPolicyStrategyFactory;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
@@ -23,26 +22,40 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 
 /**
  * AI推决策规则抽象基类
  * 定义模板方法，提供通用的业务逻辑
  * 子类可以选择性重写原子性方法
- * 
- * @author AI Assistant
- * @date 2024
  */
 @Slf4j
-public abstract class AiToPolicyBase implements AiToPolicyOperationStrategy {
-
+public abstract class AbstractBaseAiToPolicy {
     @Autowired
     protected MarketingCommonConfig marketingCommonConfig;
-
     @Autowired
     protected PushRuleService pushRuleService;
     @Autowired
     AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
+    @Autowired
+    protected AiToPolicyStrategyFactory strategyFactory;
+
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        if (transmitFact instanceof MarketingSyncUser) {
+            MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
+            String operateType = syncUser.getOperateType();
+            AbstractBaseAiToPolicy aiToPolicyBase = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
+            return aiToPolicyBase.insertRecord(syncUser);
+        }
+
+        return false;
+    }
+
+    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
+        String operateType = syncUser.getOperateType();
+        AbstractBaseAiToPolicy aiToPolicyBase = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
+        return aiToPolicyBase.getPushMarketingUserDetailByRuleDTO(syncUser, context);
+    }
 
     public boolean insertRecord(MarketingSyncUser syncUser) {
         AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
@@ -50,7 +63,7 @@ public abstract class AiToPolicyBase implements AiToPolicyOperationStrategy {
         aiToPolicyRecord.setUserType(syncUser.getUserType());
         aiToPolicyRecord.setCustNum(syncUser.getCustNum());
         aiToPolicyRecord.setApiCode(syncUser.getApiCode());
-        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode());
+        aiToPolicyRecord.setRuleLabel(CommonRuleLabelEnum.AI_TO_POLICY.getCode());
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
         aiToPolicyRecord.setCreateDate(Integer.valueOf(yyyyMMdd));
 
@@ -58,47 +71,43 @@ public abstract class AiToPolicyBase implements AiToPolicyOperationStrategy {
             aiToPolicyRecordMapperBase.insertSelective(aiToPolicyRecord);
             return true;
         } catch (DuplicateKeyException e) {
-            log.warn("AI自动化推决策_操作类型3,数据重复，fingerprint:{}", syncUser.getFingerprint());
+            log.warn("AI自动化推决策,数据重复，fingerprint:{}", syncUser.getFingerprint());
             return false;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DB_ERROR.getCode(), e.getMessage(),
-                    "AI自动化推决策_操作类型3,写去重表db异常："), e);
+                    "AI自动化推决策,写去重表db异常："), e);
             return true;
         }
     }
 
-    /**
-     * 模板方法：组装数据
-     */
-    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    private PushMarketingUserDetailByRuleDTO getPushMarketingUserDetailByRuleDTO(MarketingSyncUser syncUser, ProcessHandlerContext context) {
         CustomerTagsVO customerTagsVO = context.getCustomerTagsVO();
-        MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
-        
+
         // 创建PushData对象
         PushMarketingUserDetailByRuleDTO pushData = createPushData();
-        
+
         // 设置基础字段
         setInitId(pushData, syncUser);
         setCaseNumber(pushData, syncUser);
-        
+
         // 处理加密类型
         processEncryptType(pushData, syncUser, customerTagsVO);
-        
+
         // 解析reserveField1
         JSONObject jsonObject = parseReserveField1(syncUser);
-        
+
         // 执行字段映射
         executeFieldMapping(context, jsonObject);
-        
+
         // 处理策略相关字段
         processStrategyFields(pushData, syncUser, jsonObject);
-        
+
         // 构建JSON对象
         buildJsonObject(jsonObject, syncUser, customerTagsVO.getPushJc3keyType());
-        
+
         // 设置变量
         setVariables(pushData, jsonObject);
-        
+
         log.warn("AI自动化推决策_操作类型{},apiCode:{}", getOperationType(), syncUser.getApiCode());
         return pushData;
     }
@@ -166,25 +175,25 @@ public abstract class AiToPolicyBase implements AiToPolicyOperationStrategy {
     protected void processStrategyFields(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, JSONObject jsonObject) {
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
-        
+
         if (StringUtils.isNotBlank(syncUser.getReserveField1()) && ObjectUtil.isNotEmpty(jsonObject)) {
             // 处理策略代码
             processStrategyCode(jsonObject, syncUser);
-            
+
             // 处理用户类型
             processUserType(jsonObject, syncUser);
-            
+
             // 生成批次号
             String batchNumber = generateBatchNumber(syncUser);
             setBatchNumber(pushData, batchNumber);
-            
+
             // 生成批次名称
             String batchName = generateBatchName(jsonObject, appletDate, apiCode);
             setBatchName(pushData, batchName);
-            
+
             // 处理策略名称
             processStrategyName(jsonObject, pushData);
-            
+
             // 设置用户类型到JSON
             setUserTypeToJson(jsonObject, syncUser);
         }
@@ -247,7 +256,7 @@ public abstract class AiToPolicyBase implements AiToPolicyOperationStrategy {
         String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
                 ? jsonObject.getString("strategyName")
                 : "";
-        
+
         if (StringUtils.isNotEmpty(strategyCode)) {
             pushData.setStrategyCode(strategyCode);
             jsonObject.put("strategyName", strategyName);
@@ -274,13 +283,13 @@ public abstract class AiToPolicyBase implements AiToPolicyOperationStrategy {
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
-        
+
         // 添加基础字段
         addBasicFields(jsonObject, syncUser);
-        
+
         // 处理敏感信息
         processSensitiveInfo(jsonObject, syncUser, jc3keyType);
-        
+
         // 添加用户姓名
         addUserName(jsonObject, syncUser);
     }
@@ -338,4 +347,14 @@ public abstract class AiToPolicyBase implements AiToPolicyOperationStrategy {
     }
 
     // ==================== 抽象方法 - 子类必须实现 ====================
+
+    /**
+     * 获取操作类型
+     */
+    abstract String getOperationType();
+
+    /**
+     * 生成批次号
+     */
+    abstract String generateBatchNumber(MarketingSyncUser syncUser);
 }

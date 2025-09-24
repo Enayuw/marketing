@@ -1,11 +1,9 @@
 package com.br.marketing.rule.ai.strategy;
 
-import com.br.marketing.rule.ai.go.AiToPolicyOperationStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

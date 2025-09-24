@@ -1,37 +1,37 @@
-package com.br.marketing.rule.ai.go;
+package com.br.marketing.rule.ai.strategy;
 
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.rule.ai.strategy.AiToPolicyStrategyFactory;
+import com.br.marketing.rule.common.CommonRuleLabelEnum;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * AI推决策规则空壳类
  * 实现AssembleData接口，可以被Spring注册
- * 实际业务逻辑委托给AiToPolicyBase处理
- * 
- * @author AI Assistant
- * @date 2024
+ * 实际业务逻辑委托给AbstractBaseAiToPolicy处理
  */
 @Service
 @Slf4j
-public class AiToPolicyRule implements AssembleData<PushMarketingUserDetailByRuleDTO> {
+public class AiToPolicyFacade implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Autowired
     protected AiToPolicyStrategyFactory strategyFactory;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         String operateType = syncUser.getOperateType();
-        AiToPolicyBase aiToPolicyBase = (AiToPolicyBase) strategyFactory.getStrategy(operateType);
+        AbstractBaseAiToPolicy aiToPolicyBase = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
         return aiToPolicyBase.assemble(transmitFact, context);
     }
 
@@ -40,8 +40,7 @@ public class AiToPolicyRule implements AssembleData<PushMarketingUserDetailByRul
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
-            // todo 增加判断speed
-            AiToPolicyBase aiToPolicyBase = (AiToPolicyBase) strategyFactory.getStrategy(operateType);
+            AbstractBaseAiToPolicy aiToPolicyBase = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
             return aiToPolicyBase.insertRecord(syncUser);
         }
         return false;
@@ -49,7 +48,7 @@ public class AiToPolicyRule implements AssembleData<PushMarketingUserDetailByRul
 
     @Override
     public String label() {
-        return "AI_To_Policy";
+        return CommonRuleLabelEnum.AI_TO_POLICY.getCode();
     }
 
     @Override
