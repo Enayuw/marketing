@@ -28,6 +28,7 @@
     <result column="exclusion_time" property="exclusionTime" jdbcType="VARCHAR" />
     <result column="type" property="type" jdbcType="INTEGER" />
     <result column="customized_type" property="customizedType" jdbcType="INTEGER" />
+    <result column="execute_time" property="executeTime" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -91,7 +92,7 @@
     id, api_code, data_type, src_path, target_path, callback_path, suffix, check_finish, 
     check_success, `status`, remark, src_sftp_host, src_sftp_port, src_sftp_user, src_sftp_pwd, 
     target_sftp_host, target_sftp_port, target_sftp_user, target_sftp_pwd, create_time, 
-    update_time, src_type, target_type, exclusion_time, `type`, customized_type
+    update_time, src_type, target_type, exclusion_time, `type`, customized_type, execute_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SyncConfigExample" >
     select
@@ -135,7 +136,7 @@
       target_sftp_port, target_sftp_user, target_sftp_pwd, 
       create_time, update_time, src_type, 
       target_type, exclusion_time, `type`, 
-      customized_type)
+      customized_type, execute_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{srcPath,jdbcType=VARCHAR}, 
       #{targetPath,jdbcType=VARCHAR}, #{callbackPath,jdbcType=VARCHAR}, #{suffix,jdbcType=VARCHAR}, 
       #{checkFinish,jdbcType=INTEGER}, #{checkSuccess,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
@@ -144,7 +145,7 @@
       #{targetSftpPort,jdbcType=INTEGER}, #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{srcType,jdbcType=VARCHAR}, 
       #{targetType,jdbcType=VARCHAR}, #{exclusionTime,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, 
-      #{customizedType,jdbcType=INTEGER})
+      #{customizedType,jdbcType=INTEGER}, #{executeTime,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.SyncConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -227,6 +228,9 @@
       <if test="customizedType != null" >
         customized_type,
       </if>
+      <if test="executeTime != null" >
+        execute_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -303,6 +307,9 @@
       </if>
       <if test="customizedType != null" >
         #{customizedType,jdbcType=INTEGER},
+      </if>
+      <if test="executeTime != null" >
+        #{executeTime,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -393,6 +400,9 @@
       <if test="record.customizedType != null" >
         customized_type = #{record.customizedType,jdbcType=INTEGER},
       </if>
+      <if test="record.executeTime != null" >
+        execute_time = #{record.executeTime,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -425,7 +435,8 @@
       target_type = #{record.targetType,jdbcType=VARCHAR},
       exclusion_time = #{record.exclusionTime,jdbcType=VARCHAR},
       `type` = #{record.type,jdbcType=INTEGER},
-      customized_type = #{record.customizedType,jdbcType=INTEGER}
+      customized_type = #{record.customizedType,jdbcType=INTEGER},
+      execute_time = #{record.executeTime,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -508,6 +519,9 @@
       <if test="customizedType != null" >
         customized_type = #{customizedType,jdbcType=INTEGER},
       </if>
+      <if test="executeTime != null" >
+        execute_time = #{executeTime,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -537,7 +551,8 @@
       target_type = #{targetType,jdbcType=VARCHAR},
       exclusion_time = #{exclusionTime,jdbcType=VARCHAR},
       `type` = #{type,jdbcType=INTEGER},
-      customized_type = #{customizedType,jdbcType=INTEGER}
+      customized_type = #{customizedType,jdbcType=INTEGER},
+      execute_time = #{executeTime,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

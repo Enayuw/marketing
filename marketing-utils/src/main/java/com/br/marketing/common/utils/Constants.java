@@ -155,6 +155,7 @@ public class Constants {
     public static final Integer DATA_DEL = 9;
     public static final Integer STATUS_VOID = 0;
     public static final Integer STATUS_START = 1;
+    public static final Integer STATUS_DELETE = 2;
     /**
      * 加解密key
      */
