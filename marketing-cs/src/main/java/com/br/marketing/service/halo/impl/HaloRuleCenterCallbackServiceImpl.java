@@ -124,8 +124,12 @@ public class HaloRuleCenterCallbackServiceImpl implements HaloRuleCenterCallback
     @Override
     public Result canPushCallback(String apiCode) {
         List<String> apiCodeList = Arrays.asList(marketingCommonConfig.getHaloAIRuleCenterCallbackConfig().get("apiCodes").toString().split(","));
-        Boolean flag = apiCodeList.contains(apiCode);
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(flag);
+        boolean flag = apiCodeList.contains(apiCode);
+        if (flag) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+        } else {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
     }
 
     /**

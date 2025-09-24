@@ -493,6 +493,11 @@ public class MarketingCommonConfig {
     private Integer scoreToJcThreadNum;
 
     /**
+     * 规则筛选回调接口的线程数
+     */
+    private Integer scoreToCallbackThreadNum;
+
+    /**
      * 携程推送短信退订接口线程数设置
      */
     private String xieChengSmsQuitThreadNum;

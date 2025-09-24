@@ -49,6 +49,7 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
     public Result<Boolean> pushData(Long id) {
 
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
+        Integer pushTarget = customerInfoPushMain.getPushTarget();
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
         List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
@@ -67,10 +68,16 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
                 && marketingCommonConfig.getScoreByEsThreadNum() > 0
                 ? marketingCommonConfig.getScoreByEsThreadNum()
                 : 10;
+
         Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum() != null
                 && marketingCommonConfig.getScoreToJcThreadNum() > 0
                 ? marketingCommonConfig.getScoreToJcThreadNum()
                 : 2;
+
+        Integer getCallbackNum = marketingCommonConfig.getScoreToCallbackThreadNum() != null
+                && marketingCommonConfig.getScoreToCallbackThreadNum() > 0
+                ? marketingCommonConfig.getScoreToCallbackThreadNum()
+                : 10;
 
         String scoreFileYhTime = marketingCommonConfig.getScoreFileYhTime();
         Date yhTime = null;
@@ -95,7 +102,12 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
             getEsNum = 1;
         }
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
-        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
+        ThreadPoolExecutor pushJc;
+        if (RuleCenterPushTargetEnum.HALO_CALLBACK.getCode().equals(pushTarget)){
+            pushJc = BrExecutors.getThreadPool(getCallbackNum, getCallbackNum, 50);
+        }else {
+            pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
+        }
         Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
         String scoreCondition = customerInfoPushMain.getmScoreCondition();
         Object lableObject = null;
