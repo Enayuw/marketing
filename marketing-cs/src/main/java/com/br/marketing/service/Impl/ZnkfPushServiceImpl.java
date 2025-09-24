@@ -146,9 +146,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 }
             // 携程定制逻辑
             if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable task = () -> sendRocketMq(callRecord, apiCode);
-                scheduler.schedule(task, 5, TimeUnit.MINUTES);
+                if (isMockData(callRecord) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(apiCode)) {
+                    sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+                            MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+                            callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());
+                } else {
+                    // 使用负载均衡消费者逻辑
+                    handleWithConsumerRotation(callRecord);
+                }
             }
             List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
             if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())) {
@@ -169,17 +174,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             return "客服拨打记录落库失败(insert b_call_record fail)!";
         }
         return "success";
-    }
-
-    private void sendRocketMq(CallRecord callRecord, String apiCode) {
-        if (isMockData(callRecord) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(apiCode)) {
-            sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT,
-                    MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT,
-                    callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());
-        } else {
-            // 使用负载均衡消费者逻辑
-            handleWithConsumerRotation(callRecord);
-        }
     }
 
     // 3. 提取的方法
@@ -403,12 +397,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             smsCallbackAtOnceMapper.insertSelective(smsCallbackAtOnce);
 
             if (Objects.equals(5, dto.getCallBackType()) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(dto.getApiCode())) {
-                MqFact mqFact = new MqFact();
-                mqFact.setSourceId(smsCallbackAtOnce.getId());
-                mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK_AT_ONCE.getCode());
-                String message = JSON.toJSONString(mqFact);
                 rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_SMS_REPORT,
-                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_SMS_REPORT, message);
+                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_SMS_REPORT, smsCallbackAtOnce.getId().toString());
             }
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),

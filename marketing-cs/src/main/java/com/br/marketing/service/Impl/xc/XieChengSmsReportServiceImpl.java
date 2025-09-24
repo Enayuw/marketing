@@ -155,13 +155,14 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
         xieChengData.setApiCode(smsCallbackAtOnce.getApiCode());
         xieChengData.setLocalId(smsCallbackAtOnce.getId());
         xieChengData.setOriginId(smsCallbackAtOnce.getId());
-        xieChengData.setType(XcReportTypeEnum.SMS.toString());
+        xieChengData.setType(XcReportTypeEnum.SMS.getValue().toString());
         String actionType = judgeActionType(smsCallbackAtOnce);
         xieChengData.setActionType(Objects.nonNull(actionType) ? actionType.toUpperCase() : ACTIONTYPE_IVR);
         xieChengData.setPushStatus(XcReportPushStatusEnum.WAITED.getValue());
         xieChengData.setStatus(XcReportStatusEnum.SUCCESS.getValue());
         xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         xieChengData.setCreateTime(new Date());
+        xieChengData.setExtend(smsCallbackAtOnce.getReserveField1());
         xieChengData.setSha256Tel(smsCallbackAtOnce.getCaseNum());
         try {
             xieChengDataMapper.insertSelective(xieChengData);
@@ -198,6 +199,9 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
     private String judgeActionType(SmsCallbackAtOnce smsCallbackAtOnce) {
         JSONObject real = variableAllocationService
                 .getAllocationValue(smsCallbackAtOnce.getApiCode(),"realReportLineRate");
+        if(Objects.isNull(real)) {
+            return null;
+        }
         if (real.containsKey("checkAll")) {
             return real.getString("checkAll");
         }

@@ -121,30 +121,16 @@ public class MarketingXieChengConstants {
     public static final String TAG_MARKETING_XIECHENG_CPS_PUSH_ROBOT = "marketing.xiecheng.cps.push.robot";
 
     /**
-     * 转化数据大队列对应的 consumerGroup
-     */
-    public static final String GROUP_MARKETING_XIECHENG_REPORT = "Marketing_XieCheng_Report";
-
-    /**
-     * 转化数据通用处理 consumerGroup
-     */
-    public static final String TOPIC_MARKETING_XIECHENG_REPORT = "marketingXieChengReport";
-    /**
-     * 国美定制黑名单数据下发 consumerGroup
-     */
-    public static final String TAG_MARKETING_XIECHENG_REPORT = "marketing.xiecheng.report";
-
-    /**
-     * 转化数据大队列对应的 consumerGroup
+`     * 携程短信上报的 consumerGroup
      */
     public static final String GROUP_MARKETING_XIECHENG_SMS_REPORT = "Marketing_XieCheng_Sms_Report";
 
     /**
-     * 转化数据通用处理 consumerGroup
+     * 携程短信上报 consumerGroup
      */
     public static final String TOPIC_MARKETING_XIECHENG_SMS_REPORT = "marketingXieChengSmsReport";
     /**
-     * 国美定制黑名单数据下发 consumerGroup
+     * 携程短信上报 consumerGroup
      */
     public static final String TAG_MARKETING_XIECHENG_SMS_REPORT = "marketing.xiecheng.sms.report";
 
