@@ -118,7 +118,7 @@ public class UserCenterHandler {
             if (opeHighApiTypes.contains(apiType)) {
                 buildMerchant(apiCode, apiType, marketingCustomer);
             } else {
-                queryApiType(apiCode, apiType, opeHighApiTypes, marketingCustomer);
+                buildCustomer(apiCode, apiType, opeHighApiTypes, marketingCustomer);
             }
             redisChgService.unlock(key, lockValue);
             log.warn(TITLE + "handleDataUserCenter释放锁成功, {}", apiCode);
@@ -134,32 +134,6 @@ public class UserCenterHandler {
         List<MarketingDict> firstLevelDepartDictList = marketingDictMapper.getDictInfo(dicType);
         List<String> departs = firstLevelDepartDictList.stream().map(MarketingDict::getDictValue).collect(Collectors.toList());
         return departs.contains(firstDept);
-    }
-
-    /**
-     * 判断该apiCode是否已存在
-     *
-     * @param apiCode
-     * @param apiType
-     * @param opeHighApiTypes
-     * @param marketingCustomer
-     */
-    private void queryApiType(String apiCode, String apiType, List<String> opeHighApiTypes, MarketingCustomer marketingCustomer) {
-        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
-        marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode);
-        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
-        if (marketingCustomers.isEmpty()) {
-            buildCustomer(apiCode, apiType, marketingCustomer);
-            marketingCustomer.setCreateTime(new Date());
-            marketingCustomerMapper.insertSelective(marketingCustomer);
-        } else {
-            apiType = marketingCustomers.get(0).getApiType();
-            if (!opeHighApiTypes.contains(apiType)) {
-                buildCustomer(apiCode, apiType, marketingCustomer);
-                marketingCustomer.setUpdateTime(new Date());
-                marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
-            }
-        }
     }
 
     /**
@@ -213,9 +187,10 @@ public class UserCenterHandler {
      *
      * @param apiCode
      * @param apiType
+     * @param opeHighApiTypes
      * @param marketingCustomer
      */
-    private void buildCustomer(String apiCode, String apiType, MarketingCustomer marketingCustomer) {
+    private void buildCustomer(String apiCode, String apiType, List<String> opeHighApiTypes, MarketingCustomer marketingCustomer) {
         String customerMsg = RpcClientProxy.getCustomerMsg(apiCode);
         String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
         if (StringUtils.isNotEmpty(customerMsg) && StringUtils.isNotEmpty(companyMsg)) {
@@ -230,6 +205,21 @@ public class UserCenterHandler {
             marketingCustomer.setStatus(customerJSONObj.getByte("account_status"));
             marketingCustomer.setApiCode(apiCode);
             marketingCustomer.setApiType(apiType);
+            MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+            marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode);
+            List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+            if (marketingCustomers.isEmpty()) {
+                marketingCustomer.setCreateTime(new Date());
+                marketingCustomerMapper.insertSelective(marketingCustomer);
+            } else {
+                apiType = marketingCustomers.get(0).getApiType();
+                if (!opeHighApiTypes.contains(apiType)) {
+                    marketingCustomer.setUpdateTime(new Date());
+                    marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
+                }
+            }
+        } else {
+            log.warn("商户信息查询失败:customerMsg：{}-----，companyMsg：{}------ ", customerMsg, companyMsg);
         }
     }
 
