@@ -66,6 +66,8 @@ public class SyncServiceImpl implements SyncService {
     @Resource
     private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
 
+    private static final String TITLE = "【文件同步】";
+
     @Override
     public void getFromSftp() {
         List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1"
@@ -112,10 +114,10 @@ public class SyncServiceImpl implements SyncService {
 
                     // 判断当前时间是否大于executeTime执行时间，如果小于则跳过执行
                     if(currentTime.compareTo(time) < 0){
-                        log.warn("当前时间{}小于执行时间{}，跳过同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
+                        log.warn(TITLE+ "当前时间{}小于执行时间{}，跳过同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
                         continue;
                     }
-                    log.warn("当前时间{}大于等于执行时间{}，继续执行同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
+                    log.warn(TITLE+ "当前时间{}大于等于执行时间{}，继续执行同步任务，apiCode:{}", currentTime, time, loanSyncConfig.getApiCode());
 
                     // 根据day值决定要拉取的文件日期
                     if(Objects.equals(day, ExecuteTimeEnum.YESTERDAY.getValue())){
@@ -123,14 +125,14 @@ public class SyncServiceImpl implements SyncService {
                         LocalDate yesterday = LocalDate.now().minusDays(1);
                         String format = yesterday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                         dateSet.add(format);
-                        log.warn("day=0，拉取昨天的文件，日期：{}", format);
+                        log.warn(TITLE+ "day=0，拉取昨天的文件，日期：{}", format);
                     } else {
                         // 默认逻辑：当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
                         dateSet.add(DateHelper.getDateByMinute(-60));
                         dateSet.add(DateHelper.getDateAddYyMmDd(0));
                     }
                 } else {
-                    log.warn("未配置执行时间,loanSyncConfigID：{}",loanSyncConfig.getId());
+                    log.warn(TITLE+ "未配置执行时间,loanSyncConfigID：{}",loanSyncConfig.getId());
                    continue;
                 }
             } else {
@@ -329,7 +331,7 @@ public class SyncServiceImpl implements SyncService {
                     // 解析完整路径和文件名，格式为 "路径|文件名"
                     String[] parts = pathAndFileName.split("\\|");
                     if(parts.length != 2){
-                        log.warn("no_suffix类型-路径格式错误，跳过: {}", pathAndFileName);
+                        log.warn(TITLE+ "no_suffix类型-路径格式错误，跳过: {}", pathAndFileName);
                         continue;
                     }
                     
@@ -343,14 +345,14 @@ public class SyncServiceImpl implements SyncService {
 
                     syncConfig.setSrcPath(filePath);
                     syncConfig.setTargetPath(targetPath);
-                    log.warn("no_suffix类型-开始同步文件: {} 从路径: {} 到路径: {}", fileName, filePath, targetPath);
+                    log.warn(TITLE+ "no_suffix类型-开始同步文件: {} 从路径: {} 到路径: {}", fileName, filePath, targetPath);
                     
                     // no_suffix类型不需要checkFinishSuccess检查，直接同步所有文件
                     if (diskBoll && bean.downloadFileToLocalDisk(syncConfig, srcClient, fileName)) {
                         continue;
                     }
                     bean.copyFile(syncConfig, fileName, srcClient, targetClient);
-                    log.warn("no_suffix类型-文件同步完成: {}", fileName);
+                    log.warn(TITLE+ "no_suffix类型-文件同步完成: {}", fileName);
                 }
             }
         }
@@ -378,14 +380,14 @@ public class SyncServiceImpl implements SyncService {
             if (currentFilePath.startsWith(baseSrcPath)) {
                 String relativePath = currentFilePath.substring(baseSrcPath.length());
                 String targetPath = baseTargetPath + relativePath;
-                log.warn("计算目标路径: {} -> {}", currentFilePath, targetPath);
+                log.warn(TITLE+ "计算目标路径: {} -> {}", currentFilePath, targetPath);
                 return targetPath;
             } else {
-                log.warn("文件路径{}不在源路径{}下，使用原始目标路径", currentFilePath, originalSrcPath);
+                log.warn(TITLE+ "文件路径{}不在源路径{}下，使用原始目标路径", currentFilePath, originalSrcPath);
                 return originalTargetPath;
             }
         } catch (Exception e) {
-            log.error("计算目标路径失败，使用原始目标路径. originalSrcPath: {}, currentFilePath: {}", originalSrcPath, currentFilePath, e);
+            log.error(TITLE+ "计算目标路径失败，使用原始目标路径. originalSrcPath: {}, currentFilePath: {}", originalSrcPath, currentFilePath, e);
             return originalTargetPath;
         }
     }
@@ -433,8 +435,8 @@ public class SyncServiceImpl implements SyncService {
      */
     public void copyFile(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient, BaseFtpClient targetClient){
 
-        String srcPath = loanSyncConfig.getSrcPath();
-        String targetPath = loanSyncConfig.getTargetPath();
+        String srcPath = loanSyncConfig.getSrcPath().endsWith("/") ? loanSyncConfig.getSrcPath() : loanSyncConfig.getSrcPath() + "/";
+        String targetPath = loanSyncConfig.getTargetPath().endsWith("/") ? loanSyncConfig.getTargetPath() : loanSyncConfig.getTargetPath() + "/";
         InputStream inputStream=null;
         try{
             targetClient.mkdir(targetPath);
@@ -546,19 +548,23 @@ public class SyncServiceImpl implements SyncService {
             
             if("no_suffix".equals(suffixStr)){
                 // no_suffix类型需要递归遍历所有子目录
-                log.warn("no_suffix类型，开始递归遍历FTP目录: {}", srcPath);
+                log.warn(TITLE+ "no_suffix类型，开始递归遍历FTP目录: {}", srcPath);
                 ftpFileListRecursively(resultMap, loanSyncConfig, client, apiCode, srcPath);
             } else {
                 // 其他类型只遍历当前目录
                 FTPFile[] ftpFiles = client.listFiles(srcPath);
-                log.warn("FTP同步路径:{},该路径下文件有:{}个",srcPath,ftpFiles.length);
+                if (ftpFiles == null || ftpFiles.length == 0) {
+                    log.warn(TITLE+ "FTP目录为空或不存在，跳过遍历：{}", srcPath);
+                    return;
+                }
+                log.warn(TITLE+ "FTP同步路径:{},该路径下文件有:{}个",srcPath,ftpFiles.length);
                 for(FTPFile file:ftpFiles){
                     String fileName = file.getName();
                     Calendar timestamp = file.getTimestamp();
                     String createFileTime = DateUtils.parseDateTimeByDate( timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
-                    log.info("fileName:{},size:{},time:{}",fileName,file.getSize(),createFileTime);
+                    log.info(TITLE+ "fileName:{},size:{},time:{}",fileName,file.getSize(),createFileTime);
                     if(vaildExclusionTime(createFileTime,loanSyncConfig)){
-                        log.info("历史文件，不处理{},{}",fileName,createFileTime);
+                        log.info(TITLE+ "历史文件，不处理{},{}",fileName,createFileTime);
                         continue;
                     }
                     validateIsSync(createFileTime,fileName,apiCode,resultMap,loanSyncConfig);
@@ -575,7 +581,14 @@ public class SyncServiceImpl implements SyncService {
     private void ftpFileListRecursively(Map<String,List<String>> resultMap, SyncConfig loanSyncConfig, FtpClient client, String apiCode, String currentPath) {
         try {
             FTPFile[] ftpFiles = client.listFiles(currentPath);
-            log.warn("递归遍历FTP路径:{},该路径下文件有:{}个", currentPath, ftpFiles.length);
+            
+            // 检查返回结果，如果是空数组说明目录不存在或无文件
+            if (ftpFiles == null || ftpFiles.length == 0) {
+                log.warn(TITLE+ "FTP目录为空或不存在，跳过遍历：{}", currentPath);
+                return;
+            }
+            
+            log.warn(TITLE+ "递归遍历FTP路径:{},该路径下文件有:{}个", currentPath, ftpFiles.length);
             
             for(FTPFile file : ftpFiles){
                 String fileName = file.getName();
@@ -589,7 +602,7 @@ public class SyncServiceImpl implements SyncService {
                 
                 if (file.isDirectory()) {
                     // 如果是目录，递归遍历
-                    log.warn("发现子目录：{}，开始递归遍历", fullPath);
+                    log.warn(TITLE+ "发现子目录：{}，开始递归遍历", fullPath);
                     ftpFileListRecursively(resultMap, loanSyncConfig, client, apiCode, fullPath);
                 } else {
                     // 如果是文件，检查是否需要同步
@@ -597,14 +610,14 @@ public class SyncServiceImpl implements SyncService {
                     String createFileTime = DateUtils.parseDateTimeByDate(timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
                     log.warn("fileName:{},size:{},time:{}",fileName,file.getSize(),createFileTime);
                     if(vaildExclusionTime(createFileTime, loanSyncConfig)){
-                        log.warn("历史文件，不处理{},{}", fileName, createFileTime);
+                        log.warn(TITLE+ "历史文件，不处理{},{}", fileName, createFileTime);
                         continue;
                     }
                     validateIsSyncWithPath(createFileTime, fileName, apiCode, resultMap, loanSyncConfig, currentPath);
                 }
             }
         } catch (Exception e) {
-            log.error("递归遍历FTP目录出错，路径：{}", currentPath, e);
+            log.error(TITLE+ "递归遍历FTP目录出错，路径：{}", currentPath, e);
         }
     }
 
@@ -616,18 +629,18 @@ public class SyncServiceImpl implements SyncService {
                 
                 if("no_suffix".equals(suffixStr)){
                     // no_suffix类型需要递归遍历所有子目录
-                    log.warn("no_suffix类型，开始递归遍历SFTP目录: {}", srcPath);
+                    log.warn(TITLE+ "no_suffix类型，开始递归遍历SFTP目录: {}", srcPath);
                     sftpFileListRecursively(resultMap, loanSyncConfig, client, apiCode, srcPath);
                 } else {
                     // 其他类型只遍历当前目录
                     Map<String, SftpATTRS> map = client.listFiles(srcPath);
-                    log.warn("SFTP同步路径:{},该路径下文件有:{}个",srcPath,map.keySet().size());
+                    log.warn(TITLE+ "SFTP同步路径:{},该路径下文件有:{}个",srcPath,map.keySet().size());
                     for(Map.Entry<String, SftpATTRS> entry : map.entrySet()){
                         String fileName = entry.getKey();
                         SftpATTRS attrs = entry.getValue();
                         String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
                         if(vaildExclusionTime(createFileTime,loanSyncConfig)){
-                            log.warn("历史文件，不处理{},{}",fileName,createFileTime);
+                            log.warn(TITLE+ "历史文件，不处理{},{}",fileName,createFileTime);
                             continue;
                         }
                         validateIsSync(createFileTime,fileName,apiCode,resultMap,loanSyncConfig);
@@ -659,20 +672,20 @@ public class SyncServiceImpl implements SyncService {
                 
                 if (attrs.isDir()) {
                     // 如果是目录，递归遍历
-                    log.warn("发现子目录：{}，开始递归遍历", fullPath);
+                    log.warn(TITLE+ "发现子目录：{}，开始递归遍历", fullPath);
                     sftpFileListRecursively(resultMap, loanSyncConfig, client, apiCode, fullPath);
                 } else {
                     // 如果是文件，检查是否需要同步
                     String createFileTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
                     if(vaildExclusionTime(createFileTime, loanSyncConfig)){
-                        log.warn("历史文件，不处理{},{}", fileName, createFileTime);
+                        log.warn(TITLE+ "历史文件，不处理{},{}", fileName, createFileTime);
                         continue;
                     }
                     validateIsSyncWithPath(createFileTime, fileName, apiCode, resultMap, loanSyncConfig, currentPath);
                 }
             }
         } catch (Exception e) {
-            log.error("递归遍历SFTP目录出错，路径：{}", currentPath, e);
+            log.error(TITLE+ "递归遍历SFTP目录出错，路径：{}", currentPath, e);
         }
     }
 
@@ -688,7 +701,7 @@ public class SyncServiceImpl implements SyncService {
     private void validateIsSyncWithPath(String createFileTime, String fileName, String apiCode, Map<String, List<String>> resultMap, SyncConfig syncConfig, String currentPath) {
         long minutes = DateHelper.getDistanceMinutes(createFileTime);
         if(minutes<1){
-            log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
+            log.warn(TITLE+ "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
             return;
         }
         Map<String,String> params=new HashMap<>();
@@ -708,7 +721,7 @@ public class SyncServiceImpl implements SyncService {
                 }
                 String fullPathAndName = currentPath + "|" + fileName;
                 list.add(fullPathAndName);
-                log.warn("no_suffix类型-文件未同步过，加入同步队列: {}",fullPathAndName);
+                log.warn(TITLE+ "no_suffix类型-文件未同步过，加入同步队列: {}",fullPathAndName);
             } else {
                 // 其他类型：按后缀分类，只存储文件名
                 String[] split = fileName.split("\\.");
@@ -721,7 +734,7 @@ public class SyncServiceImpl implements SyncService {
                     }
                     list.add(fileName);
                 }else {
-                    log.warn("error fileName :{}",fileName);
+                    log.warn(TITLE+ "error fileName :{}",fileName);
                 }
             }
         }
@@ -738,7 +751,7 @@ public class SyncServiceImpl implements SyncService {
             ,SyncConfig syncConfig){
         long minutes = DateHelper.getDistanceMinutes(createFileTime);
         if(minutes<1){
-            log.warn("文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
+            log.warn(TITLE+ "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}",fileName,createFileTime);
             return;
         }
         Map<String,String> params=new HashMap<>();
@@ -758,7 +771,7 @@ public class SyncServiceImpl implements SyncService {
                     resultMap.put("no_suffix",list);
                 }
                 list.add(fileName);
-                log.warn("no_suffix类型-文件未同步过，加入同步队列: {}",fileName);
+                log.warn(TITLE+ "no_suffix类型-文件未同步过，加入同步队列: {}",fileName);
             } else {
                 // 其他类型：按后缀分类
                 String[] split = fileName.split("\\.");
@@ -771,7 +784,7 @@ public class SyncServiceImpl implements SyncService {
                     }
                     list.add(fileName);
                 }else {
-                    log.warn("error fileName :{}",fileName);
+                    log.warn(TITLE+ "error fileName :{}",fileName);
                 }
             }
         }
