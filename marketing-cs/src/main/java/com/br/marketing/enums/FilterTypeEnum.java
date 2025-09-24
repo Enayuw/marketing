@@ -2,12 +2,14 @@ package com.br.marketing.enums;
 
 public enum FilterTypeEnum {
 
-    GENERAL_POLICY(0,"通用推决策"),
-    XIECHENG_POLICY(1,"携程撞库结果推决策");
+    GENERAL_POLICY(0, "通用推决策"),
+    XIECHENG_POLICY(1, "携程撞库结果推决策"),
+    MERGE_POLICY(2, "合并数据推决策"),
+    HALO_CALLBACK(3, "哈啰回调");
 
     FilterTypeEnum(Integer value, String desc) {
         this.value = value;
-        this.desc=desc;
+        this.desc = desc;
     }
 
     private Integer value;

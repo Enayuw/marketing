@@ -104,6 +104,7 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisions.setPushDatasets(dto.getPushDatasets());
         pushDecisions.setReachStrategy(dto.getReachStrategy());
         pushDecisions.setAutoRefresh(dto.getAutoRefresh());
+        pushDecisions.setPushTarget(dto.getPushTarget());
         pushDecisions.setCreateTime(new Date());
         pushDecisions.setUpdateTime(new Date());
         pushDecisionsMapper.insertSelective(pushDecisions);
