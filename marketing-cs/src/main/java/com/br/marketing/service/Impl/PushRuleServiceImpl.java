@@ -81,6 +81,7 @@ import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
+import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
@@ -457,6 +458,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     TagHandleService tagHandleService;
 
+    @Resource
+    IEsActionService iEsActionService;
+
 
     @Override
     public Result<CustomerInfoPushMain> getPushTask() {
@@ -679,7 +683,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             String mTagCondition = dto.getmTagCondition();
             if (mTagCondition == null) {
-                total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                total = iEsActionService.getTotal(queryBaseBean);
             } else {
                 // 解析标签规则
                 JSONObject jsonObject = JSON.parseObject(mTagCondition);
@@ -759,7 +763,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (StringUtils.isEmpty(federatedQuerySql)) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
         }
-        tagDataDetailMapper.queryPreviewTotalbI_("refresh catalog es");
+        try {
+            tagDataDetailMapper.refreshbI_("refresh catalog es");
+        }catch (Exception e){
+            log.error("refresh catalog es异常");
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("refresh catalog es异常");
+        }
         int total = tagDataDetailMapper.queryPreviewTotalbI_(federatedQuerySql);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
     }
@@ -1838,7 +1847,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isEmpty(querySql)) {
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("查询有误，请联系开发人员");
             }
-            log.warn("标签查询sql："+querySql);
+            log.warn("标签查询sql：" + querySql);
             Integer total = tagDataDetailMapper.queryPreviewTotalbI_(querySql);
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
         } catch (Exception e) {
@@ -1993,7 +2002,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             searchAfterStr = marketingHistories.get(marketingHistories.size() - 1).getSearchAfter();
                         }
 
-                        if(customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()){
+                        if (customerInfoPushMain.getTagContent() != null && !marketingHistories.isEmpty()) {
                             // 解析标签规则
                             JSONObject jsonObject = JSON.parseObject(customerInfoPushMain.getTagContent());
                             String tagCode = jsonObject.getString("tagCode");
@@ -2526,7 +2535,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 批量添加唯一ID
      *
-     * @param list 数据列表
+     * @param list        数据列表
      * @param setConsumer 赋值函数
      * @param getFunction 获取ID函数，如果获取ID为空，则添加ID,可为 null
      */
@@ -2813,10 +2822,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType) {
-        log.warn("进入自动化推决策规则ToPolicyCommonRule："+JSONObject.toJSONString(syncUser));
+        log.warn("进入自动化推决策规则ToPolicyCommonRule：" + JSONObject.toJSONString(syncUser));
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(!isOpenNewEncrypt){
-            if(jc3keyType == null){
+        if (!isOpenNewEncrypt) {
+            if (jc3keyType == null) {
                 jc3keyType = CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue();
             }
             pushData.setPhone(getOld3keyValue(syncUser.getCell(), "cell", jc3keyType));
@@ -2875,7 +2884,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
-        if(isOpenNewEncrypt){
+        if (isOpenNewEncrypt) {
             if (CustomerTagsValue.PushJc3keyTypeEnum.PLAINTEXT.getValue().equals(encryptionType)) {
                 return StringUtils.isNotBlank(content) ? BrCipherMaker.getInstance().decode(content) : content;
             }
@@ -2920,6 +2929,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return null;
     }
+
     /**
      * 根据配置表发送到对应MQ
      * 配置表：b_marketing_customer_routingKey_mapping

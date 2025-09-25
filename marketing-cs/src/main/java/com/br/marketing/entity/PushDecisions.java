@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class PushDecisions {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -47,6 +47,11 @@ public class PushDecisions {
      * 触达策略
      */
     private String reachStrategy;
+
+    /**
+     * 0:推送决策,1:数据打标,2:合并数据推送决策
+     */
+    private Integer pushTarget;
 
     /**
      * 1-有效；9-无效
@@ -138,6 +143,14 @@ public class PushDecisions {
 
     public void setReachStrategy(String reachStrategy) {
         this.reachStrategy = reachStrategy == null ? null : reachStrategy.trim();
+    }
+
+    public Integer getPushTarget() {
+        return pushTarget;
+    }
+
+    public void setPushTarget(Integer pushTarget) {
+        this.pushTarget = pushTarget;
     }
 
     public Integer getIsDel() {

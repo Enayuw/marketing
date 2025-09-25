@@ -8,6 +8,7 @@
     <result column="cipher_mode" property="cipherMode" jdbcType="VARCHAR" />
     <result column="padding_scheme" property="paddingScheme" jdbcType="VARCHAR" />
     <result column="charset" property="charset" jdbcType="VARCHAR" />
+    <result column="iv" property="iv" jdbcType="VARCHAR" />
     <result column="dynamic_keys" property="dynamicKeys" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="check_type" property="checkType" jdbcType="INTEGER" />
@@ -74,7 +75,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, three_k_encrypt_type, cipher_mode, padding_scheme, charset, dynamic_keys, 
+    id, api_code, three_k_encrypt_type, cipher_mode, padding_scheme, charset, iv, dynamic_keys, 
     is_del, check_type, score_separator, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomerConfigExample" >
@@ -112,13 +113,15 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_customer_config (api_code, three_k_encrypt_type, cipher_mode, 
-      padding_scheme, charset, dynamic_keys, 
-      is_del, check_type, score_separator, 
-      create_time, update_time)
+      padding_scheme, charset, iv, 
+      dynamic_keys, is_del, check_type, 
+      score_separator, create_time, update_time
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{threeKEncryptType,jdbcType=INTEGER}, #{cipherMode,jdbcType=VARCHAR}, 
-      #{paddingScheme,jdbcType=VARCHAR}, #{charset,jdbcType=VARCHAR}, #{dynamicKeys,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{checkType,jdbcType=INTEGER}, #{scoreSeparator,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{paddingScheme,jdbcType=VARCHAR}, #{charset,jdbcType=VARCHAR}, #{iv,jdbcType=VARCHAR}, 
+      #{dynamicKeys,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{checkType,jdbcType=INTEGER}, 
+      #{scoreSeparator,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomerConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -140,6 +143,9 @@
       </if>
       <if test="charset != null" >
         charset,
+      </if>
+      <if test="iv != null" >
+        iv,
       </if>
       <if test="dynamicKeys != null" >
         dynamic_keys,
@@ -175,6 +181,9 @@
       </if>
       <if test="charset != null" >
         #{charset,jdbcType=VARCHAR},
+      </if>
+      <if test="iv != null" >
+        #{iv,jdbcType=VARCHAR},
       </if>
       <if test="dynamicKeys != null" >
         #{dynamicKeys,jdbcType=VARCHAR},
@@ -223,6 +232,9 @@
       <if test="record.charset != null" >
         charset = #{record.charset,jdbcType=VARCHAR},
       </if>
+      <if test="record.iv != null" >
+        iv = #{record.iv,jdbcType=VARCHAR},
+      </if>
       <if test="record.dynamicKeys != null" >
         dynamic_keys = #{record.dynamicKeys,jdbcType=VARCHAR},
       </if>
@@ -254,6 +266,7 @@
       cipher_mode = #{record.cipherMode,jdbcType=VARCHAR},
       padding_scheme = #{record.paddingScheme,jdbcType=VARCHAR},
       charset = #{record.charset,jdbcType=VARCHAR},
+      iv = #{record.iv,jdbcType=VARCHAR},
       dynamic_keys = #{record.dynamicKeys,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       check_type = #{record.checkType,jdbcType=INTEGER},
@@ -281,6 +294,9 @@
       </if>
       <if test="charset != null" >
         charset = #{charset,jdbcType=VARCHAR},
+      </if>
+      <if test="iv != null" >
+        iv = #{iv,jdbcType=VARCHAR},
       </if>
       <if test="dynamicKeys != null" >
         dynamic_keys = #{dynamicKeys,jdbcType=VARCHAR},
@@ -310,6 +326,7 @@
       cipher_mode = #{cipherMode,jdbcType=VARCHAR},
       padding_scheme = #{paddingScheme,jdbcType=VARCHAR},
       charset = #{charset,jdbcType=VARCHAR},
+      iv = #{iv,jdbcType=VARCHAR},
       dynamic_keys = #{dynamicKeys,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       check_type = #{checkType,jdbcType=INTEGER},

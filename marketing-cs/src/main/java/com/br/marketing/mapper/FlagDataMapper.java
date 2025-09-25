@@ -4,6 +4,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.dto.mark.FlagDataCarryLogCell;
 import com.br.marketing.dto.mark.FlagDataEsMark;
 import com.br.marketing.entity.FlagData;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -93,4 +94,9 @@ public interface FlagDataMapper extends FlagDataMapperBase {
     Long queryCountBySql(@Param("querySql") String querySql);
 
     Long queryCountBySqlbI_(@Param("querySql") String querySql);
+
+    @MapKey(value = "column_name")
+    List<Map<String, Object>> getTableColumnsbI_(@Param("tableName") String tableName);
+
+    void createTablebI_(@Param("createSql") String createSql);
 }

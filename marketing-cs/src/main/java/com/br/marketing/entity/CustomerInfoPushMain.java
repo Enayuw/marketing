@@ -117,7 +117,7 @@ public class CustomerInfoPushMain implements Serializable {
     private String optUserName;
 
     /**
-     * 任务类型 0 跑分数据推决策, 1 跑分及撞库结果筛选推决策
+     * 任务类型 0 跑分数据推决策, 1 跑分及撞库结果筛选推决策, 2 合并跑分数据推决策, 3 哈啰硅基人回调
      */
     private Integer filterType;
 
