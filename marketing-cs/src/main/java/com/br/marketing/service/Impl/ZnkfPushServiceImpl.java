@@ -189,7 +189,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         messageDTO.setSourceId(originId);
         messageDTO.setType(type);
         messageDTO.setIdempotentKey(String.valueOf(snowflakeRedisGeneratorHandle.nextId()));
-        return messageDTO.toString();
+        return JSONObject.toJSONString(messageDTO);
     }
 
     // 3. 提取的方法
@@ -413,8 +413,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             smsCallbackAtOnceMapper.insertSelective(smsCallbackAtOnce);
 
             if (Objects.equals(5, dto.getCallBackType()) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(dto.getApiCode())) {
+                String message = genMessage(smsCallbackAtOnce.getId(), XcReportTypeEnum.SMS.getValue());
                 rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_SMS_REPORT,
-                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_SMS_REPORT, smsCallbackAtOnce.getId().toString());
+                        MarketingXieChengConstants.TAG_MARKETING_XIECHENG_SMS_REPORT, message);
             }
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),

@@ -10,6 +10,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.XieChengReportContext;
+import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 import com.br.marketing.entity.SmsCallbackAtOnce;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.enums.XcReportPushStatusEnum;
@@ -67,7 +68,8 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
     private static final String ACTIONTYPE_IVR = "IVR";
 
     @Override
-    public Result pushXieChengData(Long sourceId) {
+    public Result pushXieChengData(XieChengReportMessageDTO messageDTO) {
+        Long sourceId = messageDTO.getSourceId();
         long start = System.currentTimeMillis();
         SmsCallbackAtOnce smsCallbackAtOnce;
         XieChengData xieChengData;
