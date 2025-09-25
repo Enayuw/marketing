@@ -30,8 +30,8 @@ public class AiToPolicyFacade implements AssembleData<PushMarketingUserDetailByR
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         String operateType = syncUser.getOperateType();
-        AbstractBaseAiToPolicy aiToPolicyBase = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
-        return aiToPolicyBase.assemble(transmitFact, context);
+        AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
+        return abstractBaseAiToPolicy.assembleData(transmitFact, context);
     }
 
     @Override

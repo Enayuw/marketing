@@ -75,7 +75,7 @@ public class OperateSixProcessor extends AbstractBaseAiToPolicy {
                 AiToPolicyRecordExample example = new AiToPolicyRecordExample();
                 example.createCriteria().andCreateDateEqualTo(createDate)
                         .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
-                        .andRuleLabelEqualTo(getOperationType())
+                        .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode())
                         .andCustNumEqualTo(cell);
                 int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
                 batchNumber = yyyyMMdd + "-" + apiCode + "-6" + "-" + userType + "-" + pushCount;

@@ -144,9 +144,6 @@ import java.util.stream.Collectors;
 public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode();
     public static final String AI_TO_POLICY = CommonRuleLabelEnum.AI_TO_POLICY.getCode();
 
     private static HashMap<String, String> errorCodeHm;
