@@ -493,6 +493,11 @@ public class MarketingCommonConfig {
     private Integer scoreToJcThreadNum;
 
     /**
+     * 规则筛选回调接口的线程数
+     */
+    private Integer scoreToCallbackThreadNum;
+
+    /**
      * 携程推送短信退订接口线程数设置
      */
     private String xieChengSmsQuitThreadNum;
@@ -2617,6 +2622,11 @@ public class MarketingCommonConfig {
     private HashMap<String, JSONObject> policyRetrySwitch;
 
     /**
+     * 哈啰硅基人挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, JSONObject> callbackSwitch;
+
+    /**
      * 萨摩耶黑名单推送配置
      * eg:{"mock":"1","poolCoreSize":"10","poolMaxSize":"20"}
      * mock 1 开启
@@ -3379,6 +3389,11 @@ public class MarketingCommonConfig {
     private JSONObject haloAiCallbackConfig;
 
     /**
+     * 规则中心哈啰硅基人回调配置
+     */
+    private JSONObject haloAIRuleCenterCallbackConfig;
+
+    /**
      * 携程cpa 撞库日志写入rabbit-rocket 切换开关
      */
     private Boolean xieChengCallingCpaLogSwitch;
@@ -3412,5 +3427,11 @@ public class MarketingCommonConfig {
      * ["7410770"]
      */
     private List<String> ruleCenterPushView;
+
+    /**
+     * SFTP模拟异常挡板 {"7492963":true}
+     */
+    private Map<String, Boolean> sftpMockAbnormal;
+
 }
 
