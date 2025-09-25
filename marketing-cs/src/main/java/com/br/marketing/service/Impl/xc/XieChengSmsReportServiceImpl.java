@@ -83,14 +83,14 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
             xieChengData = keepRecord(smsCallbackAtOnce, messageDTO);
-        } catch (DuplicateKeyException e) {
+        } catch (DuplicateKeyException exception) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程短信上报异常，消息重复消费入库，SmsCallbackAtOnceId=" + sourceId));
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        } catch (Exception e) {
+            throw exception;
+        } catch (Exception exception) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程短信上报异常，通话明细查询或携程短信上报插入异常，消息将退回队列中，SmsCallbackAtOnceId=" + sourceId));
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+            throw exception;
         }
         try {
             //3.获取tcId
@@ -101,7 +101,7 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
             context.setPushConfig(XieChengReportContext.PushConfig.fromJson(condition));
             context.getAdReqDTO().setConditionKey(context.getPushConfig().getConditionKey());
             //5.获取Redis锁
-            lockKey = RedisKeyConstant.pushXieChengSmsLock
+            lockKey = RedisKeyConstant.pushXieChengLock
                     + ":" + context.getType()
                     + ":" + context.getPushConfig().getConditionKey()
                     + ":" + context.getSha256Tel();
@@ -137,7 +137,7 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
             updateResult(context.getResultData());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                    "携程短信上报异常，callRecordId=" + sourceId + ",errorMessage=" + e.getMessage()), e);
+                    "携程短信上报异常，SmsCallbackAtOnceId=" + sourceId + ",errorMessage=" + e.getMessage()), e);
         } finally {
             if (lockKey != null && lockValue != null) {
                 try {
@@ -157,7 +157,7 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
         xieChengData.setApiCode(smsCallbackAtOnce.getApiCode());
         xieChengData.setLocalId(smsCallbackAtOnce.getId());
         xieChengData.setOriginId(smsCallbackAtOnce.getId());
-        xieChengData.setType(XcReportTypeEnum.SMS.getValue().toString());
+        xieChengData.setType(messageDTO.getType().toString());
         String actionType = judgeActionType(smsCallbackAtOnce);
         xieChengData.setActionType(Objects.nonNull(actionType) ? actionType.toUpperCase() : ACTIONTYPE_IVR);
         xieChengData.setPushStatus(XcReportPushStatusEnum.WAITED.getValue());
@@ -169,6 +169,8 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
         xieChengData.setSha256Tel(smsCallbackAtOnce.getCaseNum());
         try {
             xieChengDataMapper.insertSelective(xieChengData);
+        } catch (DuplicateKeyException duplicateKeyException) {
+            throw duplicateKeyException;
         } catch (Exception e) {
             log.warn("携程短信上报写入b_xiecheng_data异常！");
             DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();

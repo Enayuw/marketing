@@ -2,6 +2,7 @@ package com.br.marketing.chain.xiecheng;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.entity.XieChengReportHandlerConfig;
@@ -13,7 +14,10 @@ import com.br.marketing.thread.TaggedFuture;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeansException;
@@ -40,10 +44,6 @@ public class XieChengReportHandlerChain {
     private List<AbstractXieChengReportHandler> xieChengReportHandlers;
 
     @Resource
-    @Qualifier("xieChengReportThreadPool")
-    ThreadPoolExecutor threadPool;
-
-    @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
@@ -56,7 +56,7 @@ public class XieChengReportHandlerChain {
         xieChengReportHandlerCache = Caffeine.newBuilder()
                 .maximumSize(100)
                 .expireAfterWrite(1, TimeUnit.HOURS)
-                .build(key -> fetchXieChengReportHandlerChain(key));
+                .build(this::fetchXieChengReportHandlerChain);
     }
 
     private List<AbstractXieChengReportHandler> fetchXieChengReportHandlerChain(String bizForm) {
@@ -67,18 +67,16 @@ public class XieChengReportHandlerChain {
             return null;
         }
         List<String> handlerNames = Splitter.on(",").splitToList(handlerNameList.get(0).trim());
-        List<AbstractXieChengReportHandler> bizFormHandlers = xieChengReportHandlers.stream()
+        return xieChengReportHandlers.stream()
                 .filter(handler -> handlerNames.contains(handler.getName()))
                 .collect(Collectors.toList());
-        return bizFormHandlers;
     }
 
     public void handle(XieChengReportContext context) {
-        threadPool.setCorePoolSize(marketingCommonConfig.getXcMqReportHandlerThreadNum());
-        threadPool.setMaximumPoolSize(marketingCommonConfig.getXcMqReportHandlerThreadNum());
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CALL_SMS_REPORT.getName(), 50, 50);
         //1.根据context中的type和conditionKey获取对应的handlerChain
         String bizForm = context.getType() + "-" + context.getPushConfig().getConditionKey();
-        List<AbstractXieChengReportHandler> handlers = xieChengReportHandlerCache.get(bizForm);
+        List<AbstractXieChengReportHandler> handlers = xieChengReportHandlerCache.asMap().getOrDefault(bizForm, Lists.newArrayList());
         //2.先执行pre阶段的handler(去重)，目前只有一个handler，不需要排序，后续若有多个，可在handler中添加order来排序
         List<AbstractXieChengReportHandler> preHandlers = handlers.stream()
                 .filter(handler -> HandlerStageEnum.PRE.name().equals(handler.getStage())).collect(Collectors.toList());

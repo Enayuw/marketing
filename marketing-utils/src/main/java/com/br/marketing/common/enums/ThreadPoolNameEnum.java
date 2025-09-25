@@ -51,11 +51,9 @@ public enum ThreadPoolNameEnum {
     TCYR_CPA_COLLIDING_FAIL_DEAL(29,"tcyr_cpa_colliding_fail_deal_3710208","同程易融cpa_colliding_fail_deal流程"),
     TCYR_CPA_PUSH_FILE_GEN(30,"tcyr_cpa_push_file_gen_3710208","同程易融cpa_push_file_gen流程"),
 
+    HALO_CALLBACK_3710212(31,"halo_callback_3710212","哈啰硅基人数据回调"),
 
-
-    HALO_CALLBACK_3710212(30,"halo_callback_3710212","哈啰硅基人数据回调"),
-
-
+    XIECHENG_CALL_SMS_REPORT(32,"xiecheng_call_sms_report", "携程童话&短信明细上报"),
 
     ;
 

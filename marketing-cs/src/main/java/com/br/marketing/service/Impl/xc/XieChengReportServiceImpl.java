@@ -90,14 +90,14 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             }
             //2.插入【b_xiecheng_data】
             xieChengData = keepRecord(callRecord, messageDTO);
-        } catch (DuplicateKeyException e) {
+        } catch (DuplicateKeyException exception) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，消息重复消费入库，callRecoordId=" + sourceId));
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        } catch (Exception e) {
+            throw exception;
+        } catch (Exception exception) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，通话明细查询或携程上报插入异常，消息将退回队列中，callRecoordId=" + sourceId));
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
+            throw exception;
         }
         try {
             //3.获取tcId
@@ -176,8 +176,9 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         xieChengData.setSha256Tel(callRecord.getCaseNum());
         try {
             xieChengDataMapper.insertSelective(xieChengData);
+        } catch (DuplicateKeyException duplicateKeyException) {
+            throw duplicateKeyException;
         } catch (Exception e) {
-            //todo 打下日志即可
             log.warn("携程上报写入b_xiecheng_data异常！");
             DatabaseOperationService.RetryConfig config = DatabaseOperationService.RetryConfig.builder().build();
             dbService.executeWithRetry(new DatabaseOperationService.SqlOperation() {
