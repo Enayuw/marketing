@@ -389,22 +389,26 @@ public class QiFuServiceImpl implements IQiFuService {
                 return "";
             }
 
+            // 新需求：只保留清洗逻辑，取清洗后的第一个券
+            String firstCouponName = coupons.getJSONObject(0).getString("couponName");
+            return cleanCouponName(firstCouponName);
+
             // 第一步：清洗字段 + 第二步：券分类
-            List<CouponInfo> couponInfos = new ArrayList<>();
-            for (int i = 0; i < coupons.size(); i++) {
-                String couponName = coupons.getJSONObject(i).getString("couponName");
-                String cleanedName = cleanCouponName(couponName);
-                CouponInfo couponInfo = classifyCoupon(cleanedName, i);
-                couponInfos.add(couponInfo);
-            }
-
-            // 如果只有一个券，直接返回清洗后的名称
-            if (couponInfos.size() == 1) {
-                return couponInfos.get(0).getCleanedName();
-            }
-
-            // 第三步：券优先级 + 第四步：返回结果
-            return selectBestCoupon(couponInfos);
+            // List<CouponInfo> couponInfos = new ArrayList<>();
+            // for (int i = 0; i < coupons.size(); i++) {
+            //     String couponName = coupons.getJSONObject(i).getString("couponName");
+            //     String cleanedName = cleanCouponName(couponName);
+            //     CouponInfo couponInfo = classifyCoupon(cleanedName, i);
+            //     couponInfos.add(couponInfo);
+            // }
+            // 
+            // // 如果只有一个券，直接返回清洗后的名称
+            // if (couponInfos.size() == 1) {
+            //     return couponInfos.get(0).getCleanedName();
+            // }
+            // 
+            // // 第三步：券优先级 + 第四步：返回结果
+            // return selectBestCoupon(couponInfos);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
@@ -613,6 +617,7 @@ public class QiFuServiceImpl implements IQiFuService {
     /**
      * 第三步：券优先级选择
      * 分期券>大额直减券>周转金>折扣券>小额直减券>普通券
+     * D20250919营销360AI 券字段清洗&优先级排序需求 取消使用
      */
     private String selectBestCoupon(List<CouponInfo> couponInfos) {
         if (couponInfos == null || couponInfos.isEmpty()) {

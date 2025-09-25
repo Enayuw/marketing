@@ -705,6 +705,66 @@ public class PushDecisionsExample {
             return (Criteria) this;
         }
 
+        public Criteria andPushTargetIsNull() {
+            addCriterion("push_target is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetIsNotNull() {
+            addCriterion("push_target is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetEqualTo(Integer value) {
+            addCriterion("push_target =", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetNotEqualTo(Integer value) {
+            addCriterion("push_target <>", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetGreaterThan(Integer value) {
+            addCriterion("push_target >", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_target >=", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetLessThan(Integer value) {
+            addCriterion("push_target <", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetLessThanOrEqualTo(Integer value) {
+            addCriterion("push_target <=", value, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetIn(List<Integer> values) {
+            addCriterion("push_target in", values, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetNotIn(List<Integer> values) {
+            addCriterion("push_target not in", values, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetBetween(Integer value1, Integer value2) {
+            addCriterion("push_target between", value1, value2, "pushTarget");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_target not between", value1, value2, "pushTarget");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

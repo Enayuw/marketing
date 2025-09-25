@@ -30,6 +30,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.dto.ObservedTaskObj;
 import com.br.marketing.task.thread.CoreScoreThread;
 import com.br.marketing.util.BrMonitorExecutor;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
@@ -296,7 +297,6 @@ public class TaskScoreServiceImpl {
                     MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();
                     marketingRetryEsExample.createCriteria()
                             .andApiCodeEqualTo(apiCode)
-                            .andAppletDateEqualTo(String.valueOf(LocalDate.now()))
                             .andRetryStatusEqualTo(0)
                             .andFileIdEqualTo(task.getFileId());
                     int i = marketingRetryEsMapper.countByExample(marketingRetryEsExample);
@@ -866,10 +866,8 @@ public class TaskScoreServiceImpl {
             if (nodeCache.getCurrentData() != null) {
                 int threadNum = Integer.parseInt(new String(nodeCache.getCurrentData().getData(), StandardCharsets.UTF_8));
                 threadContextNum.put(customer.getApiCode(), threadNum);
-                executor
-                        .setCorePoolSize(threadNum);
-                executor
-                        .setMaximumPoolSize(threadNum);
+                // 使用带重试机制的线程池调整工具类
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(executor, threadNum);
             }
         });
         try {
