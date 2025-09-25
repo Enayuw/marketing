@@ -89,7 +89,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
             //2.插入【b_xiecheng_data】
-            xieChengData = keepRecord(callRecord, messageDTO.getType());
+            xieChengData = keepRecord(callRecord, messageDTO);
         } catch (DuplicateKeyException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，消息重复消费入库，callRecoordId=" + sourceId));
@@ -159,17 +159,18 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         }
     }
 
-    private XieChengData keepRecord(CallRecord callRecord, Integer type) {
+    private XieChengData keepRecord(CallRecord callRecord, XieChengReportMessageDTO messageDTO) {
         XieChengData xieChengData = new XieChengData();
         xieChengData.setApiCode(callRecord.getApiCode());
         xieChengData.setLocalId(callRecord.getId());
         xieChengData.setOriginId(callRecord.getId());
-        xieChengData.setType(type.toString());
+        xieChengData.setType(messageDTO.getType().toString());
         String actionType = judgeActionType(callRecord);
         xieChengData.setActionType(actionType != null ? actionType.toUpperCase() : ACTIONTYPE_IVR);
         xieChengData.setPushStatus(XcReportPushStatusEnum.WAITED.getValue());
         xieChengData.setStatus(XcReportStatusEnum.SUCCESS.getValue());
         xieChengData.setExtend(callRecord.getUserProperties());
+        xieChengData.setIdempotentKey(messageDTO.getIdempotentKey());
         xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         xieChengData.setCreateTime(new Date());
         xieChengData.setSha256Tel(callRecord.getCaseNum());

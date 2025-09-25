@@ -82,7 +82,7 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
                         , "携程短信上报异常，未查询到短信明细，SmsCallbackAtOnceId=" + sourceId));
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
-            xieChengData = keepRecord(smsCallbackAtOnce);
+            xieChengData = keepRecord(smsCallbackAtOnce, messageDTO);
         } catch (DuplicateKeyException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程短信上报异常，消息重复消费入库，SmsCallbackAtOnceId=" + sourceId));
@@ -152,7 +152,7 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
         }
     }
 
-    private XieChengData keepRecord(SmsCallbackAtOnce smsCallbackAtOnce) {
+    private XieChengData keepRecord(SmsCallbackAtOnce smsCallbackAtOnce, XieChengReportMessageDTO messageDTO) {
         XieChengData xieChengData = new XieChengData();
         xieChengData.setApiCode(smsCallbackAtOnce.getApiCode());
         xieChengData.setLocalId(smsCallbackAtOnce.getId());
@@ -164,6 +164,7 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
         xieChengData.setStatus(XcReportStatusEnum.SUCCESS.getValue());
         xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         xieChengData.setCreateTime(new Date());
+        xieChengData.setIdempotentKey(messageDTO.getIdempotentKey());
         xieChengData.setExtend(smsCallbackAtOnce.getReserveField1());
         xieChengData.setSha256Tel(smsCallbackAtOnce.getCaseNum());
         try {
