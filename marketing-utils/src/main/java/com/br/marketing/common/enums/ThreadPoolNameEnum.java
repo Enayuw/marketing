@@ -53,7 +53,7 @@ public enum ThreadPoolNameEnum {
 
     HALO_CALLBACK_3710212(31,"halo_callback_3710212","哈啰硅基人数据回调"),
 
-    XIECHENG_CALL_SMS_REPORT(32,"xiecheng_call_sms_report", "携程童话&短信明细上报"),
+    XIECHENG_CALL_SMS_REPORT(32,"xiecheng_call_sms_report", "携程通话&短信明细上报"),
 
     ;
 
