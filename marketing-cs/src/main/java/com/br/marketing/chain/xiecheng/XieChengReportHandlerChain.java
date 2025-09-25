@@ -76,72 +76,75 @@ public class XieChengReportHandlerChain {
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.XIECHENG_CALL_SMS_REPORT.getName(), 50, 50);
         //1.根据context中的type和conditionKey获取对应的handlerChain
         String bizForm = context.getType() + "-" + context.getPushConfig().getConditionKey();
-        List<AbstractXieChengReportHandler> handlers = xieChengReportHandlerCache.asMap().getOrDefault(bizForm, Lists.newArrayList());
-        //2.先执行pre阶段的handler(去重)，目前只有一个handler，不需要排序，后续若有多个，可在handler中添加order来排序
-        List<AbstractXieChengReportHandler> preHandlers = handlers.stream()
-                .filter(handler -> HandlerStageEnum.PRE.name().equals(handler.getStage())).collect(Collectors.toList());
-        for (AbstractXieChengReportHandler preHandler : preHandlers) {
-            String preMessage = preHandler.process(context);
-            if (StringUtils.isNotBlank(preMessage)) {
-                context.setError(preMessage);
-                return;
-            }
-        }
-        //3.执行thread阶段，该阶段handler可以同时处理，为了提高效率，放在线程池中处理
-        List<Callable<String>> tasks = new ArrayList<>();
-        List<AbstractXieChengReportHandler> threadHandlers = handlers.stream()
-                .filter(handler -> HandlerStageEnum.THREAD.name().equals(handler.getStage())).collect(Collectors.toList());
-        // 线程池开启开关
-        if(marketingCommonConfig.getXcMqReportHandlerSwitch()){
-            for (AbstractXieChengReportHandler threadHandler : threadHandlers) {
-                String threadMessage = threadHandler.process(context);
-                if (StringUtils.isNotBlank(threadMessage)) {
-                    context.setError(threadMessage);
+        try {
+            List<AbstractXieChengReportHandler> handlers = xieChengReportHandlerCache.asMap().getOrDefault(bizForm, Lists.newArrayList());
+            //2.先执行pre阶段的handler(去重)，目前只有一个handler，不需要排序，后续若有多个，可在handler中添加order来排序
+            List<AbstractXieChengReportHandler> preHandlers = handlers.stream()
+                    .filter(handler -> HandlerStageEnum.PRE.name().equals(handler.getStage())).collect(Collectors.toList());
+            for (AbstractXieChengReportHandler preHandler : preHandlers) {
+                String preMessage = preHandler.process(context);
+                if (StringUtils.isNotBlank(preMessage)) {
+                    context.setError(preMessage);
                     return;
                 }
             }
-        }else {
-            for (AbstractXieChengReportHandler handler : threadHandlers) {
-                tasks.add(() -> handler.process(context));
-            }
-            List<TaggedFuture<String>> futures = new ArrayList<>();
-            try {
-                List<Future<String>> orgFutures = threadPool.invokeAll(tasks, 60, TimeUnit.SECONDS);
-                for (int i = 0; i < threadHandlers.size(); i++) {
-                    futures.add(new TaggedFuture(threadHandlers.get(i).getName(), orgFutures.get(i)));
-                }
-            } catch (InterruptedException e) {
-                for (Callable<String> task : tasks) {
-                    if (task instanceof Future) {
-                        ((Future) task).cancel(true);
+            //3.执行thread阶段，该阶段handler可以同时处理，为了提高效率，放在线程池中处理
+            List<Callable<String>> tasks = new ArrayList<>();
+            List<AbstractXieChengReportHandler> threadHandlers = handlers.stream()
+                    .filter(handler -> HandlerStageEnum.THREAD.name().equals(handler.getStage())).collect(Collectors.toList());
+            // 线程池开启开关
+            if (marketingCommonConfig.getXcMqReportHandlerSwitch()) {
+                for (AbstractXieChengReportHandler threadHandler : threadHandlers) {
+                    String threadMessage = threadHandler.process(context);
+                    if (StringUtils.isNotBlank(threadMessage)) {
+                        context.setError(threadMessage);
+                        return;
                     }
                 }
-                throw new RuntimeException("携程上报handler执行被中断", e);
-            }
-            List<String> messages = new ArrayList<>();
-            for (TaggedFuture<String> future : futures) {
+            } else {
+                for (AbstractXieChengReportHandler handler : threadHandlers) {
+                    tasks.add(() -> handler.process(context));
+                }
+                List<TaggedFuture<String>> futures = new ArrayList<>();
                 try {
-                    String message = future.getFuture().get(60, TimeUnit.SECONDS);
-                    messages.add(message);
+                    List<Future<String>> orgFutures = threadPool.invokeAll(tasks, 60, TimeUnit.SECONDS);
+                    for (int i = 0; i < threadHandlers.size(); i++) {
+                        futures.add(new TaggedFuture(threadHandlers.get(i).getName(), orgFutures.get(i)));
+                    }
                 } catch (InterruptedException e) {
-                    for (TaggedFuture<String> f : futures) {
-                        if (!f.getFuture().isDone()) {
-                            f.getFuture().cancel(true);
+                    for (Callable<String> task : tasks) {
+                        if (task instanceof Future) {
+                            ((Future) task).cancel(true);
                         }
                     }
-                    throw new RuntimeException("携程上报handler获取结果时被中断", e);
-                } catch (ExecutionException e) {
-                    messages.add(future.getTag() + ":" + e.getMessage());
-                    context.setExceptionFlag(true);
-                } catch (TimeoutException e) {
-                    messages.add(future.getTag() + ":" + e.getMessage());
-                    context.setExceptionFlag(true);
+                    throw new RuntimeException("携程上报handler执行被中断", e);
+                }
+                List<String> messages = new ArrayList<>();
+                for (TaggedFuture<String> future : futures) {
+                    try {
+                        String message = future.getFuture().get(60, TimeUnit.SECONDS);
+                        messages.add(message);
+                    } catch (InterruptedException e) {
+                        for (TaggedFuture<String> f : futures) {
+                            if (!f.getFuture().isDone()) {
+                                f.getFuture().cancel(true);
+                            }
+                        }
+                        throw new RuntimeException("携程上报handler获取结果时被中断", e);
+                    } catch (ExecutionException | TimeoutException e) {
+                        messages.add(future.getTag() + ":" + e.getMessage());
+                        context.setExceptionFlag(true);
+                    }
+                }
+                messages = messages.stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                if (!messages.isEmpty()) {
+                    context.setError(String.join(";", messages));
                 }
             }
-            messages = messages.stream()
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            if (messages.size() > 0) context.setError(String.join(";", messages));
+        } finally {
+            threadPool.shutdownAndAwaitTermination();
         }
     }
 
