@@ -10,8 +10,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.XieChengReportContext;
+import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.SmsCallbackAtOnce;
 import com.br.marketing.entity.SmsCallbackAtOnceExample;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.enums.SmsCallBackTypeEnum;
@@ -73,7 +73,8 @@ public class XieChengReportServiceImpl implements XieChengReportService {
     private static final String ACTIONTYPE_SMS = "SMS";
 
     @Override
-    public Result pushXieChengData(Long sourceId) {
+    public Result pushXieChengData(XieChengReportMessageDTO messageDTO) {
+        Long sourceId = messageDTO.getSourceId();
         long start = System.currentTimeMillis();
         CallRecord callRecord;
         XieChengData xieChengData;
@@ -88,7 +89,7 @@ public class XieChengReportServiceImpl implements XieChengReportService {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
             //2.插入【b_xiecheng_data】
-            xieChengData = keepRecord(callRecord);
+            xieChengData = keepRecord(callRecord, messageDTO.getType());
         } catch (DuplicateKeyException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，消息重复消费入库，callRecoordId=" + sourceId));
@@ -158,12 +159,12 @@ public class XieChengReportServiceImpl implements XieChengReportService {
         }
     }
 
-    private XieChengData keepRecord(CallRecord callRecord) {
+    private XieChengData keepRecord(CallRecord callRecord, Integer type) {
         XieChengData xieChengData = new XieChengData();
         xieChengData.setApiCode(callRecord.getApiCode());
         xieChengData.setLocalId(callRecord.getId());
         xieChengData.setOriginId(callRecord.getId());
-        xieChengData.setType(XcReportTypeEnum.CALL.getValue().toString());
+        xieChengData.setType(type.toString());
         String actionType = judgeActionType(callRecord);
         xieChengData.setActionType(actionType != null ? actionType.toUpperCase() : ACTIONTYPE_IVR);
         xieChengData.setPushStatus(XcReportPushStatusEnum.WAITED.getValue());

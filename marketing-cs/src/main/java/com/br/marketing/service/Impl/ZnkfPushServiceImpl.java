@@ -12,6 +12,7 @@ import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.customer.CallRecordBO;
@@ -20,8 +21,11 @@ import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
+import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.XcReportTypeEnum;
 import com.br.marketing.enums.XieChengConsumer;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.*;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
@@ -95,6 +99,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Resource
     private TableCreateServiceImpl tableCreateService;
 
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;;
+
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
     @Value("${otherConfig.alarm.appName:00}")
@@ -146,13 +153,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 }
             // 携程定制逻辑
             if (marketingCommonConfig.getXieChengReportMqConfig().containsKey(apiCode)) {
+                String message = genMessage(callRecord.getId(), XcReportTypeEnum.CALL.getValue());
                 if (isMockData(callRecord) && marketingCommonConfig.getXieChengCpaApiCodeList().contains(apiCode)) {
                     sendToRocketMQ(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
                             MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
-                            callRecord.getId().toString(), marketingCommonConfig.getXieChengReportMockDelaySeconds());
+                            message, marketingCommonConfig.getXieChengReportMockDelaySeconds());
                 } else {
                     // 使用负载均衡消费者逻辑
-                    handleWithConsumerRotation(callRecord);
+                    handleWithConsumerRotation(message);
                 }
             }
             List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
@@ -176,12 +184,20 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         return "success";
     }
 
+    private String genMessage(Long originId, Integer type) {
+        XieChengReportMessageDTO messageDTO = new XieChengReportMessageDTO();
+        messageDTO.setSourceId(originId);
+        messageDTO.setType(type);
+        messageDTO.setIdempotentKey(String.valueOf(snowflakeRedisGeneratorHandle.nextId()));
+        return messageDTO.toString();
+    }
+
     // 3. 提取的方法
-    private void handleWithConsumerRotation(CallRecord callRecord) {
+    private void handleWithConsumerRotation(String message) {
         initializeConsumerQueue();
         String consumerName = redisChgService.rpoplpush(RedisKeyConstant.XIECHENG_REPORT_CONSUME_RNAME);
         XieChengConsumer consumer = XieChengConsumer.fromName(consumerName);
-        sendToRocketMQ(consumer, callRecord.getId().toString());
+        sendToRocketMQ(consumer, message);
     }
 
     private boolean isMockData(CallRecord callRecord) {

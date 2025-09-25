@@ -326,7 +326,9 @@ api:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: true
-
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:0}
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
   #  name-server: 192.168.161.109:9876
