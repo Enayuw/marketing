@@ -36,8 +36,6 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
     protected PushRuleService pushRuleService;
     @Autowired
     AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
-    @Autowired
-    protected AiToPolicyProcessorFactory strategyFactory;
 
     public PushMarketingUserDetailByRuleDTO assembleData(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
