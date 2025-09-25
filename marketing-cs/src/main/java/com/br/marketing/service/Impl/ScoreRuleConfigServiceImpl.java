@@ -26,6 +26,9 @@ import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
@@ -94,25 +97,16 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Override
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
         try {
-            String apiCode = scoreRuleVO.getApiCode();
+            List<String> apiCodes = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(scoreRuleVO.getApiCode());
             boolean nonStrategy = scoreRuleVO.getTaskType() != null && scoreRuleVO.getTaskType() == 1;
-            JSONObject allowScoreTaskConfig = marketingCommonConfig.getAllowScoreTaskConfig();
-            List<String> allowScoreTaskApiType = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
-            List<String> allowScoreTaskApiCode = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiCode").toJavaList(String.class);
-            String errorMsg = "很遗憾小主，该apiCode禁止跑分！";
-            if (nonStrategy || !CollectionUtils.isEmpty(allowScoreTaskApiType)) {
-                MarketingCustomerExample example = new MarketingCustomerExample();
-                example.createCriteria().andApiCodeEqualTo(apiCode);
-                List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
-                MarketingCustomer customer = select.get(0);
-                if (nonStrategy || allowScoreTaskApiType.contains(customer.getApiType()) || allowScoreTaskApiCode.contains(customer.getApiCode())) {
-                    ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
-                    service.saveTransaction(scoreRuleVO, userDetail);
-                } else {
-                    throw new BusinessException(errorMsg);
-                }
+            String errorMsg = "很遗憾小主，以下ApiCode【%s】禁止跑分！";
+            List<String> errorApiCodes = checkApiCodes(apiCodes);
+            if (nonStrategy || CollectionUtils.isEmpty(errorApiCodes)) {
+                ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
+                service.saveTransaction(scoreRuleVO, userDetail);
             } else {
-                throw new BusinessException(errorMsg);
+                String errorApiCode = Joiner.on(",").join(errorApiCodes);
+                throw new BusinessException(String.format(errorMsg, errorApiCode));
             }
         } catch (Exception e) {
             String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -125,6 +119,23 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             throw new BusinessException(msg);
         }
+    }
+
+    private List<String> checkApiCodes(List<String> apiCodes) {
+        List<String> errorApiCodes = Lists.newArrayList();
+        JSONObject allowScoreTaskConfig = marketingCommonConfig.getAllowScoreTaskConfig();
+        List<String> allowScoreTaskApiType = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
+        List<String> allowScoreTaskApiCode = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiCode").toJavaList(String.class);
+        for (String apiCode : apiCodes) {
+            MarketingCustomerExample example = new MarketingCustomerExample();
+            example.createCriteria().andApiCodeEqualTo(apiCode);
+            List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
+            MarketingCustomer customer = select.get(0);
+            if (!allowScoreTaskApiType.contains(customer.getApiType()) && !allowScoreTaskApiCode.contains(customer.getApiCode())) {
+                errorApiCodes.add(apiCode);
+            }
+        }
+        return errorApiCodes;
     }
 
     @Transactional(rollbackFor = Exception.class)
