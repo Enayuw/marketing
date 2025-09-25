@@ -61,7 +61,6 @@ public class UserCenterHandler {
         List<String> opeApiTypes = marketingCommonConfig.getOpeApiTypes();
         List<String> opeHighApiTypes = marketingCommonConfig.getOpeHighApiTypes();
         if (!opeApiTypes.contains(apiType)) {
-            result.setCode(ResultCode.FAIL.getValue());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知apiType：" + apiType));
             return result;
         }
@@ -69,19 +68,16 @@ public class UserCenterHandler {
         if (!nonIuList.contains(apiType)) {
             String iu = jsonObject.getString("iu");
             if (StringUtil.isBlank(iu)) {
-                result.setCode(ResultCode.FAIL.getValue());
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送iu字段缺失"));
                 return result;
             }
             List<String> ius = Splitter.on("#").splitToList(iu);
             if (ius.size() < 2) {
-                result.setCode(ResultCode.FAIL.getValue());
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送部门格式错误"));
                 return result;
             }
             String firstDept = ius.get(1);
             if (!checkDept(firstDept, "firstLevelDepart")) {
-                result.setCode(ResultCode.FAIL.getValue());
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知一级部门"));
                 return result;
             } else {
@@ -90,7 +86,6 @@ public class UserCenterHandler {
             if (!"泛IU".equals(firstDept)) {
                 String secondDept = ius.get(2);
                 if (!checkDept(secondDept, "secondLevelDepart")) {
-                    result.setCode(ResultCode.FAIL.getValue());
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "推送消息体：" + mes, "交付推送未知二级部门"));
                     return result;
                 } else {
