@@ -1,0 +1,16 @@
+package com.br.marketing.mapper;
+
+import com.br.marketing.entity.MarketingCustomerAssignedGroup;
+import com.br.marketing.entity.MarketingCustomerAssignedGroupExample;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+
+public interface MarketingCustomerAssignedGroupMapper extends MarketingCustomerAssignedGroupMapperBase{
+
+    MarketingCustomerAssignedGroup getAssignedGroupByCid(@Param("cid") String cid);
+
+    String getLastAssignedGroup();
+
+    void updateByCid(@Param("cid") String cid, @Param("assignedGroup") String assignedGroup);
+
+}

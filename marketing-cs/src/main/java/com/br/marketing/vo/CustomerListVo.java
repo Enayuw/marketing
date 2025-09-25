@@ -282,4 +282,9 @@ public class CustomerListVo {
      */
     private String dynamicKeys;
 
+    /**
+     * 项目对应开发组
+     */
+    private String assignedGroup;
+
 }

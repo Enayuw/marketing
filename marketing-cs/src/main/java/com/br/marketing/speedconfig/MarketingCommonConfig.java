@@ -3463,5 +3463,11 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pulsarConsumerSkipSwitch;
 
-}
+    /**
+     * 分配组和下一轮询组的键值对
+     * {"组1":"组2", "组2":"组1"}
+     * 组1对应下一轮询组为组2，组2对应下一轮询组为组1
+     */
+    private Map<String, String> assignedGroupMap;
 
+}
