@@ -307,10 +307,28 @@ public class FtpClient extends BaseFtpClient {
     public  FTPFile[] listFiles(String path) {
         FTPFile[] ftpFiles=null;
         try {
-            ftp.changeWorkingDirectory(path);
-            ftpFiles = ftp.listFiles();
+            // 先检查目录是否存在
+            if (!isExist(path)) {
+                log.warn("【文件同步】FTP目录不存在: {}", path);
+                // 返回空数组而不是null
+                return new FTPFile[0];
+            }
+            
+            // 目录存在，切换并列出文件
+            if (ftp.changeWorkingDirectory(path)) {
+                ftpFiles = ftp.listFiles();
+                // 防止返回null
+                if (ftpFiles == null) {
+                    ftpFiles = new FTPFile[0];
+                }
+            } else {
+                log.warn("【文件同步】无法切换到FTP目录: {}", path);
+                return new FTPFile[0];
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            // 出错时返回空数组
+            log.error("【文件同步】列出FTP目录文件时出错, path: {}", path, e);
+            return new FTPFile[0];
         }
         return ftpFiles;
     }

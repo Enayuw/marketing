@@ -337,6 +337,8 @@ public enum AlarmSendCodeEnum {
     IBMP_LINE_SERVICEERROR("7000001", "IBMP-获取线路信息异常"),
 
     TONGCHENG_CPA_SERVICEERROR("7001001", "同程CPA业务异常"),
+
+    SYNC_REPORT_EXPORT_SERVICEERROR("8001001", "上传记录导出异常"),
     ;
 
     /**

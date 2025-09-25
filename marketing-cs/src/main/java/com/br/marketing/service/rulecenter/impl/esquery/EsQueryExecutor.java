@@ -12,6 +12,7 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.service.ToPolicyByRuleService;
+import com.br.marketing.service.rulecenter.IEsActionService;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class EsQueryExecutor {
 
     @Resource
     private ErrorMarkMapper errorMarkMapper;
+
+    @Autowired
+    IEsActionService iEsActionService;
 
     /**
      * 初始化查询参数（设置重试逻辑）
@@ -126,7 +130,10 @@ public class EsQueryExecutor {
             }
 
             // 查询ES数据
-            List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+            List<MarketingHistory> marketingHistories = iEsActionService.
+                    getMarketingHistorys(queryBaseBean
+                            , params.getCustomerInfoPushMain().getmApiCode()
+                            , params.getCustomerInfoPushMain().getPushTarget());
 
             if (marketingHistories == null) {
                 throw new Exception("ES查询返回空结果");

@@ -8,7 +8,8 @@ package com.br.marketing.enums;
  */
 public enum ErrorMarkTypeEnum {
     ES_ERROR(0,"查询ES异常"),
-    POLICY_ERROR(1,"推送决策异常");
+    POLICY_ERROR(1,"推送决策异常"),
+    HALO_CALLBACK_ERROR(2,"哈啰回调异常");
 
     ErrorMarkTypeEnum(Integer value, String desc) {
         this.value = value;
