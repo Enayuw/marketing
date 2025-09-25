@@ -1,6 +1,5 @@
 package com.br.marketing.util;
 
-import com.br.marketing.common.result.ThreadPoolAdjustmentResult;
 import com.br.marketing.common.state.ThreadPoolState;
 import com.br.marketing.enums.ThreadPoolAdjustmentEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * 线程池智能调整工具类
+ * 线程池智能调整工具类：适用于 核心线程数 = 最大线程数的场景
  * 根据当前线程池状态和目标线程数，自动判断正确的执行顺序
  * 
  * 核心原则：
@@ -24,99 +23,38 @@ public class ThreadPoolAdjustmentUtil {
     private static final String TITLE = "【智能线程池调整】";
 
     /**
-     * 智能调整线程池大小（带重试机制，无返回值）
-     * 适用于不需要获取调整结果的场景，如监听器回调
-     * 
+     * 智能调整线程池大小
+     *
      * @param executor 线程池执行器
      * @param targetThreadNum 目标线程数
      */
     public static void adjustThreadPoolSize(ThreadPoolExecutor executor, int targetThreadNum) {
-        ThreadPoolAdjustmentResult result = adjustThreadPoolSizeWithResult(executor, targetThreadNum);
-
-        // 如果最终失败，记录错误日志
-        if (!result.isSuccess()) {
-            log.error(TITLE + "调整失败 - 经过3次重试后仍然失败，目标线程数:{}, 最终状态:核心={}, 最大={}",
-                    targetThreadNum,
-                    result.getAfterState().getCorePoolSize(),
-                    result.getAfterState().getMaximumPoolSize());
-        }
-    }
-
-    /**
-     * 智能调整线程池大小（带重试机制，指定重试次数，返回详细结果）
-     * 
-     * @param executor 线程池执行器
-     * @param targetThreadNum 目标线程数
-     * @return 调整结果信息
-     */
-    public static ThreadPoolAdjustmentResult adjustThreadPoolSizeWithResult(ThreadPoolExecutor executor, int targetThreadNum) {
         if (executor == null) {
             throw new IllegalArgumentException(TITLE + "ThreadPoolExecutor 不可为空！");
         }
 
         // 获取调整前状态
         ThreadPoolState beforeState = captureThreadPoolState(executor);
-        
+
         // 记录调整前状态
         log.warn(TITLE + "开始调整 - 当前核心:{}, 当前最大:{}, 目标:{}, 活跃:{}, 池大小:{}, 队列:{}, shutdown:{}",
-                beforeState.getCorePoolSize(), beforeState.getMaximumPoolSize(), targetThreadNum, 
+                beforeState.getCorePoolSize(), beforeState.getMaximumPoolSize(), targetThreadNum,
                 beforeState.getActiveCount(), beforeState.getPoolSize(), beforeState.getQueueSize(), beforeState.isShutdown());
-        
+
         // 判断调整策略
         ThreadPoolAdjustmentEnum strategy = determineAdjustmentStrategy(
                 beforeState.getCorePoolSize(), targetThreadNum);
-        
-        ThreadPoolAdjustmentResult result = null;
-        Exception lastException = null;
-        try {
-            // 执行调整
-            long startTime = System.currentTimeMillis();
-            executeAdjustmentStrategy(executor, strategy, targetThreadNum, beforeState);
-            long executionTime = System.currentTimeMillis() - startTime;
 
-            // 获取调整后状态
-            ThreadPoolState afterState = captureThreadPoolState(executor);
+        // 执行调整
+        executeAdjustmentStrategy(executor, strategy, targetThreadNum, beforeState);
 
-            // 构建成功结果并直接返回
-            result = ThreadPoolAdjustmentResult.builder()
-                    .strategy(strategy)
-                    .beforeState(beforeState)
-                    .afterState(afterState)
-                    .targetThreadNum(targetThreadNum)
-                    .executionTime(executionTime)
-                    .success(true)
-                    .build();
+        // 获取调整后状态
+        ThreadPoolState afterState = captureThreadPoolState(executor);
 
-            // 调整成功，记录日志并立即返回
-            log.warn(TITLE + "调整成功 - 策略:{}, 结果核心:{}, 结果最大:{}, 活跃:{}, 池大小:{}, 队列:{}, 耗时:{}ms",
-                    strategy.getDescription(), afterState.getCorePoolSize(), afterState.getMaximumPoolSize(),
-                    afterState.getActiveCount(), afterState.getPoolSize(), afterState.getQueueSize(), executionTime);
-            return result;
-
-        } catch (Exception e) {
-            log.warn(TITLE + "调整出现异常 - 策略:{}, 目标:{}, 异常:{}",
-                    strategy.getDescription(), targetThreadNum, e.getMessage());
-        }
-        
-        // 所有重试都失败了，返回最后一次的结果或构建失败结果
-        if (result == null) {
-            ThreadPoolState finalState = captureThreadPoolState(executor);
-            result = ThreadPoolAdjustmentResult.builder()
-                    .strategy(strategy)
-                    .beforeState(beforeState)
-                    .afterState(finalState)
-                    .targetThreadNum(targetThreadNum)
-                    .executionTime(0)
-                    .success(false)
-                    .build();
-        }
-        
-        log.error(TITLE + "调整最终失败 - 经过3次重试后仍然失败，策略:{}, 目标:{}, 最终核心:{}, 最终最大:{}, 最后异常:{}",
-                strategy.getDescription(), targetThreadNum,
-                result.getAfterState().getCorePoolSize(), result.getAfterState().getMaximumPoolSize(),
-                lastException.getMessage());
-        
-        return result;
+        // 调整成功，记录日志并立即返回
+        log.warn(TITLE + "调整成功 - 策略:{}, 结果核心:{}, 结果最大:{}, 活跃:{}, 池大小:{}, 队列:{}",
+                strategy.getDescription(), afterState.getCorePoolSize(), afterState.getMaximumPoolSize(),
+                afterState.getActiveCount(), afterState.getPoolSize(), afterState.getQueueSize());
     }
     
     /**
