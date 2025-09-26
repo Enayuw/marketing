@@ -164,6 +164,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             jsonObject.put("jsonData", jsonData);
             byte[] messageByte = JSON.toJSONString(jsonObject).getBytes();
             producer.send(messageByte);
+            log.warn(String.format("定制写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonObject.toJSONString()));
             return customerUploadDataHandler.defaultSuccessResponse();
         } catch (PulsarClientException clientException) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "入pulsar容灾队列异常"),

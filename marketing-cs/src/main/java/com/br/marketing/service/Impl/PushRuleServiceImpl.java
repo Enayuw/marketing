@@ -2509,7 +2509,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
                 producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonString));
+                log.warn(String.format("通用写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonString));
                 Long res = requestIdWriteRedis(uploadKey, dto.getJsonData().getRequestId());
                 if (res != null && res < 1) {
                     throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
