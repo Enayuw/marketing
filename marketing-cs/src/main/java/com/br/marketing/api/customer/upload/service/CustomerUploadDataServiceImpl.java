@@ -12,6 +12,7 @@ import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadResponseDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
@@ -20,6 +21,8 @@ import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.CustomizeUploadDataMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -45,6 +48,9 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
 
     @Resource
     private PushRuleService pushRuleService;
+
+    @Resource
+    private PulsarConsumerSkipUtil pulsarConsumerSkipUtil;
 
     @Resource
     private CustomizeUploadDataMapper customizeUploadDataMapper;
@@ -158,6 +164,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             jsonObject.put("jsonData", jsonData);
             byte[] messageByte = JSON.toJSONString(jsonObject).getBytes();
             producer.send(messageByte);
+            log.warn(String.format("定制写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonObject.toJSONString()));
             return customerUploadDataHandler.defaultSuccessResponse();
         } catch (PulsarClientException clientException) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "入pulsar容灾队列异常"),
@@ -176,6 +183,12 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
      */
     @Override
     public Result<Boolean> consumerUploadPayData(String msg) {
+        // 检查是否需要跳过业务逻辑
+        if (pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.uploadCustomSubscription)) {
+            log.warn("【pulsar】定制客户上传数据执行跳过逻辑");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        
         Result<Boolean> result = new Result<>();
         try {
             JSONObject jsonObject = JSON.parseObject(msg);

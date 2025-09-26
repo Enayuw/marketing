@@ -3449,5 +3449,19 @@ public class MarketingCommonConfig {
      * tcCpaCollidingMqDeatilStatus 1:执行业务代码 0:不执行业务代码
      */
     private Integer cpaCollidingMqDetailStatus;
+
+    /**
+     * Pulsar消费端跳过开关配置，支持不同消费端类型分别控制
+     * 配置键直接使用PulsarSubscription常量值：
+     * marketing_upload_base: 标准上传数据消费端
+     * marketing_transfer_base: 标准转化数据消费端
+     * marketing_upload_sh: 数禾上传数据消费端
+     * marketing_transfer_sh: 数禾转化数据消费端
+     * marketing_upload_custom: 定制客户上传数据消费端
+     * marketing_transfer_custom: 定制客户转化数据消费端
+     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false,"marketing_upload_sh":false,"marketing_transfer_sh":false,"marketing_upload_custom":true,"marketing_transfer_custom":false}
+     */
+    private Map<String, Boolean> pulsarConsumerSkipSwitch;
+
 }
 
