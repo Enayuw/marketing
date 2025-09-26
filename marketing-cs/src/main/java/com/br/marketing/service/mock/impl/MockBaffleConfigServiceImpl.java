@@ -2,7 +2,9 @@ package com.br.marketing.service.mock.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.mock.MarketingMockApiService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
@@ -32,14 +34,15 @@ import java.util.concurrent.TimeUnit;
 public class MockBaffleConfigServiceImpl {
 
     @Resource
-    private RedisChgService redisChgService;
-    @Resource
     CaffeineCache caffeineCache;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     private ScheduledExecutorService scheduler;
     private volatile boolean running = true;
+
+    @Resource
+    private MarketingMockApiService marketingMockApiService;
 
     private static final String TITLE = "【Mock初始化】";
 
@@ -124,7 +127,11 @@ public class MockBaffleConfigServiceImpl {
                 MockInitDTO mockInitDTO = caffeineCache.getMockSwitchStatus(localCacheKey);
                 String redisValue = null;
                 try {
-                    redisValue = redisChgService.get(localCacheKey);
+                    Result<String> mockRedisValue = marketingMockApiService.getMockRedisValue(localCacheKey);
+                    Integer code1 = mockRedisValue.getCode();
+                    if(code1.equals(ResultCode.SUCCESS.getValue())){
+                        redisValue = mockRedisValue.getData();
+                    }
                 } catch (Exception e) {
                     log.warn(TITLE + "获取Redis缓存失败，key: {}", localCacheKey, e);
                 }

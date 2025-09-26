@@ -1,6 +1,10 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
+import com.br.marketing.aspect.LogAnnotation;
+import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
@@ -152,6 +156,20 @@ public class MarketingMockController {
                     "查询策略类型接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<Map<Integer, String>>().fail(ServiceResultEnum.FAILED);
         }
+    }
+
+    /**
+     * Mock挡板查询redis缓存
+     *
+     * @param cacheKey
+     * @return
+     */
+    @ApiOperation(value = "Mock挡板查询redis缓存")
+    @PostMapping("/getMockRedisValue")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ApiNoDataResult getMockRedisValue(@RequestParam("cacheKey") String cacheKey) {
+        return new ApiNoDataResult().fromResult(mockService.getMockRedisValue(cacheKey));
     }
 
 }

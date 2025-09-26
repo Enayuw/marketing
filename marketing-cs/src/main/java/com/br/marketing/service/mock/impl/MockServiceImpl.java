@@ -7,6 +7,7 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
@@ -367,8 +368,17 @@ public class MockServiceImpl implements MockService {
     }
 
     @Override
-    public String getMockRedisValue(String localCacheKey) {
-        return redisChgService.get(localCacheKey);
+    public Result<String> getMockRedisValue(String localCacheKey) {
+        try {
+            if (StringUtils.isBlank(localCacheKey)) {
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("redis key is null");
+            }
+            String result = redisChgService.get(localCacheKey);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(result);
+        }catch (Exception e){
+
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("mock挡板查询redis缓存异常");
+        }
     }
 
     @Override

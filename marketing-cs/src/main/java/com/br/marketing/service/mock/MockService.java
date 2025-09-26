@@ -1,6 +1,7 @@
 package com.br.marketing.service.mock;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
@@ -35,9 +36,7 @@ public interface MockService {
 
     ApiResult<Map<Integer,String>> getMockType();
 
-
-
-    String getMockRedisValue(String localCacheKey);
+    Result<String> getMockRedisValue(String localCacheKey);
 
     /**
      * 提供给客户端执行策略

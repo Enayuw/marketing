@@ -1,14 +1,14 @@
 package com.br.marketing.aspect;
 
+import com.br.marketing.client.mock.MarketingMockApiService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.service.mock.MockService;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -38,33 +38,13 @@ public class MockableAspect {
 
     @Resource
     private CaffeineCache caffeineCache;
-
     @Resource(name = "newMockService")
     private MockService mockService;
+    @Resource
+    private MarketingMockApiService marketingMockApiService;
 
-    private final ObjectMapper objectMapper = createConfiguredObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final String TITLE = "【mock切面】";
-
-    /**
-     * 创建配置好的ObjectMapper实例，支持时间类型转换
-     */
-    private ObjectMapper createConfiguredObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        
-        // 注册Java 8时间模块
-        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-        
-        // 配置时间序列化格式
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        
-        // 忽略未知属性
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        
-        // 允许空对象
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        
-        return mapper;
-    }
 
     /**
      * 拦截带有 @Mockable 注解的方法，动态决定是否走Mock逻辑
@@ -84,9 +64,14 @@ public class MockableAspect {
                 return joinPoint.proceed();
             }
 
-            String redisMockConfig = mockService.getMockRedisValue(cacheKey);
-            if (redisMockConfig != null) {
-                MockCreateCaseDTO mockCase = mockService.action(redisMockConfig);
+            Result<String> mockRedisValue = marketingMockApiService.getMockRedisValue(cacheKey);
+            Integer code = mockRedisValue.getCode();
+            if(!code.equals(ResultCode.SUCCESS.getValue())){
+                return joinPoint.proceed();
+            }
+            String redisValue = mockRedisValue.getData();
+            if (redisValue != null) {
+                MockCreateCaseDTO mockCase = mockService.action(redisValue);
                 if (mockCase != null) {
                     String responseBodyStr = mockCase.getResponseBody();
                     // 先将JSON字符串解析为对象

@@ -3438,5 +3438,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> sftpMockAbnormal;
 
+    /**
+     * 轮询线程轮询频率
+     */
+    private Integer mockPollingInterval;
+
 }
 
