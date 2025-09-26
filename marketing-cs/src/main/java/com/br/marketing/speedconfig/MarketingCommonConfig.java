@@ -3443,5 +3443,11 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> sftpMockAbnormal;
 
+
+
+    /**
+     * tcCpaCollidingMqDeatilStatus 1:执行业务代码 0:不执行业务代码
+     */
+    private Integer cpaCollidingMqDetailStatus;
 }
 

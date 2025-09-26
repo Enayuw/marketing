@@ -52,20 +52,25 @@ public class TcCpaCollidingSuccessDataConsumer extends BaseMqMessageListener imp
 
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
-        long start = System.currentTimeMillis();
-        String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-        TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
+        log.warn("TITLE:{}-handleMessage开始执行,msgId:{}",TITLE,messageExt.getMsgId());
+        Integer cpaCollidingDetailStatus = marketingCommonConfig.getCpaCollidingMqDetailStatus()==null
+                ?1:marketingCommonConfig.getCpaCollidingMqDetailStatus();
+        if (cpaCollidingDetailStatus == 1) {
+            long start = System.currentTimeMillis();
+            String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
+            TcyrCpaSuccessMqDTO tcCpaSuccessMqDTO = JSON.parseObject(bodyString,
                     new TypeReference<TcyrCpaSuccessMqDTO>() {}.getType());
-        Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
-        log.warn("TITLE:{}-process执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
-                TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
-                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
-                result.getCode(), result.getData());
-        consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
-        log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}",
-                TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
-                tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
-        );
+            Result<Boolean> result = tcyrLoopCycleDataService.process(tcCpaSuccessMqDTO);
+            log.warn("TITLE:{}-process执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}, resultCode:{}, needRetry:{}",
+                    TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
+                    tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId(),
+                    result.getCode(), result.getData());
+            consumerService.consumerRun(messageExt, (TcyrCpaSuccessMqDTO ignored) -> result, tcCpaSuccessMqDTO);
+            log.warn("TITLE:{}-handleMessage执行完成 MQ消费耗时:{}ms,msgId:{},requestId:{}, dataId:{}",
+                    TITLE,System.currentTimeMillis() - start,messageExt.getMsgId(),
+                    tcCpaSuccessMqDTO.getRequestId(), tcCpaSuccessMqDTO.getDataId()
+            );
+        }
     }
 
     @Override
