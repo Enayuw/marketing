@@ -13,11 +13,8 @@ import java.util.List;
 
 /**
  * 操作类型3策略实现
- * 继承AiToPolicyBase，实现AiToPolicyOperationStrategy
- * 重写batchNumber生成和insertRecord逻辑
- * 
- * @author AI Assistant
- * @date 2024
+ * 继承AbstractBaseAiToPolicy，实现AiToPolicyProcessor
+ * 重写batchNumber生成
  */
 @Component
 @Slf4j
@@ -40,9 +37,9 @@ public class OperateThreeProcessor extends AbstractBaseAiToPolicy {
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-        
+
         List<String> apiCodeOfpushPolicy = marketingCommonConfig.getApiCodeOfpushPolicy();
-        
+
         if (ObjectUtil.isNotEmpty(apiCodeOfpushPolicy) && apiCodeOfpushPolicy.contains(apiCode)) {
             return ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
                     ? (appletDate + jsonObject.getString("batchNumber"))

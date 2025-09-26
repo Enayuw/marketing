@@ -1,13 +1,10 @@
 package com.br.marketing.rule.ai.policy;
 
-import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.AiToPolicyRecordExample;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -21,16 +18,12 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.UUID;
 
 /**
  * 操作类型6策略实现
- * 继承AiToPolicyBase，实现AiToPolicyOperationStrategy
- * 重写batchNumber生成、insertRecord和字段映射逻辑
- * 
- * @author AI Assistant
- * @date 2024
+ * 继承AbstractBaseAiToPolicy，实现AiToPolicyProcessor
+ * 重写batchNumber生成、insertRecord
  */
 @Component
 @Slf4j
@@ -52,7 +45,6 @@ public class OperateSixProcessor extends AbstractBaseAiToPolicy {
 
     @Override
     public String generateBatchNumber(MarketingSyncUser syncUser) {
-        // 操作类型6使用reserveField2存储batchNumber
         return syncUser.getReserveField2();
     }
 

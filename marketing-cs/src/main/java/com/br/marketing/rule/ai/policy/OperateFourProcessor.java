@@ -2,31 +2,21 @@ package com.br.marketing.rule.ai.policy;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 /**
  * 操作类型4策略实现
- * 继承AiToPolicyBase，实现AiToPolicyOperationStrategy
- * 重写batchNumber生成、insertRecord和字段映射逻辑
- * 
- * @author AI Assistant
- * @date 2024
+ * 继承AbstractBaseAiToPolicy，实现AiToPolicyProcessor
+ * 重写batchNumber生成、字段映射逻辑
  */
 @Component
 @Slf4j
@@ -49,7 +39,7 @@ public class OperateFourProcessor extends AbstractBaseAiToPolicy {
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-        
+
         String userType = syncUser.getUserType();
         return ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
                 ? jsonObject.getString("batchNumber")

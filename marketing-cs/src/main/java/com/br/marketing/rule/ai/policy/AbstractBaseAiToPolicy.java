@@ -37,7 +37,7 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
     @Autowired
     AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
 
-    public PushMarketingUserDetailByRuleDTO assembleData(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public PushMarketingUserDetailByRuleDTO assembleData(Object transmitFact, ProcessHandlerContext context) {
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         CustomerTagsVO customerTagsVO = context.getCustomerTagsVO();
 
