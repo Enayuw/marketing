@@ -32,6 +32,11 @@ public class AesGeneralDTO {
     private String charset;
 
     /**
+     * 初始化向量
+     */
+    private String iv;
+
+    /**
      * 密钥
      */
     private String dynamicKeys;

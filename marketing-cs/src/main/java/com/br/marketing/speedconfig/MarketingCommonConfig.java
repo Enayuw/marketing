@@ -493,6 +493,11 @@ public class MarketingCommonConfig {
     private Integer scoreToJcThreadNum;
 
     /**
+     * 规则筛选回调接口的线程数
+     */
+    private Integer scoreToCallbackThreadNum;
+
+    /**
      * 携程推送短信退订接口线程数设置
      */
     private String xieChengSmsQuitThreadNum;
@@ -2398,7 +2403,7 @@ public class MarketingCommonConfig {
     /**
      * 你我贷转化规则过滤配置
      */
-    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();
 
     /**
 
@@ -2615,6 +2620,11 @@ public class MarketingCommonConfig {
      *     policyRetry：推决策异常
      */
     private HashMap<String, JSONObject> policyRetrySwitch;
+
+    /**
+     * 哈啰硅基人挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, JSONObject> callbackSwitch;
 
     /**
      * 萨摩耶黑名单推送配置
@@ -3379,6 +3389,11 @@ public class MarketingCommonConfig {
     private JSONObject haloAiCallbackConfig;
 
     /**
+     * 规则中心哈啰硅基人回调配置
+     */
+    private JSONObject haloAIRuleCenterCallbackConfig;
+
+    /**
      * 携程cpa 撞库日志写入rabbit-rocket 切换开关
      */
     private Boolean xieChengCallingCpaLogSwitch;
@@ -3387,6 +3402,47 @@ public class MarketingCommonConfig {
      * #携程促活使用rabbitmq开关
      */
     private Boolean xieChengActivateRabbitMqSwitch;
+
+    /**
+     * 高优先级运营的客户类型集合
+     */
+    private List<String> opeHighApiTypes;
+
+    /**
+     * 允许跑分ApiType配置
+     */
+    private JSONObject allowScoreTaskConfig;
+
+    /**
+     * 催收360上传数据清洗时间 HH:ss
+     */
+    private String sanLiuLingCollectionTime;
+
+
+    /**
+     * 上传记录导出每页查询条数
+     */
+    private Integer syncReportExportPageSize;
+
+    /**
+     * 规则中心执行查询es模板
+     * {“apiCode”:{"pushTarget":"must/filter"}}
+     * {"7410770":{"1":"filter","2":"must"}}
+     */
+    private Map<String,JSONObject> ruleCenterPushType;
+
+
+    /**
+     * 规则中心筛选预览量级
+     * ["7410770"]
+     */
+    private List<String> ruleCenterPushView;
+
+    /**
+     * SFTP模拟异常挡板 {"7492963":true}
+     */
+    private Map<String, Boolean> sftpMockAbnormal;
+
 
 
     /**

@@ -127,7 +127,8 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
         String apiCode = syncUser.getApiCode();
         String userType = syncUser.getUserType();
         String custNum = syncUser.getCustNum();
-        String key = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(String.format("%s:%s:%s:%s", yyyyMMdd, apiCode, userType, custNum));
+        String key = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(String.format("%s:%s:%s:%s:%s", yyyyMMdd, apiCode, userType,
+                CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode(), custNum));
         String batchNumber;
 
         try {
@@ -135,9 +136,11 @@ public class AiToPolicyPatLoanRuleOperaTypeFive implements AssembleData<PushMark
             try {
                 AiToPolicyRecordExample example = new AiToPolicyRecordExample();
                 example.createCriteria().andCreateDateEqualTo(createDate)
-                        .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andCustNumEqualTo(custNum);
+                        .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
+                        .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode())
+                        .andCustNumEqualTo(custNum);
                 int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
-                batchNumber = yyyyMMdd + "-" + apiCode + "-" + userType + "-" + pushCount;
+                batchNumber = yyyyMMdd + "-" + apiCode + "-5" + "-" + userType + "-" + pushCount;
 
                 AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
                 aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());

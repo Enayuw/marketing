@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -111,4 +113,11 @@ public interface MarketingSyncReportService {
      * @return 日期列表，格式：yyyy-MM-dd
      */
     List<String> getLastMonthDataDates(String apiCode);
+
+    /**
+     * 上传数据导出
+     *
+     */
+    void exportData(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes,
+                    Integer selectType,String selectExportIds, HttpServletResponse response);
 }

@@ -17,6 +17,7 @@ import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.ToPolicyByRuleService;
+import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterPushStrategy;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
@@ -71,6 +72,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
     @Resource
     private DingDingRobotHookService dingDingRobotHookService;
+
+    @Autowired
+    IEsActionService iEsActionService;
 
 
     @Override
@@ -148,7 +152,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
             for (Integer i = 0; i < parNum; i++) {
                 QueryBaseBean queryBaseBean = createQueryBaseBean(context, i);
-                Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                Integer nowNum = iEsActionService.getTotal(queryBaseBean, pushMain.getmApiCode(), pushMain.getPushTarget());
                 partMap.put(i, nowNum);
                 if (pushMain.getTagContent() != null) {
                     resList.add(threadPool.submit(() -> pushRuleService.queryTotal(pushMain, context.getBatchNumbers(), queryBaseBean)));
@@ -311,9 +315,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         shutdownThreadPools(context);
 
         // 记录耗时日志 - 按照原始格式
-        log.warn(getPushName(context)+" 任务id：{}；整体耗时：{}；计划数量：{}",
+        log.warn(getPushName(context) + " 任务id：{}；整体耗时：{}；计划数量：{}",
                 customerInfoPushMain.getId(),
-              System.currentTimeMillis() - startTime,
+                System.currentTimeMillis() - startTime,
                 customerInfoPushMain.getmRealyNum());
 
         // 更新数据库状态
@@ -352,9 +356,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(customerInfoPushMain.getPushTarget());
         return pushTargetEnum.getDesc();
 
-    };
+    }
 
-
+    ;
 
 
     /**
@@ -399,14 +403,14 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
      * 创建ES查询参数
      */
     protected EsQueryParams createEsQueryParams(CustomerInfoPushMain customerInfoPushMain,
-                                           String part,
-                                           List<String> numList,
-                                           List<Long> fileIds,
-                                           Integer pageSize,
-                                           Integer totalPage,
-                                           Boolean isPerOrTop,
-                                           Object labelObject,
-                                           Boolean markWithEsFlag) {
+                                                String part,
+                                                List<String> numList,
+                                                List<Long> fileIds,
+                                                Integer pageSize,
+                                                Integer totalPage,
+                                                Boolean isPerOrTop,
+                                                Object labelObject,
+                                                Boolean markWithEsFlag) {
         return esQueryExecutor.initializeParams(customerInfoPushMain, part, numList, fileIds, pageSize, totalPage,
                 isPerOrTop, labelObject, markWithEsFlag);
     }

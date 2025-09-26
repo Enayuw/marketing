@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface TagDataDetailMapper extends TagDataDetailMapperBase {
 
+    void refreshbI_(@Param("refreshSql") String refreshSql);
+
     int queryPreviewTotalbI_(@Param("querySql") String querySql);
 
 

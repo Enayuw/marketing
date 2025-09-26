@@ -235,6 +235,7 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         pushMain.setmScoreCondition(scoreSearchCondition.getScoreContent());
         pushMain.setStrategyCode(pushDecisions.getReachStrategy());
         pushMain.setTagContent(scoreSearchCondition.getTagContent());
+        pushMain.setPushTarget(pushDecisions.getPushTarget());
         String batchName = "";
         String datasets = pushDecisions.getPushDatasets();
         if (StringUtils.isNotBlank(datasets)) {
