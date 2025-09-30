@@ -1,10 +1,16 @@
 package com.br.marketing.sync.service;
 
-import com.br.marketing.entity.SftpUploadTask;
+import com.br.marketing.entity.FileSyncTask;
+import com.br.marketing.entity.SyncConfig;
+
+import java.util.List;
 
 public interface FileUploadDownloadService {
-    void processUploadTask(SftpUploadTask uploadTask);
+    void processUploadTask(FileSyncTask uploadTask);
 
-    boolean updateTaskStatus(Long taskId, Integer status);
+    Boolean updateTaskStatus(Long taskId, Integer status);
 
+    void processDownloadTask(List<SyncConfig> loanSyncConfigs);
+
+    void processFileSync(int type);
 }

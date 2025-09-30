@@ -3,11 +3,11 @@ package com.br.marketing.sync.service.impl;
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.entity.SftpUploadTask;
+import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.enums.clean.DataProcessEnum;
-import com.br.marketing.mapper.SftpUploadTaskMapper;
+import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -34,11 +35,11 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     private SyncServiceImpl syncServiceImpl;
 
     @Resource
-    private SftpUploadTaskMapper sftpUploadTaskMapper;
+    private FileSyncTaskMapper fileSyncTaskMapper;
 
 
     @Override
-    public void processUploadTask(SftpUploadTask uploadTask) {
+    public void processUploadTask(FileSyncTask uploadTask) {
         SyncConfig syncConfig = getSyncConfigByTask(uploadTask);
         if (Objects.isNull(syncConfig)) {
             // 配置不存在，更新为失败状态
@@ -46,10 +47,11 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             return;
         }
         //文件上传
-        boolean uploadResult = uploadSftp(uploadTask, syncConfig);
-        
+        Boolean uploadResult = uploadSftp(uploadTask, syncConfig);
+        //后置sql处理
+        Boolean postExecute = executePostSqlProcess(uploadTask.getPostSqlProcess());
         // 根据上传结果更新任务状态
-        if (uploadResult) {
+        if (uploadResult && postExecute) {
             updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
             log.warn("文件上传成功，taskId: {}, fileName: {}", uploadTask.getId(), uploadTask.getFileName());
         } else {
@@ -59,35 +61,65 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     }
 
 
-    private boolean uploadSftp(SftpUploadTask uploadTask, SyncConfig syncConfig) {
+    private Boolean uploadSftp(FileSyncTask uploadTask, SyncConfig syncConfig) {
         //获取内部sftp配置
         BaseFtpClient client = syncServiceImpl.getClient(syncConfig, true);
-        
+
         // 处理路径中的日期替换
         String srcPath = replaceDateInPath(syncConfig.getSrcPath());
-        
+
         String localPath = uploadTask.getLocalPath().concat(uploadTask.getFileName());
 
         try (InputStream inputStream = Files.newInputStream(Paths.get(localPath))) {
             client.mkdir(srcPath);
             client.uploadFile(inputStream, srcPath, uploadTask.getFileName());
+
+            // 上传成功后，创建并上传.success文件
+            String successFileName = uploadTask.getFileName().concat(".success");
+            String successLocalPath = uploadTask.getLocalPath().concat(successFileName);
+
+            // 创建success文件
+            File successFile = new File(successLocalPath);
+            if (!successFile.exists()) {
+                successFile.createNewFile();
+            }
+
+            // 上传success文件
+            try (InputStream successInputStream = Files.newInputStream(Paths.get(successLocalPath))) {
+                client.uploadFile(successInputStream, srcPath, successFileName);
+            } catch (Exception e) {
+                log.error("上传success文件失败，taskId: {}, successFileName: {}, error: {}",
+                        uploadTask.getId(), successFileName, e.getMessage(), e);
+                return false; // success文件上传失败，返回false
+            }
+
             return true;
         } catch (Exception e) {
             log.error("上传文件出错，taskId: {}, fileName: {}, localPath: {}, srcPath: {}, error: {}",
                     uploadTask.getId(), uploadTask.getFileName(), localPath, srcPath, e.getMessage(), e);
             return false;
+        } finally {
+            // 确保连接被关闭
+            try {
+                if (client != null && client.isConnected()) {
+                    client.disconnect();
+                }
+            } catch (Exception e) {
+                log.error("关闭SFTP连接失败，taskId: {}, error: {}", uploadTask.getId(), e.getMessage(), e);
+            }
         }
     }
 
     /**
      * 替换路径中的日期占位符
+     *
      * @param path 原始路径
      * @return 替换后的路径
      */
     private String replaceDateInPath(String path) {
         // 获取当前日期
         String currentDate = DateHelper.getDateAddYyMmDd(0); // yyyyMMdd格式
-        
+
         // 根据路径格式转换日期格式
         String formattedDate = currentDate;
         if (path.contains("yyyy-MM-dd")) {
@@ -97,13 +129,14 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         } else if (path.contains("yyyyMMdd")) {
             return path.replace("yyyyMMdd", currentDate);
         }
-        
+
         return path;
     }
 
     /**
      * 日期格式转换
-     * @param date 日期字符串
+     *
+     * @param date         日期字符串
      * @param sourceFormat 源格式
      * @param targetFormat 目标格式
      * @return 转换后的日期字符串
@@ -124,12 +157,13 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     /**
      * 根据上传任务查找对应的同步配置
      */
-    private SyncConfig getSyncConfigByTask(SftpUploadTask task) {
+    private SyncConfig getSyncConfigByTask(FileSyncTask task) {
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         SyncConfigExample.Criteria criteria = syncConfigExample.createCriteria();
         criteria.andStatusEqualTo(1) // 状态有效
                 .andApiCodeEqualTo(task.getApiCode()) // 匹配apiCode
                 .andDataTypeEqualTo(task.getDataType()) // 匹配数据类型
+                .andSrcPathEqualTo(task.getLocalPath().replaceAll("\\b\\d{8}\\b", "yyyyMMdd"))
                 .andTypeEqualTo(2); // type=2表示上传任务
 
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
@@ -157,14 +191,14 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      * @param status 新状态：0-待上传，1-上传中，2-上传成功，3-上传失败
      * @return 更新结果
      */
-    public boolean updateTaskStatus(Long taskId, Integer status) {
+    public Boolean updateTaskStatus(Long taskId, Integer status) {
         try {
-            SftpUploadTask task = new SftpUploadTask();
+            FileSyncTask task = new FileSyncTask();
             task.setId(taskId);
             task.setStatus(status);
             task.setUpdateTime(new Date());
-            
-            int result = sftpUploadTaskMapper.updateByPrimaryKeySelective(task);
+
+            int result = fileSyncTaskMapper.updateByPrimaryKeySelective(task);
             return result > 0;
 
         } catch (Exception e) {
@@ -173,5 +207,35 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             return false;
         }
     }
+
+    @Override
+    public void processDownloadTask(List<SyncConfig> loanSyncConfigs) {
+
+    }
+
+    @Override
+    public void processFileSync(int type) {
+        SyncConfigExample syncConfigCycle = new SyncConfigExample();
+        SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
+        criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.SYNC_FILES.getValue()).andTypeEqualTo(type);
+        List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
+        syncServiceImpl.sync(syncCycleConfigs);
+    }
+
+
+    /**
+     * 执行后置SQL处理
+     */
+    private Boolean executePostSqlProcess(String postSql) {
+        Boolean result = Boolean.FALSE;
+        try {
+            fileSyncTaskMapper.postExecuteSql(postSql);
+            result = Boolean.TRUE;
+        } catch (Exception e) {
+            log.error("执行后置SQL处理异常：{}, error: {}", postSql, e.getMessage(), e);
+        }
+        return result;
+    }
+
 
 }

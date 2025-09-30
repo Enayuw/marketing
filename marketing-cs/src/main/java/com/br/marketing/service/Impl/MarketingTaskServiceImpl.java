@@ -1039,6 +1039,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public Result<ResultPreviewVO> resultPreview(Long tasId) {
         ResultPreviewVO resData = new ResultPreviewVO();
+
         MarketingTask task =marketingTaskMapper.selectByPrimaryKey(tasId);
         String scoreSeparator = task.getScoreSeparator();
         MarketingTaskResultPreviewExample example = new MarketingTaskResultPreviewExample();

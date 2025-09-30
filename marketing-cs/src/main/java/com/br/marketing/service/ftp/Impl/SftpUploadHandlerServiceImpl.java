@@ -2,10 +2,10 @@ package com.br.marketing.service.ftp.Impl;
 
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
-import com.br.marketing.entity.SftpUploadTask;
+import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
-import com.br.marketing.mapper.SftpUploadTaskMapper;
+import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.ftp.SftpUploadHandlerService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.Objects;
 public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
 
     @Resource
-    private SftpUploadTaskMapper sftpUploadTaskMapper;
+    private FileSyncTaskMapper fileSyncTaskMapper;
 
     @Resource
     private SyncConfigMapper syncConfigMapper;
@@ -42,7 +42,7 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
     public void insertSftpUploadTask(String apiCode, String localPath, String fileName,
                                      Integer dataType, String postSqlProcess) {
         try {
-            SftpUploadTask task = new SftpUploadTask();
+            FileSyncTask task = new FileSyncTask();
             task.setApiCode(apiCode);
             task.setLocalPath(localPath);
             task.setFileName(fileName);
@@ -51,7 +51,7 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
             task.setStatus(0); // 默认状态：0-待上传
             task.setCreateTime(new Date());
             // 插入记录
-            int result = sftpUploadTaskMapper.insertSelective(task);
+            int result = fileSyncTaskMapper.insertSelective(task);
             if (result > 0) {
                 log.warn("成功插入SFTP上传任务，ID: {}, apiCode: {}, fileName: {}",
                         task.getId(), apiCode, fileName);
