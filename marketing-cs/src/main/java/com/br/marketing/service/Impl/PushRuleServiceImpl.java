@@ -27,6 +27,7 @@ import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.cache.CaffeineCacheKeyConstant;
 import com.br.marketing.common.constants.common.LastEnum;
@@ -87,6 +88,7 @@ import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.GeneScriptUtil;
@@ -191,6 +193,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     PhoneSaleMapper phoneSaleMapper;
+
+    @Resource
+    private PulsarConsumerSkipUtil pulsarConsumerSkipUtil;
 
 
     @Resource
@@ -2504,7 +2509,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
                 producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonString));
+                log.warn(String.format("通用写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonString));
                 Long res = requestIdWriteRedis(uploadKey, dto.getJsonData().getRequestId());
                 if (res != null && res < 1) {
                     throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
@@ -3476,6 +3481,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Boolean> consumerSyncInfo(String msg) {
+        boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.upLoadSubscription);
+        if(b){
+            log.warn("【pulsar】标准上传数据执行跳过逻辑");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+
         JSONObject jb = JSON.parseObject(msg);
         String apiCode = jb.getString("apiCode");
         String jdStr = jb.getString("jsonData");
@@ -3687,6 +3698,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Boolean> consumerTransferInfo(String msg) {
+        boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferSubscription);
+        if(b){
+            log.warn("【pulsar】标准转化数据执行跳过逻辑："+PulsarSubscription.transferSubscription);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        
         JSONObject jb = JSON.parseObject(msg);
         String apiCode = jb.getString("apiCode");
         String jsonData = jb.getString("jsonData");

@@ -15,7 +15,9 @@ import com.br.marketing.api.customer.transfer.service.CustomerTransferDataServic
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
+import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
@@ -55,6 +57,9 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private PulsarConsumerSkipUtil pulsarConsumerSkipUtil;
 
     @Resource
     private PushRuleService pushRuleService;
@@ -202,6 +207,12 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
 
     @Override
     public Result<Boolean> consumerTransferPayData(String msg) {
+        // 检查是否需要跳过业务逻辑
+        if (pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferCustomSubscription)) {
+            log.warn("【pulsar】定制客户转化数据执行跳过逻辑");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        
         Result<Boolean> result = new Result<>();
         try {
             CustomerTransferDataReceive receive = JSONObject.parseObject(
