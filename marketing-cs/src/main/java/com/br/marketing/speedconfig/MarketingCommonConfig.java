@@ -3473,5 +3473,10 @@ public class MarketingCommonConfig {
      */
     private Integer mockPollingInterval;
 
+    /**
+     * 定义不需要Mock初始化的项目列表
+     */
+    private Set<String> disableMockProjects;
+
 }
 

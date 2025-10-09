@@ -7,18 +7,20 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.constants.MockConstants;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.origin.CaffeineCache;
-import com.br.marketing.constants.MockConstants;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,10 +46,22 @@ public class MockBaffleConfigServiceImpl {
     @Resource
     private MarketingMockApiService marketingMockApiService;
 
+    // 获取应用名称，用于判断是否需要启用Mock功能
+    @Value("${spring.application.name:unknown}")
+    private String applicationName;
+
     private static final String TITLE = "【Mock初始化】";
 
     @PostConstruct
     public void init() {
+        // 检查当前项目是否需要禁用Mock初始化
+        Set<String> disableMockProjects = marketingCommonConfig.getDisableMockProjects();
+        if (disableMockProjects.contains(applicationName)) {
+            log.warn(TITLE + "当前项目 [{}] 在禁用Mock列表中，跳过Mock初始化操作", applicationName);
+            return;
+        }
+        
+        log.warn(TITLE + "项目 [{}] 开始初始化Mock功能", applicationName);
         try {
             scheduler = Executors.newSingleThreadScheduledExecutor();
 
