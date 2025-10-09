@@ -158,18 +158,4 @@ public class MarketingMockController {
         }
     }
 
-    /**
-     * Mock挡板查询redis缓存
-     *
-     * @param cacheKey
-     * @return
-     */
-    @ApiOperation(value = "Mock挡板查询redis缓存")
-    @PostMapping("/getMockRedisValue")
-    @LogAnnotation
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
-    public ApiNoDataResult getMockRedisValue(@RequestParam("cacheKey") String cacheKey) {
-        return new ApiNoDataResult().fromResult(mockService.getMockRedisValue(cacheKey));
-    }
-
 }

@@ -18,11 +18,13 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @ClassName MarketingMockApiService
- * @Description TODO
+ * @Description mock查询redis缓存
  * @Author kongbx
  * @Date 2025/9/25 16:29
  */
@@ -46,33 +48,36 @@ public class MarketingMockApiService {
      * Mock挡板查询redis缓存
      *
      * @param cacheKey redis key
-     * @return Result<Boolean>
+     * @return Result<String>
      */
     @RetryMethod(retryNowNum = 2)
     public Result<String> getMockRedisValue(String cacheKey) {
         try {
+            Map<String, String> params = new HashMap<>();
+            params.put("cacheKey", cacheKey);
+            
             ThirdApiResultTransfer result = new ApiCallerUtil(restTemplate, interfaceLogMapper, interfaceLogDbpool)
                     .setUrl(redisUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .setRequestParam(cacheKey)
+                    .setRequestParam(params)
                     .setEncode(Boolean.TRUE)
                     .postTransferStr();
             if (Integer.valueOf(200).equals(result.getHttpCode())) {
                 JSONObject jsonObject = JSON.parseObject(result.getResult());
                 String code = jsonObject.getString("code");
                 String data = jsonObject.getString("data");
-                if ("00".equals(code)) {
-                    return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+                if ("000000".equals(code)) {
+                    return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
                 } else {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE.toString());
                 }
             } else {
-                return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
         } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用Mock挡板查询redis缓存接口报错!"), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用Mock挡板查询redis缓存接口报错!，url："+redisUrl), ex);
         }
-        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+        return new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE.toString());
     }
 
 }

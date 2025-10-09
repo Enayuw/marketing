@@ -93,6 +93,9 @@ api:
     apiCode: 4000296
   dass:
     aesKey: ovksl39fcl13m9dF
+  mock:
+    baseUrl: http://127.0.0.1:18707
+    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
 # 雪花算法数据中心ID
 snowflake:
   datacenter:
