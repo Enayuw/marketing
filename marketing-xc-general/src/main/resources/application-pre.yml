@@ -181,6 +181,9 @@ api:
     baseUrl: http://8.129.19.178:8888
     zhuangku: ${api.twoSeven.baseUrl}/zhuangku
     isProxy: 1
+  mock:
+    baseUrl: http://marketing-inner-api
+    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
   marketing:
     baseUrl: http://k8s.brapp.com/compass-api/api/marketing-api
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync

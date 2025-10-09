@@ -232,6 +232,9 @@ api:
       rsaPrivateKey: MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAuhiLVBqjdgzOZV52cvwTIgnUnwSnSVM9YPNPu6s2HEViVaXlyGSt8TjOhL89+8z+H8erILUDWchdrVW5oCcJ1QIDAQABAkEAkYQLvrIty2tsINvipzrxAxbIyadr3+xU/HCFkmvoneVVhhYAEDUjgGNQy64m/YImo1uv9ebZgS84xlynfS7cwQIhAOawBvOs9YNzWe8pMuGwCNfOIJtsy/lfUWkSepl7dCGZAiEAzoPxinBzrGMpFwM7nqXmRz3ooDcJ16xkJIEDFJWlR50CIGzbuAwZHCoRrujK2jXh6epcXMq7Rm3A6xvYGn5+4UhRAiEAgTV0bpWlCfqQvuE68CwERBar8XH+Kn6luWEuuDZYztECH1uMWhpL+NCndzwYahI8Ag9XVyXDf2jbnViG1ivkymw=
       url: https://gw-p2.haiercash.com/gw/api/baffle/v1/validate/access
       isProxy: true
+  mock:
+    baseUrl: http://marketing-inner-api
+    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway

@@ -337,6 +337,9 @@ api:
     baseUrl: https://mns.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: true
+  mock:
+    baseUrl: http://marketing-inner-api
+    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
 
 spring:
   rabbitmq:

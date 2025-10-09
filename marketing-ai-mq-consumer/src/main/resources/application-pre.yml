@@ -279,6 +279,9 @@ api:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: false
+  mock:
+    baseUrl: http://marketing-inner-api
+    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
