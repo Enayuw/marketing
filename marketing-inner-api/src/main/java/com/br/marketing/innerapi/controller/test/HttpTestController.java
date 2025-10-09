@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller.test;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
 import com.br.marketing.client.zbank.ZbankClient;
@@ -9,11 +10,14 @@ import com.br.marketing.es.service.MarketingHistoryEsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +37,8 @@ public class HttpTestController {
 
     @Resource
     private ZbankClient zBankClient;
+
+
 
     /**
      * 测试众邦代理
@@ -89,4 +95,127 @@ public class HttpTestController {
         List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
         return "";
     }
+
+
+    public static void main(String[] args) {
+//        String url = "https://marketing.100credit.com/api/marketing-inner-api/account/getLineAccountLogs?configIdStr=5231758614369179&current=1&size=10&t=1758619941.429";
+//        RestTemplate restTemplate = new RestTemplate();
+//        // 设置请求头
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("SessionId", "7D193D9AF33F5CE772C2AF4DA30AF01D");
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        HttpEntity<String> entity = new HttpEntity<>(headers);
+//        ResponseEntity<String> response = restTemplate.exchange(
+//                url,
+//                HttpMethod.GET,
+//                entity,
+//                String.class
+//        );
+//        System.out.println(response.getBody());
+        readExcelXls();
+    }
+
+
+    private static void readExcelXls() {
+        String filePath = "E:\\sms_line_price\\sms_line_price_20250923_online_119.xlsx";
+        File excelFile = new File(filePath);
+
+        if (!excelFile.exists()) {
+            System.out.println("文件不存在");
+            return;
+        }
+        try {
+            List<Map<String, String>> excelData = ExcelMergeCellReader.readExcelWithMergeCells(filePath);
+
+            // 逐行打印结果
+            for (Map<String, String> row : excelData) {
+                StringBuilder line = new StringBuilder();
+                for (Map.Entry<String, String> entry : row.entrySet()) {
+                    if (!"rowNumber".equals(entry.getKey())) {
+                        line.append(entry.getValue()).append(",");
+                    }
+                }
+                //System.out.println("行" + row.get("rowNumber") + ": " + line.toString().trim());
+                //System.out.println(line.toString().trim());
+                String[] columnsArray = line.toString().split(",");
+
+                //{
+                //  "priceDates": [
+                //    {
+                //      "price": 1,
+                //      "effectStartDate": "2025-09-23"
+                //    }
+                //  ],
+                //  "lineSupplier": "XY",
+                //  "lines": [
+                //    {
+                //      "gatewayId": 690022,
+                //      "callerFullname": "XY-06654094252"
+                //    }
+                //  ]
+                //}
+                JSONObject jsonObject = new JSONObject();
+                //priceDates
+                JSONArray priceDatesArray = new JSONArray();
+                JSONObject jsonArrayItemObj = new JSONObject();
+                jsonArrayItemObj.put("price",columnsArray[4]);
+                jsonArrayItemObj.put("effectStartDate","2025-09-23");
+                priceDatesArray.add(jsonArrayItemObj);
+                jsonObject.put("priceDates",priceDatesArray);
+
+
+                //lineSupplier
+                jsonObject.put("lineSupplier",columnsArray[1]);
+
+                //lines
+                JSONArray linesArray = new JSONArray();
+                JSONObject linesArrayItem = new JSONObject();
+                linesArrayItem.put("gatewayId",columnsArray[3]);
+                linesArrayItem.put("callerFullname",columnsArray[2]);
+                linesArray.add(linesArrayItem);
+                jsonObject.put("lines",linesArray);
+
+                System.out.println(jsonObject.toString().trim());
+                //postRequestTest(jsonObject);
+
+                postRequestOnline(jsonObject);
+            }
+
+        } catch (Exception e) {
+            System.out.println("读取Excel文件失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public static void postRequestOnline(JSONObject obj) {
+        RestTemplate restTemplate = new RestTemplate();
+        String requestUrl ="https://marketing.100credit.com/api/marketing-inner-api/account/addLineAccount";
+        try {
+            // 1. 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("SessionId", "216391C314D2BB82F13B2EF08A98EBE0");
+            headers.set("Content-Type", "application/json");
+
+            // 3. 创建HttpEntity
+            HttpEntity<JSONObject> requestEntity = new HttpEntity<>(obj, headers);
+            // 4. 发送POST请求
+            ResponseEntity<String> response = restTemplate.exchange(
+                    requestUrl,
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
+            // 5. 打印结果
+            System.out.println("响应状态码: " + response.getStatusCode());
+            System.out.println("响应头: " + response.getHeaders());
+            System.out.println("响应体: " + response.getBody());
+
+        } catch (Exception e) {
+            System.err.println("请求失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
 }
