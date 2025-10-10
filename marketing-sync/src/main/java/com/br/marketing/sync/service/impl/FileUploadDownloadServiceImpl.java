@@ -3,6 +3,7 @@ package com.br.marketing.sync.service.impl;
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
@@ -63,10 +64,10 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     private Boolean uploadSftp(FileSyncTask uploadTask, SyncConfig syncConfig) {
         //获取内部sftp配置
-        BaseFtpClient client = syncServiceImpl.getClient(syncConfig, true);
+        BaseFtpClient client = syncServiceImpl.getClient(syncConfig, false);
 
         // 处理路径中的日期替换
-        String srcPath = replaceDateInPath(syncConfig.getSrcPath());
+        String srcPath = replaceDateInPath(syncConfig.getTargetPath());
 
         String localPath = uploadTask.getLocalPath().concat(uploadTask.getFileName());
 
@@ -227,6 +228,9 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      * 执行后置SQL处理
      */
     private Boolean executePostSqlProcess(String postSql) {
+        if(StringUtils.isEmpty(postSql)){
+            return Boolean.TRUE;
+        }
         Boolean result = Boolean.FALSE;
         try {
             fileSyncTaskMapper.postExecuteSql(postSql);

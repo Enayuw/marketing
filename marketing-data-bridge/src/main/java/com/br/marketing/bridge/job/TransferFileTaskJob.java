@@ -302,13 +302,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                         for (TransferFileTask datum : data) {
                             Result result = serviceImpl.actionTransferToFile(datum, myParam);
                             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                                String fielChildDir = StringUtils.isNotEmpty(datum.getFileChildDir()) ? datum.getFileChildDir() + "/" : "";
-                                String uploadPath = upLoadPath.concat(datum.getApiCode()).concat("/transferOutPut/").concat(fielChildDir).concat(datum.getStartDate());
-                                sftpUploadHandlerService.insertSftpUploadTask(datum.getApiCode(),uploadPath,datum.getFileName(), DataTypeEnum.TRANSFER.getValue(),
-                                        "update b_transfer_file_task set status = 4 where api_code ="+datum.getApiCode() +" and file_name = "+datum.getFileName());
+                                String localPath = datum.getFilePath();
+                                sftpUploadHandlerService.insertSftpUploadTask(datum.getApiCode(),localPath,datum.getFileName(), DataTypeEnum.TRANSFER.getValue(),
+                                        "update b_transfer_file_task set status = 4 where api_code ='"+datum.getApiCode() +"' and file_name = '"+datum.getFileName()+"'");
                                     //第一次执行，查询为空，不会进行删除，直接返回
                                     //第二次执行，删除b_sync_log的记录
-                                    String fileChildDir = "";
+                                    /*String fileChildDir = "";
                                     if (StringUtils.isNotEmpty(datum.getFileChildDir())) {
                                         fileChildDir =  datum.getFileChildDir().concat("/");
                                     }
@@ -337,7 +336,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                                 .andFileNameIn(Lists.newArrayList(datum.getFileName(), datum.getFileName() + ".success"))
                                                 .andSrcPathEqualTo(srcPath);
                                         loanSyncLogMapper.deleteByExample(syncLogExample);
-                                    }
+                                    }*/
                                 }
                             }
                         }
