@@ -24,16 +24,16 @@ public class MarketingTrackKafkaConsumer {
      * 消费marketing-sys-track topic的消息
      * 
      * @param message 消息内容
+     * @param acknowledgment 确认机制
      * @param partition 分区
      * @param offset 偏移量
-     * @param acknowledgment 确认机制
      */
     @KafkaListener(topics = "marketing-sys-track")
     public void consumeMarketingTrackMessage(
             @Payload String message,
+            Acknowledgment acknowledgment,
             @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
-            @Header(KafkaHeaders.OFFSET) long offset,
-            Acknowledgment acknowledgment) {
+            @Header(KafkaHeaders.OFFSET) long offset) {
         
         try {
             log.warn("=== Kafka消费开始 ===");
