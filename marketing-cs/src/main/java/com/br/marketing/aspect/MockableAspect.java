@@ -21,6 +21,7 @@ import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -215,7 +216,7 @@ public class MockableAspect {
         try {
             // 如果响应体为null，返回空List
             if (responseBody == null) {
-                return new java.util.ArrayList<>();
+                return new ArrayList<>();
             }
             
             // 使用通用的泛型转换方法处理List类型
@@ -224,7 +225,7 @@ public class MockableAspect {
         } catch (Exception e) {
             log.warn(TITLE + "【List类型适配失败】方法 {} 无法将响应数据适配为List类型，返回空List。错误：{}",
                     methodName, e.getMessage());
-            return new java.util.ArrayList<>();
+            return new ArrayList<>();
         }
     }
 

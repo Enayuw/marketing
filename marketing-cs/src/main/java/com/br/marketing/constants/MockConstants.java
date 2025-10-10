@@ -27,6 +27,7 @@ public final class MockConstants {
      */
     public static final String TEST_DTO_RETURN = "test_dto_return";
     public static final String TEST_LIST_RETURN = "test_list_return";
+    public static final String TEST_INTEGER_RETURN = "test_integer_return";
     // ==================== 工具方法 ====================
     
     /**
@@ -43,7 +44,8 @@ public final class MockConstants {
             TEST_RESULT_RETURN,
             // 复杂对象类型
             TEST_DTO_RETURN,
-            TEST_LIST_RETURN
+            TEST_LIST_RETURN,
+            TEST_INTEGER_RETURN
         );
     }
     

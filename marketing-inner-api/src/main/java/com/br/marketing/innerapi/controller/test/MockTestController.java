@@ -54,7 +54,8 @@ public class MockTestController {
             // 测试复杂对象类型
             results.put("DTO", mockTestService.testDtoReturn(888L));
             results.put("List", mockTestService.testListReturn(3));
-            
+            results.put("Integer", mockTestService.testIntegerReturn());
+
         } catch (Exception e) {
             log.error("批量测试异常", e);
             results.put("error", e.getMessage());
