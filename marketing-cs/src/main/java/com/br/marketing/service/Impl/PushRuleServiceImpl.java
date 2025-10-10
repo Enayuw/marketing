@@ -99,9 +99,11 @@ import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
+import com.marketingkit.tracking.service.TrackingService;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -141,6 +143,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 
 @Service
 public class PushRuleServiceImpl implements PushRuleService {
@@ -167,6 +170,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     CaffeineCache caffeineCache;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -2532,6 +2538,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
             sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
+        }
+        // 埋点
+        try {
+            log.warn("开始埋点调用 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
+            trackingService.track(DataFlowDirection.IN
+                    , apiCode
+                    , "通用上传接口上传数据"
+                    , Long.valueOf(size)
+                    , "通用上传接口上传数据"
+                    , TrackingContext.generateBatchId());
+            log.warn("埋点调用成功 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
+        } catch (Exception e) {
+            log.error("埋点调用失败 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}, error: {}", 
+                    apiCode, syncInfoId, e.getMessage(), e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }

@@ -1,0 +1,12 @@
+2025-10-10 15:35:56.381 WARN  [35468] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:35:57.045 WARN  [35468] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:35:57.079 WARN  [35468] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:47:58.747 WARN  [33384] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:47:59.723 WARN  [33384] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:47:59.814 WARN  [33384] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:52:53.039 WARN  [12436] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:52:53.695 WARN  [12436] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 15:52:53.743 WARN  [12436] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 16:13:16.379 WARN  [23124] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 16:13:17.103 WARN  [23124] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-10 16:13:17.173 WARN  [23124] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
