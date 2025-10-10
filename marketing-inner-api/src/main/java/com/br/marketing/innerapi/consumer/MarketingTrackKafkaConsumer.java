@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -24,14 +23,12 @@ public class MarketingTrackKafkaConsumer {
      * 消费marketing-sys-track topic的消息
      * 
      * @param message 消息内容
-     * @param acknowledgment 确认机制
      * @param partition 分区
      * @param offset 偏移量
      */
     @KafkaListener(topics = "marketing-sys-track")
     public void consumeMarketingTrackMessage(
             @Payload String message,
-            Acknowledgment acknowledgment,
             @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
             @Header(KafkaHeaders.OFFSET) long offset) {
         
@@ -40,7 +37,10 @@ public class MarketingTrackKafkaConsumer {
             log.warn("Topic: marketing-sys-track");
             log.warn("Partition: {}", partition);
             log.warn("Offset: {}", offset);
-            log.warn("Message: {}", message);
+            log.warn("Message Length: {}", message != null ? message.length() : 0);
+            log.warn("=== 完整消息体 ===");
+            log.warn("{}", message);
+            log.warn("=== 消息体结束 ===");
             
             // 解析消息内容
             if (message != null && !message.trim().isEmpty()) {
@@ -62,11 +62,8 @@ public class MarketingTrackKafkaConsumer {
                 }
             }
             
-            // 手动确认消息
-            if (acknowledgment != null) {
-                acknowledgment.acknowledge();
-                log.warn("消息确认成功");
-            }
+            // 自动确认消息（配置中已设置enable-auto-commit: true）
+            log.warn("消息处理完成，自动确认");
             
             log.warn("=== Kafka消费成功 ===");
             
@@ -75,15 +72,14 @@ public class MarketingTrackKafkaConsumer {
             log.error("Topic: marketing-sys-track");
             log.error("Partition: {}", partition);
             log.error("Offset: {}", offset);
-            log.error("Message: {}", message);
+            log.error("Message Length: {}", message != null ? message.length() : 0);
+            log.error("=== 完整消息体（异常时） ===");
+            log.error("{}", message);
+            log.error("=== 消息体结束 ===");
             log.error("消费异常: {}", e.getMessage(), e);
             
-            // 消费失败时可以选择不确认，让消息重新消费
-            // 这里为了测试，仍然确认消息
-            if (acknowledgment != null) {
-                acknowledgment.acknowledge();
-                log.warn("消费失败但已确认消息");
-            }
+            // 消费失败时自动确认消息（配置中已设置enable-auto-commit: true）
+            log.warn("消费失败但已自动确认消息");
         }
     }
 }
