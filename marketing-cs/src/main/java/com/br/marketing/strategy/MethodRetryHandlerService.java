@@ -80,6 +80,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -192,6 +193,7 @@ public class MethodRetryHandlerService {
     @Resource
     private ZbankClient zBankClient;
 
+    @Lazy
     @Resource
     private PushRuleServiceImpl pushRuleService;
 

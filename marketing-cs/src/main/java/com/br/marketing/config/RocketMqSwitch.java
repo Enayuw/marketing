@@ -9,6 +9,7 @@ import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
@@ -52,6 +53,7 @@ public class RocketMqSwitch {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private RocketMqTemplate template;
+    @Lazy
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     public Boolean rocketMQSwitchFlag(String apiCode, String tag) {

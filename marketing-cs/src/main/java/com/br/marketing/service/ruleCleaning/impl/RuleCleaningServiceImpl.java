@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.util.StringUtil;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,6 +90,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
 
+    @Lazy
     @Resource
     private DataCleanServiceImpl dataCleanService;
 

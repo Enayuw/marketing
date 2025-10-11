@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class XieChengCollidingResultHandleService {
     private XieChengCollidingDataLoopCycleMapper xieChengCollidingDataLoopCycleMapper;
     @Resource
     private XieChengCollidingDataRobMapper xieChengCollidingDataRobMapper;
+    @Lazy
     @Resource
     private XieChengCollidingResultHandleService resultHandleService;
     @Resource

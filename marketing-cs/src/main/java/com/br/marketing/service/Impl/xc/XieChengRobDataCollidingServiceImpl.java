@@ -38,6 +38,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -76,6 +77,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private XieChengServiceNew xieChengServiceNew;
     @Resource
     private XieChengCollidingResultHandleService handleService;
+    @Lazy
     @Resource
     private VariableAllocationServiceImpl variableAllocationService;
     @Resource
