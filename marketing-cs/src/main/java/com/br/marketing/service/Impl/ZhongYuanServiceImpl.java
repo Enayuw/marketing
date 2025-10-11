@@ -31,7 +31,7 @@ import com.br.marketing.strategy.ArtificialTransferSoleHandler;
 import com.br.marketing.strategy.CustomerTransferSoleHandler;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import com.google.common.collect.Lists;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
