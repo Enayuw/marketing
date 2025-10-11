@@ -2,8 +2,6 @@ package com.br.marketing.client.smy.util;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -21,12 +19,11 @@ public class AESUtil{
 	public static final String AES_CBC_NOPADDING = "AES/CBC/NoPadding";
 
 	private static String base64Encode(byte[] bytes) {
-		return new BASE64Encoder().encode(bytes);
+		return Base64.encodeBase64String(bytes);
 	}
 
 	private static byte[] base64Decode(String base64Code) throws Exception {
-		return StringUtils.isBlank(base64Code) ? null : new BASE64Decoder()
-				.decodeBuffer(base64Code);
+		return StringUtils.isBlank(base64Code) ? null : Base64.decodeBase64(base64Code);
 	}
 
 	private static byte[] aesEncryptToBytes(String content, String encryptKey)
@@ -141,7 +138,7 @@ public class AESUtil{
 	/**
 	 * 用 AES 算法加密 inputStr。
 	 * 使用 secretStr 作为 key，secretStr 的前 16 个字节作为 iv。
-	 * 并对加密后的字节数组调用 sun.misc.BASE64Encoder.encode 方法，
+	 * 并对加密后的字节数组调用 Base64.encodeBase64String 方法，
 	 * 转换成 base64 字符串返回。
 	 *
 	 * @param secretStr
@@ -173,10 +170,10 @@ public class AESUtil{
 	}
 
 	/**
-	 * 用 AES 算法加密 inputStr。
+	 * 用 AES 算法解密 inputStr。
 	 * 使用 secretStr 作为 key，secretStr 的前 16 个字节作为 iv。
-	 * 并对加密后的字节数组调用 sun.misc.BASE64Encoder.encode 方法，
-	 * 转换成 base64 字符串返回。
+	 * 并对加密后的字节数组调用 Base64.decodeBase64 方法，
+	 * 从 base64 字符串解码。
 	 *
 	 * （仅作为测试用途，具体加密流程以接口文档为准）
 	 *

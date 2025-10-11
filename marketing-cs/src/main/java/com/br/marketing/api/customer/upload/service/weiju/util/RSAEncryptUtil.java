@@ -1,6 +1,6 @@
 package com.br.marketing.api.customer.upload.service.weiju.util;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import java.util.Base64;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import sun.misc.BASE64Decoder;
 
 public class RSAEncryptUtil {
 
@@ -43,12 +42,12 @@ public class RSAEncryptUtil {
         try {
             String content = getSignContent(signParams);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            byte[] encodedKey = Base64.decode(publicKey);
+            byte[] encodedKey = Base64.getDecoder().decode(publicKey);
             PublicKey pubKey = keyFactory.generatePublic(new X509EncodedKeySpec(encodedKey));
             Signature signature = Signature.getInstance(signType);
             signature.initVerify(pubKey);
             signature.update(content.getBytes("utf-8"));
-            boolean bverify = signature.verify(Base64.decode(sign));
+            boolean bverify = signature.verify(Base64.getDecoder().decode(sign));
             return bverify;
         } catch (Exception var10) {
             var10.printStackTrace();
@@ -64,7 +63,7 @@ public class RSAEncryptUtil {
             signature.initSign(priKey);
             signature.update(content.getBytes("utf-8"));
             byte[] signed = signature.sign();
-            return new String(Base64.encode(signed));
+            return Base64.getEncoder().encodeToString(signed);
         } catch (Exception var7) {
             System.out.println("生成签名异常:" + var7.getMessage());
             var7.printStackTrace();
@@ -94,7 +93,7 @@ public class RSAEncryptUtil {
             return privateKey;
         } else {
             try {
-                PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec((new BASE64Decoder()).decodeBuffer(priKey));
+                PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(priKey));
                 KeyFactory keyf = KeyFactory.getInstance("RSA");
                 privateKey = keyf.generatePrivate(priPKCS8);
             } catch (Exception var4) {
