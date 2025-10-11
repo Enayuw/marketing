@@ -35,11 +35,15 @@ server:
 #生成结果文件目录
 result.file.path: /opt/data/inloan/warning
 #exporter监控
-endpoints:
-  prometheus:
-    enabled: true
-    path: /prometheus
-    sensitive: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 
 # 线程池动态配置监控

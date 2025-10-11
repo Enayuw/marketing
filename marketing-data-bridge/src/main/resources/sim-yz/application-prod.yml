@@ -3,11 +3,11 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI,marketingLog
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       type: com.alibaba.druid.pool.DruidDataSource
-      driver-class-name: com.mysql.jdbc.Driver
+      driver-class-name: com.mysql.cj.jdbc.Driver
       isSharding: true
       filters: stat
       maxActive: 300
@@ -25,8 +25,8 @@ datasource:
     marketingTikiv:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -51,8 +51,8 @@ datasource:
     marketingTiFlash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -77,7 +77,7 @@ datasource:
     marketingDoris:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
+      driverClassName: com.mysql.cj.jdbc.Driver
       url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
@@ -101,8 +101,8 @@ datasource:
     marketingBI:
       name: marketing_bi
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi?socketTimeout=1800000
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi?socketTimeout=1800000&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-bi-user)
       password: ENC(mysql-prod-ai-marketing-bi-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -125,8 +125,8 @@ datasource:
     marketingLog:
       name: marketing_log
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-log-user)
       password: ENC(mysql-prod-ai-marketing-log-password)
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时

@@ -3,11 +3,11 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       type: com.alibaba.druid.pool.DruidDataSource
-      driver-class-name: com.mysql.jdbc.Driver
+      driver-class-name: com.mysql.cj.jdbc.Driver
       isSharding: true
       filters: stat
       maxActive: 300
@@ -25,8 +25,8 @@ datasource:
     marketingTikiv:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -52,8 +52,8 @@ datasource:
     marketingTiFlash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -79,8 +79,8 @@ datasource:
     marketingDoris:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -103,8 +103,8 @@ datasource:
     marketingBI:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -124,11 +124,16 @@ datasource:
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
       replicationAllocation: tag.location.default:1
-mybatis:
+mybatis-plus:
   mapper-locations: mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 logging:
   level:
     com.br.off.mapper: debug
