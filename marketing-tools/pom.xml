@@ -81,6 +81,24 @@
         <artifactId>grpc-encode-mapping-rely</artifactId>
         <version>1.0.0</version>
         <classifier>shaded</classifier>
+        <exclusions>
+            <exclusion>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-protobuf</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-netty-shaded</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-protobuf</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-stub</artifactId>
+            </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
         <groupId>com.br.transfer</groupId>
