@@ -418,6 +418,7 @@ public class MockServiceImpl implements MockService {
                 mockCreatePolicyDTO.setMockCreateCaseDTOS(mockCreateCaseDTOS);
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(mockCreatePolicyDTO));
             }catch (Exception ex){
+                log.error("mock挡板查询DB异常，localCacheKey: {}, 错误信息: {}", localCacheKey, e.getMessage(), e);
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("mock挡板查询DB异常");
             }
         }
