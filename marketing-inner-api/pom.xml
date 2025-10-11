@@ -129,7 +129,7 @@
                     <includeSystemScope>true</includeSystemScope>
                     <fork>true</fork>
                 </configuration>
-                <version>1.5.3.RELEASE</version>
+                <version>2.7.18</version>
                 <executions>
                     <execution>
                         <goals>

@@ -14,8 +14,8 @@
     <name>marketing-xc-loop-cycle</name>
     <description>携程TRUE数据撞库作业</description>
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
     <dependencies>
         <!--spring-start-->
@@ -88,7 +88,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <!-- 由于版本问题，采用默认版本打包的时候会依赖2.+的版本，所以这里强制指定版本 -->
-                <version>1.5.3.RELEASE</version>
+                <version>2.7.18</version>
                 <executions>
                     <execution>
                         <goals>

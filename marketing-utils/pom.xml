@@ -86,8 +86,8 @@
         </dependency>
         <dependency>
             <groupId>com.br.speed</groupId>
-            <artifactId>speed-client</artifactId>
-            <version>${speed.version}</version>
+            <artifactId>speed-client-jdk17</artifactId>
+            <version>2.0.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>

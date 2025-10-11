@@ -87,12 +87,6 @@
             <artifactId>groovy-all</artifactId>
             <version>2.4.10</version>
         </dependency>
-        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-        <!--<dependency>
-            <groupId>com.br.cloud</groupId>
-            <artifactId>spring_boot_exporter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>-->
     </dependencies>
 
     <profiles>
@@ -134,7 +128,7 @@
                     <mainClass>com.br.marketing.mq.MarketingMqConsumerApplication</mainClass>
                     <includeSystemScope>true</includeSystemScope>
                 </configuration>
-                <version>1.5.3.RELEASE</version>
+                <version>2.7.18</version>
                 <executions>
                     <execution>
                         <goals>
