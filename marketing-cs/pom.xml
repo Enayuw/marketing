@@ -103,6 +103,21 @@
             <version>${grpc.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>grpc-monitor-jdk17</artifactId>
+            <version>1.0.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>protobuf-java-util</artifactId>
+                    <groupId>com.google.protobuf</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-all</artifactId>
             <version>${grpc.version}</version>
@@ -201,7 +216,7 @@
         <dependency>
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper-spring-boot-starter</artifactId>
-            <version>1.3.1</version>
+            <version>1.4.7</version>
         </dependency>
         <dependency>
             <groupId>com.br.common</groupId>
@@ -351,6 +366,25 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>grpc-es-center-rely</artifactId>
+            <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-netty-shaded</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-protobuf</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-stub</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
             <version>4.0.13-SNAPSHOT</version>
@@ -373,10 +407,6 @@
                 </exclusion>
                 <exclusion>
                     <groupId>io.grpc</groupId>
-                    <artifactId>grpc-protobuf</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
                     <artifactId>grpc-stub</artifactId>
                 </exclusion>
                 <exclusion>
@@ -396,16 +426,16 @@
                     <artifactId>grpc-all</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.google.protobuf</groupId>
-                    <artifactId>protobuf-java-util</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.br</groupId>
                     <artifactId>br-grpc-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.br</groupId>
+                    <artifactId>grpc-es-center-rely</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -481,7 +511,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <!-- easy excel -->
         <dependency>
             <groupId>com.alibaba</groupId>

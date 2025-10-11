@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
 
 import cn.hutool.core.util.ObjectUtil;
 import lombok.extern.slf4j.Slf4j;
-import shaded.com.google.common.base.Splitter;
+import com.google.common.base.Splitter;
 
 /**
  * 转化数据执行通用规则重推流程

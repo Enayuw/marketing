@@ -40,8 +40,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import shaded.com.google.common.hash.BloomFilter;
-import shaded.com.google.common.hash.Funnels;
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnels;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
