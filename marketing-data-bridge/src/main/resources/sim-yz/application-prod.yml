@@ -1,9 +1,9 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI,marketingLog
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       type: com.zaxxer.hikari.HikariDataSource
@@ -17,11 +17,11 @@ datasource:
         max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
         keepalive-time: 30000 # 连接保活时间，单位毫秒
         connection-test-query: select 1 # 连接测试查询
-    marketingTikiv:
+    marketing-tikiv:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       hikari:
@@ -36,11 +36,11 @@ datasource:
     #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingTiFlash:
+    marketing-tiflash:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       hikari:
@@ -55,11 +55,11 @@ datasource:
 #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingDoris:
+    marketing-doris:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing
+      jdbc-url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       hikari:
@@ -70,11 +70,11 @@ datasource:
         max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
         keepalive-time: 30000 # 连接保活时间，单位毫秒
         connection-test-query: select 1 # 连接测试查询
-    marketingBI:
+    marketing-bi:
       name: marketing_bi
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi?socketTimeout=1800000&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi?socketTimeout=1800000&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-bi-user)
       password: ENC(mysql-prod-ai-marketing-bi-password)
       hikari:
@@ -85,11 +85,11 @@ datasource:
         max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
         keepalive-time: 30000 # 连接保活时间，单位毫秒
         connection-test-query: select 1 # 连接测试查询
-    marketingLog:
+    marketing-log:
       name: marketing_log
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance&serverTimezone=UTC
       username: ENC(mysql-prod-ai-marketing-log-user)
       password: ENC(mysql-prod-ai-marketing-log-password)
       hikari:

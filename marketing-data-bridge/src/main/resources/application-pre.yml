@@ -1,9 +1,9 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       type: com.zaxxer.hikari.HikariDataSource
@@ -17,11 +17,11 @@ datasource:
         max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
         keepalive-time: 30000 # 连接保活时间，单位毫秒
         connection-test-query: select 1 # 连接测试查询
-    marketingTikiv:
+    marketing-tikiv:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       hikari:
@@ -36,11 +36,11 @@ datasource:
     #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingTiFlash:
+    marketing-tiflash:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       hikari:
@@ -55,11 +55,11 @@ datasource:
 #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingDoris:
+    marketing-doris:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       hikari:
@@ -70,11 +70,11 @@ datasource:
         max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
         keepalive-time: 30000 # 连接保活时间，单位毫秒
         connection-test-query: select 1 # 连接测试查询
-    marketingBI:
+    marketing-bi:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       hikari:
