@@ -134,22 +134,23 @@ public class MockBaffleConfigServiceImpl {
      */
     private void checkAndUpdateMockCache() {
         log.warn(TITLE + "开始轮询线程更新，本地缓存："+JSON.toJSONString(caffeineCache.getAllMockLocalCache().asMap()));
-        List<String> allCodes = MockConstants.getAllMockNames();
-        for (String code : allCodes) {
-            String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + code);
+        List<String> allMockNames = MockConstants.getAllMockNames();
+        for (String mockName : allMockNames) {
+            String localCacheKey = RedisKeyConstant.MOCK_POLICY.concat(":" + mockName);
             try {
+                // 获取本地缓存
                 MockInitDTO mockInitDTO = caffeineCache.getMockSwitchStatus(localCacheKey);
-                String redisValue = null;
-                try {
-                    Result<String> mockRedisValue = marketingMockApiService.getMockRedisValue(localCacheKey);
-                    Integer code1 = mockRedisValue.getCode();
-                    if(code1.equals(ResultCode.SUCCESS.getValue())){
-                        redisValue = mockRedisValue.getData();
-                    }
-                } catch (Exception e) {
-                    log.warn(TITLE + "获取Redis缓存失败，key: {}", localCacheKey, e);
+                String mockConfigValue = null;
+
+                // 查询mock配置信息
+                Result<String> mockConfig = marketingMockApiService.queryMockConfig(localCacheKey);
+                Integer code = mockConfig.getCode();
+                if(code.equals(ResultCode.SUCCESS.getValue())){
+                    mockConfigValue = mockConfig.getData();
                 }
-                if (redisValue == null) {
+
+                if (mockConfigValue == null) {
+                    // 本地缓存存在 但 redis-db中不存在
                     if(mockInitDTO != null){
                         // 删除本地缓存
                         caffeineCache.deleteMockSwitchStatus(localCacheKey);
@@ -157,8 +158,9 @@ public class MockBaffleConfigServiceImpl {
                     }
                     continue;
                 }
-                if (mockInitDTO == null || !isVersionConsistent(mockInitDTO, redisValue)) {
-                    updateLocalCache(localCacheKey, redisValue);
+                // 存在mock配置，对比版本号
+                if (mockInitDTO == null || !isVersionConsistent(mockInitDTO, mockConfigValue)) {
+                    updateLocalCache(localCacheKey, mockConfigValue);
                 }
             } catch (Exception e) {
                 log.error(TITLE + "处理Mock缓存key={}时异常", localCacheKey, e);
@@ -172,9 +174,6 @@ public class MockBaffleConfigServiceImpl {
     private boolean isVersionConsistent(MockInitDTO mockInitDTO, String redisValue) {
         try {
             MockCreatePolicyDTO policy = JSON.parseObject(redisValue, MockCreatePolicyDTO.class);
-            if (policy == null) {
-                return false;
-            }
             String currentVersion = policy.getVersion();
             if (StringUtils.isEmpty(currentVersion)) {
                 log.warn(TITLE + "redis中版本号为空, value={}", JSONObject.toJSONString(policy));

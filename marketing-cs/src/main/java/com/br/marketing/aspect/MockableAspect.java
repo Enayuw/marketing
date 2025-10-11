@@ -1,19 +1,23 @@
 package com.br.marketing.aspect;
 
+import com.alibaba.fastjson2.JSON;
 import com.br.marketing.client.mock.MarketingMockApiService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
+import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.service.mock.MockService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +26,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -43,8 +48,14 @@ public class MockableAspect {
     private MockService mockService;
     @Resource
     private MarketingMockApiService marketingMockApiService;
-
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // 获取应用名称，用于判断是否需要启用Mock功能
+    @Value("${spring.application.name:unknown}")
+    private String applicationName;
+
     private final String TITLE = "【mock切面】";
 
     /**
@@ -52,6 +63,13 @@ public class MockableAspect {
      */
     @Around("@annotation(mockable)")
     public Object handleMockableMethod(ProceedingJoinPoint joinPoint, Mockable mockable) throws Throwable {
+        // 检查当前项目是否需要禁用Mock初始化
+        Set<String> disableMockProjects = marketingCommonConfig.getDisableMockProjects();
+        if (disableMockProjects.contains(applicationName)) {
+            log.warn(TITLE + "当前项目 [{}] 在禁用Mock列表中，跳过Mock，执行真实方法", applicationName);
+            return joinPoint.proceed();
+        }
+
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
         Class<?> returnType = method.getReturnType();
         String methodName = method.getName();
@@ -60,28 +78,42 @@ public class MockableAspect {
             String mockName = mockable.mockName();
             String cacheKey = RedisKeyConstant.MOCK_POLICY + ":" + mockName;
 
+            // 查询本地缓存
             MockInitDTO localCache = caffeineCache.getMockSwitchStatus(cacheKey);
+
+            // 本地缓存中mock开关状态为关闭
             if (localCache != null && localCache.getEnabled() == 1) {
                 return joinPoint.proceed();
             }
 
-            Result<String> mockRedisValue = marketingMockApiService.getMockRedisValue(cacheKey);
+            // 本地缓存为空 或者 开关状态为开启，则查询redis-db
+            Result<String> mockRedisValue = marketingMockApiService.queryMockConfig(cacheKey);
             Integer code = mockRedisValue.getCode();
+            // 查询redis为空  || redis异常后查询DB为空
             if(!code.equals(ResultCode.SUCCESS.getValue())){
                 return joinPoint.proceed();
             }
+
+            // 查询到挡板配置
             String redisValue = mockRedisValue.getData();
-            if (redisValue != null) {
-                MockCreateCaseDTO mockCase = mockService.action(redisValue);
-                if (mockCase != null) {
-                    String responseBodyStr = mockCase.getResponseBody();
-                    // 先将JSON字符串解析为对象
-                    Object responseBody = parseResponseBody(responseBodyStr, methodName);
-                    // 根据方法返回类型适配响应
-                    return adaptResponseToReturnType(responseBody, returnType, method, methodName);
-                }
+
+            // 挡板关闭，执行真实方法
+            MockCreatePolicyDTO policy = JSON.parseObject(redisValue, MockCreatePolicyDTO.class);
+            if(policy.getEnabled().equals(1)){
+                return joinPoint.proceed();
             }
-            return joinPoint.proceed();
+
+            MockCreateCaseDTO mockCase = mockService.action(policy);
+            // 未配置测试用例，返回空对象
+            if (mockCase == null) {
+                return new Object();
+            }
+            // 解析测试用例
+            String responseBodyStr = mockCase.getResponseBody();
+            // 1、先将JSON字符串解析为对象
+            Object responseBody = parseResponseBody(responseBodyStr, methodName);
+            // 2、根据方法返回类型适配响应
+            return adaptResponseToReturnType(responseBody, returnType, method, methodName);
 
         } catch (Exception e) {
             log.error(TITLE + "【拦截异常】方法 {} 执行失败，原因：{}", methodName, e.getMessage(), e);

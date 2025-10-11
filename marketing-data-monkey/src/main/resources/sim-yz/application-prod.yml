@@ -178,7 +178,7 @@ api:
           url: ${api.haier.custData.receive.url}/info
   mock:
     baseUrl: http://marketing-inner-api
-    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   marketing:
     baseUrl: http://marketing-api
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync

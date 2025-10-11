@@ -328,7 +328,7 @@ api:
     isProxy: true
   mock:
     baseUrl: http://marketing-inner-api
-    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties

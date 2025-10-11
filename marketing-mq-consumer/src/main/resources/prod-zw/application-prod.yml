@@ -333,7 +333,7 @@ api:
     isProxy: true
   mock:
     baseUrl: http://marketing-inner-api
-    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 # 雪花算法数据中心ID
 snowflake:
   datacenter:

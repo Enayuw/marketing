@@ -24,7 +24,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @ClassName MarketingMockApiService
- * @Description mock查询redis缓存
+ * @Description 查询Mock挡板配置信息
  * @Author kongbx
  * @Date 2025/9/25 16:29
  */
@@ -45,13 +45,13 @@ public class MarketingMockApiService {
     String redisUrl;
 
     /**
-     * Mock挡板查询redis缓存
+     * 查询Mock挡板配置信息
      *
      * @param cacheKey redis key
      * @return Result<String>
      */
     @RetryMethod(retryNowNum = 2)
-    public Result<String> getMockRedisValue(String cacheKey) {
+    public Result<String> queryMockConfig(String cacheKey) {
         try {
             Map<String, String> params = new HashMap<>();
             params.put("cacheKey", cacheKey);
@@ -75,7 +75,7 @@ public class MarketingMockApiService {
                 return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
         } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用Mock挡板查询redis缓存接口报错!，url："+redisUrl), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.MOCK_APIERROR.getCode(), "调用查询Mock挡板配置信息接口报错!，url："+redisUrl), ex);
         }
         return new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE.toString());
     }

@@ -36,13 +36,13 @@ public interface MockService {
 
     ApiResult<Map<Integer,String>> getMockType();
 
-    Result<String> getMockRedisValue(String localCacheKey);
+    Result<String> queryMockConfig(String localCacheKey);
 
     /**
      * 提供给客户端执行策略
-     * @param redisValue
+     * @param policy
      * @return
      */
-    MockCreateCaseDTO action(String redisValue);
+    MockCreateCaseDTO action(MockCreatePolicyDTO policy) throws InterruptedException;
 
 }

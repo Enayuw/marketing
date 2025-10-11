@@ -213,7 +213,7 @@ api:
     ibuSk: fbd1478a51d88954
   mock:
     baseUrl: http://marketing-inner-api
-    redisUrl: ${api.mock.baseUrl}/mockRedis/getMockRedisValue
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   baiying:
     baseUrl: https://cos.byai.com
     postBlackList: ${api.baiying.baseUrl}/api/byai/transform/br/blacklist/import

@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 
 /**
  * @ClassName MockRedisController
- * @Description Mock挡板查询redis缓存
+ * @Description 查询Mock挡板配置信息
  * @Author kongbx
  * @Date 2025/10/9 15:27
  */
@@ -29,15 +29,15 @@ public class MockRedisController {
 
     private static final Integer CODE_1 = Integer.valueOf(1);
     /**
-     * Mock挡板查询redis缓存
+     * 查询Mock挡板配置信息
      *
      * @param cacheKey
      * @return
      */
-    @ApiOperation(value = "Mock挡板查询redis缓存")
-    @PostMapping("/getMockRedisValue")
-    public ApiResult<String> getMockRedisValue(@RequestParam("cacheKey") String cacheKey) {
-        return new ApiResult<String>().fromResult(mockService.getMockRedisValue(cacheKey), CODE_1);
+    @ApiOperation(value = "查询Mock挡板配置信息")
+    @PostMapping("/queryMockConfig")
+    public ApiResult<String> queryMockConfig(@RequestParam("cacheKey") String cacheKey) {
+        return new ApiResult<String>().fromResult(mockService.queryMockConfig(cacheKey), CODE_1);
     }
 
 }

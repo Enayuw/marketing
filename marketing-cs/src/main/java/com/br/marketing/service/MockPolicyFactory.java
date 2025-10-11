@@ -19,6 +19,6 @@ public interface MockPolicyFactory {
     /**
      * 策略执行
      */
-    MockCreateCaseDTO action(MockCreatePolicyDTO policy);
+    MockCreateCaseDTO action(MockCreatePolicyDTO policy) throws InterruptedException;
 
 }

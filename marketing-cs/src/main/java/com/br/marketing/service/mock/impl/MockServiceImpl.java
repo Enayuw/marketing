@@ -368,27 +368,65 @@ public class MockServiceImpl implements MockService {
     }
 
     @Override
-    public Result<String> getMockRedisValue(String localCacheKey) {
+    public Result<String> queryMockConfig(String localCacheKey) {
         try {
-            if (StringUtils.isBlank(localCacheKey)) {
-                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("redis key is null");
-            }
             String result = redisChgService.get(localCacheKey);
+            if(StringUtils.isEmpty(result)){
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("mock挡板查询redis缓存为空！");
+            }
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(result);
         }catch (Exception e){
+            try {
+                // marketing:middle:mock:policy:mockName
+                String[] split = localCacheKey.split(":");
+                String mockName = split[split.length - 1];
 
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("mock挡板查询redis缓存异常");
+                // 若查询redis报错，则查询数据库
+                MockPolicyExample mockPolicyExample = new MockPolicyExample();
+                mockPolicyExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(Constants.DATA_VALID);
+                List<MockPolicy> mockPolicies = mockPolicyMapper.selectByExample(mockPolicyExample);
+                if(mockPolicies.isEmpty()){
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("mock挡板查询DB为空！");
+                }
+                MockPolicy mockPolicy = mockPolicies.get(0);
+                MockCreatePolicyDTO mockCreatePolicyDTO = new MockCreatePolicyDTO();
+                mockCreatePolicyDTO.setId(mockPolicy.getId());
+                mockCreatePolicyDTO.setMockName(mockPolicy.getMockName());
+                mockCreatePolicyDTO.setMockPolicyType(mockPolicy.getMockPolicyType());
+                mockCreatePolicyDTO.setEnabled(mockPolicy.getEnabled());
+                mockCreatePolicyDTO.setVersion(mockPolicy.getVersion());
+                mockCreatePolicyDTO.setDescription(mockPolicy.getDescription());
+
+                MockCaseExample mockCaseExample = new MockCaseExample();
+                mockCaseExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(Constants.DATA_VALID);
+                List<MockCase> mockCaseList = mockCaseMapper.selectByExample(mockCaseExample);
+                List<MockCreateCaseDTO> mockCreateCaseDTOS = new ArrayList<>();
+                for (MockCase mockCase : mockCaseList) {
+                    MockCreateCaseDTO createCaseDTO = new MockCreateCaseDTO();
+                    createCaseDTO.setId(mockCase.getId());
+                    createCaseDTO.setMockName(mockCase.getMockName());
+                    createCaseDTO.setMockCaseName(mockCase.getMockCaseName());
+                    createCaseDTO.setApiCode(mockCase.getApiCode());
+                    createCaseDTO.setResponseBody(mockCase.getResponseBody());
+                    createCaseDTO.setStatusCode(mockCase.getStatusCode());
+                    createCaseDTO.setDelayMs(mockCase.getDelayMs());
+                    createCaseDTO.setDelayFluctuation(mockCase.getDelayFluctuation());
+                    createCaseDTO.setDescription(mockCase.getDescription());
+                    createCaseDTO.setEnabled(mockCase.getEnabled());
+                    mockCreateCaseDTOS.add(createCaseDTO);
+                }
+                mockCreatePolicyDTO.setMockCreateCaseDTOS(mockCreateCaseDTOS);
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(mockCreatePolicyDTO));
+            }catch (Exception ex){
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("mock挡板查询DB异常");
+            }
         }
     }
 
     @Override
-    public MockCreateCaseDTO action(String redisValue) {
-        MockCreatePolicyDTO policy = JSON.parseObject(redisValue, MockCreatePolicyDTO.class);
+    public MockCreateCaseDTO action(MockCreatePolicyDTO policy) throws InterruptedException {
         //获取执行策略
         MockPolicyFactory mockPolicyFactory = mockPolicy.getMockPolicyFactory(policy.getMockPolicyType());
-        if (mockPolicyFactory == null) {
-            return new MockCreateCaseDTO();
-        }
         return mockPolicyFactory.action(policy);
     }
 

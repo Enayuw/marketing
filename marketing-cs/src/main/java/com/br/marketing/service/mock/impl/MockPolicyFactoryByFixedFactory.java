@@ -1,6 +1,5 @@
 package com.br.marketing.service.mock.impl;
 
-import com.br.common.util.StringUtils;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.service.MockPolicyFactory;
@@ -22,11 +21,11 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class MockPolicyFactoryByFixedFactory implements MockPolicyFactory {
     
-    /** 最大延迟时间限制（毫秒）- 防止过长延迟影响系统性能 */
-    private static final int MAX_DELAY_MS = 30_000; // 30秒
+    /** 最大延迟时间限制（毫秒）- 防止过长延迟影响系统性能 30秒*/
+    private static final int MAX_DELAY_MS = 30_000;
     
-    /** 最大波动百分比限制 - 防止波动过大 */
-    private static final int MAX_FLUCTUATION_PERCENT = 100; // 100%
+    /** 最大波动百分比限制 - 防止波动过大 100% */
+    private static final int MAX_FLUCTUATION_PERCENT = 100;
 
     @Override
     public Integer policyType() {
@@ -34,52 +33,27 @@ public class MockPolicyFactoryByFixedFactory implements MockPolicyFactory {
     }
 
     @Override
-    public MockCreateCaseDTO action(MockCreatePolicyDTO policy) {
-        // 参数校验
-        if (policy == null || StringUtils.isBlank(policy.getMockName())) {
-            log.warn("【Mock固定策略】策略或mockName为空");
-            return createEmptyMockCase();
-        }
+    public MockCreateCaseDTO action(MockCreatePolicyDTO policy) throws InterruptedException {
 
         String mockName = policy.getMockName();
         log.warn("【Mock固定策略】开始执行，mockName: {}", mockName);
 
         try {
             List<MockCreateCaseDTO> mockCreateCaseDTOS = policy.getMockCreateCaseDTOS();
-            
             // 处理空列表情况
             if (CollectionUtils.isEmpty(mockCreateCaseDTOS)) {
                 log.warn("【Mock固定策略】未查询到mock用例，mockName: {}", mockName);
-                return createEmptyMockCase();
+                return null;
             }
-
             // 固定策略：总是返回第一个用例
             MockCreateCaseDTO mockCase = mockCreateCaseDTOS.get(0);
-            log.warn("【Mock固定策略】选择用例: {}, mockName: {}", mockCase.getMockCaseName(), mockName);
-
             // 应用智能延迟
             applyIntelligentDelay(mockCase, mockName);
-
-            log.warn("【Mock固定策略】执行完成，mockName: {}, caseName: {}", 
-                    mockName, mockCase.getMockCaseName());
-            
             return mockCase;
-
-        } catch (InterruptedException e) {
-            log.warn("【Mock固定策略】延迟被中断，mockName: {}", mockName);
-            Thread.currentThread().interrupt();
-            return createEmptyMockCase();
         } catch (Exception e) {
             log.error("【Mock固定策略】执行异常，mockName: {}", mockName, e);
-            return createEmptyMockCase();
+            throw e;
         }
-    }
-
-    /**
-     * 创建空的Mock用例
-     */
-    private MockCreateCaseDTO createEmptyMockCase() {
-        return new MockCreateCaseDTO();
     }
 
     /**

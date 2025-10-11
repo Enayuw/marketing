@@ -129,14 +129,6 @@ public class MockTestService {
     }
 
     /**
-     * 测试Integer返回类型
-     */
-    @Mockable(mockName = MockConstants.TEST_INTEGER_RETURN)
-    public Integer testIntegerReturn() {
-        return 1;
-    }
-
-    /**
      * 测试注解性能
      */
     @Mockable(mockName = MockConstants.TEST_VOID_RETURN)
