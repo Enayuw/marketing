@@ -1,6 +1,7 @@
 package com.br.marketing.service.ftp.Impl;
 
 import com.br.marketing.client.BaseFtpClient;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.SyncConfig;
@@ -39,8 +40,9 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
      * @return 插入的任务ID
      */
     @Override
-    public void insertSftpUploadTask(String apiCode, String localPath, String fileName,
-                                     Integer dataType, String postSqlProcess) {
+    public Result insertSftpUploadTask(String apiCode, String localPath, String fileName,
+                                       Integer dataType, String postSqlProcess) {
+        Result result = new Result().failure();
         try {
             FileSyncTask task = new FileSyncTask();
             task.setApiCode(apiCode);
@@ -51,17 +53,20 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
             task.setStatus(0); // 默认状态：0-待上传
             task.setCreateTime(new Date());
             // 插入记录
-            int result = fileSyncTaskMapper.insertSelective(task);
-            if (result > 0) {
+            int insertResult = fileSyncTaskMapper.insertSelective(task);
+            if (insertResult > 0) {
                 log.warn("成功插入SFTP上传任务，ID: {}, apiCode: {}, fileName: {}",
                         task.getId(), apiCode, fileName);
+                return result.success();
             } else {
                 log.error("插入SFTP上传任务失败，apiCode: {}, fileName: {}", apiCode, fileName);
+                return result;
             }
 
         } catch (Exception e) {
             log.error("插入SFTP上传任务异常，apiCode: {}, fileName: {}, error: {}",
                     apiCode, fileName, e.getMessage(), e);
+            return result;
         }
     }
 
