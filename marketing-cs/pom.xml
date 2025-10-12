@@ -357,11 +357,23 @@
             <groupId>com.br.transfer</groupId>
             <artifactId>header-transfer-spring-boot-starter-jdk17</artifactId>
             <version>1.0.8</version>
-            <!-- 排除ribbon依赖 -->
+            <!-- 排除ribbon依赖和log4j2相关依赖 -->
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-starter-ribbon</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
