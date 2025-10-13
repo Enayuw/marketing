@@ -69,14 +69,16 @@ GC_LOG_PATH="$CLOUDSERVER_HOME/logs/$NAME/$POD_NAME"
 # JDK 17 JVM参数配置
 JAVA_OPTS_PARAM="${JAVA_OPTS}"
 JVM_LOG_PARAM="${JVM_LOG}"
-LOG_FILE_NAME="${LOG_FILE}"
+LOG_FILE_PARAM="${LOG_FILE}"
 
 # 如果未设置新参数，使用旧的APP_PARAM(向后兼容)
 if [ -z "$JAVA_OPTS_PARAM" ]; then
     JAVA_OPTIONS="${APP_PARAM} -Xloggc:$GC_LOG_PATH/gc.log "
 else
-    # 替换GC日志文件路径
-    JVM_LOG_WITH_PATH=$(echo "$JVM_LOG_PARAM" | sed "s|file=$LOG_FILE_NAME|file=$GC_LOG_PATH/$LOG_FILE_NAME|g")
+    # 组装完整的GC日志配置: -Xlog:gc*,safepoint:file=路径/文件名:格式:轮转配置
+    # LOG_FILE_PARAM格式: gc.log.current:t,u,hn,p,ti,l,tg:filecount=5,filesize=40m
+    FULL_GC_LOG_PATH="=$GC_LOG_PATH/${LOG_FILE_PARAM}"
+    JVM_LOG_WITH_PATH="${JVM_LOG_PARAM}${FULL_GC_LOG_PATH}"
     JAVA_OPTIONS="${JAVA_OPTS_PARAM} ${JVM_LOG_WITH_PATH}"
 fi
 
