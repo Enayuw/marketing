@@ -12,8 +12,8 @@ WORKDIR $APP_HOME
 LABEL appname=$APPNAME
 version=1.0.0
 
-# 复制jar包到容器
-COPY $APPNAME/target/marketing-data-bridge*.jar $APP_HOME/app/$APPNAME/lib/
+# 复制jar包到容器并重命名为标准名称
+COPY $APPNAME/target/marketing-data-bridge*.jar $APP_HOME/app/$APPNAME/lib/$APPNAME.jar
 
 # 拷贝配置文件到config目录
 COPY $APPNAME/src/main/resources/ $APP_HOME/app/$APPNAME/config/
@@ -35,5 +35,5 @@ LOG_FILE="gc_%p_%t.log:time,uptime,level,tags:filecount=2,filesize=20m"
 # 配置时区
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# 启动命令 - 按照架构部门标准格式
+# 启动命令
 CMD ["sh", "-c", "LOG_PATH=${APP_HOME}/logs/${APPNAME}/${POD_NAME} ; mkdir -p $LOG_PATH && $JAVA_HOME/bin/java ${JAVA_OPTS} -XX:HeapDumpPath=$LOG_PATH/heapdump.hprof $JVM_LOG=$LOG_PATH/$LOG_FILE -Xbootclasspath/a:$APP_HOME/app/$APPNAME/config/${CONF_ENV} -jar $APP_HOME/app/$APPNAME/lib/${APPNAME}.jar"]
