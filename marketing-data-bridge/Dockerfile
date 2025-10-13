@@ -67,4 +67,4 @@ LOG_FILE="gc_%p_%t.log:t,u,hn,p,ti,l,tg:filecount=2,filesize=20m"
 RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
 
 # Default portal command
-ENTRYPOINT ["sh","-c","CONF_PATH=${APP_HOME}/BOOT-INF/classes/${PROFILES_NAME}/${CONF_ENV} && LOG_PATH=${APP_HOME}/logs/${APPNAME}/${POD_NAME} && mkdir -p $LOG_PATH && java ${JAVA_OPTS} $JVM_LOG=$LOG_PATH/${LOG_FILE} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${LOG_PATH}/heapdump.hprof -Xbootclasspath/a:${CONF_PATH} org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["sh","-c","CONF_PATH=${APP_HOME}/BOOT-INF/classes/${PROFILES_NAME}/${CONF_ENV} && LOG_PATH=${APP_HOME}/logs/${APPNAME}/${POD_NAME} && mkdir -p $LOG_PATH && java ${JAVA_OPTS} $JVM_LOG=$LOG_PATH/${LOG_FILE} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${LOG_PATH}/heapdump.hprof -Xbootclasspath/a:${CONF_PATH} -jar $APP_HOME/app/$APPNAME/lib/${APPNAME}.jar"]
