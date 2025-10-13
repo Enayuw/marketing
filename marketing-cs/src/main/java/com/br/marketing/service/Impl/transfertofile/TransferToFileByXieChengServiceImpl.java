@@ -154,7 +154,8 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
         log.warn("携程转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? transferFileTask.getFileChildDir() + "/" : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();

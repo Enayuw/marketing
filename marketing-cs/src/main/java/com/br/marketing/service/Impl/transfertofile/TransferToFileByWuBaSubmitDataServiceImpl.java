@@ -132,9 +132,9 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
         String startDate = transferFileTask.getStartDate();
         Long start = System.currentTimeMillis();
         log.warn(TITLE + "写入文件开始, apiCode: {}, startDate: {}", apiCode, startDate);
-
-        String dirPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
-                .concat("submit").concat("/").concat(startDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? transferFileTask.getFileChildDir() + "/" : "";
+        String dirPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/")
+                .concat(startDate).concat("/");
         File writeDic = new File(dirPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
