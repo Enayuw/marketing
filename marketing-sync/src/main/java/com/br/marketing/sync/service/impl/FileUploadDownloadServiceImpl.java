@@ -164,9 +164,13 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         criteria.andStatusEqualTo(1) // 状态有效
                 .andApiCodeEqualTo(task.getApiCode()) // 匹配apiCode
                 .andDataTypeEqualTo(task.getDataType()) // 匹配数据类型
-                .andSrcPathEqualTo(task.getLocalPath().replaceAll("\\b\\d{8}\\b", "yyyyMMdd"))
                 .andTypeEqualTo(2); // type=2表示上传任务
 
+        //数据提取使用localPath(替换了src_path)条件明确sftp推送配置。
+        // 默认apiCode+dataType 可唯一确认一个配置
+        if (DataTypeEnum.TRANSFER.getValue().equals(task.getDataType())) {
+            criteria.andSrcPathEqualTo(task.getLocalPath().replaceAll("\\b\\d{8}\\b", "yyyyMMdd"));
+        }
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
 
         if (CollectionUtils.isEmpty(syncConfigs)) {
@@ -228,7 +232,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      * 执行后置SQL处理
      */
     private Boolean executePostSqlProcess(String postSql) {
-        if(StringUtils.isEmpty(postSql)){
+        if (StringUtils.isEmpty(postSql)) {
             return Boolean.TRUE;
         }
         Boolean result = Boolean.FALSE;
