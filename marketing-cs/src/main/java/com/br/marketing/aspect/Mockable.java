@@ -17,8 +17,4 @@ public @interface Mockable {
      */
     String mockName() default "";
 
-    /**
-     * 动态替换请求参数
-     */
-    String extendInfo() default "";
 }

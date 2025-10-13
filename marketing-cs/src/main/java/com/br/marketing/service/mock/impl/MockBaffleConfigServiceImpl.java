@@ -56,7 +56,7 @@ public class MockBaffleConfigServiceImpl {
     public void init() {
         // 检查当前项目是否需要禁用Mock初始化
         Set<String> disableMockProjects = marketingCommonConfig.getDisableMockProjects();
-        if (disableMockProjects.contains(applicationName)) {
+        if (!disableMockProjects.contains(applicationName)) {
             log.warn(TITLE + "当前项目 [{}] 在禁用Mock列表中，跳过Mock初始化操作", applicationName);
             return;
         }

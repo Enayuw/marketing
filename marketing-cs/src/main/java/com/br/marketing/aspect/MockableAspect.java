@@ -65,7 +65,7 @@ public class MockableAspect {
     public Object handleMockableMethod(ProceedingJoinPoint joinPoint, Mockable mockable) throws Throwable {
         // 检查当前项目是否需要禁用Mock初始化
         Set<String> disableMockProjects = marketingCommonConfig.getDisableMockProjects();
-        if (disableMockProjects.contains(applicationName)) {
+        if (!disableMockProjects.contains(applicationName)) {
             log.warn(TITLE + "当前项目 [{}] 在禁用Mock列表中，跳过Mock，执行真实方法", applicationName);
             return joinPoint.proceed();
         }
