@@ -3,6 +3,10 @@ spring:
   application:
     name: marketing-data-bridge
   profiles.active: prod
+  autoconfigure:
+    exclude:
+      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
+      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
   aop:
    proxy-target-class: true
    auto: true
