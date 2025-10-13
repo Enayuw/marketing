@@ -33,4 +33,4 @@ LOG_FILE="gc_%p_%t.log:time,uptime,level,tags:filecount=2,filesize=20m"
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 启动命令 - 按照架构部门标准格式
-CMD ["sh", "-c", "LOG_PATH=${APP_HOME}/logs/${APPNAME}/${POD_NAME} ; mkdir -p $LOG_PATH && $JAVA_HOME/bin/java ${JAVA_OPTS} -XX:HeapDumpPath=$LOG_PATH/heapdump.hprof $JVM_LOG=$LOG_PATH/$LOG_FILE -Xbootclasspath/a:$APP_HOME/app/$APPNAME/config/${CONF_ENV} -jar $APP_HOME/app/$APPNAME/lib/${APPNAME}.jar"]
+CMD ["sh", "-c", "LOG_PATH=${APP_HOME}/logs/${APPNAME}/${POD_NAME} && mkdir -p $LOG_PATH && $JAVA_HOME/bin/java ${JAVA_OPTS} -XX:HeapDumpPath=$LOG_PATH/heapdump.hprof $JVM_LOG=$LOG_PATH/$LOG_FILE -Xbootclasspath/a:$APP_HOME/app/$APPNAME/config/${CONF_ENV} -jar $APP_HOME/app/$APPNAME/lib/${APPNAME}.jar"]
