@@ -66,7 +66,19 @@ CLOUDSERVER_JAVA_CMD="$JAVA_HOME/bin/java"
 GC_LOG_PATH="$CLOUDSERVER_HOME/logs/$NAME/$POD_NAME"
 { ls $GC_LOG_PATH &>/dev/null || { echo "pod子文件夹不存在，开始创建... ...";mkdir -p $GC_LOG_PATH && echo "创建pod子文件夹成功！" || exit 1; };  }
 
-JAVA_OPTIONS="${APP_PARAM} -Xloggc:$GC_LOG_PATH/gc.log "
+# JDK 17 JVM参数配置
+JAVA_OPTS_PARAM="${JAVA_OPTS}"
+JVM_LOG_PARAM="${JVM_LOG}"
+LOG_FILE_NAME="${LOG_FILE}"
+
+# 如果未设置新参数，使用旧的APP_PARAM(向后兼容)
+if [ -z "$JAVA_OPTS_PARAM" ]; then
+    JAVA_OPTIONS="${APP_PARAM} -Xloggc:$GC_LOG_PATH/gc.log "
+else
+    # 替换GC日志文件路径
+    JVM_LOG_WITH_PATH=$(echo "$JVM_LOG_PARAM" | sed "s|file=$LOG_FILE_NAME|file=$GC_LOG_PATH/$LOG_FILE_NAME|g")
+    JAVA_OPTIONS="${JAVA_OPTS_PARAM} ${JVM_LOG_WITH_PATH}"
+fi
 
 APP_JAR_NAME=`ls $SERVICE_HOME/lib/*.jar | awk -F'[/]+' {'print $NF'}`
 [ ! -z "$APP_JAR_NAME" ] || { echo "APP_JAR_NAME为空或者配置错误！";
