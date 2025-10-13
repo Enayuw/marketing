@@ -66,21 +66,7 @@ CLOUDSERVER_JAVA_CMD="$JAVA_HOME/bin/java"
 GC_LOG_PATH="$CLOUDSERVER_HOME/logs/$NAME/$POD_NAME"
 { ls $GC_LOG_PATH &>/dev/null || { echo "pod子文件夹不存在，开始创建... ...";mkdir -p $GC_LOG_PATH && echo "创建pod子文件夹成功！" || exit 1; };  }
 
-# JDK 17 JVM参数配置
-JAVA_OPTS_PARAM="${JAVA_OPTS}"
-JVM_LOG_PARAM="${JVM_LOG}"
-LOG_FILE_PARAM="${LOG_FILE}"
-
-# 如果未设置新参数，使用旧的APP_PARAM(向后兼容)
-if [ -z "$JAVA_OPTS_PARAM" ]; then
-    JAVA_OPTIONS="${APP_PARAM} -Xloggc:$GC_LOG_PATH/gc.log "
-else
-    # 组装完整的GC日志配置: -Xlog:gc*,safepoint:file=路径/文件名:格式:轮转配置
-    # LOG_FILE_PARAM格式: gc.log.current:t,u,hn,p,ti,l,tg:filecount=5,filesize=40m
-    FULL_GC_LOG_PATH="=$GC_LOG_PATH/${LOG_FILE_PARAM}"
-    JVM_LOG_WITH_PATH="${JVM_LOG_PARAM}${FULL_GC_LOG_PATH}"
-    JAVA_OPTIONS="${JAVA_OPTS_PARAM} ${JVM_LOG_WITH_PATH}"
-fi
+JAVA_OPTIONS="${APP_PARAM} -Xloggc:$GC_LOG_PATH/gc.log "
 
 APP_JAR_NAME=`ls $SERVICE_HOME/lib/*.jar | awk -F'[/]+' {'print $NF'}`
 [ ! -z "$APP_JAR_NAME" ] || { echo "APP_JAR_NAME为空或者配置错误！";
