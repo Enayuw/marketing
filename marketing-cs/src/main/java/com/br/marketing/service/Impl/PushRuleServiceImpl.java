@@ -2460,7 +2460,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         MarketingPreUserDTO preUserDTO = dto.getJsonData();
         List<MarketingPreUserDetailDTO> dataItems = preUserDTO.getDataItems();
-        batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
+        //batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
+        jsonData = addUniqueId(jsonData);
         //region 数据入库
         try {
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -2529,6 +2530,35 @@ public class PushRuleServiceImpl implements PushRuleService {
             sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    /**
+     * 批量添加唯一ID
+     * @param jsonData
+     */
+    private String addUniqueId(String jsonData) {
+        try {
+            JSONObject originalJson = JSONObject.parseObject(jsonData);
+            JSONArray dataItems = originalJson.getJSONArray("dataItems");
+            if (dataItems != null && dataItems.size() > 0) {
+                int size = dataItems.size();
+                List<Long> ids;
+                try {
+                    ids = snowflakeRedisGeneratorHandle.nextIds(size);
+                } catch (Exception e) {
+                    log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+                    return jsonData;
+                }
+                for (int i = 0; i < size; i++) {
+                    JSONObject itemObject = dataItems.getJSONObject(i);
+                    itemObject.put("fingerprint", ids.get(i));
+                }
+                return originalJson.toJSONString();
+            }
+        } catch (Exception e) {
+            log.error("添加唯一ID异常{}", e.getMessage(), e);
+        }
+        return jsonData;
     }
 
 
@@ -3627,7 +3657,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String transferInfoId = "";
         Boolean dbException = Boolean.FALSE;
-        batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
+        //batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
+        jsonData = addUniqueId(jsonData);
         try {
             //todo 测试pulsar 上线删除
             if ("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())) {
