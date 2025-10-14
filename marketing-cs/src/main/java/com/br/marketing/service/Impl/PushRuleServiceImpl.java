@@ -2460,11 +2460,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         MarketingPreUserDTO preUserDTO = dto.getJsonData();
         List<MarketingPreUserDetailDTO> dataItems = preUserDTO.getDataItems();
-        batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
+        //batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
+        jsonData = addUniqueId(jsonData);
         //region 数据入库
-        String jsonDataStr = null;
         try {
-            jsonDataStr = JSON.toJSONString(preUserDTO);
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
             syncInfo.setApiCode(dto.getApiCode());
             syncInfo.setCusBatch(dto.getJsonData().getTaskId());
@@ -2472,7 +2471,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setLast(last);
             syncInfo.setTotal(total);
             syncInfo.setCreateTime(new Date());
-            syncInfo.setJsonData(jsonDataStr);
+            syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
             syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
@@ -2489,9 +2488,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
-            if (jsonDataStr == null) {
-                jsonDataStr = jsonData;
-            }
             log.error(String.format("返回DB异常耗时：%d", System.currentTimeMillis() - l));
             dbException = Boolean.TRUE;
         }
@@ -2504,7 +2500,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonDataStr);
+                jsonObject.put("jsonData", jsonData);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
@@ -2534,6 +2530,53 @@ public class PushRuleServiceImpl implements PushRuleService {
             sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    /**
+     * 批量添加唯一ID
+     * @param jsonData
+     */
+    private String addUniqueId(String jsonData) {
+        try {
+            JSONObject originalJson = JSONObject.parseObject(jsonData);
+            Object dataItemsObj = originalJson.get("dataItems");
+            if (Objects.nonNull(dataItemsObj)) {
+                if (dataItemsObj instanceof JSONArray) {
+                    JSONArray dataItems = (JSONArray) dataItemsObj;
+                    // 处理数组情况
+                    int size = dataItems.size();
+                    List<Long> ids;
+                    try {
+                        ids = snowflakeRedisGeneratorHandle.nextIds(size);
+                    } catch (Exception e) {
+                        log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+                        return jsonData;
+                    }
+                    for (int i = 0; i < size; i++) {
+                        JSONObject itemObject = dataItems.getJSONObject(i);
+                        itemObject.put("fingerprint", ids.get(i));
+                    }
+                    return originalJson.toJSONString();
+                } else if (dataItemsObj instanceof JSONObject) {
+                    JSONObject dataItem = (JSONObject) dataItemsObj;
+                    Long uinqueId;
+                    try {
+                        uinqueId = snowflakeRedisGeneratorHandle.nextId();
+                    } catch (Exception e) {
+                        log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+                        return jsonData;
+                    }
+                    dataItem.put("fingerprint", uinqueId);
+                    return originalJson.toJSONString();
+                } else {
+                    // 处理其他类型或null
+                    log.warn("dataItems 字段类型异常或为空");
+                }
+            }
+        } catch (Exception e) {
+            log.error("添加唯一ID异常{}", e.getMessage(), e);
+        }
+        return jsonData;
     }
 
 
@@ -3632,10 +3675,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String transferInfoId = "";
         Boolean dbException = Boolean.FALSE;
-        batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
-        String jsonDataStr = null;
+        //batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
+        jsonData = addUniqueId(jsonData);
         try {
-            jsonDataStr = JSON.toJSONString(transferDataDTO);
             //todo 测试pulsar 上线删除
             if ("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())) {
                 throw new RuntimeException("模拟DB错误");
@@ -3646,7 +3688,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setRequestId(transferDataDTO.getRequestId());
             transferInfo.setOrgName(transferDataDTO.getOrgName());
             transferInfo.setCreateTime(new Date());
-            transferInfo.setJsonData(jsonDataStr);
+            transferInfo.setJsonData(jsonData);
             transferInfo.setActualNum(size);
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
@@ -3659,9 +3701,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
-            if (jsonDataStr == null) {
-                jsonDataStr = jsonData;
-            }
             dbException = Boolean.TRUE;
         }
 
@@ -3671,7 +3710,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonDataStr);
+                jsonObject.put("jsonData", jsonData);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
