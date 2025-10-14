@@ -2539,21 +2539,39 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String addUniqueId(String jsonData) {
         try {
             JSONObject originalJson = JSONObject.parseObject(jsonData);
-            JSONArray dataItems = originalJson.getJSONArray("dataItems");
-            if (dataItems != null && dataItems.size() > 0) {
-                int size = dataItems.size();
-                List<Long> ids;
-                try {
-                    ids = snowflakeRedisGeneratorHandle.nextIds(size);
-                } catch (Exception e) {
-                    log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
-                    return jsonData;
+            Object dataItemsObj = originalJson.get("dataItems");
+            if (Objects.nonNull(dataItemsObj)) {
+                if (dataItemsObj instanceof JSONArray) {
+                    JSONArray dataItems = (JSONArray) dataItemsObj;
+                    // 处理数组情况
+                    int size = dataItems.size();
+                    List<Long> ids;
+                    try {
+                        ids = snowflakeRedisGeneratorHandle.nextIds(size);
+                    } catch (Exception e) {
+                        log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+                        return jsonData;
+                    }
+                    for (int i = 0; i < size; i++) {
+                        JSONObject itemObject = dataItems.getJSONObject(i);
+                        itemObject.put("fingerprint", ids.get(i));
+                    }
+                    return originalJson.toJSONString();
+                } else if (dataItemsObj instanceof JSONObject) {
+                    JSONObject dataItem = (JSONObject) dataItemsObj;
+                    Long uinqueId;
+                    try {
+                        uinqueId = snowflakeRedisGeneratorHandle.nextId();
+                    } catch (Exception e) {
+                        log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+                        return jsonData;
+                    }
+                    dataItem.put("fingerprint", uinqueId);
+                    return originalJson.toJSONString();
+                } else {
+                    // 处理其他类型或null
+                    log.warn("dataItems 字段类型异常或为空");
                 }
-                for (int i = 0; i < size; i++) {
-                    JSONObject itemObject = dataItems.getJSONObject(i);
-                    itemObject.put("fingerprint", ids.get(i));
-                }
-                return originalJson.toJSONString();
             }
         } catch (Exception e) {
             log.error("添加唯一ID异常{}", e.getMessage(), e);
