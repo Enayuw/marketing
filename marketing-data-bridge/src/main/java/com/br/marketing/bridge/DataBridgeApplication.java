@@ -2,7 +2,6 @@ package com.br.marketing.bridge;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
-import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
@@ -23,7 +22,6 @@ import org.springframework.context.annotation.ImportResource;
 @ImportResource(locations = {"classpath:scheduler.xml"})
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_data_bridge")
 @Slf4j
