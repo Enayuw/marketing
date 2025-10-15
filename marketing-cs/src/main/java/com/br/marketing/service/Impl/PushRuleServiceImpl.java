@@ -112,7 +112,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.*;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -260,11 +259,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
 
-    @Lazy
     @Resource
     private DataCleanService dataCleanService;
 
-    @Lazy
     @Resource
     private RuleCleaningService ruleCleaningService;
 
@@ -369,7 +366,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return time;
     }
 
-    @Lazy
     @Autowired
     RabbitMqProducter producter;
 

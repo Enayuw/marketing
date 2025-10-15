@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -78,7 +77,6 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
      */
     private static Map<Integer, AbstractRuleCollectDataService> ruleDataCollectionMap = new HashMap<>();
 
-    @Lazy
     @Resource
     private DataLoadingHandlerService dataLoadingHandlerService;
 

@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -133,7 +132,6 @@ public class ZbankClientConfig {
      * 众邦财富API接口服务调用
      */
     @Bean
-    @Lazy
     public SDK zBankClientApiSdk() {
         // SDK对象不需要每次在接口调用时创建和初始化，只需要初始化一次即可。SDK对象的个数与商户申请的appid个数有关， 即如果申请了两个appid就创建两个sdk对象
         SDK sdk = new SDK();
@@ -164,7 +162,6 @@ public class ZbankClientConfig {
      * 众邦财富File文件服务调用
      */
     @Bean
-    @Lazy
     public FileSDK zBankClientFileSdk() {
         int socketTimeout = FILE_SOCKET_TIMEOUT;
         Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
