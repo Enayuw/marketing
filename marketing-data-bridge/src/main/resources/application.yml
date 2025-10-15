@@ -3,6 +3,8 @@ spring:
   application:
     name: marketing-data-bridge
   profiles.include: pre
+  main:
+    allow-circular-references: true  # 允许循环依赖
   autoconfigure:
     exclude:
       - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
