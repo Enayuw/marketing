@@ -86,6 +86,9 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "合并跑分字段:custNum或cell")
     private String scoreMergeField;
 
+    @ApiModelProperty(value = "推送系统类型")
+    private Integer pushTarget;
+
 
     public Integer getmPrePlanNum() {
         return mPrePlanNum;
@@ -254,5 +257,21 @@ public class PushCustomerDTO {
 
     public void setScoreMergeField(String scoreMergeField) {
         this.scoreMergeField = scoreMergeField;
+    }
+
+    public Boolean getScoreMerge() {
+        return isScoreMerge;
+    }
+
+    public void setScoreMerge(Boolean scoreMerge) {
+        isScoreMerge = scoreMerge;
+    }
+
+    public Integer getPushTarget() {
+        return pushTarget;
+    }
+
+    public void setPushTarget(Integer pushTarget) {
+        this.pushTarget = pushTarget;
     }
 }

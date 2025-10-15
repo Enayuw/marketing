@@ -71,6 +71,7 @@ public class CustomerTagsProcessServiceImpl {
         customerTagsVO.setCipherMode(marketingCustomerConfig.getCipherMode());
         customerTagsVO.setPaddingScheme(marketingCustomerConfig.getPaddingScheme());
         customerTagsVO.setCharset(marketingCustomerConfig.getCharset());
+        customerTagsVO.setIv(marketingCustomerConfig.getIv());
         customerTagsVO.setDynamicKeys(marketingCustomerConfig.getDynamicKeys());
         writeTagsOfRedis(apiCode, customerTagsVO);
         return customerTagsVO;

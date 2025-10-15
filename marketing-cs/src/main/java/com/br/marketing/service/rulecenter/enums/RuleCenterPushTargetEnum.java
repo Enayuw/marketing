@@ -10,7 +10,8 @@ public enum RuleCenterPushTargetEnum {
 
     PUSH_POLICY(0, "pushPolicyPushStrategy", "推送决策"),
     ORIGINAL_INTERFACE(1, "dataLabelPushStrategy", "数据打标"),
-    MERGE_PUSH_POLICY(2,"mergeDataPushStrategy","合并数据推送决策");
+    MERGE_PUSH_POLICY(2,"mergeDataPushStrategy","合并数据推送决策"),
+    HALO_CALLBACK(3,"haloCallbackPushStrategy","哈啰硅基人回调");
 
     private Integer code;
     private String pushAchieve;

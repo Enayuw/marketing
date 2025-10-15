@@ -20,11 +20,15 @@ import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
@@ -74,6 +78,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Autowired
     SoleStrategyService soleStrategyService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts,
                                          String cte, String uts, String ute, Integer execType) {
@@ -90,8 +97,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Override
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
         try {
-            ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
-            service.saveTransaction(scoreRuleVO, userDetail);
+            List<String> apiCodes = Splitter.on(",").trimResults().omitEmptyStrings().splitToList(scoreRuleVO.getApiCode());
+            boolean nonStrategy = scoreRuleVO.getTaskType() != null && scoreRuleVO.getTaskType() == 1;
+            String errorMsg = "很遗憾小主，以下ApiCode【%s】禁止跑分！";
+            List<String> errorApiCodes = checkApiCodes(apiCodes);
+            if (nonStrategy || CollectionUtils.isEmpty(errorApiCodes)) {
+                ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
+                service.saveTransaction(scoreRuleVO, userDetail);
+            } else {
+                String errorApiCode = Joiner.on(",").join(errorApiCodes);
+                throw new BusinessException(String.format(errorMsg, errorApiCode));
+            }
         } catch (Exception e) {
             String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String key = "marketing:inner:".concat(yyyyMMdd6);
@@ -103,6 +119,23 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             throw new BusinessException(msg);
         }
+    }
+
+    private List<String> checkApiCodes(List<String> apiCodes) {
+        List<String> errorApiCodes = Lists.newArrayList();
+        JSONObject allowScoreTaskConfig = marketingCommonConfig.getAllowScoreTaskConfig();
+        List<String> allowScoreTaskApiType = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiType").toJavaList(String.class);
+        List<String> allowScoreTaskApiCode = allowScoreTaskConfig.getJSONArray("allowScoreTaskApiCode").toJavaList(String.class);
+        for (String apiCode : apiCodes) {
+            MarketingCustomerExample example = new MarketingCustomerExample();
+            example.createCriteria().andApiCodeEqualTo(apiCode);
+            List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
+            MarketingCustomer customer = select.get(0);
+            if (!allowScoreTaskApiType.contains(customer.getApiType()) && !allowScoreTaskApiCode.contains(customer.getApiCode())) {
+                errorApiCodes.add(apiCode);
+            }
+        }
+        return errorApiCodes;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -356,8 +389,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             String apiCode = dto.getApiCode();
             boolean isFind = false;
             Set<VariableDicSelectVO> vdSet = apiCodeToVdSetMap.get(apiCode);
-            if(!CollectionUtils.isEmpty(vdSet)){
-                isFind= true;
+            if (!CollectionUtils.isEmpty(vdSet)) {
+                isFind = true;
             }
             // customerRuleExample
             CustomerRuleExample customerRuleExample = new CustomerRuleExample();
@@ -385,7 +418,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     private HashMap<String, Set<VariableDicSelectVO>> AssembleApiCodeToVdSetMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
         HashMap<String, Set<VariableDicSelectVO>> apiCodeToVdSetMap = new HashMap<>();
-        if(CollectionUtils.isEmpty(variableList)) {
+        if (CollectionUtils.isEmpty(variableList)) {
             return apiCodeToVdSetMap;
         }
 
@@ -396,7 +429,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             String apiCode = String.valueOf(item.get("apiCode"));
             Object vdSetObject = item.get("vdSet");
-            if(vdSetObject == null){
+            if (vdSetObject == null) {
                 log.warn("入参vdSet不正确");
                 throw new BusinessException("抱歉小主，变更失败");
             }
@@ -608,7 +641,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 //            Result<String> stringResult = soleStrategyService.analysisCondition(taskExtend.getDataCondition());
 //            if(ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
 //                ArrayList<String> strings = new ArrayList<>();
-//                strings.add(soleStrategyService.analysisSimpleConditionPlus(stringResult.getData(),date,date.concat(" ").concat(task.getStartTime()).concat(":00")));
+//                strings.add(soleStrategyService.analysisSimpleConditionPlus(stringResult.getData(),date,date.concat(" ").concat(task.getStartTime
+//                ()).concat(":00")));
 //                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(strings);
 //            }
 //            else{

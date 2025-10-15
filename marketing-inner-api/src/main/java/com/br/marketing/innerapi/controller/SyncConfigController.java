@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * sftp账号配置
@@ -130,6 +131,12 @@ public class SyncConfigController {
             return new ApiResult<JSONArray>().fail(ServiceResultEnum.FAILED);
         }
         return new ApiResult<JSONArray>().fail(ServiceResultEnum.FAILED);
+    }
+
+    @GetMapping("/batchDeleteSftpList")
+    @ApiOperation(value = "批量删除客户sftp账号", notes = "批量删除客户sftp账号", httpMethod = "POST")
+    public ApiResult<Boolean> batchDeleteSftpList(@RequestParam List<Long> ids) {
+        return syncConfigService.batchDeleteSftpList(ids);
     }
 
 }

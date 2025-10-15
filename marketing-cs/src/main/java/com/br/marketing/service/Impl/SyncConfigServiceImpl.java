@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.SyncConfig;
@@ -44,6 +45,9 @@ public class SyncConfigServiceImpl implements SyncConfigService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    EntityOptServiceImpl entityOptService;
 
     @Override
     public PageResultReturn getSftpList(int page, int pageSize, String apiCode, Integer dataType) {
@@ -123,6 +127,7 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             log.error("复制sftp配置信息失败！");
         }
 
+        entityOptService.writeOptLog(syncConfigNew.getId(), syncConfigNew, null);
         return new ApiResult<Boolean>().success(true);
     }
 
@@ -155,6 +160,8 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         if (StringUtils.isEmpty(update) || update <= 0) {
             log.error("编辑sftp配置信息失败！");
         }
+        SyncConfig newConfig = syncConfigMapper.selectByPrimaryKey(syncConfig.getId());
+        entityOptService.writeOptLog(syncConfig.getId(), newConfig, syncConfig);
         return new ApiResult<Boolean>().success(true);
     }
 
@@ -197,4 +204,50 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         return getPath().concat("pullCustomerFile")
                 .concat(File.separator).concat(apiCode).concat(File.separator);
     }
+
+    @Override
+    public ApiResult<Boolean> batchDeleteSftpList(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ApiResult<Boolean>().fail("删除失败，参数为空！");
+        }
+
+        try {
+            SyncConfigExample syncConfigExample = new SyncConfigExample();
+            syncConfigExample.createCriteria().andIdIn(ids);
+
+            // 查询要删除的记录（原始数据）
+            List<SyncConfig> oldSyncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
+
+            if (oldSyncConfigs.isEmpty()) {
+                return new ApiResult<Boolean>().fail("删除失败，未找到对应记录！");
+            }
+
+            // 执行软删除
+            SyncConfig syncConfig = new SyncConfig();
+            syncConfig.setStatus(Constants.STATUS_DELETE);
+            int updateCount = syncConfigMapper.updateByExampleSelective(syncConfig, syncConfigExample);
+
+            if (updateCount == 0) {
+                return new ApiResult<Boolean>().fail("删除失败，未更新任何记录！");
+            }
+
+            // 查询更新后的记录
+            List<SyncConfig> newSyncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
+
+            // 为每条记录记录操作日志
+            for (int i = 0; i < oldSyncConfigs.size(); i++) {
+                SyncConfig oldConfig = oldSyncConfigs.get(i);
+                SyncConfig newConfig = newSyncConfigs.get(i);
+
+                entityOptService.writeOptLog(oldConfig.getId(), newConfig, oldConfig);
+            }
+
+            return new ApiResult<Boolean>().success(true);
+
+        } catch (Exception e) {
+            log.error("批量删除SFTP配置失败", e);
+            return new ApiResult<Boolean>().fail("删除失败: {}", e.getMessage());
+        }
+    }
+
 }
