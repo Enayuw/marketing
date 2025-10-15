@@ -161,7 +161,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setSmsCategory(vo.getSmsCategory());
         marketingCustomer.setFirstDepartment(vo.getFirstDepartment());
         marketingCustomer.setSecondDepartment(vo.getSecondDepartment());
-
+        marketingCustomer.setApiType(vo.getApiType());
         if (StringUtils.isEmpty(vo.getId())) {
             //新增
             marketingCustomer.setCid(vo.getCid());
