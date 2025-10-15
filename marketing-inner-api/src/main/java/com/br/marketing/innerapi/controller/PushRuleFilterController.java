@@ -15,6 +15,7 @@ import com.br.marketing.service.Impl.RuleCenterServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
+import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
@@ -66,6 +67,9 @@ public class PushRuleFilterController {
 
     @Autowired
     RuleCenterLabelService ruleCenterLabelService;
+
+    @Autowired
+    HaloRuleCenterCallbackService haloRuleCenterCallbackService;
 
 
     /**
@@ -298,5 +302,55 @@ public class PushRuleFilterController {
         return new ApiResult().fromResult(ruleCenterLabelService.saveLabelTask(dto), CODE_1);
     }
 
+
+    /**
+     * 获取跑分合并标识
+     *
+     * @param batchNumbers
+     * @return
+     */
+    @ApiOperation(value = "获取跑分合并标识", notes = "获取跑分合并标识", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @GetMapping("/getScoreMergeMark")
+    public ApiResult getScoreMergeMark(@RequestParam String batchNumbers,@RequestParam String apiCode) {
+        return new ApiResult<Boolean>().fromResult(ruleCenterLabelService.getScoreMergeMark(batchNumbers,apiCode), CODE_1);
+    }
+
+
+    /**
+     * 获取跑分合并量级
+     *
+     * @param batchNumbers
+     * @return
+     */
+    @ApiOperation(value = "获取跑分合并量级", notes = "获取跑分合并量级", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @GetMapping("/getScoreMergeNum")
+    public ApiResult getScoreMergeNum(@RequestParam String batchNumbers,@RequestParam String apiCode) {
+        return new ApiResult<Map<String,Integer>>().fromResult(ruleCenterLabelService.getScoreMergeNum(batchNumbers,apiCode), CODE_1);
+    }
+
+    /**
+     * 生成哈啰硅基人回调任务
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "生成哈啰硅基人回调任务")
+    @PostMapping("/saveHaloCallbackTask")
+    public ApiResult saveHaloCallbackTask(@RequestBody PushCustomerDTO dto){
+        dto.setUserDetail(ThreadContextInfo.getUser());
+        return new ApiResult().fromResult(haloRuleCenterCallbackService.saveHaloCallbackTask(dto),CODE_1);
+    }
+
+    /**
+     * 校验apiCode是否可推送客户系统
+     */
+    @ApiOperation(value = "校验apiCode是否可推送客户系统")
+    @PostMapping("/canPushCallback")
+    public ApiResult canPushCallback(@RequestParam("apiCode") String apiCode){
+        return new ApiResult().fromResult(haloRuleCenterCallbackService.canPushCallback(apiCode),CODE_1);
+    }
 
 }

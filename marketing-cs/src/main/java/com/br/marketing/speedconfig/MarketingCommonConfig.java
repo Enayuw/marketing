@@ -493,6 +493,11 @@ public class MarketingCommonConfig {
     private Integer scoreToJcThreadNum;
 
     /**
+     * 规则筛选回调接口的线程数
+     */
+    private Integer scoreToCallbackThreadNum;
+
+    /**
      * 携程推送短信退订接口线程数设置
      */
     private String xieChengSmsQuitThreadNum;
@@ -2398,7 +2403,7 @@ public class MarketingCommonConfig {
     /**
      * 你我贷转化规则过滤配置
      */
-    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();
 
     /**
 
@@ -2615,6 +2620,11 @@ public class MarketingCommonConfig {
      *     policyRetry：推决策异常
      */
     private HashMap<String, JSONObject> policyRetrySwitch;
+
+    /**
+     * 哈啰硅基人挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, JSONObject> callbackSwitch;
 
     /**
      * 萨摩耶黑名单推送配置
@@ -3379,6 +3389,11 @@ public class MarketingCommonConfig {
     private JSONObject haloAiCallbackConfig;
 
     /**
+     * 规则中心哈啰硅基人回调配置
+     */
+    private JSONObject haloAIRuleCenterCallbackConfig;
+
+    /**
      * 携程cpa 撞库日志写入rabbit-rocket 切换开关
      */
     private Boolean xieChengCallingCpaLogSwitch;
@@ -3387,6 +3402,16 @@ public class MarketingCommonConfig {
      * #携程促活使用rabbitmq开关
      */
     private Boolean xieChengActivateRabbitMqSwitch;
+
+    /**
+     * 高优先级运营的客户类型集合
+     */
+    private List<String> opeHighApiTypes;
+
+    /**
+     * 允许跑分ApiType配置
+     */
+    private JSONObject allowScoreTaskConfig;
 
     /**
      * 催收360上传数据清洗时间 HH:ss
@@ -3412,5 +3437,31 @@ public class MarketingCommonConfig {
      * ["7410770"]
      */
     private List<String> ruleCenterPushView;
+
+    /**
+     * SFTP模拟异常挡板 {"7492963":true}
+     */
+    private Map<String, Boolean> sftpMockAbnormal;
+
+
+
+    /**
+     * tcCpaCollidingMqDeatilStatus 1:执行业务代码 0:不执行业务代码
+     */
+    private Integer cpaCollidingMqDetailStatus;
+
+    /**
+     * Pulsar消费端跳过开关配置，支持不同消费端类型分别控制
+     * 配置键直接使用PulsarSubscription常量值：
+     * marketing_upload_base: 标准上传数据消费端
+     * marketing_transfer_base: 标准转化数据消费端
+     * marketing_upload_sh: 数禾上传数据消费端
+     * marketing_transfer_sh: 数禾转化数据消费端
+     * marketing_upload_custom: 定制客户上传数据消费端
+     * marketing_transfer_custom: 定制客户转化数据消费端
+     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false,"marketing_upload_sh":false,"marketing_transfer_sh":false,"marketing_upload_custom":true,"marketing_transfer_custom":false}
+     */
+    private Map<String, Boolean> pulsarConsumerSkipSwitch;
+
 }
 

@@ -5,6 +5,8 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.SyncConfigEditVO;
 
+import java.util.List;
+
 /**
  * sftp账号配置业务接口
  *
@@ -50,4 +52,6 @@ public interface SyncConfigService {
     String getPath();
 
     String getPullCustomerFilePath(String apiCode);
+
+    ApiResult<Boolean> batchDeleteSftpList(List<Long> ids);
 }

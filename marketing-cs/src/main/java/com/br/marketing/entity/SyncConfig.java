@@ -133,6 +133,11 @@ public class SyncConfig {
      */
     private Integer customizedType;
 
+    /**
+     * 定时执行时间
+     */
+    private String executeTime;
+
     public Long getId() {
         return id;
     }
@@ -339,5 +344,13 @@ public class SyncConfig {
 
     public void setCustomizedType(Integer customizedType) {
         this.customizedType = customizedType;
+    }
+
+    public String getExecuteTime() {
+        return executeTime;
+    }
+
+    public void setExecuteTime(String executeTime) {
+        this.executeTime = executeTime == null ? null : executeTime.trim();
     }
 }

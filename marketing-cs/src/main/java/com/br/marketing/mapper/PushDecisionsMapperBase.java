@@ -2,9 +2,8 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.PushDecisions;
 import com.br.marketing.entity.PushDecisionsExample;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface PushDecisionsMapperBase {
     int countByExample(PushDecisionsExample example);

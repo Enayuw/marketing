@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
@@ -50,6 +51,7 @@ import com.br.marketing.mapper.CaseShuheUploadDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.util.ApiFieldCheckUtils;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 
@@ -73,6 +75,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private CaseShuheUploadDataMapper caseShuheUploadDataMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private PulsarConsumerSkipUtil pulsarConsumerSkipUtil;
     @Resource
     private RocketMqSwitch rocketMqSwitch;
     @Resource
@@ -152,6 +157,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public Result<Boolean> consumerShTransfer(String msg) {
+        // 检查是否需要跳过业务逻辑
+        if (pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferShSubscription)) {
+            log.warn("【pulsar】数禾转化数据执行跳过逻辑");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        
         JSONObject jb = JSON.parseObject(msg);
         String requestId = jb.getString("requestId");
         String jsonData = jb.getString("jsonData");
@@ -293,6 +304,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public Result<Boolean> consumerShUpload(String msg) {
+        // 检查是否需要跳过业务逻辑
+        if (pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.upLoadShSubscription)) {
+            log.warn("【pulsar】数禾上传数据执行跳过逻辑");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        
         JSONObject jb = JSON.parseObject(msg);
         String requestId = jb.getString("requestId");
         String jsonData = jb.getString("jsonData");

@@ -5,6 +5,9 @@
     <insert id="insertbI_">
         ${querySql}
     </insert>
+    <insert id="createTablebI_">
+        ${createSql}
+    </insert>
 
     <select id="queryDataByCellbI_" resultType="java.util.Map">
         ${querySql}
@@ -293,6 +296,22 @@
 
     <select id="queryCountBySqlbI_" resultType="java.lang.Long">
         ${querySql}
+    </select>
+
+    <select id="getTableColumnsbI_" resultType="java.util.Map">
+        SELECT
+            table_schema AS databaseName,
+            table_name AS tableName,
+            column_name AS columnName,
+            data_type AS dataType,
+            is_nullable AS nullable,
+            column_default AS columnDefault,
+            column_comment AS columnComment,
+            character_maximum_length AS maxLength,
+            numeric_precision AS numericPrecision,
+            numeric_scale AS numericScale
+        FROM information_schema.columns
+        WHERE  table_name = #{tableName}
     </select>
 
 </mapper>
