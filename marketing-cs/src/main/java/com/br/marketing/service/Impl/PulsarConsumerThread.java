@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.br.arch.geo.pulsar.encrypt.PulsarEncryptUtil;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.Messages;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -86,7 +87,8 @@ public class PulsarConsumerThread extends Thread {
                 Messages<byte[]> messages = consumer.batchReceive();
                 for (Message<byte[]> message : messages) {
                     Boolean isAck = Boolean.FALSE;
-                    String messageData = new String(message.getData());
+                    //消息解密
+                    String messageData = PulsarEncryptUtil.decrypt(message.getData(), message.getProperties());
                     if (message.isReplicated()) {
                         isAck = Boolean.TRUE;
                         log.warn(String.format("pulsar接收异地机房消息,topic【%s】，message【%s】", topic, messageData));
