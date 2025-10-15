@@ -56,7 +56,7 @@ public class XieChengReportHandlerChain {
         xieChengReportHandlerCache = Caffeine.newBuilder()
                 .maximumSize(100)
                 .expireAfterWrite(1, TimeUnit.HOURS)
-                .build(this::fetchXieChengReportHandlerChain);
+                .build(key -> fetchXieChengReportHandlerChain(key));
     }
 
     private List<AbstractXieChengReportHandler> fetchXieChengReportHandlerChain(String bizForm) {
@@ -77,7 +77,7 @@ public class XieChengReportHandlerChain {
         //1.根据context中的type和conditionKey获取对应的handlerChain
         String bizForm = context.getType() + "-" + context.getPushConfig().getConditionKey();
         try {
-            List<AbstractXieChengReportHandler> handlers = xieChengReportHandlerCache.asMap().getOrDefault(bizForm, Lists.newArrayList());
+            List<AbstractXieChengReportHandler> handlers = xieChengReportHandlerCache.get(bizForm);
             //2.先执行pre阶段的handler(去重)，目前只有一个handler，不需要排序，后续若有多个，可在handler中添加order来排序
             List<AbstractXieChengReportHandler> preHandlers = handlers.stream()
                     .filter(handler -> HandlerStageEnum.PRE.name().equals(handler.getStage())).collect(Collectors.toList());
