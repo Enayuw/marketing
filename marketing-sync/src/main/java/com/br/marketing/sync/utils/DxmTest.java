@@ -4,6 +4,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -61,8 +62,23 @@ public class DxmTest {
         // 转换十六进制密钥为字节
         byte[] keyBytes = hexToBytes(keyHex);
 
-        // 读取CSV所有行
-        List<String> lines = Files.readAllLines(Paths.get(inputPath));
+        // 读取CSV所有行，尝试多种编码
+        List<String> lines = null;
+        Charset[] charsets = {StandardCharsets.UTF_8, Charset.forName("GBK"), Charset.forName("GB2312"), StandardCharsets.ISO_8859_1};
+        
+        for (Charset charset : charsets) {
+            try {
+                lines = Files.readAllLines(Paths.get(inputPath), charset);
+                break; // 成功读取，跳出循环
+            } catch (Exception e) {
+                // 继续尝试下一个编码
+                continue;
+            }
+        }
+        
+        if (lines == null) {
+            throw new IOException("无法读取CSV文件，尝试了多种编码格式");
+        }
         if (lines.isEmpty()) {
             throw new IOException("CSV文件为空");
         }
@@ -84,8 +100,8 @@ public class DxmTest {
             decryptedLines.add(String.join(",", columns));
         }
 
-        // 写入解密后的文件
-        Files.write(Paths.get(outputPath), decryptedLines);
+        // 写入解密后的文件，使用UTF-8编码
+        Files.write(Paths.get(outputPath), decryptedLines, StandardCharsets.UTF_8);
         System.out.println("解密完成！结果保存在: " + outputPath);
     }
 

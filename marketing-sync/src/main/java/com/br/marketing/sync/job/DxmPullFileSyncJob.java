@@ -1,5 +1,6 @@
 package com.br.marketing.sync.job;
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.sync.service.DxmPullFileSyncService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -26,10 +27,13 @@ public class DxmPullFileSyncJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         Long start = System.currentTimeMillis();
         log.warn("度小满文件同步任务开始执行");
+        String jobParameter = shardingContext.getJobParameter();
+        String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter : "3710083";
+
         
         try {
             // 执行文件同步任务
-            dxmPullFileSyncService.getFromSftp();
+            dxmPullFileSyncService.getFromSftp(apiCode);
             
             Long end = System.currentTimeMillis();
             log.warn("度小满文件同步任务执行完成，总耗时：{}ms", end - start);

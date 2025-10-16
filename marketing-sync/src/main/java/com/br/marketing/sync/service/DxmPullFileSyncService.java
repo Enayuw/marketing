@@ -13,6 +13,6 @@ public interface DxmPullFileSyncService {
     /**
      * 从客户SFTP拉取文件并处理
      */
-    void getFromSftp();
+    void getFromSftp(String apiCode);
 
 }

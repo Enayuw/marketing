@@ -1,5 +1,7 @@
 package com.br.marketing.sync.client;
 
+import com.br.common.util.AESAlgorithmUtil;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.DxmSftpConfig;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
@@ -34,22 +36,13 @@ public class DxmSftpClient {
      * 构造函数
      * 
      * @param config 度小满SFTP配置
-     * @param isClient 是否为客户SFTP（true:客户SFTP, false:内部SFTP）
      */
-    public DxmSftpClient(DxmSftpConfig config, boolean isClient) {
-        if (isClient) {
-            this.hostName = config.getClientSftpHost();
-            this.port = config.getClientSftpPort();
-            this.userName = config.getClientSftpUser();
-            this.password = config.getClientSftpPwd();
-            this.rsaPrivateKey = config.getRsaPrivateKey();
-        } else {
-            this.hostName = config.getInternalSftpHost();
-            this.port = config.getInternalSftpPort();
-            this.userName = config.getInternalSftpUser();
-            this.password = config.getInternalSftpPwd();
-            this.rsaPrivateKey = null;
-        }
+    public DxmSftpClient(DxmSftpConfig config) {
+        this.hostName = config.getClientSftpHost();
+        this.port = config.getClientSftpPort();
+        this.userName = config.getClientSftpUser();
+        this.password =  AESAlgorithmUtil.decrypt(config.getClientSftpPwd(), Constants.SFTP_P_SECRET_KEY);
+        this.rsaPrivateKey = config.getRsaPrivateKey();
     }
     
     /**
@@ -147,61 +140,6 @@ public class DxmSftpClient {
         } catch (SftpException e) {
             log.error("获取文件输入流失败: {}/{}", path, fileName, e);
             throw e;
-        }
-    }
-    
-    /**
-     * 上传文件到SFTP服务器
-     * 
-     * @param inputStream 文件输入流
-     * @param path 目标路径
-     * @param fileName 文件名
-     * @throws Exception 异常
-     */
-    public void uploadFile(InputStream inputStream, String path, String fileName) throws Exception {
-        try {
-            sftp.cd(path);
-            sftp.put(inputStream, fileName);
-            log.warn("文件上传成功: {}/{}", path, fileName);
-        } catch (SftpException e) {
-            log.error("文件上传失败: {}/{}", path, fileName, e);
-            throw e;
-        }
-    }
-    
-    /**
-     * 创建目录
-     * 
-     * @param path 目录路径
-     * @throws Exception 异常
-     */
-    public void mkdir(String path) throws Exception {
-        log.warn("创建SFTP目录: {}", path);
-        String[] split = path.split("/");
-        StringBuilder realPath = new StringBuilder();
-        for (String s : split) {
-            if (s != null && !s.trim().isEmpty()) {
-                realPath.append("/").append(s);
-                if (!isExist(realPath.toString())) {
-                    sftp.mkdir(realPath.toString());
-                }
-            }
-        }
-    }
-    
-    /**
-     * 检查路径是否存在
-     * 
-     * @param remotePath 远程路径
-     * @return 是否存在
-     */
-    public boolean isExist(String remotePath) {
-        try {
-            sftp.cd(remotePath);
-            return true;
-        } catch (Exception e) {
-            log.debug("路径不存在: {}", remotePath);
-            return false;
         }
     }
     

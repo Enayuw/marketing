@@ -1,5 +1,6 @@
 package com.br.marketing.sync.service.impl;
 
+import com.br.marketing.client.SftpClient;
 import com.br.marketing.entity.DxmSftpConfig;
 import com.br.marketing.mapper.DxmSftpConfigMapper;
 import com.br.marketing.sync.client.DxmSftpClient;
@@ -33,12 +34,12 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     private final static String TITLE = "【度小满文件同步任务】";
 
     @Override
-    public void getFromSftp() {
+    public void getFromSftp(String apiCode) {
         log.warn(TITLE + "开始执行");
 
         try {
             // 获取所有启用的配置
-            List<DxmSftpConfig> configs = dxmSftpConfigMapper.selectAllEnabled();
+            List<DxmSftpConfig> configs = dxmSftpConfigMapper.selectAllEnabled(apiCode);
             if (configs.isEmpty()) {
                 log.warn(TITLE + "未找到启用的度小满SFTP配置");
                 return;
@@ -69,18 +70,18 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
         log.warn(TITLE + "开始处理配置: apiCode={}", config.getApiCode());
 
         DxmSftpClient clientSftp = null;
-        DxmSftpClient internalSftp = null;
+        SftpClient internalSftp = null;
 
         try {
             // 连接客户SFTP
-            clientSftp = new DxmSftpClient(config, true);
+            clientSftp = new DxmSftpClient(config);
             if (!clientSftp.connect()) {
                 log.error(TITLE + "连接客户SFTP失败: {}", config.getClientSftpHost());
                 return;
             }
 
             // 连接内部SFTP
-            internalSftp = new DxmSftpClient(config, false);
+            internalSftp = new SftpClient(config.getInternalSftpHost(), config.getInternalSftpPort(), config.getInternalSftpUser(), config.getInternalSftpPwd());
             if (!internalSftp.connect()) {
                 log.error(TITLE + "连接内部SFTP失败: {}", config.getInternalSftpHost());
                 return;
@@ -146,7 +147,7 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
      * @param fileName 文件名
      */
     private void processCsvFile(DxmSftpConfig config, DxmSftpClient clientSftp,
-                               DxmSftpClient internalSftp, String fileName) {
+                                SftpClient internalSftp, String fileName) {
         InputStream inputStream = null;
         File tempFile = null;
         File decryptedFile = null;
