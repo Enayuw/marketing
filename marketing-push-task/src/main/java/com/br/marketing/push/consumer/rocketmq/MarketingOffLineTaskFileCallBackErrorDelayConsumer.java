@@ -73,7 +73,7 @@ public class MarketingOffLineTaskFileCallBackErrorDelayConsumer extends BaseMqMe
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
         defaultMQPushConsumer.setPopBatchNums(1);
-        defaultMQPushConsumer.setConsumeTimeout(1200L);
+        defaultMQPushConsumer.setConsumeTimeout(120L);
     }
 
 }

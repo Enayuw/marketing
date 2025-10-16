@@ -74,7 +74,7 @@ public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListe
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
         defaultMQPushConsumer.setPopBatchNums(1);
-        defaultMQPushConsumer.setConsumeTimeout(1800L);
+        defaultMQPushConsumer.setConsumeTimeout(180L);
     }
 
 }
