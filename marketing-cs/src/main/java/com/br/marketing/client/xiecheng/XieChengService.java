@@ -293,10 +293,15 @@ public class XieChengService {
 
         // 4. 获取mktProductNo
         String mktProductNo;
+        String extendMktProductNo = extend.getString("mktProductNo");
         if (mktProductNoConfigExist) {
             mktProductNo = mktProductNoConfig.getString(source);
+            if(!Objects.equals(extendMktProductNo, mktProductNo)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                        "携程广告上报接口，id=" + xieChengData.getId() +
+                                "的xieChengData的extend中mktProductNo已由" + extendMktProductNo + "调整为" + mktProductNo));
+            }
         } else {
-            String extendMktProductNo = extend.getString("mktProductNo");
             if (StringUtils.isNotEmpty(extendMktProductNo)) {
                 mktProductNo = extendMktProductNo;
             } else {
