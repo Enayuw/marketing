@@ -6,7 +6,7 @@ import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 /**
  * 携程上报服务
  */
-public interface XieChengReportService {
+public interface XieChengSmsReportService {
 
     Result pushXieChengData(XieChengReportMessageDTO messageDTO);
 }

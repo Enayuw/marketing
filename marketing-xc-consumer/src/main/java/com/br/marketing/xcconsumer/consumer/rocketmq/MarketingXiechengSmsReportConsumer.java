@@ -5,7 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.Impl.xc.XieChengReportService;
+import com.br.marketing.service.Impl.xc.XieChengSmsReportService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
@@ -21,18 +21,18 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
-        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_DELAY,
-        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_MOCK_DELAY,
+@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_SMS_REPORT,
+        consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_SMS_REPORT,
+        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_SMS_REPORT,
         awaitTerminationMillisWhenShutdown = 10000)
-public class MarketingXiechengReportMockDelayConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>,
+public class MarketingXiechengSmsReportConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>,
         RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Resource
-    XieChengReportService xieChengReportService;
+    XieChengSmsReportService xieChengSmsReportService;
 
     @Override
     protected String consumerName() {
@@ -43,12 +43,12 @@ public class MarketingXiechengReportMockDelayConsumer extends BaseMqMessageListe
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         XieChengReportMessageDTO messageDTO = JSON.parseObject(bodyString, new TypeReference<XieChengReportMessageDTO>() {}.getType());
-        log.warn("MARKETING_XIECHENG_REPORT_MOCK_DELAY_QUEUE" +
+        log.warn("MARKETING_XIECHENG_SMS_REPORT_MOCK_DELAY_QUEUE" +
                         "：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                 , messageExt.getStoreTimestamp(), messageExt.getMsgId()
                 , messageExt.getBrokerName(), messageExt.getTopic()
                 , messageExt.getTags(), bodyString);
-        consumerService.consumerRun(messageExt, xieChengReportService::pushXieChengData, messageDTO);
+        consumerService.consumerRun(messageExt, xieChengSmsReportService::pushXieChengData, messageDTO);
     }
 
     @Override

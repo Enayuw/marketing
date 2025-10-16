@@ -21,7 +21,7 @@ public class MarketingXieChengReportConsumer {
     @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_A,
             consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_A,
             selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_A,
-            consumeThreadNumber = 20, consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
+            awaitTerminationMillisWhenShutdown = 10000)
     public class MarketingXiechengReportQueueConsumerA extends AbstractXieChengReportConsumer {
         @Override
         protected String consumerName() {
@@ -32,7 +32,7 @@ public class MarketingXieChengReportConsumer {
     @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_B,
             consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_B,
             selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_B,
-            consumeThreadNumber = 20, consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
+            awaitTerminationMillisWhenShutdown = 10000)
     public class MarketingXiechengReportQueueConsumerB extends AbstractXieChengReportConsumer {
         @Override
         protected String consumerName() {
@@ -44,7 +44,7 @@ public class MarketingXieChengReportConsumer {
     @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_C,
             consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_C,
             selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_C,
-            consumeThreadNumber = 20, consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
+            awaitTerminationMillisWhenShutdown = 10000)
     public class MarketingXiechengReportQueueConsumerC extends AbstractXieChengReportConsumer {
         @Override
         protected String consumerName() {
@@ -55,7 +55,7 @@ public class MarketingXieChengReportConsumer {
     @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_D,
             consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_D,
             selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_D,
-            consumeThreadNumber = 20, consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
+            awaitTerminationMillisWhenShutdown = 10000)
     public class MarketingXiechengReportQueueConsumerD extends AbstractXieChengReportConsumer {
         @Override
         protected String consumerName() {
@@ -67,7 +67,7 @@ public class MarketingXieChengReportConsumer {
     @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_REPORT_E,
             consumerGroup = MarketingXieChengConstants.GROUP_MARKETING_XIECHENG_REPORT_E,
             selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_REPORT_E,
-            consumeThreadNumber = 20, consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
+            awaitTerminationMillisWhenShutdown = 10000)
     public class MarketingXiechengReportQueueConsumerE extends AbstractXieChengReportConsumer {
         @Override
         protected String consumerName() {
