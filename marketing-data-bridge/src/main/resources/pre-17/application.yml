@@ -1,8 +1,8 @@
 spring:
   web.interceptors.enabled: true
   application:
-    name: marketing-data-bridge-17
-  profiles.active: pre-17
+    name: marketing-data-bridge
+  profiles.active: pre
   main:
     allow-circular-references: true  # 允许循环依赖
   autoconfigure:
