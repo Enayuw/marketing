@@ -121,12 +121,7 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
             //7.推送
             String clickId = System.currentTimeMillis() + RandomUtil.generateCode(5) + context.getSha256Tel();
             context.getAdReqDTO().setClickId(clickId);
-            Result result;
-            if (context.getPushConfig().getMock()) {
-                result = new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("mock success");
-            } else {
-                result = xieChengService.pushXieChengDataNew(context.getAdReqDTO());
-            }
+            Result result = xieChengService.pushXieChengDataNew(context.getAdReqDTO(), context.getPushConfig().getMock());
             if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 context.getResultData().setPushStatus(2);
             } else {
