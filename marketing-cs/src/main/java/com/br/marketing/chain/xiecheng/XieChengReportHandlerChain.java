@@ -55,7 +55,7 @@ public class XieChengReportHandlerChain {
     private void init() {
         xieChengReportHandlerCache = Caffeine.newBuilder()
                 .maximumSize(100)
-                .expireAfterWrite(1, TimeUnit.HOURS)
+                .expireAfterWrite(5, TimeUnit.MINUTES)
                 .build(key -> fetchXieChengReportHandlerChain(key));
     }
 
