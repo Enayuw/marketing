@@ -256,6 +256,12 @@ public class XieChengService {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengDataNew(AdReqDTO xieChengData) {
+        return pushXieChengDataNew(xieChengData, false);
+    }
+
+    @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result pushXieChengDataNew(AdReqDTO xieChengData, boolean mock) {
         log.warn("携程上报新接口逻辑："+xieChengData.getSha256Tel());
         // 1. 获取配置
         Map<String, JSONObject> configMap = marketingCommonConfig.getXieChengCpaAndCpsConfig();
@@ -308,6 +314,10 @@ public class XieChengService {
                 mktProductNo = config.getString("mktProductNo");
                 log.warn("携程广告上报接口，id:{}的xieChengData的extend中mktProductNo字段为空，置为默认值:{}", xieChengData.getId() , mktProductNo);
             }
+        }
+
+        if(mock) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("mock success");
         }
 
         // 4. 构建请求对象
