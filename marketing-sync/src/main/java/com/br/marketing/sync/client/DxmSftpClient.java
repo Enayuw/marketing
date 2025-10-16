@@ -48,7 +48,7 @@ public class DxmSftpClient {
             this.port = config.getInternalSftpPort();
             this.userName = config.getInternalSftpUser();
             this.password = config.getInternalSftpPwd();
-            this.rsaPrivateKey = null; // 内部SFTP通常不需要RSA私钥
+            this.rsaPrivateKey = null;
         }
     }
     
@@ -114,15 +114,6 @@ public class DxmSftpClient {
             log.error("关闭SFTP连接异常", e);
             throw e;
         }
-    }
-    
-    /**
-     * 检查是否已连接
-     * 
-     * @return 是否已连接
-     */
-    public boolean isConnected() {
-        return sftp != null && sftp.isConnected();
     }
     
     /**
@@ -230,20 +221,5 @@ public class DxmSftpClient {
             throw e;
         }
     }
-    
-    /**
-     * 获取文件属性
-     * 
-     * @param filePath 文件路径
-     * @return 文件属性
-     * @throws Exception 异常
-     */
-    public SftpATTRS getFileAttrs(String filePath) throws Exception {
-        try {
-            return sftp.stat(filePath);
-        } catch (SftpException e) {
-            log.error("获取文件属性失败: {}", filePath, e);
-            throw e;
-        }
-    }
+
 }

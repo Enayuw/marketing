@@ -3,7 +3,10 @@
 <mapper namespace="com.br.marketing.mapper.DxmSftpConfigMapper" >
 
     <select id="selectAllEnabled" resultType="com.br.marketing.entity.DxmSftpConfig">
-
+        SELECT *
+        FROM b_dxm_sftp_config
+        WHERE status = 1
+        ORDER BY create_time DESC
     </select>
 
 </mapper>

@@ -30,15 +30,17 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     @Resource
     private DxmSftpConfigMapper dxmSftpConfigMapper;
 
+    private final static String TITLE = "【度小满文件同步任务】";
+
     @Override
     public void getFromSftp() {
-        log.warn("开始执行度小满文件同步任务");
+        log.warn(TITLE + "开始执行");
 
         try {
             // 获取所有启用的配置
             List<DxmSftpConfig> configs = dxmSftpConfigMapper.selectAllEnabled();
-            if (configs == null || configs.isEmpty()) {
-                log.warn("未找到启用的度小满SFTP配置");
+            if (configs.isEmpty()) {
+                log.warn(TITLE + "未找到启用的度小满SFTP配置");
                 return;
             }
 
@@ -47,15 +49,15 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                 try {
                     processConfig(config);
                 } catch (Exception e) {
-                    log.error("处理配置失败: apiCode={}, 错误: {}", config.getApiCode(), e.getMessage(), e);
+                    log.error(TITLE + "处理配置失败: apiCode={}, 错误: {}", config.getApiCode(), e.getMessage(), e);
                 }
             }
 
         } catch (Exception e) {
-            log.error("度小满文件同步任务执行失败", e);
+            log.error(TITLE + "度小满文件同步任务执行失败", e);
         }
 
-        log.warn("度小满文件同步任务执行完成");
+        log.warn(TITLE + "度小满文件同步任务执行完成");
     }
 
     /**
@@ -64,7 +66,7 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
      * @param config SFTP配置
      */
     private void processConfig(DxmSftpConfig config) {
-        log.warn("开始处理配置: apiCode={}", config.getApiCode());
+        log.warn(TITLE + "开始处理配置: apiCode={}", config.getApiCode());
 
         DxmSftpClient clientSftp = null;
         DxmSftpClient internalSftp = null;
@@ -73,14 +75,14 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
             // 连接客户SFTP
             clientSftp = new DxmSftpClient(config, true);
             if (!clientSftp.connect()) {
-                log.error("连接客户SFTP失败: {}", config.getClientSftpHost());
+                log.error(TITLE + "连接客户SFTP失败: {}", config.getClientSftpHost());
                 return;
             }
 
             // 连接内部SFTP
             internalSftp = new DxmSftpClient(config, false);
             if (!internalSftp.connect()) {
-                log.error("连接内部SFTP失败: {}", config.getInternalSftpHost());
+                log.error(TITLE + "连接内部SFTP失败: {}", config.getInternalSftpHost());
                 return;
             }
 
@@ -90,7 +92,7 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
             // 获取客户SFTP目录下的CSV文件
             Vector<ChannelSftp.LsEntry> files = clientSftp.listFiles(config.getClientSftpPath());
             if (files == null || files.isEmpty()) {
-                log.warn("客户SFTP目录下没有文件: {}", config.getClientSftpPath());
+                log.warn(TITLE + "客户SFTP目录下没有文件: {}", config.getClientSftpPath());
                 return;
             }
 
@@ -109,12 +111,12 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                     continue;
                 }
 
-                log.warn("开始处理文件: {}", fileName);
+                log.warn(TITLE + "开始处理文件: {}", fileName);
                 processCsvFile(config, clientSftp, internalSftp, fileName);
             }
 
         } catch (Exception e) {
-            log.error("处理配置异常: apiCode={}", config.getApiCode(), e);
+            log.error(TITLE + "处理配置异常: apiCode={}", config.getApiCode(), e);
         } finally {
             // 关闭连接
             try {
@@ -122,7 +124,7 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                     clientSftp.disconnect();
                 }
             } catch (Exception e) {
-                log.error("关闭客户SFTP连接失败", e);
+                log.error(TITLE + "关闭客户SFTP连接失败", e);
             }
 
             try {
@@ -130,7 +132,7 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                     internalSftp.disconnect();
                 }
             } catch (Exception e) {
-                log.error("关闭内部SFTP连接失败", e);
+                log.error(TITLE + "关闭内部SFTP连接失败", e);
             }
         }
     }

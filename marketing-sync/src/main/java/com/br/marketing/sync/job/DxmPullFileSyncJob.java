@@ -20,9 +20,6 @@ import javax.annotation.Resource;
 public class DxmPullFileSyncJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
     private DxmPullFileSyncService dxmPullFileSyncService;
 
     @Override
