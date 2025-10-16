@@ -18,7 +18,7 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
+@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing","com.marketingkit"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")

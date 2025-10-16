@@ -3366,6 +3366,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                 taskApiCodeSet.add(concat);
             }
         }
+        
+        trackingService.track(DataFlowDirection.IN
+                    , apiCode
+                    , "通用上传接口明细入库"
+                    , Long.valueOf(dto.getDataItems().size()-errorSize)
+                    , "通用上传接口明细入库"
+                    , TrackingContext.generateBatchId());
+
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
