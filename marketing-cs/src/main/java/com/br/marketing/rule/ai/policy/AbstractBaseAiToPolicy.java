@@ -66,6 +66,9 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
         // 设置变量
         setVariables(pushData, jsonObject);
 
+        // 定制化逻辑
+        handleCustomizeLogic(pushData, syncUser, context, jsonObject);
+
         log.warn("AI自动化推决策_操作类型{},apiCode:{}", getOperationType(), syncUser.getApiCode());
         return pushData;
     }
@@ -277,6 +280,14 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
      */
     protected void setVariables(PushMarketingUserDetailByRuleDTO pushData, JSONObject jsonObject) {
         pushData.setVariables(jsonObject);
+    }
+
+    /**
+     * 定制化逻辑
+     */
+    protected void handleCustomizeLogic(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, ProcessHandlerContext context,
+                                         JSONObject jsonObject) {
+        // 默认实现：空方法，子类可重写
     }
 
     /**
