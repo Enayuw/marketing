@@ -8,6 +8,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
+import com.br.marketing.client.HaloCallBackDataApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
@@ -200,6 +201,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     private SmyClient smyClient;
+
+    @Resource
+    private HaloCallBackDataApiClient haLoCallBackDataApiClient;
 
 
     /**
@@ -1468,4 +1472,19 @@ public class MethodRetryHandlerService {
         return qiFuClients.qryCallRealTimeUrl(qryCallRealTimeReq);
     }
 
+
+    /**
+     * 哈啰-三方营销数据回传
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
+    public Result haloCallBackData(String apiCode,JSONObject requestJson) {
+        Result result = haLoCallBackDataApiClient.dealMarketingCallBack(apiCode,requestJson);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            return result;
+        }
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "哈啰-三方营销数据回传 -- " + JSON.toJSONString(result)));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 }

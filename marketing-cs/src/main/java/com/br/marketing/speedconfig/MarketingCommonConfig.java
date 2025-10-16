@@ -3463,5 +3463,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pulsarConsumerSkipSwitch;
 
+
+    /**
+     * 哈罗-三方营销数据回传 配置
+     */
+    private JSONObject haloCallBackDataConfig;
 }
 

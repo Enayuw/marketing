@@ -56,7 +56,7 @@ public enum ThreadPoolNameEnum {
     HALO_CALLBACK_3710212(30,"halo_callback_3710212","哈啰硅基人数据回调"),
 
 
-
+    HALUO_CALLBACK_DATA_3710217(40,"haluo_callback_data_3710217","哈啰营销数据回传"),
     ;
 
     private final Integer order;
