@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -37,7 +39,7 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
 
         try {
             // 根据apiCode获取配置
-            DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode,1);
+            DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode, 1);
             if (config == null) {
                 log.warn(TITLE + "未找到配置: apiCode={}", apiCode);
                 return;
@@ -84,13 +86,18 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
                 return;
             }
 
+            // 生成日期路径（将配置中的yyyy-mm-dd替换为当天日期）
+            String dateStr = getCurrentDateString();
+            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", dateStr);
+            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", dateStr);
+
             // 确保客户SFTP目标目录存在
-            clientSftp.mkdir(config.getClientSftpPath());
+            clientSftp.mkdir(clientDatePath);
 
             // 获取内部SFTP目录下的文件
-            Map<String, SftpATTRS> files = internalSftp.listFiles(config.getInternalSftpPath());
+            Map<String, SftpATTRS> files = internalSftp.listFiles(internalDatePath);
             if (files == null || files.isEmpty()) {
-                log.warn(TITLE + "内部SFTP目录下没有文件: {}", config.getInternalSftpPath());
+                log.warn(TITLE + "内部SFTP目录下没有文件: {}", internalDatePath);
                 return;
             }
 
@@ -104,8 +111,13 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
                     continue;
                 }
 
+                // 只处理指定格式的文件
+                if (!isTargetFile(fileName)) {
+                    continue;
+                }
+
                 log.warn(TITLE + "开始处理文件: {}", fileName);
-                processFile(config, internalSftp, clientSftp, fileName);
+                processFile(config, internalSftp, clientSftp, internalDatePath, clientDatePath, fileName);
             }
 
         } catch (Exception e) {
@@ -136,20 +148,22 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
      * @param config SFTP配置
      * @param internalSftp 内部SFTP客户端
      * @param clientSftp 客户SFTP客户端
+     * @param internalPath 内部SFTP路径
+     * @param clientPath 客户SFTP路径
      * @param fileName 文件名
      */
     private void processFile(DxmSftpConfig config, SftpClient internalSftp,
-                            DxmSftpClient clientSftp, String fileName) {
+                            DxmSftpClient clientSftp, String internalPath, String clientPath, String fileName) {
         try {
             // 从内部SFTP下载文件到临时目录
-            String tempFilePath = downloadFileToTemp(internalSftp, config.getInternalSftpPath(), fileName);
+            String tempFilePath = downloadFileToTemp(internalSftp, internalPath, fileName);
             if (tempFilePath == null) {
                 log.error(TITLE + "下载文件失败: {}", fileName);
                 return;
             }
 
             // 上传文件到客户SFTP
-            uploadFileToClient(clientSftp, tempFilePath, config.getClientSftpPath(), fileName);
+            uploadFileToClient(clientSftp, tempFilePath, clientPath, fileName);
 
             // 删除临时文件
             deleteTempFile(tempFilePath);
@@ -240,5 +254,35 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
         }
     }
 
+    /**
+     * 获取当前日期字符串（yyyy-MM-dd格式）
+     *
+     * @return 日期字符串
+     */
+    private String getCurrentDateString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(new Date());
+    }
+
+    /**
+     * 判断是否为目标文件
+     *
+     * @param fileName 文件名
+     * @return 是否为目标文件
+     */
+    private boolean isTargetFile(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return false;
+        }
+        
+        String lowerFileName = fileName.toLowerCase();
+        
+        // 检查文件格式：
+        // 1. return_yyyymmdd.csv
+        // 2. return_yyyymmdd.csv.success
+        // 3. cmq****.mp3
+        return lowerFileName.matches("return_\\d{8}\\.csv(\\.success)?") || 
+               lowerFileName.matches("cmq.*\\.mp3");
+    }
 
 }
