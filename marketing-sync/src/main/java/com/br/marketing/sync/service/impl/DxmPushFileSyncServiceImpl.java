@@ -111,8 +111,9 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
                     continue;
                 }
 
-                // 只处理指定格式的文件
+                // 只处理指定格式的文件（当天日期的return文件和cmq开头的mp3文件）
                 if (!isTargetFile(fileName)) {
+                    log.debug(TITLE + "跳过文件（不符合目标格式）: {}", fileName);
                     continue;
                 }
 
@@ -278,11 +279,20 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
         String lowerFileName = fileName.toLowerCase();
         
         // 检查文件格式：
-        // 1. return_yyyymmdd.csv
-        // 2. return_yyyymmdd.csv.success
-        // 3. cmq****.mp3
-        return lowerFileName.matches("return_\\d{8}\\.csv(\\.success)?") || 
-               lowerFileName.matches("cmq.*\\.mp3");
+        // 1. return_yyyymmdd.csv (需要匹配当天日期)
+        // 2. return_yyyymmdd.csv.success (需要匹配当天日期)
+        // 3. cmq****.mp3 (录音文件，以cmq开头，.mp3结尾)
+        
+        // 获取当天日期字符串（yyyymmdd格式）
+        String todayDateStr = getCurrentDateString().replace("-", "");
+        
+        // 检查return_当天日期.csv或return_当天日期.csv.success
+        boolean isReturnCsv = lowerFileName.matches("return_" + todayDateStr + "\\.csv(\\.success)?");
+        
+        // 检查cmq开头的mp3文件
+        boolean isCmqMp3 = lowerFileName.matches("cmq.*\\.mp3");
+        
+        return isReturnCsv || isCmqMp3;
     }
 
 }
