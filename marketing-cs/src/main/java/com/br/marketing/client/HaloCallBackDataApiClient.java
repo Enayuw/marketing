@@ -45,15 +45,16 @@ public class HaloCallBackDataApiClient {
     ThreadPoolExecutor interfaceLogDbpool;
 
 
-    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result dealMarketingCallBack(String apiCode,JSONObject requestJson) {
        Result result = new Result();
         try {
-            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool).setUrl(haloCallBackUrl)
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool)
+                    .setUrl(haloCallBackUrl)
                     .setContentType(MediaType.APPLICATION_JSON).setEncode(true)
                     .setRequestParam(requestJson).postTransferStr();
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
-            log.warn("dealMarketingCallBack:{}",jsonObject.toJSONString());
+            log.warn("dealMarketingCallBack,apiCode:{},requestParam:{},result:{}",apiCode,
+                    requestJson.toJSONString(),JSONObject.toJSONString(transfer));
             if (transfer.getHttpCode() != 200) {
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                 result.setMessage(JSONObject.toJSONString(transfer));
@@ -61,13 +62,6 @@ public class HaloCallBackDataApiClient {
             }
             if ("10000".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
-                try {
-                    //监控
-                    BrCounter.count(PrometheusMonitorUtils.COUNT_HALO_CALLBACK_API_METRIC_NAME, apiCode, "halo-callback-api",
-                            requestJson.size());
-                } catch (Exception ex) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "哈啰-三方营销数据回传异常!"), ex);
-                }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(transfer.getResult());
             }

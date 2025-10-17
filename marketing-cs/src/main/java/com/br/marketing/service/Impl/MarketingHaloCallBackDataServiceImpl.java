@@ -9,6 +9,7 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.HaLuoCallBackSecureRules;
 import com.br.marketing.entity.MarketingHaloCallBackData;
+import com.br.marketing.enums.HaloCallBackDealStatusEnum;
 import com.br.marketing.mapper.MarketingHaLuoCallBackDataMapper;
 import com.br.marketing.service.MarketingHaloCallBackDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -49,9 +50,10 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
 
     @Override
     public void process(String apiCode) {
-        log.warn("TITLE:{},apiCode:{},dealDate:{}",TITLE,apiCode, LocalDateTime.now());
+        long startTime = System.currentTimeMillis();
+        log.warn("TITLE:{},apiCode:{},开始处理",TITLE,apiCode);
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DEAL.getName(), 50, 50);
+                ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DEAL.getName(), 20, 20);
         try {
             while (true) {
                 //查询
@@ -68,11 +70,11 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 }
                 //修改中间态
                 List<Long> idList = marketingHaloCallBackDataList.stream().map(MarketingHaloCallBackData::getId).collect(Collectors.toList());
-                marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,1,"");
+                marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList, HaloCallBackDealStatusEnum.DEAL_MIDDLE.getValue(),"");
                 //并发处理
                 callBackDataDeal(apiCode, marketingHaloCallBackDataList,actionPool);
             }
-            log.warn("TITLE:{},apiCode:{},dealDate:{}",TITLE,apiCode, LocalDateTime.now());
+            log.warn("TITLE:{},apiCode:{}处理完成,消耗时间:{}ms",TITLE,apiCode,System.currentTimeMillis()-startTime);
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_CALLBACK_DATA_INTERFACEERROR.getCode(), e.getMessage(), TITLE), e);
         }finally {
@@ -100,14 +102,14 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 Result result = methodRetryHandlerService.haloCallBackData(apiCode,requestJson);
                 //3. 修改状态(返回处理成功,失败状态)
                 if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                    marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,2,"");
+                    marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_SUCCESS.getValue(),"");
                 }else {
-                    marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,-1,result.getMessage());
+                    marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(), result.getMessage());
                 }
             }
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_CALLBACK_DATA_INTERFACEERROR.getCode(), e.getMessage(), TITLE), e);
-            marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,-1,e.getMessage());
+            marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(),e.getMessage());
         }
     }
 
@@ -118,16 +120,17 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
             String method = marketingCommonConfig.getHaloCallBackDataConfig().getString("method");
 
             JSONObject obj = new JSONObject();
-            int randomNumber = 10000 + ThreadLocalRandom.current().nextInt(90000);
-            String openSerialNo = UUID.randomUUID().toString().replace("-", "");
-            String batchNo = openSerialNo  +"_"+ LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"))+"_"+randomNumber;
             obj.put("method", method);
             obj.put("appKey", appKey);
             obj.put("timestamp", LocalDateTime.now().format(ymdhmsFormat));
             obj.put("encry","MD5");
             obj.put("channelNo", "BR");
 
+
             JSONObject dataObj = new JSONObject();
+            String openSerialNo = UUID.randomUUID().toString().replace("-", "");
+            int randomNumber = 10000 + ThreadLocalRandom.current().nextInt(90000);
+            String batchNo = openSerialNo  +"_"+ LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8"))+"_"+randomNumber;
             dataObj.put("openSerialNo", openSerialNo);
             dataObj.put("bizScene", "LOAN_AGENT");
             List<JSONObject> dataItmes = new ArrayList<>();
@@ -135,8 +138,7 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 JSONObject dataItemObj = new JSONObject();
                 dataItemObj.put("id", item.getCustNum());
                 dataItemObj.put("phone",item.getCell());
-                // TODO 验证文件上传的startTime为秒级时间戳
-                dataItemObj.put("startTime",Long.parseLong(item.getStartTime()));
+                dataItemObj.put("startTime",getStartTimeBySftp(item.getStartTime()));
                 dataItemObj.put("thirdPartyUserId",item.getCustNum());
                 dataItemObj.put("batchNo",batchNo);
                 dataItemObj.put("customerNo",item.getCustNum());
@@ -145,11 +147,25 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
             }
             dataObj.put("dataItems", dataItmes);
             obj.put("data", dataObj);
+
             HaLuoCallBackSecureRules.signTopRequest(obj,appSecret);
             return obj;
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_CALLBACK_DATA_INTERFACEERROR.getCode(), e.getMessage(), TITLE), e);
             return null;
+        }
+    }
+
+    /**
+     * 验证文件上传的startTime为秒级时间戳
+     * @param startTime
+     * @return
+     */
+    private Long getStartTimeBySftp(String startTime) {
+        if (startTime == null || "".equals(startTime)) {
+            return 0L;
+        }else {
+            return Long.parseLong(startTime);
         }
     }
 }
