@@ -315,7 +315,7 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
         // 检查文件格式：
         // 1. return_yyyymmdd.csv (需要匹配当天日期)
         // 2. return_yyyymmdd.csv.success (需要匹配当天日期)
-        // 3. cmq****.mp3 (录音文件，以cmq开头，.mp3结尾)
+        // 3. cmq****.mp3 (录音文件，.mp3结尾)
         
         // 获取当天日期字符串（yyyymmdd格式）
         String todayDateStr = getCurrentDateString().replace("-", "");
@@ -323,8 +323,8 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
         // 检查return_当天日期.csv或return_当天日期.csv.success
         boolean isReturnCsv = lowerFileName.matches("return_" + todayDateStr + "\\.csv(\\.success)?");
         
-        // 检查cmq开头的mp3文件
-        boolean isCmqMp3 = lowerFileName.matches("cmq.*\\.mp3");
+        // 检查mp3文件
+        boolean isCmqMp3 = lowerFileName.endsWith(".mp3");
         
         return isReturnCsv || isCmqMp3;
     }
