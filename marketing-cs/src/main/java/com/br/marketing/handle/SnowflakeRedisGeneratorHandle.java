@@ -486,6 +486,7 @@ public class SnowflakeRedisGeneratorHandle {
 
                             // 索引占位成功，再写 assigned，保证最终一致
                             redisChgService.hset(assignedKey, this.uniqueInstanceId, String.valueOf(id));
+                            // 设置心跳
                             redisChgService.hset(heartbeatKey, this.uniqueInstanceId, String.valueOf(System.currentTimeMillis()));
                             LOGGER.warn("雪花算法,成功为实例 {} 分配新WorkerId: {}. [AssignedKey: {}, 数据中心: {}, 应用: {}]",
                                     uniqueInstanceId, id, assignedKey, datacenterId, applicationName);
