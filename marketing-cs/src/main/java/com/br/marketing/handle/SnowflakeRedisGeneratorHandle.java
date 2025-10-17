@@ -411,10 +411,13 @@ public class SnowflakeRedisGeneratorHandle {
                 try {
                     String assignedKey = String.format("%sworker_assign:assigned:%s:%d", KEY_PREFIX, applicationName, datacenterId);
                     String heartbeatKey = String.format("%sworker_assign:heartbeat:%s:%d", KEY_PREFIX, applicationName, datacenterId);
+                    String indexKey = String.format("%sworker_assign:index:%s:%d", KEY_PREFIX, applicationName, datacenterId);
 
                     String existingIdStr = redisChgService.hget(assignedKey, this.uniqueInstanceId);
                     if (existingIdStr != null) {
                         long existingId = Long.parseLong(existingIdStr);
+                        // 确保索引存在
+                        try { redisChgService.hset(indexKey, existingIdStr, this.uniqueInstanceId); } catch (Exception ignore) {}
                         LOGGER.warn("雪花算法,实例 {} 已分配过ID，直接恢复WorkerId: {}. [AssignedKey: {}]", this.uniqueInstanceId, existingId, assignedKey);
                         return existingId;
                     }
@@ -447,10 +450,8 @@ public class SnowflakeRedisGeneratorHandle {
                             Object wid = allAssigned.get(instanceId);
                             if (wid != null) {
                                 String guardKey = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, String.valueOf(wid));
-                                try {
-                                    redisChgService.unlock(guardKey, instanceId);
-                                } catch (Exception ignore) {
-                                }
+                                try { redisChgService.unlock(guardKey, instanceId); } catch (Exception ignore) {}
+                                try { redisChgService.hdel(indexKey, String.valueOf(wid)); } catch (Exception ignore) {}
                             }
                         }
                         redisChgService.hdel(assignedKey, staleInstances.toArray(new String[0]));
@@ -459,21 +460,33 @@ public class SnowflakeRedisGeneratorHandle {
 
                     for (long id = 0; id <= MAX_WORKER_ID; id++) {
                         if (!aliveWorkerIds.contains(id)) {
-                            // 启动期占位锁：防止并发启动时多个实例同时选中同一个id
                             String guardKey = String.format("%sworker_assign:guard:%s:%d:%d", KEY_PREFIX, applicationName, datacenterId, id);
                             boolean gotGuard;
                             try {
                                 gotGuard = redisChgService.lock(guardKey, this.uniqueInstanceId, (long) STARTUP_GUARD_TTL_SECONDS);
                             } catch (Exception e) {
-                                // 获取占位失败视为该id暂不可用，尝试下一个
                                 gotGuard = false;
                             }
                             if (!gotGuard) {
-                                continue; // 有并发者已占位，换下一个id
+                                continue;
                             }
 
-                            // 拿到占位后再写入映射，避免重复
+                            // 原子占位：同一 workerId 只能成功一次
+                            boolean taken;
+                            try {
+                                taken = Boolean.TRUE.equals(redisChgService.hsetnx(indexKey, String.valueOf(id), this.uniqueInstanceId));
+                            } catch (Exception e) {
+                                taken = false;
+                            }
+                            if (!taken) {
+                                // 已被其他实例占位，释放本次 guard 或让其自然过期
+                                try { redisChgService.unlock(guardKey, this.uniqueInstanceId); } catch (Exception ignore) {}
+                                continue;
+                            }
+
+                            // 索引占位成功，再写 assigned，保证最终一致
                             redisChgService.hset(assignedKey, this.uniqueInstanceId, String.valueOf(id));
+                            redisChgService.hset(heartbeatKey, this.uniqueInstanceId, String.valueOf(System.currentTimeMillis()));
                             LOGGER.warn("雪花算法,成功为实例 {} 分配新WorkerId: {}. [AssignedKey: {}, 数据中心: {}, 应用: {}]",
                                     uniqueInstanceId, id, assignedKey, datacenterId, applicationName);
                             return id;
