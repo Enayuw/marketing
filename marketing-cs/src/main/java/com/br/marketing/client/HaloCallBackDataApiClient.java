@@ -15,9 +15,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.HashMap;
 
-/**发送邮件客户端
- * @author 10400
- * @create 2017-06-27 13:33
+/**
+ * 哈啰-三方营销数据回传客户端
+ * @author zhiyong.zhang
+ * @create 2025-10-17 19:45
  */
 @Service
 @Slf4j
