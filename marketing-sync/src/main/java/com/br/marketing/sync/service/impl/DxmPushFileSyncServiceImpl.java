@@ -94,6 +94,12 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
             // 确保客户SFTP目标目录存在
             clientSftp.mkdir(clientDatePath);
 
+            // 检查是否存在当天的.success文件
+            if (!checkSuccessFileExists(internalSftp, internalDatePath)) {
+                log.warn(TITLE + "当天success文件不存在，跳过推送: {}", internalDatePath);
+                return;
+            }
+
             // 获取内部SFTP目录下的文件
             Map<String, SftpATTRS> files = internalSftp.listFiles(internalDatePath);
             if (files == null || files.isEmpty()) {
@@ -263,6 +269,34 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
     private String getCurrentDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(new Date());
+    }
+
+    /**
+     * 检查是否存在当天的.success文件
+     *
+     * @param internalSftp 内部SFTP客户端
+     * @param internalDatePath 内部SFTP日期路径
+     * @return 是否存在.success文件
+     */
+    private boolean checkSuccessFileExists(SftpClient internalSftp, String internalDatePath) {
+        try {
+            // 获取当天日期字符串（yyyymmdd格式）
+            String todayDateStr = getCurrentDateString().replace("-", "");
+            String successFileName = "return_" + todayDateStr + ".csv.success";
+            
+            // 检查.success文件是否存在
+            Map<String, SftpATTRS> files = internalSftp.listFiles(internalDatePath);
+            if (files != null && files.containsKey(successFileName)) {
+                log.warn(TITLE + "找到success文件: {}", successFileName);
+                return true;
+            } else {
+                log.warn(TITLE + "未找到success文件: {}", successFileName);
+                return false;
+            }
+        } catch (Exception e) {
+            log.error(TITLE + "检查success文件时发生异常: {}", internalDatePath, e);
+            return false;
+        }
     }
 
     /**
