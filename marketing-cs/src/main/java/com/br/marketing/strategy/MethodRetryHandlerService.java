@@ -1483,7 +1483,7 @@ public class MethodRetryHandlerService {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             return result;
         }
-        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.HALUO_CALLBACK_DATA_INTERFACEERROR.getCode(),
                 "哈啰-三方营销数据回传 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
