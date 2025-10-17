@@ -5,7 +5,7 @@ import com.br.marketing.entity.DxmSftpConfig;
 import com.br.marketing.mapper.DxmSftpConfigMapper;
 import com.br.marketing.sync.client.DxmSftpClient;
 import com.br.marketing.sync.service.DxmPullFileSyncService;
-import com.br.marketing.sync.utils.DxmTest;
+import com.br.marketing.sync.utils.AESUtilDxm;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
-import java.util.List;
 import java.util.Vector;
 
 /**
@@ -220,7 +219,7 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     private void decryptCsvFile(File inputFile, File outputFile, String aesKeyHex) {
         try {
             // 使用DxmTest中的解密方法
-            DxmTest.decryptCSV(inputFile.getAbsolutePath(), outputFile.getAbsolutePath(), aesKeyHex);
+            AESUtilDxm.decryptCSV(inputFile.getAbsolutePath(), outputFile.getAbsolutePath(), aesKeyHex);
             log.warn("CSV文件解密成功: {} -> {}", inputFile.getName(), outputFile.getName());
         } catch (Exception e) {
             log.error("CSV文件解密失败: {}", inputFile.getName(), e);

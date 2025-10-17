@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-public class DxmTest {
+public class AESUtilDxm {
     private static final int AES_KEY_SIZE = 32; // AES-256密钥长度
     private static final int BLOCK_SIZE = 16;   // AES块大小
 
@@ -90,11 +90,18 @@ public class DxmTest {
         for (int i = 1; i < lines.size(); i++) {
             String[] columns = lines.get(i).split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
             if (columns.length > 0) {
+                // 检查第一列（手机号列）是否为空
+                String phoneColumn = columns[0];
+                if (phoneColumn == null || phoneColumn.trim().isEmpty()) {
+                    System.out.println("【度小满解密】跳过空手机号行 (行 " + (i + 1) + "): " + lines.get(i));
+                    continue; // 跳过该行
+                }
+                
                 try {
-                    columns[0] = decrypt(columns[0], keyBytes); // 解密第一列
+                    columns[0] = decrypt(phoneColumn, keyBytes); // 解密第一列
                 } catch (Exception e) {
                     columns[0] = "[DECRYPT_FAILED]";
-                    System.err.println("解密失败 (行 " + i + "): " + e.getMessage());
+                    System.err.println("【度小满解密】解密失败 (行 " + (i + 1) + "): " + e.getMessage());
                 }
             }
             decryptedLines.add(String.join(",", columns));
