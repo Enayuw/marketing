@@ -417,7 +417,10 @@ public class SnowflakeRedisGeneratorHandle {
                     if (existingIdStr != null) {
                         long existingId = Long.parseLong(existingIdStr);
                         // 确保索引存在
-                        try { redisChgService.hset(indexKey, existingIdStr, this.uniqueInstanceId); } catch (Exception ignore) {}
+                        try {
+                            redisChgService.hset(indexKey, existingIdStr, this.uniqueInstanceId);
+                        } catch (Exception ignore) {
+                        }
                         LOGGER.warn("雪花算法,实例 {} 已分配过ID，直接恢复WorkerId: {}. [AssignedKey: {}]", this.uniqueInstanceId, existingId, assignedKey);
                         return existingId;
                     }
@@ -431,13 +434,26 @@ public class SnowflakeRedisGeneratorHandle {
 
                     allAssigned.forEach((instanceId, workerIdObj) -> {
                         Object lastHeartbeatObj = allHeartbeats.get(instanceId);
+                        long wid = Long.parseLong(String.valueOf(workerIdObj));
+                        boolean alive = false;
+
                         if (lastHeartbeatObj != null) {
                             long lastHeartbeat = Long.parseLong(String.valueOf(lastHeartbeatObj));
-                            if (now - lastHeartbeat < staleThreshold) {
-                                aliveWorkerIds.add(Long.parseLong(String.valueOf(workerIdObj)));
-                            } else {
-                                staleInstances.add(instanceId);
+                            alive = (now - lastHeartbeat) < staleThreshold;
+                        }
+                        if (!alive) {
+                            // 启动/抖动窗口：guard 还在则视为活跃，避免误回收
+                            String guardKeyProbe = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, String.valueOf(wid));
+                            try {
+                                if (Boolean.TRUE.equals(redisChgService.exists(guardKeyProbe))) {
+                                    alive = true;
+                                }
+                            } catch (Exception ignore) {
                             }
+                        }
+
+                        if (alive) {
+                            aliveWorkerIds.add(wid);
                         } else {
                             staleInstances.add(instanceId);
                         }
@@ -447,11 +463,23 @@ public class SnowflakeRedisGeneratorHandle {
                         LOGGER.warn("雪花算法,发现 {} 个僵尸实例，将回收其WorkerID: {}. [AssignedKey: {}, HeartbeatKey: {}]",
                                 staleInstances.size(), staleInstances, assignedKey, heartbeatKey);
                         for (String instanceId : staleInstances) {
-                            Object wid = allAssigned.get(instanceId);
-                            if (wid != null) {
-                                String guardKey = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, String.valueOf(wid));
-                                try { redisChgService.unlock(guardKey, instanceId); } catch (Exception ignore) {}
-                                try { redisChgService.hdel(indexKey, String.valueOf(wid)); } catch (Exception ignore) {}
+                            Object widObj = allAssigned.get(instanceId);
+                            if (widObj != null) {
+                                String widStr = String.valueOf(widObj);
+                                String guardKey = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, widStr);
+                                boolean guardAlive = false;
+                                try {
+                                    guardAlive = Boolean.TRUE.equals(redisChgService.exists(guardKey));
+                                } catch (Exception ignore) {
+                                }
+
+                                // 不主动解锁 guard，只在 guard 已消失时，才删除 index（放开复用）
+                                if (!guardAlive) {
+                                    try {
+                                        redisChgService.hdel(indexKey, widStr);
+                                    } catch (Exception ignore) {
+                                    }
+                                }
                             }
                         }
                         redisChgService.hdel(assignedKey, staleInstances.toArray(new String[0]));
@@ -480,7 +508,10 @@ public class SnowflakeRedisGeneratorHandle {
                             }
                             if (!taken) {
                                 // 已被其他实例占位，释放本次 guard 或让其自然过期
-                                try { redisChgService.unlock(guardKey, this.uniqueInstanceId); } catch (Exception ignore) {}
+                                try {
+                                    redisChgService.unlock(guardKey, this.uniqueInstanceId);
+                                } catch (Exception ignore) {
+                                }
                                 continue;
                             }
 
