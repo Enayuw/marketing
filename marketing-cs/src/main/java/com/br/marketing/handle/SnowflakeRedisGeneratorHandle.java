@@ -308,7 +308,8 @@ public class SnowflakeRedisGeneratorHandle {
         private final String KEY_PREFIX = RedisKeyConstant.SNOWFLAKE;
         private static final long MAX_WORKER_ID = ShardedGenerator.MAX_WORKER_ID;
         private static final long MAX_APPLICATION_ID = ShardedGenerator.MAX_APPLICATION_ID;
-        private static final long LOCK_TIMEOUT_SECONDS = 10;
+        private static final long LOCK_TIMEOUT_SECONDS = 30;
+        private static final int STARTUP_GUARD_TTL_SECONDS = 90; // 启动期占位时长，需覆盖首轮心跳周期
         private static final int HEARTBEAT_INTERVAL_SECONDS = 30;
         private static final int MAX_HEARTBEAT_FAILURES = 3;
         private final AtomicInteger heartbeatFailures = new AtomicInteger(0);
@@ -442,12 +443,36 @@ public class SnowflakeRedisGeneratorHandle {
                     if (!staleInstances.isEmpty()) {
                         LOGGER.warn("雪花算法,发现 {} 个僵尸实例，将回收其WorkerID: {}. [AssignedKey: {}, HeartbeatKey: {}]",
                                 staleInstances.size(), staleInstances, assignedKey, heartbeatKey);
+                        for (String instanceId : staleInstances) {
+                            Object wid = allAssigned.get(instanceId);
+                            if (wid != null) {
+                                String guardKey = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, String.valueOf(wid));
+                                try {
+                                    redisChgService.unlock(guardKey, instanceId);
+                                } catch (Exception ignore) {
+                                }
+                            }
+                        }
                         redisChgService.hdel(assignedKey, staleInstances.toArray(new String[0]));
                         redisChgService.hdel(heartbeatKey, staleInstances.toArray(new String[0]));
                     }
 
                     for (long id = 0; id <= MAX_WORKER_ID; id++) {
                         if (!aliveWorkerIds.contains(id)) {
+                            // 启动期占位锁：防止并发启动时多个实例同时选中同一个id
+                            String guardKey = String.format("%sworker_assign:guard:%s:%d:%d", KEY_PREFIX, applicationName, datacenterId, id);
+                            boolean gotGuard;
+                            try {
+                                gotGuard = redisChgService.lock(guardKey, this.uniqueInstanceId, (long) STARTUP_GUARD_TTL_SECONDS);
+                            } catch (Exception e) {
+                                // 获取占位失败视为该id暂不可用，尝试下一个
+                                gotGuard = false;
+                            }
+                            if (!gotGuard) {
+                                continue; // 有并发者已占位，换下一个id
+                            }
+
+                            // 拿到占位后再写入映射，避免重复
                             redisChgService.hset(assignedKey, this.uniqueInstanceId, String.valueOf(id));
                             LOGGER.warn("雪花算法,成功为实例 {} 分配新WorkerId: {}. [AssignedKey: {}, 数据中心: {}, 应用: {}]",
                                     uniqueInstanceId, id, assignedKey, datacenterId, applicationName);
