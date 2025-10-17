@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 
 /**
@@ -84,13 +86,24 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                 return;
             }
 
-            // 确保内部SFTP目标目录存在
-            internalSftp.mkdir(config.getInternalSftpPath());
+            // 生成日期路径（将配置中的yyyy-mm-dd替换为当天日期）
+            String dateStr = getCurrentDateString();
+            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", dateStr);
+            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", dateStr);
 
-            // 获取客户SFTP目录下的CSV文件
-            Vector<ChannelSftp.LsEntry> files = clientSftp.listFiles(config.getClientSftpPath());
+            // 检查客户SFTP当天目录是否存在
+            if (!checkClientDatePathExists(clientSftp, clientDatePath)) {
+                log.warn(TITLE + "客户SFTP当天目录不存在，跳过拉取: {}", clientDatePath);
+                return;
+            }
+
+            // 确保内部SFTP目标目录存在
+            internalSftp.mkdir(internalDatePath);
+
+            // 获取客户SFTP当天目录下的CSV文件
+            Vector<ChannelSftp.LsEntry> files = clientSftp.listFiles(clientDatePath);
             if (files == null || files.isEmpty()) {
-                log.warn(TITLE + "客户SFTP目录下没有文件: {}", config.getClientSftpPath());
+                log.warn(TITLE + "客户SFTP当天目录下没有文件: {}", clientDatePath);
                 return;
             }
 
@@ -110,7 +123,7 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                 }
 
                 log.warn(TITLE + "开始处理文件: {}", fileName);
-                processCsvFile(config, clientSftp, internalSftp, fileName);
+                processCsvFile(config, clientSftp, internalSftp, clientDatePath, internalDatePath, fileName);
             }
 
         } catch (Exception e) {
@@ -141,17 +154,19 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
      * @param config SFTP配置
      * @param clientSftp 客户SFTP客户端
      * @param internalSftp 内部SFTP客户端
+     * @param clientDatePath 客户SFTP当天路径
+     * @param internalDatePath 内部SFTP当天路径
      * @param fileName 文件名
      */
     private void processCsvFile(DxmSftpConfig config, DxmSftpClient clientSftp,
-                                SftpClient internalSftp, String fileName) {
+                                SftpClient internalSftp, String clientDatePath, String internalDatePath, String fileName) {
         InputStream inputStream = null;
         File tempFile = null;
         File decryptedFile = null;
 
         try {
             // 从客户SFTP下载文件到临时目录
-            inputStream = clientSftp.getInputStream(config.getClientSftpPath(), fileName);
+            inputStream = clientSftp.getInputStream(clientDatePath, fileName);
             if (inputStream == null) {
                 log.error("无法获取文件输入流: {}", fileName);
                 return;
@@ -177,9 +192,9 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
 
             // 上传解密后的文件到内部SFTP
             try (FileInputStream fis = new FileInputStream(decryptedFile)) {
-                internalSftp.uploadFile(fis, config.getInternalSftpPath(), fileName);
+                internalSftp.uploadFile(fis, internalDatePath, fileName);
                 log.warn("文件上传完成: {} -> {}/{}", decryptedFile.getName(),
-                        config.getInternalSftpPath(), fileName);
+                        internalDatePath, fileName);
             }
 
         } catch (Exception e) {
@@ -225,6 +240,35 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
             log.error("CSV文件解密失败: {}", inputFile.getName(), e);
             throw new RuntimeException("CSV文件解密失败", e);
         }
+    }
+
+    /**
+     * 检查客户SFTP当天目录是否存在
+     *
+     * @param clientSftp 客户SFTP客户端
+     * @param clientDatePath 客户SFTP当天路径
+     * @return 目录是否存在
+     */
+    private boolean checkClientDatePathExists(DxmSftpClient clientSftp, String clientDatePath) {
+        try {
+            // 尝试列出目录下的文件，如果目录不存在会抛出异常
+            clientSftp.listFiles(clientDatePath);
+            log.warn(TITLE + "客户SFTP当天目录存在: {}", clientDatePath);
+            return true;
+        } catch (Exception e) {
+            log.warn(TITLE + "客户SFTP当天目录不存在: {}", clientDatePath);
+            return false;
+        }
+    }
+
+    /**
+     * 获取当前日期字符串（yyyy-MM-dd格式）
+     *
+     * @return 日期字符串
+     */
+    private String getCurrentDateString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(new Date());
     }
 
 }
