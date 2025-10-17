@@ -20,6 +20,7 @@
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="type" property="type" jdbcType="TINYINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -83,7 +84,7 @@
     id, api_code, client_sftp_host, client_sftp_port, client_sftp_user, client_sftp_pwd, 
     client_sftp_path, rsa_private_key, rsa_public_key, aes_key, internal_sftp_host, internal_sftp_port, 
     internal_sftp_user, internal_sftp_pwd, internal_sftp_path, `status`, create_time, 
-    update_time
+    update_time, `type`
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DxmSftpConfigExample" >
     select
@@ -124,13 +125,15 @@
       rsa_private_key, rsa_public_key, aes_key, 
       internal_sftp_host, internal_sftp_port, internal_sftp_user, 
       internal_sftp_pwd, internal_sftp_path, `status`, 
-      create_time, update_time)
+      create_time, update_time, `type`
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{clientSftpHost,jdbcType=VARCHAR}, #{clientSftpPort,jdbcType=INTEGER}, 
       #{clientSftpUser,jdbcType=VARCHAR}, #{clientSftpPwd,jdbcType=VARCHAR}, #{clientSftpPath,jdbcType=VARCHAR}, 
       #{rsaPrivateKey,jdbcType=VARCHAR}, #{rsaPublicKey,jdbcType=VARCHAR}, #{aesKey,jdbcType=VARCHAR}, 
       #{internalSftpHost,jdbcType=VARCHAR}, #{internalSftpPort,jdbcType=INTEGER}, #{internalSftpUser,jdbcType=VARCHAR}, 
       #{internalSftpPwd,jdbcType=VARCHAR}, #{internalSftpPath,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{type,jdbcType=TINYINT}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DxmSftpConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -189,6 +192,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="type != null" >
+        `type`,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -241,6 +247,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=TINYINT},
       </if>
     </trim>
   </insert>
@@ -307,6 +316,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.type != null" >
+        `type` = #{record.type,jdbcType=TINYINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -331,7 +343,8 @@
       internal_sftp_path = #{record.internalSftpPath,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=TINYINT},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      `type` = #{record.type,jdbcType=TINYINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -390,6 +403,9 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="type != null" >
+        `type` = #{type,jdbcType=TINYINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -411,7 +427,8 @@
       internal_sftp_path = #{internalSftpPath,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=TINYINT},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      `type` = #{type,jdbcType=TINYINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

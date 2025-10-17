@@ -9,5 +9,12 @@ import java.util.List;
 @Repository
 public interface DxmSftpConfigMapper extends DxmSftpConfigMapperBase{
 
-    List<DxmSftpConfig> selectAllEnabled(@Param("apiCode") String apiCode);
+    /**
+     * 根据API编码查询启用的配置
+     *
+     * @param apiCode API编码
+     * @return SFTP配置
+     */
+    DxmSftpConfig selectByApiCode(@Param("apiCode") String apiCode,
+                                  @Param("type") int type);
 }

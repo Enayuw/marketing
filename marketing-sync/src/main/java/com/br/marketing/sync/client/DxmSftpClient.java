@@ -160,4 +160,63 @@ public class DxmSftpClient {
         }
     }
 
+    /**
+     * 上传文件到SFTP服务器
+     * 
+     * @param inputStream 文件输入流
+     * @param path 远程路径
+     * @param fileName 文件名
+     * @throws Exception 异常
+     */
+    public void uploadFile(InputStream inputStream, String path, String fileName) throws Exception {
+        try {
+            sftp.cd(path);
+            sftp.put(inputStream, fileName);
+            log.warn("文件上传成功: {}/{}", path, fileName);
+        } catch (SftpException e) {
+            log.error("文件上传失败: {}/{}", path, fileName, e);
+            throw e;
+        }
+    }
+
+    /**
+     * 递归创建目录
+     * 
+     * @param path 目录路径
+     * @throws Exception 异常
+     */
+    public void mkdir(String path) throws Exception {
+        log.warn("创建SFTP目录: {}", path);
+        String[] split = path.split("/");
+        StringBuilder realPath = new StringBuilder();
+        for (String s : split) {
+            if (s != null && !s.isEmpty()) {
+                realPath.append("/").append(s);
+                if (!isExist(realPath.toString())) {
+                    sftp.mkdir(realPath.toString());
+                }
+            }
+        }
+    }
+
+    /**
+     * 判断路径是否存在
+     * 
+     * @param remotePath 远程路径
+     * @return 是否存在
+     */
+    public boolean isExist(String remotePath) {
+        try {
+            SftpATTRS attrs = sftp.stat(remotePath);
+            return attrs != null && attrs.isDir();
+        } catch (SftpException e) {
+            if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+                log.debug("路径不存在: {}", remotePath);
+                return false;
+            }
+            log.error("检查路径是否存在时发生异常: {}", remotePath, e);
+            return false;
+        }
+    }
+
 }

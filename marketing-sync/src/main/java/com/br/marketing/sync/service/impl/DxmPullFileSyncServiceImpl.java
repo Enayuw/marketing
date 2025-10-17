@@ -35,30 +35,28 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
 
     @Override
     public void getFromSftp(String apiCode) {
-        log.warn(TITLE + "开始执行");
+        log.warn(TITLE + "开始执行，apiCode: {}", apiCode);
 
         try {
-            // 获取所有启用的配置
-            List<DxmSftpConfig> configs = dxmSftpConfigMapper.selectAllEnabled(apiCode);
-            if (configs.isEmpty()) {
-                log.warn(TITLE + "未找到启用的度小满SFTP配置");
+            // 根据apiCode获取配置
+            DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode,0);
+            if (config == null) {
+                log.warn(TITLE + "未找到配置: apiCode={}", apiCode);
                 return;
             }
 
-            // 处理每个配置
-            for (DxmSftpConfig config : configs) {
-                try {
-                    processConfig(config);
-                } catch (Exception e) {
-                    log.error(TITLE + "处理配置失败: apiCode={}, 错误: {}", config.getApiCode(), e.getMessage(), e);
-                }
+            // 处理配置
+            try {
+                processConfig(config);
+            } catch (Exception e) {
+                log.error(TITLE + "处理配置失败: apiCode={}, 错误: {}", config.getApiCode(), e.getMessage(), e);
             }
 
         } catch (Exception e) {
-            log.error(TITLE + "度小满文件同步任务执行失败", e);
+            log.error(TITLE + "度小满文件同步任务执行失败，apiCode: {}", apiCode, e);
         }
 
-        log.warn(TITLE + "度小满文件同步任务执行完成");
+        log.warn(TITLE + "度小满文件同步任务执行完成，apiCode: {}", apiCode);
     }
 
     /**

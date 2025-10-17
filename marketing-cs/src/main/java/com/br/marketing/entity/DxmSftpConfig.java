@@ -93,6 +93,11 @@ public class DxmSftpConfig {
      */
     private Date updateTime;
 
+    /**
+     * 业务类型 0:拉取 1:回调
+     */
+    private Byte type;
+
     public Long getId() {
         return id;
     }
@@ -235,5 +240,13 @@ public class DxmSftpConfig {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Byte getType() {
+        return type;
+    }
+
+    public void setType(Byte type) {
+        this.type = type;
     }
 }
