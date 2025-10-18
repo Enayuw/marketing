@@ -10,7 +10,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.HaLuoCallBackSecureRules;
 import com.br.marketing.entity.MarketingHaloCallBackData;
 import com.br.marketing.enums.HaloCallBackDealStatusEnum;
-import com.br.marketing.mapper.MarketingHaLuoCallBackDataMapper;
+import com.br.marketing.mapper.MarketingHaloCallBackDataMapper;
 import com.br.marketing.service.MarketingHaloCallBackDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -46,7 +46,7 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Resource
-    private MarketingHaLuoCallBackDataMapper marketingHaLuoCallBackDataMapper;
+    private MarketingHaloCallBackDataMapper marketingHaLuoCallBackDataMapper;
 
     @Override
     public void process(String apiCode) {

@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface MarketingHaLuoCallBackDataMapper extends MarketingHaLuoCallBackDataMapperBase{
+public interface MarketingHaloCallBackDataMapper extends MarketingHaloCallBackDataMapperBase {
 
     List<MarketingHaloCallBackData> selectDataList(@Param("apiCode") String apiCode,
                                                    @Param("dealStatus")Integer dealStatus,

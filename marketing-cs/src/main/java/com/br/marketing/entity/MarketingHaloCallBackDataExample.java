@@ -884,6 +884,136 @@ public class MarketingHaloCallBackDataExample {
             addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
+
+        public Criteria andLocalIdIsNull() {
+            addCriterion("local_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdIsNotNull() {
+            addCriterion("local_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdEqualTo(Long value) {
+            addCriterion("local_id =", value, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdNotEqualTo(Long value) {
+            addCriterion("local_id <>", value, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdGreaterThan(Long value) {
+            addCriterion("local_id >", value, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("local_id >=", value, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdLessThan(Long value) {
+            addCriterion("local_id <", value, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdLessThanOrEqualTo(Long value) {
+            addCriterion("local_id <=", value, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdIn(List<Long> values) {
+            addCriterion("local_id in", values, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdNotIn(List<Long> values) {
+            addCriterion("local_id not in", values, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdBetween(Long value1, Long value2) {
+            addCriterion("local_id between", value1, value2, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLocalIdNotBetween(Long value1, Long value2) {
+            addCriterion("local_id not between", value1, value2, "localId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateIsNull() {
+            addCriterion("create_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateIsNotNull() {
+            addCriterion("create_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateEqualTo(String value) {
+            addCriterion("create_date =", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotEqualTo(String value) {
+            addCriterion("create_date <>", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateGreaterThan(String value) {
+            addCriterion("create_date >", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateGreaterThanOrEqualTo(String value) {
+            addCriterion("create_date >=", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateLessThan(String value) {
+            addCriterion("create_date <", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateLessThanOrEqualTo(String value) {
+            addCriterion("create_date <=", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateLike(String value) {
+            addCriterion("create_date like", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotLike(String value) {
+            addCriterion("create_date not like", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateIn(List<String> values) {
+            addCriterion("create_date in", values, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotIn(List<String> values) {
+            addCriterion("create_date not in", values, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateBetween(String value1, String value2) {
+            addCriterion("create_date between", value1, value2, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotBetween(String value1, String value2) {
+            addCriterion("create_date not between", value1, value2, "createDate");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingHaLuoCallBackDataMapper" >
+<mapper namespace="com.br.marketing.mapper.MarketingHaloCallBackDataMapper" >
 
 
     <select id="selectDataList" resultType="com.br.marketing.entity.MarketingHaloCallBackData">
         SELECT id, api_code, cell, cust_num, user_type, start_time, deal_status, `status`, is_del,
-               create_time, update_time, extend
+                create_time, update_time, extend, local_id, create_date
         FROM b_marketing_halo_callback_data
         WHERE
             api_code = #{apiCode}
