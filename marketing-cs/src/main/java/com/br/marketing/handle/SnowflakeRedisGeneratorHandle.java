@@ -259,7 +259,11 @@ public class SnowflakeRedisGeneratorHandle {
                     throw new IllegalStateException(String.format("雪花算法,时钟回拨, 差异: %d ms", offset));
                 }
                 try {
-                    Thread.sleep(offset);
+                    long deadline = System.currentTimeMillis() + offset;
+                    long remaining;
+                    while ((remaining = deadline - System.currentTimeMillis()) > 0) {
+                        this.wait(remaining);
+                    }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("雪花算法,等待时钟恢复被中断", e);
