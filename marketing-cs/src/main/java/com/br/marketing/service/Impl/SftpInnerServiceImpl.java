@@ -103,7 +103,7 @@ public class SftpInnerServiceImpl {
                 }
             }
         } catch (Exception e) {
-            log.error(String.format("推送转化文件到内部sftp错误 文件路径：%d,错误：%s", fileAllPath, e.getMessage()), e);
+            log.error(String.format("推送转化文件到内部sftp错误 文件路径：%s,错误：%s", fileAllPath, e.getMessage()), e);
             return new Result().setCode(ResultCode.FAIL.getValue());
         } finally {
             try {
@@ -132,7 +132,7 @@ public class SftpInnerServiceImpl {
                 }
             }
         } catch (Exception e) {
-            log.error(String.format("推送转化文件到内部sftp错误 文件路径：%d,错误：%s", innerPath, e.getMessage()), e);
+            log.error(String.format("推送转化文件到内部sftp错误 文件路径：%s,错误：%s", innerPath, e.getMessage()), e);
             return new Result().setCode(ResultCode.FAIL.getValue());
         } finally {
             try {
