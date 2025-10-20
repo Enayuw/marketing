@@ -67,7 +67,7 @@ public class RocketMqSwitch {
             if (global) {
                 boolean flagValue = getMsgFlag(tag, FLAG, Boolean.FALSE);
                 if (flagValue) {
-                    return Boolean.TRUE && shouldRouteToRocketMq(entity, tag);
+                    return shouldRouteToRocketMq(entity, tag);
                 } else {
                     String appCodesValue = getGroupValue(entity, tag, APICODES_SPEED, null, String.class);
                     if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(appCodesValue)) {
