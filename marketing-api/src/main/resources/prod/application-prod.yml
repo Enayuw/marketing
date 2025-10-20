@@ -89,6 +89,9 @@ api:
   robotAiApiService:
     baseUrl: http://pdai.brapp.com/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  mock:
+    baseUrl: http://marketing-inner-api
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   zhongAn:
     baseUrl: https://finance-gateway-pop.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway

@@ -111,7 +111,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             }
             redisChgService.setex(key, variable.getAllocationValue(), 3600 * 12);
         } catch (Exception e) {
-            log.error("获取携程定制配置redis异常{}", e.getMessage());
+            log.error("携程挡板获取定制配置异常{}", e);
             variable = variableAllocationMapper.getVariable(apiCode, allocationType);
         }
         return JSON.parseObject(Optional.ofNullable(variable).orElse(new VariableAllocation()).getAllocationValue());
