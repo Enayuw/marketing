@@ -45,10 +45,6 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
     @Resource
     CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
 
-
-    @Resource
-    StraHisFileMapper StraHisFileMapper;
-
     @Resource
     MarketingRuleCenterLabelReportMapper marketingRuleCenterLabelReportMapper;
 
@@ -128,7 +124,7 @@ public class RuleCenterLabelServiceImpl implements RuleCenterLabelService {
             customerInfoPushBatch.setmFileId(t.getId());
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
             //插入标签统计表
-            String dataCondition = StraHisFileMapper.getCondition(t.getBatchNumber());
+            String dataCondition = straHisFileMapper.getCondition(t.getBatchNumber());
             List<RuleConditionVo> conditionVoList = JSON.parseObject(dataCondition, new TypeReference<List<RuleConditionVo>>() {
             }.getType());
             conditionVoList.forEach(conditionVo -> {

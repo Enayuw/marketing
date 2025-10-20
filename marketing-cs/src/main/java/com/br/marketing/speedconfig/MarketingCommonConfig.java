@@ -3459,7 +3459,9 @@ public class MarketingCommonConfig {
      * marketing_transfer_sh: 数禾转化数据消费端
      * marketing_upload_custom: 定制客户上传数据消费端
      * marketing_transfer_custom: 定制客户转化数据消费端
-     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false,"marketing_upload_sh":false,"marketing_transfer_sh":false,"marketing_upload_custom":true,"marketing_transfer_custom":false}
+     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false,
+     * "marketing_upload_sh":false,"marketing_transfer_sh":false,
+     * "marketing_upload_custom":true,"marketing_transfer_custom":false}
      */
     private Map<String, Boolean> pulsarConsumerSkipSwitch;
 
