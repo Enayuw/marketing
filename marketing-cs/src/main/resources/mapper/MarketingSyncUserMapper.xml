@@ -1208,16 +1208,4 @@
         </where>
     </select>
 
-    <select id="getUserByAppletData" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select *
-        from b_marketing_sync_${apiCode}
-        where applet_date = #{appletDate}
-        and status = 1
-        and is_repeat in (1,2)
-        <if test="minId != null and minId>0">
-            and id > #{minId}
-        </if>
-        order by id limit #{pageSize}
-    </select>
-
 </mapper>
