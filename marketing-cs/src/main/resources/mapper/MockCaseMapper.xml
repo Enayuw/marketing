@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MockCaseMapper" >
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO b_marketing_mock_case
+        (mock_name, mock_case_name, api_code, response_body, status_code, delay_ms, delay_fluctuation, description,
+         opt_user_id, opt_user_name,enabled, create_date, create_time, update_time, is_del)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.mockName}, #{item.mockCaseName}, #{item.apiCode}, #{item.responseBody}, #{item.statusCode}, #{item.delayMs},
+            #{item.delayFluctuation}, #{item.description}, #{item.optUserId}, #{item.optUserName},
+            #{item.enabled},#{item.createDate},#{item.createTime},#{item.updateTime},#{item.isDel})
+        </foreach>
+    </insert>
+
+
+</mapper>

@@ -3469,5 +3469,15 @@ public class MarketingCommonConfig {
      */
     private JSONObject policyCustomIndexes;
 
+    /**
+     * 轮询线程轮询频率
+     */
+    private Integer mockPollingInterval;
+
+    /**
+     * 定义不需要Mock初始化的项目列表
+     */
+    private Set<String> disableMockProjects;
+
 }
 
