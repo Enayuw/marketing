@@ -23,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -99,7 +100,12 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
             JSONObject requestJson = buildCallBackRequestJson(itemList);
             if (requestJson!=null) {
                 //2. 调用接口
-                Result result = methodRetryHandlerService.haloCallBackData(apiCode,requestJson);
+                Result result = new Result().success();
+                if(marketingCommonConfig.getHaloCallBackDataConfig().getInteger("mockStatus")!=1) {
+                    result = methodRetryHandlerService.haloCallBackData(apiCode,requestJson);
+                }else {
+                    log.warn("TITLE:{},apiCode:{} mock测试",TITLE,apiCode);
+                }
                 //3. 修改状态(返回处理成功,失败状态)
                 if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                     marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_SUCCESS.getValue(),"");
@@ -165,7 +171,9 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
         if (startTime == null || "".equals(startTime)) {
             return 0L;
         }else {
-            return Long.parseLong(startTime);
+            ZoneId zoneId = ZoneId.of("Asia/Shanghai");
+            LocalDateTime localDateTime = LocalDateTime.parse(startTime, ymdhmsFormat);
+            return localDateTime.atZone(zoneId).toEpochSecond();
         }
     }
 }
