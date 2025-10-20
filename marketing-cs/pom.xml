@@ -162,8 +162,8 @@
         <!-- elasticJob end -->
         <dependency>
             <groupId>com.br.arch.geo</groupId>
-            <artifactId>puslar-product-client</artifactId>
-            <version>1.0.0</version>
+            <artifactId>pulsar-product-client</artifactId>
+            <version>1.1.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
@@ -215,7 +215,7 @@
         <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
-            <version>4.0.13-SNAPSHOT</version>
+            <version>4.0.14-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>

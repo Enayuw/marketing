@@ -19,9 +19,14 @@ public class XieChengData {
     private Long localId;
 
     /**
-     * 通话明细id
+     * 数据来源id
      */
-    private Long callRecordId;
+    private Long originId;
+
+    /**
+     * 幂等键
+     */
+    private String idempotentKey;
 
     /**
      * 类型
@@ -44,11 +49,6 @@ public class XieChengData {
     private String clickTel;
 
     /**
-     * 加密手机号（与撞库时的加密方法一致）
-     */
-    private String sha256Tel;
-
-    /**
      * 状态 1-未推送；2-推送
      */
     private Integer pushStatus;
@@ -62,6 +62,11 @@ public class XieChengData {
      * 数据描述
      */
     private String dataMessage;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 
     /**
      * 日期
@@ -79,9 +84,9 @@ public class XieChengData {
     private Date updateTime;
 
     /**
-     * 扩展字段
+     * 新-加密手机号(与撞库时的加密方法一致)
      */
-    private String extend;
+    private String sha256Tel;
 
     public Long getId() {
         return id;
@@ -107,12 +112,20 @@ public class XieChengData {
         this.localId = localId;
     }
 
-    public Long getCallRecordId() {
-        return callRecordId;
+    public Long getOriginId() {
+        return originId;
     }
 
-    public void setCallRecordId(Long callRecordId) {
-        this.callRecordId = callRecordId;
+    public void setOriginId(Long originId) {
+        this.originId = originId;
+    }
+
+    public String getIdempotentKey() {
+        return idempotentKey;
+    }
+
+    public void setIdempotentKey(String idempotentKey) {
+        this.idempotentKey = idempotentKey == null ? null : idempotentKey.trim();
     }
 
     public String getType() {
@@ -147,14 +160,6 @@ public class XieChengData {
         this.clickTel = clickTel == null ? null : clickTel.trim();
     }
 
-    public String getSha256Tel() {
-        return sha256Tel;
-    }
-
-    public void setSha256Tel(String sha256Tel) {
-        this.sha256Tel = sha256Tel;
-    }
-
     public Integer getPushStatus() {
         return pushStatus;
     }
@@ -177,6 +182,14 @@ public class XieChengData {
 
     public void setDataMessage(String dataMessage) {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 
     public Integer getCreateDate() {
@@ -203,11 +216,11 @@ public class XieChengData {
         this.updateTime = updateTime;
     }
 
-    public String getExtend() {
-        return extend;
+    public String getSha256Tel() {
+        return sha256Tel;
     }
 
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
+    public void setSha256Tel(String sha256Tel) {
+        this.sha256Tel = sha256Tel == null ? null : sha256Tel.trim();
     }
 }

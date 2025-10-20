@@ -191,7 +191,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (existingRules == null || existingRules.isEmpty()) {
             return true;
         }
-        
+
+        boolean anyRuleDeleted = false;
+        boolean allSuccess = true;
+
         // 标记不在当前配置中的规则为删除状态
         for (MarketingDataCleanGeneralRuleConfig rule : existingRules) {
             String mappingField = rule.getMappingField();
@@ -203,13 +206,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                 int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
                 if (rows > 0) {
+                    anyRuleDeleted = true;
                     log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), mappingField);
                 } else {
+                    allSuccess = false;
                     log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), mappingField);
                 }
             }
         }
-        return true;
+
+        return anyRuleDeleted && allSuccess;
     }
 
     /**

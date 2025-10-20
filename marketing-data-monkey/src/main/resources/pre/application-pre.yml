@@ -296,6 +296,9 @@ api:
     baseUrl: http://promote-dev.daikuan.360.cn
     batch: ${api.sanliuling.baseUrl}/open_api/v1/apply/batch
     isProxy: true
+  mock:
+    baseUrl: http://marketing-inner-api
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   hxCar:
     baseUrl: http://haoyunlailai.cn:6001
     carList: ${api.hxCar.baseUrl}/open_api/v1/car_list

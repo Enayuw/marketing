@@ -24,7 +24,7 @@ public class XieChengReportRepeatHandler extends AbstractXieChengReportHandler {
         Boolean isDelete = false;
         if (context.getPushConfig().getOffRepeatByPeriod()) {
             List<Integer> pushStatusList =
-                    xieChengDataMapper.getReportPushStatusInPeriod(context.getSha256Tel(), context.getCallRecord().getApiCode());
+                    xieChengDataMapper.getReportPushStatusInPeriod(context.getSha256Tel(), context.getApiCode());
             if (CollectionUtils.isEmpty(pushStatusList)) {
                 isPush = false;
                 isDelete = true;
