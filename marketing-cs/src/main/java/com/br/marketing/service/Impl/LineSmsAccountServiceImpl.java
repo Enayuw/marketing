@@ -27,6 +27,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Maps;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -315,14 +317,10 @@ public class LineSmsAccountServiceImpl implements LineSmsAccountService {
     @Override
     public Map<String, List<MarketingDict>> getDictInfo(String dictType) {
         List<MarketingDict> dictList = marketingDictMapper.getDictInfo(dictType);
-        Map<String, List<MarketingDict>> result = new HashMap<>();
-        for (DictEnum dictEnum : DictEnum.values()) {
-            String dictTypeItem = dictEnum.getDictType();
-            List<MarketingDict> dictItemList = dictList.stream().filter(
-                    dictItem -> dictItem.getDictType().equals(dictTypeItem)).collect(Collectors.toList());
-            result.put(dictTypeItem, dictItemList);
+        if (CollectionUtils.isEmpty(dictList)) {
+            return Maps.newHashMap();
         }
-        return result;
+        return dictList.stream().collect(Collectors.groupingBy(MarketingDict::getDictType));
     }
 
     @Override

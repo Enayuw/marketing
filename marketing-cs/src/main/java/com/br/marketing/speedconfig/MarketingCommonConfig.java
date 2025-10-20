@@ -3469,6 +3469,12 @@ public class MarketingCommonConfig {
     private Map<String, Boolean> pulsarConsumerSkipSwitch;
 
     /**
+     * 自定义ES索引,{"7410770":"202508_01_test"}
+     * 如果指定了此字段，将优先使用这些索引，否则使用批次号生成索引
+     */
+    private JSONObject policyCustomIndexes;
+
+    /**
      * 轮询线程轮询频率
      */
     private Integer mockPollingInterval;
