@@ -298,4 +298,7 @@ public class MarketingCustomerListVO {
     @ApiModelProperty(value = "二级部门")
     private String secondDepartment;
 
+    @ApiModelProperty(value = "客户信息-产品")
+    private String apiType;
+
 }
