@@ -78,8 +78,8 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
             searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
             List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
 
-            final List<String> numList = new ArrayList<>();
-            final List<Long> fileIds = new ArrayList<>();
+            List<String> numList = new ArrayList<>();
+            List<Long> fileIds = new ArrayList<>();
             for (CustomerInfoPushBatch customerInfoPushBatch : customerInfoPushBatches) {
                 numList.add(customerInfoPushBatch.getmBatchNumber());
                 fileIds.add(customerInfoPushBatch.getmFileId());
@@ -105,7 +105,7 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
             if (first.isPresent()) {
                 parNum = first.get().getIndexNum();
             }
-            final boolean isSingle = (customerInfoPushMain.getmPercentage() != null
+            boolean isSingle = (customerInfoPushMain.getmPercentage() != null
                     && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
                     || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
                     || beforeCount > 0;
@@ -114,11 +114,11 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
             }
 
             // 5. 处理标签条件
-            final Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
+            Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
             String scoreCondition = customerInfoPushMain.getmScoreCondition();
-            final Object lableObject;
+            Object lableObject;
             if (StringUtils.isNotEmpty(scoreCondition)) {
-                if (markWithEsFlag) {
+                if (Boolean.TRUE.equals(markWithEsFlag)) {
                     lableObject = GeneScriptUtil.esLableScript(scoreCondition);
                 } else {
                     lableObject = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
@@ -128,7 +128,7 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
             }
 
             // 6. 创建线程池
-            Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
+            int getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
                     && marketingCommonConfig.getScoreByEsThreadNum() > 0
                     ? marketingCommonConfig.getScoreByEsThreadNum()
                     : 10;
@@ -170,6 +170,9 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
                     if (partitionInfo.containsKey("totalTime")) {
                         esQueryTotalTime.addAndGet((Long) partitionInfo.get("totalTime"));
                     }
+                } catch (InterruptedException e) {
+                    log.error("获取分片查询结果时线程被中断，任务id：{}", customerInfoPushMain.getId(), e);
+                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
                     log.error("获取分片查询结果异常，任务id：{}", customerInfoPushMain.getId(), e);
                 }
