@@ -29,7 +29,9 @@ public enum TableCodeEnum {
     SAVE_OR_UPDATE_CLUE_EXECUTE_RECORDING("13","b_car_clue_execute_recording", "CarClueExecuteRecording"),
     SAVE_OR_UPDATE_MANAGE_CONFIG("14","b_car_clue_manage_config", "CarClueManageConfig"),
     SAVE_OR_UPDATE_VALID_CONFIG("15","b_marketing_customize_data_valid_config","MarketingCustomizeDataValidConfig"),
-    SAVE_OR_UPDATE_SYNC_CONFIG("16","b_sync_config","SyncConfig")
+    SAVE_OR_UPDATE_SYNC_CONFIG("16","b_sync_config","SyncConfig"),
+    SAVE_OR_UPDATE_MOCK_POLICY_CONFIG("17","b_marketing_mock_policy", "MockPolicy"),
+    SAVE_OR_UPDATE_MOCK_CASE_CONFIG("18","b_marketing_mock_case", "MockCase")
     ;
 
     /**

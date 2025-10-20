@@ -294,6 +294,9 @@ api:
     appKey: c2300278153c40e081cfb39462ff8db3
     version: 1
     encryptionType: md5
+  mock:
+    baseUrl: http://marketing-inner-api
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 
 spring:
   rabbitmq:

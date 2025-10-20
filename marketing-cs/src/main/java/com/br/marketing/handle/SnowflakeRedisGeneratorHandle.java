@@ -259,7 +259,11 @@ public class SnowflakeRedisGeneratorHandle {
                     throw new IllegalStateException(String.format("雪花算法,时钟回拨, 差异: %d ms", offset));
                 }
                 try {
-                    Thread.sleep(offset);
+                    long deadline = System.currentTimeMillis() + offset;
+                    long remaining;
+                    while ((remaining = deadline - System.currentTimeMillis()) > 0) {
+                        this.wait(remaining);
+                    }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("雪花算法,等待时钟恢复被中断", e);
@@ -308,7 +312,8 @@ public class SnowflakeRedisGeneratorHandle {
         private final String KEY_PREFIX = RedisKeyConstant.SNOWFLAKE;
         private static final long MAX_WORKER_ID = ShardedGenerator.MAX_WORKER_ID;
         private static final long MAX_APPLICATION_ID = ShardedGenerator.MAX_APPLICATION_ID;
-        private static final long LOCK_TIMEOUT_SECONDS = 10;
+        private static final long LOCK_TIMEOUT_SECONDS = 30;
+        private static final int STARTUP_GUARD_TTL_SECONDS = 90; // 启动期占位时长，需覆盖首轮心跳周期
         private static final int HEARTBEAT_INTERVAL_SECONDS = 30;
         private static final int MAX_HEARTBEAT_FAILURES = 3;
         private final AtomicInteger heartbeatFailures = new AtomicInteger(0);
@@ -410,10 +415,16 @@ public class SnowflakeRedisGeneratorHandle {
                 try {
                     String assignedKey = String.format("%sworker_assign:assigned:%s:%d", KEY_PREFIX, applicationName, datacenterId);
                     String heartbeatKey = String.format("%sworker_assign:heartbeat:%s:%d", KEY_PREFIX, applicationName, datacenterId);
+                    String indexKey = String.format("%sworker_assign:index:%s:%d", KEY_PREFIX, applicationName, datacenterId);
 
                     String existingIdStr = redisChgService.hget(assignedKey, this.uniqueInstanceId);
                     if (existingIdStr != null) {
                         long existingId = Long.parseLong(existingIdStr);
+                        // 确保索引存在
+                        try {
+                            redisChgService.hset(indexKey, existingIdStr, this.uniqueInstanceId);
+                        } catch (Exception ignore) {
+                        }
                         LOGGER.warn("雪花算法,实例 {} 已分配过ID，直接恢复WorkerId: {}. [AssignedKey: {}]", this.uniqueInstanceId, existingId, assignedKey);
                         return existingId;
                     }
@@ -427,13 +438,26 @@ public class SnowflakeRedisGeneratorHandle {
 
                     allAssigned.forEach((instanceId, workerIdObj) -> {
                         Object lastHeartbeatObj = allHeartbeats.get(instanceId);
+                        long wid = Long.parseLong(String.valueOf(workerIdObj));
+                        boolean alive = false;
+
                         if (lastHeartbeatObj != null) {
                             long lastHeartbeat = Long.parseLong(String.valueOf(lastHeartbeatObj));
-                            if (now - lastHeartbeat < staleThreshold) {
-                                aliveWorkerIds.add(Long.parseLong(String.valueOf(workerIdObj)));
-                            } else {
-                                staleInstances.add(instanceId);
+                            alive = (now - lastHeartbeat) < staleThreshold;
+                        }
+                        if (!alive) {
+                            // 启动/抖动窗口：guard 还在则视为活跃，避免误回收
+                            String guardKeyProbe = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, String.valueOf(wid));
+                            try {
+                                if (Boolean.TRUE.equals(redisChgService.exists(guardKeyProbe))) {
+                                    alive = true;
+                                }
+                            } catch (Exception ignore) {
                             }
+                        }
+
+                        if (alive) {
+                            aliveWorkerIds.add(wid);
                         } else {
                             staleInstances.add(instanceId);
                         }
@@ -442,13 +466,63 @@ public class SnowflakeRedisGeneratorHandle {
                     if (!staleInstances.isEmpty()) {
                         LOGGER.warn("雪花算法,发现 {} 个僵尸实例，将回收其WorkerID: {}. [AssignedKey: {}, HeartbeatKey: {}]",
                                 staleInstances.size(), staleInstances, assignedKey, heartbeatKey);
+                        for (String instanceId : staleInstances) {
+                            Object widObj = allAssigned.get(instanceId);
+                            if (widObj != null) {
+                                String widStr = String.valueOf(widObj);
+                                String guardKey = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, widStr);
+                                boolean guardAlive = false;
+                                try {
+                                    guardAlive = Boolean.TRUE.equals(redisChgService.exists(guardKey));
+                                } catch (Exception ignore) {
+                                }
+
+                                // 不主动解锁 guard，只在 guard 已消失时，才删除 index（放开复用）
+                                if (!guardAlive) {
+                                    try {
+                                        redisChgService.hdel(indexKey, widStr);
+                                    } catch (Exception ignore) {
+                                    }
+                                }
+                            }
+                        }
                         redisChgService.hdel(assignedKey, staleInstances.toArray(new String[0]));
                         redisChgService.hdel(heartbeatKey, staleInstances.toArray(new String[0]));
                     }
 
                     for (long id = 0; id <= MAX_WORKER_ID; id++) {
                         if (!aliveWorkerIds.contains(id)) {
+                            String guardKey = String.format("%sworker_assign:guard:%s:%d:%d", KEY_PREFIX, applicationName, datacenterId, id);
+                            boolean gotGuard;
+                            try {
+                                gotGuard = redisChgService.lock(guardKey, this.uniqueInstanceId, (long) STARTUP_GUARD_TTL_SECONDS);
+                            } catch (Exception e) {
+                                gotGuard = false;
+                            }
+                            if (!gotGuard) {
+                                continue;
+                            }
+
+                            // 原子占位：同一 workerId 只能成功一次
+                            boolean taken;
+                            try {
+                                taken = Boolean.TRUE.equals(redisChgService.hsetnx(indexKey, String.valueOf(id), this.uniqueInstanceId));
+                            } catch (Exception e) {
+                                taken = false;
+                            }
+                            if (!taken) {
+                                // 已被其他实例占位，释放本次 guard 或让其自然过期
+                                try {
+                                    redisChgService.unlock(guardKey, this.uniqueInstanceId);
+                                } catch (Exception ignore) {
+                                }
+                                continue;
+                            }
+
+                            // 索引占位成功，再写 assigned，保证最终一致
                             redisChgService.hset(assignedKey, this.uniqueInstanceId, String.valueOf(id));
+                            // 设置心跳
+                            redisChgService.hset(heartbeatKey, this.uniqueInstanceId, String.valueOf(System.currentTimeMillis()));
                             LOGGER.warn("雪花算法,成功为实例 {} 分配新WorkerId: {}. [AssignedKey: {}, 数据中心: {}, 应用: {}]",
                                     uniqueInstanceId, id, assignedKey, datacenterId, applicationName);
                             return id;

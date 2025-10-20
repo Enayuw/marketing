@@ -2,22 +2,12 @@ package com.br.marketing.client;
 
 import com.brgroup.redis.BrRedisClients;
 import com.brgroup.redis.client.BrRedisClient;
-import io.lettuce.core.KeyValue;
-import io.lettuce.core.MapScanCursor;
-import io.lettuce.core.ScanArgs;
-import io.lettuce.core.ScanCursor;
-import io.lettuce.core.ScoredValue;
-import io.lettuce.core.ScriptOutputType;
-import io.lettuce.core.ValueScanCursor;
+import io.lettuce.core.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * redis客户端
@@ -725,6 +715,22 @@ public class RedisChgService {
             BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
             long size = marketingRedisClient.unlink(key);
             return size;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Boolean hsetnx(String hkey, String field, String value) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            try {
+                return marketingRedisClient.hsetnx(hkey, field, value);
+            } catch (Throwable ignore) {
+                String script = "return redis.call('HSETNX', KEYS[1], ARGV[1], ARGV[2])";
+                String[] keys = {hkey};
+                Object res = marketingRedisClient.eval(script, ScriptOutputType.INTEGER, keys, field, value);
+                return Long.valueOf(1L).equals(res);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
