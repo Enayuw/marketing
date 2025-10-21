@@ -555,7 +555,9 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
         }
 
         public void stopHeartbeat() {
-            if (heartbeatFuture != null) heartbeatFuture.cancel(true);
+            if (heartbeatFuture != null) {
+                heartbeatFuture.cancel(true);
+            }
             if (heartbeatExecutor != null) {
                 heartbeatExecutor.shutdownNow();
                 try {
@@ -649,6 +651,10 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
 
     @Override
     public void stop(Runnable callback) {
-        try { stop(); } finally { callback.run(); }
+        try {
+            stop();
+        } finally {
+            callback.run();
+        }
     }
 }
