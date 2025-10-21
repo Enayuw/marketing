@@ -73,7 +73,7 @@ public class MarketingPushTaskFileMergeErrorDelayConsumer extends BaseMqMessageL
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
         defaultMQPushConsumer.setPullBatchSize(1);
         defaultMQPushConsumer.setPopBatchNums(1);
-        defaultMQPushConsumer.setConsumeTimeout(60L);
+        defaultMQPushConsumer.setConsumeTimeout(180L);
     }
 
 }

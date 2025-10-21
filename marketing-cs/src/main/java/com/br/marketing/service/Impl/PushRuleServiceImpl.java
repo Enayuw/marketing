@@ -85,7 +85,6 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
-import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
@@ -3267,25 +3266,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
-        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures;
         try {
             futures = threadPool.invokeAll(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         } finally {
             threadPool.shutdown();
         }
-        if (futures != null && !futures.isEmpty()) {
-            for (int i = 0; i < futures.size(); i++) {
-                try {
-                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
-                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
-                        errorSize++;
-                        errorBuild.add(result.getData());
-                    }
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+        for (Future<Result<MarketingPreUserErrorDetailVO>> future : futures) {
+            try {
+                Result<MarketingPreUserErrorDetailVO> result = future.get();
+                if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                    errorSize++;
+                    errorBuild.add(result.getData());
                 }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
             }
         }
         // 发送场景收集队列
@@ -3914,26 +3913,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNumTrans, soleNumTrans);
-        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures;
         try {
             futures = threadPool.invokeAll(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         } finally {
             threadPool.shutdown();
         }
-        if (futures != null && !futures.isEmpty()) {
-            for (int i = 0; i < futures.size(); i++) {
-                try {
-                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
-                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
-                        errorSize++;
-                        errorBuild.add(result.getData());
-                    }
-
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+        for (Future<Result<MarketingPreUserErrorDetailVO>> future : futures) {
+            try {
+                Result<MarketingPreUserErrorDetailVO> result = future.get();
+                if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                    errorSize++;
+                    errorBuild.add(result.getData());
                 }
+
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
             }
         }
         // 发送场景收集队列
