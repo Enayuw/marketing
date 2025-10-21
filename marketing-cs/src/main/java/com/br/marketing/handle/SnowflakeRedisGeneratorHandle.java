@@ -429,6 +429,9 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
                         try {
                             redisChgService.hset(indexKey, existingIdStr, this.uniqueInstanceId);
                         } catch (Exception ignore) {
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug(ignore.getMessage(), ignore);
+                            }
                         }
                         LOGGER.warn("雪花算法,实例 {} 已分配过ID，直接恢复WorkerId: {}. [AssignedKey: {}]", this.uniqueInstanceId, existingId, assignedKey);
                         return existingId;
@@ -459,6 +462,9 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
                                     alive = true;
                                 }
                             } catch (Exception ignore) {
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug(ignore.getMessage(), ignore);
+                                }
                             }
                         }
 
@@ -481,6 +487,9 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
                                 try {
                                     guardAlive = Boolean.TRUE.equals(redisChgService.exists(guardKey));
                                 } catch (Exception ignore) {
+                                    if (LOGGER.isDebugEnabled()) {
+                                        LOGGER.debug(ignore.getMessage(), ignore);
+                                    }
                                 }
 
                                 // 不主动解锁 guard，只在 guard 已消失时，才删除 index（放开复用）
@@ -488,6 +497,9 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
                                     try {
                                         redisChgService.hdel(indexKey, widStr);
                                     } catch (Exception ignore) {
+                                        if (LOGGER.isDebugEnabled()) {
+                                            LOGGER.debug(ignore.getMessage(), ignore);
+                                        }
                                     }
                                 }
                             }
@@ -521,6 +533,9 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
                                 try {
                                     redisChgService.unlock(guardKey, this.uniqueInstanceId);
                                 } catch (Exception ignore) {
+                                    if (LOGGER.isDebugEnabled()) {
+                                        LOGGER.debug(ignore.getMessage(), ignore);
+                                    }
                                 }
                                 continue;
                             }
@@ -645,10 +660,14 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
     }
 
     @Override
-    public boolean isAutoStartup() { return true; }
+    public boolean isAutoStartup() {
+        return true;
+    }
 
     @Override
-    public int getPhase() { return Integer.MAX_VALUE - 100; }
+    public int getPhase() {
+        return Integer.MAX_VALUE - 100;
+    }
 
     @Override
     public void stop(Runnable callback) {
