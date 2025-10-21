@@ -9,10 +9,8 @@
         FROM b_marketing_halo_callback_data
         WHERE
             api_code = #{apiCode}
+            AND status = 1
             AND deal_status = #{dealStatus}
-        <if test="startSearchTime != null">
-            AND create_time >= #{startSearchTime}
-        </if>
         Limit #{searchSeize}
     </select>
 

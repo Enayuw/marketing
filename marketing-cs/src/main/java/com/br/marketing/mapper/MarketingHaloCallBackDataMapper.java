@@ -9,9 +9,8 @@ import java.util.List;
 public interface MarketingHaloCallBackDataMapper extends MarketingHaloCallBackDataMapperBase {
 
     List<MarketingHaloCallBackData> selectDataList(@Param("apiCode") String apiCode,
-                                                   @Param("dealStatus")Integer dealStatus,
-                                                   @Param("searchSeize")Integer searchSize,
-                                                   @Param("startSearchTime") LocalDateTime startSearchTime
+                                                   @Param("dealStatus") Integer dealStatus,
+                                                   @Param("searchSeize") Integer searchSize
     );
 
 

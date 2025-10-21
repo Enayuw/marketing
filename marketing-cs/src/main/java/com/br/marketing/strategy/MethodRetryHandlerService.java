@@ -1472,19 +1472,4 @@ public class MethodRetryHandlerService {
         return qiFuClients.qryCallRealTimeUrl(qryCallRealTimeReq);
     }
 
-
-    /**
-     * 哈啰-三方营销数据回传
-     * @return
-     */
-    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
-    public Result haloCallBackData(String apiCode,JSONObject requestJson) {
-        Result result = haLoCallBackDataApiClient.dealMarketingCallBack(apiCode,requestJson);
-        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            return result;
-        }
-        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.HALUO_CALLBACK_DATA_INTERFACEERROR.getCode(),
-                "哈啰-三方营销数据回传 -- " + JSON.toJSONString(result)));
-        return result;
-    }
 }

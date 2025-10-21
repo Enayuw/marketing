@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.HaloCallBackDataApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -13,7 +14,6 @@ import com.br.marketing.enums.HaloCallBackDealStatusEnum;
 import com.br.marketing.mapper.MarketingHaloCallBackDataMapper;
 import com.br.marketing.service.MarketingHaloCallBackDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private MethodRetryHandlerService methodRetryHandlerService;
+    private HaloCallBackDataApiClient haLoCallBackDataApiClient;
 
     @Resource
     private MarketingHaloCallBackDataMapper marketingHaLuoCallBackDataMapper;
@@ -58,14 +58,8 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
         try {
             while (true) {
                 //查询
-                Integer searchSize = marketingCommonConfig.getHaloCallBackDataConfig().getInteger("searchSize");
-                Integer dealStatus = marketingCommonConfig.getHaloCallBackDataConfig().getInteger("dealStatus");
-                LocalDateTime startSearchTime = LocalDateTime.parse(
-                        marketingCommonConfig.getHaloCallBackDataConfig().getString("startSearchTime"),
-                        DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT)
-                );
                 List<MarketingHaloCallBackData> marketingHaloCallBackDataList =
-                        marketingHaLuoCallBackDataMapper.selectDataList(apiCode,dealStatus,searchSize,startSearchTime);
+                        marketingHaLuoCallBackDataMapper.selectDataList(apiCode,0,2000);
                 if (CollectionUtils.isEmpty(marketingHaloCallBackDataList)) {
                     break;
                 }
@@ -85,7 +79,7 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
 
     private void callBackDataDeal(String apiCode, List<MarketingHaloCallBackData> marketingHaloCallBackDataList, TpDynamicExecutor actionPool) {
         List<List<MarketingHaloCallBackData>> partitionList = ListUtils.partition(
-                marketingHaloCallBackDataList, marketingCommonConfig.getHaloCallBackDataConfig().getInteger("requestBatchSize"));
+                marketingHaloCallBackDataList, 20);
         for (List<MarketingHaloCallBackData> itemList : partitionList) {
             actionPool.submit(()->
                     callBackDataRequestDeal(apiCode,itemList)
@@ -102,7 +96,7 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 //2. 调用接口
                 Result result = new Result().success();
                 if(marketingCommonConfig.getHaloCallBackDataConfig().getInteger("mockStatus")!=1) {
-                    result = methodRetryHandlerService.haloCallBackData(apiCode,requestJson);
+                    result = haLoCallBackDataApiClient.dealMarketingCallBack(apiCode,requestJson);
                 }else {
                     log.warn("TITLE:{},apiCode:{} mock测试",TITLE,apiCode);
                 }
@@ -110,16 +104,18 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                     marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_SUCCESS.getValue(),"");
                 }else {
+                    //存储 错误返回的客户信息
                     marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(), result.getMessage());
                 }
             }
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_CALLBACK_DATA_INTERFACEERROR.getCode(), e.getMessage(), TITLE), e);
-            marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(),e.getMessage());
+            marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(),"");
         }
     }
 
     private JSONObject buildCallBackRequestJson(List<MarketingHaloCallBackData> itemList) {
+        List<Long> idList = itemList.stream().map(MarketingHaloCallBackData::getId).collect(Collectors.toList());
         try {
             String appKey = marketingCommonConfig.getHaloCallBackDataConfig().getString("appKey");
             String appSecret = marketingCommonConfig.getHaloCallBackDataConfig().getString("appSecret");
@@ -131,7 +127,6 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
             obj.put("timestamp", LocalDateTime.now().format(ymdhmsFormat));
             obj.put("encry","MD5");
             obj.put("channelNo", "BR");
-
 
             JSONObject dataObj = new JSONObject();
             String openSerialNo = UUID.randomUUID().toString().replace("-", "");
@@ -153,11 +148,11 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
             }
             dataObj.put("dataItems", dataItmes);
             obj.put("data", dataObj);
-
             HaLuoCallBackSecureRules.signTopRequest(obj,appSecret);
             return obj;
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.HALUO_CALLBACK_DATA_INTERFACEERROR.getCode(), e.getMessage(), TITLE), e);
+            marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(),"封装请求数据失败");
             return null;
         }
     }
