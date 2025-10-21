@@ -170,11 +170,9 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
                     if (partitionInfo.containsKey("totalTime")) {
                         esQueryTotalTime.addAndGet((Long) partitionInfo.get("totalTime"));
                     }
-                } catch (InterruptedException e) {
-                    log.error("获取分片查询结果时线程被中断，任务id：{}", customerInfoPushMain.getId(), e);
-                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
                     log.error("获取分片查询结果异常，任务id：{}", customerInfoPushMain.getId(), e);
+                    Thread.currentThread().interrupt();
                 }
             }
 
@@ -210,6 +208,7 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
             long endTime = System.currentTimeMillis();
             resultData.put("totalTime", endTime - startTime);
             resultData.put("error", e.getMessage());
+            Thread.currentThread().interrupt();
             return apiResult.fail(resultData, "查询异常：" + e.getMessage());
         }
     }
