@@ -279,7 +279,8 @@ public class TaskScoreServiceImpl {
                     updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
 //                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
-                    rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE
+                    rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC
+                            , MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE
                             , task.getFileId().toString(), MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE);
                 } else {
                     MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();

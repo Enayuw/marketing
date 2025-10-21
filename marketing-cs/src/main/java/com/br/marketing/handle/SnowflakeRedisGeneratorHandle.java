@@ -452,7 +452,8 @@ public class SnowflakeRedisGeneratorHandle implements ApplicationListener<Contex
                         }
                         if (!alive) {
                             // 启动/抖动窗口：guard 还在则视为活跃，避免误回收
-                            String guardKeyProbe = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, String.valueOf(wid));
+                            String guardKeyProbe = String.format("%sworker_assign:guard:%s:%d:%s"
+                                    , KEY_PREFIX, applicationName, datacenterId, wid);
                             try {
                                 if (Boolean.TRUE.equals(redisChgService.exists(guardKeyProbe))) {
                                     alive = true;

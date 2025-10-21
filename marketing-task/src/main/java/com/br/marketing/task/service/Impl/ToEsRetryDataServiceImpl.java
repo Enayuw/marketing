@@ -180,7 +180,8 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
         straHisFileMapper.updateByPrimaryKeySelective(updateFile);
 //        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString());
         rocketMqSwitch.sendMessage(updateFile.getApiCode(), MarketingAssistConstants.TOPIC
-                , MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString(), MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE);
+                , MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString()
+                , MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE);
     }
 
     public void updateStatus(Long id, Integer retryStatus) {
