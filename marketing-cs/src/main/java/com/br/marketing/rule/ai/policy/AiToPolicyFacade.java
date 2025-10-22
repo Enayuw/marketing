@@ -39,6 +39,9 @@ public class AiToPolicyFacade implements AssembleData<PushMarketingUserDetailByR
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String operateType = syncUser.getOperateType();
+            if (!marketingCommonConfig.getAiToPolicyOperateTypeList().contains(operateType)) {
+                return false;
+            }
             AbstractBaseAiToPolicy aiToPolicyBase = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType);
             return aiToPolicyBase.insertRecord(syncUser);
         }
