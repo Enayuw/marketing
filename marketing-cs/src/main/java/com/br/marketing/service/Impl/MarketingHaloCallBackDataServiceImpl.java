@@ -54,7 +54,7 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
         long startTime = System.currentTimeMillis();
         log.warn("TITLE:{},apiCode:{},开始处理",TITLE,apiCode);
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DEAL.getName(), 20, 20);
+                ThreadPoolNameEnum.HALO_CALLBACK_DATA_3710217.getName(), 20, 20);
         try {
             while (true) {
                 //查询
