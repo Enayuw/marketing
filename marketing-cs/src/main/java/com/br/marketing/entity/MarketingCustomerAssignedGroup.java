@@ -1,10 +1,12 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 
-@Getter
+@Data
 public class MarketingCustomerAssignedGroup {
     /**
      * 主键ID
@@ -20,6 +22,11 @@ public class MarketingCustomerAssignedGroup {
      * 开发组
      */
     private String assignedGroup;
+
+    /**
+     * 当前索引
+     */
+    private Integer currentIndex;
 
     /**
      * 创建时间

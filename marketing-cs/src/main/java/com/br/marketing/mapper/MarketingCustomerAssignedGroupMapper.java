@@ -9,8 +9,6 @@ public interface MarketingCustomerAssignedGroupMapper extends MarketingCustomerA
 
     MarketingCustomerAssignedGroup getAssignedGroupByCid(@Param("cid") String cid);
 
-    String getLastAssignedGroup();
-
-    void updateByCid(@Param("cid") String cid, @Param("assignedGroup") String assignedGroup);
+    MarketingCustomerAssignedGroup getLastAssignedGroup(@Param("cid") String cid);
 
 }

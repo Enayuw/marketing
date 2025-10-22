@@ -13,10 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,14 +39,23 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
                 if (StringUtils.equals(assignedGroup.getAssignedGroup(), group)) {
                     return;
                 }
+                List<String> assignedGroups = marketingCommonConfig.getAssignedGroups();
+                int nextIndex;
                 if (StringUtils.isEmpty(group)) {
-                    String preAssignedGroup = marketingCustomerAssignedGroupMapper.getLastAssignedGroup();
-                    group = marketingCommonConfig.getAssignedGroupMap().get(preAssignedGroup);
+                    MarketingCustomerAssignedGroup preAssignedGroup = marketingCustomerAssignedGroupMapper.getLastAssignedGroup(cid);
+                    nextIndex = (preAssignedGroup.getCurrentIndex() + 1) % assignedGroups.size();
+                    group = assignedGroups.get(nextIndex);
+                } else {
+                    nextIndex = assignedGroups.indexOf(group);
                 }
                 MarketingCustomerAssignedGroup marketingCustomerAssignedGroup = new MarketingCustomerAssignedGroup();
                 marketingCustomerAssignedGroup.setCid(cid);
+                marketingCustomerAssignedGroup.setCurrentIndex(nextIndex);
                 marketingCustomerAssignedGroup.setAssignedGroup(group);
-                marketingCustomerAssignedGroupMapper.updateByCid(cid, group);
+
+                MarketingCustomerAssignedGroupExample example = new MarketingCustomerAssignedGroupExample();
+                example.createCriteria().andCidEqualTo(cid);
+                marketingCustomerAssignedGroupMapper.updateByExample(marketingCustomerAssignedGroup, example);
             }
         } catch (Exception e) {
             log.warn("项目轮询开发组异常", e);
@@ -56,11 +63,14 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
     }
 
     private void createNewGroup(String cid) {
-        String preAssignedGroup = marketingCustomerAssignedGroupMapper.getLastAssignedGroup();
-        String group = marketingCommonConfig.getAssignedGroupMap().get(preAssignedGroup);
+        MarketingCustomerAssignedGroup preAssignedGroup = marketingCustomerAssignedGroupMapper.getLastAssignedGroup(cid);
+        List<String> assignedGroups = marketingCommonConfig.getAssignedGroups();
+        int nextIndex = (preAssignedGroup.getCurrentIndex() + 1) % assignedGroups.size();
+        String group = assignedGroups.get(nextIndex);
         MarketingCustomerAssignedGroup marketingCustomerAssignedGroup = new MarketingCustomerAssignedGroup();
         marketingCustomerAssignedGroup.setCid(cid);
         marketingCustomerAssignedGroup.setAssignedGroup(group);
+        marketingCustomerAssignedGroup.setCurrentIndex(nextIndex);
         marketingCustomerAssignedGroupMapper.insertSelective(marketingCustomerAssignedGroup);
     }
 
@@ -76,7 +86,7 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
 
     @Override
     public Set<String> getAssignedGroups() {
-        return marketingCommonConfig.getAssignedGroupMap().keySet();
+        return new HashSet<>(marketingCommonConfig.getAssignedGroups());
     }
 
     @Override
