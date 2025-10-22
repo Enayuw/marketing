@@ -17,6 +17,7 @@ import com.br.marketing.mapper.SynInfoQueryActionMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,8 +107,7 @@ public class QiFuCuWanJianBatQryUserRealService {
 
             // 1个批次1个线程，因为批次要更新执行状态
             Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("taskActionPoolSize")));
-            taskActionPool.setCorePoolSize(threadPoolSize);
-            taskActionPool.setMaximumPoolSize(threadPoolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(taskActionPool, threadPoolSize);
 
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             for(MarketingSyncInfo marketingSyncInfo : marketingSyncInfoList) {
@@ -181,8 +181,7 @@ public class QiFuCuWanJianBatQryUserRealService {
         Result result = new Result().failure();
 
         Integer queryActionPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("queryActionPoolSize")));
-        queryActionPool.setCorePoolSize(queryActionPoolSize);
-        queryActionPool.setMaximumPoolSize(queryActionPoolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(queryActionPool, queryActionPoolSize);
         Integer partitionSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
         PARTITION_SIZE = partitionSize;
 

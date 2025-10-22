@@ -18,6 +18,7 @@ import com.br.marketing.service.YiXinToJueCeMakeUpProcessService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -215,8 +216,7 @@ public class YiXinToJueCeMakeUpProcessServiceImpl implements YiXinToJueCeMakeUpP
 
 
     private void initThreadPoolParam(ThreadPoolExecutor yiXinToJueCeThread) {
-        yiXinToJueCeThread.setCorePoolSize(marketingCommonConfig.getYiXinToJueCeTpNum());
-        yiXinToJueCeThread.setMaximumPoolSize(marketingCommonConfig.getYiXinToJueCeTpNum());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(yiXinToJueCeThread, marketingCommonConfig.getYiXinToJueCeTpNum());
     }
 
     private ThreadPoolExecutor getYiXinToJueCeThread() {

@@ -16,6 +16,7 @@ import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataFileToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -128,8 +129,7 @@ public class TcSyncDataFileToDbServiceImpl implements TcSyncDataFileToDbService 
             Long totalCount = 0L;
             String line;
             while ((line = reader.readLine()) != null) {
-                actionPool.setCorePoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
-                actionPool.setMaximumPoolSize(marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(actionPool, marketingCommonConfig.getTcTxtFileShardConfig().getInteger("threadPool"));
                 String finalLine = line;
                 CompletableFuture.runAsync(() -> processSingleLineData(tcyrSyncFile.getId(),
                             tcyrSyncFile.getApiCode(), tcyrSyncFile.getBatchNo(), finalLine,syncRecord.getData()), actionPool);

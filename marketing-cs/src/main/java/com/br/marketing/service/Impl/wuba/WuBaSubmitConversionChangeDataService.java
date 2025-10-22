@@ -11,6 +11,7 @@ import com.br.marketing.entity.WubaSubmitConversionDataExample;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -144,8 +145,7 @@ public class WuBaSubmitConversionChangeDataService {
         int curProcessPoolSize = processPool.getCorePoolSize();
 
         if(processPoolSize != curProcessPoolSize){
-            processPool.setCorePoolSize(processPoolSize);
-            processPool.setMaximumPoolSize(processPoolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(processPool, processPoolSize);
         }
     }
 }

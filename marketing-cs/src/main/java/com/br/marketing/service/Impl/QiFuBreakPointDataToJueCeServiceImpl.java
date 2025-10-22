@@ -22,6 +22,7 @@ import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import cn.hutool.core.lang.Pair;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.stereotype.Service;
@@ -113,8 +114,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
     private void modifyCorePoolSize(ThreadPoolExecutor pool) {
         Integer threadNum =
                 marketingCommonConfig.getQiFuBreakPointDataToJueCeThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     private void filterAndPushData(List<MarketingTransferSyncUser> list, String apiCode, String tcId) {

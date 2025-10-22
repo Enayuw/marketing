@@ -11,6 +11,7 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.XiechengCollidingDataProcessTask;
 import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.retry.DatabaseOperationService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
@@ -181,8 +182,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
 
     @Override
     public Result<Boolean> saveXieChengCollidingDataLog(List<XieChengCollidingDataLog> collidingLogs) {
-        XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setMaximumPoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
-        XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setCorePoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL, marketingCommonConfig.getXiechengSaveCollidingLogThread());
         for (XieChengCollidingDataLog collidingLog : collidingLogs) {
             XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.submit(() -> {
                         saveLogAndMapping(collidingLog);

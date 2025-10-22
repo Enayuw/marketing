@@ -16,6 +16,7 @@ import com.br.marketing.entity.SanLiuLingPpDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.SanLiuLingPpDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +61,7 @@ public class SanLiuLingApiServiceImpl implements SanLiuLingApiService {
         int total = 0;
         while (actionMark) {
             if (marketingCommonConfig.getSanLiuLingTrafficThreadNum() != null) {
-                pool.setCorePoolSize(marketingCommonConfig.getSanLiuLingTrafficThreadNum());
-                pool.setMaximumPoolSize(marketingCommonConfig.getSanLiuLingTrafficThreadNum());
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, marketingCommonConfig.getSanLiuLingTrafficThreadNum());
             }
             Long id = localFile.getId();
 

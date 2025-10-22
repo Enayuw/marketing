@@ -23,6 +23,7 @@ import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.service.mark.DataUpdateEsMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,14 +82,12 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
                 try {
                     Integer newThreadPoolSize = marketingCommonConfig.getDataMarkESThreadNum();
                     if (!newThreadPoolSize.equals(threadPoolSize)) {
-                        threadPool.setCorePoolSize(newThreadPoolSize);
-                        threadPool.setMaximumPoolSize(newThreadPoolSize);
+                        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, newThreadPoolSize);
                         log.warn(TITLE + "查询线程池大小已动态调整为: {}", newThreadPoolSize);
                     }
                     Integer newThreadUpdatePoolSize = marketingCommonConfig.getDataUpdateMarkESThreadNum();
                     if (!newThreadUpdatePoolSize.equals(threadUpdatePoolSize)) {
-                        threadUpdatePool.setCorePoolSize(newThreadUpdatePoolSize);
-                        threadUpdatePool.setMaximumPoolSize(newThreadUpdatePoolSize);
+                        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadUpdatePool, newThreadUpdatePoolSize);
                         log.warn(TITLE + "写入线程池大小已动态调整为: {}", newThreadUpdatePoolSize);
                     }
 

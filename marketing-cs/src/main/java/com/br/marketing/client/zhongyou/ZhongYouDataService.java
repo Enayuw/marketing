@@ -24,6 +24,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -204,8 +205,7 @@ public class ZhongYouDataService {
                 Boolean isContiue = Boolean.TRUE;
                 while (isContiue) {
                     if (marketingCommonConfig.getZhongYouCleanDataThreadNum() != null) {
-                        zhongYouCleanThreadPool.setCorePoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
-                        zhongYouCleanThreadPool.setMaximumPoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
+                        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(zhongYouCleanThreadPool, marketingCommonConfig.getZhongYouCleanDataThreadNum());
                         log.warn("中邮清洗数据线程调整，taskId={},corePoolSize={},maxPoolSize={}", strategyId,
                                 zhongYouCleanThreadPool.getCorePoolSize(), zhongYouCleanThreadPool.getMaximumPoolSize());
                     }

@@ -16,6 +16,7 @@ import com.br.marketing.entity.WubaCollidingDataBatchNoExample;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -228,8 +229,7 @@ public class WuBaQueryConversionResultService {
             queryPoolSize = Runtime.getRuntime().availableProcessors() * 10;
         }
 
-        queryPool.setCorePoolSize(queryPoolSize);
-        queryPool.setMaximumPoolSize(queryPoolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(queryPool, queryPoolSize);
     }
 
     private String getExtraFields(JSONObject jo, Set<String> knowFields){

@@ -31,6 +31,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -664,10 +665,8 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         } else {
             return;
         }
-        pool.setCorePoolSize(poolSize);
-        pool.setMaximumPoolSize(poolSize);
-        pushPool.setCorePoolSize(pushPoolSize);
-        pushPool.setMaximumPoolSize(pushPoolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, poolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pushPool, pushPoolSize);
     }
 
     /**

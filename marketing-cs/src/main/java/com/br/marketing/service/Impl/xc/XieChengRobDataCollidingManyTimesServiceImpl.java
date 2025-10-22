@@ -13,6 +13,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -80,8 +81,7 @@ public class XieChengRobDataCollidingManyTimesServiceImpl implements XieChengRob
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
         while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
                 || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
-            XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
-            XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(XIECHENG_ROB_COLLIDING_THREAD, marketingCommonConfig.getXiechengRobCollidingThread());
             int pageSize = Math.min(marketingCommonConfig.getXiechengCollidingPageSize(), limit);
             // 获取当前需要执行的任务 根据任务获取包的信息 以及 当前任务属于第几次撞库
             // 若当前任务为第一次撞库 则需要先查询 push_time is null 的数据

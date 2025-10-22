@@ -17,6 +17,7 @@ import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataDownService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -199,8 +200,7 @@ public class TcSyncDataDownServiceImpl implements TcSyncDataDownService {
     private Result processList(String apiCode, String batchNo, List<String> lineList, ThreadPoolExecutor actionPool,
                                List<CompletableFuture<Result>> futureList, List<Long> resultList,String dataInfo) {
         Result result = new Result().failure();
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(actionPool, marketingCommonConfig.getTcGzBatDBThreadPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, lineList,dataInfo), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {

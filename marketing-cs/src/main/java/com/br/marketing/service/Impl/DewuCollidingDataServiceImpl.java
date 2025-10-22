@@ -20,6 +20,7 @@ import com.br.marketing.service.DewuCollidingDataService;
 import com.br.marketing.service.LocalFileService;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -69,8 +70,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
         boolean hasCollectedDate = false;
         Date pushStartTime = new Date();
         while (marketingCommonConfig.getDeWuCollidingSwitch()) {
-            deWuCollidingThread.setCorePoolSize(marketingCommonConfig.getDeWuCollidingThread());
-            deWuCollidingThread.setMaximumPoolSize(marketingCommonConfig.getDeWuCollidingThread());
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(deWuCollidingThread, marketingCommonConfig.getDeWuCollidingThread());
 
             // 查询撞库结果返回  status = 1  的量级
             String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));

@@ -11,6 +11,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -132,8 +133,7 @@ public class WuBaQueryConversionResultTransService {
         }).collect(Collectors.toList());
 
 
-        dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(dbActionPool, marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
         PARTITION_SIZE = marketingCommonConfig.getWuBaQueryConversionBatDBPartitionSize();
 
         // batAddDataTransferClean

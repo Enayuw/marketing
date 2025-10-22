@@ -35,6 +35,7 @@ import com.br.marketing.mapper.XieChengCollidingDataRobTaskMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
 import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -109,8 +110,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
         while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
                 || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
-            XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
-            XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(XIECHENG_ROB_COLLIDING_THREAD, marketingCommonConfig.getXiechengRobCollidingThread());
             int pageSize = Math.min(marketingCommonConfig.getXiechengCollidingPageSize(), limit);
             // 获取当前待执行规则
             XiechengCollidingDataPackageRule packageRule = getCurrentPackageRule();
@@ -406,8 +406,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             JSONArray jsonArray = JSON.parseArray(data.getRequestJsonData());
             List<JSONObject> jsonDataList = jsonArray.stream().map((Object t) -> (JSONObject) t).collect(Collectors.toList());
 
-            XIECHENG_ACTIVATE_THREAD_POOL.setCorePoolSize(marketingCommonConfig.getXiechengCollidingActivateThread());
-            XIECHENG_ACTIVATE_THREAD_POOL.setMaximumPoolSize(marketingCommonConfig.getXiechengCollidingActivateThread());
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(XIECHENG_ACTIVATE_THREAD_POOL, marketingCommonConfig.getXiechengCollidingActivateThread());
             jsonDataList.forEach((JSONObject jsonData) -> {
                 XIECHENG_ACTIVATE_THREAD_POOL.submit(() -> singleHandle(jsonData, data));
             });

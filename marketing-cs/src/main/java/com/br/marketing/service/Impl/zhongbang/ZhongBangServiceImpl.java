@@ -29,6 +29,7 @@ import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserAndCustomerTransferSoleFacade;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import com.jcraft.jsch.SftpException;
 import com.zbank.file.bean.FileDownLoadInfo;
@@ -304,8 +305,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         int poolSize = marketingCommonConfig.getZhongBangTransferPushDaasThreadPoolSize();
         int corePoolSize = threadPool.getCorePoolSize();
         if (corePoolSize != poolSize || threadPool.getMaximumPoolSize() != poolSize) {
-            threadPool.setMaximumPoolSize(poolSize);
-            threadPool.setCorePoolSize(poolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, poolSize);
         }
         if (poolSize < 1) {
             throw new IllegalArgumentException();
@@ -843,8 +843,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         Map<String, JSONObject> voiceFileConfig = getVoiceFileConfig();
         int poolSize = voiceFileConfig.get(tableName).getIntValue(poolKey);
         if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
-            poolExecutor.setCorePoolSize(poolSize);
-            poolExecutor.setMaximumPoolSize(poolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor, poolSize);
         }
     }
 

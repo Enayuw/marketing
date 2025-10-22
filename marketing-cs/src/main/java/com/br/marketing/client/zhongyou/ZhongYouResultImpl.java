@@ -5,6 +5,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.ZhongyouFileData;
 import com.br.marketing.mapper.ZhongyouFileDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
@@ -66,8 +67,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
         Map<String, String> resultMap = new HashMap<>();
         try {
             List<ZhongyouFileData> zhongyouFileDataList = new ArrayList<>();
-            zhongyouThread.setCorePoolSize(marketingCommonConfig.getZhongYouFileDataThreadNum());
-            zhongyouThread.setMaximumPoolSize(marketingCommonConfig.getZhongYouFileDataThreadNum());
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(zhongyouThread, marketingCommonConfig.getZhongYouFileDataThreadNum());
             while (dealStream(fileId, reader, zhongyouFileDataList, resultMap, zhongyouThread)) {
                 // do nothing;
             }

@@ -30,6 +30,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -824,8 +825,8 @@ public class DataCleanServiceImpl implements DataCleanService {
         Integer threadNum =
                 marketingCommonConfig.getCustomUploadCleanThreadNum();
         if (!Objects.isNull(threadNum)) {
-            pool.setCorePoolSize(threadNum);
-            pool.setMaximumPoolSize(threadNum);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
+
         }
         log.warn(TITLE + "处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }
@@ -835,8 +836,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         Integer threadNum =
                 marketingCommonConfig.getUploadFileCleanThreadNum();
         if (!Objects.isNull(threadNum)) {
-            pool.setCorePoolSize(threadNum);
-            pool.setMaximumPoolSize(threadNum);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
         }
         log.warn( "文件清洗处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }

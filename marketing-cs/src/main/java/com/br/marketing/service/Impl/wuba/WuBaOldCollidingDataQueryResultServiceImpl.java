@@ -24,6 +24,7 @@ import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.CustomerTransferHandler;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -88,8 +89,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
                     return;
                 }
 
-                pool.setCorePoolSize(marketingCommonConfig.getWubaOldCollidingDataSyncThreadNum());
-                pool.setMaximumPoolSize(marketingCommonConfig.getWubaOldCollidingDataSyncThreadNum());
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, marketingCommonConfig.getWubaOldCollidingDataSyncThreadNum());
 
                 Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58老客_上传清洗规则勿动");
 

@@ -17,6 +17,7 @@ import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.service.mark.DataWriteBackFileMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -140,8 +141,7 @@ public class DataWriteBackFileMarkServiceImpl implements DataWriteBackFileMarkSe
                 int dataMarkPageSize = marketingCommonConfig.getDataDorisMarkPageSize() == null ? 2000 : marketingCommonConfig.getDataDorisMarkPageSize();
                 Integer newThreadPoolSize = marketingCommonConfig.getDataWriterMarkThreadNum();
                 if (!newThreadPoolSize.equals(threadPoolSize)) {
-                    threadPool.setCorePoolSize(newThreadPoolSize);
-                    threadPool.setMaximumPoolSize(newThreadPoolSize);
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, newThreadPoolSize);
                     threadPoolSize = newThreadPoolSize;
                     log.warn(TITLE + "线程池大小已动态调整为: {}", threadPoolSize);
                 }

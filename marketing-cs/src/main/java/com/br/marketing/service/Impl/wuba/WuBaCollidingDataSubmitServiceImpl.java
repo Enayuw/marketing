@@ -25,6 +25,7 @@ import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -191,8 +192,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                     break;
             }
 
-            pool.setCorePoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
-            pool.setMaximumPoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
 
             // 保存log表
             List<List<WubaCollidingData>> partitions = Lists.partition(collidingData, PARTATION_SIZE);

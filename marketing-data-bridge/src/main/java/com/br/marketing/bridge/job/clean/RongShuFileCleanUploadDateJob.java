@@ -26,6 +26,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.IMarketingDataValidService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -343,18 +344,18 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             int corePoolSizeNew = Integer.parseInt(poolSizes[0]);
             int corePoolSize = THREAD_POOL.getCorePoolSize();
             if (corePoolSizeNew > 0 && corePoolSizeNew != corePoolSize) {
-                THREAD_POOL.setCorePoolSize(corePoolSizeNew);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(THREAD_POOL, corePoolSizeNew);
             }
             int maximumPoolSizeNew = Integer.parseInt(poolSizes[1]);
             int maximumPoolSize = THREAD_POOL.getMaximumPoolSize();
             if (maximumPoolSizeNew >= corePoolSize && maximumPoolSizeNew != maximumPoolSize) {
-                THREAD_POOL.setMaximumPoolSize(maximumPoolSizeNew);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(THREAD_POOL, maximumPoolSizeNew);
             }
         } else if (size == 1) {
             int corePoolSizeNew = Integer.parseInt(poolSizes[0]);
             int corePoolSize = THREAD_POOL.getCorePoolSize();
             if (corePoolSizeNew > 0 && corePoolSizeNew != corePoolSize) {
-                THREAD_POOL.setCorePoolSize(corePoolSizeNew);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(THREAD_POOL, corePoolSizeNew);
             }
         }
     }

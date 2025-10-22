@@ -19,6 +19,7 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ZhongBangToDassFilterProcessService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialTransferSoleHandler;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -114,8 +115,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
 
     private void modifyCorePoolSize(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getZhongBangToDassFilterThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     private void filterAndPushData(List<MarketingTransferSyncUser> list, String apiCode) {
