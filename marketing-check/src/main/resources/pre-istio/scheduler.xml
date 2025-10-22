@@ -805,7 +805,7 @@
 
     <job:simple id="【check】-QiFuAiRobotRankingReportEmailJob"
                 class="com.br.marketing.check.job.qifu.report.job.QiFuAiRobotRankingReportEmailJob"
-                cron="0 0 12 * * ?"
+                cron="0 0 13 * * ?"
                 description="360AI语音机器人排名数据发送Email任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
