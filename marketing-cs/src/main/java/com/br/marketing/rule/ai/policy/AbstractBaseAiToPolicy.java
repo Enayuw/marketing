@@ -138,7 +138,7 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
             String strategyCodeOriginal = getStrategyCodeOriginal(jsonObject);
 
             // 处理策略代码
-            processStrategyCode(jsonObject, strategyCodeOriginal);
+            processStrategyCode(jsonObject, strategyCodeOriginal, pushData);
 
             // 处理用户类型
             processUserType(jsonObject, syncUser, strategyCodeOriginal);
@@ -152,7 +152,7 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
             pushData.setBatchName(batchName);
 
             // 处理策略名称
-            processStrategyName(jsonObject, pushData);
+            processStrategyName(jsonObject);
 
             // 设置用户类型到JSON
             setUserTypeToJson(jsonObject, syncUser);
@@ -172,11 +172,17 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
     /**
      * 处理策略代码
      */
-    protected void processStrategyCode(JSONObject jsonObject, String strategyCodeOriginal) {
+    protected void processStrategyCode(JSONObject jsonObject, String strategyCodeOriginal, PushMarketingUserDetailByRuleDTO pushData) {
         String strategyCode = strategyCodeOriginal.length() < 12
                 ? strategyCodeOriginal
                 : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
         jsonObject.put("strategyCode", strategyCode);
+
+        if (StringUtils.isNotEmpty(strategyCode)) {
+            pushData.setStrategyCode(strategyCode);
+        } else {
+            pushData.setStrategyCode("");
+        }
     }
 
     /**
@@ -201,19 +207,11 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
     /**
      * 处理策略名称
      */
-    protected void processStrategyName(JSONObject jsonObject, PushMarketingUserDetailByRuleDTO pushData) {
-        String strategyCode = jsonObject.getString("strategyCode");
+    protected void processStrategyName(JSONObject jsonObject) {
         String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
                 ? jsonObject.getString("strategyName")
                 : "";
-
-        if (StringUtils.isNotEmpty(strategyCode)) {
-            pushData.setStrategyCode(strategyCode);
-            jsonObject.put("strategyName", strategyName);
-        } else {
-            pushData.setStrategyCode("");
-            jsonObject.put("strategyName", "");
-        }
+        jsonObject.put("strategyName", strategyName);
     }
 
     /**
