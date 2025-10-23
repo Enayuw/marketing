@@ -150,6 +150,7 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
             // 生成批次名称
             String batchName = generateBatchName(jsonObject, appletDate, apiCode);
             pushData.setBatchName(batchName);
+            jsonObject.put("batchName", batchName);
 
             // 处理策略名称
             processStrategyName(jsonObject, pushData);
