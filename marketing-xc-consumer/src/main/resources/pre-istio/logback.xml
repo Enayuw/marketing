@@ -10,14 +10,7 @@
     <!-- 日志输出格式 -->
     <property name="ENCODER_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger] [%X{brRequestId:--}] -%msg%n"/>
-    <contextName>${APP_NAME}</contextName>
-
-    <!-- 控制台日志：输出全部日志到控制台 -->
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>${ENCODER_PATTERN}</Pattern>
-        </encoder>
-    </appender>
+    <contextName>${POD_NAME}</contextName>
 
     <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/${POD_NAME}.log</file>
@@ -107,29 +100,20 @@
         <appender-ref ref="PATCH_LOG"/>
         <queueSize>512</queueSize>
     </appender>
-    <!--TRACE, DEBUG, INFO, WARN, ERROR, ALL and OFF -->
 
+    <logger name="com.br" level="${LOG_LEVEL}"/>
     <logger name="org.springframework.boot.context.embedded.tomcat" level="INFO"/>
     <logger name="com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver" level="ERROR"/>
-    <logger name="com.br.bsf.ext.app.util" level="ERROR"/>
     <logger name="PATCH_LOG" level="ERROR" additivity="false">
         <appender-ref ref="PATCH_ASYNC_LOG" />
     </logger>
     <logger name="MOM_LOG" level="WARN" additivity="false">
         <appender-ref ref="ASYNC_MOM_LOG" />
     </logger>
-
-    <springProfile name="pre">
-        <root level="WARN">
-            <appender-ref ref="STDOUT"/>
-            <appender-ref ref="ASYNC"/>
-            <appender-ref ref="ALARM_ERROR_ASYNC"/>
-        </root>
-    </springProfile>
-    <springProfile name="prod">
-        <root level="ERROR">
-            <appender-ref ref="ASYNC"/>
-            <appender-ref ref="ALARM_ERROR_ASYNC"/>
-        </root>
-    </springProfile>
+    <!--TRACE, DEBUG, INFO, WARN, ERROR, ALL and OFF -->
+    <root>
+        <level value="${LOG_LEVEL}"/>
+        <appender-ref ref="ASYNC"/>
+        <appender-ref ref="ALARM_ERROR_ASYNC"/>
+    </root>
 </configuration>

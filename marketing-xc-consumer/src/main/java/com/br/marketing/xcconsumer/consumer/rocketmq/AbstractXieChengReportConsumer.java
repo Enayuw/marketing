@@ -3,6 +3,7 @@ package com.br.marketing.xcconsumer.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
+import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengReportService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -48,16 +49,16 @@ public abstract class AbstractXieChengReportConsumer extends BaseMqMessageListen
     protected void handleMessage(MessageExt messageExt) {
         log.warn("消费端 - consumerName:{}",this.consumerName());
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-        Long id = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
-        logMessage(messageExt, id);
-        consumerService.consumerRun(messageExt, xieChengReportService::pushXieChengData, id);
+        XieChengReportMessageDTO messageDTO = JSON.parseObject(bodyString, new TypeReference<XieChengReportMessageDTO>() {}.getType());
+        logMessage(messageExt, bodyString);
+        consumerService.consumerRun(messageExt, xieChengReportService::pushXieChengData, messageDTO);
     }
 
-    protected void logMessage(MessageExt messageExt, Long id) {
+    protected void logMessage(MessageExt messageExt, String messageStr) {
         log.warn("MARKETING_XIECHENG_REPORT_QUEUE：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}",
                 messageExt.getStoreTimestamp(), messageExt.getMsgId(),
                 messageExt.getBrokerName(), messageExt.getTopic(),
-                messageExt.getTags(), id);
+                messageExt.getTags(), messageStr);
     }
 
     @Override

@@ -34,6 +34,13 @@ public class RocketMqSwitchEntity {
      * 全局开关
      */
     private Boolean global;
+
+    /**
+     * 2025/8/11 10:32
+     * Cut flow weight
+     */
+    private Integer featureWeight;
+
     /**
      * 按照tag分类
      * {

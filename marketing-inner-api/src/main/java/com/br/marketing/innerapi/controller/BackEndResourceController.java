@@ -3,12 +3,13 @@ package com.br.marketing.innerapi.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.innerapi.service.ResourceAllocationService;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.ICustomerConfigService;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +42,10 @@ public class BackEndResourceController {
 
     @Resource
     private DataLoadingHandlerService dataLoadingHandlerService;
+
+
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
 
     @ApiOperation(value = "新增zk节点信息",notes = "新增zk节点")
     @GetMapping("/createZkData")
@@ -101,12 +105,9 @@ public class BackEndResourceController {
         return new ApiResult().fromResult(result,1);
     }
 
-
-    @Resource
-    private RabbitMqProducter producter;
-
     @Resource
     XieChengDataMapper xieChengDataMapper;
+
 
     /**
      * 携程通话明细回调广告上报压测接口
@@ -132,8 +133,9 @@ public class BackEndResourceController {
                     JSONObject msg = new JSONObject();
                     msg.put("localId", data.getLocalId());
                     msg.put("type", 2);
-                    producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
-                            , msg.toJSONString());
+//                    producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
+//                            , msg.toJSONString());
+                    rocketMqSwitch.sendMessage(data.getApiCode(), MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString(), ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE);
                 }
             });
 

@@ -19,7 +19,7 @@ public class MarketingHaloCallbackRecord {
     private String batchNumber;
 
     /**
-     * 推送状态(0推送中，1推送成功，2推送失败)
+     * 推送状态(0推送中，1同步中，2推送成功，3推送失败)
      */
     private Integer status;
 

@@ -10,8 +10,10 @@ public enum MockSwitchEnum {
 
     GENERAL("general","通用跑分"),
     XIECHENG("xiecheng","携程撞库结果筛选推决策"),
+    HALO("halo","哈啰硅基人回调"),
     ESRETRY("esRetry","es异常"),
-    POLICYRETRY("policyRetry","推决策异常");
+    POLICYRETRY("policyRetry","推决策异常"),
+    CALLBACKRETRY("callbackRetry","哈啰硅基人回调异常");
 
     MockSwitchEnum(String value, String desc) {
         this.value = value;

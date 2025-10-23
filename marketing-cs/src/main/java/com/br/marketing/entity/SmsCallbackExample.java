@@ -305,6 +305,66 @@ public class SmsCallbackExample {
             return (Criteria) this;
         }
 
+        public Criteria andCallBackTypeIsNull() {
+            addCriterion("call_back_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeIsNotNull() {
+            addCriterion("call_back_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeEqualTo(Integer value) {
+            addCriterion("call_back_type =", value, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeNotEqualTo(Integer value) {
+            addCriterion("call_back_type <>", value, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeGreaterThan(Integer value) {
+            addCriterion("call_back_type >", value, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("call_back_type >=", value, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeLessThan(Integer value) {
+            addCriterion("call_back_type <", value, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("call_back_type <=", value, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeIn(List<Integer> values) {
+            addCriterion("call_back_type in", values, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeNotIn(List<Integer> values) {
+            addCriterion("call_back_type not in", values, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeBetween(Integer value1, Integer value2) {
+            addCriterion("call_back_type between", value1, value2, "callBackType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCallBackTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("call_back_type not between", value1, value2, "callBackType");
+            return (Criteria) this;
+        }
+
         public Criteria andUserTypeIsNull() {
             addCriterion("user_type is null");
             return (Criteria) this;

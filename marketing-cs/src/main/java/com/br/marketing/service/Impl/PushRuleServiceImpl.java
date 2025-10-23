@@ -27,6 +27,7 @@ import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.cache.CaffeineCacheKeyConstant;
 import com.br.marketing.common.constants.common.LastEnum;
@@ -86,6 +87,7 @@ import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.GeneScriptUtil;
@@ -188,6 +190,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     PhoneSaleMapper phoneSaleMapper;
+
+    @Resource
+    private PulsarConsumerSkipUtil pulsarConsumerSkipUtil;
 
 
     @Resource
@@ -2452,11 +2457,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         MarketingPreUserDTO preUserDTO = dto.getJsonData();
         List<MarketingPreUserDetailDTO> dataItems = preUserDTO.getDataItems();
-        batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
+        //batchAddUniqueId(dataItems, MarketingPreUserDetailDTO::setFingerprint, MarketingPreUserDetailDTO::getFingerprint);
+        jsonData = addUniqueId(jsonData);
         //region 数据入库
-        String jsonDataStr = null;
         try {
-            jsonDataStr = JSON.toJSONString(preUserDTO);
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
             syncInfo.setApiCode(dto.getApiCode());
             syncInfo.setCusBatch(dto.getJsonData().getTaskId());
@@ -2464,7 +2468,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setLast(last);
             syncInfo.setTotal(total);
             syncInfo.setCreateTime(new Date());
-            syncInfo.setJsonData(jsonDataStr);
+            syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
             syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
@@ -2481,9 +2485,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
-            if (jsonDataStr == null) {
-                jsonDataStr = jsonData;
-            }
             log.error(String.format("返回DB异常耗时：%d", System.currentTimeMillis() - l));
             dbException = Boolean.TRUE;
         }
@@ -2496,12 +2497,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonDataStr);
+                jsonObject.put("jsonData", jsonData);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
                 producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonString));
+                log.warn(String.format("通用写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonString));
                 Long res = requestIdWriteRedis(uploadKey, dto.getJsonData().getRequestId());
                 if (res != null && res < 1) {
                     throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
@@ -2526,6 +2527,53 @@ public class PushRuleServiceImpl implements PushRuleService {
             sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    /**
+     * 批量添加唯一ID
+     * @param jsonData
+     */
+    private String addUniqueId(String jsonData) {
+        try {
+            JSONObject originalJson = JSONObject.parseObject(jsonData);
+            Object dataItemsObj = originalJson.get("dataItems");
+            if (Objects.nonNull(dataItemsObj)) {
+                if (dataItemsObj instanceof JSONArray) {
+                    JSONArray dataItems = (JSONArray) dataItemsObj;
+                    // 处理数组情况
+                    int size = dataItems.size();
+                    List<Long> ids;
+                    try {
+                        ids = snowflakeRedisGeneratorHandle.nextIds(size);
+                    } catch (Exception e) {
+                        log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+                        return jsonData;
+                    }
+                    for (int i = 0; i < size; i++) {
+                        JSONObject itemObject = dataItems.getJSONObject(i);
+                        itemObject.put("fingerprint", ids.get(i));
+                    }
+                    return originalJson.toJSONString();
+                } else if (dataItemsObj instanceof JSONObject) {
+                    JSONObject dataItem = (JSONObject) dataItemsObj;
+                    Long uinqueId;
+                    try {
+                        uinqueId = snowflakeRedisGeneratorHandle.nextId();
+                    } catch (Exception e) {
+                        log.error("雪花算法生成唯一ID异常,唯一ID添加失败,{}", e.getMessage(), e);
+                        return jsonData;
+                    }
+                    dataItem.put("fingerprint", uinqueId);
+                    return originalJson.toJSONString();
+                } else {
+                    // 处理其他类型或null
+                    log.warn("dataItems 字段类型异常或为空");
+                }
+            }
+        } catch (Exception e) {
+            log.error("添加唯一ID异常{}", e.getMessage(), e);
+        }
+        return jsonData;
     }
 
 
@@ -3196,25 +3244,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
-        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures;
         try {
             futures = threadPool.invokeAll(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         } finally {
             threadPool.shutdown();
         }
-        if (futures != null && !futures.isEmpty()) {
-            for (int i = 0; i < futures.size(); i++) {
-                try {
-                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
-                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
-                        errorSize++;
-                        errorBuild.add(result.getData());
-                    }
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+        for (Future<Result<MarketingPreUserErrorDetailVO>> future : futures) {
+            try {
+                Result<MarketingPreUserErrorDetailVO> result = future.get();
+                if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                    errorSize++;
+                    errorBuild.add(result.getData());
                 }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
             }
         }
         // 发送场景收集队列
@@ -3450,6 +3498,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Boolean> consumerSyncInfo(String msg) {
+        boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.upLoadSubscription);
+        if(b){
+            log.warn("【pulsar】标准上传数据执行跳过逻辑");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+
         JSONObject jb = JSON.parseObject(msg);
         String apiCode = jb.getString("apiCode");
         String jdStr = jb.getString("jsonData");
@@ -3595,10 +3649,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String transferInfoId = "";
         Boolean dbException = Boolean.FALSE;
-        batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
-        String jsonDataStr = null;
+        //batchAddUniqueId(transferDataDTO.getDataItems(), TransferDataItemDTO::setFingerprint, TransferDataItemDTO::getFingerprint);
+        jsonData = addUniqueId(jsonData);
         try {
-            jsonDataStr = JSON.toJSONString(transferDataDTO);
             //todo 测试pulsar 上线删除
             if ("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())) {
                 throw new RuntimeException("模拟DB错误");
@@ -3609,7 +3662,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setRequestId(transferDataDTO.getRequestId());
             transferInfo.setOrgName(transferDataDTO.getOrgName());
             transferInfo.setCreateTime(new Date());
-            transferInfo.setJsonData(jsonDataStr);
+            transferInfo.setJsonData(jsonData);
             transferInfo.setActualNum(size);
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
@@ -3622,9 +3675,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
-            if (jsonDataStr == null) {
-                jsonDataStr = jsonData;
-            }
             dbException = Boolean.TRUE;
         }
 
@@ -3634,7 +3684,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode", apiCode);
-                jsonObject.put("jsonData", jsonDataStr);
+                jsonObject.put("jsonData", jsonData);
                 jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
@@ -3661,6 +3711,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Boolean> consumerTransferInfo(String msg) {
+        boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferSubscription);
+        if(b){
+            log.warn("【pulsar】标准转化数据执行跳过逻辑："+PulsarSubscription.transferSubscription);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        
         JSONObject jb = JSON.parseObject(msg);
         String apiCode = jb.getString("apiCode");
         String jsonData = jb.getString("jsonData");
@@ -3832,26 +3888,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNumTrans, soleNumTrans);
-        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures;
         try {
             futures = threadPool.invokeAll(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         } finally {
             threadPool.shutdown();
         }
-        if (futures != null && !futures.isEmpty()) {
-            for (int i = 0; i < futures.size(); i++) {
-                try {
-                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
-                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
-                        errorSize++;
-                        errorBuild.add(result.getData());
-                    }
-
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+        for (Future<Result<MarketingPreUserErrorDetailVO>> future : futures) {
+            try {
+                Result<MarketingPreUserErrorDetailVO> result = future.get();
+                if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                    errorSize++;
+                    errorBuild.add(result.getData());
                 }
+
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
             }
         }
         // 发送场景收集队列

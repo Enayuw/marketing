@@ -11,11 +11,11 @@ import com.br.marketing.dto.*;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
+import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
@@ -51,8 +51,7 @@ public class PushRuleFilterController {
      * CODE_1
      */
     private static final Integer CODE_1 = Integer.valueOf(1);
-    @Autowired
-    RabbitMqProducter producter;
+
 
     @Autowired
     PushRuleService pushRuleService;
@@ -68,6 +67,9 @@ public class PushRuleFilterController {
 
     @Autowired
     RuleCenterLabelService ruleCenterLabelService;
+
+    @Autowired
+    HaloRuleCenterCallbackService haloRuleCenterCallbackService;
 
 
     /**
@@ -243,19 +245,6 @@ public class PushRuleFilterController {
         return pushRuleService.consumerPushCustomer(id);
     }
 
-    /**
-     * 测试MQ
-     *
-     * @return
-     */
-    @ApiOperation(value = "测试rabbit")
-    @PostMapping("/testRabbitProduct")
-    public String testRabbitProduct() {
-        producter.send("hehe", "还有谁");
-//        producter.send("hehe",12L);
-//        producter.send("hehe",String.valueOf(12L));
-        return "true";
-    }
 
     /**
      * 测试通用日志
@@ -343,5 +332,25 @@ public class PushRuleFilterController {
         return new ApiResult<Map<String,Integer>>().fromResult(ruleCenterLabelService.getScoreMergeNum(batchNumbers,apiCode), CODE_1);
     }
 
+    /**
+     * 生成哈啰硅基人回调任务
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "生成哈啰硅基人回调任务")
+    @PostMapping("/saveHaloCallbackTask")
+    public ApiResult saveHaloCallbackTask(@RequestBody PushCustomerDTO dto){
+        dto.setUserDetail(ThreadContextInfo.getUser());
+        return new ApiResult().fromResult(haloRuleCenterCallbackService.saveHaloCallbackTask(dto),CODE_1);
+    }
+
+    /**
+     * 校验apiCode是否可推送客户系统
+     */
+    @ApiOperation(value = "校验apiCode是否可推送客户系统")
+    @PostMapping("/canPushCallback")
+    public ApiResult canPushCallback(@RequestParam("apiCode") String apiCode){
+        return new ApiResult().fromResult(haloRuleCenterCallbackService.canPushCallback(apiCode),CODE_1);
+    }
 
 }
