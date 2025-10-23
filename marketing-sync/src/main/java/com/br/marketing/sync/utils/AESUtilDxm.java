@@ -62,34 +62,8 @@ public class AESUtilDxm {
         // 转换十六进制密钥为字节
         byte[] keyBytes = hexToBytes(keyHex);
 
-        // 读取CSV所有行，尝试多种编码
-        // 优先尝试GBK和GB2312（国内系统常用），然后UTF-8
-        List<String> lines = null;
-        String detectedEncoding = "UTF-8";
-        Charset[] charsets = {
-            Charset.forName("GBK"),       // 优先GBK（Windows中文默认）
-            Charset.forName("GB2312"),    // GB2312
-            StandardCharsets.UTF_8,       // UTF-8
-            StandardCharsets.ISO_8859_1   // ISO-8859-1（最后尝试）
-        };
-        
-        for (Charset charset : charsets) {
-            try {
-                lines = Files.readAllLines(Paths.get(inputPath), charset);
-                detectedEncoding = charset.name();
-                break; // 成功读取，跳出循环
-            } catch (Exception e) {
-                // 继续尝试下一个编码
-                continue;
-            }
-        }
-        
-        if (lines == null) {
-            throw new IOException("无法读取CSV文件，尝试了多种编码格式均失败");
-        }
-        if (lines.isEmpty()) {
-            throw new IOException("CSV文件为空");
-        }
+        // 读取CSV文件，自动处理UTF-8 BOM
+        List<String> lines = readCsvWithBomSupport(inputPath);
         
         // 处理每行数据
         List<String> decryptedLines = new ArrayList<>();
@@ -115,10 +89,6 @@ public class AESUtilDxm {
                 decryptedLines.add(lines.get(i));
             }
         } else {
-            
-            int successCount = 0;
-            int failCount = 0;
-            
             // 处理数据行
             for (int i = 1; i < lines.size(); i++) {
                 String[] columns = lines.get(i).split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
@@ -132,12 +102,10 @@ public class AESUtilDxm {
                         try {
                             String decrypted = decrypt(phoneColumn, keyBytes);
                             columns[phoneColumnIndex] = decrypted; // 解密手机号列
-                            successCount++;
                         } catch (Exception e) {
                             // 解密失败时保留原始值，而不是替换为 [DECRYPT_FAILED]
                             // columns[phoneColumnIndex] = phoneColumn; // 保留原值
                             System.err.println("【度小满解密】解密失败 (行 " + (i + 1) + ")，保留原值: " + e.getMessage());
-                            failCount++;
                         }
                     } else {
                         System.out.println("【度小满解密】跳过空手机号 (行 " + (i + 1) + ")");
@@ -146,11 +114,74 @@ public class AESUtilDxm {
                 
                 decryptedLines.add(String.join(",", columns));
             }
-
         }
 
         // 写入解密后的文件，统一使用UTF-8编码（国际标准，避免下游系统乱码）
         Files.write(Paths.get(outputPath), decryptedLines, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 读取CSV文件，支持UTF-8 BOM和多种编码
+     * 
+     * @param inputPath 输入文件路径
+     * @return 文件内容行列表
+     * @throws IOException 读取失败
+     */
+    private static List<String> readCsvWithBomSupport(String inputPath) throws IOException {
+        // 先读取文件字节，检测BOM
+        byte[] fileBytes = Files.readAllBytes(Paths.get(inputPath));
+        
+        if (fileBytes.length == 0) {
+            throw new IOException("CSV文件为空");
+        }
+        
+        // 检测UTF-8 BOM (EF BB BF)
+        boolean hasUtf8Bom = false;
+        
+        if (fileBytes.length >= 3 && 
+            (fileBytes[0] & 0xFF) == 0xEF && 
+            (fileBytes[1] & 0xFF) == 0xBB && 
+            (fileBytes[2] & 0xFF) == 0xBF) {
+            hasUtf8Bom = true;
+            System.out.println("【度小满解密】检测到 UTF-8 BOM 标记，将自动处理");
+        }
+        
+        // 如果有BOM，跳过BOM后读取
+        if (hasUtf8Bom) {
+            byte[] contentBytes = new byte[fileBytes.length - 3];
+            System.arraycopy(fileBytes, 3, contentBytes, 0, contentBytes.length);
+            String content = new String(contentBytes, StandardCharsets.UTF_8);
+            String[] lineArray = content.split("\\r?\\n");
+            return new ArrayList<>(java.util.Arrays.asList(lineArray));
+        }
+        
+        // 没有BOM，尝试多种编码
+        List<String> lines = null;
+        String detectedEncoding = "UTF-8";
+        Charset[] charsets = {
+            Charset.forName("GBK"),       // 优先GBK（Windows中文默认）
+            Charset.forName("GB2312"),    // GB2312
+            StandardCharsets.UTF_8,       // UTF-8
+            StandardCharsets.ISO_8859_1   // ISO-8859-1（最后尝试）
+        };
+        
+        for (Charset charset : charsets) {
+            try {
+                lines = Files.readAllLines(Paths.get(inputPath), charset);
+                detectedEncoding = charset.name();
+                System.out.println("【度小满解密】使用 " + detectedEncoding + " 编码读取文件");
+                break; // 成功读取，跳出循环
+            } catch (Exception e) {
+                // 继续尝试下一个编码
+                continue;
+            }
+        }
+        
+        if (lines == null) {
+            throw new IOException("无法读取CSV文件，尝试了多种编码格式均失败");
+        }
+        
+        return lines;
     }
 
     /** 十六进制字符串转字节数组 */
