@@ -134,11 +134,14 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
         String appletDate = syncUser.getAppletDate().replace("-", "");
 
         if (StringUtils.isNotBlank(syncUser.getReserveField1()) && ObjectUtil.isNotEmpty(jsonObject)) {
+            // 获取原始策略代码
+            String strategyCodeOriginal = getStrategyCodeOriginal(jsonObject);
+
             // 处理策略代码
-            processStrategyCode(jsonObject, syncUser);
+            processStrategyCode(jsonObject, strategyCodeOriginal);
 
             // 处理用户类型
-            processUserType(jsonObject, syncUser);
+            processUserType(jsonObject, syncUser, strategyCodeOriginal);
 
             // 生成批次号
             String batchNumber = generateBatchNumber(syncUser);
@@ -157,12 +160,19 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
     }
 
     /**
-     * 处理策略代码
+     * 获取原始策略代码
      */
-    protected void processStrategyCode(JSONObject jsonObject, MarketingSyncUser syncUser) {
+    protected String getStrategyCodeOriginal(JSONObject jsonObject) {
         String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
                 ? jsonObject.getString("strategyCode")
                 : "";
+        return strategyCodeOriginal;
+    }
+
+    /**
+     * 处理策略代码
+     */
+    protected void processStrategyCode(JSONObject jsonObject, String strategyCodeOriginal) {
         String strategyCode = strategyCodeOriginal.length() < 12
                 ? strategyCodeOriginal
                 : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
@@ -172,10 +182,7 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
     /**
      * 处理用户类型
      */
-    protected void processUserType(JSONObject jsonObject, MarketingSyncUser syncUser) {
-        String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
-                ? jsonObject.getString("strategyCode")
-                : "";
+    protected void processUserType(JSONObject jsonObject, MarketingSyncUser syncUser, String strategyCodeOriginal) {
         String userType = strategyCodeOriginal.length() <= 12
                 ? emptyDefault(syncUser.getUserType())
                 : strategyCodeOriginal.substring(0, strategyCodeOriginal.length() - 12);
