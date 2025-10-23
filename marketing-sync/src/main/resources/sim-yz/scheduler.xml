@@ -69,7 +69,7 @@
     />
     <job:simple id="DxmPullFileSyncJob"
                 class="com.br.marketing.sync.job.DxmPullFileSyncJob"
-                cron="0 0 20 * * ?"
+                cron="0 30 15,23 * * ?"
                 description="拉取度小满文件"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
