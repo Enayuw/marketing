@@ -3481,5 +3481,10 @@ public class MarketingCommonConfig {
      */
     private Set<String> disableMockProjects;
 
+
+    /**
+     * Ai客户数据推送决策操作类型集合
+     */
+    private List<String> aiToPolicyOperateTypeList;
 }
 

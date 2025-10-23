@@ -135,6 +135,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -145,10 +146,7 @@ import java.util.stream.Collectors;
 public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode();
-    public static final String TO_POLICY_GENERAL = CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode();
+    public static final String AI_TO_POLICY = CommonRuleLabelEnum.AI_TO_POLICY.getCode();
 
     private static HashMap<String, String> errorCodeHm;
 
@@ -2694,66 +2692,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             return true;
         }
 
-        // 没配置成init和ai客户
-        boolean hasOperateType3 = containsOperateType(jsonData, "3");
-        boolean hasOperateType4 = containsOperateType(jsonData, "4");
-        boolean hasOperateType5 = containsOperateType(jsonData, "5");
-        boolean hasOperateType6 = containsOperateType(jsonData, "6");
-
-        // jsonData中没有3456
-        if (!hasOperateType3 && !hasOperateType4 && !hasOperateType5 && !hasOperateType6) {
-            return false;
-        }
-
-        // jsonData包含3或者4或者5或者6，查db
-        Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-
-        boolean hasType3Rule = customerRules.contains(TO_POLICY_GENERAL) && hasOperateType3;
-        boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
-        boolean hasType5Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE) && hasOperateType5;
-        boolean hasType6Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX) && hasOperateType6;
-
-        if (hasType3Rule && hasType4Rule && hasType5Rule && hasType6Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
-            return true;
-        }
-
-        boolean ruleAdded = false;
-        // 缓存中没有3
-        if (!hasType3Rule && hasOperateType3
-                && isHasOperateType(apiCode, jsonData, TO_POLICY_GENERAL)) {
-            ruleAdded = true;
-        }
-
-        // 缓存中没有4
-        if (!hasType4Rule && hasOperateType4
-                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)) {
-            ruleAdded = true;
-        }
-
-        // 缓存中没有5
-        if (!hasType5Rule && hasOperateType5
-                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)) {
-            ruleAdded = true;
-        }
-
-        // 缓存中没有6
-        if (!hasType6Rule && hasOperateType6
-                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX)) {
-            ruleAdded = true;
-        }
-
-        // 缓存和数据中都有
-        if (hasType3Rule || hasType4Rule || hasType5Rule || hasType6Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
-            return true;
-        }
-
-        if (ruleAdded) {
-            // 刷新缓存
-            DataLoadingHandlerService.invalidateAll();
-            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
-            return true;
+        for (String aiOperateType : marketingCommonConfig.getAiToPolicyOperateTypeList()) {
+            if (containsOperateType(jsonData, aiOperateType)) {
+                getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
+                return true;
+            }
         }
 
         // 发消息到通用入明细队列
@@ -2827,6 +2770,35 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         return true;
+    }
+
+    /**
+     * 生成ai客户的规则映射
+     */
+    private void generateCustomerRuleMapping(String apiCode) {
+        int i = customerRuleMapper.countByApiCodeAndRuleLabel(apiCode, AI_TO_POLICY);
+        if (i > 0) {
+            return;
+        }
+
+        Long ruleId = customerRuleMapper.selectIdByRuleLabel(AI_TO_POLICY);
+        try {
+            customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
+        } catch (DuplicateKeyException e) {
+            log.warn("Ai客户数据写入明细队列，规则映射已生成，apiCode:{}, ruleLabel:{}", apiCode, AI_TO_POLICY);
+        } catch (Exception e) {
+            try {
+                customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
+            } catch (DuplicateKeyException ee) {
+                log.warn("Ai客户数据写入明细队列，规则映射已生成，apiCode:{}, ruleLabel:{}", apiCode, AI_TO_POLICY);
+            } catch (Exception ee) {
+                String title = "Ai客户，自动配置规则映射，入库再次异常！！！";
+                String msg = title + " 需要立即检查规则是否存在，b_marketing_customer_rule_mapping,apiCode："
+                        + apiCode + "，规则标签：" + AI_TO_POLICY + "，异常内容" + ee.getMessage();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg, title));
+                wuBaServiceClient.sendDingDingAlert(title, msg);
+            }
+        }
     }
 
     private void getRoutingKeyAndSendToAiMq(String syncInfoId, boolean isBatch) {
@@ -3108,6 +3080,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
+        // 是否为ai客户数据
+        AtomicBoolean isAiOperateType = new AtomicBoolean(false);
+
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             if (Objects.nonNull(marketingPreUserDetailDTO) && StringUtils.isEmpty(marketingPreUserDetailDTO.getTaskId())) {
@@ -3179,6 +3154,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setRequestBatch(marketingSyncInfo.getRequestBatch());
                 marketingSyncUser.setCustNum(marketingPreUserDetailDTO.getCustNum());
                 marketingSyncUser.setOperateType(marketingPreUserDetailDTO.getOperateType());
+                if (marketingCommonConfig.getAiToPolicyOperateTypeList().contains(marketingPreUserDetailDTO.getOperateType())) {
+                    isAiOperateType.set(true);
+                }
                 marketingSyncUser.setIdCard(marketingPreUserDetailDTO.getId());
                 marketingSyncUser.setName(marketingPreUserDetailDTO.getName());
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
@@ -3352,7 +3330,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         boolean isBatch = dto.getDataItems().size() > 1;
         // 发消息到推送下游队列
-        sendToUniversalQueue(infoId, status, apiCode, isBatch);
+        sendToUniversalQueue(infoId, status, apiCode, isBatch, isAiOperateType);
 
         List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
         if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)) {
@@ -3405,7 +3383,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode, boolean isBatch) {
+    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode, boolean isBatch, AtomicBoolean isAiOperateType) {
         if (!status) {
             return;
         }
@@ -3432,11 +3410,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             return;
         }
 
-        Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX)
-                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)
-                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
-                || customerRules.contains(TO_POLICY_GENERAL)) {
+        if (isAiOperateType.get()) {
+            generateCustomerRuleMapping(apiCode);
             sendToAIUniversalQueue(mqFact, isBatch);
         }
     }
