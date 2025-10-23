@@ -43,15 +43,15 @@ otherConfig:
     outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
     outsideAppName: marketing-out
   userCenter:
-    appName: loan-strategy
-    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
   warning:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
     path: /opt/data/inloan/download/warning/
   encodeMapping:
-    appName: loan-warning
-    appSecretKey: f15a1421ac95a284683688af14688b72
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
 cluster:
   flag: k8s-prod-a
 #elastic-job配置

@@ -41,8 +41,8 @@ otherConfig:
         mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
         sendCode: 66618706
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
   warning:
         pageSize: 5000
         apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query

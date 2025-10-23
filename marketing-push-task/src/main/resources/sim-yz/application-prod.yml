@@ -113,11 +113,11 @@ otherConfig:
         outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
         outsideAppName: marketing-out
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
   encodeMapping:
-    appName: loan-warning
-    appSecretKey: a938d0e974746651a11ddcdbcea31404
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
