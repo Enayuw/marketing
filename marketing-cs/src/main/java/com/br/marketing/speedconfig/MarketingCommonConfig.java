@@ -3481,5 +3481,15 @@ public class MarketingCommonConfig {
      */
     private Set<String> disableMockProjects;
 
+
+    /**
+     * Ai客户数据推送决策操作类型集合
+     */
+    private List<String> aiToPolicyOperateTypeList;
+
+    /**
+     * 哈罗-三方营销数据回传 配置
+     */
+    private JSONObject haloCallBackDataConfig;
 }
 

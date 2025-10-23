@@ -7,6 +7,9 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.SmartLifecycle;
+import org.springframework.context.event.ContextClosedEvent;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -28,9 +31,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Hua Qiang
  * @date 2025/5/23
  */
-public class SnowflakeRedisGeneratorHandle {
+public class SnowflakeRedisGeneratorHandle implements ApplicationListener<ContextClosedEvent>, SmartLifecycle {
     private final Logger LOGGER = LoggerFactory.getLogger(SnowflakeRedisGeneratorHandle.class);
-
+    private final AtomicBoolean running = new AtomicBoolean(true);
+    private ScheduledExecutorService heartbeatExecutor;
+    private ScheduledFuture<?> heartbeatFuture;
     private final RedisChgService redisChgService;
     private final String applicationName;
     private final int datacenterId;
@@ -424,6 +429,9 @@ public class SnowflakeRedisGeneratorHandle {
                         try {
                             redisChgService.hset(indexKey, existingIdStr, this.uniqueInstanceId);
                         } catch (Exception ignore) {
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug(ignore.getMessage(), ignore);
+                            }
                         }
                         LOGGER.warn("雪花算法,实例 {} 已分配过ID，直接恢复WorkerId: {}. [AssignedKey: {}]", this.uniqueInstanceId, existingId, assignedKey);
                         return existingId;
@@ -447,12 +455,16 @@ public class SnowflakeRedisGeneratorHandle {
                         }
                         if (!alive) {
                             // 启动/抖动窗口：guard 还在则视为活跃，避免误回收
-                            String guardKeyProbe = String.format("%sworker_assign:guard:%s:%d:%s", KEY_PREFIX, applicationName, datacenterId, String.valueOf(wid));
+                            String guardKeyProbe = String.format("%sworker_assign:guard:%s:%d:%s"
+                                    , KEY_PREFIX, applicationName, datacenterId, wid);
                             try {
                                 if (Boolean.TRUE.equals(redisChgService.exists(guardKeyProbe))) {
                                     alive = true;
                                 }
                             } catch (Exception ignore) {
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug(ignore.getMessage(), ignore);
+                                }
                             }
                         }
 
@@ -475,6 +487,9 @@ public class SnowflakeRedisGeneratorHandle {
                                 try {
                                     guardAlive = Boolean.TRUE.equals(redisChgService.exists(guardKey));
                                 } catch (Exception ignore) {
+                                    if (LOGGER.isDebugEnabled()) {
+                                        LOGGER.debug(ignore.getMessage(), ignore);
+                                    }
                                 }
 
                                 // 不主动解锁 guard，只在 guard 已消失时，才删除 index（放开复用）
@@ -482,6 +497,9 @@ public class SnowflakeRedisGeneratorHandle {
                                     try {
                                         redisChgService.hdel(indexKey, widStr);
                                     } catch (Exception ignore) {
+                                        if (LOGGER.isDebugEnabled()) {
+                                            LOGGER.debug(ignore.getMessage(), ignore);
+                                        }
                                     }
                                 }
                             }
@@ -515,6 +533,9 @@ public class SnowflakeRedisGeneratorHandle {
                                 try {
                                     redisChgService.unlock(guardKey, this.uniqueInstanceId);
                                 } catch (Exception ignore) {
+                                    if (LOGGER.isDebugEnabled()) {
+                                        LOGGER.debug(ignore.getMessage(), ignore);
+                                    }
                                 }
                                 continue;
                             }
@@ -541,16 +562,33 @@ public class SnowflakeRedisGeneratorHandle {
         }
 
         public void startHeartbeat() {
-            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(r -> {
+            heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "snowflake-worker-heartbeat");
                 t.setDaemon(true);
                 return t;
             });
-            executor.scheduleAtFixedRate(this::sendHeartbeat, 0, HEARTBEAT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+            heartbeatFuture = heartbeatExecutor.scheduleWithFixedDelay(this::sendHeartbeat, 0, HEARTBEAT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        }
+
+        public void stopHeartbeat() {
+            if (heartbeatFuture != null) {
+                heartbeatFuture.cancel(true);
+            }
+            if (heartbeatExecutor != null) {
+                heartbeatExecutor.shutdownNow();
+                try {
+                    boolean b = heartbeatExecutor.awaitTermination(5, TimeUnit.SECONDS);
+                    if (!b) {
+                        heartbeatExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
 
         private void sendHeartbeat() {
-            if (!this.isHealthy.get() || this.assignedWorkerId < 0) {
+            if (!isRunning() || !this.isHealthy.get() || this.assignedWorkerId < 0) {
                 return;
             }
             String heartbeatKey = String.format("%sworker_assign:heartbeat:%s:%d", KEY_PREFIX, applicationName, datacenterId);
@@ -595,5 +633,48 @@ public class SnowflakeRedisGeneratorHandle {
 
     public String getApplicationName() {
         return applicationName;
+    }
+
+    @Override
+    public void onApplicationEvent(ContextClosedEvent event) {
+        stop();
+    }
+
+    @Override
+    public void start() {
+        running.set(true);
+        if (heartbeatExecutor == null) {
+            workerIdAssigner.startHeartbeat();
+        }
+    }
+
+    @Override
+    public void stop() {
+        running.set(false);
+        workerIdAssigner.stopHeartbeat();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return running.get();
+    }
+
+    @Override
+    public boolean isAutoStartup() {
+        return true;
+    }
+
+    @Override
+    public int getPhase() {
+        return Integer.MAX_VALUE - 100;
+    }
+
+    @Override
+    public void stop(Runnable callback) {
+        try {
+            stop();
+        } finally {
+            callback.run();
+        }
     }
 }

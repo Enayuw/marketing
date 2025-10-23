@@ -1,15 +1,14 @@
 package com.br.marketing.push.service;
 
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.push.PushApplication;
 import com.br.marketing.push.service.impl.MergeServiceImpl;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.sftp.PushService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,16 +45,11 @@ import java.util.List;
 @Slf4j
 public class FlowService {
 
-    @Resource(name = "rabbitTemplate")
-    private RabbitTemplate rabbitTemplate;
-
-    @Autowired
-    RabbitMqProducter producter;
-
-    @Autowired
-    ICompatibleService iCompatibleService;
     @Autowired
     PushService pushService;
+
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
 
     public void flow(Customer customer){
         List<LoanFile> pushList;
@@ -81,7 +75,9 @@ public class FlowService {
 
                 for (LoanFile loanFile : pushList) {
                     //推送消息到pushQueue，进行下一流程处理
-                    producter.send(MQConstants.CHECK_ROUTING_KEY,loanFile.getId().toString());
+//                    producter.send(MQConstants.CHECK_ROUTING_KEY,loanFile.getId().toString());
+                    rocketMqSwitch.sendMessage(loanFile.getApiCode(), MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_CHECK_QUEUE,
+                            loanFile.getId().toString(), MQConstants.CHECK_ROUTING_KEY);
                 }
             }
 

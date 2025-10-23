@@ -86,4 +86,10 @@ public class PrometheusMonitorUtils {
      */
     public static final String COUNT_XIECHENG_CPS_COLLIDING_DATA_METRIC_NAME = "countXieChengCpsCollidingDataMetricName";
 
+
+    /**
+     * 哈啰-https://open.hellobike.com/openapi-三方营销数据回传接口(
+     */
+    public static final String COUNT_HALO_CALLBACK_API_METRIC_NAME = "countHaloCallBackAPIMetricName";
+
 }

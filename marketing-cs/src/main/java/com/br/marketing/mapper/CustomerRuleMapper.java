@@ -25,4 +25,6 @@ public interface CustomerRuleMapper extends CustomerRuleMapperBase{
 
     Long selectIdByRuleLabel(@Param("ruleLabel") String ruleLabel);
 
+    int countByApiCodeAndRuleLabel(@Param("apiCode") String apiCode, @Param("ruleLabel") String ruleLabel);
+
 }
