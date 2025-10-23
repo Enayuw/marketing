@@ -104,14 +104,16 @@ public class ThreadPoolAdjustmentUtil {
                     // 增加线程数：先增大限制，后创建线程
                     log.warn(TITLE + "执行增加线程策略: {}→{}", beforeState.getCorePoolSize(), targetThreadNum);
 
-                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(executor, targetThreadNum);
+                    executor.setMaximumPoolSize(targetThreadNum);
+                    executor.setCorePoolSize(targetThreadNum);
                     break;
                     
                 case DECREASE_THREADS:
                     // 减少线程数：先减少核心数，后减少限制
                     log.warn(TITLE + "执行减少线程策略: {}→{}", beforeState.getCorePoolSize(), targetThreadNum);
 
-                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(executor, targetThreadNum);
+                    executor.setCorePoolSize(targetThreadNum);
+                    executor.setMaximumPoolSize(targetThreadNum);
                     break;
 
                 case NO_CHANGE:
