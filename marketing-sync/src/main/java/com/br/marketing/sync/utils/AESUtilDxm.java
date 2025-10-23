@@ -53,7 +53,7 @@ public class AESUtilDxm {
     }
 
     /**
-     * 处理CSV文件（解密第一列）
+     * 处理CSV文件（解密"手机号"列）
      * @param inputPath 加密的CSV文件路径
      * @param outputPath 解密后的输出路径
      * @param keyHex 十六进制格式的密钥（32字节）
@@ -63,12 +63,20 @@ public class AESUtilDxm {
         byte[] keyBytes = hexToBytes(keyHex);
 
         // 读取CSV所有行，尝试多种编码
+        // 优先尝试GBK和GB2312（国内系统常用），然后UTF-8
         List<String> lines = null;
-        Charset[] charsets = {StandardCharsets.UTF_8, Charset.forName("GBK"), Charset.forName("GB2312"), StandardCharsets.ISO_8859_1};
+        String detectedEncoding = "UTF-8";
+        Charset[] charsets = {
+            Charset.forName("GBK"),       // 优先GBK（Windows中文默认）
+            Charset.forName("GB2312"),    // GB2312
+            StandardCharsets.UTF_8,       // UTF-8
+            StandardCharsets.ISO_8859_1   // ISO-8859-1（最后尝试）
+        };
         
         for (Charset charset : charsets) {
             try {
                 lines = Files.readAllLines(Paths.get(inputPath), charset);
+                detectedEncoding = charset.name();
                 break; // 成功读取，跳出循环
             } catch (Exception e) {
                 // 继续尝试下一个编码
@@ -77,39 +85,72 @@ public class AESUtilDxm {
         }
         
         if (lines == null) {
-            throw new IOException("无法读取CSV文件，尝试了多种编码格式");
+            throw new IOException("无法读取CSV文件，尝试了多种编码格式均失败");
         }
         if (lines.isEmpty()) {
             throw new IOException("CSV文件为空");
         }
-
+        
         // 处理每行数据
         List<String> decryptedLines = new ArrayList<>();
-        decryptedLines.add(lines.get(0)); // 保留标题行
-
-        for (int i = 1; i < lines.size(); i++) {
-            String[] columns = lines.get(i).split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
-            if (columns.length > 0) {
-                // 检查第一列（手机号列）是否为空
-                String phoneColumn = columns[0];
-                if (phoneColumn == null || phoneColumn.trim().isEmpty()) {
-                    System.out.println("【度小满解密】跳过空手机号行 (行 " + (i + 1) + "): " + lines.get(i));
-                    continue; // 跳过该行
+        
+        // 解析标题行，查找"手机号"列的索引
+        String headerLine = lines.get(0);
+        String[] headers = headerLine.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+        int phoneColumnIndex = -1;
+        
+        for (int i = 0; i < headers.length; i++) {
+            String header = headers[i].trim().replaceAll("^\"|\"$", ""); // 去除可能的引号
+            if ("手机号".equals(header)) {
+                phoneColumnIndex = i;
+                break;
+            }
+        }
+        
+        decryptedLines.add(headerLine); // 保留标题行
+        
+        // 如果没有找到"手机号"列，直接复制所有行，不进行解密
+        if (phoneColumnIndex == -1) {
+            for (int i = 1; i < lines.size(); i++) {
+                decryptedLines.add(lines.get(i));
+            }
+        } else {
+            
+            int successCount = 0;
+            int failCount = 0;
+            
+            // 处理数据行
+            for (int i = 1; i < lines.size(); i++) {
+                String[] columns = lines.get(i).split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                
+                // 确保列数匹配
+                if (columns.length > phoneColumnIndex) {
+                    String phoneColumn = columns[phoneColumnIndex];
+                    
+                    // 检查手机号列是否为空
+                    if (phoneColumn != null && !phoneColumn.trim().isEmpty()) {
+                        try {
+                            String decrypted = decrypt(phoneColumn, keyBytes);
+                            columns[phoneColumnIndex] = decrypted; // 解密手机号列
+                            successCount++;
+                        } catch (Exception e) {
+                            // 解密失败时保留原始值，而不是替换为 [DECRYPT_FAILED]
+                            // columns[phoneColumnIndex] = phoneColumn; // 保留原值
+                            System.err.println("【度小满解密】解密失败 (行 " + (i + 1) + ")，保留原值: " + e.getMessage());
+                            failCount++;
+                        }
+                    } else {
+                        System.out.println("【度小满解密】跳过空手机号 (行 " + (i + 1) + ")");
+                    }
                 }
                 
-                try {
-                    columns[0] = decrypt(phoneColumn, keyBytes); // 解密第一列
-                } catch (Exception e) {
-                    columns[0] = "[DECRYPT_FAILED]";
-                    System.err.println("【度小满解密】解密失败 (行 " + (i + 1) + "): " + e.getMessage());
-                }
+                decryptedLines.add(String.join(",", columns));
             }
-            decryptedLines.add(String.join(",", columns));
+
         }
 
-        // 写入解密后的文件，使用UTF-8编码
+        // 写入解密后的文件，统一使用UTF-8编码（国际标准，避免下游系统乱码）
         Files.write(Paths.get(outputPath), decryptedLines, StandardCharsets.UTF_8);
-        System.out.println("解密完成！结果保存在: " + outputPath);
     }
 
     /** 十六进制字符串转字节数组 */
@@ -138,8 +179,7 @@ public class AESUtilDxm {
         }
         byte[] keyBytes = hexToBytes(secretKeyHex);
         try {
-          String a =  decrypt("D9GoyhNjdo+tb4tK9xsuR+ZGekVy8a58k6XehTOmiMs=", keyBytes);
-          System.out.println(a);
+            decrypt("D9GoyhNjdo+tb4tK9xsuR+ZGekVy8a58k6XehTOmiMs=", keyBytes);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
