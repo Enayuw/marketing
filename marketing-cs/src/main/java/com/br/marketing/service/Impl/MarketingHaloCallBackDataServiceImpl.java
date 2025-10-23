@@ -96,7 +96,8 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 //2. 调用接口
                 Result result = new Result().success();
                 if(marketingCommonConfig.getHaloCallBackDataConfig().getInteger("mockStatus")!=1) {
-                    result = haLoCallBackDataApiClient.dealMarketingCallBack(apiCode,requestJson);
+                    String httpUrl = marketingCommonConfig.getHaloCallBackDataConfig().getString("openApiUrl");
+                    result = haLoCallBackDataApiClient.dealMarketingCallBack(apiCode,httpUrl,requestJson);
                 }else {
                     log.warn("TITLE:{},apiCode:{} mock测试",TITLE,apiCode);
                 }

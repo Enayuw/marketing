@@ -25,20 +25,18 @@ import java.util.HashMap;
 @Service
 @Slf4j
 public class HaloCallBackDataApiClient {
-    @Value("${api.halo.openUrl:00}")
-    private String haloCallBackUrl;
 
     @Resource
     private HttpProxyClient httpProxyClient;
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = false)
-    public Result dealMarketingCallBack(String apiCode,JSONObject requestJson) {
+    public Result dealMarketingCallBack(String apiCode,String httpUrl,JSONObject requestJson) {
         Result result = new Result();
         try {
             Header[] headers = new Header[] {
                     new BasicHeader("Content-Type", "application/json"),
             };
-            HashMap<String, String> resultMap = httpProxyClient.sendByCodeWithLogWithHeader(requestJson,haloCallBackUrl,true,
+            HashMap<String, String> resultMap = httpProxyClient.sendByCodeWithLogWithHeader(requestJson,httpUrl,true,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,"",true,false,headers);
             log.warn("dealMarketingCallBack,apiCode:{},requestParam:{},result:{}",apiCode,
                     requestJson.toJSONString(),JSONObject.toJSONString(resultMap));
