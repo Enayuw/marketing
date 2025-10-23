@@ -50,7 +50,9 @@ public class XieChengCallingRecordJob extends AbstractSimpleElasticJob {
                 msg.put("type", 2);
 //                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
 //                        , msg.toJSONString());
-                rocketMqSwitch.sendMessage("", MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
+                rocketMqSwitch.sendMessage("", MarketingAssistConstants.TOPIC,
+                        MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
+                        msg.toJSONString());
             });
             try {
                 Thread.sleep(marketingCommonConfig.getXieChengCallingRecordSleep());

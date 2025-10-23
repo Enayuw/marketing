@@ -135,7 +135,9 @@ public class BackEndResourceController {
                     msg.put("type", 2);
 //                    producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
 //                            , msg.toJSONString());
-                    rocketMqSwitch.sendMessage(data.getApiCode(), MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString(), ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE);
+                    rocketMqSwitch.sendMessage(data.getApiCode(), MarketingAssistConstants.TOPIC,
+                            MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString(),
+                            ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE);
                 }
             });
 
