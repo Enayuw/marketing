@@ -295,63 +295,133 @@ public class XieChengDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdIsNull() {
-            addCriterion("call_record_id is null");
+        public Criteria andOriginIdIsNull() {
+            addCriterion("origin_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdIsNotNull() {
-            addCriterion("call_record_id is not null");
+        public Criteria andOriginIdIsNotNull() {
+            addCriterion("origin_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdEqualTo(Long value) {
-            addCriterion("call_record_id =", value, "callRecordId");
+        public Criteria andOriginIdEqualTo(Long value) {
+            addCriterion("origin_id =", value, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdNotEqualTo(Long value) {
-            addCriterion("call_record_id <>", value, "callRecordId");
+        public Criteria andOriginIdNotEqualTo(Long value) {
+            addCriterion("origin_id <>", value, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdGreaterThan(Long value) {
-            addCriterion("call_record_id >", value, "callRecordId");
+        public Criteria andOriginIdGreaterThan(Long value) {
+            addCriterion("origin_id >", value, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("call_record_id >=", value, "callRecordId");
+        public Criteria andOriginIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("origin_id >=", value, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdLessThan(Long value) {
-            addCriterion("call_record_id <", value, "callRecordId");
+        public Criteria andOriginIdLessThan(Long value) {
+            addCriterion("origin_id <", value, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdLessThanOrEqualTo(Long value) {
-            addCriterion("call_record_id <=", value, "callRecordId");
+        public Criteria andOriginIdLessThanOrEqualTo(Long value) {
+            addCriterion("origin_id <=", value, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdIn(List<Long> values) {
-            addCriterion("call_record_id in", values, "callRecordId");
+        public Criteria andOriginIdIn(List<Long> values) {
+            addCriterion("origin_id in", values, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdNotIn(List<Long> values) {
-            addCriterion("call_record_id not in", values, "callRecordId");
+        public Criteria andOriginIdNotIn(List<Long> values) {
+            addCriterion("origin_id not in", values, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdBetween(Long value1, Long value2) {
-            addCriterion("call_record_id between", value1, value2, "callRecordId");
+        public Criteria andOriginIdBetween(Long value1, Long value2) {
+            addCriterion("origin_id between", value1, value2, "originId");
             return (Criteria) this;
         }
 
-        public Criteria andCallRecordIdNotBetween(Long value1, Long value2) {
-            addCriterion("call_record_id not between", value1, value2, "callRecordId");
+        public Criteria andOriginIdNotBetween(Long value1, Long value2) {
+            addCriterion("origin_id not between", value1, value2, "originId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyIsNull() {
+            addCriterion("idempotent_key is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyIsNotNull() {
+            addCriterion("idempotent_key is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyEqualTo(String value) {
+            addCriterion("idempotent_key =", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotEqualTo(String value) {
+            addCriterion("idempotent_key <>", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyGreaterThan(String value) {
+            addCriterion("idempotent_key >", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyGreaterThanOrEqualTo(String value) {
+            addCriterion("idempotent_key >=", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyLessThan(String value) {
+            addCriterion("idempotent_key <", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyLessThanOrEqualTo(String value) {
+            addCriterion("idempotent_key <=", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyLike(String value) {
+            addCriterion("idempotent_key like", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotLike(String value) {
+            addCriterion("idempotent_key not like", value, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyIn(List<String> values) {
+            addCriterion("idempotent_key in", values, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotIn(List<String> values) {
+            addCriterion("idempotent_key not in", values, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyBetween(String value1, String value2) {
+            addCriterion("idempotent_key between", value1, value2, "idempotentKey");
+            return (Criteria) this;
+        }
+
+        public Criteria andIdempotentKeyNotBetween(String value1, String value2) {
+            addCriterion("idempotent_key not between", value1, value2, "idempotentKey");
             return (Criteria) this;
         }
 

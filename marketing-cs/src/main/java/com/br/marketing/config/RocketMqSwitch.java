@@ -67,7 +67,7 @@ public class RocketMqSwitch {
             if (global) {
                 boolean flagValue = getMsgFlag(tag, FLAG, Boolean.FALSE);
                 if (flagValue) {
-                    return Boolean.TRUE && shouldRouteToRocketMq(entity, tag);
+                    return shouldRouteToRocketMq(entity, tag);
                 } else {
                     String appCodesValue = getGroupValue(entity, tag, APICODES_SPEED, null, String.class);
                     if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(appCodesValue)) {
@@ -89,7 +89,11 @@ public class RocketMqSwitch {
     public boolean shouldRouteToRocketMq(RocketMqSwitchEntity entity, String tag) {
         Integer featureWeight = getGroupValue(entity, tag, FEATURE_WEIGHT, null, Integer.class);
         if (featureWeight == null || featureWeight <= 0) {
-            return true;
+            if (entity.getFeatureWeight() == null || entity.getFeatureWeight() <= 0) {
+                return true;
+            } else {
+                featureWeight = entity.getFeatureWeight();
+            }
         }
         int weight = RANDOM.nextInt(100) + 1;
         return weight <= featureWeight;

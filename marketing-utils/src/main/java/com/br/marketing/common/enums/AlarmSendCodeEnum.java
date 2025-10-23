@@ -333,6 +333,8 @@ public enum AlarmSendCodeEnum {
     //云客业务异常
     YUNKE_SERVICEERROR("6080001", "云客业务异常"),
 
+    MOCK_SERVICEERROR("6091000", "Mock系统异常"),
+
     UMENG_SERVICEERROR("6090001", "友盟智能时机业务异常"),
 
     SANLIULING_SERVICEERROR("6090002", "360-pp流量业务异常"),
@@ -342,6 +344,9 @@ public enum AlarmSendCodeEnum {
     TONGCHENG_CPA_SERVICEERROR("7001001", "同程CPA业务异常"),
 
     SYNC_REPORT_EXPORT_SERVICEERROR("8001001", "上传记录导出异常"),
+
+    //查询mock-Api异常,立即推送
+    MOCK_APIERROR("8001002", "查询mock-Api异常"),
     ;
 
     /**

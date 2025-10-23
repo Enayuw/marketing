@@ -5,29 +5,32 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.*;
+import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.entity.MarketingRetryEs;
+import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ToEsRetryDataService;
 import com.br.marketing.vo.MarketingTaskVO;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,8 +56,8 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
     private MarketingTaskMapper marketingTaskMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Autowired
-    RabbitMqProducter producter;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
 
     @Override
     public void process() {
@@ -175,7 +178,10 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
         updateFile.setStatus(task.getExecType().equals("2") ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
         updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
         straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString());
+//        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString());
+        rocketMqSwitch.sendMessage(updateFile.getApiCode(), MarketingAssistConstants.TOPIC
+                , MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString()
+                , MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE);
     }
 
     public void updateStatus(Long id, Integer retryStatus) {
