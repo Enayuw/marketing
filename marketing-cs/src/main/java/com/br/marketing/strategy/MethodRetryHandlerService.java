@@ -202,9 +202,6 @@ public class MethodRetryHandlerService {
     @Resource
     private SmyClient smyClient;
 
-    @Resource
-    private HaloCallBackDataApiClient haLoCallBackDataApiClient;
-
 
     /**
      * 渠道唯一标识（由众邦银行提供）
