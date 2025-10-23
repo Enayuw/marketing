@@ -2739,40 +2739,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
-     * 检查并添加操作类型对应的规则标签
-     */
-    private boolean isHasOperateType(String apiCode, String jsonData, String ruleLabel) {
-        Long ruleId = customerRuleMapper.selectIdByRuleLabel(ruleLabel);
-        if (null == ruleId) {
-            String title = "Ai客户，查询规则失败！";
-            String msg = title + " jsonData:" + jsonData + "ruleLabel:" + ruleLabel;
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg, title));
-            wuBaServiceClient.sendDingDingAlert(title, msg);
-            return false;
-        }
-
-        try {
-            customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
-        } catch (DuplicateKeyException e) {
-            log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
-        } catch (Exception e) {
-            try {
-                customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
-            } catch (DuplicateKeyException ee) {
-                log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
-            } catch (Exception ee) {
-                String title = "Ai客户，自动配置规则映射，入库再次异常！！！";
-                String msg = title + " 需要立即检查规则是否存在，b_marketing_customer_rule_mapping,apiCode："
-                        + apiCode + "，规则标签：" + ruleLabel + "，异常内容" + ee.getMessage();
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg, title));
-                wuBaServiceClient.sendDingDingAlert(title, msg);
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * 生成ai客户的规则映射
      */
     private void generateCustomerRuleMapping(String apiCode) {
