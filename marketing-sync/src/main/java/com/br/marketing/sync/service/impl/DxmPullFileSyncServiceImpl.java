@@ -166,11 +166,9 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                 return;
             }
 
-            // T日拉取T-1日文件
-
+            // T日拉取T日文件
             String dateStr = getCurrentDateString();
-            String yesterdayDateStr = getYesterdayDateString();
-            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
+            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", dateStr);
             String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", dateStr);
             
             log.warn(TITLE + "开始拉取转化文件，客户目录: {}, 内部路径: {}", clientDatePath, internalDatePath);
@@ -409,17 +407,6 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     private String getCurrentDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(new Date());
-    }
-
-    /**
-     * 获取昨天日期字符串（yyyy-MM-dd格式）
-     *
-     * @return 日期字符串
-     */
-    private String getYesterdayDateString() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date yesterday = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-        return sdf.format(yesterday);
     }
 
 }
