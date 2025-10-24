@@ -52,6 +52,7 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
                 marketingCustomerAssignedGroup.setCid(cid);
                 marketingCustomerAssignedGroup.setCurrentIndex(nextIndex);
                 marketingCustomerAssignedGroup.setAssignedGroup(group);
+                marketingCustomerAssignedGroup.setUpdateTime(new Date());
 
                 MarketingCustomerAssignedGroupExample example = new MarketingCustomerAssignedGroupExample();
                 example.createCriteria().andCidEqualTo(cid);
@@ -71,6 +72,8 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
         marketingCustomerAssignedGroup.setCid(cid);
         marketingCustomerAssignedGroup.setAssignedGroup(group);
         marketingCustomerAssignedGroup.setCurrentIndex(nextIndex);
+        marketingCustomerAssignedGroup.setCreateTime(new Date());
+        marketingCustomerAssignedGroup.setUpdateTime(new Date());
         marketingCustomerAssignedGroupMapper.insertSelective(marketingCustomerAssignedGroup);
     }
 

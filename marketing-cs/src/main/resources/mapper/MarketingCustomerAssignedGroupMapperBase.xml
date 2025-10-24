@@ -185,9 +185,7 @@
     update b_customer_assigned_group
     set cid = #{record.cid,jdbcType=VARCHAR},
     assigned_group = #{record.assignedGroup,jdbcType=VARCHAR},
-    current_index = #{record.currentIndex,jdbcType=INTEGER},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    current_index = #{record.currentIndex,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
