@@ -125,7 +125,7 @@
     />
     <job:simple id="【bridge】-JinMeiXinBlackListFileCheckJob"
                 class="com.br.marketing.bridge.job.jinmeixin.JinMeiXinBlackListFileCheckJob"
-                cron="00 30 11 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="金美信黑名单文件检查任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -140,7 +140,7 @@
 
     <job:simple id="【bridge】-RongShuFileCleanUploadDateJob"
                 class="com.br.marketing.bridge.job.clean.RongShuFileCleanUploadDateJob"
-                cron="0 0/15 9-21 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="榕树上传数据更新"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -342,7 +342,7 @@
 
     <job:simple id="【bridge】-MailStatisticsInfoJob"
                 class="com.br.marketing.bridge.job.MailStatisticsInfoJob"
-                cron="0 */10 10-23 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="宜信邮件统计信息抓取任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -373,7 +373,7 @@
 
     <job:simple id="【bridge】-TransFileToMarketingBIShardJob"
                 class="com.br.marketing.bridge.job.TransFileToMarketingBIShardJob"
-                cron="0 1/10 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="内部服务器的转化文件分片落库到marketingBI"
                 registry-center-ref="regCenter"
                 sharding-total-count="5"
@@ -420,7 +420,7 @@
 
     <job:simple id="【bridge】-TcSyncCleanCheckJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncCleanCheckJob"
-                cron="0 0/2 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="同城易融clean_check任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
