@@ -22,7 +22,6 @@ import org.springframework.context.annotation.ImportResource;
 @ImportResource(locations = {"classpath:scheduler.xml"})
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_sync")

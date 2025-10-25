@@ -26,7 +26,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_ai_mq_consumer")

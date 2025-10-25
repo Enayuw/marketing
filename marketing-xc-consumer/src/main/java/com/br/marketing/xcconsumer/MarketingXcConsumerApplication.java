@@ -22,7 +22,6 @@ import org.mybatis.spring.annotation.MapperScan;
 @MapperScan("com.br.marketing.mapper")
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_xc_consumer")

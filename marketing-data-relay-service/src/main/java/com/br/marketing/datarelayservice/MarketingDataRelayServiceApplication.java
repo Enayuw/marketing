@@ -19,7 +19,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @MapperScan("com.br.marketing.mapper")
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @Slf4j

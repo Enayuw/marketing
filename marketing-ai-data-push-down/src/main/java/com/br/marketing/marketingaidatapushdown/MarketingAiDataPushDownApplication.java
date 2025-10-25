@@ -25,7 +25,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @Slf4j
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_ai_data_push_down")

@@ -28,7 +28,6 @@ import org.springframework.context.annotation.ImportResource;
 @Slf4j
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_task")
