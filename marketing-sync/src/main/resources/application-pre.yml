@@ -34,7 +34,8 @@ sharding:
 logging:
   level:
     com.br.off.mapper: debug
-  file: ./logs/core.log
+  file:
+      name: ./logs/core.log
   root: INFO
 otherConfig:
   alarm:

@@ -101,7 +101,8 @@ datasource:
 logging:
     level:
         com.br.off.mapper: info
-    file: ./logs/core.log
+    file:
+      name: ./logs/core.log
     root: INFO
 otherConfig:
   huaXiangInterface:
