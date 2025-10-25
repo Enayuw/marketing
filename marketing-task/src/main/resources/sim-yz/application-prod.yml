@@ -114,16 +114,16 @@ otherConfig:
     outsideAppName: marketing-out
   userCenter:
     appName: marketing-api
-    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+    appSecretKey: 77786bf195aa73044af33f8fce6c0441
+  encodeMapping:
+    appName: marketing
+    appSecretKey: d37f90c97204a2ef3fe774fc5f106cf5
   warning:
     pageSize: 5000
     apiUrl: http://k8s.brapp.com/openapi2/api/loan-warning-api/loanStrategy/v2/query
     onlineUrl: http://k8s.brapp.com/compass-api/api/loan-strategy-api/loanStrategy/v2/query
     path: /opt/data/inloan/download/marketing/
     ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
-  encodeMapping:
-    appName: marketing-api
-    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
   mom:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
   proxy:

@@ -38,6 +38,9 @@ otherConfig:
   userCenter:
     appName: marketing-api
     appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+  encodeMapping:
+    appName: marketing
+    appSecretKey: c6acc38a39b0769fa7fb1a95f82d9b33
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
@@ -48,9 +51,6 @@ otherConfig:
         ftpPwd: 9PdaRcMRphcNctRy
         email:
           notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
-  encodeMapping:
-    appName: marketing-api
-    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
 cluster:
   flag: k8s-prod-a
 #elastic-job配置

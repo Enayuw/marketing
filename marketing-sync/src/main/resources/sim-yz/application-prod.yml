@@ -49,13 +49,13 @@ otherConfig:
         outsideAppName: marketing-out
   userCenter:
     appName: marketing-api
-    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+    appSecretKey: 77786bf195aa73044af33f8fce6c0441
+  encodeMapping:
+    appName: marketing
+    appSecretKey: d37f90c97204a2ef3fe774fc5f106cf5
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-  encodeMapping:
-    appName: marketing-api
-    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
 cluster:
   flag: ${CONF_CLUSTER}
 #elastic-job配置
