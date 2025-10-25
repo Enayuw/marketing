@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:reg="http://www.dangdang.com/schema/ddframe/reg"
+       xmlns:job="http://www.dangdang.com/schema/ddframe/job"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/context 
+                        http://www.springframework.org/schema/context/spring-context.xsd 
+                        http://www.dangdang.com/schema/ddframe/reg 
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd 
+                        http://www.dangdang.com/schema/ddframe/job 
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd 
+                        ">
+    <context:component-scan base-package="com.br.marketing.push.job"/>
+
+    <reg:zookeeper id="regCenter"
+                   server-lists="${SERVER_LISTS}"
+                   namespace="${NAMESPACE}"
+                   base-sleep-time-milliseconds="${BASE_SLEEP_TIME_MILLISECONDS}"
+                   max-sleep-time-milliseconds="${MAX_SLEEP_TIME_MILLISECONDS}"
+                   max-retries="${MAX_RETRIES}"
+                   nested-port="${NESTED_PORT}"
+                   nested-data-dir="${NESTED_DATA_DIR}"
+                   connection-timeout-milliseconds="60000"/>
+
+
+<!--    <job:simple id="mergeJob"-->
+<!--                class="com.br.marketing.push.job.MergeJob"-->
+<!--                cron="0 0/10 * * * ? "-->
+<!--                description="合并任务"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
+<!--    <job:simple id="mergeJob-QA"-->
+<!--                class="com.br.marketing.push.job.QaMergeJob"-->
+<!--                cron="0 0 11 1/1 1/1 ? 2055-2056"-->
+<!--                description="合并任务-测试专用"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
+</beans>
