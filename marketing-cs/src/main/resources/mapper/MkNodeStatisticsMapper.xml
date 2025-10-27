@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MkNodeStatisticsMapper" >
+
+    <!-- UPSERT 节点统计数据 - Doris compatible -->
+    <insert id="upsertStatistics">
+        INSERT INTO mk_node_statistics (
+            stat_date,
+            api_code,
+            link_id,
+            link_node_id,
+            total_count,
+            total_magnitude,
+            first_update_time,
+            last_update_time,
+            update_count
+        ) VALUES (
+                     #{statDate},
+                     #{apiCode},
+                     #{linkId},
+                     #{linkNodeId},
+                     #{totalCount},
+                     #{totalMagnitude},
+                     #{firstUpdateTime},
+                     #{lastUpdateTime},
+                     1
+                 )
+    </insert>
+
+    <!-- 更新已存在的统计数据 -->
+    <update id="updateStatistics">
+        UPDATE mk_node_statistics
+        SET total_count = #{totalCount},
+            total_magnitude = #{totalMagnitude},
+            first_update_time = #{firstUpdateTime},
+            last_update_time = #{lastUpdateTime},
+            update_count = update_count + 1
+        WHERE stat_date = #{statDate}
+          AND api_code = #{apiCode}
+          AND link_id = #{linkId}
+          AND link_node_id = #{linkNodeId}
+    </update>
+
+    <!-- 从 mk_indicator 表查询统计数据 -->
+    <select id="selectStatisticsFromIndicator" resultType="com.br.marketing.entity.MkNodeStatistics">
+        SELECT
+            #{statDate} AS statDate,
+            #{apiCode} AS apiCode,
+            #{linkId} AS linkId,
+            #{linkNodeId} AS linkNodeId,
+            COUNT(DISTINCT CONCAT(node_code, '|', api_code, '|', execution_time)) AS totalCount,
+            SUM(COALESCE(magnitude, 0)) AS totalMagnitude,
+            MIN(execution_time) AS firstUpdateTime,
+            MAX(execution_time) AS lastUpdateTime,
+            1 AS updateCount
+        FROM mk_indicator
+        WHERE DATE(execution_time) = #{statDate}
+          AND api_code = #{apiCode}
+          AND node_code = #{nodeCode}
+          AND execution_time >= #{startTime}
+          AND execution_time &lt; #{endTime}
+    </select>
+
+    <!-- 从 mk_indicator 表批量统计并插入 - Doris compatible -->
+    <insert id="insertFromIndicator">
+        INSERT INTO mk_node_statistics (
+            stat_date,
+            api_code,
+            link_id,
+            link_node_id,
+            total_count,
+            total_magnitude,
+            first_update_time,
+            last_update_time,
+            update_count
+        )
+        SELECT
+            #{statDate} AS stat_date,
+            #{apiCode} AS api_code,
+            #{linkId} AS link_id,
+            #{linkNodeId} AS link_node_id,
+            COUNT(DISTINCT CONCAT(node_code, '|', api_code, '|', execution_time)) AS total_count,
+            SUM(COALESCE(magnitude, 0)) AS total_magnitude,
+            MIN(execution_time) AS first_update_time,
+            MAX(execution_time) AS last_update_time,
+            1 AS update_count
+        FROM mk_indicator
+        WHERE DATE(execution_time) = #{statDate}
+          AND api_code = #{apiCode}
+          AND node_code = #{nodeCode}
+          AND execution_time >= #{startTime}
+          AND execution_time &lt; #{endTime}
+    </insert>
+
+    <!-- 从 mk_indicator 表更新统计数据 -->
+    <update id="updateFromIndicator">
+        UPDATE mk_node_statistics
+        SET total_count = (
+            SELECT COUNT(DISTINCT CONCAT(node_code, '|', api_code, '|', execution_time))
+            FROM mk_indicator
+            WHERE DATE(execution_time) = #{statDate}
+            AND api_code = #{apiCode}
+            AND node_code = #{nodeCode}
+            AND execution_time >= #{startTime}
+            AND execution_time &lt; #{endTime}
+            ),
+            total_magnitude = (
+        SELECT SUM(COALESCE(magnitude, 0))
+        FROM mk_indicator
+        WHERE DATE(execution_time) = #{statDate}
+          AND api_code = #{apiCode}
+          AND node_code = #{nodeCode}
+          AND execution_time >= #{startTime}
+          AND execution_time &lt; #{endTime}
+            ),
+            first_update_time = (
+        SELECT MIN(execution_time)
+        FROM mk_indicator
+        WHERE DATE(execution_time) = #{statDate}
+          AND api_code = #{apiCode}
+          AND node_code = #{nodeCode}
+          AND execution_time >= #{startTime}
+          AND execution_time &lt; #{endTime}
+            ),
+            last_update_time = (
+        SELECT MAX(execution_time)
+        FROM mk_indicator
+        WHERE DATE(execution_time) = #{statDate}
+          AND api_code = #{apiCode}
+          AND node_code = #{nodeCode}
+          AND execution_time >= #{startTime}
+          AND execution_time &lt; #{endTime}
+            ),
+            update_count = update_count + 1
+        WHERE stat_date = #{statDate}
+          AND api_code = #{apiCode}
+          AND link_id = #{linkId}
+          AND link_node_id = #{linkNodeId}
+    </update>
+
+    <!-- 查询链路的汇总统计信息 -->
+    <select id="selectLinkStatistics" resultType="com.br.marketing.dto.datamap.LinkStatisticsDTO">
+        SELECT
+            SUM(total_count) AS totalCount,
+            SUM(total_magnitude) AS totalMagnitude,
+            MIN(first_update_time) AS firstUpdateTime,
+            MAX(last_update_time) AS lastUpdateTime,
+            SUM(update_count) AS updateCount
+        FROM mk_node_statistics
+        WHERE link_id = #{linkId}
+          AND stat_date = #{statDate}
+    </select>
+
+    <!-- 根据链路节点ID列表查询统计信息 -->
+    <select id="selectByLinkNodeIds" resultType="com.br.marketing.entity.MkNodeStatistics">
+        SELECT
+        stat_date AS statDate,
+        api_code AS apiCode,
+        link_id AS linkId,
+        link_node_id AS linkNodeId,
+        total_count AS totalCount,
+        total_magnitude AS totalMagnitude,
+        first_update_time AS firstUpdateTime,
+        last_update_time AS lastUpdateTime,
+        update_count AS updateCount
+        FROM mk_node_statistics
+        WHERE link_node_id IN
+        <foreach collection="linkNodeIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND stat_date = #{statDate}
+    </select>
+
+</mapper>
