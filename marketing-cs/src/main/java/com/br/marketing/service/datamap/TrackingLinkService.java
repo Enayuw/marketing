@@ -1,7 +1,7 @@
 package com.br.marketing.service.datamap;
 
-import cn.hutool.db.PageResult;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.datamap.*;
 
 import java.util.List;
@@ -40,12 +40,11 @@ public interface TrackingLinkService {
     
     /**
      * 更新链路
-     * 
-     * @param linkId 链路ID
+     *
      * @param request 更新链路请求
      * @return 是否成功
      */
-    ApiResult<Boolean> updateLink(Long linkId, CreateLinkRequest request);
+    ApiResult<Boolean> updateLink(CreateLinkRequest request);
     
     /**
      * 查询链路列表
@@ -53,7 +52,7 @@ public interface TrackingLinkService {
      * @param request 查询请求
      * @return 链路列表
      */
-    ApiResult<PageResult<LinkListItemVO>> selectLinkList(LinkListRequest request);
+    PageResultReturn selectLinkList(LinkListRequest request);
     
     /**
      * 更新链路状态

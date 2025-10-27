@@ -17,6 +17,9 @@ import java.util.List;
 @ApiModel("创建链路请求")
 public class CreateLinkRequest {
 
+    @ApiModelProperty("链路id")
+    private Long linkId;
+
     @ApiModelProperty("链路名称")
     private String linkName;
 

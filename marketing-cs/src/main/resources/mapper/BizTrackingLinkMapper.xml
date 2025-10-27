@@ -52,10 +52,7 @@
             </if>
         </where>
         GROUP BY l.id
-        ORDER BY l.created_time DESC
-        <if test="query.pageNum != null and query.pageSize != null">
-            LIMIT #{query.pageSize} OFFSET #{query.pageNum}
-        </if>
+        ORDER BY l.id DESC
     </select>
 
     <!-- 统计链路数量 -->

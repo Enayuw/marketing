@@ -27,10 +27,10 @@ public class LinkListRequest {
     private Integer status;
 
     @ApiModelProperty("页码")
-    private Integer pageNum = 1;
+    private Integer pageNum;
 
     @ApiModelProperty("每页大小")
-    private Integer pageSize = 20;
+    private Integer pageSize;
 }
 
 

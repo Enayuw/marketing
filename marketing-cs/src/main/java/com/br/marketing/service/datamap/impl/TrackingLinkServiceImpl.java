@@ -2,7 +2,6 @@ package com.br.marketing.service.datamap.impl;
 
 import java.util.Date;
 
-import cn.hutool.db.PageResult;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.datamap.*;
@@ -15,6 +14,7 @@ import com.br.marketing.mapper.BizTrackingLinkNodeMapper;
 import com.br.marketing.mapper.BizTrackingNodeDictMapper;
 import com.br.marketing.mapper.MkNodeStatisticsMapper;
 import com.br.marketing.service.datamap.TrackingLinkService;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,7 +140,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                     .map(LinkNodeDetailDTO::getId)
                     .collect(Collectors.toList());
 
-            List<MkNodeStatistics> statistics = statisticsMapper.selectByLinkNodeIds(linkNodeIds, statDate);
+            List<MkNodeStatistics> statistics = statisticsMapper.selectByLinkNodeIdsbI_(linkNodeIds, statDate);
 
             // 4. Merge statistics into node details
             if (!CollectionUtils.isEmpty(statistics)) {
@@ -160,7 +160,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         }
 
         // 5. Query link aggregated statistics
-        LinkStatisticsDTO linkStatistics = statisticsMapper.selectLinkStatistics(linkId, statDate);
+        LinkStatisticsDTO linkStatistics = statisticsMapper.selectLinkStatisticsbI_(linkId, statDate);
 
         // Build link information
         LinkInfoVO linkInfo = LinkInfoVO.builder()
@@ -216,7 +216,8 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> updateLink(Long linkId, CreateLinkRequest request) {
+    public ApiResult<Boolean> updateLink(CreateLinkRequest request) {
+        Long linkId = request.getLinkId();
         // 1. 更新链路基本信息
         BizTrackingLink bizTrackingLink = new BizTrackingLink();
         bizTrackingLink.setId(linkId);
@@ -249,7 +250,11 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
     }
 
     @Override
-    public ApiResult<PageResult<LinkListItemVO>> selectLinkList(LinkListRequest request) {
+    public PageResultReturn selectLinkList(LinkListRequest request) {
+
+        Integer page = request.getPageNum();
+        Integer pageSize = request.getPageSize();
+        PageHelper.startPage(page, pageSize);
 
         // 查询列表
         List<LinkListItemDTO> list = linkMapper.selectLinkList(request);
@@ -269,11 +274,8 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                         .build())
                 .collect(Collectors.toList());
 
-        // 构建分页结果
-        PageResultReturn pageResultReturn = PageResultReturn.setPageResult(voList, request.getPageNum(), request.getPageSize());
-
         // 返回结果
-        return new ApiResult<PageResult<LinkListItemVO>>().success(pageResultReturn.toString());
+        return PageResultReturn.setPageResult(voList, page, pageSize);
     }
 
     @Override
