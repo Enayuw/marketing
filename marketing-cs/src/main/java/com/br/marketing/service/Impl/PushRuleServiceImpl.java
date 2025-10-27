@@ -3093,7 +3093,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 ReserveField1DTO finalReserveField = reserveField1;
                 //扩展字段添加手机号
-                addCellReserveFileld1(reserveFileld1Json, marketingPreUserDetailDTO.getCell(), finalIsCheck);
+                addCellReserveFileld1(reserveFileld1Json, marketingPreUserDetailDTO.getCell(), finalIsCheck, iUploadCheckService, tags);
                 JSONObject finalReserveFileld1Json = reserveFileld1Json;
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -3335,7 +3335,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
-    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck) {
+    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
+                                       IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isNotEmpty(cell)) {
             //明文规则校验
             UserValidator userValidator = new UserValidator(isCheck);
@@ -3346,6 +3347,101 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             }
 
+        }
+        
+        // 处理debtorCell1-4字段
+        processDebtorCells(reserveFileld1Json, isCheck, iUploadCheckService, tags);
+    }
+    
+    /**
+     * 处理debtorCell1-4字段，生成debtorCellList
+     * 
+     * @param reserveFileld1Json 扩展字段JSON对象
+     * @param isCheck 是否校验
+     * @param iUploadCheckService 解密服务
+     * @param tags 客户标签配置
+     */
+    private void processDebtorCells(JSONObject reserveFileld1Json, Integer isCheck, 
+                                   IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+        String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
+        JSONArray debtorCellList = new JSONArray();
+        int order = 1;
+        
+        for (String fieldName : debtorCellFields) {
+            if (reserveFileld1Json.containsKey(fieldName)) {
+                String orgDebtorCellValue = reserveFileld1Json.getString(fieldName);
+                if (StringUtils.isNotEmpty(orgDebtorCellValue)) {
+                    // 解密
+                    String decryptedValue = decryptDebtorCell(orgDebtorCellValue, isCheck, iUploadCheckService, tags);
+                    
+                    // 只有解密成功才添加到list中
+                    if (StringUtils.isNotEmpty(decryptedValue)) {
+                        JSONObject debtorCellItem = new JSONObject();
+                        
+                        // 设置原值
+                        debtorCellItem.put("orgDebtorCell", orgDebtorCellValue);
+                        
+                        // 设置log加密后的值
+                        debtorCellItem.put("logDebtorCell", decryptedValue);
+                        
+                        // 设置字段名
+                        debtorCellItem.put("debtorCell", fieldName);
+                        
+                        // 设置顺序
+                        debtorCellItem.put("order", order);
+                        
+                        debtorCellList.add(debtorCellItem);
+                        order++;
+                    }
+                }
+            }
+        }
+        
+        // 如果有debtorCell数据，则添加到reserveField1中
+        if (!debtorCellList.isEmpty()) {
+            reserveFileld1Json.put("debtorCellList", debtorCellList);
+        }
+    }
+    
+    /**
+     * 解密debtorCell字段值
+     * 使用iUploadCheckService.process3keyCheck的解密逻辑
+     * 
+     * @param encryptedValue 加密值
+     * @param isCheck 是否校验
+     * @param iUploadCheckService 解密服务
+     * @param tags 客户标签配置
+     * @return 解密后的明文值，解密失败返回空字符串
+     */
+    private String decryptDebtorCell(String encryptedValue, Integer isCheck, 
+                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+        if (StringUtils.isEmpty(encryptedValue)) {
+            return "";
+        }
+        
+        try {
+            // 创建临时对象用于解密
+            MarketingPreUserDetailDTO tempUser = new MarketingPreUserDetailDTO();
+            tempUser.setCell(encryptedValue);
+            
+            // 保存原始值
+            tempUser.setCellOriginal(encryptedValue);
+            
+            // 调用解密服务
+            iUploadCheckService.process3keyCheck(tempUser, isCheck, tags);
+            
+            // 检查解密是否成功
+            // 如果状态变为失败状态，说明解密失败
+            if (!Integer.valueOf(MonitorTypeEnum.STATUS_1.getTypeCode()).equals(tempUser.getStatus())) {
+                return "";
+            }
+            
+            // 获取解密后的明文值
+            return tempUser.getCell();
+
+        } catch (Exception e) {
+            // 解密过程出现异常，返回空字符串
+            return "";
         }
     }
 
