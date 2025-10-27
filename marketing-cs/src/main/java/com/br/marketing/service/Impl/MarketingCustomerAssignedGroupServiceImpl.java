@@ -42,9 +42,7 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
                 List<String> assignedGroups = marketingCommonConfig.getAssignedGroups();
                 int nextIndex;
                 if (StringUtils.isEmpty(group)) {
-                    MarketingCustomerAssignedGroup preAssignedGroup = marketingCustomerAssignedGroupMapper.getLastAssignedGroup(cid);
-                    nextIndex = (preAssignedGroup.getCurrentIndex() + 1) % assignedGroups.size();
-                    group = assignedGroups.get(nextIndex);
+                    return;
                 } else {
                     nextIndex = assignedGroups.indexOf(group);
                 }
