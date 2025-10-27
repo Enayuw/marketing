@@ -5,6 +5,7 @@ spring:
   profiles.active: pre
   main:
     allow-circular-references: true  # 允许循环依赖
+    allow-bean-definition-overriding: true  # 允许 bean 定义覆盖（ShardingSphere 需要）
   autoconfigure:
     exclude:
       - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration

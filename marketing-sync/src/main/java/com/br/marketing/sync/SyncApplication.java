@@ -5,7 +5,6 @@ import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,7 +21,6 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
 @EnablePrometheusTiming
-@EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_sync")
 @Slf4j
 public class SyncApplication {
