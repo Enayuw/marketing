@@ -1,6 +1,5 @@
 package com.br.marketing.task;
 
-
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.jvm.EnablePrometheusJvm;
