@@ -1524,9 +1524,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * @param dto
      * @return com.br.marketing.common.commondto.Result<java.lang.Integer>
-     * @description 剔除量级展示，result = true 或 info = NULL（动态补充包剔除）
+     * @description 动态补充包剔除量级展示，result = false 且 info = NULL
      * @author hedongshuo
-     * @date 2024/11/8 18:08
+     * @date 2025/10/27 11:06
      **/
     @Override
     public Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto) {
@@ -1542,16 +1542,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         String deleteSql = null;
         List<String> querySqls = new ArrayList<>();
-        //result = true
         if (StringUtils.isNotEmpty(result)) {
-            if ("true".equals(result)) {
-                Boolean xcTrueDeletePushPreviewOptFlag = marketingCommonConfig.getXcTrueDeletePushPreviewOptFlag();
-                if (xcTrueDeletePushPreviewOptFlag) {
-                    cycleDataDeleteQueryOpt(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime(), querySqls);
-                } else {
-                    deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
-                }
-            }
             if ("false".equals(result)) {
                 if (Objects.isNull(info)) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("result=false时，info不能为空！");
@@ -1578,9 +1569,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception e) {
             if (CollectionUtils.isEmpty(querySqls)) {
-                log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", deleteSql, e);
+                log.error("规则中心-动态补充包剔除量级查询Doris异常,sql={}", deleteSql, e);
             } else {
-                log.error("规则中心-携程撞库筛选查询Doris异常,sqls={}", String.join(";", querySqls), e);
+                log.error("规则中心-动态补充包剔除量级查询Doris异常,sqls={}", String.join(";", querySqls), e);
             }
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
