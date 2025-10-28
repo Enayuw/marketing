@@ -99,11 +99,9 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
             for (LinkNodeVO nodeDTO : request.getNodes()) {
                 BizTrackingLinkNode bizTrackingLinkNode = new BizTrackingLinkNode();
                 bizTrackingLinkNode.setLinkId(linkId);
+                bizTrackingLinkNode.setNodeId(nodeDTO.getNodeId());
                 bizTrackingLinkNode.setNodeDictId(nodeDTO.getNodeDictId());
-                bizTrackingLinkNode.setNodeOrder(nodeDTO.getNodeOrder());
                 bizTrackingLinkNode.setNodeAlias(nodeDTO.getNodeAlias());
-                bizTrackingLinkNode.setNodeSourceId(nodeDTO.getNodeSourceId());
-                bizTrackingLinkNode.setNodeTargetId(nodeDTO.getNodeTargetId());
                 bizTrackingLinkNode.setStatus((byte)1);
                 bizTrackingLinkNode.setCreatedTime(new Date());
                 bizTrackingLinkNode.setUpdatedTime(new Date());
@@ -123,17 +121,17 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
 
     @Override
     public ApiResult<LinkDetailResponse> getLinkDetail(Long linkId) {
-        // 1. Query link basic information
+        // 1. 查询链路基本信息
         BizTrackingLink link = linkMapper.selectByPrimaryKey(linkId);
         if (link == null) {
             return new ApiResult<LinkDetailResponse>().fail("没有查询到链路信息, linkId：" + linkId);
         }
 
-        // 2. Query node details (without statistics)
+        // 2. 查询节点详细信息（不含统计信息）
         String statDate = LocalDate.now().format(DATE_FORMATTER);
         List<LinkNodeDetailDTO> nodeDetailDTOList = linkNodeMapper.selectLinkNodeDetailsWithStatistics(linkId, statDate);
 
-        // 3. Query node statistics (from Doris)
+        // 3. 查询节点统计信息（来自 Doris）
         if (!CollectionUtils.isEmpty(nodeDetailDTOList)) {
             List<Long> linkNodeIds = nodeDetailDTOList.stream()
                     .map(LinkNodeDetailDTO::getId)
@@ -141,7 +139,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
 
             List<MkNodeStatistics> statistics = statisticsMapper.selectByLinkNodeIdsbI_(linkNodeIds, statDate);
 
-            // 4. Merge statistics into node details
+            // 4. 将统计信息合并到节点详细信息中
             if (!CollectionUtils.isEmpty(statistics)) {
                 statistics.forEach(stat -> {
                     nodeDetailDTOList.stream()
@@ -158,10 +156,10 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
             }
         }
 
-        // 5. Query link aggregated statistics
+        // 5. 查询链接聚合统计信息
         LinkStatisticsDTO linkStatistics = statisticsMapper.selectLinkStatisticsbI_(linkId, statDate);
 
-        // Build link information
+        // 构建链接信息
         LinkInfoVO linkInfo = LinkInfoVO.builder()
                 .id(link.getId())
                 .apiCode(link.getApiCode())
@@ -175,7 +173,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                 .updatedTime(link.getUpdatedTime())
                 .build();
 
-        // Fill statistics into link information if available
+        // 将统计信息填充到链接信息中（如果可用）
         if (linkStatistics != null) {
             linkInfo.setTotalCount(linkStatistics.getTotalCount());
             linkInfo.setTotalMagnitude(linkStatistics.getTotalMagnitude());
@@ -184,16 +182,14 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
             linkInfo.setUpdateCount(linkStatistics.getUpdateCount());
         }
 
-        // Build node list
+        // 构建节点列表
         List<LinkNodeDetailVO> nodes = nodeDetailDTOList.stream()
                 .map(node -> LinkNodeDetailVO.builder()
                         .id(node.getId())
                         .linkId(node.getLinkId())
+                        .nodeId(node.getNodeId())
                         .nodeDictId(node.getNodeDictId())
-                        .nodeOrder(node.getNodeOrder())
                         .nodeAlias(node.getNodeAlias())
-                        .nodeSourceId(node.getNodeSourceId())
-                        .nodeTargetId(node.getNodeTargetId())
                         .status(node.getStatus())
                         .nodeCode(node.getNodeCode())
                         .apiCode(node.getApiCode())
@@ -242,11 +238,9 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         for (LinkNodeVO nodeDTO : request.getNodes()) {
             BizTrackingLinkNode bizTrackingLinkNode = new BizTrackingLinkNode();
             bizTrackingLinkNode.setLinkId(linkId);
+            bizTrackingLinkNode.setNodeId(nodeDTO.getNodeId());
             bizTrackingLinkNode.setNodeDictId(nodeDTO.getNodeDictId());
-            bizTrackingLinkNode.setNodeOrder(nodeDTO.getNodeOrder());
             bizTrackingLinkNode.setNodeAlias(nodeDTO.getNodeAlias());
-            bizTrackingLinkNode.setNodeSourceId(nodeDTO.getNodeSourceId());
-            bizTrackingLinkNode.setNodeTargetId(nodeDTO.getNodeTargetId());
             bizTrackingLinkNode.setStatus((byte)1);
             bizTrackingLinkNode.setCreatedTime(new Date());
             bizTrackingLinkNode.setUpdatedTime(new Date());

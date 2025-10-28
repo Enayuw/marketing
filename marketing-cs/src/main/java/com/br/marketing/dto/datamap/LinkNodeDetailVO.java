@@ -24,20 +24,14 @@ public class LinkNodeDetailVO {
     @ApiModelProperty("链路ID")
     private Long linkId;
 
+    @ApiModelProperty("节点id 前端生成")
+    private Long nodeId;
+
     @ApiModelProperty("节点字典ID")
     private Long nodeDictId;
 
-    @ApiModelProperty("节点顺序")
-    private Integer nodeOrder;
-
     @ApiModelProperty("节点别名")
     private String nodeAlias;
-
-    @ApiModelProperty("源节点ID")
-    private String nodeSourceId;
-
-    @ApiModelProperty("目标节点ID")
-    private String nodeTargetId;
 
     @ApiModelProperty("状态（0-禁用 1-启用）")
     private Integer status;

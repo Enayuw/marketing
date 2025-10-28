@@ -225,6 +225,66 @@ public class BizTrackingLinkNodeExample {
             return (Criteria) this;
         }
 
+        public Criteria andNodeIdIsNull() {
+            addCriterion("node_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdIsNotNull() {
+            addCriterion("node_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdEqualTo(Long value) {
+            addCriterion("node_id =", value, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdNotEqualTo(Long value) {
+            addCriterion("node_id <>", value, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdGreaterThan(Long value) {
+            addCriterion("node_id >", value, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("node_id >=", value, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdLessThan(Long value) {
+            addCriterion("node_id <", value, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdLessThanOrEqualTo(Long value) {
+            addCriterion("node_id <=", value, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdIn(List<Long> values) {
+            addCriterion("node_id in", values, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdNotIn(List<Long> values) {
+            addCriterion("node_id not in", values, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdBetween(Long value1, Long value2) {
+            addCriterion("node_id between", value1, value2, "nodeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andNodeIdNotBetween(Long value1, Long value2) {
+            addCriterion("node_id not between", value1, value2, "nodeId");
+            return (Criteria) this;
+        }
+
         public Criteria andNodeDictIdIsNull() {
             addCriterion("node_dict_id is null");
             return (Criteria) this;
@@ -282,66 +342,6 @@ public class BizTrackingLinkNodeExample {
 
         public Criteria andNodeDictIdNotBetween(Long value1, Long value2) {
             addCriterion("node_dict_id not between", value1, value2, "nodeDictId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderIsNull() {
-            addCriterion("node_order is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderIsNotNull() {
-            addCriterion("node_order is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderEqualTo(Integer value) {
-            addCriterion("node_order =", value, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderNotEqualTo(Integer value) {
-            addCriterion("node_order <>", value, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderGreaterThan(Integer value) {
-            addCriterion("node_order >", value, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderGreaterThanOrEqualTo(Integer value) {
-            addCriterion("node_order >=", value, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderLessThan(Integer value) {
-            addCriterion("node_order <", value, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderLessThanOrEqualTo(Integer value) {
-            addCriterion("node_order <=", value, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderIn(List<Integer> values) {
-            addCriterion("node_order in", values, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderNotIn(List<Integer> values) {
-            addCriterion("node_order not in", values, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderBetween(Integer value1, Integer value2) {
-            addCriterion("node_order between", value1, value2, "nodeOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeOrderNotBetween(Integer value1, Integer value2) {
-            addCriterion("node_order not between", value1, value2, "nodeOrder");
             return (Criteria) this;
         }
 
@@ -412,146 +412,6 @@ public class BizTrackingLinkNodeExample {
 
         public Criteria andNodeAliasNotBetween(String value1, String value2) {
             addCriterion("node_alias not between", value1, value2, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdIsNull() {
-            addCriterion("node_source_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdIsNotNull() {
-            addCriterion("node_source_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdEqualTo(String value) {
-            addCriterion("node_source_id =", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdNotEqualTo(String value) {
-            addCriterion("node_source_id <>", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdGreaterThan(String value) {
-            addCriterion("node_source_id >", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdGreaterThanOrEqualTo(String value) {
-            addCriterion("node_source_id >=", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdLessThan(String value) {
-            addCriterion("node_source_id <", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdLessThanOrEqualTo(String value) {
-            addCriterion("node_source_id <=", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdLike(String value) {
-            addCriterion("node_source_id like", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdNotLike(String value) {
-            addCriterion("node_source_id not like", value, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdIn(List<String> values) {
-            addCriterion("node_source_id in", values, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdNotIn(List<String> values) {
-            addCriterion("node_source_id not in", values, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdBetween(String value1, String value2) {
-            addCriterion("node_source_id between", value1, value2, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeSourceIdNotBetween(String value1, String value2) {
-            addCriterion("node_source_id not between", value1, value2, "nodeSourceId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdIsNull() {
-            addCriterion("node_target_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdIsNotNull() {
-            addCriterion("node_target_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdEqualTo(String value) {
-            addCriterion("node_target_id =", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdNotEqualTo(String value) {
-            addCriterion("node_target_id <>", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdGreaterThan(String value) {
-            addCriterion("node_target_id >", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdGreaterThanOrEqualTo(String value) {
-            addCriterion("node_target_id >=", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdLessThan(String value) {
-            addCriterion("node_target_id <", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdLessThanOrEqualTo(String value) {
-            addCriterion("node_target_id <=", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdLike(String value) {
-            addCriterion("node_target_id like", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdNotLike(String value) {
-            addCriterion("node_target_id not like", value, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdIn(List<String> values) {
-            addCriterion("node_target_id in", values, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdNotIn(List<String> values) {
-            addCriterion("node_target_id not in", values, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdBetween(String value1, String value2) {
-            addCriterion("node_target_id between", value1, value2, "nodeTargetId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeTargetIdNotBetween(String value1, String value2) {
-            addCriterion("node_target_id not between", value1, value2, "nodeTargetId");
             return (Criteria) this;
         }
 

@@ -21,11 +21,9 @@ public class LinkNodeDetailDTO {
     
     private Long id;
     private Long linkId;
+    private Long nodeId;
     private Long nodeDictId;
-    private Integer nodeOrder;
     private String nodeAlias;
-    private String nodeSourceId;
-    private String nodeTargetId;
     private Integer status;
     
     // 节点字典信息

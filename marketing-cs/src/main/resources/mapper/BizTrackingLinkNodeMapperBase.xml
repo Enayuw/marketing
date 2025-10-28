@@ -4,11 +4,9 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.BizTrackingLinkNode" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="link_id" property="linkId" jdbcType="BIGINT" />
+    <result column="node_id" property="nodeId" jdbcType="BIGINT" />
     <result column="node_dict_id" property="nodeDictId" jdbcType="BIGINT" />
-    <result column="node_order" property="nodeOrder" jdbcType="INTEGER" />
     <result column="node_alias" property="nodeAlias" jdbcType="VARCHAR" />
-    <result column="node_source_id" property="nodeSourceId" jdbcType="VARCHAR" />
-    <result column="node_target_id" property="nodeTargetId" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
     <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
@@ -72,8 +70,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, link_id, node_dict_id, node_order, node_alias, node_source_id, node_target_id, 
-    `status`, created_time, updated_time
+    id, link_id, node_id, node_dict_id, node_alias, `status`, created_time, updated_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.BizTrackingLinkNodeExample" >
     select
@@ -109,14 +106,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into biz_tracking_link_node (link_id, node_dict_id, node_order, 
-      node_alias, node_source_id, node_target_id, 
-      `status`, created_time, updated_time
-      )
-    values (#{linkId,jdbcType=BIGINT}, #{nodeDictId,jdbcType=BIGINT}, #{nodeOrder,jdbcType=INTEGER}, 
-      #{nodeAlias,jdbcType=VARCHAR}, #{nodeSourceId,jdbcType=VARCHAR}, #{nodeTargetId,jdbcType=VARCHAR}, 
-      #{status,jdbcType=TINYINT}, #{createdTime,jdbcType=TIMESTAMP}, #{updatedTime,jdbcType=TIMESTAMP}
-      )
+    insert into biz_tracking_link_node (link_id, node_id, node_dict_id, 
+      node_alias, `status`, created_time, 
+      updated_time)
+    values (#{linkId,jdbcType=BIGINT}, #{nodeId,jdbcType=BIGINT}, #{nodeDictId,jdbcType=BIGINT}, 
+      #{nodeAlias,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{updatedTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.BizTrackingLinkNode" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -127,20 +122,14 @@
       <if test="linkId != null" >
         link_id,
       </if>
+      <if test="nodeId != null" >
+        node_id,
+      </if>
       <if test="nodeDictId != null" >
         node_dict_id,
       </if>
-      <if test="nodeOrder != null" >
-        node_order,
-      </if>
       <if test="nodeAlias != null" >
         node_alias,
-      </if>
-      <if test="nodeSourceId != null" >
-        node_source_id,
-      </if>
-      <if test="nodeTargetId != null" >
-        node_target_id,
       </if>
       <if test="status != null" >
         `status`,
@@ -156,20 +145,14 @@
       <if test="linkId != null" >
         #{linkId,jdbcType=BIGINT},
       </if>
+      <if test="nodeId != null" >
+        #{nodeId,jdbcType=BIGINT},
+      </if>
       <if test="nodeDictId != null" >
         #{nodeDictId,jdbcType=BIGINT},
       </if>
-      <if test="nodeOrder != null" >
-        #{nodeOrder,jdbcType=INTEGER},
-      </if>
       <if test="nodeAlias != null" >
         #{nodeAlias,jdbcType=VARCHAR},
-      </if>
-      <if test="nodeSourceId != null" >
-        #{nodeSourceId,jdbcType=VARCHAR},
-      </if>
-      <if test="nodeTargetId != null" >
-        #{nodeTargetId,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         #{status,jdbcType=TINYINT},
@@ -197,20 +180,14 @@
       <if test="record.linkId != null" >
         link_id = #{record.linkId,jdbcType=BIGINT},
       </if>
+      <if test="record.nodeId != null" >
+        node_id = #{record.nodeId,jdbcType=BIGINT},
+      </if>
       <if test="record.nodeDictId != null" >
         node_dict_id = #{record.nodeDictId,jdbcType=BIGINT},
       </if>
-      <if test="record.nodeOrder != null" >
-        node_order = #{record.nodeOrder,jdbcType=INTEGER},
-      </if>
       <if test="record.nodeAlias != null" >
         node_alias = #{record.nodeAlias,jdbcType=VARCHAR},
-      </if>
-      <if test="record.nodeSourceId != null" >
-        node_source_id = #{record.nodeSourceId,jdbcType=VARCHAR},
-      </if>
-      <if test="record.nodeTargetId != null" >
-        node_target_id = #{record.nodeTargetId,jdbcType=VARCHAR},
       </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=TINYINT},
@@ -230,11 +207,9 @@
     update biz_tracking_link_node
     set id = #{record.id,jdbcType=BIGINT},
       link_id = #{record.linkId,jdbcType=BIGINT},
+      node_id = #{record.nodeId,jdbcType=BIGINT},
       node_dict_id = #{record.nodeDictId,jdbcType=BIGINT},
-      node_order = #{record.nodeOrder,jdbcType=INTEGER},
       node_alias = #{record.nodeAlias,jdbcType=VARCHAR},
-      node_source_id = #{record.nodeSourceId,jdbcType=VARCHAR},
-      node_target_id = #{record.nodeTargetId,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=TINYINT},
       created_time = #{record.createdTime,jdbcType=TIMESTAMP},
       updated_time = #{record.updatedTime,jdbcType=TIMESTAMP}
@@ -248,20 +223,14 @@
       <if test="linkId != null" >
         link_id = #{linkId,jdbcType=BIGINT},
       </if>
+      <if test="nodeId != null" >
+        node_id = #{nodeId,jdbcType=BIGINT},
+      </if>
       <if test="nodeDictId != null" >
         node_dict_id = #{nodeDictId,jdbcType=BIGINT},
       </if>
-      <if test="nodeOrder != null" >
-        node_order = #{nodeOrder,jdbcType=INTEGER},
-      </if>
       <if test="nodeAlias != null" >
         node_alias = #{nodeAlias,jdbcType=VARCHAR},
-      </if>
-      <if test="nodeSourceId != null" >
-        node_source_id = #{nodeSourceId,jdbcType=VARCHAR},
-      </if>
-      <if test="nodeTargetId != null" >
-        node_target_id = #{nodeTargetId,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=TINYINT},
@@ -278,11 +247,9 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.BizTrackingLinkNode" >
     update biz_tracking_link_node
     set link_id = #{linkId,jdbcType=BIGINT},
+      node_id = #{nodeId,jdbcType=BIGINT},
       node_dict_id = #{nodeDictId,jdbcType=BIGINT},
-      node_order = #{nodeOrder,jdbcType=INTEGER},
       node_alias = #{nodeAlias,jdbcType=VARCHAR},
-      node_source_id = #{nodeSourceId,jdbcType=VARCHAR},
-      node_target_id = #{nodeTargetId,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=TINYINT},
       created_time = #{createdTime,jdbcType=TIMESTAMP},
       updated_time = #{updatedTime,jdbcType=TIMESTAMP}

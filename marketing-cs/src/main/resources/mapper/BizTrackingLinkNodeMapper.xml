@@ -7,11 +7,9 @@
         SELECT
             ln.id,
             ln.link_id AS linkId,
+            ln.node_id AS nodeId,
             ln.node_dict_id AS nodeDictId,
-            ln.node_order AS nodeOrder,
             ln.node_alias AS nodeAlias,
-            ln.node_source_id AS nodeSourceId,
-            ln.node_target_id AS nodeTargetId,
             ln.status,
             nd.node_code AS nodeCode,
             nd.api_code AS apiCode,
@@ -20,7 +18,6 @@
         FROM biz_tracking_link_node ln
                  INNER JOIN biz_tracking_node_dict nd ON ln.node_dict_id = nd.id
         WHERE ln.link_id = #{linkId}
-        ORDER BY ln.node_order
     </select>
 
 </mapper>

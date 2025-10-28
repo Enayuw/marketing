@@ -2,19 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MkNodeStatisticsMapper" >
 
-    <!-- 查询链路的汇总统计信息 -->
-    <select id="selectLinkStatisticsbI_" resultType="com.br.marketing.dto.datamap.LinkStatisticsDTO">
-        SELECT
-            SUM(total_count) AS totalCount,
-            SUM(total_magnitude) AS totalMagnitude,
-            MIN(first_update_time) AS firstUpdateTime,
-            MAX(last_update_time) AS lastUpdateTime,
-            SUM(update_count) AS updateCount
-        FROM mk_node_statistics
-        WHERE link_id = #{linkId}
-          AND stat_date = #{statDate}
-    </select>
-
     <!-- 根据链路节点ID列表查询统计信息 -->
     <select id="selectByLinkNodeIdsbI_" resultType="com.br.marketing.entity.MkNodeStatistics">
         SELECT
@@ -33,6 +20,20 @@
             #{id}
         </foreach>
         AND stat_date = #{statDate}
+    </select>
+
+
+    <!-- 查询链路的汇总统计信息 -->
+    <select id="selectLinkStatisticsbI_" resultType="com.br.marketing.dto.datamap.LinkStatisticsDTO">
+        SELECT
+            SUM(total_count) AS totalCount,
+            SUM(total_magnitude) AS totalMagnitude,
+            MIN(first_update_time) AS firstUpdateTime,
+            MAX(last_update_time) AS lastUpdateTime,
+            SUM(update_count) AS updateCount
+        FROM mk_node_statistics
+        WHERE link_id = #{linkId}
+          AND stat_date = #{statDate}
     </select>
 
 </mapper>

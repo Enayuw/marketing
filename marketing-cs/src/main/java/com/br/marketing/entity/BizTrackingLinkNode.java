@@ -14,29 +14,19 @@ public class BizTrackingLinkNode {
     private Long linkId;
 
     /**
+     * 节点ID
+     */
+    private Long nodeId;
+
+    /**
      * 节点字典ID
      */
     private Long nodeDictId;
 
     /**
-     * 节点顺序（从1开始）
-     */
-    private Integer nodeOrder;
-
-    /**
      * 节点别名（在链路中的显示名称）
      */
     private String nodeAlias;
-
-    /**
-     * 源节点ID，可能多个list
-     */
-    private String nodeSourceId;
-
-    /**
-     * 目标节点ID，可能多个list
-     */
-    private String nodeTargetId;
 
     /**
      * 状态（0-禁用 1-启用）
@@ -69,6 +59,14 @@ public class BizTrackingLinkNode {
         this.linkId = linkId;
     }
 
+    public Long getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(Long nodeId) {
+        this.nodeId = nodeId;
+    }
+
     public Long getNodeDictId() {
         return nodeDictId;
     }
@@ -77,36 +75,12 @@ public class BizTrackingLinkNode {
         this.nodeDictId = nodeDictId;
     }
 
-    public Integer getNodeOrder() {
-        return nodeOrder;
-    }
-
-    public void setNodeOrder(Integer nodeOrder) {
-        this.nodeOrder = nodeOrder;
-    }
-
     public String getNodeAlias() {
         return nodeAlias;
     }
 
     public void setNodeAlias(String nodeAlias) {
         this.nodeAlias = nodeAlias == null ? null : nodeAlias.trim();
-    }
-
-    public String getNodeSourceId() {
-        return nodeSourceId;
-    }
-
-    public void setNodeSourceId(String nodeSourceId) {
-        this.nodeSourceId = nodeSourceId == null ? null : nodeSourceId.trim();
-    }
-
-    public String getNodeTargetId() {
-        return nodeTargetId;
-    }
-
-    public void setNodeTargetId(String nodeTargetId) {
-        this.nodeTargetId = nodeTargetId == null ? null : nodeTargetId.trim();
     }
 
     public Byte getStatus() {

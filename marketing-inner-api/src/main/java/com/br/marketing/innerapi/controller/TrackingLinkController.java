@@ -127,7 +127,7 @@ public class TrackingLinkController {
     @PostMapping("/deleteLink")
     @ApiOperation(value = "删除链路", notes = "删除链路")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "linkId", value = "查询参数", required = true, dataType = "linkId")
+            @ApiImplicitParam(name = "ids", value = "查询参数", required = true, dataType = "ids")
     })
     @AddDataAuthBusiness
     public ApiResult<Boolean> deleteLink(@RequestParam List<Long> ids) {
