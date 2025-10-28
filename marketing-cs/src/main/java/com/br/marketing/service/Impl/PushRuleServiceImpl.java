@@ -3423,13 +3423,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             // 创建临时对象用于解密
             MarketingPreUserDetailDTO tempUser = new MarketingPreUserDetailDTO();
             tempUser.setCell(encryptedValue);
-            
+            tempUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
             // 保存原始值
             tempUser.setCellOriginal(encryptedValue);
             
             // 调用解密服务
             iUploadCheckService.process3keyCheck(tempUser, isCheck, tags);
-            
+
             // 检查解密是否成功
             // 如果状态变为失败状态，说明解密失败
             if (!Integer.valueOf(MonitorTypeEnum.STATUS_1.getTypeCode()).equals(tempUser.getStatus())) {
