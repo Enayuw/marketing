@@ -2,6 +2,7 @@ package com.br.marketing.sync.service.impl;
 
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.entity.DxmSftpConfig;
+import com.br.marketing.enums.DxmTypeEnum;
 import com.br.marketing.mapper.DxmSftpConfigMapper;
 import com.br.marketing.sync.client.DxmSftpClient;
 import com.br.marketing.sync.service.DxmPushFileSyncService;
@@ -39,7 +40,7 @@ public class DxmPushFileSyncServiceImpl implements DxmPushFileSyncService {
 
         try {
             // 根据apiCode获取配置
-            DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode, 1);
+            DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode, DxmTypeEnum.CALLBACK.getValue());
             if (config == null) {
                 log.warn(TITLE + "未找到配置: apiCode={}", apiCode);
                 return;

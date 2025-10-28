@@ -156,6 +156,9 @@ public enum AlarmSendCodeEnum {
     //哈啰接口调用失败,阶梯推送
     HALUO_INTERFACEERROR("6012002", "哈啰接口调用失败"),
 
+    //哈啰接口调用失败,阶梯推送
+    HALUO_CALLBACK_DATA_INTERFACEERROR("6012003", "哈啰3710217营销回传失败"),
+
     //桔子业务异常,立即推送
     JUZI_SERVICEERROR("6013001", "桔子业务异常"),
     //桔子接口调用失败,阶梯推送
@@ -330,6 +333,8 @@ public enum AlarmSendCodeEnum {
     //云客业务异常
     YUNKE_SERVICEERROR("6080001", "云客业务异常"),
 
+    MOCK_SERVICEERROR("6091000", "Mock系统异常"),
+
     UMENG_SERVICEERROR("6090001", "友盟智能时机业务异常"),
 
     SANLIULING_SERVICEERROR("6090002", "360-pp流量业务异常"),
@@ -340,7 +345,10 @@ public enum AlarmSendCodeEnum {
 
     SYNC_REPORT_EXPORT_SERVICEERROR("8001001", "上传记录导出异常"),
 
-    POLLING_GROUP_EXCEPTION("8001002", "轮询开发组异常"),
+    //查询mock-Api异常,立即推送
+    MOCK_APIERROR("8001002", "查询mock-Api异常"),
+
+    POLLING_GROUP_EXCEPTION("8001003", "轮询开发组异常"),
 
     ;
 

@@ -44,23 +44,14 @@ public class RocketMqConsumerService {
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
             , String delayTopic, String retryTag, long delayTime) {
-        try {
-            if (ConsumerService.consumerDownStatus) {
-                log.warn("服务下线，消费者不在接收新的流量");
-                Thread.sleep(12000L);
-                log.warn("服务下线，消费者休眠时间到");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("消费者休眠异常", e);
-        }
         long startTime = System.currentTimeMillis();
         String keys = messageExt.getKeys();
         String topic = messageExt.getTopic();
         String tags = messageExt.getTags();
         String msgId = messageExt.getMsgId();
+        Result<Boolean> apply = null;
         try {
-            Result<Boolean> apply = method.apply(t);
+            apply = method.apply(t);
             /*
              * code 为SUCCESS 认为消费成功
              *      根据返回结果来判断是否需要重新推送队列 false-不需要；true需要
@@ -82,17 +73,17 @@ public class RocketMqConsumerService {
                     }
                 }
             } else {
-                String msg = String.format("RocketMQ消息重试topic:%s,Tags：%s,keys:%s,msgId:%s,message:%s,messageExt:%s"
-                        , topic, tags, keys, msgId, t, messageExt);
+                String msg = String.format("RocketMQ消息重试t,Result:%s, topic:%s,Tags:%s,keys:%s,msgId:%s,message:%s,messageExt:%s"
+                        , apply, topic, tags, keys, msgId, t, messageExt);
                 log.warn(msg);
-                throw new RuntimeException();
+                throw new RuntimeException(msg);
             }
         } catch (Exception e) {
-            String error = String.format("RocketMQ消费异常topic:%s,Tags:%s,keys:%s,msgId:%s,message:%s，messageExt:%s，\r\n错误信息:%s"
-                    , topic, tags, keys, msgId, t, e.getMessage(), messageExt);
+            String error = String.format("RocketMQ消费异常: %s \r\ntopic:%s,Tags:%s,keys:%s,msgId:%s,message:%s,messageExt:%s,Result:%s"
+                    , e.getMessage(), topic, tags, keys, msgId, t, messageExt, apply == null ? "null" : apply.toString());
             log.warn(error, e);
             alarmClient.sendAlarm(error, "RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
-            throw new RuntimeException();
+            throw e;
         }
         rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
     }

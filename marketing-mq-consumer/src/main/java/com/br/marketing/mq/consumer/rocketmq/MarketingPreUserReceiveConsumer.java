@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingUploadConstants.TOPIC,
         consumerGroup = MarketingUploadConstants.MARKETING_PRE_USER_RECEIVE,
         selectorExpression = MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE,
-        consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 5000)
+        consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 15000)
 public class MarketingPreUserReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
@@ -68,7 +68,6 @@ public class MarketingPreUserReceiveConsumer extends BaseMqMessageListener imple
 
     @Override
     public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
-        defaultMQPushConsumer.setPullBatchSize(1);
         defaultMQPushConsumer.setPopBatchNums(1);
     }
 }

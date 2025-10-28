@@ -1,8 +1,11 @@
 package com.br.marketing.sync.service.impl;
 
-import com.br.marketing.client.SftpClient;
+import com.br.marketing.client.FtpClient;
 import com.br.marketing.entity.DxmSftpConfig;
+import com.br.marketing.entity.DxmSyncLogExample;
+import com.br.marketing.enums.DxmTypeEnum;
 import com.br.marketing.mapper.DxmSftpConfigMapper;
+import com.br.marketing.mapper.DxmSyncLogMapper;
 import com.br.marketing.sync.client.DxmSftpClient;
 import com.br.marketing.sync.service.DxmPullFileSyncService;
 import com.br.marketing.sync.utils.AESUtilDxm;
@@ -32,6 +35,9 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     @Resource
     private DxmSftpConfigMapper dxmSftpConfigMapper;
 
+    @Resource
+    private DxmSyncLogMapper dxmSyncLogMapper;
+
     private final static String TITLE = "【度小满文件同步任务】";
 
     @Override
@@ -39,18 +45,22 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
         log.warn(TITLE + "开始执行，apiCode: {}", apiCode);
 
         try {
-            // 根据apiCode获取配置
-            DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode,0);
-            if (config == null) {
-                log.warn(TITLE + "未找到配置: apiCode={}", apiCode);
-                return;
+            // 执行上传文件拉取
+            DxmSyncLogExample dxmSyncLogExample = new DxmSyncLogExample();
+            dxmSyncLogExample.createCriteria().andApiCodeEqualTo(apiCode)
+                    .andStatDateEqualTo(new Date()).andTypeEqualTo(0);
+            int i = dxmSyncLogMapper.countByExample(dxmSyncLogExample);
+            if(i == 0){
+                pullUpload(apiCode);
             }
 
-            // 处理配置
-            try {
-                processConfig(config);
-            } catch (Exception e) {
-                log.error(TITLE + "处理配置失败: apiCode={}, 错误: {}", config.getApiCode(), e.getMessage(), e);
+            // 执行转化文件拉取
+            DxmSyncLogExample dxmSyncLogExample1 = new DxmSyncLogExample();
+            dxmSyncLogExample1.createCriteria().andApiCodeEqualTo(apiCode)
+                    .andStatDateEqualTo(new Date()).andTypeEqualTo(1);
+            int i1 = dxmSyncLogMapper.countByExample(dxmSyncLogExample1);
+            if(i1 == 0){
+                pullTransfer(apiCode);
             }
 
         } catch (Exception e) {
@@ -61,16 +71,23 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     }
 
     /**
-     * 处理单个配置
-     *
-     * @param config SFTP配置
+     * 拉取上传文件（T日拉取T日文件）
+     * 客户目录：/data/yyyy-mm-dd/task.csv
+     * 内部路径：/DATASHARE/yingxiao/duxiaoman/ceshiyangben/original/yyyy-mm-dd
      */
-    private void processConfig(DxmSftpConfig config) {
-        log.warn(TITLE + "开始处理配置: apiCode={}", config.getApiCode());
+    private void pullUpload(String apiCode) {
+        log.warn(TITLE + "开始拉取上传文件: apiCode={}", apiCode);
+        
+        // 根据apiCode获取配置
+        DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode, DxmTypeEnum.PULL_AND_UPLOAD.getValue());
+        if (config == null) {
+            log.warn(TITLE + "未找到上传文件配置: apiCode={}", apiCode);
+            return;
+        }
 
         DxmSftpClient clientSftp = null;
-        SftpClient internalSftp = null;
-
+        FtpClient internalftp = null;
+        
         try {
             // 连接客户SFTP
             clientSftp = new DxmSftpClient(config);
@@ -79,153 +96,294 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                 return;
             }
 
-            // 连接内部SFTP
-            internalSftp = new SftpClient(config.getInternalSftpHost(), config.getInternalSftpPort(), config.getInternalSftpUser(), config.getInternalSftpPwd());
-            if (!internalSftp.connect()) {
-                log.error(TITLE + "连接内部SFTP失败: {}", config.getInternalSftpHost());
+            // 连接内部FTP
+            internalftp = new FtpClient(config.getInternalSftpHost(), config.getInternalSftpPort(), 
+                    config.getInternalSftpUser(), config.getInternalSftpPwd(), "");
+            if (!internalftp.connect()) {
+                log.error(TITLE + "连接内部FTP失败: {}", config.getInternalSftpHost());
                 return;
             }
 
-            // 生成日期路径（将配置中的yyyy-mm-dd替换为当天日期）
-            String dateStr = getCurrentDateString();
-            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", dateStr);
-            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", dateStr);
+            // T-1日拉取T日文件
+            String yesterdayDateStr = getYesterdayDateString();
+            String clientDirPath = config.getClientSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
+            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
+            String fileName = "task.csv";
 
-            // 检查客户SFTP当天目录是否存在
-            if (!checkClientDatePathExists(clientSftp, clientDatePath)) {
-                log.warn(TITLE + "客户SFTP当天目录不存在，跳过拉取: {}", clientDatePath);
+
+            log.warn(TITLE + "开始拉取上传文件，客户目录: {}, 文件名: {}, 内部路径: {}", clientDirPath, fileName, internalDatePath);
+
+            // 确保内部目录存在
+            internalftp.mkdir(internalDatePath);
+
+            // 处理CSV文件
+            boolean success = processCsvFile(config, clientSftp, internalftp, clientDirPath, internalDatePath, fileName, "upload");
+
+            if (success) {
+                // 记录日志
+                recordSyncLog(apiCode, fileName, DxmTypeEnum.PULL_AND_UPLOAD.getValue());
+                log.warn(TITLE + "上传文件拉取成功: {}", fileName);
+            }
+
+        } catch (Exception e) {
+            log.error(TITLE + "拉取上传文件失败: apiCode={}", apiCode, e);
+        } finally {
+            closeConnections(clientSftp, internalftp);
+        }
+    }
+
+    /**
+     * 拉取转化文件（T日拉取T-1日文件）
+     * 客户目录：/data/yyyy-mm-dd/bairong_transform_*.csv
+     * 内部路径：/DATASHARE/yingxiao/duxiaoman/ceshiyangben/yyyy-mm-dd/transfer/
+     */
+    private void pullTransfer(String apiCode) {
+        log.warn(TITLE + "开始拉取转化文件: apiCode={}", apiCode);
+
+        // 根据apiCode获取配置
+        DxmSftpConfig config = dxmSftpConfigMapper.selectByApiCode(apiCode, DxmTypeEnum.PULL_AND_TRANSFER.getValue());
+        if (config == null) {
+            log.warn(TITLE + "未找到转化文件配置: apiCode={}", apiCode);
+            return;
+        }
+
+        DxmSftpClient clientSftp = null;
+        FtpClient internalftp = null;
+        
+        try {
+            // 连接客户SFTP
+            clientSftp = new DxmSftpClient(config);
+            if (!clientSftp.connect()) {
+                log.error(TITLE + "连接客户SFTP失败: {}", config.getClientSftpHost());
                 return;
             }
 
-            // 确保内部SFTP目标目录存在
-            internalSftp.mkdir(internalDatePath);
+            // 连接内部FTP
+            internalftp = new FtpClient(config.getInternalSftpHost(), config.getInternalSftpPort(), 
+                    config.getInternalSftpUser(), config.getInternalSftpPwd(), "");
+            if (!internalftp.connect()) {
+                log.error(TITLE + "连接内部FTP失败: {}", config.getInternalSftpHost());
+                return;
+            }
 
-            // 获取客户SFTP当天目录下的CSV文件
+            // T日拉取T-1日文件
+            String yesterdayDateStr = getYesterdayDateString();
+            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
+            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
+            
+            log.warn(TITLE + "开始拉取转化文件，客户目录: {}, 内部路径: {}", clientDatePath, internalDatePath);
+            
+            // 确保内部目录存在
+            internalftp.mkdir(internalDatePath);
+            
+            // 获取客户SFTP目录下的文件
             Vector<ChannelSftp.LsEntry> files = clientSftp.listFiles(clientDatePath);
             if (files == null || files.isEmpty()) {
-                log.warn(TITLE + "客户SFTP当天目录下没有文件: {}", clientDatePath);
+                log.warn(TITLE + "客户目录下没有文件: {}", clientDatePath);
                 return;
             }
-
-            // 处理每个CSV文件
+            
+            boolean hasTransferFile = false;
+            
+            // 查找bairong_transform开头的CSV文件
             for (ChannelSftp.LsEntry entry : files) {
                 String fileName = entry.getFilename();
                 SftpATTRS attrs = entry.getAttrs();
-
+                
                 // 跳过目录和隐藏文件
                 if (attrs.isDir() || fileName.startsWith(".")) {
                     continue;
                 }
+                
+                // 查找bairong_transform开头的CSV文件
+                if (fileName.toLowerCase().startsWith("bairong_transform") && 
+                    fileName.toLowerCase().endsWith(".csv")) {
+                    
+                    log.warn(TITLE + "找到转化文件: {}", fileName);
 
-                // 只处理CSV文件
-                if (!fileName.toLowerCase().endsWith(".csv")) {
-                    continue;
+                    boolean success = processCsvFile(config, clientSftp, internalftp, 
+                            clientDatePath, internalDatePath, fileName, "transfer");
+
+                    if (success) {
+                        // 记录日志
+                        recordSyncLog(apiCode, fileName, DxmTypeEnum.PULL_AND_TRANSFER.getValue());
+                        log.warn(TITLE + "转化文件拉取成功: {}", fileName);
+                        hasTransferFile = true;
+                    }
+                    
+                    // 只处理第一个符合条件的文件
+                    break;
                 }
-
-                log.warn(TITLE + "开始处理文件: {}", fileName);
-                processCsvFile(config, clientSftp, internalSftp, clientDatePath, internalDatePath, fileName);
             }
-
+            
+            if (!hasTransferFile) {
+                log.warn(TITLE + "未找到bairong_transform开头的CSV文件: {}", clientDatePath);
+            }
+            
         } catch (Exception e) {
-            log.error(TITLE + "处理配置异常: apiCode={}", config.getApiCode(), e);
+            log.error(TITLE + "拉取转化文件失败: apiCode={}", apiCode, e);
         } finally {
-            // 关闭连接
-            try {
-                if (clientSftp != null) {
-                    clientSftp.disconnect();
-                }
-            } catch (Exception e) {
-                log.error(TITLE + "关闭客户SFTP连接失败", e);
-            }
-
-            try {
-                if (internalSftp != null) {
-                    internalSftp.disconnect();
-                }
-            } catch (Exception e) {
-                log.error(TITLE + "关闭内部SFTP连接失败", e);
-            }
+            closeConnections(clientSftp, internalftp);
         }
     }
 
     /**
-     * 处理单个CSV文件
+     * 处理CSV文件（通用方法）
+     * 1. 从客户SFTP下载文件
+     * 2. 解密"手机号"列
+     * 3. 上传到内部FTP
      *
      * @param config SFTP配置
      * @param clientSftp 客户SFTP客户端
-     * @param internalSftp 内部SFTP客户端
-     * @param clientDatePath 客户SFTP当天路径
-     * @param internalDatePath 内部SFTP当天路径
+     * @param internalftp 内部FTP客户端
+     * @param clientDirPath 客户目录路径
+     * @param internalDatePath 内部目录路径
      * @param fileName 文件名
+     * @param fileType 文件类型（用于日志和临时文件命名：upload/transfer）
+     * @return 是否成功
      */
-    private void processCsvFile(DxmSftpConfig config, DxmSftpClient clientSftp,
-                                SftpClient internalSftp, String clientDatePath, String internalDatePath, String fileName) {
-        InputStream inputStream = null;
+    private boolean processCsvFile(DxmSftpConfig config, DxmSftpClient clientSftp,
+                                   FtpClient internalftp, String clientDirPath, 
+                                   String internalDatePath, String fileName, String fileType) {
         File tempFile = null;
         File decryptedFile = null;
 
         try {
-            // 从客户SFTP下载文件到临时目录
-            inputStream = clientSftp.getInputStream(clientDatePath, fileName);
-            if (inputStream == null) {
-                log.error("无法获取文件输入流: {}", fileName);
-                return;
-            }
-
-            // 创建临时文件
-            tempFile = File.createTempFile("dxm_", "_" + fileName);
-            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+            // 1. 从客户SFTP下载文件到临时目录
+            log.warn(TITLE + "开始下载{}文件: {}/{}", fileType, clientDirPath, fileName);
+            tempFile = File.createTempFile("dxm_" + fileType + "_", "_" + fileName);
+            
+            try (InputStream inputStream = clientSftp.getInputStream(clientDirPath, fileName);
+                 FileOutputStream fos = new FileOutputStream(tempFile)) {
+                
+                if (inputStream == null) {
+                    log.error(TITLE + "无法获取文件输入流: {}/{}", clientDirPath, fileName);
+                    return false;
+                }
+                
                 byte[] buffer = new byte[8192];
                 int bytesRead;
+                long totalBytes = 0;
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     fos.write(buffer, 0, bytesRead);
+                    totalBytes += bytesRead;
                 }
+                fos.flush(); // 确保数据写入磁盘
+                
+                log.warn(TITLE + "文件下载完成: {} -> {}, 大小: {} bytes", 
+                        fileName, tempFile.getAbsolutePath(), totalBytes);
             }
+            
+            // 验证下载的文件
+            if (!tempFile.exists() || tempFile.length() == 0) {
+                log.error(TITLE + "下载的文件不存在或为空: {}", tempFile.getAbsolutePath());
+                return false;
+            }
+            log.warn(TITLE + "下载文件验证通过，文件大小: {} bytes", tempFile.length());
 
-            log.warn("文件下载完成: {} -> {}", fileName, tempFile.getAbsolutePath());
-
-            // 解密CSV文件第一列
-            decryptedFile = File.createTempFile("dxm_decrypted_", "_" + fileName);
+            // 2. 解密CSV文件"手机号"列
+            log.warn(TITLE + "开始解密{}文件: {}", fileType, fileName);
+            decryptedFile = File.createTempFile("dxm_" + fileType + "_decrypted_", "_" + fileName);
             decryptCsvFile(tempFile, decryptedFile, config.getAesKey());
 
-            log.warn("文件解密完成: {} -> {}", tempFile.getName(), decryptedFile.getName());
+            // 验证解密后的文件
+            if (!decryptedFile.exists() || decryptedFile.length() == 0) {
+                log.error(TITLE + "解密后的文件不存在或为空: {}", decryptedFile.getAbsolutePath());
+                return false;
+            }
+            log.warn(TITLE + "文件解密完成: {} -> {}, 解密后大小: {} bytes", 
+                    tempFile.getName(), decryptedFile.getName(), decryptedFile.length());
 
-            // 上传解密后的文件到内部SFTP
+            // 3. 上传解密后的文件到内部FTP
+            log.warn(TITLE + "开始上传{}文件到内部FTP: {}/{}", fileType, internalDatePath, fileName);
             try (FileInputStream fis = new FileInputStream(decryptedFile)) {
-                internalSftp.uploadFile(fis, internalDatePath, fileName);
-                log.warn("文件上传完成: {} -> {}/{}", decryptedFile.getName(),
+                internalftp.uploadFileAndMk(fis, internalDatePath, fileName);
+                log.warn(TITLE + "文件上传完成: {} -> {}/{}", decryptedFile.getName(),
                         internalDatePath, fileName);
             }
 
+            log.warn(TITLE + "{}文件处理完成: {}", fileType, fileName);
+            return true;
+
         } catch (Exception e) {
-            log.error("处理CSV文件失败: {}", fileName, e);
+            log.error(TITLE + "处理{}文件失败: {}, 错误信息: {}", fileType, fileName, e.getMessage(), e);
+            return false;
         } finally {
-            // 清理资源
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    log.error("关闭输入流失败", e);
-                }
-            }
+            // 清理临时文件（只有在调试时可以注释掉这两行来保留临时文件排查问题）
+            deleteTempFile(tempFile);
+            deleteTempFile(decryptedFile);
+        }
+    }
 
-            // 删除临时文件
-            if (tempFile != null && tempFile.exists()) {
-                if (!tempFile.delete()) {
-                    log.warn("删除临时文件失败: {}", tempFile.getAbsolutePath());
-                }
-            }
+    /**
+     * 记录同步日志
+     *
+     * @param apiCode API编码
+     * @param fileName 文件名
+     * @param type 类型 0:上传 1:转化
+     */
+    private void recordSyncLog(String apiCode, String fileName, Integer type) {
+        try {
+            com.br.marketing.entity.DxmSyncLog syncLog = new com.br.marketing.entity.DxmSyncLog();
+            syncLog.setApiCode(apiCode);
+            syncLog.setStatDate(new Date());
+            syncLog.setFileName(fileName);
+            syncLog.setType(type);
+            syncLog.setCreatedTime(new Date());
+            syncLog.setUpdatedTime(new Date());
+            
+            dxmSyncLogMapper.insert(syncLog);
+            log.warn(TITLE + "记录同步日志成功: apiCode={}, fileName={}, type={}", apiCode, fileName, type);
+        } catch (Exception e) {
+            log.error(TITLE + "记录同步日志失败: apiCode={}, fileName={}, type={}", apiCode, fileName, type, e);
+        }
+    }
 
-            if (decryptedFile != null && decryptedFile.exists()) {
-                if (!decryptedFile.delete()) {
-                    log.warn("删除解密文件失败: {}", decryptedFile.getAbsolutePath());
+    /**
+     * 关闭连接
+     *
+     * @param clientSftp 客户SFTP客户端
+     * @param internalftp 内部FTP客户端
+     */
+    private void closeConnections(DxmSftpClient clientSftp, FtpClient internalftp) {
+        try {
+            if (clientSftp != null) {
+                clientSftp.disconnect();
+            }
+        } catch (Exception e) {
+            log.error(TITLE + "关闭客户SFTP连接失败", e);
+        }
+
+        try {
+            if (internalftp != null) {
+                internalftp.disconnect();
+            }
+        } catch (Exception e) {
+            log.error(TITLE + "关闭内部FTP连接失败", e);
+        }
+    }
+
+    /**
+     * 删除临时文件
+     *
+     * @param file 临时文件
+     */
+    private void deleteTempFile(File file) {
+        if (file != null && file.exists()) {
+            try {
+                if (file.delete()) {
+                    log.debug(TITLE + "临时文件删除成功: {}", file.getAbsolutePath());
+                } else {
+                    log.warn(TITLE + "临时文件删除失败: {}", file.getAbsolutePath());
                 }
+            } catch (Exception e) {
+                log.error(TITLE + "删除临时文件异常: {}", file.getAbsolutePath(), e);
             }
         }
     }
 
     /**
-     * 解密CSV文件第一列
+     * 解密CSV文件"手机号"列
      *
      * @param inputFile 输入文件
      * @param outputFile 输出文件
@@ -233,42 +391,23 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
      */
     private void decryptCsvFile(File inputFile, File outputFile, String aesKeyHex) {
         try {
-            // 使用DxmTest中的解密方法
             AESUtilDxm.decryptCSV(inputFile.getAbsolutePath(), outputFile.getAbsolutePath(), aesKeyHex);
-            log.warn("CSV文件解密成功: {} -> {}", inputFile.getName(), outputFile.getName());
+            log.warn(TITLE + "CSV文件解密成功: {} -> {}", inputFile.getName(), outputFile.getName());
         } catch (Exception e) {
-            log.error("CSV文件解密失败: {}", inputFile.getName(), e);
+            log.error(TITLE + "CSV文件解密失败: {}", inputFile.getName(), e);
             throw new RuntimeException("CSV文件解密失败", e);
         }
     }
 
     /**
-     * 检查客户SFTP当天目录是否存在
-     *
-     * @param clientSftp 客户SFTP客户端
-     * @param clientDatePath 客户SFTP当天路径
-     * @return 目录是否存在
-     */
-    private boolean checkClientDatePathExists(DxmSftpClient clientSftp, String clientDatePath) {
-        try {
-            // 尝试列出目录下的文件，如果目录不存在会抛出异常
-            clientSftp.listFiles(clientDatePath);
-            log.warn(TITLE + "客户SFTP当天目录存在: {}", clientDatePath);
-            return true;
-        } catch (Exception e) {
-            log.warn(TITLE + "客户SFTP当天目录不存在: {}", clientDatePath);
-            return false;
-        }
-    }
-
-    /**
-     * 获取当前日期字符串（yyyy-MM-dd格式）
+     * 获取昨天日期字符串（yyyy-MM-dd格式）
      *
      * @return 日期字符串
      */
-    private String getCurrentDateString() {
+    private String getYesterdayDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return sdf.format(new Date());
+        Date yesterday = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+        return sdf.format(yesterday);
     }
 
 }
