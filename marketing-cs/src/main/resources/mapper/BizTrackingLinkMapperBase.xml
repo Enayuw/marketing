@@ -10,6 +10,8 @@
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
     <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
+    <result column="graph_json" property="graphJson" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -70,7 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, link_code, link_name, biz_scene, description, `status`, created_time, updated_time
+    id, link_code, link_name, biz_scene, description, `status`, created_time, updated_time, 
+    graph_json, api_code
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.BizTrackingLinkExample" >
     select
@@ -108,10 +111,12 @@
     </selectKey>
     insert into biz_tracking_link (link_code, link_name, biz_scene, 
       description, `status`, created_time, 
-      updated_time)
+      updated_time, graph_json, api_code
+      )
     values (#{linkCode,jdbcType=VARCHAR}, #{linkName,jdbcType=VARCHAR}, #{bizScene,jdbcType=VARCHAR}, 
       #{description,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{createdTime,jdbcType=TIMESTAMP}, 
-      #{updatedTime,jdbcType=TIMESTAMP})
+      #{updatedTime,jdbcType=TIMESTAMP}, #{graphJson,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.BizTrackingLink" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -140,6 +145,12 @@
       <if test="updatedTime != null" >
         updated_time,
       </if>
+      <if test="graphJson != null" >
+        graph_json,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="linkCode != null" >
@@ -162,6 +173,12 @@
       </if>
       <if test="updatedTime != null" >
         #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="graphJson != null" >
+        #{graphJson,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -198,6 +215,12 @@
       <if test="record.updatedTime != null" >
         updated_time = #{record.updatedTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.graphJson != null" >
+        graph_json = #{record.graphJson,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -212,7 +235,9 @@
       description = #{record.description,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=TINYINT},
       created_time = #{record.createdTime,jdbcType=TIMESTAMP},
-      updated_time = #{record.updatedTime,jdbcType=TIMESTAMP}
+      updated_time = #{record.updatedTime,jdbcType=TIMESTAMP},
+      graph_json = #{record.graphJson,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -241,6 +266,12 @@
       <if test="updatedTime != null" >
         updated_time = #{updatedTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="graphJson != null" >
+        graph_json = #{graphJson,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -252,7 +283,9 @@
       description = #{description,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=TINYINT},
       created_time = #{createdTime,jdbcType=TIMESTAMP},
-      updated_time = #{updatedTime,jdbcType=TIMESTAMP}
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      graph_json = #{graphJson,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

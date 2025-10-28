@@ -83,9 +83,11 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         // 2. Create link
         BizTrackingLink bizTrackingLink = new BizTrackingLink();
         bizTrackingLink.setLinkCode(linkCode);
+        bizTrackingLink.setApiCode(request.getApiCode());
         bizTrackingLink.setLinkName(request.getLinkName());
         bizTrackingLink.setBizScene(request.getBizScene());
         bizTrackingLink.setDescription(request.getDescription());
+        bizTrackingLink.setGraphJson(request.getGraphJson());
         bizTrackingLink.setStatus((byte) 1);
         bizTrackingLink.setCreatedTime(new Date());
         bizTrackingLink.setUpdatedTime(new Date());
@@ -162,10 +164,12 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         // Build link information
         LinkInfoVO linkInfo = LinkInfoVO.builder()
                 .id(link.getId())
+                .apiCode(link.getApiCode())
                 .linkCode(link.getLinkCode())
                 .linkName(link.getLinkName())
                 .bizScene(link.getBizScene())
                 .description(link.getDescription())
+                .graphJson(link.getGraphJson())
                 .status(link.getStatus())
                 .createdTime(link.getCreatedTime())
                 .updatedTime(link.getUpdatedTime())
@@ -218,15 +222,21 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         // 1. 更新链路基本信息
         BizTrackingLink bizTrackingLink = new BizTrackingLink();
         bizTrackingLink.setId(linkId);
+        bizTrackingLink.setApiCode(request.getApiCode());
         bizTrackingLink.setLinkName(request.getLinkName());
         bizTrackingLink.setBizScene(request.getBizScene());
         bizTrackingLink.setDescription(request.getDescription());
+        bizTrackingLink.setGraphJson(request.getGraphJson());
         bizTrackingLink.setUpdatedTime(new Date());
 
         linkMapper.updateByPrimaryKeySelective(bizTrackingLink);
 
-        // 2. 删除原有节点
-        linkNodeMapper.deleteByLinkId(linkId);
+        // 2. 逻辑删除原有节点
+        BizTrackingLinkNode bizTrackingLinkNode1 = new BizTrackingLinkNode();
+        bizTrackingLinkNode1.setStatus(Byte.valueOf("0"));
+        BizTrackingLinkNodeExample bizTrackingLinkNodeExample = new BizTrackingLinkNodeExample();
+        bizTrackingLinkNodeExample.createCriteria().andLinkIdEqualTo(linkId);
+        linkNodeMapper.updateByExampleSelective(bizTrackingLinkNode1,bizTrackingLinkNodeExample);
 
         // 3. 重新插入节点
         for (LinkNodeVO nodeDTO : request.getNodes()) {
@@ -260,6 +270,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         List<LinkListItemVO> voList = list.stream()
                 .map(item -> LinkListItemVO.builder()
                         .id(item.getId())
+                        .apiCode(item.getApiCode())
                         .linkCode(item.getLinkCode())
                         .linkName(item.getLinkName())
                         .bizScene(item.getBizScene())

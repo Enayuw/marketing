@@ -624,6 +624,146 @@ public class BizTrackingLinkExample {
             addCriterion("updated_time not between", value1, value2, "updatedTime");
             return (Criteria) this;
         }
+
+        public Criteria andGraphJsonIsNull() {
+            addCriterion("graph_json is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonIsNotNull() {
+            addCriterion("graph_json is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonEqualTo(String value) {
+            addCriterion("graph_json =", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonNotEqualTo(String value) {
+            addCriterion("graph_json <>", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonGreaterThan(String value) {
+            addCriterion("graph_json >", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonGreaterThanOrEqualTo(String value) {
+            addCriterion("graph_json >=", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonLessThan(String value) {
+            addCriterion("graph_json <", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonLessThanOrEqualTo(String value) {
+            addCriterion("graph_json <=", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonLike(String value) {
+            addCriterion("graph_json like", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonNotLike(String value) {
+            addCriterion("graph_json not like", value, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonIn(List<String> values) {
+            addCriterion("graph_json in", values, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonNotIn(List<String> values) {
+            addCriterion("graph_json not in", values, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonBetween(String value1, String value2) {
+            addCriterion("graph_json between", value1, value2, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andGraphJsonNotBetween(String value1, String value2) {
+            addCriterion("graph_json not between", value1, value2, "graphJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIsNull() {
+            addCriterion("api_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIsNotNull() {
+            addCriterion("api_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeEqualTo(String value) {
+            addCriterion("api_code =", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotEqualTo(String value) {
+            addCriterion("api_code <>", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThan(String value) {
+            addCriterion("api_code >", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("api_code >=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThan(String value) {
+            addCriterion("api_code <", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThanOrEqualTo(String value) {
+            addCriterion("api_code <=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLike(String value) {
+            addCriterion("api_code like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotLike(String value) {
+            addCriterion("api_code not like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIn(List<String> values) {
+            addCriterion("api_code in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotIn(List<String> values) {
+            addCriterion("api_code not in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeBetween(String value1, String value2) {
+            addCriterion("api_code between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotBetween(String value1, String value2) {
+            addCriterion("api_code not between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

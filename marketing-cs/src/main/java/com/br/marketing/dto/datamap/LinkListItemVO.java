@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 链路列表项 VO
@@ -20,6 +21,9 @@ public class LinkListItemVO {
 
     @ApiModelProperty("链路ID")
     private Long id;
+
+    @ApiModelProperty("apiCode")
+    private String apiCode;
 
     @ApiModelProperty("链路代码")
     private String linkCode;
@@ -40,10 +44,10 @@ public class LinkListItemVO {
     private Integer nodeCount;
 
     @ApiModelProperty("创建时间")
-    private LocalDateTime createdTime;
+    private Date createdTime;
 
     @ApiModelProperty("更新时间")
-    private LocalDateTime updatedTime;
+    private Date updatedTime;
 }
 
 

@@ -2,51 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.BizTrackingLinkNodeMapper" >
 
-    <!-- 查询所有启用的链路节点配置 -->
-    <select id="selectEnabledLinkNodeConfigs" resultType="com.br.marketing.dto.datamap.LinkNodeConfigDTO">
-        SELECT
-            l.id AS linkId,
-            l.link_code AS linkCode,
-            l.link_name AS linkName,
-            l.biz_scene AS bizScene,
-            ln.id AS linkNodeId,
-            ln.node_order AS nodeOrder,
-            ln.node_alias AS nodeAlias,
-            nd.id AS nodeDictId,
-            nd.api_code AS apiCode,
-            nd.node_code AS nodeCode,
-            nd.node_type AS nodeType,
-            nd.node_name AS nodeName
-        FROM biz_tracking_link l
-                 INNER JOIN biz_tracking_link_node ln ON l.id = ln.link_id AND ln.status = 1
-                 INNER JOIN biz_tracking_node_dict nd ON ln.node_dict_id = nd.id AND nd.is_active = 1
-        WHERE l.status = 1
-        ORDER BY l.id, ln.node_order
-    </select>
-
-    <!-- 根据链路ID查询节点配置 -->
-    <select id="selectLinkNodeConfigsByLinkId" resultType="com.br.marketing.dto.datamap.LinkNodeConfigDTO">
-        SELECT
-            l.id AS linkId,
-            l.link_code AS linkCode,
-            l.link_name AS linkName,
-            l.biz_scene AS bizScene,
-            ln.id AS linkNodeId,
-            ln.node_order AS nodeOrder,
-            ln.node_alias AS nodeAlias,
-            nd.id AS nodeDictId,
-            nd.api_code AS apiCode,
-            nd.node_code AS nodeCode,
-            nd.node_type AS nodeType,
-            nd.node_name AS nodeName
-        FROM biz_tracking_link l
-                 INNER JOIN biz_tracking_link_node ln ON l.id = ln.link_id AND ln.status = 1
-                 INNER JOIN biz_tracking_node_dict nd ON ln.node_dict_id = nd.id AND nd.is_active = 1
-        WHERE l.id = #{linkId}
-          AND l.status = 1
-        ORDER BY ln.node_order
-    </select>
-
     <!-- 根据链路ID查询节点详情（不包含统计信息，统计信息在 Service 层从 Doris 查询后合并） -->
     <select id="selectLinkNodeDetailsWithStatistics" resultType="com.br.marketing.dto.datamap.LinkNodeDetailDTO">
         SELECT
@@ -67,11 +22,5 @@
         WHERE ln.link_id = #{linkId}
         ORDER BY ln.node_order
     </select>
-
-    <!-- 根据链路ID删除所有节点 -->
-    <delete id="deleteByLinkId">
-        DELETE FROM biz_tracking_link_node
-        WHERE link_id = #{linkId}
-    </delete>
 
 </mapper>

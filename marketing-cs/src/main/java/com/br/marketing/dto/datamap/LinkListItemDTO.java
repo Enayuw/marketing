@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 链路列表项DTO
@@ -20,13 +20,14 @@ import java.time.LocalDateTime;
 public class LinkListItemDTO {
     
     private Long id;
+    private String apiCode;
     private String linkCode;
     private String linkName;
     private String bizScene;
     private String description;
     private Integer status;
     private Integer nodeCount;
-    private LocalDateTime createdTime;
-    private LocalDateTime updatedTime;
+    private Date createdTime;
+    private Date updatedTime;
 }
 

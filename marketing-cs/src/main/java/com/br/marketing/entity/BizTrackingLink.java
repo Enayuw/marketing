@@ -43,6 +43,16 @@ public class BizTrackingLink {
      */
     private Date updatedTime;
 
+    /**
+     * 链路图结构（JSON格式，包含节点、连线、位置等完整信息）
+     */
+    private String graphJson;
+
+    /**
+     * 客户编号/API编码
+     */
+    private String apiCode;
+
     public Long getId() {
         return id;
     }
@@ -105,5 +115,21 @@ public class BizTrackingLink {
 
     public void setUpdatedTime(Date updatedTime) {
         this.updatedTime = updatedTime;
+    }
+
+    public String getGraphJson() {
+        return graphJson;
+    }
+
+    public void setGraphJson(String graphJson) {
+        this.graphJson = graphJson == null ? null : graphJson.trim();
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 }

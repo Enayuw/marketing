@@ -21,6 +21,9 @@ public class LinkInfoVO {
     
     @ApiModelProperty("链路ID")
     private Long id;
+
+    @ApiModelProperty("apiCode")
+    private String apiCode;
     
     @ApiModelProperty("链路代码")
     private String linkCode;
@@ -33,6 +36,9 @@ public class LinkInfoVO {
 
     @ApiModelProperty("链路描述")
     private String description;
+
+    @ApiModelProperty("链路图结构（JSON格式，包含节点、连线、位置等完整信息）")
+    private String graphJson;
 
     @ApiModelProperty("状态（0-禁用 1-启用）")
     private Byte status;
