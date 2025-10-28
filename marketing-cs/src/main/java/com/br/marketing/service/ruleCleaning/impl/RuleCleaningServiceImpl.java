@@ -10,6 +10,7 @@ import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -88,6 +89,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
+    private MarketingIndustryTemplateMapper marketingIndustryTemplateMapper;
+
+    @Resource
+    private MarketingIndustryTemplateJsonParseMapper marketingIndustryTemplateJsonParseMapper;
+
+    @Resource
+    private MarketingBuildInTemplateJsonParseMapper marketingBuildInTemplateJsonParseMapper;
 
     @Resource
     private DataCleanServiceImpl dataCleanService;
@@ -1801,62 +1811,94 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType);
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+        // 判断客户是否传输过数据 -未传输
         if (CollectionUtils.isEmpty(nodes)) {
+            MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+            marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
+            List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+            if(marketingCustomers.isEmpty()){
+                return result;
+            }
+            MarketingCustomer marketingCustomer = marketingCustomers.get(0);
+            String firstDepartment = marketingCustomer.getFirstDepartment();
+            String secondDepartment = marketingCustomer.getSecondDepartment();
+            String apiType = marketingCustomer.getApiType();
+            MarketingIndustryTemplateExample marketingIndustryTemplateExample = new MarketingIndustryTemplateExample();
+            marketingIndustryTemplateExample.createCriteria()
+                    .andFirstDepartmentEqualTo(firstDepartment)
+                    .andSecondDepartmentEqualTo(secondDepartment)
+                    .andApiTypeEqualTo(apiType)
+                    .andDataTypeEqualTo(dataType)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+            List<MarketingIndustryTemplate> marketingIndustryTemplates =
+                    marketingIndustryTemplateMapper.selectByExample(marketingIndustryTemplateExample);
+            if(marketingIndustryTemplates.isEmpty()){
+                return result;
+            }
+            MarketingIndustryTemplateJsonParseExample marketingIndustryTemplateJsonParseExample =
+                    new MarketingIndustryTemplateJsonParseExample();
+            marketingIndustryTemplateJsonParseExample.createCriteria()
+                            .andTemplateIdEqualTo(marketingIndustryTemplates.get(0).getId());
+            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParses =
+                    marketingIndustryTemplateJsonParseMapper.selectByExample(marketingIndustryTemplateJsonParseExample);
+
+            for (MarketingIndustryTemplateJsonParse parse : marketingIndustryTemplateJsonParses) {
+                buildFieldSample(result, ruleConfigList, parse.getNodeName(), parse.getLevel(),
+                        parse.getNodeValue(), parse.getParentPath(), parse.getNodeType(), parse.getCreateTime());
+            }
             return result;
         }
+        // 客户已传输数据
         for (MarketingJsonNodeParse node : nodes) {
             String nodeName = node.getNodeName();
             Integer level = node.getLevel();
-            if (level == 0) {
+            if (level == 0 || StringUtil.isBlank(nodeName) ) {
                 continue;
             }
-            if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
-                if ("requestId".equals(nodeName)) {
-                    continue;
-                }
-            }
-            String nodeValue = node.getNodeValue();
-            Date createTime = node.getCreateTime();
-            if (StringUtil.isBlank(nodeName)) {
-                continue;
-            }
+            buildFieldSample(result, ruleConfigList, nodeName, level,
+                    node.getNodeValue(),  node.getParentPath(), node.getNodeType(), node.getCreateTime());
+        }
+        return result;
+    }
 
-            List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream()
-                    .filter(rule -> rule.getCleanFields().equals(nodeName)
-                            && rule.getLevel().equals(level))
-                    .collect(Collectors.toList());
-            if (!CollectionUtils.isEmpty(ruleConfigs)) {
-                ruleConfigs.forEach(ruleConfig -> {
-                    FieldSampleDTO dto = new FieldSampleDTO();
-                    dto.setFieldName(nodeName);
-                    dto.setLevel(level);
-                    dto.setParentPath(node.getParentPath());
-                    dto.setNodeType(node.getNodeType());
-                    dto.setFieldSample(nodeValue);
-                    dto.setFirstUploadTime(createTime);
-                    dto.setFieldType(0);
-                    dto.setMappingRule(ruleConfig.getMappingRule());
-                    dto.setRelatedField(ruleConfig.getMappingField());
-                    dto.setResultPreview(ruleConfig.getResultPreview());
-                    dto.setNeedCleaning(ruleConfig.getIsMapping());
-                    dto.setFieldType(ruleConfig.getIsDerived());
-                    // 添加到结果列表
-                    result.add(dto);
-                });
-            } else {
+    public void buildFieldSample(List<FieldSampleDTO> result, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                 String nodeName, Integer level, String nodeValue, String parentPath,
+                                 String nodeType, Date createTime) {
+
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream()
+                .filter(rule -> rule.getCleanFields().equals(nodeName)
+                        && rule.getLevel().equals(level))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(ruleConfigs)) {
+            ruleConfigs.forEach(ruleConfig -> {
                 FieldSampleDTO dto = new FieldSampleDTO();
                 dto.setFieldName(nodeName);
                 dto.setLevel(level);
-                dto.setParentPath(node.getParentPath());
-                dto.setNodeType(node.getNodeType());
+                dto.setParentPath(parentPath);
+                dto.setNodeType(nodeType);
                 dto.setFieldSample(nodeValue);
                 dto.setFirstUploadTime(createTime);
                 dto.setFieldType(0);
-                dto.setNeedCleaning(false);
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
+                dto.setNeedCleaning(ruleConfig.getIsMapping());
+                dto.setFieldType(ruleConfig.getIsDerived());
+                // 添加到结果列表
                 result.add(dto);
-            }
+            });
+        } else {
+            FieldSampleDTO dto = new FieldSampleDTO();
+            dto.setFieldName(nodeName);
+            dto.setLevel(level);
+            dto.setParentPath(parentPath);
+            dto.setNodeType(nodeType);
+            dto.setFieldSample(nodeValue);
+            dto.setFirstUploadTime(createTime);
+            dto.setFieldType(0);
+            dto.setNeedCleaning(false);
+            result.add(dto);
         }
-        return result;
     }
 
     @Override
