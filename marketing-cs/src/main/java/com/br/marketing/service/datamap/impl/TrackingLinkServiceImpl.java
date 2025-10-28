@@ -5,10 +5,7 @@ import java.util.Date;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.datamap.*;
-import com.br.marketing.entity.BizTrackingLink;
-import com.br.marketing.entity.BizTrackingLinkNode;
-import com.br.marketing.entity.BizTrackingNodeDict;
-import com.br.marketing.entity.MkNodeStatistics;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.BizTrackingLinkMapper;
 import com.br.marketing.mapper.BizTrackingLinkNodeMapper;
 import com.br.marketing.mapper.BizTrackingNodeDictMapper;
@@ -287,6 +284,18 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
 
         int rows = linkMapper.updateLinkStatus(request.getIds(), request.getStatus());
         return new ApiResult<Boolean>().success(rows > 0, "更新状态成功");
+    }
+
+    @Override
+    public ApiResult<Boolean> deleteLink(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return new ApiResult<Boolean>().fail("链路ID列表不能为空");
+        }
+
+        BizTrackingLinkExample bizTrackingLinkExample = new BizTrackingLinkExample();
+        bizTrackingLinkExample.createCriteria().andIdIn(ids);
+        linkMapper.deleteByExample(bizTrackingLinkExample);
+        return new ApiResult<Boolean>().success("删除成功");
     }
 
     /**

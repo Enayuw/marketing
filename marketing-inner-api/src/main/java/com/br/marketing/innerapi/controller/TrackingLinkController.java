@@ -98,7 +98,7 @@ public class TrackingLinkController {
             @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "LinkListRequest")
     })
     @AddDataAuthBusiness
-    public ApiResult<PageResultReturn> getLinkList(LinkListRequest request) {
+    public ApiResult<PageResultReturn> getLinkList(@RequestBody @Validated LinkListRequest request) {
         try {
             PageResultReturn pageResultReturn = trackingLinkService.selectLinkList(request);
 
@@ -123,4 +123,21 @@ public class TrackingLinkController {
             return new ApiResult<Boolean>().fail("Failed to update link status: " + e.getMessage());
         }
     }
+
+    @PostMapping("/deleteLink")
+    @ApiOperation(value = "删除链路", notes = "删除链路")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "linkId", value = "查询参数", required = true, dataType = "linkId")
+    })
+    @AddDataAuthBusiness
+    public ApiResult<Boolean> deleteLink(@RequestParam List<Long> ids) {
+        try {
+            return trackingLinkService.deleteLink(ids);
+        } catch (Exception e) {
+            log.error("Failed to deleteLink link", e);
+            return new ApiResult<Boolean>().fail("Failed to update link status: " + e.getMessage());
+        }
+    }
+
+
 }

@@ -61,6 +61,8 @@ public interface TrackingLinkService {
      * @return 是否成功
      */
     ApiResult<Boolean> updateLinkStatus(UpdateLinkStatusRequest request);
+
+    ApiResult<Boolean> deleteLink(List<Long> ids);
 }
 
 
