@@ -347,6 +347,9 @@ public enum AlarmSendCodeEnum {
 
     //查询mock-Api异常,立即推送
     MOCK_APIERROR("8001002", "查询mock-Api异常"),
+
+    POLLING_GROUP_EXCEPTION("8001003", "轮询开发组异常"),
+
     ;
 
     /**
