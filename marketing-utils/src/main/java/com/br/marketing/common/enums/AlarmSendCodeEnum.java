@@ -339,6 +339,9 @@ public enum AlarmSendCodeEnum {
     TONGCHENG_CPA_SERVICEERROR("7001001", "同程CPA业务异常"),
 
     SYNC_REPORT_EXPORT_SERVICEERROR("8001001", "上传记录导出异常"),
+
+    POLLING_GROUP_EXCEPTION("8001002", "轮询开发组异常"),
+
     ;
 
     /**

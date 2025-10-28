@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerAssignedGroup;
 import com.br.marketing.entity.MarketingCustomerAssignedGroupExample;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,7 +58,7 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
                 marketingCustomerAssignedGroupMapper.updateByExample(marketingCustomerAssignedGroup, example);
             }
         } catch (Exception e) {
-            log.warn("项目轮询开发组异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.POLLING_GROUP_EXCEPTION.getCode(), "项目轮询开发组异常"));
         }
     }
 
