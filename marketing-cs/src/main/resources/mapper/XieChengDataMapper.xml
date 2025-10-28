@@ -94,13 +94,4 @@
   <select id="executeBackSql" resultType="com.br.marketing.client.xiecheng.intput.AdReqDTO">
     ${sqlParameter}
     </select>
-
-  <select id="selectByidempotentKey" resultType="com.br.marketing.entity.XieChengData">
-    select
-      *
-    from b_xiecheng_data
-    where  status =1 and push_status =1 and idempotent_key = #{idempotentKey}
-  </select>
-
-
 </mapper>

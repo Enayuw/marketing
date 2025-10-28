@@ -33,7 +33,6 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -77,8 +76,8 @@ public class XieChengReportServiceImpl implements XieChengReportService {
     public Result pushXieChengData(XieChengReportMessageDTO messageDTO) {
         Long sourceId = messageDTO.getSourceId();
         long start = System.currentTimeMillis();
-        CallRecord callRecord = null;
-        XieChengData xieChengData = null;
+        CallRecord callRecord;
+        XieChengData xieChengData;
         String lockKey = null;
         String lockValue = null;
         try {
@@ -92,20 +91,9 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             //2.插入【b_xiecheng_data】
             xieChengData = keepRecord(callRecord, messageDTO);
         } catch (DuplicateKeyException exception) {
-            try {
-                Thread.sleep(10000L);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            List<XieChengData> unCompletedDatas = xieChengDataMapper.selectByidempotentKey(messageDTO.getIdempotentKey());
-            if (unCompletedDatas.size() > 0) {
-                xieChengData = unCompletedDatas.get(0);
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                        , "携程上报异常，消息重复消费入库，存量数据继续上报，本条消息无效，callRecoordId=" + sourceId));
-            } else {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                        , "携程上报异常，消息重复消费入库，存量数据已完成业务，本条消息无效，callRecoordId=" + sourceId));
-            }
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程上报异常，消息重复消费入库，callRecoordId=" + sourceId));
+            throw exception;
         } catch (Exception exception) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程上报异常，通话明细查询或携程上报插入异常，消息将退回队列中，callRecoordId=" + sourceId));

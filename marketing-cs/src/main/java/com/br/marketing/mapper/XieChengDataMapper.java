@@ -50,5 +50,5 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
 
     List<AdReqDTO> executeBackSql(@Param("sqlParameter") String sqlParameter,@Param("minId") Long minId);
 
-    List<XieChengData> selectByidempotentKey(@Param("idempotentKey") String idempotentKey);
+
 }
