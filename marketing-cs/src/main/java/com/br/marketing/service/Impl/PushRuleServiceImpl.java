@@ -3349,28 +3349,45 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         }
         
-        // 处理debtorCell1-4字段
-        processDebtorCells(reserveFileld1Json, isCheck, iUploadCheckService, tags);
+        // 处理debtorCell1-4字段，传入cell用于去重
+        processDebtorCells(reserveFileld1Json, cell, isCheck, iUploadCheckService, tags);
     }
     
     /**
      * 处理debtorCell1-4字段，生成debtorCellList
+     * 基于原始值去重，保留顺序：cell → debtorCell1 → debtorCell2 → debtorCell3 → debtorCell4
      * 
      * @param reserveFileld1Json 扩展字段JSON对象
+     * @param cell 主手机号字段值，用于去重
      * @param isCheck 是否校验
      * @param iUploadCheckService 解密服务
      * @param tags 客户标签配置
      */
-    private void processDebtorCells(JSONObject reserveFileld1Json, Integer isCheck, 
+    private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
         JSONArray debtorCellList = new JSONArray();
         int order = 1;
         
+        // 用于去重的Set，存储已经出现过的原始值
+        Set<String> existingValues = new HashSet<>();
+        
+        // 先将cell的原始值加入去重集合
+        if (StringUtils.isNotEmpty(cell)) {
+            existingValues.add(cell);
+        }
+        
+        // 遍历debtorCell1-4字段
         for (String fieldName : debtorCellFields) {
             if (reserveFileld1Json.containsKey(fieldName)) {
                 String orgDebtorCellValue = reserveFileld1Json.getString(fieldName);
                 if (StringUtils.isNotEmpty(orgDebtorCellValue)) {
+                    // 检查是否重复（基于原始值）
+                    if (existingValues.contains(orgDebtorCellValue)) {
+                        // 重复，跳过
+                        continue;
+                    }
+                    
                     // 解密
                     String decryptedValue = decryptDebtorCell(orgDebtorCellValue, isCheck, iUploadCheckService, tags);
                     
@@ -3391,6 +3408,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                         debtorCellItem.put("order", order);
                         
                         debtorCellList.add(debtorCellItem);
+                        
+                        // 添加到去重集合
+                        existingValues.add(orgDebtorCellValue);
+                        
                         order++;
                     }
                 }
