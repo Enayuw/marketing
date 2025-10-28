@@ -92,7 +92,7 @@ public class TrackingLinkController {
         }
     }
 
-    @GetMapping("/getLinkList")
+    @PostMapping("/getLinkList")
     @ApiOperation(value = "获取链路列表", notes = "获取链路列表信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "LinkListRequest")
