@@ -21,9 +21,11 @@ public interface MarketingCustomerAssignedGroupMapperBase {
 
     MarketingCustomerAssignedGroup selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") MarketingCustomerAssignedGroup record, @Param("example") MarketingCustomerAssignedGroupExample example);
+    int updateByExampleSelective(@Param("record") MarketingCustomerAssignedGroup record,
+                                 @Param("example") MarketingCustomerAssignedGroupExample example);
 
-    int updateByExample(@Param("record") MarketingCustomerAssignedGroup record, @Param("example") MarketingCustomerAssignedGroupExample example);
+    int updateByExample(@Param("record") MarketingCustomerAssignedGroup record,
+                        @Param("example") MarketingCustomerAssignedGroupExample example);
 
     int updateByPrimaryKeySelective(MarketingCustomerAssignedGroup record);
 

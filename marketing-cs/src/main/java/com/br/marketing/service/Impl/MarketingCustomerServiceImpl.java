@@ -120,8 +120,11 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             if(!CollectionUtils.isEmpty(cidList)) {
                 MarketingCustomerAssignedGroupExample assignedGroupExample = new MarketingCustomerAssignedGroupExample();
                 assignedGroupExample.createCriteria().andCidIn(cidList);
-                List<MarketingCustomerAssignedGroup> marketingCustomerAssignedGroups = marketingCustomerAssignedGroupService.selectByExample(assignedGroupExample);
-                cidGroupMap = marketingCustomerAssignedGroups.stream().collect(Collectors.toMap(MarketingCustomerAssignedGroup::getCid, MarketingCustomerAssignedGroup::getAssignedGroup, (x1, x2) -> x1));
+                List<MarketingCustomerAssignedGroup> marketingCustomerAssignedGroups =
+                        marketingCustomerAssignedGroupService.selectByExample(assignedGroupExample);
+                cidGroupMap = marketingCustomerAssignedGroups.stream()
+                        .collect(Collectors.toMap(MarketingCustomerAssignedGroup::getCid,
+                                MarketingCustomerAssignedGroup::getAssignedGroup, (x1, x2) -> x1));
             }
 
             ArrayList<CustomerListVo> customerListVos = new ArrayList<>();
