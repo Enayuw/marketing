@@ -9,6 +9,11 @@ public class MarketingIndustryTemplate {
     private Long id;
 
     /**
+     * 模板名称
+     */
+    private String templateName;
+
+    /**
      * 一级部门
      */
     private String firstDepartment;
@@ -24,9 +29,14 @@ public class MarketingIndustryTemplate {
     private String apiType;
 
     /**
-     * 接口id
+     * 系统类型 0-营销中台 1-外呼
      */
-    private Long interfaceTemplateId;
+    private String systemType;
+
+    /**
+     * 数据类型：0上传，1转化
+     */
+    private Integer dataType;
 
     /**
      * 删除标志；1-正常；9-删除
@@ -49,6 +59,14 @@ public class MarketingIndustryTemplate {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName == null ? null : templateName.trim();
     }
 
     public String getFirstDepartment() {
@@ -75,12 +93,20 @@ public class MarketingIndustryTemplate {
         this.apiType = apiType == null ? null : apiType.trim();
     }
 
-    public Long getInterfaceTemplateId() {
-        return interfaceTemplateId;
+    public String getSystemType() {
+        return systemType;
     }
 
-    public void setInterfaceTemplateId(Long interfaceTemplateId) {
-        this.interfaceTemplateId = interfaceTemplateId;
+    public void setSystemType(String systemType) {
+        this.systemType = systemType == null ? null : systemType.trim();
+    }
+
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(Integer dataType) {
+        this.dataType = dataType;
     }
 
     public Integer getIsDel() {

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapperBase" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
+<mapper namespace="com.br.marketing.mapper.MarketingBuildInTemplateJsonParseMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingBuildInTemplateJsonParse" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="template_id" property="templateId" jdbcType="BIGINT" />
     <result column="system_type" property="systemType" jdbcType="VARCHAR" />
     <result column="data_type" property="dataType" jdbcType="INTEGER" />
     <result column="accept_type" property="acceptType" jdbcType="INTEGER" />
@@ -75,16 +74,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, template_id, system_type, data_type, accept_type, node_name, node_value, parent_path, 
-    node_type, is_array_item, `level`, create_time, update_time
+    id, system_type, data_type, accept_type, node_name, node_value, parent_path, node_type, 
+    is_array_item, `level`, create_time, update_time
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingBuildInTemplateJsonParseExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_marketing_industry_template_json_parse
+    from b_marketing_build_in_template_json_parse
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -95,43 +94,38 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from b_marketing_industry_template_json_parse
+    from b_marketing_build_in_template_json_parse
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_marketing_industry_template_json_parse
+    delete from b_marketing_build_in_template_json_parse
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample" >
-    delete from b_marketing_industry_template_json_parse
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingBuildInTemplateJsonParseExample" >
+    delete from b_marketing_build_in_template_json_parse
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingBuildInTemplateJsonParse" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_industry_template_json_parse (template_id, system_type, data_type, 
-      accept_type, node_name, node_value, 
-      parent_path, node_type, is_array_item, 
-      `level`, create_time, update_time
-      )
-    values (#{templateId,jdbcType=BIGINT}, #{systemType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, 
-      #{acceptType,jdbcType=INTEGER}, #{nodeName,jdbcType=VARCHAR}, #{nodeValue,jdbcType=VARCHAR}, 
-      #{parentPath,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR}, #{isArrayItem,jdbcType=BIT}, 
-      #{level,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into b_marketing_build_in_template_json_parse (system_type, data_type, accept_type, 
+      node_name, node_value, parent_path, 
+      node_type, is_array_item, `level`, 
+      create_time, update_time)
+    values (#{systemType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{acceptType,jdbcType=INTEGER}, 
+      #{nodeName,jdbcType=VARCHAR}, #{nodeValue,jdbcType=VARCHAR}, #{parentPath,jdbcType=VARCHAR}, 
+      #{nodeType,jdbcType=VARCHAR}, #{isArrayItem,jdbcType=BIT}, #{level,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingBuildInTemplateJsonParse" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_industry_template_json_parse
+    insert into b_marketing_build_in_template_json_parse
     <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="templateId != null" >
-        template_id,
-      </if>
       <if test="systemType != null" >
         system_type,
       </if>
@@ -167,9 +161,6 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="templateId != null" >
-        #{templateId,jdbcType=BIGINT},
-      </if>
       <if test="systemType != null" >
         #{systemType,jdbcType=VARCHAR},
       </if>
@@ -205,20 +196,17 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample" resultType="java.lang.Integer" >
-    select count(*) from b_marketing_industry_template_json_parse
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingBuildInTemplateJsonParseExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_build_in_template_json_parse
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_marketing_industry_template_json_parse
+    update b_marketing_build_in_template_json_parse
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
-      </if>
-      <if test="record.templateId != null" >
-        template_id = #{record.templateId,jdbcType=BIGINT},
       </if>
       <if test="record.systemType != null" >
         system_type = #{record.systemType,jdbcType=VARCHAR},
@@ -259,9 +247,8 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_marketing_industry_template_json_parse
+    update b_marketing_build_in_template_json_parse
     set id = #{record.id,jdbcType=BIGINT},
-      template_id = #{record.templateId,jdbcType=BIGINT},
       system_type = #{record.systemType,jdbcType=VARCHAR},
       data_type = #{record.dataType,jdbcType=INTEGER},
       accept_type = #{record.acceptType,jdbcType=INTEGER},
@@ -277,12 +264,9 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
-    update b_marketing_industry_template_json_parse
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingBuildInTemplateJsonParse" >
+    update b_marketing_build_in_template_json_parse
     <set >
-      <if test="templateId != null" >
-        template_id = #{templateId,jdbcType=BIGINT},
-      </if>
       <if test="systemType != null" >
         system_type = #{systemType,jdbcType=VARCHAR},
       </if>
@@ -319,10 +303,9 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
-    update b_marketing_industry_template_json_parse
-    set template_id = #{templateId,jdbcType=BIGINT},
-      system_type = #{systemType,jdbcType=VARCHAR},
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingBuildInTemplateJsonParse" >
+    update b_marketing_build_in_template_json_parse
+    set system_type = #{systemType,jdbcType=VARCHAR},
       data_type = #{dataType,jdbcType=INTEGER},
       accept_type = #{acceptType,jdbcType=INTEGER},
       node_name = #{nodeName,jdbcType=VARCHAR},

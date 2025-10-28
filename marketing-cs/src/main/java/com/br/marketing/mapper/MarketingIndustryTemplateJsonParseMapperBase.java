@@ -17,21 +17,15 @@ public interface MarketingIndustryTemplateJsonParseMapperBase {
 
     int insertSelective(MarketingIndustryTemplateJsonParse record);
 
-    List<MarketingIndustryTemplateJsonParse> selectByExampleWithBLOBs(MarketingIndustryTemplateJsonParseExample example);
-
     List<MarketingIndustryTemplateJsonParse> selectByExample(MarketingIndustryTemplateJsonParseExample example);
 
     MarketingIndustryTemplateJsonParse selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingIndustryTemplateJsonParse record, @Param("example") MarketingIndustryTemplateJsonParseExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") MarketingIndustryTemplateJsonParse record, @Param("example") MarketingIndustryTemplateJsonParseExample example);
-
     int updateByExample(@Param("record") MarketingIndustryTemplateJsonParse record, @Param("example") MarketingIndustryTemplateJsonParseExample example);
 
     int updateByPrimaryKeySelective(MarketingIndustryTemplateJsonParse record);
-
-    int updateByPrimaryKeyWithBLOBs(MarketingIndustryTemplateJsonParse record);
 
     int updateByPrimaryKey(MarketingIndustryTemplateJsonParse record);
 }

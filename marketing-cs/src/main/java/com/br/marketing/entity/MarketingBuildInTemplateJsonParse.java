@@ -2,16 +2,11 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingIndustryTemplateJsonParse {
+public class MarketingBuildInTemplateJsonParse {
     /**
      * 主键ID
      */
     private Long id;
-
-    /**
-     * 模板id
-     */
-    private Long templateId;
 
     /**
      * 系统类型 0-营销中台 1-外呼
@@ -74,14 +69,6 @@ public class MarketingIndustryTemplateJsonParse {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Long getTemplateId() {
-        return templateId;
-    }
-
-    public void setTemplateId(Long templateId) {
-        this.templateId = templateId;
     }
 
     public String getSystemType() {
