@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapperBase" >
+<mapper namespace="com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.XiechengCollidingDataProcessTask" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -8,8 +8,12 @@
     <result column="task_status" property="taskStatus" jdbcType="INTEGER" />
     <result column="discreet_number" property="discreetNumber" jdbcType="INTEGER" />
     <result column="actual_number" property="actualNumber" jdbcType="INTEGER" />
+    <result column="remaining_num" property="remainingNum" jdbcType="INTEGER" />
+    <result column="free_num" property="freeNum" jdbcType="INTEGER" />
     <result column="task_start_time" property="taskStartTime" jdbcType="TIMESTAMP" />
     <result column="task_end_time" property="taskEndTime" jdbcType="TIMESTAMP" />
+    <result column="release_time_begin" property="releaseTimeBegin" jdbcType="TIMESTAMP" />
+    <result column="release_time_end" property="releaseTimeEnd" jdbcType="TIMESTAMP" />
     <result column="task_type" property="taskType" jdbcType="INTEGER" />
     <result column="task_execution_conditions" property="taskExecutionConditions" jdbcType="VARCHAR" />
     <result column="task_execution_sql" property="taskExecutionSql" jdbcType="VARCHAR" />
@@ -77,9 +81,10 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_number, task_status, discreet_number, actual_number, task_start_time, 
-    task_end_time, task_type, task_execution_conditions, task_execution_sql, error_message, 
-    create_time, update_time, is_delete
+    id, api_code, batch_number, task_status, discreet_number, actual_number, remaining_num,
+    free_num, task_start_time, task_end_time, release_time_begin, release_time_end, task_type,
+    task_execution_conditions, task_execution_sql, error_message, create_time, update_time,
+    is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XiechengCollidingDataProcessTaskExample" >
     select
@@ -96,7 +101,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_data_process_task
     where id = #{id,jdbcType=BIGINT}
@@ -115,16 +120,20 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_colliding_data_process_task (api_code, batch_number, task_status, 
-      discreet_number, actual_number, task_start_time, 
-      task_end_time, task_type, task_execution_conditions, 
-      task_execution_sql, error_message, create_time, 
-      update_time, is_delete)
-    values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{taskStatus,jdbcType=INTEGER}, 
-      #{discreetNumber,jdbcType=INTEGER}, #{actualNumber,jdbcType=INTEGER}, #{taskStartTime,jdbcType=TIMESTAMP}, 
-      #{taskEndTime,jdbcType=TIMESTAMP}, #{taskType,jdbcType=INTEGER}, #{taskExecutionConditions,jdbcType=VARCHAR}, 
-      #{taskExecutionSql,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
+    insert into b_xiecheng_colliding_data_process_task (api_code, batch_number, task_status,
+    discreet_number, actual_number, remaining_num,
+    free_num, task_start_time, task_end_time,
+    release_time_begin, release_time_end, task_type,
+    task_execution_conditions, task_execution_sql,
+    error_message, create_time, update_time,
+    is_delete)
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{taskStatus,jdbcType=INTEGER},
+    #{discreetNumber,jdbcType=INTEGER}, #{actualNumber,jdbcType=INTEGER}, #{remainingNum,jdbcType=INTEGER},
+    #{freeNum,jdbcType=INTEGER}, #{taskStartTime,jdbcType=TIMESTAMP}, #{taskEndTime,jdbcType=TIMESTAMP},
+    #{releaseTimeBegin,jdbcType=TIMESTAMP}, #{releaseTimeEnd,jdbcType=TIMESTAMP}, #{taskType,jdbcType=INTEGER},
+    #{taskExecutionConditions,jdbcType=VARCHAR}, #{taskExecutionSql,jdbcType=VARCHAR},
+    #{errorMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{isDelete,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XiechengCollidingDataProcessTask" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -147,11 +156,23 @@
       <if test="actualNumber != null" >
         actual_number,
       </if>
+      <if test="remainingNum != null" >
+        remaining_num,
+      </if>
+      <if test="freeNum != null" >
+        free_num,
+      </if>
       <if test="taskStartTime != null" >
         task_start_time,
       </if>
       <if test="taskEndTime != null" >
         task_end_time,
+      </if>
+      <if test="releaseTimeBegin != null" >
+        release_time_begin,
+      </if>
+      <if test="releaseTimeEnd != null" >
+        release_time_end,
       </if>
       <if test="taskType != null" >
         task_type,
@@ -191,11 +212,23 @@
       <if test="actualNumber != null" >
         #{actualNumber,jdbcType=INTEGER},
       </if>
+      <if test="remainingNum != null" >
+        #{remainingNum,jdbcType=INTEGER},
+      </if>
+      <if test="freeNum != null" >
+        #{freeNum,jdbcType=INTEGER},
+      </if>
       <if test="taskStartTime != null" >
         #{taskStartTime,jdbcType=TIMESTAMP},
       </if>
       <if test="taskEndTime != null" >
         #{taskEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="releaseTimeBegin != null" >
+        #{releaseTimeBegin,jdbcType=TIMESTAMP},
+      </if>
+      <if test="releaseTimeEnd != null" >
+        #{releaseTimeEnd,jdbcType=TIMESTAMP},
       </if>
       <if test="taskType != null" >
         #{taskType,jdbcType=INTEGER},
@@ -247,11 +280,23 @@
       <if test="record.actualNumber != null" >
         actual_number = #{record.actualNumber,jdbcType=INTEGER},
       </if>
+      <if test="record.remainingNum != null" >
+        remaining_num = #{record.remainingNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.freeNum != null" >
+        free_num = #{record.freeNum,jdbcType=INTEGER},
+      </if>
       <if test="record.taskStartTime != null" >
         task_start_time = #{record.taskStartTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.taskEndTime != null" >
         task_end_time = #{record.taskEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.releaseTimeBegin != null" >
+        release_time_begin = #{record.releaseTimeBegin,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.releaseTimeEnd != null" >
+        release_time_end = #{record.releaseTimeEnd,jdbcType=TIMESTAMP},
       </if>
       <if test="record.taskType != null" >
         task_type = #{record.taskType,jdbcType=INTEGER},
@@ -282,20 +327,24 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_process_task
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
-      task_status = #{record.taskStatus,jdbcType=INTEGER},
-      discreet_number = #{record.discreetNumber,jdbcType=INTEGER},
-      actual_number = #{record.actualNumber,jdbcType=INTEGER},
-      task_start_time = #{record.taskStartTime,jdbcType=TIMESTAMP},
-      task_end_time = #{record.taskEndTime,jdbcType=TIMESTAMP},
-      task_type = #{record.taskType,jdbcType=INTEGER},
-      task_execution_conditions = #{record.taskExecutionConditions,jdbcType=VARCHAR},
-      task_execution_sql = #{record.taskExecutionSql,jdbcType=VARCHAR},
-      error_message = #{record.errorMessage,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+    task_status = #{record.taskStatus,jdbcType=INTEGER},
+    discreet_number = #{record.discreetNumber,jdbcType=INTEGER},
+    actual_number = #{record.actualNumber,jdbcType=INTEGER},
+    remaining_num = #{record.remainingNum,jdbcType=INTEGER},
+    free_num = #{record.freeNum,jdbcType=INTEGER},
+    task_start_time = #{record.taskStartTime,jdbcType=TIMESTAMP},
+    task_end_time = #{record.taskEndTime,jdbcType=TIMESTAMP},
+    release_time_begin = #{record.releaseTimeBegin,jdbcType=TIMESTAMP},
+    release_time_end = #{record.releaseTimeEnd,jdbcType=TIMESTAMP},
+    task_type = #{record.taskType,jdbcType=INTEGER},
+    task_execution_conditions = #{record.taskExecutionConditions,jdbcType=VARCHAR},
+    task_execution_sql = #{record.taskExecutionSql,jdbcType=VARCHAR},
+    error_message = #{record.errorMessage,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -318,11 +367,23 @@
       <if test="actualNumber != null" >
         actual_number = #{actualNumber,jdbcType=INTEGER},
       </if>
+      <if test="remainingNum != null" >
+        remaining_num = #{remainingNum,jdbcType=INTEGER},
+      </if>
+      <if test="freeNum != null" >
+        free_num = #{freeNum,jdbcType=INTEGER},
+      </if>
       <if test="taskStartTime != null" >
         task_start_time = #{taskStartTime,jdbcType=TIMESTAMP},
       </if>
       <if test="taskEndTime != null" >
         task_end_time = #{taskEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="releaseTimeBegin != null" >
+        release_time_begin = #{releaseTimeBegin,jdbcType=TIMESTAMP},
+      </if>
+      <if test="releaseTimeEnd != null" >
+        release_time_end = #{releaseTimeEnd,jdbcType=TIMESTAMP},
       </if>
       <if test="taskType != null" >
         task_type = #{taskType,jdbcType=INTEGER},
@@ -351,19 +412,23 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XiechengCollidingDataProcessTask" >
     update b_xiecheng_colliding_data_process_task
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      batch_number = #{batchNumber,jdbcType=VARCHAR},
-      task_status = #{taskStatus,jdbcType=INTEGER},
-      discreet_number = #{discreetNumber,jdbcType=INTEGER},
-      actual_number = #{actualNumber,jdbcType=INTEGER},
-      task_start_time = #{taskStartTime,jdbcType=TIMESTAMP},
-      task_end_time = #{taskEndTime,jdbcType=TIMESTAMP},
-      task_type = #{taskType,jdbcType=INTEGER},
-      task_execution_conditions = #{taskExecutionConditions,jdbcType=VARCHAR},
-      task_execution_sql = #{taskExecutionSql,jdbcType=VARCHAR},
-      error_message = #{errorMessage,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER}
+        batch_number = #{batchNumber,jdbcType=VARCHAR},
+        task_status = #{taskStatus,jdbcType=INTEGER},
+        discreet_number = #{discreetNumber,jdbcType=INTEGER},
+        actual_number = #{actualNumber,jdbcType=INTEGER},
+        remaining_num = #{remainingNum,jdbcType=INTEGER},
+        free_num = #{freeNum,jdbcType=INTEGER},
+        task_start_time = #{taskStartTime,jdbcType=TIMESTAMP},
+        task_end_time = #{taskEndTime,jdbcType=TIMESTAMP},
+        release_time_begin = #{releaseTimeBegin,jdbcType=TIMESTAMP},
+        release_time_end = #{releaseTimeEnd,jdbcType=TIMESTAMP},
+        task_type = #{taskType,jdbcType=INTEGER},
+        task_execution_conditions = #{taskExecutionConditions,jdbcType=VARCHAR},
+        task_execution_sql = #{taskExecutionSql,jdbcType=VARCHAR},
+        error_message = #{errorMessage,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

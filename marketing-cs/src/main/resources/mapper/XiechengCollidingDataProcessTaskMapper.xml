@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper">
+    <select id="selectReleaseTimeRanges" resultType="com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO">
+        select release_time_begin, release_time_end
+        from b_xiecheng_colliding_data_process_task
+        where api_code = #{apiCode} and task_type = 1
+          and task_status in (0, 1) and is_delete = 0
+          and release_time_begin is not null and release_time_end is not null
+        order by release_time_begin asc
+    </select>
 </mapper>

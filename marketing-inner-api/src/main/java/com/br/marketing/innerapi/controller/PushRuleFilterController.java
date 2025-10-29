@@ -8,6 +8,8 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.*;
+import com.br.marketing.dto.rulecenter.XcCycleDeleteDTO;
+import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
@@ -224,6 +226,13 @@ public class PushRuleFilterController {
             extendInfo = "使用{#dto.mRuleCondition}，进行数据量级{#dto.mPlanNum}的数据剔除")
     public ApiResult collidingDataDeleteNum(@RequestBody PushCustomerDTO dto) {
         return new ApiResult<Integer>().fromResult(pushRuleService.collidingDataDeleteNum(dto), CODE_1);
+    }
+
+    @ApiOperation(value = "撞库数据周期剔除量级分布", notes = "撞库数据周期剔除量级分布", httpMethod = "POST")
+    @PostMapping("/collidingDataCycleDeleteMagnitudeDist")
+    public ApiResult collidingDataCycleDeleteMagnitudeDist(@RequestBody XcCycleDeleteDTO dto) {
+        return new ApiResult<XcDeleteMagnitudeDistDTO>()
+                .fromResult(pushRuleService.collidingDataCycleDeleteMagnitudeDist(dto), CODE_1);
     }
 
     /**

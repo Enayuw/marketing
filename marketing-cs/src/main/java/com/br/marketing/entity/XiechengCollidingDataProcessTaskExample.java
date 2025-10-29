@@ -485,6 +485,126 @@ public class XiechengCollidingDataProcessTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andRemainingNumIsNull() {
+            addCriterion("remaining_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumIsNotNull() {
+            addCriterion("remaining_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumEqualTo(Integer value) {
+            addCriterion("remaining_num =", value, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumNotEqualTo(Integer value) {
+            addCriterion("remaining_num <>", value, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumGreaterThan(Integer value) {
+            addCriterion("remaining_num >", value, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("remaining_num >=", value, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumLessThan(Integer value) {
+            addCriterion("remaining_num <", value, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumLessThanOrEqualTo(Integer value) {
+            addCriterion("remaining_num <=", value, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumIn(List<Integer> values) {
+            addCriterion("remaining_num in", values, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumNotIn(List<Integer> values) {
+            addCriterion("remaining_num not in", values, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumBetween(Integer value1, Integer value2) {
+            addCriterion("remaining_num between", value1, value2, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andRemainingNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("remaining_num not between", value1, value2, "remainingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumIsNull() {
+            addCriterion("free_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumIsNotNull() {
+            addCriterion("free_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumEqualTo(Integer value) {
+            addCriterion("free_num =", value, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumNotEqualTo(Integer value) {
+            addCriterion("free_num <>", value, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumGreaterThan(Integer value) {
+            addCriterion("free_num >", value, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("free_num >=", value, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumLessThan(Integer value) {
+            addCriterion("free_num <", value, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumLessThanOrEqualTo(Integer value) {
+            addCriterion("free_num <=", value, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumIn(List<Integer> values) {
+            addCriterion("free_num in", values, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumNotIn(List<Integer> values) {
+            addCriterion("free_num not in", values, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumBetween(Integer value1, Integer value2) {
+            addCriterion("free_num between", value1, value2, "freeNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreeNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("free_num not between", value1, value2, "freeNum");
+            return (Criteria) this;
+        }
+
         public Criteria andTaskStartTimeIsNull() {
             addCriterion("task_start_time is null");
             return (Criteria) this;
@@ -602,6 +722,126 @@ public class XiechengCollidingDataProcessTaskExample {
 
         public Criteria andTaskEndTimeNotBetween(Date value1, Date value2) {
             addCriterion("task_end_time not between", value1, value2, "taskEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginIsNull() {
+            addCriterion("release_time_begin is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginIsNotNull() {
+            addCriterion("release_time_begin is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginEqualTo(Date value) {
+            addCriterion("release_time_begin =", value, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginNotEqualTo(Date value) {
+            addCriterion("release_time_begin <>", value, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginGreaterThan(Date value) {
+            addCriterion("release_time_begin >", value, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginGreaterThanOrEqualTo(Date value) {
+            addCriterion("release_time_begin >=", value, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginLessThan(Date value) {
+            addCriterion("release_time_begin <", value, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginLessThanOrEqualTo(Date value) {
+            addCriterion("release_time_begin <=", value, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginIn(List<Date> values) {
+            addCriterion("release_time_begin in", values, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginNotIn(List<Date> values) {
+            addCriterion("release_time_begin not in", values, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginBetween(Date value1, Date value2) {
+            addCriterion("release_time_begin between", value1, value2, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeBeginNotBetween(Date value1, Date value2) {
+            addCriterion("release_time_begin not between", value1, value2, "releaseTimeBegin");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndIsNull() {
+            addCriterion("release_time_end is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndIsNotNull() {
+            addCriterion("release_time_end is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndEqualTo(Date value) {
+            addCriterion("release_time_end =", value, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndNotEqualTo(Date value) {
+            addCriterion("release_time_end <>", value, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndGreaterThan(Date value) {
+            addCriterion("release_time_end >", value, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndGreaterThanOrEqualTo(Date value) {
+            addCriterion("release_time_end >=", value, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndLessThan(Date value) {
+            addCriterion("release_time_end <", value, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndLessThanOrEqualTo(Date value) {
+            addCriterion("release_time_end <=", value, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndIn(List<Date> values) {
+            addCriterion("release_time_end in", values, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndNotIn(List<Date> values) {
+            addCriterion("release_time_end not in", values, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndBetween(Date value1, Date value2) {
+            addCriterion("release_time_end between", value1, value2, "releaseTimeEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseTimeEndNotBetween(Date value1, Date value2) {
+            addCriterion("release_time_end not between", value1, value2, "releaseTimeEnd");
             return (Criteria) this;
         }
 
