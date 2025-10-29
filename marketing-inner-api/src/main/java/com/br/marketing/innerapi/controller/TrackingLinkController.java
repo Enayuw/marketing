@@ -62,18 +62,19 @@ public class TrackingLinkController {
         }
     }
 
-    @GetMapping("/getLinkDetail")
-    @ApiOperation(value = "获取链路详情信息", notes = "获取链路详情信息")
+    @PostMapping("/getLinkDetail")
+    @ApiOperation(value = "获取链路详情信息", notes = "获取链路详情信息，支持按日期查询，日期格式：yyyy-MM-dd，若不传则默认查询当天数据")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "linkId", value = "查询参数", required = true, dataType = "linkId")
+            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "QueryLinkRequest")
     })
     @AddDataAuthBusiness
-    public ApiResult<LinkDetailResponse> getLinkDetail(@RequestParam Long linkId) {
+    public ApiResult<LinkDetailResponse> getLinkDetail(@RequestBody @Validated QueryLinkRequest request) {
         try {
-            return trackingLinkService.getLinkDetail(linkId);
+            return trackingLinkService.getLinkDetail(request);
         } catch (Exception e) {
-            log.error("Failed to get link details: linkId={}", linkId, e);
-            return new ApiResult<LinkDetailResponse>().fail("Failed to get link details: " + e.getMessage());
+            log.error("查询链路详情失败: linkId={}, startDate={}, endDate={}", 
+                    request.getLinkId(), request.getStartDate(), request.getEndDate(), e);
+            return new ApiResult<LinkDetailResponse>().fail("查询链路详情失败: " + e.getMessage());
         }
     }
 

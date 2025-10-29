@@ -1,5 +1,6 @@
 package com.br.marketing.dto.datamap;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
@@ -43,9 +44,11 @@ public class LinkNodeDetailVO {
     private Long totalMagnitude;
 
     @ApiModelProperty("首次更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime firstUpdateTime;
 
     @ApiModelProperty("最后更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime lastUpdateTime;
 
     @ApiModelProperty("更新次数")

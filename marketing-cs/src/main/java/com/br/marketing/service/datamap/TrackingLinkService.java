@@ -33,10 +33,10 @@ public interface TrackingLinkService {
     /**
      * 获取链路详情
      * 
-     * @param linkId 链路ID
+     * @param request
      * @return 链路详情
      */
-    ApiResult<LinkDetailResponse> getLinkDetail(Long linkId);
+    ApiResult<LinkDetailResponse> getLinkDetail(QueryLinkRequest request);
     
     /**
      * 更新链路

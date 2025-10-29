@@ -12,10 +12,8 @@ public interface BizTrackingLinkNodeMapper extends BizTrackingLinkNodeMapperBase
      * 根据链路ID查询节点详情（包含统计信息）
      *
      * @param linkId 链路ID
-     * @param statDate 统计日期
      * @return 节点详情列表
      */
-    List<LinkNodeDetailDTO> selectLinkNodeDetailsWithStatistics(@Param("linkId") Long linkId,
-                                                                @Param("statDate") String statDate);
+    List<LinkNodeDetailDTO> selectLinkNodeDetailsWithStatistics(@Param("linkId") Long linkId);
 
 }
