@@ -1932,7 +1932,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             // 保存清洗配置
             for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
-                if(StringUtils.isEmpty(fieldConfig.getMappingField())){
+                if (StringUtils.isEmpty(fieldConfig.getMappingField())) {
                     continue;
                 }
                 // 设置API编码信息
@@ -1944,12 +1944,20 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         }
         dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
+
         //更新配置表状态
         MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
         update.setId(configDTO.getConfigId());
-        if (DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode().equals(config.getStatus())) {
-            update.setStatus(DataProcessEnum.RuleStatusEnum.READY.getCode());
-        }
+        // 判断是否是行业模板
+        MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+        nodeExample.createCriteria()
+                .andApiCodeEqualTo(config.getApiCode())
+                .andDataTypeEqualTo(config.getDataType())
+                .andAcceptTypeEqualTo(config.getAcceptType());
+        List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+        // 没有客户数据——行业模板——试跑成功
+        update.setStatus(nodes.isEmpty() ? DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode()
+                : DataProcessEnum.RuleStatusEnum.READY.getCode());
         update.setUpdateTime(new Date());
         cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
         entityOptService.writeOptLog(update.getId(), update, config);
