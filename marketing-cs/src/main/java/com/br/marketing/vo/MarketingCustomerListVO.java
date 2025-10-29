@@ -301,4 +301,7 @@ public class MarketingCustomerListVO {
     @ApiModelProperty(value = "客户信息-产品")
     private String apiType;
 
+    @ApiModelProperty(value = "开发分组")
+    private String assignedGroup;
+
 }
