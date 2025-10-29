@@ -3445,8 +3445,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             MarketingPreUserDetailDTO tempUser = new MarketingPreUserDetailDTO();
             tempUser.setCell(encryptedValue);
             tempUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-            // 保存原始值
-            tempUser.setCellOriginal(encryptedValue);
             
             // 调用解密服务
             iUploadCheckService.process3keyCheck(tempUser, isCheck, tags);
