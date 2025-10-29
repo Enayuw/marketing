@@ -2542,11 +2542,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 埋点
         try {
             log.warn("开始埋点调用 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
-            trackingService.track(DataFlowDirection.IN
+            trackingService.trackBusinessLog(DataFlowDirection.IN
                     , apiCode
                     , "通用上传接口上传数据"
+                    ,"b_marketing_sync_info"
+                    , dto.getJsonData().getRequestId()
                     , Long.valueOf(size)
-                    , "通用上传接口上传数据"
                     , TrackingContext.generateBatchId());
             log.warn("埋点调用成功 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
         } catch (Exception e) {
@@ -3367,7 +3368,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         
-        trackingService.track(DataFlowDirection.IN
+        trackingService.trackPointLog(DataFlowDirection.IN
                     , apiCode
                     , "通用上传接口明细入库"
                     , Long.valueOf(dto.getDataItems().size()-errorSize)
