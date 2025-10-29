@@ -1813,6 +1813,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
         // 判断客户是否传输过数据 -未传输
         if (CollectionUtils.isEmpty(nodes)) {
+            // 查询客户部门信息
             MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
             marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
             List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
@@ -1823,6 +1824,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String firstDepartment = marketingCustomer.getFirstDepartment();
             String secondDepartment = marketingCustomer.getSecondDepartment();
             String apiType = marketingCustomer.getApiType();
+            // 查询行业模板
             MarketingIndustryTemplateExample marketingIndustryTemplateExample = new MarketingIndustryTemplateExample();
             marketingIndustryTemplateExample.createCriteria()
                     .andFirstDepartmentEqualTo(firstDepartment)
@@ -1842,6 +1844,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParses =
                     marketingIndustryTemplateJsonParseMapper.selectByExample(marketingIndustryTemplateJsonParseExample);
 
+            // 行业模板 + 规则配置
             for (MarketingIndustryTemplateJsonParse parse : marketingIndustryTemplateJsonParses) {
                 buildFieldSample(result, ruleConfigList, parse.getNodeName(), parse.getLevel(),
                         parse.getNodeValue(), parse.getParentPath(), parse.getNodeType(), parse.getCreateTime());
